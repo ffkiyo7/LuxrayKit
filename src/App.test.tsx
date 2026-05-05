@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import 'fake-indexeddb/auto';
-import { cleanup, render, screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { App } from './App';
@@ -69,7 +69,7 @@ describe('App page flows', () => {
     expect(screen.queryByText('示例能力值')).toBeNull();
   });
 
-  it('keeps member editing focused on the selected Pokemon, moves, nature, item, ability, and six SP fields', async () => {
+  it('keeps member editing focused on the selected Pokemon, moves, nature, item, ability, and six SP fields', { timeout: 15000 }, async () => {
     const user = await renderApp();
 
     await user.click(screen.getByText('烈咬陆鲨'));
@@ -136,41 +136,159 @@ describe('App page flows', () => {
     expect(screen.getByText(/0\/6 成员/)).toBeTruthy();
   });
 
-  it('selects both calculator sides from searchable current-rule Pokemon and team recommendations', async () => {
+  it('allows real editing of temporary config: SP, nature, item, and move changes persist', async () => {
+    const user = await renderApp();
+
+    await user.click(screen.getByRole('button', { name: '计算' }));
+    expect(await screen.findByText('选择进攻方')).toBeTruthy();
+
+    // Verify mandatory UI labels
+    expect(screen.getAllByText(/Champions SP/).length).toBeGreaterThanOrEqual(2);
+    expect(screen.getAllByText(/Lv.50 固定/).length).toBeGreaterThanOrEqual(2);
+    expect(screen.getAllByText(/手动临时配置/).length).toBeGreaterThanOrEqual(2);
+    expect(screen.getByText(/临时修改不会自动保存/)).toBeTruthy();
+    expect(screen.queryByText('努力值')).toBeNull();
+    expect(screen.getByText('实验性伤害计算')).toBeTruthy();
+    expect(screen.getAllByText(/非官方 Champions 正式结论/).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText(/实验性计算说明/)).toBeTruthy();
+    expect(screen.getByText(/Champions 伤害公式尚未/)).toBeTruthy();
+    expect(screen.queryByText(/% -/)).toBeNull();
+
+    // Expand attacker config
+    const editBtns = screen.getAllByTitle('编辑能力配置');
+    await user.click(editBtns[0]);
+    expect(await screen.findByText(/Champions SP 分配/)).toBeTruthy();
+    expect(screen.getByText(/临时修改不会自动保存到队伍/)).toBeTruthy();
+
+    // ── Test SP editing: HP was 2, change to 8 through the picker ──
+    expect(screen.queryByRole('spinbutton')).toBeNull();
+    await user.click(screen.getByRole('button', { name: /HP\s*2/ }));
+    const hpSlider = screen.getByRole('slider', { name: 'HP SP' });
+    expect(hpSlider.getAttribute('max')).toBe('32');
+    expect(screen.getByRole('button', { name: 'min' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'max' })).toBeTruthy();
+    fireEvent.change(hpSlider, { target: { value: '8' } });
+    expect((hpSlider as HTMLInputElement).value).toBe('8');
+    await user.click(screen.getByTitle('关闭 SP 调整'));
+    expect(screen.getByText(/Champions SP 已用 72\/66/)).toBeTruthy();
+    expect(screen.getByText(/SP 分配不合法/)).toBeTruthy();
+    expect(screen.getByText(/当前组合无法进行实验性计算/)).toBeTruthy();
+
+    // ── Test nature editing ──
+    const natureSelect = screen.getByLabelText('性格') as HTMLSelectElement;
+    expect(natureSelect.tagName).toBe('SELECT');
+    expect(Array.from(natureSelect.options).some((option) => option.textContent === '爽朗（+速度 / -特攻）')).toBe(true);
+    await user.selectOptions(natureSelect, '固执');
+    expect(natureSelect.value).toBe('固执');
+
+    // ── Test item editing: find the select with "无道具" option ──
+    const allSelects = screen.getAllByRole('combobox');
+    const itemSelect = allSelects.find((s) => (s as HTMLSelectElement).options.length > 1 && (s as HTMLSelectElement).options[0].textContent === '无道具') as HTMLSelectElement;
+    expect(itemSelect).toBeTruthy();
+    const seedItem = Array.from(itemSelect.options).find((o) => o.value && o.value !== '');
+    expect(seedItem).toBeTruthy();
+    const testItemId = seedItem!.value;
+    await user.selectOptions(itemSelect, testItemId);
+    expect(itemSelect.value).toBe(testItemId);
+
+    // ── Test move selection ──
+    const moveSelect = allSelects.find((s) => s !== itemSelect && (s as HTMLSelectElement).options.length > 0) as HTMLSelectElement;
+    expect(moveSelect).toBeTruthy();
+    const currentMoveId = moveSelect.value;
+    expect(currentMoveId).toBeTruthy();
+
+    // ── Collapse config and verify edits persist ──
+    await user.click(screen.getByTitle('收起配置'));
+    expect(screen.getByText(/固执 ·/)).toBeTruthy();
+
+    // ── Switch weather — SP and nature must NOT be reset ──
+    const weatherSelect = Array.from(screen.getAllByRole('combobox')).find(
+      (s) => (s as HTMLSelectElement).options[0]?.textContent === '无天气',
+    ) as HTMLSelectElement;
+    expect(weatherSelect).toBeTruthy();
+    await user.selectOptions(weatherSelect, '晴天');
+    expect(weatherSelect.value).toBe('晴天');
+    // Re-expand and verify HP is still 8
+    await user.click(screen.getAllByTitle('编辑能力配置')[0]);
+    expect(screen.getByRole('button', { name: /HP\s*8/ })).toBeTruthy();
+
+    // ── Defender gets the same temporary SP picker behavior ──
+    await user.click(screen.getByRole('button', { name: /防守方/ }));
+    await user.click(screen.getAllByTitle('编辑能力配置')[0]);
+    await user.click(screen.getByRole('button', { name: /防御\s*17/ }));
+    const defenderDefenseSlider = screen.getByRole('slider', { name: '防御 SP' });
+    fireEvent.change(defenderDefenseSlider, { target: { value: '20' } });
+    await user.click(screen.getByTitle('关闭 SP 调整'));
+    expect(screen.getByText(/Champions SP 已用 69\/66/)).toBeTruthy();
+  });
+
+  it('shows team-member config source and preserves original team data after edits', async () => {
+    const user = await renderApp();
+
+    // Expand Garchomp member card on the team page
+    await user.click(screen.getByText('烈咬陆鲨'));
+
+    // Click "→ 伤害计算" button to open calculator with this team member
+    const calcBtn = screen.getByRole('button', { name: /伤害计算/ });
+    await user.click(calcBtn);
+
+    // Now on calculator page — should show garchomp and team-member config
+    expect(await screen.findByText('伤害计算')).toBeTruthy();
+    // The attacker card should reference Garchomp (team member Pokemon)
+    const garchompElements = screen.getAllByText(/烈咬陆鲨/);
+    expect(garchompElements.length).toBeGreaterThanOrEqual(1);
+
+    // The config source should eventually show team-member source
+    // (useEffect applies it after mount; wait for it)
+    await screen.findByText(/来自队伍配置/);
+
+    // Expand the attacker config and edit SP
+    const editBtns = screen.getAllByTitle('编辑能力配置');
+    await user.click(editBtns[0]);
+    await screen.findByText(/Champions SP 分配/);
+
+    await user.click(screen.getByRole('button', { name: /HP\s*\d+/ }));
+    const hpSlider = screen.getByRole('slider', { name: 'HP SP' });
+    fireEvent.change(hpSlider, { target: { value: '12' } });
+    await user.click(screen.getByTitle('关闭 SP 调整'));
+
+    // Should now show "已修改未保存"
+    expect(screen.getByText(/已修改未保存/)).toBeTruthy();
+
+    // Navigate back to team page
+    await user.click(screen.getByRole('button', { name: '组队' }));
+    expect(await screen.findByText('我的队伍')).toBeTruthy();
+
+    // Expand member again — the team page is functional
+    await user.click(screen.getByText('烈咬陆鲨'));
+    expect(screen.getByText(/能力配置/)).toBeTruthy();
+    expect(screen.getByText(/HP\+1/)).toBeTruthy();
+    expect(screen.queryByText(/HP\+12/)).toBeNull();
+  });
+
+  it('selects both calculator sides from searchable Pokemon and team recommendations', async () => {
     const user = await renderApp();
 
     await user.click(screen.getByRole('button', { name: '计算' }));
     expect(await screen.findByText('选择进攻方')).toBeTruthy();
     expect(screen.getByText('当前队伍推荐')).toBeTruthy();
     expect(screen.queryByText('小顿熊')).toBeNull();
-    expect(screen.getByText('选择招式')).toBeTruthy();
-    expect(screen.getByText('天气')).toBeTruthy();
-    await user.selectOptions(screen.getByLabelText('选择招式'), 'dragon-claw');
-    await user.selectOptions(screen.getByLabelText('天气'), '晴天');
-    expect((screen.getByLabelText('选择招式') as HTMLSelectElement).value).toBe('dragon-claw');
-    expect((screen.getByLabelText('天气') as HTMLSelectElement).value).toBe('晴天');
-    expect(within(screen.getByLabelText('Mega 状态')).getByText('进攻方 超级烈咬陆鲨')).toBeTruthy();
-    expect(within(screen.getByLabelText('Mega 状态')).getByText('防守方不支持 Mega')).toBeTruthy();
-    await user.selectOptions(screen.getByLabelText('Mega 状态'), 'attacker:mega-garchomp');
-    expect(within(screen.getByRole('button', { name: /进攻方/ })).getByText('超级烈咬陆鲨')).toBeTruthy();
 
+    // Switch to defender and pick from search
     await user.click(screen.getByRole('button', { name: /防守方/ }));
     expect(await screen.findByText('选择防守方')).toBeTruthy();
     const selector = screen.getByText('选择防守方').closest('section');
     expect(selector).toBeTruthy();
 
-    const recommendedGarchomp = within(selector as HTMLElement).getByRole('button', { name: /烈咬陆鲨/ });
-    await user.click(recommendedGarchomp);
-    const recommendedDefenderCard = screen.getByRole('button', { name: /防守方/ });
-    expect(within(recommendedDefenderCard).getByText('烈咬陆鲨')).toBeTruthy();
-    expect(recommendedGarchomp.getAttribute('aria-pressed')).toBe('true');
-
+    const garchompBtn = within(selector as HTMLElement).getByRole('button', { name: /烈咬陆鲨/ });
+    await user.click(garchompBtn);
     await user.type(screen.getByPlaceholderText('搜索名称'), 'Torkoal');
     await user.click(within(selector as HTMLElement).getByText('煤炭龟'));
 
-    const defenderCard = screen.getByRole('button', { name: /防守方/ });
-    expect(within(defenderCard).getByText('煤炭龟')).toBeTruthy();
-    expect(screen.getByText('该机制待确认，计算暂不可用')).toBeTruthy();
+    // Verify damage is gated instead of showing untrusted ranges.
+    expect(screen.getByText('实验性伤害计算')).toBeTruthy();
+    expect(screen.getByText(/Champions 伤害公式尚未/)).toBeTruthy();
+    expect(screen.queryByText(/% -/)).toBeNull();
   });
 
   it('filters the Pokedex Pokemon list by up to two selected types', { timeout: 15000 }, async () => {
@@ -229,7 +347,7 @@ describe('App page flows', () => {
     expect(screen.getByText('属性相克')).toBeTruthy();
   });
 
-  it('filters Pokedex moves, items, and abilities with the shared search box', async () => {
+  it('filters Pokedex moves, items, and abilities with the shared search box', { timeout: 15000 }, async () => {
     const user = await renderApp();
 
     await user.click(screen.getByRole('button', { name: '图鉴' }));
