@@ -143,9 +143,9 @@ describe('App page flows', () => {
     expect(await screen.findByText('选择进攻方')).toBeTruthy();
 
     // Verify mandatory UI labels
-    expect(screen.getAllByText(/Champions SP/).length).toBeGreaterThanOrEqual(2);
-    expect(screen.getAllByText(/Lv.50 固定/).length).toBeGreaterThanOrEqual(2);
-    expect(screen.getAllByText(/手动临时配置/).length).toBeGreaterThanOrEqual(2);
+    expect(screen.queryByText(/Champions SP/)).toBeNull();
+    expect(screen.queryByText(/Lv.50 固定/)).toBeNull();
+    expect(screen.queryByText(/手动临时配置/)).toBeNull();
     expect(screen.getByText(/临时修改不会自动保存/)).toBeTruthy();
     expect(screen.queryByText('努力值')).toBeNull();
     expect(screen.getAllByText('伤害计算').length).toBeGreaterThanOrEqual(2);
@@ -170,7 +170,7 @@ describe('App page flows', () => {
     fireEvent.change(hpSlider, { target: { value: '8' } });
     expect((hpSlider as HTMLInputElement).value).toBe('8');
     await user.click(screen.getByTitle('关闭 SP 调整'));
-    expect(screen.getByText(/Champions SP 已用 8\/66/)).toBeTruthy();
+    expect(screen.getByText(/已用 8\/66/)).toBeTruthy();
     await user.click(screen.getByRole('button', { name: /攻击\s*0/ }));
     const attackSlider = screen.getByRole('slider', { name: '攻击 SP' });
     fireEvent.change(attackSlider, { target: { value: '32' } });
@@ -179,7 +179,7 @@ describe('App page flows', () => {
     const speedSlider = screen.getByRole('slider', { name: '速度 SP' });
     fireEvent.change(speedSlider, { target: { value: '32' } });
     await user.click(screen.getByTitle('关闭 SP 调整'));
-    expect(screen.getByText(/Champions SP 已用 72\/66/)).toBeTruthy();
+    expect(screen.getByText(/已用 72\/66/)).toBeTruthy();
     expect(screen.getByText(/SP 分配不合法/)).toBeTruthy();
     expect(screen.getByText(/SP 分配需要调整/)).toBeTruthy();
 
@@ -228,7 +228,7 @@ describe('App page flows', () => {
     const defenderDefenseSlider = screen.getByRole('slider', { name: '防御 SP' });
     fireEvent.change(defenderDefenseSlider, { target: { value: '20' } });
     await user.click(screen.getByTitle('关闭 SP 调整'));
-    expect(screen.getByText(/Champions SP 已用 20\/66/)).toBeTruthy();
+    expect(screen.getByText(/已用 20\/66/)).toBeTruthy();
   });
 
   it('keeps calculator move search results synced with the selected move', async () => {
@@ -285,7 +285,7 @@ describe('App page flows', () => {
     expect(screen.getByText(/防守特性：引火.*火属性招式无效/)).toBeTruthy();
   });
 
-  it('shows team-member config source and preserves original team data after edits', async () => {
+  it('imports team-member config and preserves original team data after edits', async () => {
     const user = await renderApp();
 
     // Expand Garchomp member card on the team page
@@ -295,15 +295,10 @@ describe('App page flows', () => {
     const calcBtn = screen.getByRole('button', { name: /伤害计算/ });
     await user.click(calcBtn);
 
-    // Now on calculator page — should show garchomp and team-member config
+    // Now on calculator page — should show garchomp from the team member
     expect(await screen.findByRole('heading', { name: '伤害计算' })).toBeTruthy();
-    // The attacker card should reference Garchomp (team member Pokemon)
     const garchompElements = screen.getAllByText(/烈咬陆鲨/);
     expect(garchompElements.length).toBeGreaterThanOrEqual(1);
-
-    // The config source should eventually show team-member source
-    // (useEffect applies it after mount; wait for it)
-    await screen.findByText(/来自队伍配置/);
 
     // Expand the attacker config and edit SP
     const editBtns = screen.getAllByTitle('编辑能力配置');
@@ -315,8 +310,7 @@ describe('App page flows', () => {
     fireEvent.change(hpSlider, { target: { value: '12' } });
     await user.click(screen.getByTitle('关闭 SP 调整'));
 
-    // Should now show "已修改未保存"
-    expect(screen.getByText(/已修改未保存/)).toBeTruthy();
+    expect(screen.getByRole('button', { name: /HP\s*12/ })).toBeTruthy();
 
     // Navigate back to team page
     await user.click(screen.getByRole('button', { name: '组队' }));

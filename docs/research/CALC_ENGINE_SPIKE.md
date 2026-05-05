@@ -1,85 +1,54 @@
-# @smogon/calc Compatibility Spike
+# 伤害计算引擎结论
 
-Date: 2026-04-26
+更新时间：2026-05-06
 
-Implementation review: 2026-04-30
+## 当前实现
 
-Scope: Evaluate whether `@smogon/calc` can satisfy the Pokemon Champions PRD damage-calculation needs without changing package setup. The project currently does not depend on `@smogon/calc`.
+项目使用 `@smogon/calc` 的 Gen9 主线公式作为核心近似引擎，通过 `src/lib/damageAdapter.ts` 做项目侧适配。
 
-## Sources
+适配层负责：
 
-- npm package: https://www.npmjs.com/package/@smogon/calc
-- npm metadata inspected locally with `npm view @smogon/calc version time dist-tags repository homepage license --json`
-- Published tarball inspected locally with `npm pack @smogon/calc@0.11.0`
-- Repository: https://github.com/smogon/damage-calc
-- Published `0.11.0` source files inspected from tarball: `src/index.ts`, `src/field.ts`, `src/pokemon.ts`, `src/move.ts`, `src/mechanics/gen789.ts`, `src/data/interface.ts`, `src/data/items.ts`
-- Upstream `master` Champions mechanics file: https://raw.githubusercontent.com/smogon/damage-calc/master/calc/src/mechanics/champions.ts
-- PRD official rule source for Regulation Set M-A: https://news.pokemon-home.com/en/page/751.html
+- 把项目 Pokémon / form / move / item / ability / nature id 映射为计算输入。
+- 使用 Champions SP v1 推导实际能力值。
+- 接入单双打、天气、场地、能力阶级、属性、本系、关键道具与特性。
+- 派生 spread damage，而不是暴露给用户手动开关。
+- 输出项目统一的伤害范围、百分比、结论、warnings 和修正胶囊。
 
-## Package Status
+## 结论口径
 
-- npm latest is `@smogon/calc@0.11.0`, published 2026-03-11.
-- The package exports `calculate`, `Pokemon`, `Move`, `Field`, `Side`, `Generations`, data constants, and stat helpers from `dist/index.js`.
-- The published tarball contains generation mechanics for Gen 1-9, but no published `src/mechanics/champions.ts` or `dist/mechanics/champions.js`.
-- The upstream GitHub `master` branch currently contains `calc/src/mechanics/champions.ts`, but this appears unreleased in npm `0.11.0`. Treat it as promising upstream work, not a stable dependency target.
+当前伤害计算可以用于 **experimental mainline approximation**：
 
-## PRD Capability Matrix
+- 公式基础：Gen9 主线伤害公式。
+- 数据基础：当前 Reg M-A Pokémon / move / item / ability seed。
+- Champions 适配：SP、形态、部分招式 / 特性 / 道具修正。
 
-| PRD need | Published `@smogon/calc@0.11.0` | Recommendation |
-| --- | --- | --- |
-| Doubles | Supports `new Field({ gameType: 'Doubles' })`; type is `GameType = 'Singles' \| 'Doubles'`. | Direct use via adapter mapping PRD `battleType` to calc `gameType`. |
-| Spread damage | Gen 7-9 mechanics compute spread when `field.gameType !== 'Singles'` and `move.target` is `allAdjacent` or `allAdjacentFoes`. Move data carries target metadata. | Direct use for standard spread moves; adapter should expose an explicit spread toggle only by selecting/overriding target safely. |
-| Weather | `Field` has `weather`; supported values include `Sand`, `Sun`, `Rain`, `Hail`, `Snow`, `Harsh Sunshine`, `Heavy Rain`, `Strong Winds`. Mechanics handle Weather Ball, weather suppression, and weather-based damage modifiers. | Direct use for canonical weather values. |
-| Terrain | `Field` has `terrain`; supported values include `Electric`, `Grassy`, `Psychic`, `Misty`. Mechanics handle terrain interactions such as Terrain Pulse, Psychic Terrain priority blocking, Grassy Terrain, and terrain seeds. | Direct use for canonical terrain values. |
-| Stat stages | `Pokemon` accepts `boosts` for `atk`, `def`, `spa`, `spd`, `spe`; mechanics clamp and compute final stats. | Direct use. Adapter should translate UI stat stages to calc `boosts`. |
-| Mega/form handling | Species data has `otherFormes`; item data exports `MEGA_STONES`; `Pokemon.getForme(gen, speciesName, item, moveName)` maps many Mega Stones and special forms. | Adapter required. Use calc form names internally, but keep Champions legality/versioning outside calc. |
-| Items | `Pokemon` accepts `item`; item effects are implemented for many mainline mechanics. `Field` also supports Magic Room item suppression. | Direct use for known mainline items; adapter/validation for Champions item legality and any Champions-only item behavior. |
-| Abilities | `Pokemon` accepts `ability`; Gen 7-9 mechanics implement many ability effects and field/side abilities. | Direct use for known mainline abilities; adapter/validation for Champions-specific abilities. |
-| KO text/damage range | `Result` and desc helpers provide damage arrays and descriptions; common damage calculators use this for ranges and KO chance text. | Direct use after output-normalization adapter. |
-| Champions-specific mechanics | Not in published npm `0.11.0`. Upstream `master` has an unreleased `calculateChampions` implementation with Champions-specific names such as `Piercing Drill`, `Mega Sol`, and `Dragonize`. | Block formal production use until released or vendored/forked with verification. |
-| Champions Stat Points | Published package computes stats from mainline IV/EV/Nature inputs. The app now has a project-owned Champions SP v1 stat formula for speed/battle-stat display. | Do not pass user SP directly into calc as EVs. Adapter must either inject precomputed stats or use a reviewed SP-to-calc mapping. |
-| Champions legality | `@smogon/calc` is a damage engine, not a Regulation Set M-A legality authority. | Keep legality in project data/version layer. Do not rely on calc for legal Pokemon/moves/items. |
+它不能标为官方 Champions 正式公式，原因是：
 
-## Adapter Shape
+- Champions 官方未发布完整伤害公式。
+- 部分 Champions 特有招式威力与效果仍需补齐。
+- 部分特性 / 道具 / Mega 交互仍需样例验证。
 
-Use `@smogon/calc` behind a small project-owned adapter, not directly in React pages:
+## 已验证能力
 
-1. Resolve PRD data IDs to calc names: species/form, move, ability, item, nature.
-2. Gate unsupported or unverified Champions mechanics before calculation.
-3. Convert Stat Points through the project-owned Champions SP v1 formula; do not expose IV or silently reinterpret SP as EV.
-4. Build calc objects:
-   - `new Pokemon(9, speciesOrFormName, { level, ability, item, nature, evs, ivs, boosts })`
-   - `new Move(9, moveName, { isCrit, hits, overrides })`
-   - `new Field({ gameType: 'Doubles', weather, terrain, attackerSide, defenderSide })`
-5. Normalize result output into PRD `DamageCalcContext` output: damage range, percent range, one-hit/two-hit/roll text, data version, and assumptions.
-6. Keep Regulation Set M-A legality, Mega limit, duplicate item rules, and source tracing outside the calc engine.
+- 单打 / 双打。
+- spread damage 派生。
+- 天气 / 场地。
+- 攻防能力阶级。
+- Mega form stats/types。
+- 伤害范围与百分比。
+- 一确 / 二确概率。
+- 关键修正胶囊：属性克制、本系、天气、道具、特性等。
 
-## Spike Command
+## 仍需验证
 
-Package setup should remain unchanged for now. To run the probe locally without committing dependency metadata:
+- 与外部计算器的典型样例交叉验证。
+- Champions 改动招式的威力、属性、分类、目标范围。
+- 会改变招式威力、免疫、能力值或最终伤害倍率的全量特性。
+- Champions 新 Mega 的 stats/types/abilities。
 
-```bash
-npm install --no-save @smogon/calc@0.11.0
-node scripts/calc-spike.mjs
-```
+## 维护规则
 
-Expected probe coverage:
-
-- Standard single-target damage.
-- Doubles spread move via `Field({ gameType: 'Doubles' })`.
-- Weather and terrain field options.
-- Stat-stage boosts.
-- Mega form resolution through `Pokemon.getForme`.
-- Package absence of published Champions mechanics.
-
-## Recommendation
-
-Use `@smogon/calc` as the core mainline damage engine through an adapter, but do not label Champions damage output as formal until Champions-only mechanics are verified.
-
-- Direct-use: doubles, spread damage, weather, terrain, mainline stat stages, many items, many abilities, standard damage ranges.
-- Adapter-required: PRD data IDs to calc names, form/Mega resolution, result formatting, legality/version gates, Champions SP v1 stat injection/mapping, explicit blocked-state UX.
-- Blocked for formal Champions output: Champions-specific damage mechanics not present in published npm `0.11.0`, incomplete Mega form / Mega Stone legality mapping, and any Champions-only abilities/items/move effects. Upstream `calculateChampions` is worth tracking, but relying on unreleased `master` would be too brittle for v1.
-
-## Current UI State
-
-The damage page now exposes clickable controls for move selection, singles/doubles, weather, terrain, attack stage, and Mega state. Spread damage is derived from the selected move target scope and battle type rather than shown as a user-facing toggle. These controls are readiness work for the adapter; they do not yet produce formal damage ranges, KO odds, one-hit, or two-hit conclusions.
+- React 页面不得直接调用 `@smogon/calc`。
+- 新增计算变量必须先进入 adapter 和测试。
+- 结果页只展示实际参与计算的变量胶囊。
+- 所有输出必须保留 experimental / 非官方 Champions 正式结论边界。

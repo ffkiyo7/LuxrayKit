@@ -1,5 +1,5 @@
 import { Calculator, ChevronDown, ChevronUp, Minus, Plus, Search, Users, X } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { abilities as allAbilities, currentDataVersion, currentRuleNatureOptions, items as allItems, moves, pokemon } from '../data';
 import { currentRuleMovesForPokemon, currentRuleNatures, natureOptionLabel } from '../lib/currentRuleCatalog';
 import {
@@ -15,7 +15,7 @@ import { findBattleForm } from '../lib/pokemonForms';
 import { clampStatPointValue, MAX_STAT_POINTS_PER_STAT, MAX_TOTAL_STAT_POINTS } from '../lib/statPoints';
 import { useAppStore } from '../state/AppContext';
 import type { Move as AppMove, Pokemon, StatPoints, TeamMember } from '../types';
-import { Badge, Card, PokemonAvatar, TypeBadge } from '../components/ui';
+import { Card, PokemonAvatar, TypeBadge } from '../components/ui';
 
 type CalcSide = 'attacker' | 'defender';
 
@@ -154,16 +154,58 @@ function StatPointPicker({
 
 // ── SideConfigCard ──
 
+function SummaryPokemonAvatar({
+  iconRef,
+  label,
+  active,
+}: {
+  iconRef?: string;
+  label: string;
+  active: boolean;
+}) {
+  const isImage = Boolean(
+    iconRef?.startsWith('http://') ||
+      iconRef?.startsWith('https://') ||
+      iconRef?.startsWith('/') ||
+      iconRef?.startsWith('./') ||
+      iconRef?.startsWith('../') ||
+      iconRef?.startsWith('data:image/'),
+  );
+
+  return (
+    <div
+      className={`grid h-16 w-16 shrink-0 place-items-center rounded-full transition ${
+        active ? 'border border-accent bg-accent/10 shadow-[0_0_0_4px_rgba(129,140,248,0.22)]' : 'border border-transparent bg-transparent'
+      }`}
+    >
+      {isImage ? (
+        <img src={iconRef} alt={label} className="h-14 w-14 object-contain" loading="lazy" decoding="async" />
+      ) : (
+        <span className="grid h-12 w-12 place-items-center rounded-full bg-secondary text-sm font-bold text-accent">
+          {iconRef ?? label.charAt(0)}
+        </span>
+      )}
+    </div>
+  );
+}
+
 function SideConfigCard({
   config,
   onChange,
   showMoves,
-  configDirty,
+  sideLabel,
+  active,
+  onSelect,
+  selectorContent,
 }: {
   config: CalcSideConfig;
   onChange: (next: CalcSideConfig, dirty: boolean) => void;
   showMoves?: boolean;
   configDirty: boolean;
+  sideLabel: string;
+  active: boolean;
+  onSelect: () => void;
+  selectorContent?: ReactNode;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [editingStatKey, setEditingStatKey] = useState<keyof StatPoints | null>(null);
@@ -173,7 +215,6 @@ function SideConfigCard({
   const ability = allAbilities.find((a) => a.id === config.abilityId);
   const item = allItems.find((i) => i.id === config.itemId);
   const availableMoves = pokemonEntry ? currentRuleMovesForPokemon(pokemonEntry.id).filter((move) => move.category !== 'Status') : [];
-  const normalizedMoveQuery = normalizeSearchText(moveQuery);
   const filteredMoves = filterMovesByQuery(availableMoves, moveQuery);
   const selectedMove = availableMoves.find((move) => move.id === config.selectedMoveId);
   const visibleMoves = selectedMove && !filteredMoves.some((move) => move.id === selectedMove.id)
@@ -181,12 +222,10 @@ function SideConfigCard({
     : filteredMoves;
   const spTotal = totalStatPoints(config.statPoints);
   const spIssues = validateStatPoints(config.statPoints);
-  const spSummary = STAT_LABELS.map(({ key, label }) => {
-    const v = clampStatPointValue(config.statPoints[key] ?? 0);
-    return v > 0 ? `${label} ${v}` : null;
-  }).filter(Boolean).join(' · ') || '未分配 SP';
   const natureOptions = useMemo(sortedNatureOptions, []);
   const editingStat = STAT_LABELS.find((stat) => stat.key === editingStatKey);
+  const currentTypes = battleForm?.types ?? pokemonEntry?.types ?? [];
+  const detailVisible = active && expanded;
 
   const dirtyMark = (next: CalcSideConfig) => onChange(next, true);
   const selectMove = (moveId: string) => {
@@ -224,36 +263,67 @@ function SideConfigCard({
   };
 
   return (
-    <Card className="bg-secondary">
+    <Card className={`${active ? 'border-accent bg-secondary' : 'bg-card'}`}>
       <div className="flex items-center gap-3">
-        <PokemonAvatar iconRef={battleForm?.iconRef ?? pokemonEntry?.iconRef} label={battleForm?.chineseName ?? pokemonEntry?.chineseName ?? '未配置'} size="md" />
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold">{battleForm?.chineseName ?? pokemonEntry?.chineseName ?? '未配置 Pokemon'}</p>
-          <p className="text-[10px] text-textMuted">
-            {sourceLabel(config)}{configDirty ? ' · 已修改未保存' : ''} · Lv.50 固定
-          </p>
-          <p className="mt-0.5 text-[11px] text-textSecondary">
+        <button
+          className="grid h-16 w-16 shrink-0 place-items-center rounded-full bg-transparent"
+          type="button"
+          title={`选择${sideLabel}`}
+          onClick={onSelect}
+        >
+          <SummaryPokemonAvatar iconRef={battleForm?.iconRef ?? pokemonEntry?.iconRef} label={battleForm?.chineseName ?? pokemonEntry?.chineseName ?? '未配置'} active={active} />
+        </button>
+        <button
+          aria-label={`选择${sideLabel} ${battleForm?.chineseName ?? pokemonEntry?.chineseName ?? '未配置 Pokemon'}`}
+          className="min-w-0 flex-1 text-left"
+          type="button"
+          onClick={onSelect}
+        >
+          <div className="flex items-center gap-2">
+            <p className="text-[11px] font-semibold text-textSecondary">{sideLabel}</p>
+            {active && <span className="rounded-full bg-accent/20 px-2 py-0.5 text-[10px] font-semibold text-accent">编辑中</span>}
+          </div>
+          <p className="mt-0.5 truncate text-base font-semibold">{battleForm?.chineseName ?? pokemonEntry?.chineseName ?? '未配置 Pokemon'}</p>
+          <div className="mt-1 flex flex-wrap items-center gap-1.5">
+            {currentTypes.map((t) => <TypeBadge key={t} type={t} size="sm" />)}
+          </div>
+          <p className="mt-1 text-[11px] text-textSecondary">
             {config.nature} · {ability?.chineseName ?? '未选特性'} · {item?.chineseName ?? '无道具'}
           </p>
-          <p className={`text-[11px] ${spIssues.length > 0 ? 'text-red-400' : 'text-textSecondary'}`}>
-            Champions SP 已用 {spTotal}/66 · {spSummary}
-          </p>
-          {spIssues.length > 0 && (
-            <div className="mt-1">
-              {spIssues.map((issue, i) => <p key={i} className="text-[10px] text-red-400">{issue}</p>)}
-            </div>
-          )}
-        </div>
-        <button
-          className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-textMuted"
-          title={expanded ? '收起配置' : '编辑能力配置'}
-          onClick={() => setExpanded(!expanded)}
-        >
-          {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
         </button>
+        <div className="flex shrink-0 flex-col items-end gap-1">
+          <button
+            className={`inline-flex h-9 items-center gap-1.5 rounded-lg border px-2 text-xs font-semibold transition ${
+              detailVisible
+                ? 'border-accent bg-accent text-page'
+                : active
+                  ? 'border-accent/50 bg-card text-accent'
+                  : 'border-border bg-card text-textSecondary'
+            }`}
+            title={active ? (detailVisible ? '收起配置' : '编辑能力配置') : '切换到此侧'}
+            aria-label={active ? (detailVisible ? '收起能力配置' : '展开能力配置') : '切换到此侧'}
+            type="button"
+            aria-expanded={detailVisible}
+            onClick={() => {
+              onSelect();
+              if (active) setExpanded(!expanded);
+            }}
+          >
+            <span>{active ? '能力配置' : '选择宝可梦'}</span>
+            {detailVisible ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+          </button>
+        </div>
       </div>
 
-      {expanded && (
+      {active && selectorContent}
+
+      {spIssues.length > 0 && (
+        <div className="mt-2">
+          {spIssues.map((issue, i) => <p key={i} className="text-[10px] text-red-400">{issue}</p>)}
+        </div>
+      )}
+
+      {detailVisible && (
         <div className="mt-3 space-y-2 border-t border-border pt-3">
           <p className="text-[10px] text-textMuted">临时修改不会自动保存到队伍</p>
 
@@ -746,6 +816,78 @@ export function CalculatorPage({
     // eslint-disable-next-line
   }, [damageKey]);
 
+  const pokemonSelectorContent = (
+    <div className="mt-3 border-t border-border pt-3">
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <div>
+          <p className="text-sm font-semibold">{activeSide === 'attacker' ? '选择进攻方' : '选择防守方'}</p>
+          <p className="text-[11px] text-textSecondary">搜索图鉴，或从队伍导入配置</p>
+        </div>
+      </div>
+
+      <label className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2">
+        <Search size={16} className="text-textMuted" />
+        <input className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-textMuted" placeholder="搜索名称" value={query} onChange={(e) => setQuery(e.target.value)} />
+      </label>
+
+      {recommended.length > 0 && (
+        <div className="mt-2">
+          <button
+            className="inline-flex min-h-8 items-center gap-2 rounded-lg border border-border bg-card px-3 text-xs font-semibold text-textSecondary"
+            type="button"
+            onClick={() => setShowTeamPicker((value) => !value)}
+          >
+            <Users size={14} />
+            从队伍选择
+          </button>
+          {showTeamPicker && (
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              {recommended.map(({ member, entry }) => (
+                <button
+                  key={member.id}
+                  className={`rounded-lg border bg-card px-3 py-2 text-left text-xs ${
+                    (activeSide === 'attacker' ? attackerConfig.sourceMemberId === member.id : defenderConfig.sourceMemberId === member.id) ? 'border-accent' : 'border-border'
+                  }`}
+                  type="button"
+                  onClick={() => {
+                    pickTeamMember(member);
+                    setShowTeamPicker(false);
+                  }}
+                >
+                  <p className="truncate font-semibold">{entry.chineseName}</p>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {normalizedQuery && (
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          {filteredPokemon.map((entry) => {
+            const selected = activeSide === 'attacker' ? attackerConfig.pokemonId === entry.id : defenderConfig.pokemonId === entry.id;
+            return (
+              <button
+                key={entry.id}
+                className={`rounded-lg border bg-card p-2 text-left ${selected ? 'border-accent' : 'border-border'}`}
+                type="button"
+                onClick={() => pickPokemon(entry.id)}
+              >
+                <div className="flex items-center gap-2">
+                  <PokemonAvatar iconRef={entry.iconRef} label={entry.chineseName} />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-xs font-semibold">{entry.chineseName}</p>
+                    <div className="mt-1 flex gap-1">{entry.types.map((t) => <TypeBadge key={t} type={t} size="sm" />)}</div>
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div className="space-y-3">
       <div>
@@ -753,141 +895,58 @@ export function CalculatorPage({
         <p className="text-xs text-textSecondary">攻防双方可从当前规则图鉴或队伍选择 · 临时修改不会自动保存</p>
       </div>
 
-      {/* Attacker / Defender selector */}
-      <div className="grid grid-cols-[1fr_24px_1fr] items-center gap-2">
-        <button
-          className={`rounded-lg border p-3 text-left ${activeSide === 'attacker' ? 'border-accent bg-card' : 'border-border bg-card'}`}
-          onClick={() => setActiveSide('attacker')}
-        >
-          <p className="text-[11px] text-textSecondary">进攻方</p>
-          <p className="truncate text-sm font-semibold">{attackerBattleForm?.chineseName ?? '未配置'}</p>
-          <div className="mt-1 flex gap-1">{(attackerBattleForm?.types ?? attackerEntry.types).map((t) => <TypeBadge key={t} type={t} size="sm" />)}</div>
-        </button>
-        <span className="text-center text-textMuted">→</span>
-        <button
-          className={`rounded-lg border p-3 text-left ${activeSide === 'defender' ? 'border-accent bg-card' : 'border-border bg-card'}`}
-          onClick={() => setActiveSide('defender')}
-        >
-          <p className="text-[11px] text-textSecondary">防守方</p>
-          <p className="truncate text-sm font-semibold">{defenderBattleForm?.chineseName ?? '未配置'}</p>
-          <div className="mt-1 flex gap-1">{(defenderBattleForm?.types ?? defenderEntry.types).map((t) => <TypeBadge key={t} type={t} size="sm" />)}</div>
-        </button>
-      </div>
-
-      {/* Pokémon selector */}
-      <Card className="bg-secondary">
-        <div className="mb-3 flex items-center justify-between gap-3">
-          <div>
-            <p className="text-sm font-semibold">{activeSide === 'attacker' ? '选择进攻方' : '选择防守方'}</p>
-            <p className="text-xs text-textSecondary">先选择对象，再编辑能力配置与战斗条件</p>
-          </div>
-          <Badge status="version">{activeSide === 'attacker' ? '进攻' : '防守'}</Badge>
-        </div>
-
-        <label className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2">
-          <Search size={16} className="text-textMuted" />
-          <input className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-textMuted" placeholder="搜索名称" value={query} onChange={(e) => setQuery(e.target.value)} />
-        </label>
-
-        {recommended.length > 0 && (
-          <div className="mt-3">
-            <button
-              className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-border bg-card px-3 text-xs font-semibold text-textSecondary"
-              type="button"
-              onClick={() => setShowTeamPicker((value) => !value)}
-            >
-              <Users size={14} />
-              从队伍选择
-            </button>
-            {showTeamPicker && (
-              <div className="mt-2 grid grid-cols-2 gap-2">
-                {recommended.map(({ member, entry }) => (
-                  <button
-                    key={member.id}
-                    className={`rounded-lg border bg-card px-3 py-2 text-left text-xs ${
-                      (activeSide === 'attacker' ? attackerConfig.sourceMemberId === member.id : defenderConfig.sourceMemberId === member.id) ? 'border-accent' : 'border-border'
-                    }`}
-                    type="button"
-                    onClick={() => {
-                      pickTeamMember(member);
-                      setShowTeamPicker(false);
-                    }}
-                  >
-                    <p className="truncate font-semibold">{entry.chineseName}</p>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {normalizedQuery && (
-          <div className="mt-3 grid grid-cols-2 gap-2">
-            {filteredPokemon.map((entry) => {
-              const selected = activeSide === 'attacker' ? attackerConfig.pokemonId === entry.id : defenderConfig.pokemonId === entry.id;
-              return (
-                <button
-                  key={entry.id}
-                  className={`rounded-lg border bg-card p-2 text-left ${selected ? 'border-accent' : 'border-border'}`}
-                  type="button"
-                  onClick={() => pickPokemon(entry.id)}
-                >
-                  <div className="mb-2 flex items-center gap-2">
-                    <PokemonAvatar iconRef={entry.iconRef} label={entry.chineseName} />
-                    <div className="min-w-0"><p className="truncate text-xs font-semibold">{entry.chineseName}</p></div>
-                  </div>
-                  <div className="flex gap-1">{entry.types.map((t) => <TypeBadge key={t} type={t} />)}</div>
-                </button>
-              );
-            })}
-          </div>
-        )}
-      </Card>
-
-      {/* Config cards */}
       <SideConfigCard
         config={attackerConfig}
         onChange={(next, dirty) => { setAttackerConfig(next); if (dirty) setAttackerDirty(true); }}
         showMoves
         configDirty={attackerDirty}
+        sideLabel="进攻方"
+        active={activeSide === 'attacker'}
+        onSelect={() => setActiveSide('attacker')}
+        selectorContent={activeSide === 'attacker' ? pokemonSelectorContent : undefined}
       />
+      <div className="flex justify-center text-textMuted">↓</div>
       <SideConfigCard
         config={defenderConfig}
         onChange={(next, dirty) => { setDefenderConfig(next); if (dirty) setDefenderDirty(true); }}
         configDirty={defenderDirty}
+        sideLabel="防守方"
+        active={activeSide === 'defender'}
+        onSelect={() => setActiveSide('defender')}
+        selectorContent={activeSide === 'defender' ? pokemonSelectorContent : undefined}
       />
 
       {/* Battle conditions */}
       <Card>
-        <div className="mb-3 flex items-center justify-between">
-          <div>
-            <p className="text-[11px] text-textSecondary">招式 · 战斗条件</p>
-            <div className="mt-1 flex flex-wrap items-center gap-2">
-              {currentMove && <TypeBadge type={currentMove.type} size="sm" />}
-              <p className="text-xs font-semibold">{currentMove?.chineseName} · {currentMove?.power ?? '-'} 威力</p>
-            </div>
+        <div className="flex items-center gap-3">
+          {currentMove && <TypeBadge type={currentMove.type} />}
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] text-textSecondary">招式</p>
+            <p className="truncate text-base font-semibold">{currentMove ? `${currentMove.chineseName} · ${currentMove.power ?? '-'} 威力` : '未选择招式'}</p>
+            <p className="text-[11px] text-textMuted">{currentMove?.category === 'Physical' ? '物理' : currentMove?.category === 'Special' ? '特殊' : '变化'}</p>
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-2">
-          <div>
-            <span className="mb-1 block text-[11px] text-textMuted">规则</span>
-            <div className="grid grid-cols-2 overflow-hidden rounded-lg border border-border">
+
+        <div className="mt-3 grid grid-cols-[1.15fr_1fr_1fr] gap-2">
+          <div className="min-w-0">
+            <span className="mb-1 block text-[10px] text-textMuted">规则</span>
+            <div className="grid grid-cols-2 overflow-hidden rounded-lg border border-border bg-secondary">
               {(['doubles', 'singles'] as const).map((opt) => (
-                <button key={opt} className={`min-h-9 text-xs font-semibold ${battleType === opt ? 'bg-accent text-page' : 'bg-secondary text-textSecondary'}`} type="button" onClick={() => setBattleType(opt)}>
+                <button key={opt} className={`min-h-8 text-xs font-semibold ${battleType === opt ? 'bg-accent text-page' : 'text-textSecondary'}`} type="button" onClick={() => setBattleType(opt)}>
                   {opt === 'doubles' ? '双打' : '单打'}
                 </button>
               ))}
             </div>
           </div>
-          <label>
-            <span className="mb-1 block text-[11px] text-textMuted">天气</span>
-            <select className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm outline-none" value={weather} onChange={(e) => setWeather(e.target.value)}>
+          <label className="min-w-0">
+            <span className="mb-1 block text-[10px] text-textMuted">天气</span>
+            <select className="h-8 w-full rounded-lg border border-border bg-secondary px-2 text-xs outline-none" value={weather} onChange={(e) => setWeather(e.target.value)}>
               {weatherOptions.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
             </select>
           </label>
-          <label>
-            <span className="mb-1 block text-[11px] text-textMuted">场地</span>
-            <select className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm outline-none" value={terrain} onChange={(e) => setTerrain(e.target.value)}>
+          <label className="min-w-0">
+            <span className="mb-1 block text-[10px] text-textMuted">场地</span>
+            <select className="h-8 w-full rounded-lg border border-border bg-secondary px-2 text-xs outline-none" value={terrain} onChange={(e) => setTerrain(e.target.value)}>
               {terrainOptions.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
             </select>
           </label>
