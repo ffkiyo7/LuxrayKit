@@ -16,7 +16,7 @@ import {
   moves,
   pokemon,
 } from '../data';
-import { calculateBattleStats } from './calculations';
+import { calculateBattleStats, defensiveMatchupMultiplier } from './calculations';
 import { findBattleForm, type BattleFormView } from './pokemonForms';
 import type { Move as AppMove, PokemonType, TeamMember } from '../types';
 import type { StatPoints } from '../types';
@@ -37,6 +37,7 @@ export type CalcSideConfig = {
   selectedMoveId?: string;
   nature: string;
   statPoints: StatPoints;
+  statStages?: Partial<Record<keyof StatPoints, number>>;
   level: 50;
   notes?: string;
 };
@@ -79,9 +80,32 @@ export type DamageAdapterResult = {
   minPercent?: number;
   maxPercent?: number;
   possibleHkoText?: string;
+  oneHitKoChance?: number;
+  twoHitKoChance?: number;
+  abilityEffects?: DamageAbilityEffect[];
   defenderHp?: number;
+  attackerStats?: ReturnType<typeof calculateBattleStats>;
+  defenderStats?: ReturnType<typeof calculateBattleStats>;
+  offensiveStatLabel?: string;
+  offensiveStatValue?: number;
+  defensiveStatLabel?: string;
+  defensiveStatValue?: number;
+  stabMultiplier?: number;
+  typeEffectiveness?: number;
+  typeEffectivenessText?: string;
+  weatherMultiplier?: number;
+  weatherText?: string;
+  spreadMultiplier?: number;
   dataVersionId: string;
   ruleSetId: string;
+};
+
+export type DamageAbilityEffect = {
+  side: 'attacker' | 'defender';
+  abilityId: string;
+  label: string;
+  text: string;
+  direction: 'boost' | 'reduction' | 'immunity' | 'changed';
 };
 
 // ── Hard block list ──
@@ -161,7 +185,9 @@ function calcSpeciesId(projectId: string): ReturnType<typeof toID> {
   return toID(SPECIES_ID_MAP[projectId] ?? projectId);
 }
 function calcMoveId(id: string): ReturnType<typeof toID> { return toID(id); }
-function calcAbilityId(id: string): ReturnType<typeof toID> { return toID(id); }
+function calcAbilityName(id: string): string {
+  return abilities.find((ability) => ability.id === id)?.englishName ?? id;
+}
 function calcItemId(id: string): ReturnType<typeof toID> { return toID(id); }
 
 const WEATHER_MAP: Record<string, string | undefined> = {
@@ -171,6 +197,57 @@ const TERRAIN_MAP: Record<string, string | undefined> = {
   '无场地': undefined, '青草场地': 'Grassy', '电气场地': 'Electric',
   '精神场地': 'Psychic', '薄雾场地': 'Misty',
 };
+const NO_ABILITY = 'No Ability';
+const TYPE_LABELS: Record<PokemonType, string> = {
+  Normal: '一般',
+  Fire: '火',
+  Water: '水',
+  Electric: '电',
+  Grass: '草',
+  Ice: '冰',
+  Fighting: '格斗',
+  Poison: '毒',
+  Ground: '地面',
+  Flying: '飞行',
+  Psychic: '超能力',
+  Bug: '虫',
+  Rock: '岩石',
+  Ghost: '幽灵',
+  Dragon: '龙',
+  Dark: '恶',
+  Steel: '钢',
+  Fairy: '妖精',
+};
+
+const MOLD_BREAKER_ABILITIES = new Set(['mold-breaker', 'teravolt', 'turboblaze']);
+
+const TYPE_IMMUNITY_ABILITY_TEXT: Record<string, Partial<Record<PokemonType, string>>> = {
+  'flash-fire': { Fire: '火属性招式无效' },
+  'water-absorb': { Water: '水属性招式无效' },
+  'storm-drain': { Water: '水属性招式无效' },
+  'dry-skin': { Water: '水属性招式无效' },
+  'volt-absorb': { Electric: '电属性招式无效' },
+  'lightning-rod': { Electric: '电属性招式无效' },
+  'motor-drive': { Electric: '电属性招式无效' },
+  'sap-sipper': { Grass: '草属性招式无效' },
+  levitate: { Ground: '地面属性招式无效' },
+  'earth-eater': { Ground: '地面属性招式无效' },
+  'well-baked-body': { Fire: '火属性招式无效' },
+};
+
+const SOUND_MOVE_IDS = new Set([
+  'boomburst', 'bug-buzz', 'chatter', 'clangorous-soulblaze', 'clanging-scales',
+  'disarming-voice', 'echoed-voice', 'hyper-voice', 'overdrive', 'round',
+  'snarl', 'sparkling-aria', 'torch-song', 'uproar',
+]);
+
+const BULLET_BOMB_MOVE_IDS = new Set([
+  'acid-spray', 'aura-sphere', 'barrage', 'beak-blast', 'bullet-seed', 'egg-bomb',
+  'electro-ball', 'energy-ball', 'focus-blast', 'gyro-ball', 'ice-ball',
+  'magnet-bomb', 'mist-ball', 'mud-bomb', 'octazooka', 'pollen-puff', 'pyro-ball',
+  'rock-blast', 'searing-shot', 'seed-bomb', 'shadow-ball', 'sludge-bomb',
+  'weather-ball', 'zap-cannon',
+]);
 
 const SPREAD_TARGET_SCOPES = ['对手全体', '全体邻近目标', '全体'];
 function deriveSpreadDamage(move: AppMove, battleType: BattleTypeOption): boolean {
@@ -184,15 +261,252 @@ function calcMoveTarget(move: AppMove): 'allAdjacentFoes' | 'allAdjacent' | unde
   return undefined;
 }
 
+function statPointsToEvs(statPoints: StatPoints) {
+  return {
+    hp: Math.min(252, clampStatPointValue(statPoints.hp ?? 0) * 8),
+    atk: Math.min(252, clampStatPointValue(statPoints.attack ?? 0) * 8),
+    def: Math.min(252, clampStatPointValue(statPoints.defense ?? 0) * 8),
+    spa: Math.min(252, clampStatPointValue(statPoints.specialAttack ?? 0) * 8),
+    spd: Math.min(252, clampStatPointValue(statPoints.specialDefense ?? 0) * 8),
+    spe: Math.min(252, clampStatPointValue(statPoints.speed ?? 0) * 8),
+  };
+}
+
+function statStagesToBoosts(statStages: CalcSideConfig['statStages'] | undefined) {
+  return {
+    atk: statStages?.attack ?? 0,
+    def: statStages?.defense ?? 0,
+    spa: statStages?.specialAttack ?? 0,
+    spd: statStages?.specialDefense ?? 0,
+    spe: statStages?.speed ?? 0,
+  };
+}
+
+function speciesOverrides(form: BattleFormView) {
+  return {
+    baseStats: {
+      hp: form.baseStats.hp,
+      atk: form.baseStats.attack,
+      def: form.baseStats.defense,
+      spa: form.baseStats.specialAttack,
+      spd: form.baseStats.specialDefense,
+      spe: form.baseStats.speed,
+    },
+    types: form.types.slice(0, 2) as [PokemonType] | [PokemonType, PokemonType],
+  };
+}
+
+function typeEffectivenessText(multiplier: number): string {
+  if (multiplier === 0) return '没有效果';
+  if (multiplier <= 0.25) return '效果相当不好';
+  if (multiplier < 1) return '效果不好';
+  if (multiplier >= 4) return '效果相当好';
+  if (multiplier > 1) return '效果绝佳';
+  return '效果一般';
+}
+
+function weatherImpact(move: AppMove, weather: string): { multiplier: number; text: string } {
+  if (weather === '晴天' && move.type === 'Fire') return { multiplier: 1.5, text: '晴天增强火属性' };
+  if (weather === '晴天' && move.type === 'Water') return { multiplier: 0.5, text: '晴天削弱水属性' };
+  if (weather === '雨天' && move.type === 'Water') return { multiplier: 1.5, text: '雨天增强水属性' };
+  if (weather === '雨天' && move.type === 'Fire') return { multiplier: 0.5, text: '雨天削弱火属性' };
+  return { multiplier: 1, text: weather === '无天气' ? '无天气影响' : `${weather} 无直接招式修正` };
+}
+
+function percentText(chance: number): string {
+  if (chance <= 0) return '0%';
+  if (chance >= 100) return '100%';
+  const rounded = Math.round(chance * 10) / 10;
+  return Number.isInteger(rounded) ? `${rounded}%` : `${rounded.toFixed(1)}%`;
+}
+
+function sameDamageRolls(a: number[], b: number[]): boolean {
+  return a.length === b.length && a.every((value, index) => value === b[index]);
+}
+
+function normalizeDamageRolls(damageData: unknown): number[] {
+  if (Array.isArray(damageData)) return damageData.flat().map(Number);
+  if (typeof damageData === 'number') return [damageData];
+  return [];
+}
+
+function specificAbilityEffectText(abilityId: string, direction: DamageAbilityEffect['direction'], move: AppMove): string | undefined {
+  const typeText = TYPE_IMMUNITY_ABILITY_TEXT[abilityId]?.[move.type];
+  if (direction === 'immunity' && typeText) return typeText;
+  if (direction === 'immunity' && abilityId === 'soundproof' && SOUND_MOVE_IDS.has(move.id)) return '声音招式无效';
+  if (direction === 'immunity' && abilityId === 'bulletproof' && BULLET_BOMB_MOVE_IDS.has(move.id)) return '球和弹类招式无效';
+
+  if (direction === 'reduction') {
+    if (abilityId === 'thick-fat' && (move.type === 'Fire' || move.type === 'Ice')) return `${TYPE_LABELS[move.type]}属性伤害减半`;
+    if (abilityId === 'heatproof' && move.type === 'Fire') return '火属性伤害减半';
+    if (abilityId === 'water-bubble' && move.type === 'Fire') return '火属性伤害减半';
+    if (abilityId === 'purifying-salt' && move.type === 'Ghost') return '幽灵属性伤害减半';
+    if (abilityId === 'solid-rock' || abilityId === 'filter' || abilityId === 'prism-armor') return '效果绝佳伤害减弱';
+    if (abilityId === 'fur-coat' && move.category === 'Physical') return '物理招式伤害减半';
+    if (abilityId === 'ice-scales' && move.category === 'Special') return '特殊招式伤害减半';
+    if (abilityId === 'multiscale') return '满 HP 伤害减弱';
+  }
+
+  if (direction === 'boost') {
+    if (abilityId === 'dry-skin' && move.type === 'Fire') return '火属性伤害增加';
+    if (abilityId === 'huge-power' || abilityId === 'pure-power') return '物理攻击提高';
+    if (abilityId === 'water-bubble' && move.type === 'Water') return '水属性招式增强';
+    if (abilityId === 'adaptability') return '本系招式增强';
+    if (abilityId === 'technician') return '低威力招式增强';
+    if (abilityId === 'tough-claws') return '接触招式增强';
+    if (abilityId === 'iron-fist') return '拳类招式增强';
+    if (abilityId === 'strong-jaw') return '啃咬类招式增强';
+    if (abilityId === 'mega-launcher') return '波动类招式增强';
+    if (abilityId === 'sharpness') return '切割类招式增强';
+    if (abilityId === 'reckless') return '反作用力招式增强';
+    if (abilityId === 'sand-force') return '沙暴中招式增强';
+    if (abilityId === 'solar-power') return '晴天特攻增强';
+    if (abilityId === 'hustle') return '物理招式增强';
+  }
+
+  if (direction === 'changed') {
+    if (abilityId === 'pixilate') return '一般招式变为妖精属性';
+    if (abilityId === 'refrigerate') return '一般招式变为冰属性';
+    if (abilityId === 'aerilate') return '一般招式变为飞行属性';
+    if (abilityId === 'galvanize') return '一般招式变为电属性';
+    if (abilityId === 'liquid-voice') return '声音招式变为水属性';
+    if (abilityId === 'protean' || abilityId === 'libero') return '属性随招式变化';
+    if (abilityId === 'unaware') return '无视能力阶级';
+  }
+
+  return undefined;
+}
+
+function abilityEffectChip({
+  side,
+  abilityId,
+  actual,
+  without,
+  move,
+}: {
+  side: 'attacker' | 'defender';
+  abilityId?: string;
+  actual: number[];
+  without: number[];
+  move: AppMove;
+}): DamageAbilityEffect | undefined {
+  if (!abilityId || sameDamageRolls(actual, without)) return undefined;
+  const ability = abilities.find((candidate) => candidate.id === abilityId);
+  if (!ability) return undefined;
+
+  const actualMax = actual.length > 0 ? Math.max(...actual) : 0;
+  const withoutMax = without.length > 0 ? Math.max(...without) : 0;
+  const direction: DamageAbilityEffect['direction'] =
+    actualMax === 0 && withoutMax > 0
+      ? 'immunity'
+      : actualMax > withoutMax
+        ? 'boost'
+        : actualMax < withoutMax
+          ? 'reduction'
+          : 'changed';
+  const sideLabel = side === 'attacker' ? '进攻特性' : '防守特性';
+  const text =
+    specificAbilityEffectText(abilityId, direction, move)
+      ?? (direction === 'immunity'
+      ? '免疫'
+      : direction === 'boost'
+        ? '增强'
+        : direction === 'reduction'
+          ? '减伤'
+          : '修正');
+
+  return {
+    side,
+    abilityId,
+    label: `${sideLabel}：${ability.chineseName}`,
+    text,
+    direction,
+  };
+}
+
+function knownAbilityEffectChip({
+  side,
+  abilityId,
+  move,
+  actual,
+  opposingAbilityId,
+  typeEffectiveness,
+}: {
+  side: 'attacker' | 'defender';
+  abilityId?: string;
+  move: AppMove;
+  actual: number[];
+  opposingAbilityId?: string;
+  typeEffectiveness?: number;
+}): DamageAbilityEffect | undefined {
+  if (!abilityId) return undefined;
+  const ability = abilities.find((candidate) => candidate.id === abilityId);
+  if (!ability) return undefined;
+  const actualMax = actual.length > 0 ? Math.max(...actual) : 0;
+  const sideLabel = side === 'attacker' ? '进攻特性' : '防守特性';
+
+  if (side === 'defender' && MOLD_BREAKER_ABILITIES.has(opposingAbilityId ?? '')) return undefined;
+
+  const typeImmunityText = TYPE_IMMUNITY_ABILITY_TEXT[abilityId]?.[move.type];
+  if (side === 'defender' && typeImmunityText && actualMax === 0 && (typeEffectiveness ?? 1) > 0) {
+    return {
+      side,
+      abilityId,
+      label: `${sideLabel}：${ability.chineseName}`,
+      text: typeImmunityText,
+      direction: 'immunity',
+    };
+  }
+
+  if (side === 'defender' && abilityId === 'soundproof' && SOUND_MOVE_IDS.has(move.id) && actualMax === 0) {
+    return {
+      side,
+      abilityId,
+      label: `${sideLabel}：${ability.chineseName}`,
+      text: '声音招式无效',
+      direction: 'immunity',
+    };
+  }
+
+  if (side === 'defender' && abilityId === 'bulletproof' && BULLET_BOMB_MOVE_IDS.has(move.id) && actualMax === 0) {
+    return {
+      side,
+      abilityId,
+      label: `${sideLabel}：${ability.chineseName}`,
+      text: '球和弹类招式无效',
+      direction: 'immunity',
+    };
+  }
+
+  return undefined;
+}
+
+function uniqueAbilityEffects(effects: Array<DamageAbilityEffect | undefined>): DamageAbilityEffect[] {
+  const seen = new Set<string>();
+  return effects.filter((effect): effect is DamageAbilityEffect => {
+    if (!effect) return false;
+    const key = `${effect.side}|${effect.abilityId}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 const BASE_STATS_DECLARATION = {
   ivs: { hp: 31, atk: 31, def: 31, spa: 31, spd: 31, spe: 31 },
   evs: { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 },
 };
 
+const STAT_STAGE_KEYS = ['attack', 'defense', 'specialAttack', 'specialDefense', 'speed'] as const;
+
 // ── Config builders ──
 
 /** Build a calc config by copying all relevant fields from a team member. */
 export function buildCalcConfigFromTeamMember(member: TeamMember): CalcSideConfig {
+  const selectedMoveId =
+    member.moveIds
+      .map((moveId) => moves.find((move) => move.id === moveId))
+      .find((move) => move?.category !== 'Status')?.id ?? member.moveIds[0];
   return {
     source: 'team-member',
     sourceMemberId: member.id,
@@ -201,9 +515,10 @@ export function buildCalcConfigFromTeamMember(member: TeamMember): CalcSideConfi
     abilityId: member.abilityId,
     itemId: member.itemId,
     moveIds: [...member.moveIds],
-    selectedMoveId: member.moveIds[0],
+    selectedMoveId,
     nature: member.nature,
     statPoints: { ...member.statPoints },
+    statStages: {},
     level: 50,
   };
 }
@@ -211,10 +526,7 @@ export function buildCalcConfigFromTeamMember(member: TeamMember): CalcSideConfi
 export type CalcRole = 'attacker' | 'defender';
 export type MoveCategoryHint = 'Physical' | 'Special' | 'Status' | 'unknown';
 
-/**
- * Build a temporary calc config with a role-based default SP preset.
- * All presets are SP-total 66 and respect single-stat cap 32.
- */
+/** Build a temporary calc config without copying team SP or other persisted member tuning. */
 export function buildTemporaryCalcConfig(params: {
   pokemonId: string;
   role: CalcRole;
@@ -224,25 +536,9 @@ export function buildTemporaryCalcConfig(params: {
   const abilityId = entry?.abilities[0];
   const moveIds = entry ? [entry.learnableMoves[0] ?? 'protect'].filter(Boolean) : [];
 
-  let statPoints: StatPoints;
-  let nature: string;
-
-  if (params.role === 'attacker') {
-    if (params.moveCategory === 'Physical') {
-      statPoints = { attack: 32, speed: 32, hp: 2 };
-      nature = '爽朗';
-    } else if (params.moveCategory === 'Special') {
-      statPoints = { specialAttack: 32, speed: 32, hp: 2 };
-      nature = '胆小';
-    } else {
-      statPoints = { speed: 32, attack: 16, specialAttack: 16, hp: 2 };
-      nature = '爽朗';
-    }
-  } else {
-    // defender
-    statPoints = { hp: 32, defense: 17, specialDefense: 17 };
-    nature = '慎重';
-  }
+  const statPoints: StatPoints = {};
+  let nature: string = currentRuleNatureOptions.find((option) => option.neutral)?.id ?? '认真';
+  if (!currentRuleNatureOptions.some((option) => option.id === nature)) nature = currentRuleNatureOptions[0]?.id ?? '爽朗';
 
   return {
     source: 'temporary',
@@ -254,6 +550,7 @@ export function buildTemporaryCalcConfig(params: {
     selectedMoveId: moveIds[0],
     nature,
     statPoints,
+    statStages: {},
     level: 50,
   };
 }
@@ -370,35 +667,20 @@ export function computeDamage(input: DamageAdapterInput): DamageAdapterResult {
   // ── Battle stats ──
   const attackerStats = calculateBattleStats(attackerForm.baseStats, attackerConfig.statPoints, 50, attackerConfig.nature);
   const defenderStats = calculateBattleStats(defenderForm.baseStats, defenderConfig.statPoints, 50, defenderConfig.nature);
+  const attackerBoosts = statStagesToBoosts(attackerConfig.statStages);
+  const defenderBoosts = statStagesToBoosts(defenderConfig.statStages);
+  const legacyAttackerBoosts = {
+    ...attackerBoosts,
+    atk: attackerBoosts.atk || input.attackStage || 0,
+    spa: attackerBoosts.spa || input.specialAttackStage || input.attackStage || 0,
+  };
+  const legacyDefenderBoosts = {
+    ...defenderBoosts,
+    def: defenderBoosts.def || input.defenseStage || 0,
+    spd: defenderBoosts.spd || input.specialDefenseStage || input.defenseStage || 0,
+  };
 
   try {
-    const attackerPoke = new Pokemon(9, calcAttackerSpecies.name, {
-      level: 50,
-      ability: attackerConfig.abilityId ? calcAbilityId(attackerConfig.abilityId) : undefined,
-      item: attackerConfig.itemId ? calcItemId(attackerConfig.itemId) : undefined,
-      nature: calcNatureName(attackerConfig.nature),
-      ivs: BASE_STATS_DECLARATION.ivs,
-      evs: BASE_STATS_DECLARATION.evs,
-      boosts: {
-        atk: input.attackStage, spa: input.specialAttackStage ?? input.attackStage,
-        def: input.defenseStage ?? 0, spd: input.specialDefenseStage ?? 0,
-      },
-    });
-    const defenderPoke = new Pokemon(9, calcDefenderSpecies.name, {
-      level: 50,
-      ability: defenderConfig.abilityId ? calcAbilityId(defenderConfig.abilityId) : undefined,
-      item: defenderConfig.itemId ? calcItemId(defenderConfig.itemId) : undefined,
-      nature: calcNatureName(defenderConfig.nature),
-      ivs: BASE_STATS_DECLARATION.ivs,
-      evs: BASE_STATS_DECLARATION.evs,
-      boosts: { def: input.defenseStage ?? 0, spd: input.specialDefenseStage ?? input.defenseStage ?? 0 },
-    });
-
-    overrideCalcStats(attackerPoke, attackerStats);
-    overrideCalcStats(defenderPoke, defenderStats);
-    overrideCalcTypes(attackerPoke, attackerForm.types);
-    overrideCalcTypes(defenderPoke, defenderForm.types);
-
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const field = new (Field as any)({
       gameType: input.battleType === 'doubles' ? 'Doubles' : 'Singles',
@@ -416,9 +698,35 @@ export function computeDamage(input: DamageAdapterInput): DamageAdapterResult {
       },
     });
 
-    const calcResult = calculate(gen, attackerPoke, defenderPoke, calcMoveObj, field);
-    const damageData = (calcResult as unknown as Record<string, unknown>)?.damage;
-    const damages: number[] = Array.isArray(damageData) ? (damageData as unknown[]).flat().map(Number) : [];
+    const runCalculation = (abilityMode: 'actual' | 'without-attacker' | 'without-defender') => {
+      const attackerPoke = new Pokemon(9, calcAttackerSpecies.name, {
+        level: 50,
+        ability: abilityMode === 'without-attacker' ? NO_ABILITY : attackerConfig.abilityId ? calcAbilityName(attackerConfig.abilityId) : NO_ABILITY,
+        item: attackerConfig.itemId ? calcItemId(attackerConfig.itemId) : undefined,
+        nature: calcNatureName(attackerConfig.nature),
+        ivs: BASE_STATS_DECLARATION.ivs,
+        evs: statPointsToEvs(attackerConfig.statPoints),
+        boosts: legacyAttackerBoosts,
+        overrides: speciesOverrides(attackerForm),
+      });
+      const defenderPoke = new Pokemon(9, calcDefenderSpecies.name, {
+        level: 50,
+        ability: abilityMode === 'without-defender' ? NO_ABILITY : defenderConfig.abilityId ? calcAbilityName(defenderConfig.abilityId) : NO_ABILITY,
+        item: defenderConfig.itemId ? calcItemId(defenderConfig.itemId) : undefined,
+        nature: calcNatureName(defenderConfig.nature),
+        ivs: BASE_STATS_DECLARATION.ivs,
+        evs: statPointsToEvs(defenderConfig.statPoints),
+        boosts: legacyDefenderBoosts,
+        overrides: speciesOverrides(defenderForm),
+      });
+      const calcResult = calculate(gen, attackerPoke, defenderPoke, calcMoveObj, field);
+      const damageData = (calcResult as unknown as Record<string, unknown>)?.damage;
+      const damages = normalizeDamageRolls(damageData);
+      return { attackerPoke, defenderPoke, damages };
+    };
+
+    const actualCalc = runCalculation('actual');
+    const damages = actualCalc.damages;
     const hp = defenderStats.hp;
 
     const minDmg = damages.length > 0 ? Math.min(...damages) : 0;
@@ -426,12 +734,46 @@ export function computeDamage(input: DamageAdapterInput): DamageAdapterResult {
     const minPct = hp > 0 ? Math.round((minDmg / hp) * 1000) / 10 : 0;
     const maxPct = hp > 0 ? Math.round((maxDmg / hp) * 1000) / 10 : 0;
 
+    const oneHitKoChance = damages.length > 0 ? (damages.filter((damage) => damage >= hp).length / damages.length) * 100 : 0;
+    const twoHitKoCombos = damages.flatMap((first) => damages.map((second) => first + second));
+    const twoHitKoChance = twoHitKoCombos.length > 0 ? (twoHitKoCombos.filter((damage) => damage >= hp).length / twoHitKoCombos.length) * 100 : 0;
+
     let possibleHkoText: string | undefined;
-    if (maxPct >= 100) possibleHkoText = maxPct >= 190 ? '一确（满足过量击杀条件）' : '可能一确';
-    else if (minPct >= 50) possibleHkoText = '二确';
-    else if (maxPct >= 50) possibleHkoText = '乱数二确';
-    else if (minPct >= 33) possibleHkoText = '三确';
-    else possibleHkoText = '多击击杀';
+    if (maxDmg <= 0) possibleHkoText = '无法造成伤害';
+    else if (oneHitKoChance >= 100) possibleHkoText = '确定一击击杀';
+    else if (oneHitKoChance > 0) possibleHkoText = `一击击杀概率 ${percentText(oneHitKoChance)}`;
+    else if (twoHitKoChance >= 100) possibleHkoText = '确定两击击杀';
+    else if (twoHitKoChance > 0) possibleHkoText = `两击击杀概率 ${percentText(twoHitKoChance)}`;
+    else possibleHkoText = '通常需要三次以上攻击';
+
+    const offensiveStatLabel = projectMove.category === 'Physical' ? '攻击' : '特攻';
+    const defensiveStatLabel = projectMove.category === 'Physical' ? '防御' : '特防';
+    const offensiveStatValue = projectMove.category === 'Physical' ? actualCalc.attackerPoke.rawStats.atk : actualCalc.attackerPoke.rawStats.spa;
+    const defensiveStatValue = projectMove.category === 'Physical' ? actualCalc.defenderPoke.rawStats.def : actualCalc.defenderPoke.rawStats.spd;
+    const typeEffectiveness = defensiveMatchupMultiplier(projectMove.type, defenderForm.types);
+    const weather = weatherImpact(projectMove, input.weather);
+    const withoutAttackerAbility = runCalculation('without-attacker').damages;
+    const withoutDefenderAbility = runCalculation('without-defender').damages;
+    const abilityEffects = uniqueAbilityEffects([
+      knownAbilityEffectChip({
+        side: 'attacker',
+        abilityId: attackerConfig.abilityId,
+        opposingAbilityId: defenderConfig.abilityId,
+        move: projectMove,
+        actual: damages,
+        typeEffectiveness,
+      }),
+      knownAbilityEffectChip({
+        side: 'defender',
+        abilityId: defenderConfig.abilityId,
+        opposingAbilityId: attackerConfig.abilityId,
+        move: projectMove,
+        actual: damages,
+        typeEffectiveness,
+      }),
+      abilityEffectChip({ side: 'attacker', abilityId: attackerConfig.abilityId, actual: damages, without: withoutAttackerAbility, move: projectMove }),
+      abilityEffectChip({ side: 'defender', abilityId: defenderConfig.abilityId, actual: damages, without: withoutDefenderAbility, move: projectMove }),
+    ]);
 
     warnings.push('使用 @smogon/calc Gen9 伤害公式，并代入本项目采集的 Champions 招式参数与 SP 能力值。');
     assumptions.push(
@@ -452,7 +794,22 @@ export function computeDamage(input: DamageAdapterInput): DamageAdapterResult {
       move: projectMove, derivedSpreadDamage: spread,
       damageRolls: damages, minDamage: minDmg, maxDamage: maxDmg,
       minPercent: minPct, maxPercent: maxPct, possibleHkoText,
+      oneHitKoChance,
+      twoHitKoChance,
+      abilityEffects,
       defenderHp: defenderStats.hp,
+      attackerStats,
+      defenderStats,
+      offensiveStatLabel,
+      offensiveStatValue,
+      defensiveStatLabel,
+      defensiveStatValue,
+      stabMultiplier: attackerForm.types.includes(projectMove.type) ? 1.5 : 1,
+      typeEffectiveness,
+      typeEffectivenessText: typeEffectivenessText(typeEffectiveness),
+      weatherMultiplier: weather.multiplier,
+      weatherText: weather.text,
+      spreadMultiplier: spread ? 0.75 : 1,
     };
   } catch (error) {
     blockedReasons.push(`计算引擎内部错误: ${error instanceof Error ? error.message : String(error)}`);

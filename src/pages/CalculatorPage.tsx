@@ -1,4 +1,4 @@
-import { Calculator, ChevronDown, ChevronUp, Minus, Plus, Search, X } from 'lucide-react';
+import { Calculator, ChevronDown, ChevronUp, Minus, Plus, Search, Users, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { abilities as allAbilities, currentDataVersion, currentRuleNatureOptions, items as allItems, moves, pokemon } from '../data';
 import { currentRuleMovesForPokemon, currentRuleNatures, natureOptionLabel } from '../lib/currentRuleCatalog';
@@ -14,21 +14,21 @@ import {
 import { findBattleForm } from '../lib/pokemonForms';
 import { clampStatPointValue, MAX_STAT_POINTS_PER_STAT, MAX_TOTAL_STAT_POINTS } from '../lib/statPoints';
 import { useAppStore } from '../state/AppContext';
-import type { Pokemon, StatPoints, TeamMember } from '../types';
+import type { Move as AppMove, Pokemon, StatPoints, TeamMember } from '../types';
 import { Badge, Card, PokemonAvatar, TypeBadge } from '../components/ui';
 
 type CalcSide = 'attacker' | 'defender';
 
 const weatherOptions = ['无天气', '晴天', '雨天', '沙暴', '雪天'];
 const terrainOptions = ['无场地', '青草场地', '电气场地', '精神场地', '薄雾场地'];
-const stageOptions = ['0', '+1', '+2', '-1', '-2'];
-const STAT_LABELS: Array<{ key: keyof StatPoints; label: string }> = [
+const stageOptions = Array.from({ length: 13 }, (_, index) => String(index - 6));
+const STAT_LABELS: Array<{ key: keyof StatPoints; label: string; stageKey?: keyof NonNullable<CalcSideConfig['statStages']> }> = [
   { key: 'hp', label: 'HP' },
-  { key: 'attack', label: '攻击' },
-  { key: 'defense', label: '防御' },
-  { key: 'specialAttack', label: '特攻' },
-  { key: 'specialDefense', label: '特防' },
-  { key: 'speed', label: '速度' },
+  { key: 'attack', label: '攻击', stageKey: 'attack' },
+  { key: 'defense', label: '防御', stageKey: 'defense' },
+  { key: 'specialAttack', label: '特攻', stageKey: 'specialAttack' },
+  { key: 'specialDefense', label: '特防', stageKey: 'specialDefense' },
+  { key: 'speed', label: '速度', stageKey: 'speed' },
 ];
 const NATURE_STAT_PRIORITY: Record<string, number> = { '攻击': 0, '防御': 1, '特攻': 2, '特防': 3, '速度': 4 };
 const sortedNatureOptions = () => {
@@ -44,6 +44,45 @@ const sortedNatureOptions = () => {
 
 const sourceLabel = (config: CalcSideConfig): string =>
   config.source === 'team-member' ? '来自队伍配置' : '手动临时配置';
+
+const stageLabel = (value: number | string) => {
+  const numeric = Number(value) || 0;
+  return numeric > 0 ? `+${numeric}` : String(numeric);
+};
+
+const normalizeSearchText = (value: string) =>
+  value
+    .normalize('NFKC')
+    .toLowerCase()
+    .replace(/[\s\-_/·・]+/g, '');
+
+const moveSearchRank = (move: AppMove, query: string) => {
+  const names = [move.chineseName, move.englishName].map(normalizeSearchText);
+  const id = normalizeSearchText(move.id);
+  const type = normalizeSearchText(move.type);
+
+  if (names.some((field) => field === query) || id === query) return 0;
+  if (names.some((field) => field.startsWith(query))) return 1;
+  if (id.startsWith(query)) return 2;
+  if (names.some((field) => field.includes(query)) || id.includes(query)) return 3;
+  if (type.startsWith(query)) return 4;
+  return Number.POSITIVE_INFINITY;
+};
+
+const filterMovesByQuery = (availableMoves: AppMove[], query: string) => {
+  const normalizedQuery = normalizeSearchText(query);
+  if (!normalizedQuery) return availableMoves;
+
+  return availableMoves
+    .map((move, index) => ({ index, move, rank: moveSearchRank(move, normalizedQuery) }))
+    .filter(({ rank }) => Number.isFinite(rank))
+    .sort((a, b) => (
+      a.rank - b.rank
+      || a.move.chineseName.localeCompare(b.move.chineseName, 'zh-Hans-CN')
+      || a.index - b.index
+    ))
+    .map(({ move }) => move);
+};
 
 function StatPointPicker({
   label,
@@ -128,11 +167,18 @@ function SideConfigCard({
 }) {
   const [expanded, setExpanded] = useState(false);
   const [editingStatKey, setEditingStatKey] = useState<keyof StatPoints | null>(null);
+  const [moveQuery, setMoveQuery] = useState('');
   const pokemonEntry = pokemon.find((p) => p.id === config.pokemonId);
   const battleForm = findBattleForm(pokemonEntry?.id ?? '', config.formId) ?? (pokemonEntry ? findBattleForm(pokemonEntry.id, pokemonEntry.id) : undefined);
   const ability = allAbilities.find((a) => a.id === config.abilityId);
   const item = allItems.find((i) => i.id === config.itemId);
-  const availableMoves = pokemonEntry ? currentRuleMovesForPokemon(pokemonEntry.id) : [];
+  const availableMoves = pokemonEntry ? currentRuleMovesForPokemon(pokemonEntry.id).filter((move) => move.category !== 'Status') : [];
+  const normalizedMoveQuery = normalizeSearchText(moveQuery);
+  const filteredMoves = filterMovesByQuery(availableMoves, moveQuery);
+  const selectedMove = availableMoves.find((move) => move.id === config.selectedMoveId);
+  const visibleMoves = selectedMove && !filteredMoves.some((move) => move.id === selectedMove.id)
+    ? [selectedMove, ...filteredMoves]
+    : filteredMoves;
   const spTotal = totalStatPoints(config.statPoints);
   const spIssues = validateStatPoints(config.statPoints);
   const spSummary = STAT_LABELS.map(({ key, label }) => {
@@ -143,12 +189,36 @@ function SideConfigCard({
   const editingStat = STAT_LABELS.find((stat) => stat.key === editingStatKey);
 
   const dirtyMark = (next: CalcSideConfig) => onChange(next, true);
+  const selectMove = (moveId: string) => {
+    if (!moveId) return;
+    dirtyMark({
+      ...config,
+      selectedMoveId: moveId,
+      moveIds: Array.from(new Set([moveId, ...config.moveIds.filter(Boolean)])).slice(0, 4),
+    });
+  };
+  const updateMoveQuery = (nextQuery: string) => {
+    setMoveQuery(nextQuery);
+    const nextFilteredMoves = filterMovesByQuery(availableMoves, nextQuery);
+    if (!normalizeSearchText(nextQuery) || nextFilteredMoves.length === 0) return;
+    if (nextFilteredMoves.some((move) => move.id === config.selectedMoveId)) return;
+    selectMove(nextFilteredMoves[0].id);
+  };
   const updateStatPoint = (key: keyof StatPoints, value: number) => {
     dirtyMark({
       ...config,
       statPoints: {
         ...config.statPoints,
         [key]: clampStatPointValue(value),
+      },
+    });
+  };
+  const updateStatStage = (key: keyof NonNullable<CalcSideConfig['statStages']>, value: number) => {
+    dirtyMark({
+      ...config,
+      statStages: {
+        ...(config.statStages ?? {}),
+        [key]: Math.max(-6, Math.min(6, value)),
       },
     });
   };
@@ -251,48 +321,76 @@ function SideConfigCard({
 
           {/* Moves */}
           {showMoves && (
-            <label className="flex items-center gap-2">
-              <span className="w-14 shrink-0 text-[11px] text-textMuted">招式</span>
-              <select
-                className="flex-1 rounded border border-border bg-card px-2 py-1 text-xs outline-none"
-                value={config.selectedMoveId ?? ''}
-                onChange={(e) => {
-                  const moveId = e.target.value;
-                  if (!moveId) return;
-                  dirtyMark({
-                    ...config,
-                    selectedMoveId: moveId,
-                    moveIds: Array.from(new Set([moveId, ...config.moveIds.filter(Boolean)])).slice(0, 4),
-                  });
-                }}
-              >
-                {availableMoves.map((m) => (
-                  <option key={m.id} value={m.id}>{m.chineseName} / {m.englishName}</option>
-                ))}
-              </select>
-            </label>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="w-14 shrink-0 text-[11px] text-textMuted">招式</span>
+                <label className="flex flex-1 items-center gap-2 rounded border border-border bg-card px-2 py-1">
+                  <Search size={13} className="text-textMuted" />
+                  <input
+                    className="min-w-0 flex-1 bg-transparent text-xs outline-none placeholder:text-textMuted"
+                    placeholder="搜索攻击招式"
+                    value={moveQuery}
+                    onChange={(event) => updateMoveQuery(event.target.value)}
+                  />
+                </label>
+              </div>
+              <label className="flex items-center gap-2">
+                <span className="w-14 shrink-0" />
+                <select
+                  className="flex-1 rounded border border-border bg-card px-2 py-1 text-xs outline-none"
+                  value={config.selectedMoveId ?? ''}
+                  onChange={(e) => {
+                    const moveId = e.target.value;
+                    selectMove(moveId);
+                  }}
+                >
+                  {visibleMoves.map((m) => (
+                    <option key={m.id} value={m.id}>{m.chineseName} / {m.englishName} · {m.power ?? '-'} · {m.type}</option>
+                  ))}
+                  {visibleMoves.length === 0 && <option value="">无匹配招式</option>}
+                </select>
+              </label>
+            </div>
           )}
 
           {/* SP editor */}
           <fieldset className="space-y-1.5">
             <div className="flex items-center justify-between gap-2">
-              <p className="text-[11px] text-textMuted">Champions SP 分配</p>
+              <p className="text-[11px] text-textMuted">能力配置：Champions SP 分配 / 能力阶级</p>
               <span className={`text-[11px] ${spIssues.length > 0 ? 'text-red-400' : 'text-textMuted'}`}>
                 已用 {spTotal}/{MAX_TOTAL_STAT_POINTS}
               </span>
             </div>
             <div className="grid grid-cols-3 gap-2">
-              {STAT_LABELS.map(({ key, label }) => (
-                <button
-                  key={key}
-                  className={`rounded-lg border bg-card p-2 text-left active:scale-[0.99] ${spIssues.length > 0 ? 'border-red-400' : 'border-border'}`}
-                  type="button"
-                  onClick={() => setEditingStatKey(key)}
-                >
-                  <span className="block text-[10px] text-textMuted">{label}</span>
-                  <span className="mt-1 block text-base font-semibold text-textPrimary">{clampStatPointValue(config.statPoints[key] ?? 0)}</span>
-                </button>
-              ))}
+              {STAT_LABELS.map(({ key, label, stageKey }) => {
+                const stage = stageKey ? config.statStages?.[stageKey] ?? 0 : undefined;
+                return (
+                  <div key={key} className={`rounded-lg border bg-card p-2 ${spIssues.length > 0 ? 'border-red-400' : 'border-border'}`}>
+                    <button
+                      aria-label={`${label} ${clampStatPointValue(config.statPoints[key] ?? 0)}`}
+                      className="w-full text-left active:scale-[0.99]"
+                      type="button"
+                      onClick={() => setEditingStatKey(key)}
+                    >
+                      <span className="block text-[10px] text-textMuted">{label} SP</span>
+                      <span className="mt-1 block text-base font-semibold text-textPrimary">{clampStatPointValue(config.statPoints[key] ?? 0)}</span>
+                    </button>
+                    {stageKey && (
+                      <label className="mt-2 block">
+                        <span className="mb-1 block text-[10px] text-textMuted">阶级</span>
+                        <select
+                          aria-label={`${label} 能力阶级`}
+                          className="h-7 w-full rounded border border-border bg-secondary px-1 text-xs outline-none"
+                          value={stage}
+                          onChange={(event) => updateStatStage(stageKey, Number(event.target.value))}
+                        >
+                          {stageOptions.map((opt) => <option key={opt} value={opt}>{stageLabel(opt)}</option>)}
+                        </select>
+                      </label>
+                    )}
+                  </div>
+                );
+              })}
             </div>
             <p className={`text-[10px] ${spIssues.length > 0 ? 'text-red-400' : 'text-textMuted'}`}>
               单项最多 {MAX_STAT_POINTS_PER_STAT} · 总量最多 {MAX_TOTAL_STAT_POINTS}
@@ -335,7 +433,7 @@ function DamageResultCard({
     return (
       <Card>
         <div className="mb-4 flex items-center justify-between">
-          <p className="text-[11px] uppercase tracking-wide text-textSecondary">Gen9 伤害计算</p>
+          <p className="text-[11px] uppercase tracking-wide text-textSecondary">伤害计算</p>
           <Calculator size={18} className="text-accent" />
         </div>
         <div>
@@ -352,7 +450,7 @@ function DamageResultCard({
     return (
       <Card>
         <div className="mb-4 flex items-center justify-between">
-          <p className="text-[11px] uppercase tracking-wide text-textSecondary">Gen9 伤害计算</p>
+          <p className="text-[11px] uppercase tracking-wide text-textSecondary">伤害计算</p>
           <Calculator size={18} className="text-accent" />
         </div>
         <p className="py-8 text-center text-sm text-textSecondary">请先选择招式</p>
@@ -364,7 +462,7 @@ function DamageResultCard({
     return (
       <Card>
         <div className="mb-4 flex items-center justify-between">
-          <p className="text-[11px] uppercase tracking-wide text-textSecondary">Gen9 伤害计算</p>
+          <p className="text-[11px] uppercase tracking-wide text-textSecondary">伤害计算</p>
           <Calculator size={18} className="text-accent" />
         </div>
         <p className="py-8 text-center text-sm text-textSecondary">变化招式不适用伤害计算</p>
@@ -376,7 +474,7 @@ function DamageResultCard({
     return (
       <Card>
         <div className="mb-4 flex items-center justify-between">
-          <p className="text-[11px] uppercase tracking-wide text-textSecondary">Gen9 伤害计算</p>
+          <p className="text-[11px] uppercase tracking-wide text-textSecondary">伤害计算</p>
           <Calculator size={18} className="text-accent" />
         </div>
         <div className="space-y-1">
@@ -391,7 +489,7 @@ function DamageResultCard({
     return (
       <Card>
         <div className="mb-4 flex items-center justify-between">
-          <p className="text-[11px] uppercase tracking-wide text-textSecondary">Gen9 伤害计算</p>
+          <p className="text-[11px] uppercase tracking-wide text-textSecondary">伤害计算</p>
           <Calculator size={18} className="text-accent" />
         </div>
         <p className="text-sm font-semibold text-textSecondary">请调整当前组合</p>
@@ -408,30 +506,100 @@ function DamageResultCard({
     );
   }
 
+  const typeMultiplier = result.typeEffectiveness ?? 1;
+  const damageTone =
+    typeMultiplier === 0
+      ? 'text-textMuted'
+      : typeMultiplier > 1
+        ? 'text-red-300'
+        : typeMultiplier < 1
+          ? 'text-sky-300'
+          : 'text-white';
+  const effectivenessBadge =
+    typeMultiplier === 0
+      ? 'border-textMuted/30 bg-textMuted/10 text-textMuted'
+      : typeMultiplier > 1
+        ? 'border-red-400/40 bg-red-500/15 text-red-200'
+        : typeMultiplier < 1
+          ? 'border-sky-400/40 bg-sky-500/15 text-sky-200'
+          : 'border-border bg-secondary text-textSecondary';
+  const koTone = (result.minDamage ?? 0) >= (result.defenderHp ?? Number.POSITIVE_INFINITY)
+    ? 'border-red-400/40 bg-red-500/15 text-red-100'
+    : (result.maxDamage ?? 0) * 2 >= (result.defenderHp ?? Number.POSITIVE_INFINITY)
+      ? 'border-accent/40 bg-accent/15 text-accent'
+      : 'border-border bg-secondary text-textSecondary';
+  const modifierChips = [
+    typeMultiplier !== 1
+      ? (
+          <span key="type" className={`rounded-full border px-2 py-1 font-semibold ${effectivenessBadge}`}>
+            {result.typeEffectivenessText} ×{typeMultiplier}
+          </span>
+        )
+      : null,
+    (result.stabMultiplier ?? 1) !== 1
+      ? (
+          <span key="stab" className="rounded-full border border-accent/40 bg-accent/15 px-2 py-1 font-semibold text-accent">
+            本系 ×{result.stabMultiplier}
+          </span>
+        )
+      : null,
+    (result.weatherMultiplier ?? 1) !== 1
+      ? (
+          <span key="weather" className="rounded-full border border-border bg-secondary px-2 py-1 text-textSecondary">
+            {result.weatherText} ×{result.weatherMultiplier}
+          </span>
+        )
+      : null,
+    result.derivedSpreadDamage
+      ? (
+          <span key="spread" className="rounded-full border border-border bg-secondary px-2 py-1 text-textSecondary">
+            分摊 ×{result.spreadMultiplier}
+          </span>
+        )
+      : null,
+    ...(result.abilityEffects ?? []).map((effect) => {
+      const tone =
+        effect.direction === 'boost'
+          ? 'border-accent/40 bg-accent/15 text-accent'
+          : effect.direction === 'immunity' || effect.direction === 'reduction'
+            ? 'border-sky-400/40 bg-sky-500/15 text-sky-200'
+            : 'border-border bg-secondary text-textSecondary';
+      return (
+        <span key={`ability-${effect.side}-${effect.abilityId}`} className={`rounded-full border px-2 py-1 font-semibold ${tone}`}>
+          {effect.label} · {effect.text}
+        </span>
+      );
+    }),
+  ].filter(Boolean);
+
   return (
     <Card>
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <p className="text-[11px] uppercase tracking-wide text-textSecondary">Gen9 伤害计算</p>
+          <p className="text-[11px] uppercase tracking-wide text-textSecondary">伤害计算</p>
           <p className="text-[10px] text-textMuted">使用 Champions 招式参数与 SP 能力值</p>
         </div>
         <span className="rounded-full bg-accent/20 px-2 py-0.5 text-[10px] font-semibold text-accent">Gen9</span>
       </div>
 
       <div className="text-center">
-        <p className="text-[28px] font-bold text-white">{result.minPercent}% - {result.maxPercent}%</p>
+        <p className={`text-[28px] font-bold ${damageTone}`}>{result.minPercent}% - {result.maxPercent}%</p>
         <p className="mt-1 text-sm text-textSecondary">{result.minDamage} - {result.maxDamage} 伤害 / 对方 HP: {result.defenderHp ?? '-'}</p>
       </div>
 
-      <div className="my-5 h-px bg-divider" />
+      {modifierChips.length > 0 && (
+        <>
+          <div className="my-4 h-px bg-divider" />
+          <div className="flex flex-wrap justify-center gap-2 text-[11px]">
+            {modifierChips}
+          </div>
+        </>
+      )}
 
-      <div className="grid grid-cols-3 gap-2 text-center text-xs">
-        <span className={`rounded-lg border px-2 py-3 ${(result.maxPercent ?? 0) >= 100 ? 'bg-accent font-semibold text-page' : 'border-border text-textMuted'}`}>一确</span>
-        <span className={`rounded-lg border px-2 py-3 ${(result.maxPercent ?? 0) >= 50 && (result.minPercent ?? 0) < 100 ? 'bg-accent font-semibold text-page' : 'border-border text-textMuted'}`}>二确</span>
-        <span className={`rounded-lg border px-2 py-3 ${(result.maxPercent ?? 0) < 50 ? 'bg-accent font-semibold text-page' : 'border-border text-textMuted'}`}>三确</span>
+      <div className={`mt-4 rounded-lg border px-4 py-3 text-center ${koTone}`}>
+        <p className="text-[11px] uppercase tracking-wide opacity-75">结论</p>
+        <p className="mt-1 text-[18px] font-bold leading-tight">{result.possibleHkoText}</p>
       </div>
-
-      <p className="mt-3 text-center text-[11px] text-textMuted">{result.possibleHkoText}</p>
       <p className="mt-4 text-center text-[10px] text-textMuted">
         公式：Gen9 · 招式参数：Champions 目录 · 数据 {currentDataVersion.versionName}
       </p>
@@ -472,8 +640,7 @@ export function CalculatorPage({
   const [battleType, setBattleType] = useState<BattleTypeOption>('doubles');
   const [weather, setWeather] = useState(weatherOptions[0]);
   const [terrain, setTerrain] = useState(terrainOptions[0]);
-  const [attackStage, setAttackStage] = useState('0');
-  const [defenseStage, setDefenseStage] = useState('0');
+  const [showTeamPicker, setShowTeamPicker] = useState(false);
 
   // Guard: only apply selectedMemberId ONCE, never overwrite user edits
   const lastAppliedMemberIdRef = useRef<string | undefined>(undefined);
@@ -502,7 +669,7 @@ export function CalculatorPage({
   const attackerBattleForm = findBattleForm(attackerEntry.id, attackerConfig.formId) ?? findBattleForm(attackerEntry.id, attackerEntry.id);
   const defenderBattleForm = findBattleForm(defenderEntry.id, defenderConfig.formId) ?? findBattleForm(defenderEntry.id, defenderEntry.id);
 
-  const availableMoves = currentRuleMovesForPokemon(attackerEntry.id);
+  const availableMoves = currentRuleMovesForPokemon(attackerEntry.id).filter((move) => move.category !== 'Status');
   const currentMove = moves.find((m) => m.id === attackerConfig.selectedMoveId) ?? availableMoves[0];
 
   const normalizedQuery = query.trim().toLowerCase();
@@ -563,7 +730,7 @@ export function CalculatorPage({
   ];
 
   // Compute damage — illegal SP is stopped in the UI before invoking the adapter
-  const damageKey = `${attackerConfig.pokemonId}|${attackerConfig.formId}|${attackerConfig.selectedMoveId}|${attackerConfig.nature}|${JSON.stringify(attackerConfig.statPoints)}|${attackerConfig.abilityId}|${attackerConfig.itemId}||${defenderConfig.pokemonId}|${defenderConfig.formId}|${defenderConfig.nature}|${JSON.stringify(defenderConfig.statPoints)}|${defenderConfig.abilityId}|${defenderConfig.itemId}||${battleType}|${weather}|${terrain}|${attackStage}|${defenseStage}|${currentMove?.category}`;
+  const damageKey = `${attackerConfig.pokemonId}|${attackerConfig.formId}|${attackerConfig.selectedMoveId}|${attackerConfig.nature}|${JSON.stringify(attackerConfig.statPoints)}|${JSON.stringify(attackerConfig.statStages)}|${attackerConfig.abilityId}|${attackerConfig.itemId}||${defenderConfig.pokemonId}|${defenderConfig.formId}|${defenderConfig.nature}|${JSON.stringify(defenderConfig.statPoints)}|${JSON.stringify(defenderConfig.statStages)}|${defenderConfig.abilityId}|${defenderConfig.itemId}||${battleType}|${weather}|${terrain}|${currentMove?.category}`;
   const damageResult = useMemo(() => {
     if (!attackerConfig.selectedMoveId || !attackerConfig.pokemonId || !defenderConfig.pokemonId) return null;
     if (currentMove?.category === 'Status') return null;
@@ -574,8 +741,7 @@ export function CalculatorPage({
       battleType,
       weather,
       terrain,
-      attackStage: Number(attackStage) || 0,
-      defenseStage: Number(defenseStage) || 0,
+      attackStage: 0,
     });
     // eslint-disable-next-line
   }, [damageKey]);
@@ -625,23 +791,33 @@ export function CalculatorPage({
 
         {recommended.length > 0 && (
           <div className="mt-3">
-            <p className="mb-2 text-[11px] uppercase tracking-wide text-textMuted">当前队伍推荐</p>
-            <div className="flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
-              {recommended.map(({ teamName, member, entry }) => (
-                <button
-                  key={member.id}
-                  className={`min-w-[116px] rounded-lg border bg-card p-2 text-left ${
-                    (activeSide === 'attacker' ? attackerConfig.sourceMemberId === member.id : defenderConfig.sourceMemberId === member.id) ? 'border-accent' : 'border-border'
-                  }`}
-                  type="button"
-                  onClick={() => pickTeamMember(member)}
-                >
-                  <div className="mb-2"><PokemonAvatar iconRef={entry.iconRef} label={entry.chineseName} /></div>
-                  <p className="truncate text-xs font-semibold">{entry.chineseName}</p>
-                  <p className="truncate text-[11px] text-textMuted">{teamName}</p>
-                </button>
-              ))}
-            </div>
+            <button
+              className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-border bg-card px-3 text-xs font-semibold text-textSecondary"
+              type="button"
+              onClick={() => setShowTeamPicker((value) => !value)}
+            >
+              <Users size={14} />
+              从队伍选择
+            </button>
+            {showTeamPicker && (
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                {recommended.map(({ member, entry }) => (
+                  <button
+                    key={member.id}
+                    className={`rounded-lg border bg-card px-3 py-2 text-left text-xs ${
+                      (activeSide === 'attacker' ? attackerConfig.sourceMemberId === member.id : defenderConfig.sourceMemberId === member.id) ? 'border-accent' : 'border-border'
+                    }`}
+                    type="button"
+                    onClick={() => {
+                      pickTeamMember(member);
+                      setShowTeamPicker(false);
+                    }}
+                  >
+                    <p className="truncate font-semibold">{entry.chineseName}</p>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -686,9 +862,11 @@ export function CalculatorPage({
         <div className="mb-3 flex items-center justify-between">
           <div>
             <p className="text-[11px] text-textSecondary">招式 · 战斗条件</p>
-            <p className="text-xs font-semibold">{currentMove?.chineseName} {currentMove?.englishName} · {currentMove?.type} · {currentMove?.power ?? '-'} 威力</p>
+            <div className="mt-1 flex flex-wrap items-center gap-2">
+              {currentMove && <TypeBadge type={currentMove.type} size="sm" />}
+              <p className="text-xs font-semibold">{currentMove?.chineseName} · {currentMove?.power ?? '-'} 威力</p>
+            </div>
           </div>
-          <Badge status="version">Gen9</Badge>
         </div>
         <div className="grid grid-cols-2 gap-2">
           <div>
@@ -701,18 +879,6 @@ export function CalculatorPage({
               ))}
             </div>
           </div>
-          <label>
-            <span className="mb-1 block text-[11px] text-textMuted">进攻能力</span>
-            <select className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm outline-none" value={attackStage} onChange={(e) => setAttackStage(e.target.value)}>
-              {stageOptions.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-            </select>
-          </label>
-          <label>
-            <span className="mb-1 block text-[11px] text-textMuted">防守能力</span>
-            <select className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm outline-none" value={defenseStage} onChange={(e) => setDefenseStage(e.target.value)}>
-              {stageOptions.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-            </select>
-          </label>
           <label>
             <span className="mb-1 block text-[11px] text-textMuted">天气</span>
             <select className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm outline-none" value={weather} onChange={(e) => setWeather(e.target.value)}>

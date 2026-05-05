@@ -51,6 +51,253 @@ describe('damageAdapter', () => {
     expect(result.defenderConfig).toBeTruthy();
   });
 
+  it('matches the Gen9 roll range for Houndoom Flare Blitz into max HP/Defense Garganacl', () => {
+    const result = computeDamage({
+      attacker: makeConfig({
+        pokemonId: 'houndoom',
+        nature: '固执',
+        statPoints: { attack: 32 },
+        moveIds: ['flare-blitz'],
+        selectedMoveId: 'flare-blitz',
+      }),
+      defender: makeConfig({
+        pokemonId: 'garganacl',
+        nature: '慎重',
+        statPoints: { hp: 32, defense: 32 },
+      }),
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+
+    expect(result.status).toBe('experimental-success');
+    expect(result.damageRolls).toEqual([29, 30, 30, 30, 30, 31, 31, 32, 32, 33, 33, 33, 33, 34, 34, 35]);
+    expect(result.offensiveStatValue).toBe(156);
+    expect(result.defensiveStatValue).toBe(182);
+    expect(result.typeEffectiveness).toBe(0.5);
+    expect(result.stabMultiplier).toBe(1.5);
+    expect(result.oneHitKoChance).toBe(0);
+    expect(result.twoHitKoChance).toBe(0);
+    expect(result.possibleHkoText).toBe('通常需要三次以上攻击');
+  });
+
+  it('reports probabilistic one-hit and two-hit KO conclusions from damage rolls', () => {
+    const oneHit = computeDamage({
+      attacker: makeConfig({
+        pokemonId: 'garchomp',
+        nature: '固执',
+        statPoints: { attack: 32 },
+        moveIds: ['earthquake'],
+        selectedMoveId: 'earthquake',
+      }),
+      defender: makeConfig({
+        pokemonId: 'houndoom',
+        nature: '认真',
+        statPoints: {},
+      }),
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+    expect(oneHit.status).toBe('experimental-success');
+    expect(oneHit.oneHitKoChance).toBeGreaterThanOrEqual(0);
+    expect(oneHit.oneHitKoChance).toBeLessThanOrEqual(100);
+    expect(oneHit.possibleHkoText).toMatch(/一击击杀概率|确定一击击杀|两击击杀概率|确定两击击杀|三次以上/);
+  });
+
+  it('applies attacker abilities such as Huge Power and reports an ability chip', () => {
+    const withHugePower = computeDamage({
+      attacker: makeConfig({
+        pokemonId: 'azumarill',
+        abilityId: 'huge-power',
+        nature: '固执',
+        statPoints: { attack: 32 },
+        moveIds: ['waterfall'],
+        selectedMoveId: 'waterfall',
+      }),
+      defender: makeConfig({
+        pokemonId: 'houndoom',
+        nature: '认真',
+        statPoints: {},
+      }),
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+    const withoutHugePower = computeDamage({
+      attacker: makeConfig({
+        pokemonId: 'azumarill',
+        abilityId: 'thick-fat',
+        nature: '固执',
+        statPoints: { attack: 32 },
+        moveIds: ['waterfall'],
+        selectedMoveId: 'waterfall',
+      }),
+      defender: makeConfig({
+        pokemonId: 'houndoom',
+        nature: '认真',
+        statPoints: {},
+      }),
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+
+    expect(withHugePower.status).toBe('experimental-success');
+    expect(withoutHugePower.status).toBe('experimental-success');
+    expect(withHugePower.maxDamage).toBeGreaterThan(withoutHugePower.maxDamage ?? 0);
+    expect(withHugePower.abilityEffects).toEqual([
+      expect.objectContaining({ side: 'attacker', abilityId: 'huge-power', direction: 'boost', label: '进攻特性：大力士' }),
+    ]);
+  });
+
+  it('applies defensive immunities such as Flash Fire and reports an ability chip', () => {
+    const result = computeDamage({
+      attacker: makeConfig({
+        pokemonId: 'houndoom',
+        nature: '固执',
+        statPoints: { attack: 32 },
+        moveIds: ['flare-blitz'],
+        selectedMoveId: 'flare-blitz',
+      }),
+      defender: makeConfig({
+        pokemonId: 'arcanine',
+        abilityId: 'flash-fire',
+        nature: '认真',
+        statPoints: {},
+      }),
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+
+    expect(result.status).toBe('experimental-success');
+    expect(result.damageRolls).toEqual([0]);
+    expect(result.possibleHkoText).toBe('无法造成伤害');
+    expect(result.abilityEffects).toEqual([
+      expect.objectContaining({
+        side: 'defender',
+        abilityId: 'flash-fire',
+        direction: 'immunity',
+        label: '防守特性：引火',
+        text: '火属性招式无效',
+      }),
+    ]);
+  });
+
+  it.each([
+    ['water-absorb', '储水', 'Water', '水属性招式无效', 'blastoise', 'hydro-pump', 'politoed'],
+    ['volt-absorb', '蓄电', 'Electric', '电属性招式无效', 'pikachu', 'thunderbolt', 'jolteon'],
+    ['lightning-rod', '避雷针', 'Electric', '电属性招式无效', 'pikachu', 'thunderbolt', 'raichu'],
+    ['sap-sipper', '食草', 'Grass', '草属性招式无效', 'venusaur', 'energy-ball', 'azumarill'],
+    ['earth-eater', '食土', 'Ground', '地面属性招式无效', 'garchomp', 'earthquake', 'orthworm'],
+    ['levitate', '飘浮', 'Ground', '地面属性招式无效', 'garchomp', 'earthquake', 'rotom'],
+  ])('reports type-immunity ability chips for %s', (abilityId, abilityName, _type, text, attackerId, moveId, defenderId) => {
+    const result = computeDamage({
+      attacker: makeConfig({
+        pokemonId: attackerId,
+        moveIds: [moveId],
+        selectedMoveId: moveId,
+      }),
+      defender: makeConfig({
+        pokemonId: defenderId,
+        abilityId,
+        nature: '认真',
+        statPoints: {},
+      }),
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+
+    expect(result.status).toBe('experimental-success');
+    expect(result.damageRolls).toEqual([0]);
+    expect(result.possibleHkoText).toBe('无法造成伤害');
+    expect(result.abilityEffects).toEqual([
+      expect.objectContaining({
+        side: 'defender',
+        abilityId,
+        direction: 'immunity',
+        label: `防守特性：${abilityName}`,
+        text,
+      }),
+    ]);
+  });
+
+  it('does not create false ability chips when the defender has no damage modifier', () => {
+    const result = computeDamage({
+      attacker: makeConfig({
+        pokemonId: 'blastoise',
+        moveIds: ['hydro-pump'],
+        selectedMoveId: 'hydro-pump',
+      }),
+      defender: makeConfig({
+        pokemonId: 'politoed',
+        abilityId: 'damp',
+        nature: '认真',
+        statPoints: {},
+      }),
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+
+    expect(result.status).toBe('experimental-success');
+    expect(result.maxDamage).toBeGreaterThan(0);
+    expect(result.abilityEffects).toEqual([]);
+  });
+
+  it('reports direct boost and reduction ability chips with specific reasons', () => {
+    const thickFat = computeDamage({
+      attacker: makeConfig({
+        pokemonId: 'houndoom',
+        moveIds: ['flare-blitz'],
+        selectedMoveId: 'flare-blitz',
+      }),
+      defender: makeConfig({
+        pokemonId: 'venusaur',
+        abilityId: 'thick-fat',
+        nature: '认真',
+        statPoints: {},
+      }),
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+    const technician = computeDamage({
+      attacker: makeConfig({
+        pokemonId: 'scizor',
+        abilityId: 'technician',
+        moveIds: ['bullet-punch'],
+        selectedMoveId: 'bullet-punch',
+      }),
+      defender: makeConfig({
+        pokemonId: 'houndoom',
+        nature: '认真',
+        statPoints: {},
+      }),
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+
+    expect(thickFat.abilityEffects).toEqual([
+      expect.objectContaining({ side: 'defender', abilityId: 'thick-fat', direction: 'reduction', text: '火属性伤害减半' }),
+    ]);
+    expect(technician.abilityEffects).toEqual([
+      expect.objectContaining({ side: 'attacker', abilityId: 'technician', direction: 'boost', text: '低威力招式增强' }),
+    ]);
+  });
+
   it('returns blocked for Status moves', () => {
     const result = computeDamage({
       ...defaults,
@@ -141,27 +388,11 @@ describe('damageAdapter', () => {
     expect(cfg.level).toBe(50);
   });
 
-  it('buildTemporaryCalcConfig physical attacker has SP=66, atk=32, speed=32', () => {
+  it('buildTemporaryCalcConfig starts temporary Pokemon at 0 SP', () => {
     const cfg = buildTemporaryCalcConfig({ pokemonId: 'garchomp', role: 'attacker', moveCategory: 'Physical' });
-    expect(totalStatPoints(cfg.statPoints)).toBe(66);
-    expect(cfg.statPoints.attack).toBe(32);
-    expect(cfg.statPoints.speed).toBe(32);
-    expect(cfg.nature).toBe('爽朗');
-  });
-
-  it('buildTemporaryCalcConfig special attacker has SP=66, spa=32, speed=32, non-spa-reducing nature', () => {
-    const cfg = buildTemporaryCalcConfig({ pokemonId: 'garchomp', role: 'attacker', moveCategory: 'Special' });
-    expect(totalStatPoints(cfg.statPoints)).toBe(66);
-    expect(cfg.statPoints.specialAttack).toBe(32);
-    expect(cfg.statPoints.speed).toBe(32);
-    // 胆小 is +Spe -Atk, does NOT reduce SpA
-    expect(cfg.nature).toBe('胆小');
-  });
-
-  it('buildTemporaryCalcConfig defender has SP=66, hp=32', () => {
-    const cfg = buildTemporaryCalcConfig({ pokemonId: 'torkoal', role: 'defender' });
-    expect(totalStatPoints(cfg.statPoints)).toBe(66);
-    expect(cfg.statPoints.hp).toBe(32);
+    expect(totalStatPoints(cfg.statPoints)).toBe(0);
+    expect(cfg.statPoints).toEqual({});
+    expect(cfg.statStages).toEqual({});
   });
 
   // ── SP validation ──

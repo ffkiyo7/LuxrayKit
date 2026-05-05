@@ -35,7 +35,7 @@ describe('App page flows', () => {
     const user = await renderApp();
 
     await user.click(screen.getByRole('button', { name: '计算' }));
-    expect(await screen.findByText('伤害计算')).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: '伤害计算' })).toBeTruthy();
 
     await user.click(screen.getByRole('button', { name: '图鉴' }));
     expect(await screen.findByText('规则内图鉴')).toBeTruthy();
@@ -148,7 +148,8 @@ describe('App page flows', () => {
     expect(screen.getAllByText(/手动临时配置/).length).toBeGreaterThanOrEqual(2);
     expect(screen.getByText(/临时修改不会自动保存/)).toBeTruthy();
     expect(screen.queryByText('努力值')).toBeNull();
-    expect(screen.getByText('Gen9 伤害计算')).toBeTruthy();
+    expect(screen.getAllByText('伤害计算').length).toBeGreaterThanOrEqual(2);
+    expect(screen.getAllByText('Gen9').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText(/公式：Gen9/)).toBeTruthy();
     expect(screen.queryByText(/当前无法|机制待确认|非官方 Champions 正式结论|Champions 伤害公式尚未/)).toBeNull();
     expect(screen.getByText(/% -/)).toBeTruthy();
@@ -159,15 +160,24 @@ describe('App page flows', () => {
     expect(await screen.findByText(/Champions SP 分配/)).toBeTruthy();
     expect(screen.getByText(/临时修改不会自动保存到队伍/)).toBeTruthy();
 
-    // ── Test SP editing: HP was 2, change to 8 through the picker ──
+    // ── Test SP editing: temporary Pokemon starts at 0 SP, change HP to 8 through the picker ──
     expect(screen.queryByRole('spinbutton')).toBeNull();
-    await user.click(screen.getByRole('button', { name: /HP\s*2/ }));
+    await user.click(screen.getByRole('button', { name: /HP\s*0/ }));
     const hpSlider = screen.getByRole('slider', { name: 'HP SP' });
     expect(hpSlider.getAttribute('max')).toBe('32');
     expect(screen.getByRole('button', { name: 'min' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'max' })).toBeTruthy();
     fireEvent.change(hpSlider, { target: { value: '8' } });
     expect((hpSlider as HTMLInputElement).value).toBe('8');
+    await user.click(screen.getByTitle('关闭 SP 调整'));
+    expect(screen.getByText(/Champions SP 已用 8\/66/)).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: /攻击\s*0/ }));
+    const attackSlider = screen.getByRole('slider', { name: '攻击 SP' });
+    fireEvent.change(attackSlider, { target: { value: '32' } });
+    await user.click(screen.getByTitle('关闭 SP 调整'));
+    await user.click(screen.getByRole('button', { name: /速度\s*0/ }));
+    const speedSlider = screen.getByRole('slider', { name: '速度 SP' });
+    fireEvent.change(speedSlider, { target: { value: '32' } });
     await user.click(screen.getByTitle('关闭 SP 调整'));
     expect(screen.getByText(/Champions SP 已用 72\/66/)).toBeTruthy();
     expect(screen.getByText(/SP 分配不合法/)).toBeTruthy();
@@ -214,11 +224,65 @@ describe('App page flows', () => {
     // ── Defender gets the same temporary SP picker behavior ──
     await user.click(screen.getByRole('button', { name: /防守方/ }));
     await user.click(screen.getAllByTitle('编辑能力配置')[0]);
-    await user.click(screen.getByRole('button', { name: /防御\s*17/ }));
+    await user.click(screen.getAllByRole('button', { name: /防御\s*0/ }).at(-1)!);
     const defenderDefenseSlider = screen.getByRole('slider', { name: '防御 SP' });
     fireEvent.change(defenderDefenseSlider, { target: { value: '20' } });
     await user.click(screen.getByTitle('关闭 SP 调整'));
-    expect(screen.getByText(/Champions SP 已用 69\/66/)).toBeTruthy();
+    expect(screen.getByText(/Champions SP 已用 20\/66/)).toBeTruthy();
+  });
+
+  it('keeps calculator move search results synced with the selected move', async () => {
+    const user = await renderApp();
+
+    await user.click(screen.getByRole('button', { name: '计算' }));
+    expect(await screen.findByText('选择进攻方')).toBeTruthy();
+
+    await user.type(screen.getByPlaceholderText('搜索名称'), 'Incineroar');
+    await user.click(await screen.findByText('炽焰咆哮虎'));
+
+    await user.click(screen.getAllByTitle('编辑能力配置')[0]);
+    const moveSearch = await screen.findByPlaceholderText('搜索攻击招式');
+    await user.type(moveSearch, 'D');
+
+    const ddOption = await screen.findByRole('option', { name: /ＤＤ金勾臂/ });
+    expect(ddOption).toBeTruthy();
+
+    await user.clear(moveSearch);
+    await user.type(moveSearch, 'DD');
+    const selectedDdOption = await screen.findByRole('option', { name: /ＤＤ金勾臂/ });
+    const moveSelect = selectedDdOption.closest('select') as HTMLSelectElement;
+    expect(moveSelect.value).toBe('darkest-lariat');
+    expect(await screen.findByText(/ＤＤ金勾臂 · 85 威力/)).toBeTruthy();
+  });
+
+  it('shows the ability reason chip when Flash Fire prevents damage', async () => {
+    const user = await renderApp();
+
+    await user.click(screen.getByRole('button', { name: '计算' }));
+    expect(await screen.findByText('选择进攻方')).toBeTruthy();
+
+    await user.type(screen.getByPlaceholderText('搜索名称'), 'Houndoom');
+    await user.click(await screen.findByText('黑鲁加'));
+    await user.click(screen.getAllByTitle('编辑能力配置')[0]);
+    const moveSearch = await screen.findByPlaceholderText('搜索攻击招式');
+    await user.type(moveSearch, '闪焰冲锋');
+    expect(await screen.findByText(/闪焰冲锋 · 120 威力/)).toBeTruthy();
+    await user.click(screen.getByTitle('收起配置'));
+
+    await user.click(screen.getByRole('button', { name: /防守方/ }));
+    await user.type(screen.getByPlaceholderText('搜索名称'), 'Arcanine');
+    const arcanineResult = (await screen.findAllByText('风速狗'))[0].closest('button');
+    expect(arcanineResult).toBeTruthy();
+    await user.click(arcanineResult!);
+    await user.click(screen.getAllByTitle('编辑能力配置').at(-1)!);
+    const flashFireSelect = screen.getAllByRole('combobox').find((select) =>
+      Array.from((select as HTMLSelectElement).options).some((option) => option.value === 'flash-fire'),
+    ) as HTMLSelectElement;
+    expect(flashFireSelect).toBeTruthy();
+    await user.selectOptions(flashFireSelect, 'flash-fire');
+
+    expect(await screen.findByText(/无法造成伤害/)).toBeTruthy();
+    expect(screen.getByText(/防守特性：引火.*火属性招式无效/)).toBeTruthy();
   });
 
   it('shows team-member config source and preserves original team data after edits', async () => {
@@ -232,7 +296,7 @@ describe('App page flows', () => {
     await user.click(calcBtn);
 
     // Now on calculator page — should show garchomp and team-member config
-    expect(await screen.findByText('伤害计算')).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: '伤害计算' })).toBeTruthy();
     // The attacker card should reference Garchomp (team member Pokemon)
     const garchompElements = screen.getAllByText(/烈咬陆鲨/);
     expect(garchompElements.length).toBeGreaterThanOrEqual(1);
@@ -270,7 +334,7 @@ describe('App page flows', () => {
 
     await user.click(screen.getByRole('button', { name: '计算' }));
     expect(await screen.findByText('选择进攻方')).toBeTruthy();
-    expect(screen.getByText('当前队伍推荐')).toBeTruthy();
+    expect(screen.getByRole('button', { name: /从队伍选择/ })).toBeTruthy();
     expect(screen.queryByText('小顿熊')).toBeNull();
 
     // Switch to defender and pick from search
@@ -279,13 +343,15 @@ describe('App page flows', () => {
     const selector = screen.getByText('选择防守方').closest('section');
     expect(selector).toBeTruthy();
 
+    await user.click(within(selector as HTMLElement).getByRole('button', { name: /从队伍选择/ }));
     const garchompBtn = within(selector as HTMLElement).getByRole('button', { name: /烈咬陆鲨/ });
     await user.click(garchompBtn);
     await user.type(screen.getByPlaceholderText('搜索名称'), 'Torkoal');
     await user.click(within(selector as HTMLElement).getByText('煤炭龟'));
 
     // Verify damage result area is calculated with the Gen9 path.
-    expect(screen.getByText('Gen9 伤害计算')).toBeTruthy();
+    expect(screen.getAllByText('伤害计算').length).toBeGreaterThanOrEqual(2);
+    expect(screen.getAllByText('Gen9').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText(/公式：Gen9/)).toBeTruthy();
     expect(screen.getByText(/% -/)).toBeTruthy();
   });
