@@ -8,7 +8,6 @@ import { currentRuleMovesForPokemon } from './currentRuleCatalog';
 import {
   buildCalcConfigFromTeamMember,
   buildTemporaryCalcConfig,
-  CHAMPIONS_DAMAGE_MECHANISM_BLOCKED_REASON,
   computeDamage,
   totalStatPoints,
   validateStatPoints,
@@ -39,11 +38,13 @@ const defaults: DamageAdapterInput = {
 };
 
 describe('damageAdapter', () => {
-  it('blocks valid-looking input until Champions damage mechanics are verified', () => {
+  it('returns Gen9-based damage for valid input with Champions move params and SP stats', () => {
     const result = computeDamage(defaults);
-    expect(result.status).toBe('blocked');
-    expect(result.blockedReasons).toContain(CHAMPIONS_DAMAGE_MECHANISM_BLOCKED_REASON);
-    expect(result.damageRolls).toBeUndefined();
+    expect(result.status).toBe('experimental-success');
+    expect(result.accuracyLevel).toBe('experimental-mainline-approximation');
+    expect(result.damageRolls!.length).toBeGreaterThan(0);
+    expect(result.minDamage).toBeGreaterThan(0);
+    expect(result.defenderHp).toBeGreaterThan((pokemon.find((p) => p.id === 'torkoal')?.baseStats.hp ?? 0));
     expect(result.dataVersionId).toBe(currentDataVersion.id);
     expect(result.ruleSetId).toBe(currentRuleSet.id);
     expect(result.attackerConfig).toBeTruthy();
@@ -76,7 +77,7 @@ describe('damageAdapter', () => {
     expect(result.blockedReasons.some((r) => r.includes('可学会') || r.includes('learn'))).toBe(true);
   });
 
-  it('blocks spread moves before deriving formal doubles damage', () => {
+  it('derives spread damage in doubles from Champions targetScope', () => {
     // Earthquake is 对手全体 in doubles
     const garchompMoves = currentRuleMovesForPokemon('garchomp');
     const eq = garchompMoves.find((m) => m.id === 'earthquake');
@@ -86,32 +87,30 @@ describe('damageAdapter', () => {
         attacker: makeConfig({ selectedMoveId: 'earthquake' }),
         battleType: 'doubles',
       });
-      expect(result.status).toBe('blocked');
-      expect(result.derivedSpreadDamage).toBe(false);
-      expect(result.blockedReasons).toContain(CHAMPIONS_DAMAGE_MECHANISM_BLOCKED_REASON);
+      expect(result.status).toBe('experimental-success');
+      expect(result.derivedSpreadDamage).toBe(true);
     }
   });
 
-  it('blocks singles damage before deriving formal spread behavior', () => {
+  it('does not derive spread damage in singles', () => {
     const result = computeDamage({
       ...defaults,
       attacker: makeConfig({ selectedMoveId: 'earthquake' }),
       battleType: 'singles',
     });
-    expect(result.status).toBe('blocked');
+    expect(result.status).toBe('experimental-success');
     expect(result.derivedSpreadDamage).toBe(false);
-    expect(result.blockedReasons).toContain(CHAMPIONS_DAMAGE_MECHANISM_BLOCKED_REASON);
   });
 
-  it('blocks known Mega form damage until Champions mechanics are verified', () => {
+  it('resolves known Mega form damage', () => {
     const gEntry = pokemon.find((p) => p.id === 'garchomp');
     if (gEntry?.megaForms.length) {
       const result = computeDamage({
         ...defaults,
         attacker: makeConfig({ formId: 'mega-garchomp', selectedMoveId: 'dragon-claw' }),
       });
-      expect(result.status).toBe('blocked');
-      expect(result.blockedReasons).toContain(CHAMPIONS_DAMAGE_MECHANISM_BLOCKED_REASON);
+      expect(result.status).toBe('experimental-success');
+      expect(result.attackerBattleForm?.isMega).toBe(true);
     }
   });
 
@@ -192,11 +191,11 @@ describe('damageAdapter', () => {
 
   // ── Warnings ──
 
-  it('has warnings explaining the unverified mechanism block', () => {
+  it('documents the Gen9 formula and Champions parameter assumptions', () => {
     const result = computeDamage(defaults);
-    expect(result.status).toBe('blocked');
-    expect(result.warnings.some((w) => /机制门控阻断/.test(w))).toBe(true);
-    expect(result.assumptions.some((a) => /@smogon\/calc@0\.11\.0/.test(a))).toBe(true);
+    expect(result.status).toBe('experimental-success');
+    expect(result.warnings.some((w) => /Gen9/.test(w))).toBe(true);
+    expect(result.assumptions.some((a) => /Champions move catalog|Champions 招式/.test(a))).toBe(true);
   });
 
   // ── Team member config is not overwritten by temporary preset ──
@@ -222,7 +221,7 @@ describe('damageAdapter', () => {
 
   // ── Result includes configs ──
 
-  it('blocked result includes attacker and defender configs', () => {
+  it('result includes attacker and defender configs', () => {
     const result = computeDamage(defaults);
     expect(result.attackerConfig?.pokemonId).toBe('garchomp');
     expect(result.defenderConfig?.pokemonId).toBe('torkoal');

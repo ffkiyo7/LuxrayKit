@@ -1,30 +1,23 @@
 import type { BaseStats, PokemonType, SpeedBenchmark, Team, TeamMember } from '../types';
-import { items } from '../data';
+import { currentRuleNatureOptions, items } from '../data';
 import { findPokemon, getMemberBattleForm, type BattleFormView } from './pokemonForms';
 import { clampStatPointValue } from './statPoints';
 
-const natureSpeedMultiplier: Record<string, number> = {
-  爽朗: 1.1,
-  胆小: 1.1,
-  怕慢: 1.1,
-  固执: 1,
-  慎重: 1,
-  冷静: 0.9,
-};
-
-const natureStatMultipliers: Record<string, Partial<Record<keyof BaseStats, number>>> = {
-  爽朗: { speed: 1.1, specialAttack: 0.9 },
-  胆小: { speed: 1.1, attack: 0.9 },
-  固执: { attack: 1.1, specialAttack: 0.9 },
-  慎重: { specialDefense: 1.1, specialAttack: 0.9 },
-  冷静: { specialAttack: 1.1, speed: 0.9 },
-  怕慢: { speed: 1.1 },
+const natureStatMap: Record<string, keyof BaseStats> = {
+  HP: 'hp',
+  攻击: 'attack',
+  防御: 'defense',
+  特攻: 'specialAttack',
+  特防: 'specialDefense',
+  速度: 'speed',
+  攻: 'attack',
+  防: 'defense',
+  速: 'speed',
 };
 
 export const calculateSpeed = (baseSpeed: number, statPoints = 0, level = 50, nature = '爽朗', tailwind = false) => {
   const stat = baseSpeed + clampStatPointValue(statPoints) + 20;
-  const natureKey = Object.keys(natureSpeedMultiplier).find((key) => nature.includes(key));
-  const withNature = Math.floor(stat * (natureKey ? natureSpeedMultiplier[natureKey] : 1));
+  const withNature = Math.floor(stat * natureMultiplier(nature, 'speed'));
   return tailwind ? withNature * 2 : withNature;
 };
 
@@ -81,8 +74,19 @@ export const statRows = (stats: BaseStats) => [
 ] as const;
 
 const natureMultiplier = (nature: string, stat: keyof BaseStats) => {
-  const natureKey = Object.keys(natureStatMultipliers).find((key) => nature.includes(key));
-  return natureKey ? natureStatMultipliers[natureKey][stat] ?? 1 : 1;
+  const option = currentRuleNatureOptions.find((candidate) => nature.includes(candidate.id));
+  if (option) {
+    if (option.neutral) return 1;
+    if (option.up.some((label) => natureStatMap[label] === stat)) return 1.1;
+    if (option.down.some((label) => natureStatMap[label] === stat)) return 0.9;
+    return 1;
+  }
+
+  const legacyUp = /\+([^)）/]+)/.exec(nature)?.[1]?.trim();
+  const legacyDown = /-([^)）/]+)/.exec(nature)?.[1]?.trim();
+  if (legacyUp && natureStatMap[legacyUp] === stat) return 1.1;
+  if (legacyDown && natureStatMap[legacyDown] === stat) return 0.9;
+  return 1;
 };
 
 const calculateNonHpStat = (base: number, statPoints = 0, level = 50, nature = '爽朗', stat: keyof BaseStats) => {

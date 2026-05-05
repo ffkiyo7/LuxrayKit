@@ -148,11 +148,10 @@ describe('App page flows', () => {
     expect(screen.getAllByText(/手动临时配置/).length).toBeGreaterThanOrEqual(2);
     expect(screen.getByText(/临时修改不会自动保存/)).toBeTruthy();
     expect(screen.queryByText('努力值')).toBeNull();
-    expect(screen.getByText('实验性伤害计算')).toBeTruthy();
-    expect(screen.getAllByText(/非官方 Champions 正式结论/).length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText(/实验性计算说明/)).toBeTruthy();
-    expect(screen.getByText(/Champions 伤害公式尚未/)).toBeTruthy();
-    expect(screen.queryByText(/% -/)).toBeNull();
+    expect(screen.getByText('Gen9 伤害计算')).toBeTruthy();
+    expect(screen.getByText(/公式：Gen9/)).toBeTruthy();
+    expect(screen.queryByText(/当前无法|机制待确认|非官方 Champions 正式结论|Champions 伤害公式尚未/)).toBeNull();
+    expect(screen.getByText(/% -/)).toBeTruthy();
 
     // Expand attacker config
     const editBtns = screen.getAllByTitle('编辑能力配置');
@@ -172,7 +171,7 @@ describe('App page flows', () => {
     await user.click(screen.getByTitle('关闭 SP 调整'));
     expect(screen.getByText(/Champions SP 已用 72\/66/)).toBeTruthy();
     expect(screen.getByText(/SP 分配不合法/)).toBeTruthy();
-    expect(screen.getByText(/当前组合无法进行实验性计算/)).toBeTruthy();
+    expect(screen.getByText(/SP 分配需要调整/)).toBeTruthy();
 
     // ── Test nature editing ──
     const natureSelect = screen.getByLabelText('性格') as HTMLSelectElement;
@@ -285,10 +284,10 @@ describe('App page flows', () => {
     await user.type(screen.getByPlaceholderText('搜索名称'), 'Torkoal');
     await user.click(within(selector as HTMLElement).getByText('煤炭龟'));
 
-    // Verify damage is gated instead of showing untrusted ranges.
-    expect(screen.getByText('实验性伤害计算')).toBeTruthy();
-    expect(screen.getByText(/Champions 伤害公式尚未/)).toBeTruthy();
-    expect(screen.queryByText(/% -/)).toBeNull();
+    // Verify damage result area is calculated with the Gen9 path.
+    expect(screen.getByText('Gen9 伤害计算')).toBeTruthy();
+    expect(screen.getByText(/公式：Gen9/)).toBeTruthy();
+    expect(screen.getByText(/% -/)).toBeTruthy();
   });
 
   it('filters the Pokedex Pokemon list by up to two selected types', { timeout: 15000 }, async () => {

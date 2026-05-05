@@ -18,7 +18,7 @@ import {
 } from '../data';
 import { calculateBattleStats } from './calculations';
 import { findBattleForm, type BattleFormView } from './pokemonForms';
-import type { Move as AppMove, TeamMember } from '../types';
+import type { Move as AppMove, PokemonType, TeamMember } from '../types';
 import type { StatPoints } from '../types';
 import { clampStatPointValue } from './statPoints';
 
@@ -79,6 +79,7 @@ export type DamageAdapterResult = {
   minPercent?: number;
   maxPercent?: number;
   possibleHkoText?: string;
+  defenderHp?: number;
   dataVersionId: string;
   ruleSetId: string;
 };
@@ -98,11 +99,7 @@ const BLOCKED_MEGA_FORMS = new Set<string>([
 
 export const MAX_SP_PER_STAT = 32;
 export const MAX_SP_TOTAL = 66;
-export const CHAMPIONS_DAMAGE_MECHANISM_BLOCKED_REASON =
-  'Champions 伤害公式尚未由官方资料或可验证的 Champions 专用计算引擎确认；当前不输出伤害范围、一确/二确或乱数结论。';
-export const CHAMPIONS_DAMAGE_ENGINE_NOTE =
-  '@smogon/calc@0.11.0 只发布主线 Gen 1-9 机制；仓库 master 的 Champions 机制尚未作为稳定包发布。';
-export const ENABLE_EXPERIMENTAL_MAINLINE_DAMAGE = false;
+export const ENABLE_EXPERIMENTAL_MAINLINE_DAMAGE = true;
 
 export function validateStatPoints(sp: StatPoints): string[] {
   const issues: string[] = [];
@@ -179,6 +176,12 @@ const SPREAD_TARGET_SCOPES = ['对手全体', '全体邻近目标', '全体'];
 function deriveSpreadDamage(move: AppMove, battleType: BattleTypeOption): boolean {
   if (battleType !== 'doubles') return false;
   return SPREAD_TARGET_SCOPES.some((scope) => move.targetScope.includes(scope));
+}
+
+function calcMoveTarget(move: AppMove): 'allAdjacentFoes' | 'allAdjacent' | undefined {
+  if (move.targetScope.includes('对手全体')) return 'allAdjacentFoes';
+  if (move.targetScope.includes('全体邻近') || move.targetScope.includes('全体') || move.targetScope.includes('全场')) return 'allAdjacent';
+  return undefined;
 }
 
 const BASE_STATS_DECLARATION = {
@@ -338,13 +341,6 @@ export function computeDamage(input: DamageAdapterInput): DamageAdapterResult {
     return { ...makeBase(), status: 'blocked', attackerConfig, defenderConfig, move: projectMove };
   }
 
-  if (!ENABLE_EXPERIMENTAL_MAINLINE_DAMAGE) {
-    blockedReasons.push(CHAMPIONS_DAMAGE_MECHANISM_BLOCKED_REASON);
-    assumptions.push(CHAMPIONS_DAMAGE_ENGINE_NOTE);
-    warnings.push('伤害计算已按机制门控阻断，避免把主线近似结果误当作 Pokémon Champions 结论。');
-    return { ...makeBase(), status: 'blocked', attackerConfig, defenderConfig, move: projectMove };
-  }
-
   const spread = deriveSpreadDamage(projectMove, input.battleType);
 
   // ── Species lookup ──
@@ -384,7 +380,7 @@ export function computeDamage(input: DamageAdapterInput): DamageAdapterResult {
       ivs: BASE_STATS_DECLARATION.ivs,
       evs: BASE_STATS_DECLARATION.evs,
       boosts: {
-        atk: input.attackStage, spa: input.attackStage,
+        atk: input.attackStage, spa: input.specialAttackStage ?? input.attackStage,
         def: input.defenseStage ?? 0, spd: input.specialDefenseStage ?? 0,
       },
     });
@@ -395,11 +391,13 @@ export function computeDamage(input: DamageAdapterInput): DamageAdapterResult {
       nature: calcNatureName(defenderConfig.nature),
       ivs: BASE_STATS_DECLARATION.ivs,
       evs: BASE_STATS_DECLARATION.evs,
-      boosts: { def: input.defenseStage ?? 0, spd: input.specialDefenseStage ?? 0 },
+      boosts: { def: input.defenseStage ?? 0, spd: input.specialDefenseStage ?? input.defenseStage ?? 0 },
     });
 
     overrideCalcStats(attackerPoke, attackerStats);
     overrideCalcStats(defenderPoke, defenderStats);
+    overrideCalcTypes(attackerPoke, attackerForm.types);
+    overrideCalcTypes(defenderPoke, defenderForm.types);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const field = new (Field as any)({
@@ -410,7 +408,12 @@ export function computeDamage(input: DamageAdapterInput): DamageAdapterResult {
     });
 
     const calcMoveObj = new Move(9, calcMove.name, {
-      overrides: { basePower: projectMove.power, type: projectMove.type, category: projectMove.category },
+      overrides: {
+        basePower: projectMove.power,
+        type: projectMove.type,
+        category: projectMove.category,
+        target: calcMoveTarget(projectMove),
+      },
     });
 
     const calcResult = calculate(gen, attackerPoke, defenderPoke, calcMoveObj, field);
@@ -430,10 +433,11 @@ export function computeDamage(input: DamageAdapterInput): DamageAdapterResult {
     else if (minPct >= 33) possibleHkoText = '三确';
     else possibleHkoText = '多击击杀';
 
-    warnings.push('本结果基于主线机制近似（@smogon/calc），非官方 Pokémon Champions 正式结论。');
+    warnings.push('使用 @smogon/calc Gen9 伤害公式，并代入本项目采集的 Champions 招式参数与 SP 能力值。');
     assumptions.push(
-      'Experimental adapter maps current displayed Champions battle stats into a mainline-style calculation path.',
-      'Champions SP v1 stat formula used; IV/EV assumptions: 31 IV / 0 EV at Lv.50.',
+      'Damage formula: @smogon/calc Gen9.',
+      'Move parameters: project Champions move catalog power/type/category/targetScope.',
+      'Stats: project Champions SP v1 stat formula at Lv.50.',
       `进攻方能力值: ${attackerStats.attack} Atk / ${attackerStats.specialAttack} SpA / ${attackerStats.speed} Spe`,
       `防守方 HP: ${defenderStats.hp}, Def: ${defenderStats.defense}, SpD: ${defenderStats.specialDefense}`,
     );
@@ -448,6 +452,7 @@ export function computeDamage(input: DamageAdapterInput): DamageAdapterResult {
       move: projectMove, derivedSpreadDamage: spread,
       damageRolls: damages, minDamage: minDmg, maxDamage: maxDmg,
       minPercent: minPct, maxPercent: maxPct, possibleHkoText,
+      defenderHp: defenderStats.hp,
     };
   } catch (error) {
     blockedReasons.push(`计算引擎内部错误: ${error instanceof Error ? error.message : String(error)}`);
@@ -475,4 +480,9 @@ function overrideCalcStats(poke: unknown, stats: { hp: number; attack: number; d
     st.hp = stats.hp; st.atk = stats.attack; st.def = stats.defense;
     st.spa = stats.specialAttack; st.spd = stats.specialDefense; st.spe = stats.speed;
   }
+}
+
+function overrideCalcTypes(poke: unknown, types: PokemonType[]): void {
+  const s = poke as Record<string, unknown>;
+  s.types = types.slice(0, 2);
 }

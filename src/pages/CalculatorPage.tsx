@@ -1,4 +1,4 @@
-import { AlertTriangle, Calculator, ChevronDown, ChevronUp, Minus, Plus, Search, X } from 'lucide-react';
+import { Calculator, ChevronDown, ChevronUp, Minus, Plus, Search, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { abilities as allAbilities, currentDataVersion, currentRuleNatureOptions, items as allItems, moves, pokemon } from '../data';
 import { currentRuleMovesForPokemon, currentRuleNatures, natureOptionLabel } from '../lib/currentRuleCatalog';
@@ -322,26 +322,24 @@ function SideConfigCard({
 function DamageResultCard({
   result,
   moveCategory,
-  defenderBaseHp,
   hasSelectedMove,
   spIssues,
 }: {
   result: ReturnType<typeof computeDamage> | null;
   moveCategory?: string;
-  defenderBaseHp: number;
   hasSelectedMove: boolean;
   spIssues: string[];
 }) {
-  // SP illegal — show blocked reasons even without calling computeDamage
+  // SP illegal — show validation reasons without calling computeDamage
   if (spIssues.length > 0) {
     return (
       <Card>
         <div className="mb-4 flex items-center justify-between">
-          <p className="text-[11px] uppercase tracking-wide text-textSecondary">实验性伤害计算</p>
+          <p className="text-[11px] uppercase tracking-wide text-textSecondary">Gen9 伤害计算</p>
           <Calculator size={18} className="text-accent" />
         </div>
         <div>
-          <p className="text-sm font-semibold text-textSecondary">当前组合无法进行实验性计算</p>
+          <p className="text-sm font-semibold text-textSecondary">SP 分配需要调整</p>
           <div className="mt-3 space-y-1">
             {spIssues.map((r, i) => <p key={i} className="text-[11px] text-red-400">{r}</p>)}
           </div>
@@ -354,7 +352,7 @@ function DamageResultCard({
     return (
       <Card>
         <div className="mb-4 flex items-center justify-between">
-          <p className="text-[11px] uppercase tracking-wide text-textSecondary">实验性伤害计算</p>
+          <p className="text-[11px] uppercase tracking-wide text-textSecondary">Gen9 伤害计算</p>
           <Calculator size={18} className="text-accent" />
         </div>
         <p className="py-8 text-center text-sm text-textSecondary">请先选择招式</p>
@@ -366,7 +364,7 @@ function DamageResultCard({
     return (
       <Card>
         <div className="mb-4 flex items-center justify-between">
-          <p className="text-[11px] uppercase tracking-wide text-textSecondary">实验性伤害计算</p>
+          <p className="text-[11px] uppercase tracking-wide text-textSecondary">Gen9 伤害计算</p>
           <Calculator size={18} className="text-accent" />
         </div>
         <p className="py-8 text-center text-sm text-textSecondary">变化招式不适用伤害计算</p>
@@ -378,7 +376,7 @@ function DamageResultCard({
     return (
       <Card>
         <div className="mb-4 flex items-center justify-between">
-          <p className="text-[11px] uppercase tracking-wide text-textSecondary">实验性伤害计算</p>
+          <p className="text-[11px] uppercase tracking-wide text-textSecondary">Gen9 伤害计算</p>
           <Calculator size={18} className="text-accent" />
         </div>
         <div className="space-y-1">
@@ -393,10 +391,10 @@ function DamageResultCard({
     return (
       <Card>
         <div className="mb-4 flex items-center justify-between">
-          <p className="text-[11px] uppercase tracking-wide text-textSecondary">实验性伤害计算</p>
+          <p className="text-[11px] uppercase tracking-wide text-textSecondary">Gen9 伤害计算</p>
           <Calculator size={18} className="text-accent" />
         </div>
-        <p className="text-sm font-semibold text-textSecondary">当前组合无法进行实验性计算</p>
+        <p className="text-sm font-semibold text-textSecondary">请调整当前组合</p>
         <div className="mt-3 space-y-1">
           {result.blockedReasons.map((r, i) => <p key={i} className="text-[11px] text-textMuted">{r}</p>)}
         </div>
@@ -414,15 +412,15 @@ function DamageResultCard({
     <Card>
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <p className="text-[11px] uppercase tracking-wide text-textSecondary">实验性伤害计算</p>
-          <p className="text-[10px] text-textMuted">主线机制近似结果</p>
+          <p className="text-[11px] uppercase tracking-wide text-textSecondary">Gen9 伤害计算</p>
+          <p className="text-[10px] text-textMuted">使用 Champions 招式参数与 SP 能力值</p>
         </div>
-        <span className="rounded-full bg-warning/20 px-2 py-0.5 text-[10px] font-semibold text-warning">实验性</span>
+        <span className="rounded-full bg-accent/20 px-2 py-0.5 text-[10px] font-semibold text-accent">Gen9</span>
       </div>
 
       <div className="text-center">
         <p className="text-[28px] font-bold text-white">{result.minPercent}% - {result.maxPercent}%</p>
-        <p className="mt-1 text-sm text-textSecondary">{result.minDamage} - {result.maxDamage} 伤害 / 对方 HP: {defenderBaseHp}</p>
+        <p className="mt-1 text-sm text-textSecondary">{result.minDamage} - {result.maxDamage} 伤害 / 对方 HP: {result.defenderHp ?? '-'}</p>
       </div>
 
       <div className="my-5 h-px bg-divider" />
@@ -435,7 +433,7 @@ function DamageResultCard({
 
       <p className="mt-3 text-center text-[11px] text-textMuted">{result.possibleHkoText}</p>
       <p className="mt-4 text-center text-[10px] text-textMuted">
-        非官方 Champions 正式结论 · 仅供调试和队伍比较参考 · 数据 {currentDataVersion.versionName}
+        公式：Gen9 · 招式参数：Champions 目录 · 数据 {currentDataVersion.versionName}
       </p>
     </Card>
   );
@@ -475,6 +473,7 @@ export function CalculatorPage({
   const [weather, setWeather] = useState(weatherOptions[0]);
   const [terrain, setTerrain] = useState(terrainOptions[0]);
   const [attackStage, setAttackStage] = useState('0');
+  const [defenseStage, setDefenseStage] = useState('0');
 
   // Guard: only apply selectedMemberId ONCE, never overwrite user edits
   const lastAppliedMemberIdRef = useRef<string | undefined>(undefined);
@@ -523,13 +522,21 @@ export function CalculatorPage({
 
   function pickPokemon(pokemonId: string) {
     const role: 'attacker' | 'defender' = activeSide;
-    const cfg = buildTemporaryCalcConfig({ pokemonId, role, moveCategory: 'unknown' });
+    const firstMove = currentRuleMovesForPokemon(pokemonId).find((move) => move.category !== 'Status');
+    const cfg = buildTemporaryCalcConfig({ pokemonId, role, moveCategory: firstMove?.category ?? 'unknown' });
+    const nextConfig = firstMove
+      ? {
+          ...cfg,
+          selectedMoveId: firstMove.id,
+          moveIds: Array.from(new Set([firstMove.id, ...cfg.moveIds.filter(Boolean)])).slice(0, 4),
+        }
+      : cfg;
     if (activeSide === 'attacker') {
-      setAttackerConfig(cfg);
+      setAttackerConfig(nextConfig);
       setAttackerDirty(false);
       onPickMember(pokemonId);
     } else {
-      setDefenderConfig(cfg);
+      setDefenderConfig(nextConfig);
       setDefenderDirty(false);
     }
     setQuery('');
@@ -547,7 +554,7 @@ export function CalculatorPage({
     }
   }
 
-  // SP issues for pre-blocked display
+  // SP issues for pre-calculation display
   const attackerSpIssues = validateStatPoints(attackerConfig.statPoints);
   const defenderSpIssues = validateStatPoints(defenderConfig.statPoints);
   const allSpIssues = [
@@ -555,8 +562,8 @@ export function CalculatorPage({
     ...defenderSpIssues.map((s) => `防守方: ${s}`),
   ];
 
-  // Compute damage — illegal SP is blocked in the UI before invoking the experimental adapter
-  const damageKey = `${attackerConfig.pokemonId}|${attackerConfig.formId}|${attackerConfig.selectedMoveId}|${attackerConfig.nature}|${JSON.stringify(attackerConfig.statPoints)}|${attackerConfig.abilityId}|${attackerConfig.itemId}||${defenderConfig.pokemonId}|${defenderConfig.formId}|${defenderConfig.nature}|${JSON.stringify(defenderConfig.statPoints)}|${defenderConfig.abilityId}|${defenderConfig.itemId}||${battleType}|${weather}|${terrain}|${attackStage}|${currentMove?.category}`;
+  // Compute damage — illegal SP is stopped in the UI before invoking the adapter
+  const damageKey = `${attackerConfig.pokemonId}|${attackerConfig.formId}|${attackerConfig.selectedMoveId}|${attackerConfig.nature}|${JSON.stringify(attackerConfig.statPoints)}|${attackerConfig.abilityId}|${attackerConfig.itemId}||${defenderConfig.pokemonId}|${defenderConfig.formId}|${defenderConfig.nature}|${JSON.stringify(defenderConfig.statPoints)}|${defenderConfig.abilityId}|${defenderConfig.itemId}||${battleType}|${weather}|${terrain}|${attackStage}|${defenseStage}|${currentMove?.category}`;
   const damageResult = useMemo(() => {
     if (!attackerConfig.selectedMoveId || !attackerConfig.pokemonId || !defenderConfig.pokemonId) return null;
     if (currentMove?.category === 'Status') return null;
@@ -568,6 +575,7 @@ export function CalculatorPage({
       weather,
       terrain,
       attackStage: Number(attackStage) || 0,
+      defenseStage: Number(defenseStage) || 0,
     });
     // eslint-disable-next-line
   }, [damageKey]);
@@ -600,6 +608,66 @@ export function CalculatorPage({
         </button>
       </div>
 
+      {/* Pokémon selector */}
+      <Card className="bg-secondary">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-semibold">{activeSide === 'attacker' ? '选择进攻方' : '选择防守方'}</p>
+            <p className="text-xs text-textSecondary">先选择对象，再编辑能力配置与战斗条件</p>
+          </div>
+          <Badge status="version">{activeSide === 'attacker' ? '进攻' : '防守'}</Badge>
+        </div>
+
+        <label className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2">
+          <Search size={16} className="text-textMuted" />
+          <input className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-textMuted" placeholder="搜索名称" value={query} onChange={(e) => setQuery(e.target.value)} />
+        </label>
+
+        {recommended.length > 0 && (
+          <div className="mt-3">
+            <p className="mb-2 text-[11px] uppercase tracking-wide text-textMuted">当前队伍推荐</p>
+            <div className="flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
+              {recommended.map(({ teamName, member, entry }) => (
+                <button
+                  key={member.id}
+                  className={`min-w-[116px] rounded-lg border bg-card p-2 text-left ${
+                    (activeSide === 'attacker' ? attackerConfig.sourceMemberId === member.id : defenderConfig.sourceMemberId === member.id) ? 'border-accent' : 'border-border'
+                  }`}
+                  type="button"
+                  onClick={() => pickTeamMember(member)}
+                >
+                  <div className="mb-2"><PokemonAvatar iconRef={entry.iconRef} label={entry.chineseName} /></div>
+                  <p className="truncate text-xs font-semibold">{entry.chineseName}</p>
+                  <p className="truncate text-[11px] text-textMuted">{teamName}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {normalizedQuery && (
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            {filteredPokemon.map((entry) => {
+              const selected = activeSide === 'attacker' ? attackerConfig.pokemonId === entry.id : defenderConfig.pokemonId === entry.id;
+              return (
+                <button
+                  key={entry.id}
+                  className={`rounded-lg border bg-card p-2 text-left ${selected ? 'border-accent' : 'border-border'}`}
+                  type="button"
+                  onClick={() => pickPokemon(entry.id)}
+                >
+                  <div className="mb-2 flex items-center gap-2">
+                    <PokemonAvatar iconRef={entry.iconRef} label={entry.chineseName} />
+                    <div className="min-w-0"><p className="truncate text-xs font-semibold">{entry.chineseName}</p></div>
+                  </div>
+                  <div className="flex gap-1">{entry.types.map((t) => <TypeBadge key={t} type={t} />)}</div>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </Card>
+
       {/* Config cards */}
       <SideConfigCard
         config={attackerConfig}
@@ -620,7 +688,7 @@ export function CalculatorPage({
             <p className="text-[11px] text-textSecondary">招式 · 战斗条件</p>
             <p className="text-xs font-semibold">{currentMove?.chineseName} {currentMove?.englishName} · {currentMove?.type} · {currentMove?.power ?? '-'} 威力</p>
           </div>
-          <Badge status="version">实验性</Badge>
+          <Badge status="version">Gen9</Badge>
         </div>
         <div className="grid grid-cols-2 gap-2">
           <div>
@@ -636,6 +704,12 @@ export function CalculatorPage({
           <label>
             <span className="mb-1 block text-[11px] text-textMuted">进攻能力</span>
             <select className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm outline-none" value={attackStage} onChange={(e) => setAttackStage(e.target.value)}>
+              {stageOptions.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+            </select>
+          </label>
+          <label>
+            <span className="mb-1 block text-[11px] text-textMuted">防守能力</span>
+            <select className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm outline-none" value={defenseStage} onChange={(e) => setDefenseStage(e.target.value)}>
               {stageOptions.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
             </select>
           </label>
@@ -658,68 +732,10 @@ export function CalculatorPage({
       <DamageResultCard
         result={damageResult}
         moveCategory={currentMove?.category}
-        defenderBaseHp={defenderBattleForm?.baseStats.hp ?? defenderEntry.baseStats.hp}
         hasSelectedMove={Boolean(attackerConfig.selectedMoveId)}
         spIssues={allSpIssues}
       />
 
-      {/* Mechanism warning — normal flow, no absolute positioning */}
-      <Card className="border border-warning/30 bg-reviewBg">
-        <div className="flex items-center gap-2 text-warning">
-          <AlertTriangle size={16} />
-          <span className="text-xs font-semibold">实验性计算说明 · 机制待确认</span>
-        </div>
-        <p className="mt-2 text-[11px] text-warning/80">
-          Champions 伤害公式、部分 Mega 细节、道具 / 特性 / 招式特殊交互仍未完全验证。
-          当前结果基于主线机制近似（@smogon/calc），不保证与正式 Pokémon Champions 完全一致。
-          非官方 Champions 正式结论 · 仅供调试和队伍比较参考。
-        </p>
-      </Card>
-
-      {/* Pokémon selector */}
-      <Card className="bg-secondary">
-        <div className="mb-3 flex items-center justify-between gap-3">
-          <div>
-            <p className="text-sm font-semibold">选择{activeSide === 'attacker' ? '进攻方' : '防守方'}</p>
-            <p className="text-xs text-textSecondary">可搜索当前规则图鉴，队伍成员会优先推荐</p>
-          </div>
-          <Badge status="version">{activeSide === 'attacker' ? '进攻' : '防守'}</Badge>
-        </div>
-
-        <label className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2">
-          <Search size={16} className="text-textMuted" />
-          <input className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-textMuted" placeholder="搜索名称" value={query} onChange={(e) => setQuery(e.target.value)} />
-        </label>
-
-        {recommended.length > 0 && (
-          <div className="mt-3">
-            <p className="mb-2 text-[11px] uppercase tracking-wide text-textMuted">当前队伍推荐</p>
-            <div className="flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
-              {recommended.map(({ teamName, member, entry }) => (
-                <button key={member.id} className="min-w-[116px] rounded-lg border bg-card p-2 text-left border-border" onClick={() => pickTeamMember(member)}>
-                  <div className="mb-2"><PokemonAvatar iconRef={entry.iconRef} label={entry.chineseName} /></div>
-                  <p className="truncate text-xs font-semibold">{entry.chineseName}</p>
-                  <p className="truncate text-[11px] text-textMuted">{teamName}</p>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {normalizedQuery && (
-          <div className="mt-3 grid grid-cols-2 gap-2">
-            {filteredPokemon.map((entry) => (
-              <button key={entry.id} className="rounded-lg border border-border bg-card p-2 text-left" onClick={() => pickPokemon(entry.id)}>
-                <div className="mb-2 flex items-center gap-2">
-                  <PokemonAvatar iconRef={entry.iconRef} label={entry.chineseName} />
-                  <div className="min-w-0"><p className="truncate text-xs font-semibold">{entry.chineseName}</p></div>
-                </div>
-                <div className="flex gap-1">{entry.types.map((t) => <TypeBadge key={t} type={t} />)}</div>
-              </button>
-            ))}
-          </div>
-        )}
-      </Card>
     </div>
   );
 }
