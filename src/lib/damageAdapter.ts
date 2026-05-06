@@ -91,6 +91,7 @@ export type DamageAdapterResult = {
   offensiveStatValue?: number;
   defensiveStatLabel?: string;
   defensiveStatValue?: number;
+  effectiveMoveType?: PokemonType;
   stabMultiplier?: number;
   typeEffectiveness?: number;
   typeEffectivenessText?: string;
@@ -316,12 +317,28 @@ function typeEffectivenessText(multiplier: number): string {
   return '效果一般';
 }
 
-function weatherImpact(move: AppMove, weather: string): { multiplier: number; text: string } {
-  if (weather === '晴天' && move.type === 'Fire') return { multiplier: 1.5, text: '晴天增强火属性' };
-  if (weather === '晴天' && move.type === 'Water') return { multiplier: 0.5, text: '晴天削弱水属性' };
-  if (weather === '雨天' && move.type === 'Water') return { multiplier: 1.5, text: '雨天增强水属性' };
-  if (weather === '雨天' && move.type === 'Fire') return { multiplier: 0.5, text: '雨天削弱火属性' };
+function weatherImpact(moveType: PokemonType, weather: string): { multiplier: number; text: string } {
+  if (weather === '晴天' && moveType === 'Fire') return { multiplier: 1.5, text: '晴天增强火属性' };
+  if (weather === '晴天' && moveType === 'Water') return { multiplier: 0.5, text: '晴天削弱水属性' };
+  if (weather === '雨天' && moveType === 'Water') return { multiplier: 1.5, text: '雨天增强水属性' };
+  if (weather === '雨天' && moveType === 'Fire') return { multiplier: 0.5, text: '雨天削弱火属性' };
   return { multiplier: 1, text: weather === '无天气' ? '无天气影响' : `${weather} 无直接招式修正` };
+}
+
+function effectiveMoveType(move: AppMove, attackerAbilityId?: string): PokemonType {
+  if (move.type === 'Normal') {
+    if (attackerAbilityId === 'pixilate') return 'Fairy';
+    if (attackerAbilityId === 'refrigerate') return 'Ice';
+    if (attackerAbilityId === 'aerilate') return 'Flying';
+    if (attackerAbilityId === 'galvanize') return 'Electric';
+  }
+  if (attackerAbilityId === 'liquid-voice' && SOUND_MOVE_IDS.has(move.id)) return 'Water';
+  return move.type;
+}
+
+function attackerTypesForStab(attackerTypes: PokemonType[], moveType: PokemonType, attackerAbilityId?: string): PokemonType[] {
+  if (attackerAbilityId === 'protean' || attackerAbilityId === 'libero') return [moveType];
+  return attackerTypes;
 }
 
 function percentText(chance: number): string {
@@ -346,6 +363,13 @@ function specificAbilityEffectText(abilityId: string, direction: DamageAbilityEf
   if (direction === 'immunity' && typeText) return typeText;
   if (direction === 'immunity' && abilityId === 'soundproof' && SOUND_MOVE_IDS.has(move.id)) return '声音招式无效';
   if (direction === 'immunity' && abilityId === 'bulletproof' && BULLET_BOMB_MOVE_IDS.has(move.id)) return '球和弹类招式无效';
+
+  if (move.type === 'Normal' && abilityId === 'pixilate') return '一般招式变为妖精属性';
+  if (move.type === 'Normal' && abilityId === 'refrigerate') return '一般招式变为冰属性';
+  if (move.type === 'Normal' && abilityId === 'aerilate') return '一般招式变为飞行属性';
+  if (move.type === 'Normal' && abilityId === 'galvanize') return '一般招式变为电属性';
+  if (abilityId === 'liquid-voice' && SOUND_MOVE_IDS.has(move.id)) return '声音招式变为水属性';
+  if (abilityId === 'protean' || abilityId === 'libero') return '属性随招式变化';
 
   if (direction === 'reduction') {
     if (abilityId === 'thick-fat' && (move.type === 'Fire' || move.type === 'Ice')) return `${TYPE_LABELS[move.type]}属性伤害减半`;
@@ -376,12 +400,6 @@ function specificAbilityEffectText(abilityId: string, direction: DamageAbilityEf
   }
 
   if (direction === 'changed') {
-    if (abilityId === 'pixilate') return '一般招式变为妖精属性';
-    if (abilityId === 'refrigerate') return '一般招式变为冰属性';
-    if (abilityId === 'aerilate') return '一般招式变为飞行属性';
-    if (abilityId === 'galvanize') return '一般招式变为电属性';
-    if (abilityId === 'liquid-voice') return '声音招式变为水属性';
-    if (abilityId === 'protean' || abilityId === 'libero') return '属性随招式变化';
     if (abilityId === 'unaware') return '无视能力阶级';
   }
 
@@ -800,8 +818,10 @@ export function computeDamage(input: DamageAdapterInput): DamageAdapterResult {
     const defensiveStatLabel = projectMove.category === 'Physical' ? '防御' : '特防';
     const offensiveStatValue = projectMove.category === 'Physical' ? actualCalc.attackerPoke.rawStats.atk : actualCalc.attackerPoke.rawStats.spa;
     const defensiveStatValue = projectMove.category === 'Physical' ? actualCalc.defenderPoke.rawStats.def : actualCalc.defenderPoke.rawStats.spd;
-    const typeEffectiveness = defensiveMatchupMultiplier(projectMove.type, defenderForm.types);
-    const weather = weatherImpact(projectMove, input.weather);
+    const displayedMoveType = effectiveMoveType(projectMove, attackerConfig.abilityId);
+    const attackerStabTypes = attackerTypesForStab(attackerForm.types, displayedMoveType, attackerConfig.abilityId);
+    const typeEffectiveness = defensiveMatchupMultiplier(displayedMoveType, defenderForm.types);
+    const weather = weatherImpact(displayedMoveType, input.weather);
     const withoutAttackerAbility = runCalculation('without-attacker-ability').damages;
     const withoutDefenderAbility = runCalculation('without-defender-ability').damages;
     const withoutAttackerItem = runCalculation('without-attacker-item').damages;
@@ -861,7 +881,8 @@ export function computeDamage(input: DamageAdapterInput): DamageAdapterResult {
       offensiveStatValue,
       defensiveStatLabel,
       defensiveStatValue,
-      stabMultiplier: attackerForm.types.includes(projectMove.type) ? 1.5 : 1,
+      effectiveMoveType: displayedMoveType,
+      stabMultiplier: attackerStabTypes.includes(displayedMoveType) ? 1.5 : 1,
       typeEffectiveness,
       typeEffectivenessText: typeEffectivenessText(typeEffectiveness),
       weatherMultiplier: weather.multiplier,

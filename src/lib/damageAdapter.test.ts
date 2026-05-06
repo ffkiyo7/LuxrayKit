@@ -527,6 +527,66 @@ describe('damageAdapter', () => {
     expect(withChoiceScarf.itemEffects).toEqual([]);
   });
 
+  it('uses ability-changed move types for displayed type, STAB, weather, and chips', () => {
+    const pixilate = computeDamage({
+      attacker: makeConfig({
+        pokemonId: 'gardevoir',
+        formId: 'mega-gardevoir',
+        abilityId: 'pixilate',
+        nature: '内敛',
+        statPoints: { specialAttack: 32 },
+        moveIds: ['hyper-voice'],
+        selectedMoveId: 'hyper-voice',
+      }),
+      defender: makeConfig({
+        pokemonId: 'garchomp',
+        nature: '认真',
+        statPoints: {},
+      }),
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+    const liquidVoiceRain = computeDamage({
+      attacker: makeConfig({
+        pokemonId: 'primarina',
+        abilityId: 'liquid-voice',
+        nature: '内敛',
+        statPoints: { specialAttack: 32 },
+        moveIds: ['hyper-voice'],
+        selectedMoveId: 'hyper-voice',
+      }),
+      defender: makeConfig({
+        pokemonId: 'torkoal',
+        nature: '认真',
+        statPoints: {},
+      }),
+      battleType: 'singles',
+      weather: '雨天',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+
+    expect(pixilate.status).toBe('experimental-success');
+    expect(pixilate.effectiveMoveType).toBe('Fairy');
+    expect(pixilate.typeEffectiveness).toBe(2);
+    expect(pixilate.stabMultiplier).toBe(1.5);
+    expect(pixilate.abilityEffects).toEqual([
+      expect.objectContaining({ side: 'attacker', abilityId: 'pixilate', text: '一般招式变为妖精属性' }),
+    ]);
+
+    expect(liquidVoiceRain.status).toBe('experimental-success');
+    expect(liquidVoiceRain.effectiveMoveType).toBe('Water');
+    expect(liquidVoiceRain.typeEffectiveness).toBe(2);
+    expect(liquidVoiceRain.stabMultiplier).toBe(1.5);
+    expect(liquidVoiceRain.weatherMultiplier).toBe(1.5);
+    expect(liquidVoiceRain.weatherText).toBe('雨天增强水属性');
+    expect(liquidVoiceRain.abilityEffects).toEqual([
+      expect.objectContaining({ side: 'attacker', abilityId: 'liquid-voice', text: '声音招式变为水属性' }),
+    ]);
+  });
+
   it('reports direct boost and reduction ability chips with specific reasons', () => {
     const thickFat = computeDamage({
       attacker: makeConfig({

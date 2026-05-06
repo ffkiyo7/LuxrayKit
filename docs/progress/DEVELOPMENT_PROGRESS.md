@@ -28,6 +28,7 @@
 - CalculatorPage：攻击方 / 防守方独立临时配置，支持从图鉴搜索或队伍导入，不写回队伍 / IndexedDB。
 - CalculatorPage 能力配置：性格 select、特性、道具、招式搜索、SP picker、能力阶级、形态。
 - damageAdapter：使用 Gen9 主线公式近似，接入 Champions SP、能力阶级、单双打、天气、场地、属性、本系、重要特性与道具修正；实际改变伤害的道具会进入结果胶囊。
+- damageAdapter：Pixilate / Liquid Voice 等会改变招式属性的特性，会同步修正结果卡的克制、本系、天气和特性胶囊。
 - 结果卡：展示伤害范围、百分比、结论、一确 / 二确概率、关键修正胶囊；不再展示阻断式旧文案。
 - damageAdapter：首批人工可复核样例已进入测试，固定完整 16 档 roll 与关键倍率 / 胶囊。
 
