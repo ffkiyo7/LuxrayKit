@@ -640,6 +640,17 @@ function DamageResultCard({
         </span>
       );
     }),
+    ...(result.itemEffects ?? []).map((effect) => {
+      const tone =
+        effect.direction === 'boost'
+          ? 'border-accent/40 bg-accent/15 text-accent'
+          : 'border-accent/40 bg-accent/15 text-accent';
+      return (
+        <span key={`item-${effect.side}-${effect.itemId}`} className={`rounded-full border px-2 py-1 font-semibold ${tone}`}>
+          {effect.label} · {effect.text}
+        </span>
+      );
+    }),
   ].filter(Boolean);
 
   return (

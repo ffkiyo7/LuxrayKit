@@ -297,6 +297,7 @@ describe('damageAdapter', () => {
     expect(result.abilityEffects).toEqual(
       (expected.abilityEffects ?? []).map((effect) => expect.objectContaining(effect)),
     );
+    expect(result.itemEffects).toEqual([]);
   });
 
   it('reports probabilistic one-hit and two-hit KO conclusions from damage rolls', () => {
@@ -469,6 +470,61 @@ describe('damageAdapter', () => {
     expect(result.status).toBe('experimental-success');
     expect(result.maxDamage).toBeGreaterThan(0);
     expect(result.abilityEffects).toEqual([]);
+  });
+
+  it('reports attacker item chips only when the item changes damage', () => {
+    const withBlackBelt = computeDamage({
+      attacker: makeConfig({
+        pokemonId: 'arcanine',
+        itemId: 'black-belt',
+        nature: '固执',
+        statPoints: { attack: 32 },
+        moveIds: ['close-combat'],
+        selectedMoveId: 'close-combat',
+      }),
+      defender: makeConfig({
+        pokemonId: 'houndoom',
+        nature: '认真',
+        statPoints: {},
+      }),
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+    const withChoiceScarf = computeDamage({
+      attacker: makeConfig({
+        pokemonId: 'arcanine',
+        itemId: 'choice-scarf',
+        nature: '固执',
+        statPoints: { attack: 32 },
+        moveIds: ['close-combat'],
+        selectedMoveId: 'close-combat',
+      }),
+      defender: makeConfig({
+        pokemonId: 'houndoom',
+        nature: '认真',
+        statPoints: {},
+      }),
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+
+    expect(withBlackBelt.status).toBe('experimental-success');
+    expect(withChoiceScarf.status).toBe('experimental-success');
+    expect(withBlackBelt.maxDamage).toBeGreaterThan(withChoiceScarf.maxDamage ?? 0);
+    expect(withBlackBelt.itemEffects).toEqual([
+      expect.objectContaining({
+        side: 'attacker',
+        itemId: 'black-belt',
+        direction: 'boost',
+        label: '进攻道具：黑带',
+        text: '提升格斗属性招式威力。',
+      }),
+    ]);
+    expect(withChoiceScarf.itemEffects).toEqual([]);
   });
 
   it('reports direct boost and reduction ability chips with specific reasons', () => {

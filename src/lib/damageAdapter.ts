@@ -83,6 +83,7 @@ export type DamageAdapterResult = {
   oneHitKoChance?: number;
   twoHitKoChance?: number;
   abilityEffects?: DamageAbilityEffect[];
+  itemEffects?: DamageItemEffect[];
   defenderHp?: number;
   attackerStats?: ReturnType<typeof calculateBattleStats>;
   defenderStats?: ReturnType<typeof calculateBattleStats>;
@@ -106,6 +107,14 @@ export type DamageAbilityEffect = {
   label: string;
   text: string;
   direction: 'boost' | 'reduction' | 'immunity' | 'changed';
+};
+
+export type DamageItemEffect = {
+  side: 'attacker' | 'defender';
+  itemId: string;
+  label: string;
+  text: string;
+  direction: 'boost' | 'reduction';
 };
 
 // ── Hard block list ──
@@ -188,7 +197,9 @@ function calcMoveId(id: string): ReturnType<typeof toID> { return toID(id); }
 function calcAbilityName(id: string): string {
   return abilities.find((ability) => ability.id === id)?.englishName ?? id;
 }
-function calcItemId(id: string): ReturnType<typeof toID> { return toID(id); }
+function calcItemName(id: string): string {
+  return items.find((item) => item.id === id)?.englishName ?? id;
+}
 
 const WEATHER_MAP: Record<string, string | undefined> = {
   '无天气': undefined, '晴天': 'Sun', '雨天': 'Rain', '沙暴': 'Sand', '雪天': 'Snow',
@@ -492,6 +503,45 @@ function uniqueAbilityEffects(effects: Array<DamageAbilityEffect | undefined>): 
   });
 }
 
+function itemEffectChip({
+  side,
+  itemId,
+  actual,
+  without,
+}: {
+  side: 'attacker' | 'defender';
+  itemId?: string;
+  actual: number[];
+  without: number[];
+}): DamageItemEffect | undefined {
+  if (!itemId || sameDamageRolls(actual, without)) return undefined;
+  const item = items.find((candidate) => candidate.id === itemId);
+  if (!item) return undefined;
+
+  const actualMax = actual.length > 0 ? Math.max(...actual) : 0;
+  const withoutMax = without.length > 0 ? Math.max(...without) : 0;
+  if (actualMax === withoutMax) return undefined;
+
+  return {
+    side,
+    itemId,
+    label: `${side === 'attacker' ? '进攻道具' : '防守道具'}：${item.chineseName}`,
+    text: item.effectSummary,
+    direction: actualMax > withoutMax ? 'boost' : 'reduction',
+  };
+}
+
+function uniqueItemEffects(effects: Array<DamageItemEffect | undefined>): DamageItemEffect[] {
+  const seen = new Set<string>();
+  return effects.filter((effect): effect is DamageItemEffect => {
+    if (!effect) return false;
+    const key = `${effect.side}|${effect.itemId}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 const BASE_STATS_DECLARATION = {
   ivs: { hp: 31, atk: 31, def: 31, spa: 31, spd: 31, spe: 31 },
   evs: { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 },
@@ -698,11 +748,11 @@ export function computeDamage(input: DamageAdapterInput): DamageAdapterResult {
       },
     });
 
-    const runCalculation = (abilityMode: 'actual' | 'without-attacker' | 'without-defender') => {
+    const runCalculation = (mode: 'actual' | 'without-attacker-ability' | 'without-defender-ability' | 'without-attacker-item' | 'without-defender-item') => {
       const attackerPoke = new Pokemon(9, calcAttackerSpecies.name, {
         level: 50,
-        ability: abilityMode === 'without-attacker' ? NO_ABILITY : attackerConfig.abilityId ? calcAbilityName(attackerConfig.abilityId) : NO_ABILITY,
-        item: attackerConfig.itemId ? calcItemId(attackerConfig.itemId) : undefined,
+        ability: mode === 'without-attacker-ability' ? NO_ABILITY : attackerConfig.abilityId ? calcAbilityName(attackerConfig.abilityId) : NO_ABILITY,
+        item: mode === 'without-attacker-item' ? undefined : attackerConfig.itemId ? calcItemName(attackerConfig.itemId) : undefined,
         nature: calcNatureName(attackerConfig.nature),
         ivs: BASE_STATS_DECLARATION.ivs,
         evs: statPointsToEvs(attackerConfig.statPoints),
@@ -711,8 +761,8 @@ export function computeDamage(input: DamageAdapterInput): DamageAdapterResult {
       });
       const defenderPoke = new Pokemon(9, calcDefenderSpecies.name, {
         level: 50,
-        ability: abilityMode === 'without-defender' ? NO_ABILITY : defenderConfig.abilityId ? calcAbilityName(defenderConfig.abilityId) : NO_ABILITY,
-        item: defenderConfig.itemId ? calcItemId(defenderConfig.itemId) : undefined,
+        ability: mode === 'without-defender-ability' ? NO_ABILITY : defenderConfig.abilityId ? calcAbilityName(defenderConfig.abilityId) : NO_ABILITY,
+        item: mode === 'without-defender-item' ? undefined : defenderConfig.itemId ? calcItemName(defenderConfig.itemId) : undefined,
         nature: calcNatureName(defenderConfig.nature),
         ivs: BASE_STATS_DECLARATION.ivs,
         evs: statPointsToEvs(defenderConfig.statPoints),
@@ -752,8 +802,10 @@ export function computeDamage(input: DamageAdapterInput): DamageAdapterResult {
     const defensiveStatValue = projectMove.category === 'Physical' ? actualCalc.defenderPoke.rawStats.def : actualCalc.defenderPoke.rawStats.spd;
     const typeEffectiveness = defensiveMatchupMultiplier(projectMove.type, defenderForm.types);
     const weather = weatherImpact(projectMove, input.weather);
-    const withoutAttackerAbility = runCalculation('without-attacker').damages;
-    const withoutDefenderAbility = runCalculation('without-defender').damages;
+    const withoutAttackerAbility = runCalculation('without-attacker-ability').damages;
+    const withoutDefenderAbility = runCalculation('without-defender-ability').damages;
+    const withoutAttackerItem = runCalculation('without-attacker-item').damages;
+    const withoutDefenderItem = runCalculation('without-defender-item').damages;
     const abilityEffects = uniqueAbilityEffects([
       knownAbilityEffectChip({
         side: 'attacker',
@@ -773,6 +825,10 @@ export function computeDamage(input: DamageAdapterInput): DamageAdapterResult {
       }),
       abilityEffectChip({ side: 'attacker', abilityId: attackerConfig.abilityId, actual: damages, without: withoutAttackerAbility, move: projectMove }),
       abilityEffectChip({ side: 'defender', abilityId: defenderConfig.abilityId, actual: damages, without: withoutDefenderAbility, move: projectMove }),
+    ]);
+    const itemEffects = uniqueItemEffects([
+      itemEffectChip({ side: 'attacker', itemId: attackerConfig.itemId, actual: damages, without: withoutAttackerItem }),
+      itemEffectChip({ side: 'defender', itemId: defenderConfig.itemId, actual: damages, without: withoutDefenderItem }),
     ]);
 
     warnings.push('使用 @smogon/calc Gen9 伤害公式，并代入本项目采集的 Champions 招式参数与 SP 能力值。');
@@ -797,6 +853,7 @@ export function computeDamage(input: DamageAdapterInput): DamageAdapterResult {
       oneHitKoChance,
       twoHitKoChance,
       abilityEffects,
+      itemEffects,
       defenderHp: defenderStats.hp,
       attackerStats,
       defenderStats,
