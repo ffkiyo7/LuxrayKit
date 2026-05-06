@@ -372,7 +372,7 @@ describe('App page flows', () => {
     expect(screen.getByPlaceholderText('搜索名称')).toBeTruthy();
     expect(screen.getByText('超级烈咬陆鲨')).toBeTruthy();
 
-    await user.click(screen.getByRole('button', { name: /属性：全部/ }));
+    await user.click(screen.getByRole('button', { name: '打开图鉴过滤' }));
     await user.click(screen.getByRole('button', { name: /^火属性$/ }));
     await user.click(screen.getByRole('button', { name: '完成' }));
     expect(screen.getAllByText('炽焰咆哮虎').length).toBeGreaterThan(0);
@@ -380,7 +380,7 @@ describe('App page flows', () => {
     expect(screen.getAllByText('喷火龙').length).toBeGreaterThan(0);
     expect(screen.queryByText('蚊香蛙皇')).toBeNull();
 
-    await user.click(screen.getByRole('button', { name: /属性：火/ }));
+    await user.click(screen.getByRole('button', { name: '打开图鉴过滤' }));
     await user.click(screen.getByRole('button', { name: /^飞行属性$/ }));
     await user.click(screen.getByRole('button', { name: '完成' }));
     expect(screen.getAllByText('喷火龙').length).toBeGreaterThan(0);
@@ -388,7 +388,7 @@ describe('App page flows', () => {
     expect(screen.queryByText('煤炭龟')).toBeNull();
 
     await user.click(screen.getByRole('button', { name: '清空' }));
-    await user.click(screen.getByRole('button', { name: /属性：全部/ }));
+    await user.click(screen.getByRole('button', { name: '打开图鉴过滤' }));
     await user.click(screen.getByRole('button', { name: /^地面属性$/ }));
     await user.click(screen.getByRole('button', { name: /^龙属性$/ }));
     await user.click(screen.getByRole('button', { name: '完成' }));
@@ -396,14 +396,15 @@ describe('App page flows', () => {
     expect(screen.getAllByLabelText('龙属性').length).toBeGreaterThan(0);
 
     await user.click(screen.getByText('烈咬陆鲨'));
-    expect(await screen.findByText('Garchomp')).toBeTruthy();
+    expect(await screen.findByText(/Garchomp/)).toBeTruthy();
+    expect(screen.getByText(/ガブリアス/)).toBeTruthy();
     const detailAvatarSrc = screen.getAllByAltText('烈咬陆鲨')[0].getAttribute('src');
     expect(detailAvatarSrc).toContain('/assets/pokemon/thumbs/');
-    await user.click(screen.getByRole('button', { name: '切日文' }));
-    expect(await screen.findByText('ガブリアス')).toBeTruthy();
+    expect(screen.getByText('身高')).toBeTruthy();
+    expect(screen.getByText('体重')).toBeTruthy();
     expect(screen.getAllByText('特性').length).toBeGreaterThan(0);
     expect(screen.getByText('种族值')).toBeTruthy();
-    expect(screen.getByText('当前规则可学会招式')).toBeTruthy();
+    expect(screen.getByText('可学会招式')).toBeTruthy();
     await user.click(screen.getByRole('button', { name: /查看烈咬陆鲨大图/ }));
     const imageDialog = screen.getByRole('dialog', { name: /烈咬陆鲨大图/ });
     expect(imageDialog).toBeTruthy();
@@ -411,13 +412,12 @@ describe('App page flows', () => {
     expect(artworkSrc).toContain('/assets/pokemon/artwork/');
     expect(detailAvatarSrc?.match(/\/(\d+)\.png$/)?.[1]).toBe(artworkSrc?.match(/\/(\d+)\.png$/)?.[1]);
     await user.click(screen.getByTitle('关闭'));
-    await user.click(screen.getByRole('button', { name: /当前规则可学会招式/ }));
     expect(screen.queryByText('示例待补齐')).toBeNull();
     expect(screen.getByRole('button', { name: '属性' })).toBeTruthy();
-    expect(screen.getByRole('button', { name: '性质' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: '升序' })).toBeTruthy();
     await user.click(screen.getByRole('button', { name: '威力' }));
     expect(screen.getByText('龙爪')).toBeTruthy();
-    expect(screen.getByText('属性相克')).toBeTruthy();
+    expect(screen.getByText('属性关系')).toBeTruthy();
   });
 
   it('filters Pokedex moves, items, and abilities with the shared search box', { timeout: 15000 }, async () => {
@@ -438,12 +438,19 @@ describe('App page flows', () => {
     const firstNormalMoveCard = screen.getByText(/百万吨重踢 Mega Kick/).closest('section')!;
     const firstPoisonMoveCard = screen.getByText(/溶化 Acid Armor/).closest('section')!;
     expect(firstNormalMoveCard.compareDocumentPosition(firstPoisonMoveCard) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: '打开招式属性筛选' }));
+    await user.click(screen.getByRole('button', { name: /^毒属性招式$/ }));
+    await user.click(screen.getByRole('button', { name: '完成' }));
+    expect(screen.getByText('招式属性：毒')).toBeTruthy();
+    expect(screen.queryByText(/百万吨重踢 Mega Kick/)).toBeNull();
+    expect(screen.getByText(/溶化 Acid Armor/)).toBeTruthy();
 
     await user.type(screen.getByPlaceholderText('搜索名称'), 'Dragon');
-    expect(screen.getByText(/龙爪 Dragon Claw/)).toBeTruthy();
+    expect(screen.queryByText(/龙爪 Dragon Claw/)).toBeNull();
     expect(screen.queryByText(/守住 Protect/)).toBeNull();
 
     await user.clear(screen.getByPlaceholderText('搜索名称'));
+    await user.click(screen.getByRole('button', { name: '清空' }));
     await user.click(screen.getByRole('button', { name: '特性' }));
     const aftermathCard = screen.getByText(/引爆 Aftermath/).closest('section')!;
     const analyticCard = screen.getByText(/分析 Analytic/).closest('section')!;
@@ -482,7 +489,7 @@ describe('App page flows', () => {
     expect(within(thickFatCard).getByText('超级妙蛙花')).toBeTruthy();
     expect(within(thickFatCard).queryByText(/^妙蛙花$/)).toBeNull();
     await user.click(within(thickFatCard).getByRole('button', { name: /超级妙蛙花/ }));
-    expect(await screen.findByText('Mega Venusaur')).toBeTruthy();
+    expect(await screen.findByText(/Mega Venusaur/)).toBeTruthy();
     expect(screen.getByText('种族值')).toBeTruthy();
   });
 

@@ -111,8 +111,8 @@ export const dataSourceManifest: DataSourceManifest = {
       sourceType: 'community',
       licenseRisk: 'medium',
       retrievedAt: '2026-04-29T00:00:00.000Z',
-      fieldsUsed: ['pokemon.types', 'pokemon.baseStats', 'pokemon.abilities', 'pokemon.sprites'],
-      notes: 'PokeAPI structured Pokemon data used for the first six real catalog rows. Rows remain manual-review.',
+      fieldsUsed: ['pokemon.types', 'pokemon.baseStats', 'pokemon.abilities', 'pokemon.sprites', 'pokemon.height', 'pokemon.weight'],
+      notes: 'PokeAPI structured Pokemon data used for catalog rows and cached height/weight display. Rows remain manual-review.',
     },
     {
       id: 'pokeapi-move-data',
