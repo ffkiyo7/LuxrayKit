@@ -37,6 +37,200 @@ const defaults: DamageAdapterInput = {
   attackStage: 0,
 };
 
+type ManualReviewFixture = {
+  name: string;
+  input: DamageAdapterInput;
+  expected: {
+    rolls: number[];
+    defenderHp: number;
+    minPercent: number;
+    maxPercent: number;
+    offensiveStatValue: number;
+    defensiveStatValue: number;
+    possibleHkoText: string;
+    stabMultiplier: number;
+    typeEffectiveness: number;
+    weatherMultiplier: number;
+    spreadMultiplier: number;
+    abilityEffects?: Array<{
+      side: 'attacker' | 'defender';
+      abilityId: string;
+      direction: 'boost' | 'reduction' | 'immunity' | 'changed';
+      text: string;
+    }>;
+  };
+};
+
+const manualReviewFixtures: ManualReviewFixture[] = [
+  {
+    name: 'Garchomp Dragon Claw vs bulky Torkoal, doubles single-target baseline',
+    input: {
+      attacker: makeConfig({
+        pokemonId: 'garchomp',
+        nature: '爽朗',
+        statPoints: { attack: 32, speed: 32, hp: 2 },
+        moveIds: ['dragon-claw'],
+        selectedMoveId: 'dragon-claw',
+      }),
+      defender: makeConfig({
+        pokemonId: 'torkoal',
+        nature: '慎重',
+        statPoints: { hp: 32, defense: 17, specialDefense: 17 },
+      }),
+      battleType: 'doubles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    },
+    expected: {
+      rolls: [48, 48, 49, 49, 49, 51, 51, 51, 52, 52, 54, 54, 54, 55, 55, 57],
+      defenderHp: 177,
+      minPercent: 27.1,
+      maxPercent: 32.2,
+      offensiveStatValue: 182,
+      defensiveStatValue: 177,
+      possibleHkoText: '通常需要三次以上攻击',
+      stabMultiplier: 1.5,
+      typeEffectiveness: 1,
+      weatherMultiplier: 1,
+      spreadMultiplier: 1,
+    },
+  },
+  {
+    name: 'Rain Hydro Pump Blastoise vs specially bulky Torkoal',
+    input: {
+      attacker: makeConfig({
+        pokemonId: 'blastoise',
+        nature: '内敛',
+        statPoints: { specialAttack: 32, hp: 2 },
+        moveIds: ['hydro-pump'],
+        selectedMoveId: 'hydro-pump',
+      }),
+      defender: makeConfig({
+        pokemonId: 'torkoal',
+        nature: '慎重',
+        statPoints: { hp: 32, specialDefense: 32, defense: 2 },
+      }),
+      battleType: 'singles',
+      weather: '雨天',
+      terrain: '无场地',
+      attackStage: 0,
+    },
+    expected: {
+      rolls: [212, 216, 218, 218, 222, 224, 228, 230, 234, 234, 236, 240, 242, 246, 248, 252],
+      defenderHp: 177,
+      minPercent: 119.8,
+      maxPercent: 142.4,
+      offensiveStatValue: 150,
+      defensiveStatValue: 134,
+      possibleHkoText: '确定一击击杀',
+      stabMultiplier: 1.5,
+      typeEffectiveness: 2,
+      weatherMultiplier: 1.5,
+      spreadMultiplier: 1,
+    },
+  },
+  {
+    name: 'Choice Scarf Garchomp Earthquake vs Houndoom confirms speed item does not alter damage',
+    input: {
+      attacker: makeConfig({
+        pokemonId: 'garchomp',
+        itemId: 'choice-scarf',
+        nature: '固执',
+        statPoints: { attack: 32, speed: 32, hp: 2 },
+        moveIds: ['earthquake'],
+        selectedMoveId: 'earthquake',
+      }),
+      defender: makeConfig({ pokemonId: 'houndoom', nature: '认真', statPoints: {} }),
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    },
+    expected: {
+      rolls: [320, 326, 330, 332, 338, 342, 344, 348, 354, 356, 360, 362, 368, 372, 374, 380],
+      defenderHp: 150,
+      minPercent: 213.3,
+      maxPercent: 253.3,
+      offensiveStatValue: 200,
+      defensiveStatValue: 70,
+      possibleHkoText: '确定一击击杀',
+      stabMultiplier: 1.5,
+      typeEffectiveness: 2,
+      weatherMultiplier: 1,
+      spreadMultiplier: 1,
+    },
+  },
+  {
+    name: 'Flash Fire Arcanine immunity vs Houndoom Flare Blitz',
+    input: {
+      attacker: makeConfig({
+        pokemonId: 'houndoom',
+        nature: '固执',
+        statPoints: { attack: 32 },
+        moveIds: ['flare-blitz'],
+        selectedMoveId: 'flare-blitz',
+      }),
+      defender: makeConfig({
+        pokemonId: 'arcanine',
+        abilityId: 'flash-fire',
+        nature: '认真',
+        statPoints: {},
+      }),
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    },
+    expected: {
+      rolls: [0],
+      defenderHp: 165,
+      minPercent: 0,
+      maxPercent: 0,
+      offensiveStatValue: 156,
+      defensiveStatValue: 100,
+      possibleHkoText: '无法造成伤害',
+      stabMultiplier: 1.5,
+      typeEffectiveness: 0.5,
+      weatherMultiplier: 1,
+      spreadMultiplier: 1,
+      abilityEffects: [{ side: 'defender', abilityId: 'flash-fire', direction: 'immunity', text: '火属性招式无效' }],
+    },
+  },
+  {
+    name: 'Technician Scizor Bullet Punch vs Houndoom',
+    input: {
+      attacker: makeConfig({
+        pokemonId: 'scizor',
+        abilityId: 'technician',
+        nature: '固执',
+        statPoints: { attack: 32 },
+        moveIds: ['bullet-punch'],
+        selectedMoveId: 'bullet-punch',
+      }),
+      defender: makeConfig({ pokemonId: 'houndoom', nature: '认真', statPoints: {} }),
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    },
+    expected: {
+      rolls: [48, 49, 49, 50, 51, 51, 52, 52, 53, 54, 54, 54, 55, 56, 57, 57],
+      defenderHp: 150,
+      minPercent: 32,
+      maxPercent: 38,
+      offensiveStatValue: 200,
+      defensiveStatValue: 70,
+      possibleHkoText: '通常需要三次以上攻击',
+      stabMultiplier: 1.5,
+      typeEffectiveness: 0.5,
+      weatherMultiplier: 1,
+      spreadMultiplier: 1,
+      abilityEffects: [{ side: 'attacker', abilityId: 'technician', direction: 'boost', text: '低威力招式增强' }],
+    },
+  },
+];
+
 describe('damageAdapter', () => {
   it('returns Gen9-based damage for valid input with Champions move params and SP stats', () => {
     const result = computeDamage(defaults);
@@ -80,6 +274,29 @@ describe('damageAdapter', () => {
     expect(result.oneHitKoChance).toBe(0);
     expect(result.twoHitKoChance).toBe(0);
     expect(result.possibleHkoText).toBe('通常需要三次以上攻击');
+  });
+
+  it.each(manualReviewFixtures)('matches manual review fixture: $name', ({ input, expected }) => {
+    const result = computeDamage(input);
+
+    expect(result.status).toBe('experimental-success');
+    expect(result.accuracyLevel).toBe('experimental-mainline-approximation');
+    expect(result.damageRolls).toEqual(expected.rolls);
+    expect(result.minDamage).toBe(Math.min(...expected.rolls));
+    expect(result.maxDamage).toBe(Math.max(...expected.rolls));
+    expect(result.defenderHp).toBe(expected.defenderHp);
+    expect(result.minPercent).toBe(expected.minPercent);
+    expect(result.maxPercent).toBe(expected.maxPercent);
+    expect(result.offensiveStatValue).toBe(expected.offensiveStatValue);
+    expect(result.defensiveStatValue).toBe(expected.defensiveStatValue);
+    expect(result.possibleHkoText).toBe(expected.possibleHkoText);
+    expect(result.stabMultiplier).toBe(expected.stabMultiplier);
+    expect(result.typeEffectiveness).toBe(expected.typeEffectiveness);
+    expect(result.weatherMultiplier).toBe(expected.weatherMultiplier);
+    expect(result.spreadMultiplier).toBe(expected.spreadMultiplier);
+    expect(result.abilityEffects).toEqual(
+      (expected.abilityEffects ?? []).map((effect) => expect.objectContaining(effect)),
+    );
   });
 
   it('reports probabilistic one-hit and two-hit KO conclusions from damage rolls', () => {

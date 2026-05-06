@@ -38,6 +38,7 @@
 - 伤害范围与百分比。
 - 一确 / 二确概率。
 - 关键修正胶囊：属性克制、本系、天气、道具、特性等。
+- 人工可复核 fixture：见 `docs/research/DAMAGE_CALC_FIXTURES.md`，并由 `src/lib/damageAdapter.test.ts` 固化 roll 期望。
 
 ## 仍需验证
 

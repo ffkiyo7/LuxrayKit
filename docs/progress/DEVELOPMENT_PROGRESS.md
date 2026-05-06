@@ -8,6 +8,7 @@
 
 - `npm test`：通过，11 个测试文件，93 个用例。
 - `npm run build`：通过。
+- 伤害计算人工复核 fixtures：已建立首批 5 组，覆盖基础物理、天气特攻、非伤害道具、免疫特性、增伤特性。
 - `npm run test:pwa` / `npm run test:visual`：仍作为 PWA 与移动端视觉回归命令保留，使用本机 Chrome channel。
 - 构建存在 Vite chunk size warning，仅为体积提示，不影响功能正确性。
 
@@ -28,6 +29,7 @@
 - CalculatorPage 能力配置：性格 select、特性、道具、招式搜索、SP picker、能力阶级、形态。
 - damageAdapter：使用 Gen9 主线公式近似，接入 Champions SP、能力阶级、单双打、天气、场地、属性、本系、重要特性与道具修正。
 - 结果卡：展示伤害范围、百分比、结论、一确 / 二确概率、关键修正胶囊；不再展示阻断式旧文案。
+- damageAdapter：首批人工可复核样例已进入测试，固定完整 16 档 roll 与关键倍率 / 胶囊。
 
 ## 当前边界
 
