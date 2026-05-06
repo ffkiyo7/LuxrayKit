@@ -1,4 +1,4 @@
-import { Database, Download, RefreshCw, Upload } from 'lucide-react';
+import { Database, Download, Moon, RefreshCw, Sun, Upload } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
 import { currentDataVersion, currentRuleSet } from '../data';
 import { TeamImportError, buildExportPayload, parseTeamImport } from '../lib/exportImport';
@@ -19,7 +19,7 @@ type ImportStatus =
     };
 
 export function SettingsPage({ onOpenRule }: { onOpenRule: () => void }) {
-  const { teams, preferences, replaceTeams, clearLocalData, lastRefreshError } = useAppStore();
+  const { teams, preferences, replaceTeams, clearLocalData, lastRefreshError, updateTheme } = useAppStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [importStatus, setImportStatus] = useState<ImportStatus | null>(null);
   const cacheSummary = useMemo(
@@ -165,11 +165,25 @@ export function SettingsPage({ onOpenRule }: { onOpenRule: () => void }) {
             </span>
             <span className="text-sm text-textSecondary">中文</span>
           </div>
-          <div className="flex items-center justify-between py-3">
-            <span className="text-sm">深色模式</span>
-            <span className="h-6 w-11 rounded-full bg-accent p-1">
-              <span className="block h-4 w-4 translate-x-5 rounded-full bg-page" />
+          <div className="flex items-center justify-between gap-3 py-3">
+            <span>
+              <span className="block text-sm">主题</span>
+              <span className="text-xs text-textSecondary">{preferences.theme === 'dark' ? '深色竞技场' : '浅色图鉴'}</span>
             </span>
+            <button
+              className="grid grid-cols-2 rounded-lg border border-border bg-secondary p-1 text-textSecondary"
+              type="button"
+              aria-label="切换深色和浅色主题"
+              aria-pressed={preferences.theme === 'light'}
+              onClick={() => updateTheme(preferences.theme === 'dark' ? 'light' : 'dark')}
+            >
+              <span className={`grid h-8 w-8 place-items-center rounded-md ${preferences.theme === 'light' ? 'bg-card text-warning surface-shadow' : ''}`}>
+                <Sun size={16} />
+              </span>
+              <span className={`grid h-8 w-8 place-items-center rounded-md ${preferences.theme === 'dark' ? 'bg-card text-accent' : ''}`}>
+                <Moon size={16} />
+              </span>
+            </button>
           </div>
         </div>
       </Card>

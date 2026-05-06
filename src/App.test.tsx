@@ -48,6 +48,20 @@ describe('App page flows', () => {
     expect(await screen.findByText('我的队伍')).toBeTruthy();
   });
 
+  it('toggles the app theme from the settings page', async () => {
+    const user = await renderApp();
+
+    expect(document.documentElement.dataset.theme).toBe('dark');
+    await user.click(screen.getByRole('button', { name: '设置' }));
+    await user.click(screen.getByRole('button', { name: '切换深色和浅色主题' }));
+    expect(document.documentElement.dataset.theme).toBe('light');
+    expect(await screen.findByText('浅色图鉴')).toBeTruthy();
+
+    await user.click(screen.getByRole('button', { name: '切换深色和浅色主题' }));
+    expect(document.documentElement.dataset.theme).toBe('dark');
+    expect(await screen.findByText('深色竞技场')).toBeTruthy();
+  });
+
   it('creates and switches teams, then expands and collapses a member card', async () => {
     const user = await renderApp();
 

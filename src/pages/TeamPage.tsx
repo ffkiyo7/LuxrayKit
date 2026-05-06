@@ -765,7 +765,7 @@ function TeamNameModal({
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-30 mx-auto max-w-[430px]">
-      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
+      <div className="absolute inset-0 bg-overlay/60" onClick={onClose} />
       <div className="absolute inset-x-0 bottom-0 flex flex-col gap-3 rounded-t-xl bg-card p-4 pb-[calc(16px+env(safe-area-inset-bottom))]">
         <h3 className="text-sm font-semibold">{isRename ? '编辑队伍名称' : '新建队伍'}</h3>
         <input

@@ -3,7 +3,7 @@ import { useState } from 'react';
 import type { LegalityStatus, PokemonType } from '../types';
 
 export function Card({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-  return <section className={`rounded-lg border border-border bg-card p-3 ${className}`}>{children}</section>;
+  return <section className={`surface-shadow rounded-lg border border-border bg-card p-3 ${className}`}>{children}</section>;
 }
 
 export function Button({
@@ -66,8 +66,8 @@ export function Badge({ status, children }: { status?: LegalityStatus | 'version
     illegal: 'bg-missingBg text-danger',
     'needs-review': 'bg-reviewBg text-warning',
     'missing-config': 'bg-missingBg text-danger',
-    version: 'bg-[#1e2a45] text-accent',
-    current: 'bg-[#1e2a45] text-accent',
+    version: 'bg-accent/15 text-accent',
+    current: 'bg-accent/15 text-accent',
   };
   return <span className={`inline-flex rounded px-1.5 py-1 text-[11px] font-semibold ${styles[status ?? 'version']}`}>{children}</span>;
 }
@@ -119,10 +119,10 @@ export function TypeBadge({ type, size = 'md' }: { type: PokemonType; size?: 'sm
   return (
     <span
       aria-label={`${typeLabels[type]}属性`}
-      className={`inline-flex shrink-0 items-center justify-center rounded-full border font-semibold leading-none text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] ${dimensions}`}
+      className={`inline-flex shrink-0 items-center justify-center rounded-full border font-semibold leading-none text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] ${dimensions}`}
       style={{
-        backgroundColor: `${typeColors[type]}36`,
-        borderColor: `${typeColors[type]}99`,
+        backgroundColor: `${typeColors[type]}dd`,
+        borderColor: `${typeColors[type]}`,
       }}
       title={`${typeLabels[type]}属性`}
     >

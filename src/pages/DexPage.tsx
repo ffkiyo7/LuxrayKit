@@ -267,7 +267,7 @@ function PokemonDetail({
                 ] as const).map(([key, label]) => (
                   <button
                     key={key}
-                    className={`min-h-8 rounded-md text-xs ${moveSortKey === key ? 'bg-accent text-white' : 'text-textSecondary'}`}
+                    className={`min-h-8 rounded-md text-xs ${moveSortKey === key ? 'bg-accent text-page' : 'text-textSecondary'}`}
                     type="button"
                     aria-pressed={moveSortKey === key}
                     onClick={() => setMoveSortKey(key)}
@@ -339,14 +339,14 @@ function PokemonDetail({
         </div>
       </Card>
       {showLargeImage && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/70 p-6" role="dialog" aria-modal="true" aria-label={`${entry.chineseName}大图`}>
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-overlay/70 p-6" role="dialog" aria-modal="true" aria-label={`${entry.chineseName}大图`}>
           <button className="absolute inset-0 cursor-default" type="button" aria-label="关闭" onClick={() => setShowLargeImage(false)} />
           <div className="relative z-10 w-full max-w-[360px]">
             <button className="absolute right-0 top-0 z-20 grid h-9 w-9 place-items-center rounded-lg bg-card text-textSecondary" type="button" title="关闭" onClick={() => setShowLargeImage(false)}>
               <X size={18} />
             </button>
             <img className="mx-auto max-h-[70vh] w-full object-contain drop-shadow-2xl" src={entry.artworkRef ?? entry.iconRef} alt={entry.chineseName} />
-            <p className="mt-3 text-center text-sm font-semibold text-white">{entry.chineseName}</p>
+            <p className="mt-3 text-center text-sm font-semibold text-onOverlay">{entry.chineseName}</p>
           </div>
         </div>
       )}

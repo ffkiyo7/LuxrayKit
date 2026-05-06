@@ -27,7 +27,7 @@ function AppShell() {
   const [speedPokemonId, setSpeedPokemonId] = useState('garchomp');
   const [calculatorMemberId, setCalculatorMemberId] = useState<string | undefined>();
   const [activeTeamId, setActiveTeamId] = useState<string | undefined>();
-  const { loading, teams } = useAppStore();
+  const { loading, teams, preferences } = useAppStore();
 
   const activeTeam = teams.find((team) => team.id === activeTeamId) ?? teams[0];
 
@@ -87,6 +87,10 @@ function AppShell() {
     document.title = overlay === 'rule' ? '当前规则 · Champions Tool' : 'Champions Tool';
   }, [overlay]);
 
+  useEffect(() => {
+    document.documentElement.dataset.theme = preferences.theme;
+  }, [preferences.theme]);
+
   if (loading) {
     return (
       <div className="grid min-h-screen place-items-center bg-page px-6 text-center text-textSecondary">
@@ -99,7 +103,7 @@ function AppShell() {
   }
 
   return (
-    <main className="mx-auto min-h-screen max-w-[430px] bg-page text-textPrimary">
+    <main className="app-shell mx-auto min-h-screen max-w-[430px] text-textPrimary">
       <div className="safe-bottom min-h-screen px-4 pt-4">
         <Header />
         {page}

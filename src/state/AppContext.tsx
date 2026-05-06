@@ -11,6 +11,7 @@ type Store = AppState & {
   addTeam: (name?: string) => Promise<Team>;
   updateMember: (teamId: string, member: TeamMember) => Promise<void>;
   toggleFavoriteBenchmark: (benchmarkId: string) => Promise<void>;
+  updateTheme: (theme: UserPreference['theme']) => Promise<void>;
   replaceTeams: (teams: Team[]) => Promise<void>;
   clearLocalData: () => Promise<void>;
   simulateRefresh: () => Promise<void>;
@@ -31,6 +32,12 @@ const createEmptyTeam = (name?: string): Team => ({
   notes: '',
 });
 
+const normalizePreferences = (preferences?: Partial<UserPreference>): UserPreference => ({
+  ...defaultPreferences,
+  ...preferences,
+  theme: preferences?.theme ?? defaultPreferences.theme,
+});
+
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [teams, setTeams] = useState<Team[]>([]);
@@ -42,11 +49,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       .loadState()
       .then((state) => {
         setTeams(state.teams);
-        setPreferences(state.preferences);
+        setPreferences(normalizePreferences(state.preferences));
       })
       .catch(() => {
         setTeams([]);
-        setPreferences(defaultPreferences);
+        setPreferences(normalizePreferences());
         setLastRefreshError('IndexedDB 不可用，当前仅能使用内存数据。');
       })
       .finally(() => setLoading(false));
@@ -86,6 +93,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     await repository.savePreferences(next);
   }, []);
 
+  const updateTheme = useCallback(
+    async (theme: UserPreference['theme']) => {
+      await savePreferences({ ...preferences, theme });
+    },
+    [preferences, savePreferences],
+  );
+
   const toggleFavoriteBenchmark = useCallback(
     async (benchmarkId: string) => {
       const exists = preferences.favoriteBenchmarkIds.includes(benchmarkId);
@@ -107,7 +121,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const clearLocalData = useCallback(async () => {
     await repository.clearAll();
     setTeams([]);
-    setPreferences(defaultPreferences);
+    setPreferences(normalizePreferences());
   }, []);
 
   const simulateRefresh = useCallback(async () => {
@@ -125,6 +139,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       addTeam,
       updateMember,
       toggleFavoriteBenchmark,
+      updateTheme,
       replaceTeams,
       clearLocalData,
       simulateRefresh,
@@ -141,6 +156,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       simulateRefresh,
       teams,
       toggleFavoriteBenchmark,
+      updateTheme,
       updateMember,
     ],
   );

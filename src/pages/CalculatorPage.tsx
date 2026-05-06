@@ -319,7 +319,7 @@ function SideConfigCard({
 
       {spIssues.length > 0 && (
         <div className="mt-2">
-          {spIssues.map((issue, i) => <p key={i} className="text-[10px] text-red-400">{issue}</p>)}
+          {spIssues.map((issue, i) => <p key={i} className="text-[10px] text-danger">{issue}</p>)}
         </div>
       )}
 
@@ -427,7 +427,7 @@ function SideConfigCard({
           <fieldset className="space-y-1.5">
             <div className="flex items-center justify-between gap-2">
               <p className="text-[11px] text-textMuted">能力配置：Champions SP 分配 / 能力阶级</p>
-              <span className={`text-[11px] ${spIssues.length > 0 ? 'text-red-400' : 'text-textMuted'}`}>
+              <span className={`text-[11px] ${spIssues.length > 0 ? 'text-danger' : 'text-textMuted'}`}>
                 已用 {spTotal}/{MAX_TOTAL_STAT_POINTS}
               </span>
             </div>
@@ -435,7 +435,7 @@ function SideConfigCard({
               {STAT_LABELS.map(({ key, label, stageKey }) => {
                 const stage = stageKey ? config.statStages?.[stageKey] ?? 0 : undefined;
                 return (
-                  <div key={key} className={`rounded-lg border bg-card p-2 ${spIssues.length > 0 ? 'border-red-400' : 'border-border'}`}>
+                  <div key={key} className={`rounded-lg border bg-card p-2 ${spIssues.length > 0 ? 'border-danger' : 'border-border'}`}>
                     <button
                       aria-label={`${label} ${clampStatPointValue(config.statPoints[key] ?? 0)}`}
                       className="w-full text-left active:scale-[0.99]"
@@ -462,11 +462,11 @@ function SideConfigCard({
                 );
               })}
             </div>
-            <p className={`text-[10px] ${spIssues.length > 0 ? 'text-red-400' : 'text-textMuted'}`}>
+            <p className={`text-[10px] ${spIssues.length > 0 ? 'text-danger' : 'text-textMuted'}`}>
               单项最多 {MAX_STAT_POINTS_PER_STAT} · 总量最多 {MAX_TOTAL_STAT_POINTS}
             </p>
             {spIssues.length > 0 && (
-              <p className="text-[10px] text-red-400">
+              <p className="text-[10px] text-danger">
                 SP 分配不合法：{spIssues.join('；')}。请修正后再计算。
               </p>
             )}
@@ -509,7 +509,7 @@ function DamageResultCard({
         <div>
           <p className="text-sm font-semibold text-textSecondary">SP 分配需要调整</p>
           <div className="mt-3 space-y-1">
-            {spIssues.map((r, i) => <p key={i} className="text-[11px] text-red-400">{r}</p>)}
+            {spIssues.map((r, i) => <p key={i} className="text-[11px] text-danger">{r}</p>)}
           </div>
         </div>
       </Card>
@@ -581,20 +581,20 @@ function DamageResultCard({
     typeMultiplier === 0
       ? 'text-textMuted'
       : typeMultiplier > 1
-        ? 'text-red-300'
+        ? 'text-danger'
         : typeMultiplier < 1
-          ? 'text-sky-300'
-          : 'text-white';
+          ? 'text-accent'
+          : 'text-textPrimary';
   const effectivenessBadge =
     typeMultiplier === 0
       ? 'border-textMuted/30 bg-textMuted/10 text-textMuted'
       : typeMultiplier > 1
-        ? 'border-red-400/40 bg-red-500/15 text-red-200'
+        ? 'border-danger/40 bg-missingBg text-danger'
         : typeMultiplier < 1
-          ? 'border-sky-400/40 bg-sky-500/15 text-sky-200'
+          ? 'border-accent/40 bg-accent/15 text-accent'
           : 'border-border bg-secondary text-textSecondary';
   const koTone = (result.minDamage ?? 0) >= (result.defenderHp ?? Number.POSITIVE_INFINITY)
-    ? 'border-red-400/40 bg-red-500/15 text-red-100'
+    ? 'border-danger/40 bg-missingBg text-danger'
     : (result.maxDamage ?? 0) * 2 >= (result.defenderHp ?? Number.POSITIVE_INFINITY)
       ? 'border-accent/40 bg-accent/15 text-accent'
       : 'border-border bg-secondary text-textSecondary';
@@ -632,7 +632,7 @@ function DamageResultCard({
         effect.direction === 'boost'
           ? 'border-accent/40 bg-accent/15 text-accent'
           : effect.direction === 'immunity' || effect.direction === 'reduction'
-            ? 'border-sky-400/40 bg-sky-500/15 text-sky-200'
+            ? 'border-accent/40 bg-accent/15 text-accent'
             : 'border-border bg-secondary text-textSecondary';
       return (
         <span key={`ability-${effect.side}-${effect.abilityId}`} className={`rounded-full border px-2 py-1 font-semibold ${tone}`}>

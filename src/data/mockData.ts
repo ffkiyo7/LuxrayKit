@@ -464,6 +464,7 @@ export const defaultTeams: Team[] = [
 
 export const defaultPreferences: UserPreference = {
   language: 'zh-CN',
+  theme: 'dark',
   favoriteBenchmarkIds: ['bench-garchomp-max'],
   defaultBenchmarkFilters: ['preset'],
   cachedRuleSetId: currentRuleSet.id,

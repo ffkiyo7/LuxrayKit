@@ -224,7 +224,7 @@ export function SpeedPage({
         <p className="text-[11px] text-textSecondary">最终速度</p>
         <div className="flex items-end justify-between">
           <div>
-            <p className="text-[26px] font-bold text-white">{currentSpeedLabel}</p>
+            <p className="text-[26px] font-bold text-textPrimary">{currentSpeedLabel}</p>
             <p className="text-xs text-textSecondary">基础速度 {selectedForm?.baseStats.speed ?? selected.baseStats.speed} · 性格×1.1 · SP+{speedStatPoints}</p>
           </div>
           <div className="flex gap-1">

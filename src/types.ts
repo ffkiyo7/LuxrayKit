@@ -250,6 +250,7 @@ export type SpeedBenchmark = {
 
 export type UserPreference = {
   language: 'zh-CN';
+  theme: 'dark' | 'light';
   favoriteBenchmarkIds: string[];
   defaultBenchmarkFilters: string[];
   cachedRuleSetId: string;

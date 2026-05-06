@@ -30,7 +30,7 @@ export function PokemonPicker({
 
   return (
     <div className="fixed inset-0 z-30">
-      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
+      <div className="absolute inset-0 bg-overlay/60" onClick={onClose} />
       <div className="absolute bottom-0 left-1/2 flex max-h-[70vh] min-h-[40vh] w-full max-w-[430px] -translate-x-1/2 flex-col rounded-t-xl bg-card">
         {/* Header */}
         <div className="flex shrink-0 items-center gap-3 border-b border-border px-4 py-3">
