@@ -1,15 +1,16 @@
 # Pokemon Champions Tool 开发进度
 
-更新时间：2026-05-07
+更新时间：2026-05-25
 
 当前阶段：**移动端 PWA MVP 已可用，真实 Reg M-A 数据与实验性伤害计算已接入；全局浅色 / 深色主题与图鉴信息层级已完成一轮收敛，下一步继续推进计算准确性和数据补齐。**
 
 ## 当前验证
 
-- `npm test`：通过，11 个测试文件，101 个用例。
-- `npm run build`：通过。
+- `npm test`：2026-05-25 通过，11 个测试文件，101 个用例。
+- `npm run build`：2026-05-25 通过。
 - 伤害计算人工复核 fixtures：已建立首批 5 组，覆盖基础物理、天气特攻、非伤害道具、免疫特性、增伤特性。
-- `npm run test:pwa` / `npm run test:visual`：仍作为 PWA 与移动端视觉回归命令保留，使用本机 Chrome channel。
+- `npm run test:pwa`：2026-05-25 离线用例通过；视觉 smoke 在 `03-member-editor-sp-picker.png` 与旧基线存在截图差异，需要人工确认并更新 snapshot。
+- `npm run test:visual`：仍作为移动端视觉回归命令保留，使用本机 Chrome channel；当前 SP picker 基线已落后于实际招式搜索 / 卡片选择 UI。
 - 构建存在 Vite chunk size warning，仅为体积提示，不影响功能正确性。
 
 ## 已完成能力
@@ -53,6 +54,7 @@
 3. 收敛 CalculatorPage 移动端视觉和交互细节，并按图鉴页的浅色 / 深色层级标准回看其它页面。
 4. 补齐剩余 Champions 新 Mega 数据，缺失时继续保持 shell。
 5. 设计 Reg registry，避免未来规则切换散改数据入口。
+6. 复核并更新移动端视觉回归 snapshot，优先处理 SP picker 基线与当前 UI 不一致。
 
 ## 文档索引
 

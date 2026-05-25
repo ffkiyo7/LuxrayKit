@@ -1,6 +1,6 @@
 # 移动端视觉回归
 
-更新时间：2026-05-07
+更新时间：2026-05-25
 
 ## 策略
 
@@ -32,6 +32,11 @@ npm run test:visual -- --update-snapshots
 ```bash
 npm run test:pwa
 ```
+
+## 当前状态
+
+- 2026-05-25：`npm run test:pwa` 中离线用例通过。
+- 2026-05-25：视觉 smoke 在 `03-member-editor-sp-picker.png` 失败；实际页面已经显示招式搜索 / 卡片选择 UI，基线仍是旧 select 布局。下一次视觉验收需人工确认当前 UI 后更新 snapshot。
 
 ## 当前边界
 
