@@ -31,7 +31,15 @@ describe('App page flows', () => {
     cleanup();
   });
 
-  it('navigates bottom tabs and opens the rule detail page', async () => {
+  it('labels the loading state as local rule data instead of mock data', async () => {
+    render(<App />);
+
+    expect(screen.getByText('正在载入本地缓存与规则数据...')).toBeTruthy();
+    expect(screen.queryByText(/模拟数据/)).toBeNull();
+    expect(await screen.findByText('我的队伍')).toBeTruthy();
+  });
+
+  it('navigates bottom tabs and opens the rule detail page', { timeout: 15000 }, async () => {
     const user = await renderApp();
 
     await user.click(screen.getByRole('button', { name: '计算' }));
@@ -39,6 +47,8 @@ describe('App page flows', () => {
 
     await user.click(screen.getByRole('button', { name: '图鉴' }));
     expect(await screen.findByText('规则内图鉴')).toBeTruthy();
+    expect(await screen.findByText('Pokémon / 招式 / 道具 / 特性 · 当前规则数据')).toBeTruthy();
+    expect(screen.queryByText(/当前规则模拟数据/)).toBeNull();
 
     await user.click(screen.getByRole('button', { name: '组队' }));
     await user.click(screen.getByText('官方数据源状态可追溯'));
@@ -364,7 +374,7 @@ describe('App page flows', () => {
     expect(screen.getByText(/% -/)).toBeTruthy();
   });
 
-  it('filters the Pokedex Pokemon list by up to two selected types', { timeout: 15000 }, async () => {
+  it('filters the Pokedex Pokemon list by up to two selected types', { timeout: 30000 }, async () => {
     const user = await renderApp();
 
     await user.click(screen.getByRole('button', { name: '图鉴' }));

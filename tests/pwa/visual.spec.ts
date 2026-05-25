@@ -50,10 +50,10 @@ test('captures the mobile visual regression smoke set', async ({ page }) => {
   await expect(page.getByText('规则内图鉴')).toBeVisible();
   await expect(page).toHaveScreenshot('06-dex.png', screenshotOptions);
   await page.getByRole('button', { name: /^烈咬陆鲨 / }).click();
-  await expect(page.getByText('当前规则可学会招式')).toBeVisible();
+  await expect(page.getByRole('heading', { name: '可学会招式' })).toBeVisible();
   await expect(page).toHaveScreenshot('06-dex-detail.png', screenshotOptions);
   await page.getByRole('button', { name: /返回图鉴列表/ }).click();
-  await page.getByRole('button', { name: /属性：全部/ }).click();
+  await page.getByRole('button', { name: '打开图鉴过滤' }).click();
   await expect(page.getByText('最多选择 2 个属性')).toBeVisible();
   await expect(page).toHaveScreenshot('06-dex-type-filter.png', screenshotOptions);
   await page.getByTitle('关闭属性筛选').click();

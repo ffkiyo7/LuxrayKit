@@ -706,7 +706,7 @@ export function DexPage({
     <div className="space-y-3">
       <div>
         <h2 className="text-lg font-semibold">规则内图鉴</h2>
-        <p className="text-xs text-textSecondary">Pokémon / 招式 / 道具 / 特性 · 当前规则模拟数据</p>
+        <p className="text-xs text-textSecondary">Pokémon / 招式 / 道具 / 特性 · 当前规则数据</p>
       </div>
 
       <div className="flex gap-4 border-b border-divider text-sm">

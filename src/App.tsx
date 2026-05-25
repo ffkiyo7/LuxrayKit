@@ -96,7 +96,7 @@ function AppShell() {
       <div className="grid min-h-screen place-items-center bg-page px-6 text-center text-textSecondary">
         <div>
           <ShieldCheck className="mx-auto mb-3 text-accent" size={32} />
-          <p className="text-sm">正在载入本地缓存与模拟数据...</p>
+          <p className="text-sm">正在载入本地缓存与规则数据...</p>
         </div>
       </div>
     );
