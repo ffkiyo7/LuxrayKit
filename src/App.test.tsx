@@ -218,6 +218,24 @@ describe('App page flows', () => {
     expect(within(dialog).queryByRole('button', { name: /分享|取消|关闭/ })).toBeNull();
   });
 
+  it('keeps imported high-score team metadata on the list without showing a source card in detail', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await screen.findByRole('heading', { name: '环境' });
+
+    await user.click(screen.getAllByRole('button', { name: /导入配置/ })[0]);
+    const importedCard = await screen.findByLabelText('队伍：作者名 · 2724 · 喷火龙核心');
+    expect(within(importedCard).getByText('高分导入')).toBeTruthy();
+    expect(within(importedCard).getByText(/作者名 · 2724 分/)).toBeTruthy();
+    expect(within(importedCard).getByRole('button', { name: '编辑配置' })).toBeTruthy();
+    expect(within(importedCard).getByRole('button', { name: '生成图片' })).toBeTruthy();
+
+    await user.click(within(importedCard).getByRole('button', { name: '编辑配置' }));
+    expect(await screen.findByRole('heading', { name: '作者名 · 2724 · 喷火龙核心' })).toBeTruthy();
+    expect(screen.queryByText('队报链接')).toBeNull();
+    expect(screen.queryByText(/来源|原始样本|高分导入/)).toBeNull();
+  });
+
   it('allows real editing of temporary config: SP, nature, item, and move changes persist', async () => {
     const user = await renderApp();
 

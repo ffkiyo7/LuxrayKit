@@ -116,15 +116,26 @@ function AppShell() {
   const importSampleTeam = useCallback(
     async (sample: EnvironmentTeamSample) => {
       const members = sample.slots.map(createImportedMember).filter((member): member is TeamMember => Boolean(member));
+      const timestamp = new Date().toISOString();
       const importedTeam: Team = {
         id: createId('team'),
         name: `${sample.author} · ${sample.score} · ${sample.title}`,
         ruleSetId: currentRuleSet.id,
         dataVersionId: currentDataVersion.id,
         members,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        notes: '从环境页高分队伍样本导入。',
+        createdAt: timestamp,
+        updatedAt: timestamp,
+        notes: '',
+        source: {
+          kind: 'high-score-import',
+          sampleId: sample.id,
+          title: sample.title,
+          author: sample.author,
+          score: sample.score,
+          battleType: sample.battleType,
+          reportUrl: sample.reportUrl,
+          importedAt: timestamp,
+        },
       };
       await saveTeam(importedTeam);
       setActiveTeamId(importedTeam.id);

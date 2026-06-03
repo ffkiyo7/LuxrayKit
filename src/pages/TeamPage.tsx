@@ -748,6 +748,13 @@ function TeamListCard({
   onGenerateImage: () => void;
 }) {
   const visibleMembers = team.members.slice(0, 6);
+  const sourceBadge = team.source?.kind === 'high-score-import' ? '高分导入' : team.source?.kind === 'external-report-import' ? '队报导入' : undefined;
+  const sourceSummary =
+    team.source?.kind === 'high-score-import'
+      ? `${team.source.author} · ${team.source.score} 分`
+      : team.source?.kind === 'external-report-import'
+        ? team.source.title
+        : team.notes || '本地队伍';
 
   return (
     <section
@@ -759,9 +766,12 @@ function TeamListCard({
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <span className="block truncate text-sm font-semibold">{team.name}</span>
-          <p className="mt-1 text-xs text-textSecondary">{team.members.length}/6 成员 · {team.notes || '本地队伍'}</p>
+          <p className="mt-1 text-xs text-textSecondary">{team.members.length}/6 成员 · {sourceSummary}</p>
         </div>
-        {active && <Badge status="current">当前</Badge>}
+        <div className="flex shrink-0 flex-wrap justify-end gap-1">
+          {sourceBadge && <Badge status="version">{sourceBadge}</Badge>}
+          {active && <Badge status="current">当前</Badge>}
+        </div>
       </div>
       <div className="mt-3 flex gap-2">
         {visibleMembers.map((member) => {

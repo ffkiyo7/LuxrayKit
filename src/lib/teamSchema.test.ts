@@ -16,6 +16,38 @@ describe('team schema migration', () => {
     expect(migrated).toEqual(defaultTeams);
   });
 
+  it('preserves high-score import source metadata in current schema teams', () => {
+    const migrated = migrateTeamExportPayload({
+      schemaVersion: 2,
+      teams: [
+        {
+          ...defaultTeams[0],
+          source: {
+            kind: 'high-score-import',
+            sampleId: 'sample-charizard-2724',
+            title: '喷火龙核心',
+            author: '作者名',
+            score: 2724,
+            battleType: 'singles',
+            reportUrl: 'https://example.com/report',
+            importedAt: '2026-06-03T04:00:00.000Z',
+          },
+        },
+      ],
+    });
+
+    expect(migrated[0].source).toEqual({
+      kind: 'high-score-import',
+      sampleId: 'sample-charizard-2724',
+      title: '喷火龙核心',
+      author: '作者名',
+      score: 2724,
+      battleType: 'singles',
+      reportUrl: 'https://example.com/report',
+      importedAt: '2026-06-03T04:00:00.000Z',
+    });
+  });
+
   it('migrates v0 teams by filling optional member defaults', () => {
     const migrated = migrateTeamExportPayload({
       schemaVersion: 0,

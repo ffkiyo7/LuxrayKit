@@ -1,4 +1,4 @@
-import type { Team, TeamMember } from '../types';
+import type { BattleType, Team, TeamMember, TeamSource } from '../types';
 import { migrateLegacyEvStatPoints } from './statPoints';
 
 export const CURRENT_TEAM_EXPORT_SCHEMA_VERSION = 2;
@@ -33,6 +33,34 @@ const migrateMember = (member: RawTeamMember, index: number, migrateLegacyStats 
   legalityStatus: member.legalityStatus || 'needs-review',
 });
 
+const isBattleType = (value: unknown): value is BattleType => value === 'singles' || value === 'doubles';
+
+const normalizeTeamSource = (source: unknown): TeamSource | undefined => {
+  if (!source || typeof source !== 'object') return undefined;
+  const candidate = source as Partial<TeamSource>;
+  if (candidate.kind === 'high-score-import') {
+    return {
+      kind: 'high-score-import',
+      sampleId: String(candidate.sampleId ?? ''),
+      title: String(candidate.title ?? ''),
+      author: String(candidate.author ?? ''),
+      score: Number(candidate.score ?? 0),
+      battleType: isBattleType(candidate.battleType) ? candidate.battleType : 'singles',
+      reportUrl: String(candidate.reportUrl ?? ''),
+      importedAt: String(candidate.importedAt ?? now()),
+    };
+  }
+  if (candidate.kind === 'external-report-import') {
+    return {
+      kind: 'external-report-import',
+      title: String(candidate.title ?? ''),
+      reportUrl: String(candidate.reportUrl ?? ''),
+      importedAt: String(candidate.importedAt ?? now()),
+    };
+  }
+  return undefined;
+};
+
 const normalizeTeam = (team: RawTeam, index: number, migrateLegacyStats = false): Team => {
   if (!team.ruleSetId || !team.dataVersionId) {
     throw new Error(`第 ${index + 1} 支队伍缺少 ruleSetId 或 dataVersionId。`);
@@ -41,6 +69,7 @@ const normalizeTeam = (team: RawTeam, index: number, migrateLegacyStats = false)
     throw new Error(`第 ${index + 1} 支队伍缺少 id、name 或 members。`);
   }
 
+  const normalizedSource = normalizeTeamSource(team.source);
   return {
     id: team.id,
     name: team.name,
@@ -50,6 +79,7 @@ const normalizeTeam = (team: RawTeam, index: number, migrateLegacyStats = false)
     createdAt: team.createdAt || now(),
     updatedAt: team.updatedAt || now(),
     notes: team.notes || '',
+    ...(normalizedSource ? { source: normalizedSource } : {}),
   };
 };
 

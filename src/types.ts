@@ -206,6 +206,24 @@ export type TeamMember = {
   legalityStatus: LegalityStatus;
 };
 
+export type TeamSource =
+  | {
+      kind: 'high-score-import';
+      sampleId: string;
+      title: string;
+      author: string;
+      score: number;
+      battleType: BattleType;
+      reportUrl: string;
+      importedAt: string;
+    }
+  | {
+      kind: 'external-report-import';
+      title: string;
+      reportUrl: string;
+      importedAt: string;
+    };
+
 export type Team = {
   id: string;
   name: string;
@@ -215,6 +233,7 @@ export type Team = {
   createdAt: string;
   updatedAt: string;
   notes: string;
+  source?: TeamSource;
 };
 
 export type DamageCalcContext = {
