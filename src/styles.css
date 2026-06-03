@@ -7,17 +7,17 @@
 :root {
   color-scheme: dark;
   font-family: 'DM Sans', system-ui, sans-serif;
-  --color-page: 20 20 20;
+  --color-page: 13 13 13;
   --color-card: 30 30 30;
-  --color-elevated: 38 38 38;
-  --color-secondary: 26 26 26;
-  --color-border: 42 42 42;
-  --color-divider: 36 36 36;
+  --color-elevated: 38 38 40;
+  --color-secondary: 22 22 22;
+  --color-border: 43 43 43;
+  --color-divider: 39 39 39;
   --color-disabled: 58 58 58;
   --color-text-primary: 236 236 236;
   --color-text-secondary: 138 138 138;
   --color-text-muted: 85 85 85;
-  --color-accent: 124 159 255;
+  --color-accent: 1 105 204;
   --color-success: 61 186 126;
   --color-danger: 224 82 82;
   --color-warning: 212 135 10;
@@ -70,10 +70,7 @@ body,
 
 body {
   overflow-x: hidden;
-  background:
-    radial-gradient(circle at 16% -8%, rgb(var(--color-accent) / 0.16), transparent 22rem),
-    radial-gradient(circle at 92% 12%, rgb(var(--color-success) / 0.11), transparent 20rem),
-    linear-gradient(180deg, rgb(var(--color-page)), rgb(var(--color-secondary)));
+  background: rgb(var(--color-page));
 }
 
 button,
@@ -108,7 +105,7 @@ button {
 
 .app-shell {
   background:
-    linear-gradient(180deg, rgb(var(--color-card) / 0.2), transparent 9rem),
+    linear-gradient(180deg, rgb(var(--color-card) / 0.36), transparent 10rem),
     rgb(var(--color-page));
 }
 

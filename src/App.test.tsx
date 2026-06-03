@@ -18,8 +18,20 @@ const deleteDb = () =>
 const renderApp = async () => {
   const user = userEvent.setup();
   render(<App />);
+  await screen.findByRole('heading', { name: '环境' });
+  await user.click(screen.getByRole('button', { name: '队伍' }));
   await screen.findByText('我的队伍');
   return user;
+};
+
+const openTool = async (user: ReturnType<typeof userEvent.setup>, toolName: string | RegExp) => {
+  const backToTools = screen.queryByRole('button', { name: /返回工具/ });
+  if (backToTools) {
+    await user.click(backToTools);
+  } else {
+    await user.click(screen.getByRole('button', { name: '工具' }));
+  }
+  await user.click(screen.getByRole('button', { name: toolName }));
 };
 
 describe('App page flows', () => {
@@ -36,21 +48,21 @@ describe('App page flows', () => {
 
     expect(screen.getByText('正在载入本地缓存与规则数据...')).toBeTruthy();
     expect(screen.queryByText(/模拟数据/)).toBeNull();
-    expect(await screen.findByText('我的队伍')).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: '环境' })).toBeTruthy();
   });
 
   it('navigates bottom tabs and opens the rule detail page', { timeout: 15000 }, async () => {
     const user = await renderApp();
 
-    await user.click(screen.getByRole('button', { name: '计算' }));
+    await openTool(user, /伤害计算/);
     expect(await screen.findByRole('heading', { name: '伤害计算' })).toBeTruthy();
 
-    await user.click(screen.getByRole('button', { name: '图鉴' }));
+    await openTool(user, /规则图鉴/);
     expect(await screen.findByText('规则内图鉴')).toBeTruthy();
     expect(await screen.findByText('Pokémon / 招式 / 道具 / 特性 · 当前规则数据')).toBeTruthy();
     expect(screen.queryByText(/当前规则模拟数据/)).toBeNull();
 
-    await user.click(screen.getByRole('button', { name: '组队' }));
+    await user.click(screen.getByRole('button', { name: '队伍' }));
     await user.click(screen.getByText('官方数据源状态可追溯'));
     expect(await screen.findByText('规则周期')).toBeTruthy();
 
@@ -62,14 +74,14 @@ describe('App page flows', () => {
     const user = await renderApp();
 
     expect(document.documentElement.dataset.theme).toBe('dark');
-    await user.click(screen.getByRole('button', { name: '设置' }));
+    await user.click(screen.getByRole('button', { name: '我的' }));
     await user.click(screen.getByRole('button', { name: '切换深色和浅色主题' }));
     expect(document.documentElement.dataset.theme).toBe('light');
-    expect(await screen.findByText('浅色图鉴')).toBeTruthy();
+    expect(await screen.findByText('浅色工具界面')).toBeTruthy();
 
     await user.click(screen.getByRole('button', { name: '切换深色和浅色主题' }));
     expect(document.documentElement.dataset.theme).toBe('dark');
-    expect(await screen.findByText('深色竞技场')).toBeTruthy();
+    expect(await screen.findByText('深色工具界面')).toBeTruthy();
   });
 
   it('creates and switches teams, then expands and collapses a member card', async () => {
@@ -163,7 +175,7 @@ describe('App page flows', () => {
   it('allows real editing of temporary config: SP, nature, item, and move changes persist', async () => {
     const user = await renderApp();
 
-    await user.click(screen.getByRole('button', { name: '计算' }));
+    await openTool(user, /伤害计算/);
     expect(await screen.findByText('选择进攻方')).toBeTruthy();
 
     // Verify mandatory UI labels
@@ -258,7 +270,7 @@ describe('App page flows', () => {
   it('keeps calculator move search results synced with the selected move', async () => {
     const user = await renderApp();
 
-    await user.click(screen.getByRole('button', { name: '计算' }));
+    await openTool(user, /伤害计算/);
     expect(await screen.findByText('选择进攻方')).toBeTruthy();
 
     await user.type(screen.getByPlaceholderText('搜索名称'), 'Incineroar');
@@ -282,7 +294,7 @@ describe('App page flows', () => {
   it('shows the ability reason chip when Flash Fire prevents damage', async () => {
     const user = await renderApp();
 
-    await user.click(screen.getByRole('button', { name: '计算' }));
+    await openTool(user, /伤害计算/);
     expect(await screen.findByText('选择进攻方')).toBeTruthy();
 
     await user.type(screen.getByPlaceholderText('搜索名称'), 'Houndoom');
@@ -312,15 +324,11 @@ describe('App page flows', () => {
   it('imports team-member config and preserves original team data after edits', async () => {
     const user = await renderApp();
 
-    // Expand Garchomp member card on the team page
-    await user.click(screen.getByText('烈咬陆鲨'));
+    await openTool(user, /伤害计算/);
 
-    // Click "→ 伤害计算" button to open calculator with this team member
-    const calcBtn = screen.getByRole('button', { name: /伤害计算/ });
-    await user.click(calcBtn);
-
-    // Now on calculator page — should show garchomp from the team member
     expect(await screen.findByRole('heading', { name: '伤害计算' })).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: /从队伍选择/ }));
+    await user.click(screen.getByRole('button', { name: /烈咬陆鲨/ }));
     const garchompElements = screen.getAllByText(/烈咬陆鲨/);
     expect(garchompElements.length).toBeGreaterThanOrEqual(1);
 
@@ -337,7 +345,7 @@ describe('App page flows', () => {
     expect(screen.getByRole('button', { name: /HP\s*12/ })).toBeTruthy();
 
     // Navigate back to team page
-    await user.click(screen.getByRole('button', { name: '组队' }));
+    await user.click(screen.getByRole('button', { name: '队伍' }));
     expect(await screen.findByText('我的队伍')).toBeTruthy();
 
     // Expand member again — the team page is functional
@@ -350,7 +358,7 @@ describe('App page flows', () => {
   it('selects both calculator sides from searchable Pokemon and team recommendations', async () => {
     const user = await renderApp();
 
-    await user.click(screen.getByRole('button', { name: '计算' }));
+    await openTool(user, /伤害计算/);
     expect(await screen.findByText('选择进攻方')).toBeTruthy();
     expect(screen.getByRole('button', { name: /从队伍选择/ })).toBeTruthy();
     expect(screen.queryByText('小顿熊')).toBeNull();
@@ -377,7 +385,7 @@ describe('App page flows', () => {
   it('filters the Pokedex Pokemon list by up to two selected types', { timeout: 30000 }, async () => {
     const user = await renderApp();
 
-    await user.click(screen.getByRole('button', { name: '图鉴' }));
+    await openTool(user, /规则图鉴/);
     expect(await screen.findByText('规则内图鉴')).toBeTruthy();
     expect(screen.getByPlaceholderText('搜索名称')).toBeTruthy();
     expect(screen.getByText('超级烈咬陆鲨')).toBeTruthy();
@@ -433,7 +441,7 @@ describe('App page flows', () => {
   it('filters Pokedex moves, items, and abilities with the shared search box', { timeout: 15000 }, async () => {
     const user = await renderApp();
 
-    await user.click(screen.getByRole('button', { name: '图鉴' }));
+    await openTool(user, /规则图鉴/);
     expect(await screen.findByText('规则内图鉴')).toBeTruthy();
 
     await user.click(screen.getByRole('button', { name: '道具' }));
@@ -506,7 +514,7 @@ describe('App page flows', () => {
   it('uses Mega form stats on the speed line when selected', async () => {
     const user = await renderApp();
 
-    await user.click(screen.getByRole('button', { name: '速度线' }));
+    await openTool(user, /速度线计算/);
     expect(await screen.findByText('最终速度')).toBeTruthy();
     await user.selectOptions(screen.getByDisplayValue('原始形态'), 'mega-garchomp');
 

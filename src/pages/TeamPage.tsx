@@ -61,8 +61,6 @@ function MemberCard({
   onToggle,
   onEdit,
   onDelete,
-  onOpenCalculator,
-  onOpenSpeed,
 }: {
   team: Team;
   member: TeamMember;
@@ -70,8 +68,6 @@ function MemberCard({
   onToggle: (memberId: string) => void;
   onEdit: (member: TeamMember) => void;
   onDelete: (memberId: string) => void | Promise<void>;
-  onOpenCalculator: (memberId: string) => void;
-  onOpenSpeed: (pokemonId: string) => void;
 }) {
   const entry = pokemon.find((item) => item.id === member.pokemonId);
   const battleForm = getMemberBattleForm(member);
@@ -186,14 +182,6 @@ function MemberCard({
                 ))}
               </div>
               <p className="mt-2 text-[11px] text-textMuted">Champions SP 公式：单项最多 32，总量最多 66，Lv.50 固定。</p>
-              <div className="mt-3 flex gap-2">
-                <Button variant="ghost" onClick={() => onOpenCalculator(member.id)}>
-                  → 伤害计算
-                </Button>
-                <Button variant="ghost" onClick={() => onOpenSpeed(battleForm.pokemonId)}>
-                  → 速度线
-                </Button>
-              </div>
             </>
           )}
           <p className="mt-2 text-[11px] text-textMuted">数据版本：{team.dataVersionId}</p>
@@ -789,14 +777,10 @@ export function TeamPage({
   activeTeamId,
   onActiveTeamChange,
   onOpenRule,
-  onOpenCalculator,
-  onOpenSpeed,
 }: {
   activeTeamId?: string;
   onActiveTeamChange: (teamId: string | undefined) => void;
   onOpenRule: () => void;
-  onOpenCalculator: (memberId: string) => void;
-  onOpenSpeed: (pokemonId: string) => void;
 }) {
   const { teams, addTeam, deleteTeam, saveTeam, updateMember } = useAppStore();
   const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
@@ -918,8 +902,6 @@ export function TeamPage({
                   await saveTeam({ ...activeTeam, members: activeTeam.members.filter((candidate) => candidate.id !== memberId) });
                   setExpandedMemberId((current) => (current === memberId ? null : current));
                 }}
-                onOpenCalculator={onOpenCalculator}
-                onOpenSpeed={onOpenSpeed}
               />
             ))}
           </div>

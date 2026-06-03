@@ -12,6 +12,7 @@ type Store = AppState & {
   updateMember: (teamId: string, member: TeamMember) => Promise<void>;
   toggleFavoriteBenchmark: (benchmarkId: string) => Promise<void>;
   updateTheme: (theme: UserPreference['theme']) => Promise<void>;
+  replacePreferences: (preferences: UserPreference) => Promise<void>;
   replaceTeams: (teams: Team[]) => Promise<void>;
   clearLocalData: () => Promise<void>;
   simulateRefresh: () => Promise<void>;
@@ -61,7 +62,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const saveTeam = useCallback(async (team: Team) => {
     const nextTeam = { ...team, updatedAt: now() };
-    setTeams((current) => current.map((item) => (item.id === team.id ? nextTeam : item)));
+    setTeams((current) => {
+      const exists = current.some((item) => item.id === team.id);
+      return exists ? current.map((item) => (item.id === team.id ? nextTeam : item)) : [nextTeam, ...current];
+    });
     await repository.saveTeam(nextTeam);
   }, []);
 
@@ -98,6 +102,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       await savePreferences({ ...preferences, theme });
     },
     [preferences, savePreferences],
+  );
+
+  const replacePreferences = useCallback(
+    async (nextPreferences: UserPreference) => {
+      await savePreferences(normalizePreferences(nextPreferences));
+    },
+    [savePreferences],
   );
 
   const toggleFavoriteBenchmark = useCallback(
@@ -140,6 +151,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       updateMember,
       toggleFavoriteBenchmark,
       updateTheme,
+      replacePreferences,
       replaceTeams,
       clearLocalData,
       simulateRefresh,
@@ -151,6 +163,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       lastRefreshError,
       loading,
       preferences,
+      replacePreferences,
       replaceTeams,
       saveTeam,
       simulateRefresh,
