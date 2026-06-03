@@ -1,4 +1,4 @@
-import { BarChart3, ChevronUp, Edit3, Minus, Plus, Save, Search, Trash2, X } from 'lucide-react';
+import { ArrowLeft, BarChart3, ChevronUp, Edit3, Minus, Plus, Save, Search, Trash2, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { abilities, currentRuleNatureOptions, items, moves, pokemon } from '../data';
 import { buildTeamAnalysisDetails, memberBattleStats, memberLabel, statRows } from '../lib/calculations';
@@ -735,6 +735,55 @@ function AnalysisDetailSheet({
   );
 }
 
+function TeamListCard({
+  team,
+  active,
+  onOpen,
+}: {
+  team: Team;
+  active: boolean;
+  onOpen: () => void;
+}) {
+  const visibleMembers = team.members.slice(0, 6);
+
+  return (
+    <button
+      className={`surface-shadow w-full rounded-lg border bg-card p-3 text-left active:scale-[0.99] ${
+        active ? 'border-accent shadow-[0_0_0_1px_rgb(var(--color-accent)/0.45)]' : 'border-border'
+      }`}
+      type="button"
+      onClick={onOpen}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <span className="block truncate text-sm font-semibold">{team.name}</span>
+          <p className="mt-1 text-xs text-textSecondary">{team.members.length}/6 成员 · {team.notes || '本地队伍'}</p>
+        </div>
+        {active && <Badge status="current">当前</Badge>}
+      </div>
+      <div className="mt-3 flex gap-2">
+        {visibleMembers.map((member) => {
+          const entry = pokemon.find((item) => item.id === member.pokemonId);
+          const battleForm = getMemberBattleForm(member);
+          return (
+            <PokemonAvatar
+              key={member.id}
+              iconRef={battleForm?.iconRef ?? entry?.iconRef}
+              label={battleForm?.chineseName ?? entry?.chineseName ?? '未配置 Pokémon'}
+              size="sm"
+            />
+          );
+        })}
+        {Array.from({ length: Math.max(0, 6 - visibleMembers.length) }).map((_, index) => (
+          <span key={`empty-${index}`} className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-dashed border-border text-[10px] text-textMuted">
+            +
+          </span>
+        ))}
+      </div>
+    </button>
+  );
+}
+
 function TeamNameModal({
   open,
   isRename,
@@ -783,39 +832,68 @@ export function TeamPage({
   onOpenRule: () => void;
 }) {
   const { teams, addTeam, deleteTeam, saveTeam, updateMember } = useAppStore();
+  const [detailTeamId, setDetailTeamId] = useState<string | null>(null);
   const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
   const [expandedMemberId, setExpandedMemberId] = useState<string | null>(null);
   const [showAnalysis, setShowAnalysis] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
   const [showNameModal, setShowNameModal] = useState(false);
-  const [nameModalTeamId, setNameModalTeamId] = useState<string | null>(null);
   const [nameDraft, setNameDraft] = useState('');
-  const activeTeam = teams.find((team) => team.id === activeTeamId) ?? teams[0];
+  const [renamingTeamId, setRenamingTeamId] = useState<string | null>(null);
+  const [inlineNameDraft, setInlineNameDraft] = useState('');
+  const activeListTeam = teams.find((team) => team.id === activeTeamId) ?? teams[0];
+  const activeTeam = detailTeamId ? teams.find((team) => team.id === detailTeamId) : undefined;
   const editingMember = activeTeam?.members.find((member) => member.id === editingMemberId);
 
   const openCreateModal = () => {
     setNameDraft('');
-    setNameModalTeamId(null);
     setShowNameModal(true);
   };
 
-  const openRenameModal = (teamId: string) => {
-    const team = teams.find((t) => t.id === teamId);
-    setNameDraft(team?.name ?? '');
-    setNameModalTeamId(teamId);
-    setShowNameModal(true);
+  const openTeamDetail = (teamId: string) => {
+    onActiveTeamChange(teamId);
+    setDetailTeamId(teamId);
+    setExpandedMemberId(null);
+    setEditingMemberId(null);
+    setShowAnalysis(false);
+    setShowPicker(false);
+    setRenamingTeamId(null);
+  };
+
+  const closeTeamDetail = () => {
+    setDetailTeamId(null);
+    setExpandedMemberId(null);
+    setEditingMemberId(null);
+    setShowAnalysis(false);
+    setShowPicker(false);
+    setRenamingTeamId(null);
+  };
+
+  const beginInlineRename = (team: Team) => {
+    setRenamingTeamId(team.id);
+    setInlineNameDraft(team.name);
+  };
+
+  const commitInlineRename = async () => {
+    if (!renamingTeamId) return;
+    const team = teams.find((candidate) => candidate.id === renamingTeamId);
+    const name = inlineNameDraft.trim();
+    if (!team || !name) {
+      setRenamingTeamId(null);
+      return;
+    }
+    if (name !== team.name) {
+      await saveTeam({ ...team, name });
+    }
+    setRenamingTeamId(null);
   };
 
   const confirmName = async () => {
     const name = nameDraft.trim();
     if (!name) return;
-    if (nameModalTeamId) {
-      const team = teams.find((t) => t.id === nameModalTeamId);
-      if (team) await saveTeam({ ...team, name });
-    } else {
-      const team = await addTeam(name);
-      onActiveTeamChange(team.id);
-    }
+    const team = await addTeam(name);
+    onActiveTeamChange(team.id);
+    setDetailTeamId(team.id);
     setShowNameModal(false);
     setExpandedMemberId(null);
   };
@@ -825,6 +903,7 @@ export function TeamPage({
     const nextTeam = teams.find((team) => team.id !== activeTeam.id);
     await deleteTeam(activeTeam.id);
     onActiveTeamChange(nextTeam?.id);
+    setDetailTeamId(null);
     setExpandedMemberId(null);
   };
 
@@ -847,47 +926,71 @@ export function TeamPage({
     <div className="space-y-3">
       <SyncStrip />
       <RuleSummary onOpen={onOpenRule} />
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-lg font-semibold">我的队伍</h2>
-          <p className="text-xs text-textSecondary">本地保存 · 无账号依赖</p>
-        </div>
-        <Button onClick={openCreateModal}>
-          <Plus size={14} />
-          新建
-        </Button>
-      </div>
-
-      {teams.length > 1 && (
-        <div className="flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
-          {teams.map((team) => (
-            <button key={team.id} onClick={() => onActiveTeamChange(team.id)}>
-              <Chip active={team.id === activeTeam?.id}>{team.name}</Chip>
-            </button>
-          ))}
-        </div>
-      )}
 
       {!activeTeam ? (
-        <EmptyState title="还没有队伍" action={<Button onClick={openCreateModal}>新建第一支队伍</Button>} />
+        <>
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold">我的队伍</h2>
+              <p className="text-xs text-textSecondary">本地保存 · 无账号依赖</p>
+            </div>
+            <Button onClick={openCreateModal}>
+              <Plus size={14} />
+              新建
+            </Button>
+          </div>
+
+          {teams.length === 0 ? (
+            <EmptyState title="还没有队伍" action={<Button onClick={openCreateModal}>新建第一支队伍</Button>} />
+          ) : (
+            <div className="space-y-2">
+              {teams.map((team) => (
+                <TeamListCard
+                  key={team.id}
+                  team={team}
+                  active={team.id === activeListTeam?.id}
+                  onOpen={() => openTeamDetail(team.id)}
+                />
+              ))}
+            </div>
+          )}
+        </>
       ) : (
         <>
-          <Card className="bg-secondary">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <h3 className="flex items-center gap-2 font-semibold">
-                  {activeTeam.name}
-                  <button className="text-textMuted" title="编辑名称" onClick={() => openRenameModal(activeTeam.id)}>
-                    <Edit3 size={12} />
+          <div className="flex items-start gap-3">
+            <button
+              aria-label="返回队伍列表"
+              className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-border bg-card text-textSecondary active:scale-[0.98]"
+              title="返回队伍列表"
+              type="button"
+              onClick={closeTeamDetail}
+            >
+              <ArrowLeft size={18} />
+            </button>
+            <div className="min-w-0 flex-1">
+              {renamingTeamId === activeTeam.id ? (
+                <input
+                  aria-label="队伍名称"
+                  autoFocus
+                  className="w-full rounded-lg border border-accent bg-secondary px-2 py-1 text-xl font-semibold outline-none"
+                  value={inlineNameDraft}
+                  onBlur={() => void commitInlineRename()}
+                  onChange={(event) => setInlineNameDraft(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') void commitInlineRename();
+                    if (event.key === 'Escape') setRenamingTeamId(null);
+                  }}
+                />
+              ) : (
+                <h2 className="text-xl font-semibold">
+                  <button className="block max-w-full truncate text-left" title="编辑队伍名称" type="button" onClick={() => beginInlineRename(activeTeam)}>
+                    {activeTeam.name}
                   </button>
-                </h3>
-                <p className="text-xs text-textSecondary">{activeTeam.members.length}/6 成员 · {activeTeam.notes || '未填写队伍备注'}</p>
-              </div>
-              <button className="text-danger" title="删除队伍" onClick={removeActiveTeam}>
-                <Trash2 size={18} />
-              </button>
+                </h2>
+              )}
+              <p className="mt-1 text-xs text-textSecondary">{activeTeam.members.length}/6 成员 · 本地队伍 · 可自由编辑</p>
             </div>
-          </Card>
+          </div>
 
           <div className="grid grid-cols-2 gap-2">
             {activeTeam.members.map((member) => (
@@ -917,6 +1020,12 @@ export function TeamPage({
             <BarChart3 size={14} />
             展开队伍分析
           </Button>
+
+          <Button variant="danger" className="w-full" title="删除队伍" onClick={removeActiveTeam}>
+            <Trash2 size={14} />
+            删除队伍
+          </Button>
+
           {editingMember && (
             <MemberEditor
               team={activeTeam}
@@ -934,7 +1043,7 @@ export function TeamPage({
       )}
       <TeamNameModal
         open={showNameModal}
-        isRename={!!nameModalTeamId}
+        isRename={false}
         draft={nameDraft}
         onDraftChange={setNameDraft}
         onConfirm={confirmName}

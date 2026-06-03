@@ -34,6 +34,11 @@ const openTool = async (user: ReturnType<typeof userEvent.setup>, toolName: stri
   await user.click(screen.getByRole('button', { name: toolName }));
 };
 
+const openDefaultTeam = async (user: ReturnType<typeof userEvent.setup>) => {
+  await user.click(screen.getByRole('button', { name: /M-A 测试队/ }));
+  await screen.findByRole('heading', { name: 'M-A 测试队' });
+};
+
 describe('App page flows', () => {
   beforeEach(async () => {
     await deleteDb();
@@ -90,9 +95,11 @@ describe('App page flows', () => {
     await user.click(screen.getByRole('button', { name: /新建/ }));
     await user.type(screen.getByPlaceholderText(/输入队伍名称/), '测试队');
     await user.click(screen.getByRole('button', { name: '确认' }));
+    expect(await screen.findByRole('heading', { name: '测试队' })).toBeTruthy();
     expect(await screen.findByText(/0\/6 成员/)).toBeTruthy();
 
-    await user.click(screen.getByRole('button', { name: 'M-A 测试队' }));
+    await user.click(screen.getByRole('button', { name: '返回队伍列表' }));
+    await user.click(screen.getByRole('button', { name: /M-A 测试队/ }));
     expect(await screen.findByText(/2\/6 成员/)).toBeTruthy();
 
     await user.click(screen.getByText('烈咬陆鲨'));
@@ -107,6 +114,7 @@ describe('App page flows', () => {
 
   it('keeps member editing focused on the selected Pokemon, moves, nature, item, ability, and six SP fields', { timeout: 15000 }, async () => {
     const user = await renderApp();
+    await openDefaultTeam(user);
 
     await user.click(screen.getByText('烈咬陆鲨'));
     await user.click(screen.getByTitle('编辑成员'));
@@ -152,6 +160,7 @@ describe('App page flows', () => {
 
   it('deletes a compact team member directly from the team grid', async () => {
     const user = await renderApp();
+    await openDefaultTeam(user);
 
     expect(await screen.findByText(/2\/6 成员/)).toBeTruthy();
     await user.click(screen.getAllByTitle('删除成员')[0]);
@@ -160,6 +169,7 @@ describe('App page flows', () => {
 
   it('creates a team after all teams have been deleted', async () => {
     const user = await renderApp();
+    await openDefaultTeam(user);
 
     await user.click(screen.getByTitle('删除队伍'));
     expect(await screen.findByText('还没有队伍')).toBeTruthy();
@@ -170,6 +180,27 @@ describe('App page flows', () => {
 
     expect(await screen.findByText('重建队伍')).toBeTruthy();
     expect(screen.getByText(/0\/6 成员/)).toBeTruthy();
+  });
+
+  it('opens team detail from the list, renames inline, and keeps delete at the bottom of detail', async () => {
+    const user = await renderApp();
+
+    expect(screen.getByRole('heading', { name: '我的队伍' })).toBeTruthy();
+    expect(screen.queryByTitle('删除队伍')).toBeNull();
+
+    await openDefaultTeam(user);
+    expect(screen.getByRole('button', { name: '返回队伍列表' })).toBeTruthy();
+    expect(screen.queryByTitle('编辑名称')).toBeNull();
+    expect(screen.getByTitle('删除队伍')).toBeTruthy();
+
+    await user.click(screen.getByTitle('编辑队伍名称'));
+    const nameInput = screen.getByLabelText('队伍名称');
+    await user.clear(nameInput);
+    await user.type(nameInput, '雨天试验队{enter}');
+    expect(await screen.findByRole('heading', { name: '雨天试验队' })).toBeTruthy();
+
+    await user.click(screen.getByRole('button', { name: '返回队伍列表' }));
+    expect(await screen.findByRole('button', { name: /雨天试验队/ })).toBeTruthy();
   });
 
   it('allows real editing of temporary config: SP, nature, item, and move changes persist', async () => {
@@ -347,6 +378,7 @@ describe('App page flows', () => {
     // Navigate back to team page
     await user.click(screen.getByRole('button', { name: '队伍' }));
     expect(await screen.findByText('我的队伍')).toBeTruthy();
+    await openDefaultTeam(user);
 
     // Expand member again — the team page is functional
     await user.click(screen.getByText('烈咬陆鲨'));
