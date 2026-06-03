@@ -76,6 +76,21 @@ describe('App page flows', () => {
     expect(await screen.findByText('我的队伍')).toBeTruthy();
   });
 
+  it('keeps the tools landing page as three equal entries without explanatory notes', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await screen.findByRole('heading', { name: '环境' });
+
+    await user.click(screen.getByRole('button', { name: '工具' }));
+
+    expect(screen.getByRole('heading', { name: '工具' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /伤害计算/ })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /速度线计算/ })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /规则图鉴/ })).toBeTruthy();
+    expect(screen.queryByText(/三个入口并列|从本地队伍带入配置|队伍配置带入/)).toBeNull();
+    expect(screen.queryByRole('button', { name: '当前规则' })).toBeNull();
+  });
+
   it('toggles the app theme from the settings page', async () => {
     const user = await renderApp();
 
@@ -88,6 +103,23 @@ describe('App page flows', () => {
     await user.click(screen.getByRole('button', { name: '切换深色和浅色主题' }));
     expect(document.documentElement.dataset.theme).toBe('dark');
     expect(await screen.findByText('深色工具界面')).toBeTruthy();
+  });
+
+  it('keeps the profile page focused on local preferences and backup rather than rule navigation', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await screen.findByRole('heading', { name: '环境' });
+
+    await user.click(screen.getByRole('button', { name: '我的' }));
+
+    expect(screen.getByRole('heading', { name: '我的' })).toBeTruthy();
+    expect(screen.getByText('主题')).toBeTruthy();
+    expect(screen.getByRole('button', { name: /导出备份/ })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /导入备份/ })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /清除本地数据/ })).toBeTruthy();
+    expect(screen.queryByText('当前规则')).toBeNull();
+    expect(screen.queryByRole('button', { name: /当前赛季|规则详情/ })).toBeNull();
+    expect(screen.queryByText(/本地队伍\s+\d|收藏\s+\d/)).toBeNull();
   });
 
   it('creates and switches teams, then expands and collapses a member card', async () => {

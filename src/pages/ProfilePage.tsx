@@ -4,7 +4,7 @@ import { currentDataVersion, currentRuleSet } from '../data';
 import { TeamImportError, parseTeamImport } from '../lib/exportImport';
 import { useAppStore } from '../state/AppContext';
 import type { UserPreference } from '../types';
-import { Badge, Button, Card } from '../components/ui';
+import { Button, Card } from '../components/ui';
 
 type BackupPayload = {
   schemaVersion: 'champions-local-backup-v1';
@@ -30,7 +30,7 @@ const isBackupPayload = (value: unknown): value is BackupPayload => {
   return candidate.schemaVersion === 'champions-local-backup-v1' && Array.isArray(candidate.teams) && Boolean(candidate.preferences);
 };
 
-export function ProfilePage({ onOpenRule }: { onOpenRule: () => void }) {
+export function ProfilePage() {
   const { teams, preferences, replaceTeams, replacePreferences, clearLocalData, lastRefreshError, updateTheme } = useAppStore();
   const inputRef = useRef<HTMLInputElement>(null);
   const [notice, setNotice] = useState<Notice | null>(null);
@@ -90,13 +90,6 @@ export function ProfilePage({ onOpenRule }: { onOpenRule: () => void }) {
       <Card>
         <p className="mb-2 text-[11px] uppercase tracking-wide text-textMuted">设置与数据</p>
         <div className="divide-y divide-divider">
-          <button className="flex w-full items-center justify-between py-3 text-left" onClick={onOpenRule}>
-            <span>
-              <span className="block text-sm">当前规则</span>
-              <span className="text-xs text-textSecondary">{currentRuleSet.name}</span>
-            </span>
-            <Badge status="current">当前赛季</Badge>
-          </button>
           <div className="flex items-center justify-between gap-3 py-3">
             <span>
               <span className="block text-sm">主题</span>

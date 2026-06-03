@@ -197,7 +197,7 @@ function AppShell() {
           <ToolsPage onOpenTool={openTool} />
         );
       case 'profile':
-        return <ProfilePage onOpenRule={() => setOverlay('rule')} />;
+        return <ProfilePage />;
     }
   }, [activeTab, activeTeam, calculatorMemberId, highlightedImportTeamId, importSampleTeam, openTool, overlay, speedPokemonId, toolView]);
 

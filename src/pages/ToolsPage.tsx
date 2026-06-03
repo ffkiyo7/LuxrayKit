@@ -34,7 +34,6 @@ export function ToolsPage({ onOpenTool }: { onOpenTool: (tool: ToolView) => void
     <div className="space-y-3">
       <div>
         <h2 className="text-lg font-semibold">工具</h2>
-        <p className="text-xs text-textSecondary">三个入口并列，进入后可从本地队伍带入配置。</p>
       </div>
       <div className="space-y-3">
         {toolEntries.map((entry) => {
