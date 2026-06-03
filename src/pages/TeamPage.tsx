@@ -739,11 +739,13 @@ function AnalysisDetailSheet({
 function TeamListCard({
   team,
   active,
+  recentlyImported,
   onEdit,
   onGenerateImage,
 }: {
   team: Team;
   active: boolean;
+  recentlyImported: boolean;
   onEdit: () => void;
   onGenerateImage: () => void;
 }) {
@@ -759,8 +761,13 @@ function TeamListCard({
   return (
     <section
       aria-label={`队伍：${team.name}`}
+      data-import-highlighted={recentlyImported ? 'true' : undefined}
       className={`surface-shadow rounded-lg border bg-card p-3 ${
-        active ? 'border-accent shadow-[0_0_0_1px_rgb(var(--color-accent)/0.45)]' : 'border-border'
+        recentlyImported
+          ? 'border-success ring-2 ring-success/45 shadow-[0_0_0_1px_rgb(var(--color-success)/0.35)]'
+          : active
+            ? 'border-accent shadow-[0_0_0_1px_rgb(var(--color-accent)/0.45)]'
+            : 'border-border'
       }`}
     >
       <div className="flex items-start justify-between gap-3">
@@ -876,10 +883,12 @@ function TeamNameModal({
 
 export function TeamPage({
   activeTeamId,
+  highlightedTeamId,
   onActiveTeamChange,
   onOpenRule,
 }: {
   activeTeamId?: string;
+  highlightedTeamId?: string;
   onActiveTeamChange: (teamId: string | undefined) => void;
   onOpenRule: () => void;
 }) {
@@ -1010,6 +1019,7 @@ export function TeamPage({
                   key={team.id}
                   team={team}
                   active={team.id === activeListTeam?.id}
+                  recentlyImported={team.id === highlightedTeamId}
                   onEdit={() => openTeamDetail(team.id)}
                   onGenerateImage={() => void generateTeamImage(team)}
                 />

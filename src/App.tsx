@@ -27,6 +27,8 @@ const tabs = [
   { id: 'profile', label: '我的', icon: UserCircle },
 ] satisfies Array<{ id: TabId; label: string; icon: typeof Users }>;
 
+const IMPORT_FEEDBACK_DURATION_MS = 2500;
+
 const createImportedMember = (slot: EnvironmentTeamSample['slots'][number]): TeamMember | null => {
   const entry = pokemon.find((candidate) => candidate.id === slot.pokemonId);
   if (!entry) return null;
@@ -94,6 +96,8 @@ function AppShell() {
   const [speedPokemonId, setSpeedPokemonId] = useState('garchomp');
   const [calculatorMemberId, setCalculatorMemberId] = useState<string | undefined>();
   const [activeTeamId, setActiveTeamId] = useState<string | undefined>();
+  const [importToast, setImportToast] = useState<string | null>(null);
+  const [highlightedImportTeamId, setHighlightedImportTeamId] = useState<string | undefined>();
   const { loading, teams, preferences, saveTeam } = useAppStore();
 
   const activeTeam = teams.find((team) => team.id === activeTeamId) ?? teams[0];
@@ -107,6 +111,15 @@ function AppShell() {
       setActiveTeamId(teams[0].id);
     }
   }, [activeTeamId, teams]);
+
+  useEffect(() => {
+    if (!importToast && !highlightedImportTeamId) return;
+    const timeoutId = window.setTimeout(() => {
+      setImportToast(null);
+      setHighlightedImportTeamId(undefined);
+    }, IMPORT_FEEDBACK_DURATION_MS);
+    return () => window.clearTimeout(timeoutId);
+  }, [highlightedImportTeamId, importToast]);
 
   const openTool = useCallback((view: ToolView) => {
     setToolView(view);
@@ -139,6 +152,8 @@ function AppShell() {
       };
       await saveTeam(importedTeam);
       setActiveTeamId(importedTeam.id);
+      setHighlightedImportTeamId(importedTeam.id);
+      setImportToast('已导入配置');
       setActiveTab('teams');
     },
     [saveTeam],
@@ -154,6 +169,7 @@ function AppShell() {
         return (
           <TeamPage
             activeTeamId={activeTeam?.id}
+            highlightedTeamId={highlightedImportTeamId}
             onActiveTeamChange={setActiveTeamId}
             onOpenRule={() => setOverlay('rule')}
           />
@@ -183,7 +199,7 @@ function AppShell() {
       case 'profile':
         return <ProfilePage onOpenRule={() => setOverlay('rule')} />;
     }
-  }, [activeTab, activeTeam, calculatorMemberId, importSampleTeam, openTool, overlay, speedPokemonId, toolView]);
+  }, [activeTab, activeTeam, calculatorMemberId, highlightedImportTeamId, importSampleTeam, openTool, overlay, speedPokemonId, toolView]);
 
   useEffect(() => {
     document.title = overlay === 'rule' ? '当前规则 · Champions Tool' : 'Champions Tool';
@@ -210,6 +226,16 @@ function AppShell() {
         <Header />
         {page}
       </div>
+      {importToast && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed inset-x-4 top-4 z-50 mx-auto flex max-w-[360px] items-center rounded-lg border border-success/40 bg-card px-3 py-2 text-sm font-semibold text-textPrimary shadow-[0_10px_32px_rgb(0_0_0/0.28)]"
+        >
+          <span className="mr-2 inline-block h-2 w-2 rounded-full bg-success" />
+          {importToast}
+        </div>
+      )}
       {!overlay && <BottomNav activeTab={activeTab} tabs={tabs} onChange={setActiveTab} />}
     </main>
   );

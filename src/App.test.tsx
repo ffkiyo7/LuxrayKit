@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import 'fake-indexeddb/auto';
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { App } from './App';
@@ -234,6 +234,21 @@ describe('App page flows', () => {
     expect(await screen.findByRole('heading', { name: '作者名 · 2724 · 喷火龙核心' })).toBeTruthy();
     expect(screen.queryByText('队报链接')).toBeNull();
     expect(screen.queryByText(/来源|原始样本|高分导入/)).toBeNull();
+  });
+
+  it('shows import success feedback and clears the imported team highlight', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await screen.findByRole('heading', { name: '环境' });
+
+    await user.click(screen.getAllByRole('button', { name: /导入配置/ })[0]);
+    expect((await screen.findByRole('status')).textContent).toContain('已导入配置');
+
+    const importedCard = await screen.findByLabelText('队伍：作者名 · 2724 · 喷火龙核心');
+    expect(importedCard.dataset.importHighlighted).toBe('true');
+
+    await waitFor(() => expect(importedCard.dataset.importHighlighted).toBeUndefined(), { timeout: 3500 });
+    expect(screen.queryByRole('status')).toBeNull();
   });
 
   it('allows real editing of temporary config: SP, nature, item, and move changes persist', async () => {
