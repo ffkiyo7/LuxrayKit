@@ -269,6 +269,21 @@ describe('App page flows', () => {
     expect(screen.getByText('常见队友')).toBeTruthy();
   });
 
+  it('shows related high-score teams on pokemon environment detail and imports them', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await screen.findByRole('heading', { name: '环境' });
+
+    await user.click(screen.getByRole('button', { name: /喷火龙/ }));
+    expect(await screen.findByRole('heading', { name: '喷火龙' })).toBeTruthy();
+    expect(screen.getByText('相关高分队伍')).toBeTruthy();
+    expect(screen.getByText('喷火龙核心')).toBeTruthy();
+
+    await user.click(screen.getByRole('button', { name: '导入配置' }));
+    expect((await screen.findByRole('status')).textContent).toContain('已导入配置');
+    expect(await screen.findByLabelText('队伍：作者名 · 2724 · 喷火龙核心')).toBeTruthy();
+  });
+
   it('allows real editing of temporary config: SP, nature, item, and move changes persist', async () => {
     const user = await renderApp();
 

@@ -116,7 +116,17 @@ function TeamSampleCard({ sample, onImport }: { sample: EnvironmentTeamSample; o
   );
 }
 
-function PokemonEnvironmentDetail({ battleType, pokemonId, onBack }: { battleType: EnvironmentBattleType; pokemonId: string; onBack: () => void }) {
+function PokemonEnvironmentDetail({
+  battleType,
+  pokemonId,
+  onBack,
+  onImportSample,
+}: {
+  battleType: EnvironmentBattleType;
+  pokemonId: string;
+  onBack: () => void;
+  onImportSample: (sample: EnvironmentTeamSample) => Promise<void> | void;
+}) {
   const [expandedSection, setExpandedSection] = useState<'moves' | 'items' | 'teammates' | null>(null);
   const usage = environmentPokemonUsage[battleType].find((item) => item.pokemonId === pokemonId);
   const entry = getEnvironmentPokemon(pokemonId);
@@ -131,6 +141,9 @@ function PokemonEnvironmentDetail({ battleType, pokemonId, onBack }: { battleTyp
   const moves = moveIds.map(getEnvironmentMove).filter(Boolean);
   const items = itemIds.map(getEnvironmentItem).filter(Boolean);
   const teammates = teammateIds.map(getEnvironmentPokemon).filter(Boolean);
+  const relatedSamples = environmentTeamSamples.filter(
+    (sample) => sample.battleType === battleType && sample.slots.some((slot) => slot.pokemonId === pokemonId),
+  );
 
   const visibleMoves = expandedSection === 'moves' ? moves.slice(0, 10) : moves.slice(0, 5);
   const visibleItems = expandedSection === 'items' ? items.slice(0, 10) : items.slice(0, 5);
@@ -228,6 +241,18 @@ function PokemonEnvironmentDetail({ battleType, pokemonId, onBack }: { battleTyp
           ))}
         </div>
       </Card>
+
+      {relatedSamples.length > 0 && (
+        <section className="space-y-2">
+          <div className="flex items-center gap-2 px-1">
+            <Users size={16} className="text-accent" />
+            <h3 className="text-sm font-semibold">相关高分队伍</h3>
+          </div>
+          {relatedSamples.map((sample) => (
+            <TeamSampleCard key={sample.id} sample={sample} onImport={onImportSample} />
+          ))}
+        </section>
+      )}
     </div>
   );
 }
@@ -297,6 +322,7 @@ export function EnvironmentPage({ onImportSample }: { onImportSample: (sample: E
       <PokemonEnvironmentDetail
         battleType={battleType}
         pokemonId={detailState.pokemonId}
+        onImportSample={onImportSample}
         onBack={() => {
           setView(detailState.returnView);
           setDetailState(null);
