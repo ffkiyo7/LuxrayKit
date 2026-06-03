@@ -9,6 +9,7 @@ import {
   getEnvironmentMove,
   getEnvironmentPokemon,
   type EnvironmentBattleType,
+  type EnvironmentPokemonUsage,
   type EnvironmentTeamSample,
 } from '../data/environment';
 import { currentRuleMovesForPokemon } from '../lib/currentRuleCatalog';
@@ -231,17 +232,92 @@ function PokemonEnvironmentDetail({ battleType, pokemonId, onBack }: { battleTyp
   );
 }
 
+function FullRankingPage({
+  battleType,
+  rankings,
+  onBattleTypeChange,
+  onBack,
+  onOpenPokemon,
+}: {
+  battleType: EnvironmentBattleType;
+  rankings: EnvironmentPokemonUsage[];
+  onBattleTypeChange: (battleType: EnvironmentBattleType) => void;
+  onBack: () => void;
+  onOpenPokemon: (pokemonId: string) => void;
+}) {
+  return (
+    <div className="space-y-3">
+      <button className="inline-flex items-center gap-2 text-sm text-textSecondary" type="button" onClick={onBack}>
+        <ArrowLeft size={16} />
+        返回环境
+      </button>
+
+      <section className="rounded-xl border border-border bg-gradient-to-b from-elevated to-page p-4">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-[11px] uppercase tracking-wide text-textMuted">Ranking</p>
+            <h2 className="mt-1 text-2xl font-semibold">完整宝可梦榜</h2>
+            <p className="mt-1 text-xs text-textSecondary">{environmentSourceLabel}</p>
+            <p className="mt-0.5 text-xs text-textSecondary">更新于 {formatUpdatedAt(environmentUpdatedAt)}</p>
+          </div>
+          <div className="grid grid-cols-2 rounded-lg border border-border bg-page p-1 text-sm font-semibold">
+            {(Object.keys(battleTypeLabels) as EnvironmentBattleType[]).map((type) => (
+              <button
+                key={type}
+                className={`rounded-md px-3 py-2 ${battleType === type ? 'bg-accent text-page' : 'text-textSecondary'}`}
+                type="button"
+                onClick={() => onBattleTypeChange(type)}
+              >
+                {battleTypeLabels[type]}
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <Card>
+        <div>
+          {rankings.map((item, index) => (
+            <RankingRow key={item.pokemonId} rank={index + 1} onOpen={onOpenPokemon} {...item} />
+          ))}
+        </div>
+      </Card>
+    </div>
+  );
+}
+
 export function EnvironmentPage({ onImportSample }: { onImportSample: (sample: EnvironmentTeamSample) => Promise<void> | void }) {
   const [battleType, setBattleType] = useState<EnvironmentBattleType>('singles');
-  const [rankingExpanded, setRankingExpanded] = useState(false);
-  const [detailPokemonId, setDetailPokemonId] = useState<string | null>(null);
+  const [view, setView] = useState<'home' | 'ranking'>('home');
+  const [detailState, setDetailState] = useState<{ pokemonId: string; returnView: 'home' | 'ranking' } | null>(null);
   const rankings = useMemo(() => environmentPokemonUsage[battleType], [battleType]);
 
-  if (detailPokemonId) {
-    return <PokemonEnvironmentDetail battleType={battleType} pokemonId={detailPokemonId} onBack={() => setDetailPokemonId(null)} />;
+  if (detailState) {
+    return (
+      <PokemonEnvironmentDetail
+        battleType={battleType}
+        pokemonId={detailState.pokemonId}
+        onBack={() => {
+          setView(detailState.returnView);
+          setDetailState(null);
+        }}
+      />
+    );
   }
 
-  const visibleRankings = rankingExpanded ? rankings : rankings.slice(0, 4);
+  if (view === 'ranking') {
+    return (
+      <FullRankingPage
+        battleType={battleType}
+        rankings={rankings}
+        onBattleTypeChange={setBattleType}
+        onBack={() => setView('home')}
+        onOpenPokemon={(pokemonId) => setDetailState({ pokemonId, returnView: 'ranking' })}
+      />
+    );
+  }
+
+  const visibleRankings = rankings.slice(0, 4);
 
   return (
     <div className="space-y-3">
@@ -274,14 +350,14 @@ export function EnvironmentPage({ onImportSample }: { onImportSample: (sample: E
             <BarChart3 size={16} className="text-accent" />
             <h3 className="text-sm font-semibold">宝可梦榜</h3>
           </div>
-          <button className="inline-flex items-center gap-1 text-xs text-accent" type="button" onClick={() => setRankingExpanded((value) => !value)}>
+          <button className="inline-flex items-center gap-1 text-xs text-accent" type="button" onClick={() => setView('ranking')}>
             <List size={14} />
-            {rankingExpanded ? '收起' : '查看全部'}
+            查看全部
           </button>
         </div>
         <div>
           {visibleRankings.map((item, index) => (
-            <RankingRow key={item.pokemonId} rank={index + 1} onOpen={setDetailPokemonId} {...item} />
+            <RankingRow key={item.pokemonId} rank={index + 1} onOpen={(pokemonId) => setDetailState({ pokemonId, returnView: 'home' })} {...item} />
           ))}
         </div>
       </Card>

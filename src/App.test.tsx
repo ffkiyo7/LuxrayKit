@@ -251,6 +251,24 @@ describe('App page flows', () => {
     expect(screen.queryByRole('status')).toBeNull();
   });
 
+  it('opens a dedicated full environment ranking before pokemon environment detail', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await screen.findByRole('heading', { name: '环境' });
+
+    await user.click(screen.getByRole('button', { name: /查看全部/ }));
+    expect(await screen.findByRole('heading', { name: '完整宝可梦榜' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: '单打' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: '双打' })).toBeTruthy();
+    expect(screen.queryByText('热门队伍样本')).toBeNull();
+
+    await user.click(screen.getByRole('button', { name: /喷火龙/ }));
+    expect(await screen.findByRole('heading', { name: '喷火龙' })).toBeTruthy();
+    expect(screen.getByText('常用招式')).toBeTruthy();
+    expect(screen.getByText('携带道具')).toBeTruthy();
+    expect(screen.getByText('常见队友')).toBeTruthy();
+  });
+
   it('allows real editing of temporary config: SP, nature, item, and move changes persist', async () => {
     const user = await renderApp();
 
