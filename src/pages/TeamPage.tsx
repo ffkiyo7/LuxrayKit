@@ -1,4 +1,4 @@
-import { ArrowLeft, BarChart3, ChevronUp, Edit3, Minus, Plus, Save, Search, Trash2, X } from 'lucide-react';
+import { ArrowLeft, BarChart3, ChevronUp, Download, Edit3, Minus, Plus, Save, Search, Trash2, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { abilities, currentRuleNatureOptions, items, moves, pokemon } from '../data';
 import { buildTeamAnalysisDetails, memberBattleStats, memberLabel, statRows } from '../lib/calculations';
@@ -7,6 +7,7 @@ import { createId } from '../lib/id';
 import { evaluateMemberLegality } from '../lib/legality';
 import { findBattleForm, getMemberBattleForm } from '../lib/pokemonForms';
 import { MAX_STAT_POINTS_PER_STAT, MAX_TOTAL_STAT_POINTS, statPointTotal } from '../lib/statPoints';
+import { createTeamShareImageWithEmbeddedAssets, type TeamShareImage } from '../lib/teamImage';
 import { useAppStore } from '../state/AppContext';
 import type { Item, Move, Team, TeamMember } from '../types';
 import { PokemonPicker } from '../components/PokemonPicker';
@@ -738,21 +739,22 @@ function AnalysisDetailSheet({
 function TeamListCard({
   team,
   active,
-  onOpen,
+  onEdit,
+  onGenerateImage,
 }: {
   team: Team;
   active: boolean;
-  onOpen: () => void;
+  onEdit: () => void;
+  onGenerateImage: () => void;
 }) {
   const visibleMembers = team.members.slice(0, 6);
 
   return (
-    <button
-      className={`surface-shadow w-full rounded-lg border bg-card p-3 text-left active:scale-[0.99] ${
+    <section
+      aria-label={`队伍：${team.name}`}
+      className={`surface-shadow rounded-lg border bg-card p-3 ${
         active ? 'border-accent shadow-[0_0_0_1px_rgb(var(--color-accent)/0.45)]' : 'border-border'
       }`}
-      type="button"
-      onClick={onOpen}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
@@ -780,7 +782,47 @@ function TeamListCard({
           </span>
         ))}
       </div>
-    </button>
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        <Button variant="ghost" onClick={onEdit}>
+          <Edit3 size={14} />
+          编辑配置
+        </Button>
+        <Button onClick={onGenerateImage}>
+          <Download size={14} />
+          生成图片
+        </Button>
+      </div>
+    </section>
+  );
+}
+
+function TeamImageResultDialog({
+  teamName,
+  image,
+  onClose,
+}: {
+  teamName: string;
+  image: TeamShareImage;
+  onClose: () => void;
+}) {
+  const saveImage = () => {
+    const anchor = document.createElement('a');
+    anchor.href = image.dataUrl;
+    anchor.download = image.filename;
+    anchor.click();
+  };
+
+  return (
+    <div className="fixed inset-0 z-40 mx-auto max-w-[430px]" role="dialog" aria-label="队伍分享图">
+      <div className="absolute inset-0 bg-overlay/70" onClick={onClose} />
+      <div className="absolute inset-x-4 top-1/2 -translate-y-1/2 rounded-xl border border-border bg-card p-3">
+        <img className="w-full rounded-lg border border-border bg-page" src={image.dataUrl} alt={`${teamName} 队伍分享图`} />
+        <Button className="mt-3 w-full" onClick={saveImage}>
+          <Download size={14} />
+          保存图片
+        </Button>
+      </div>
+    </div>
   );
 }
 
@@ -838,6 +880,7 @@ export function TeamPage({
   const [showAnalysis, setShowAnalysis] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
   const [showNameModal, setShowNameModal] = useState(false);
+  const [shareImage, setShareImage] = useState<{ teamName: string; image: TeamShareImage } | null>(null);
   const [nameDraft, setNameDraft] = useState('');
   const [renamingTeamId, setRenamingTeamId] = useState<string | null>(null);
   const [inlineNameDraft, setInlineNameDraft] = useState('');
@@ -867,6 +910,14 @@ export function TeamPage({
     setShowAnalysis(false);
     setShowPicker(false);
     setRenamingTeamId(null);
+  };
+
+  const generateTeamImage = async (team: Team) => {
+    const assetBaseUrl = typeof window === 'undefined' ? undefined : window.location.origin;
+    setShareImage({
+      teamName: team.name,
+      image: await createTeamShareImageWithEmbeddedAssets(team, { assetBaseUrl }),
+    });
   };
 
   const beginInlineRename = (team: Team) => {
@@ -949,7 +1000,8 @@ export function TeamPage({
                   key={team.id}
                   team={team}
                   active={team.id === activeListTeam?.id}
-                  onOpen={() => openTeamDetail(team.id)}
+                  onEdit={() => openTeamDetail(team.id)}
+                  onGenerateImage={() => void generateTeamImage(team)}
                 />
               ))}
             </div>
@@ -1049,6 +1101,7 @@ export function TeamPage({
         onConfirm={confirmName}
         onClose={() => setShowNameModal(false)}
       />
+      {shareImage && <TeamImageResultDialog teamName={shareImage.teamName} image={shareImage.image} onClose={() => setShareImage(null)} />}
     </div>
   );
 }

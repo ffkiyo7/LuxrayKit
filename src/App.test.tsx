@@ -35,7 +35,8 @@ const openTool = async (user: ReturnType<typeof userEvent.setup>, toolName: stri
 };
 
 const openDefaultTeam = async (user: ReturnType<typeof userEvent.setup>) => {
-  await user.click(screen.getByRole('button', { name: /M-A 测试队/ }));
+  const teamCard = await screen.findByLabelText('队伍：M-A 测试队');
+  await user.click(within(teamCard).getByRole('button', { name: '编辑配置' }));
   await screen.findByRole('heading', { name: 'M-A 测试队' });
 };
 
@@ -99,7 +100,7 @@ describe('App page flows', () => {
     expect(await screen.findByText(/0\/6 成员/)).toBeTruthy();
 
     await user.click(screen.getByRole('button', { name: '返回队伍列表' }));
-    await user.click(screen.getByRole('button', { name: /M-A 测试队/ }));
+    await openDefaultTeam(user);
     expect(await screen.findByText(/2\/6 成员/)).toBeTruthy();
 
     await user.click(screen.getByText('烈咬陆鲨'));
@@ -200,7 +201,21 @@ describe('App page flows', () => {
     expect(await screen.findByRole('heading', { name: '雨天试验队' })).toBeTruthy();
 
     await user.click(screen.getByRole('button', { name: '返回队伍列表' }));
-    expect(await screen.findByRole('button', { name: /雨天试验队/ })).toBeTruthy();
+    expect(await screen.findByLabelText('队伍：雨天试验队')).toBeTruthy();
+  });
+
+  it('generates a team image from the list and only offers save', async () => {
+    const user = await renderApp();
+
+    const teamCard = await screen.findByLabelText('队伍：M-A 测试队');
+    expect(within(teamCard).getByRole('button', { name: '编辑配置' })).toBeTruthy();
+    await user.click(within(teamCard).getByRole('button', { name: '生成图片' }));
+
+    const dialog = await screen.findByRole('dialog', { name: '队伍分享图' });
+    const image = within(dialog).getByRole('img', { name: 'M-A 测试队 队伍分享图' }) as HTMLImageElement;
+    expect(image.src).toContain('data:image/svg+xml');
+    expect(within(dialog).getByRole('button', { name: '保存图片' })).toBeTruthy();
+    expect(within(dialog).queryByRole('button', { name: /分享|取消|关闭/ })).toBeNull();
   });
 
   it('allows real editing of temporary config: SP, nature, item, and move changes persist', async () => {
