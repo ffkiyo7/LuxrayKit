@@ -57,7 +57,7 @@ describe('App page flows', () => {
     expect(await screen.findByRole('heading', { name: '环境' })).toBeTruthy();
   });
 
-  it('navigates bottom tabs and opens the rule detail page', { timeout: 15000 }, async () => {
+  it('navigates bottom tabs and keeps the teams tab focused on local teams', { timeout: 15000 }, async () => {
     const user = await renderApp();
 
     await openTool(user, /伤害计算/);
@@ -69,11 +69,11 @@ describe('App page flows', () => {
     expect(screen.queryByText(/当前规则模拟数据/)).toBeNull();
 
     await user.click(screen.getByRole('button', { name: '队伍' }));
-    await user.click(screen.getByText('官方数据源状态可追溯'));
-    expect(await screen.findByText('规则周期')).toBeTruthy();
-
-    await user.click(screen.getByRole('button', { name: /返回/ }));
     expect(await screen.findByText('我的队伍')).toBeTruthy();
+    expect(screen.queryByText('本地缓存可用')).toBeNull();
+    expect(screen.queryByText('Regulation Set M-A')).toBeNull();
+    expect(screen.queryByText('当前赛季')).toBeNull();
+    expect(screen.queryByText('官方数据源状态可追溯')).toBeNull();
   });
 
   it('keeps the tools landing page as three equal entries without explanatory notes', async () => {

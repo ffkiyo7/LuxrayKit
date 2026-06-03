@@ -171,7 +171,6 @@ function AppShell() {
             activeTeamId={activeTeam?.id}
             highlightedTeamId={highlightedImportTeamId}
             onActiveTeamChange={setActiveTeamId}
-            onOpenRule={() => setOverlay('rule')}
           />
         );
       case 'tools':

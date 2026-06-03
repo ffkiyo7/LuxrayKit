@@ -11,7 +11,6 @@ import { createTeamShareImageWithEmbeddedAssets, type TeamShareImage } from '../
 import { useAppStore } from '../state/AppContext';
 import type { Item, Move, Team, TeamMember } from '../types';
 import { PokemonPicker } from '../components/PokemonPicker';
-import { RuleSummary, SyncStrip } from '../components/RuleSummary';
 import { Badge, Button, Card, Chip, EmptyState, PokemonAvatar, TypeBadge } from '../components/ui';
 
 const blankMember = (): TeamMember => ({
@@ -885,12 +884,10 @@ export function TeamPage({
   activeTeamId,
   highlightedTeamId,
   onActiveTeamChange,
-  onOpenRule,
 }: {
   activeTeamId?: string;
   highlightedTeamId?: string;
   onActiveTeamChange: (teamId: string | undefined) => void;
-  onOpenRule: () => void;
 }) {
   const { teams, addTeam, deleteTeam, saveTeam, updateMember } = useAppStore();
   const [detailTeamId, setDetailTeamId] = useState<string | null>(null);
@@ -994,9 +991,6 @@ export function TeamPage({
 
   return (
     <div className="space-y-3">
-      <SyncStrip />
-      <RuleSummary onOpen={onOpenRule} />
-
       {!activeTeam ? (
         <>
           <div className="flex items-center justify-between">
