@@ -301,24 +301,25 @@ describe('App page flows', () => {
     expect(screen.getByText('常见队友')).toBeTruthy();
   });
 
-  it('labels environment usage data as development samples across home, ranking, and pokemon detail', async () => {
+  it('keeps environment sample labeling lightweight without the bulky seed notice', async () => {
     const user = userEvent.setup();
     render(<App />);
     await screen.findByRole('heading', { name: '环境' });
 
-    expect(screen.getAllByText('开发样例数据').length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/不代表真实使用率/).length).toBeGreaterThan(0);
+    expect(screen.getByText(/开发预览/)).toBeTruthy();
+    expect(screen.queryByText(/本页使用本地 seed 占位数据/)).toBeNull();
+    expect(screen.queryByText(/不代表真实使用率/)).toBeNull();
     expect(screen.queryByText('高分样本')).toBeNull();
 
     await user.click(screen.getByRole('button', { name: /查看全部/ }));
     expect(await screen.findByRole('heading', { name: '完整宝可梦榜' })).toBeTruthy();
-    expect(screen.getAllByText('开发样例数据').length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/不代表真实使用率/).length).toBeGreaterThan(0);
+    expect(screen.getByText(/开发预览/)).toBeTruthy();
+    expect(screen.queryByText(/本页使用本地 seed 占位数据/)).toBeNull();
 
     await user.click(screen.getByRole('button', { name: /喷火龙/ }));
     expect(await screen.findByRole('heading', { name: '喷火龙' })).toBeTruthy();
-    expect(screen.getAllByText('开发样例数据').length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/不代表真实使用率/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText('开发样例').length).toBeGreaterThan(0);
+    expect(screen.queryByText(/本页使用本地 seed 占位数据/)).toBeNull();
   });
 
   it('shows related environment sample teams on pokemon environment detail and imports them', async () => {

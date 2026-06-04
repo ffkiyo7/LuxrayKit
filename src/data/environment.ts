@@ -30,7 +30,6 @@ export type EnvironmentTeamSample = {
 
 export const environmentUpdatedAt = '2026-05-27T10:00:00.000+08:00';
 export const environmentDataStatusLabel = '开发样例数据';
-export const environmentDataNotice = '本页使用本地 seed 占位数据，不代表真实使用率。';
 
 export const environmentPokemonUsage: Record<EnvironmentBattleType, EnvironmentPokemonUsage[]> = {
   singles: [

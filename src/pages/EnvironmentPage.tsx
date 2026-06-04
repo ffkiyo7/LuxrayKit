@@ -1,7 +1,6 @@
 import { ArrowLeft, BarChart3, ExternalLink, Import, List, Users } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import {
-  environmentDataNotice,
   environmentDataStatusLabel,
   environmentPokemonUsage,
   environmentSourceLabel,
@@ -30,15 +29,6 @@ const formatUpdatedAt = (value: string) =>
     minute: '2-digit',
     hour12: false,
   }).format(new Date(value));
-
-function EnvironmentDataNotice() {
-  return (
-    <div className="mt-3 rounded-lg border border-warning/25 bg-reviewBg/70 px-3 py-2">
-      <p className="text-xs font-semibold text-warning">{environmentDataStatusLabel}</p>
-      <p className="mt-0.5 text-[11px] text-textSecondary">{environmentDataNotice}</p>
-    </div>
-  );
-}
 
 function UsageBar({ value }: { value: number }) {
   return (
@@ -183,7 +173,6 @@ function PokemonEnvironmentDetail({
             </div>
           )}
         </div>
-        <EnvironmentDataNotice />
       </Card>
 
       <Card>
@@ -294,7 +283,6 @@ function FullRankingPage({
             <h2 className="mt-1 text-2xl font-semibold">完整宝可梦榜</h2>
             <p className="mt-1 text-xs text-textSecondary">{environmentSourceLabel}</p>
             <p className="mt-0.5 text-xs text-textSecondary">更新于 {formatUpdatedAt(environmentUpdatedAt)}</p>
-            <EnvironmentDataNotice />
           </div>
           <div className="grid grid-cols-2 rounded-lg border border-border bg-page p-1 text-sm font-semibold">
             {(Object.keys(battleTypeLabels) as EnvironmentBattleType[]).map((type) => (
@@ -365,7 +353,6 @@ export function EnvironmentPage({ onImportSample }: { onImportSample: (sample: E
             <h2 className="mt-1 text-2xl font-semibold">环境</h2>
             <p className="mt-1 text-xs text-textSecondary">{environmentSourceLabel}</p>
             <p className="mt-0.5 text-xs text-textSecondary">更新于 {formatUpdatedAt(environmentUpdatedAt)}</p>
-            <EnvironmentDataNotice />
           </div>
           <div className="grid grid-cols-2 rounded-lg border border-border bg-page p-1 text-sm font-semibold">
             {(Object.keys(battleTypeLabels) as EnvironmentBattleType[]).map((type) => (
