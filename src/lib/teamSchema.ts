@@ -50,6 +50,17 @@ const normalizeTeamSource = (source: unknown): TeamSource | undefined => {
       importedAt: String(candidate.importedAt ?? now()),
     };
   }
+  if (candidate.kind === 'environment-sample-import') {
+    return {
+      kind: 'environment-sample-import',
+      sampleId: String(candidate.sampleId ?? ''),
+      title: String(candidate.title ?? ''),
+      label: String(candidate.label ?? '开发样例数据'),
+      battleType: isBattleType(candidate.battleType) ? candidate.battleType : 'singles',
+      reportUrl: String(candidate.reportUrl ?? ''),
+      importedAt: String(candidate.importedAt ?? now()),
+    };
+  }
   if (candidate.kind === 'external-report-import') {
     return {
       kind: 'external-report-import',

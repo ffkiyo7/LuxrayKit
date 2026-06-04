@@ -218,6 +218,15 @@ export type TeamSource =
       importedAt: string;
     }
   | {
+      kind: 'environment-sample-import';
+      sampleId: string;
+      title: string;
+      label: string;
+      battleType: BattleType;
+      reportUrl: string;
+      importedAt: string;
+    }
+  | {
       kind: 'external-report-import';
       title: string;
       reportUrl: string;

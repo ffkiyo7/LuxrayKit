@@ -1,6 +1,8 @@
 import { ArrowLeft, BarChart3, ExternalLink, Import, List, Users } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import {
+  environmentDataNotice,
+  environmentDataStatusLabel,
   environmentPokemonUsage,
   environmentSourceLabel,
   environmentTeamSamples,
@@ -28,6 +30,15 @@ const formatUpdatedAt = (value: string) =>
     minute: '2-digit',
     hour12: false,
   }).format(new Date(value));
+
+function EnvironmentDataNotice() {
+  return (
+    <div className="mt-3 rounded-lg border border-warning/25 bg-reviewBg/70 px-3 py-2">
+      <p className="text-xs font-semibold text-warning">{environmentDataStatusLabel}</p>
+      <p className="mt-0.5 text-[11px] text-textSecondary">{environmentDataNotice}</p>
+    </div>
+  );
+}
 
 function UsageBar({ value }: { value: number }) {
   return (
@@ -91,11 +102,9 @@ function TeamSampleCard({ sample, onImport }: { sample: EnvironmentTeamSample; o
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 className="truncate text-sm font-semibold">{sample.title}</h3>
-          <p className="mt-1 text-xs text-textSecondary">
-            {sample.author} · {sample.score} 分 · {battleTypeLabels[sample.battleType]}
-          </p>
+          <p className="mt-1 text-xs text-textSecondary">{environmentDataStatusLabel} · {battleTypeLabels[sample.battleType]}</p>
         </div>
-        <span className="rounded-md bg-accent/15 px-2 py-1 text-[11px] font-semibold text-accent">高分样本</span>
+        <span className="rounded-md bg-reviewBg px-2 py-1 text-[11px] font-semibold text-warning">开发样例</span>
       </div>
       <div className="mt-3 flex gap-2">
         {visibleSlots.map((entry) => (
@@ -174,6 +183,7 @@ function PokemonEnvironmentDetail({
             </div>
           )}
         </div>
+        <EnvironmentDataNotice />
       </Card>
 
       <Card>
@@ -246,7 +256,7 @@ function PokemonEnvironmentDetail({
         <section className="space-y-2">
           <div className="flex items-center gap-2 px-1">
             <Users size={16} className="text-accent" />
-            <h3 className="text-sm font-semibold">相关高分队伍</h3>
+            <h3 className="text-sm font-semibold">相关样例队伍</h3>
           </div>
           {relatedSamples.map((sample) => (
             <TeamSampleCard key={sample.id} sample={sample} onImport={onImportSample} />
@@ -284,6 +294,7 @@ function FullRankingPage({
             <h2 className="mt-1 text-2xl font-semibold">完整宝可梦榜</h2>
             <p className="mt-1 text-xs text-textSecondary">{environmentSourceLabel}</p>
             <p className="mt-0.5 text-xs text-textSecondary">更新于 {formatUpdatedAt(environmentUpdatedAt)}</p>
+            <EnvironmentDataNotice />
           </div>
           <div className="grid grid-cols-2 rounded-lg border border-border bg-page p-1 text-sm font-semibold">
             {(Object.keys(battleTypeLabels) as EnvironmentBattleType[]).map((type) => (
@@ -354,6 +365,7 @@ export function EnvironmentPage({ onImportSample }: { onImportSample: (sample: E
             <h2 className="mt-1 text-2xl font-semibold">环境</h2>
             <p className="mt-1 text-xs text-textSecondary">{environmentSourceLabel}</p>
             <p className="mt-0.5 text-xs text-textSecondary">更新于 {formatUpdatedAt(environmentUpdatedAt)}</p>
+            <EnvironmentDataNotice />
           </div>
           <div className="grid grid-cols-2 rounded-lg border border-border bg-page p-1 text-sm font-semibold">
             {(Object.keys(battleTypeLabels) as EnvironmentBattleType[]).map((type) => (
@@ -391,7 +403,7 @@ export function EnvironmentPage({ onImportSample }: { onImportSample: (sample: E
       <section className="space-y-2">
         <div className="flex items-center gap-2 px-1">
           <Users size={16} className="text-accent" />
-          <h3 className="text-sm font-semibold">热门队伍样本</h3>
+          <h3 className="text-sm font-semibold">样例队伍</h3>
         </div>
         {environmentTeamSamples
           .filter((sample) => sample.battleType === battleType)

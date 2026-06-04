@@ -28,7 +28,7 @@ test('captures the mobile visual regression smoke set', { timeout: 60_000 }, asy
 
   await page.getByRole('button', { name: /喷火龙/ }).click();
   await expect(page.getByRole('heading', { name: '喷火龙', exact: true })).toBeVisible();
-  await expect(page.getByText('相关高分队伍')).toBeVisible();
+  await expect(page.getByText('相关样例队伍')).toBeVisible();
   await expect(page).toHaveScreenshot('03-pokemon-environment-detail.png', screenshotOptions);
 
   await page.getByRole('button', { name: '返回环境' }).click();

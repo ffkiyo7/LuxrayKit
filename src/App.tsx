@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { BottomNav } from './components/BottomNav';
 import { Header } from './components/Header';
 import { currentDataVersion, currentRuleSet, pokemon } from './data';
-import type { EnvironmentTeamSample } from './data/environment';
+import { environmentDataStatusLabel, type EnvironmentTeamSample } from './data/environment';
 import { currentRuleMovesForPokemon, currentRuleNatures } from './lib/currentRuleCatalog';
 import { createId } from './lib/id';
 import { AppProvider, useAppStore } from './state/AppContext';
@@ -46,7 +46,7 @@ const createImportedMember = (slot: EnvironmentTeamSample['slots'][number]): Tea
     nature: currentRuleNatures()[0] ?? '爽朗',
     statPoints: { speed: 32 },
     level: 50,
-    notes: '从高分队伍样本导入，可继续编辑。',
+    notes: '从环境开发样例导入，可继续编辑。',
     legalityStatus: 'needs-review',
   };
 };
@@ -132,7 +132,7 @@ function AppShell() {
       const timestamp = new Date().toISOString();
       const importedTeam: Team = {
         id: createId('team'),
-        name: `${sample.author} · ${sample.score} · ${sample.title}`,
+        name: `样例 · ${sample.title}`,
         ruleSetId: currentRuleSet.id,
         dataVersionId: currentDataVersion.id,
         members,
@@ -140,11 +140,10 @@ function AppShell() {
         updatedAt: timestamp,
         notes: '',
         source: {
-          kind: 'high-score-import',
+          kind: 'environment-sample-import',
           sampleId: sample.id,
           title: sample.title,
-          author: sample.author,
-          score: sample.score,
+          label: environmentDataStatusLabel,
           battleType: sample.battleType,
           reportUrl: sample.reportUrl,
           importedAt: timestamp,

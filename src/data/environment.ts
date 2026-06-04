@@ -19,6 +19,7 @@ export type EnvironmentTeamSlot = {
 
 export type EnvironmentTeamSample = {
   id: string;
+  dataKind: 'development-sample';
   author: string;
   score: number;
   title: string;
@@ -28,6 +29,8 @@ export type EnvironmentTeamSample = {
 };
 
 export const environmentUpdatedAt = '2026-05-27T10:00:00.000+08:00';
+export const environmentDataStatusLabel = '开发样例数据';
+export const environmentDataNotice = '本页使用本地 seed 占位数据，不代表真实使用率。';
 
 export const environmentPokemonUsage: Record<EnvironmentBattleType, EnvironmentPokemonUsage[]> = {
   singles: [
@@ -103,6 +106,7 @@ export const environmentPokemonUsage: Record<EnvironmentBattleType, EnvironmentP
 export const environmentTeamSamples: EnvironmentTeamSample[] = [
   {
     id: 'sample-sun-charizard',
+    dataKind: 'development-sample',
     author: '作者名',
     score: 2724,
     title: '喷火龙核心',
@@ -119,6 +123,7 @@ export const environmentTeamSamples: EnvironmentTeamSample[] = [
   },
   {
     id: 'sample-balance-garchomp',
+    dataKind: 'development-sample',
     author: '高分玩家',
     score: 2651,
     title: '烈咬陆鲨平衡',
@@ -139,4 +144,4 @@ export const getEnvironmentPokemon = (pokemonId: string) => pokemon.find((entry)
 export const getEnvironmentMove = (moveId: string) => moves.find((entry) => entry.id === moveId);
 export const getEnvironmentItem = (itemId: string) => items.find((entry) => entry.id === itemId);
 
-export const environmentSourceLabel = `${currentRuleSet.name} · ${currentDataVersion.versionName}`;
+export const environmentSourceLabel = `${currentRuleSet.name} · ${currentDataVersion.versionName} · 开发预览`;

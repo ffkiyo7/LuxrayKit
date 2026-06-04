@@ -250,22 +250,22 @@ describe('App page flows', () => {
     expect(within(dialog).queryByRole('button', { name: /分享|取消|关闭/ })).toBeNull();
   });
 
-  it('keeps imported high-score team metadata on the list without showing a source card in detail', async () => {
+  it('keeps imported environment sample metadata on the list without showing a source card in detail', async () => {
     const user = userEvent.setup();
     render(<App />);
     await screen.findByRole('heading', { name: '环境' });
 
     await user.click(screen.getAllByRole('button', { name: /导入配置/ })[0]);
-    const importedCard = await screen.findByLabelText('队伍：作者名 · 2724 · 喷火龙核心');
-    expect(within(importedCard).getByText('高分导入')).toBeTruthy();
-    expect(within(importedCard).getByText(/作者名 · 2724 分/)).toBeTruthy();
+    const importedCard = await screen.findByLabelText('队伍：样例 · 喷火龙核心');
+    expect(within(importedCard).getByText('样例导入')).toBeTruthy();
+    expect(within(importedCard).getByText(/开发样例数据/)).toBeTruthy();
     expect(within(importedCard).getByRole('button', { name: '编辑配置' })).toBeTruthy();
     expect(within(importedCard).getByRole('button', { name: '生成图片' })).toBeTruthy();
 
     await user.click(within(importedCard).getByRole('button', { name: '编辑配置' }));
-    expect(await screen.findByRole('heading', { name: '作者名 · 2724 · 喷火龙核心' })).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: '样例 · 喷火龙核心' })).toBeTruthy();
     expect(screen.queryByText('队报链接')).toBeNull();
-    expect(screen.queryByText(/来源|原始样本|高分导入/)).toBeNull();
+    expect(screen.queryByText(/来源|原始样本|高分导入|样例导入/)).toBeNull();
   });
 
   it('shows import success feedback and clears the imported team highlight', async () => {
@@ -276,7 +276,7 @@ describe('App page flows', () => {
     await user.click(screen.getAllByRole('button', { name: /导入配置/ })[0]);
     expect((await screen.findByRole('status')).textContent).toContain('已导入配置');
 
-    const importedCard = await screen.findByLabelText('队伍：作者名 · 2724 · 喷火龙核心');
+    const importedCard = await screen.findByLabelText('队伍：样例 · 喷火龙核心');
     expect(importedCard.dataset.importHighlighted).toBe('true');
 
     await waitFor(() => expect(importedCard.dataset.importHighlighted).toBeUndefined(), { timeout: 3500 });
@@ -301,19 +301,39 @@ describe('App page flows', () => {
     expect(screen.getByText('常见队友')).toBeTruthy();
   });
 
-  it('shows related high-score teams on pokemon environment detail and imports them', async () => {
+  it('labels environment usage data as development samples across home, ranking, and pokemon detail', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await screen.findByRole('heading', { name: '环境' });
+
+    expect(screen.getAllByText('开发样例数据').length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/不代表真实使用率/).length).toBeGreaterThan(0);
+    expect(screen.queryByText('高分样本')).toBeNull();
+
+    await user.click(screen.getByRole('button', { name: /查看全部/ }));
+    expect(await screen.findByRole('heading', { name: '完整宝可梦榜' })).toBeTruthy();
+    expect(screen.getAllByText('开发样例数据').length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/不代表真实使用率/).length).toBeGreaterThan(0);
+
+    await user.click(screen.getByRole('button', { name: /喷火龙/ }));
+    expect(await screen.findByRole('heading', { name: '喷火龙' })).toBeTruthy();
+    expect(screen.getAllByText('开发样例数据').length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/不代表真实使用率/).length).toBeGreaterThan(0);
+  });
+
+  it('shows related environment sample teams on pokemon environment detail and imports them', async () => {
     const user = userEvent.setup();
     render(<App />);
     await screen.findByRole('heading', { name: '环境' });
 
     await user.click(screen.getByRole('button', { name: /喷火龙/ }));
     expect(await screen.findByRole('heading', { name: '喷火龙' })).toBeTruthy();
-    expect(screen.getByText('相关高分队伍')).toBeTruthy();
+    expect(screen.getByText('相关样例队伍')).toBeTruthy();
     expect(screen.getByText('喷火龙核心')).toBeTruthy();
 
     await user.click(screen.getByRole('button', { name: '导入配置' }));
     expect((await screen.findByRole('status')).textContent).toContain('已导入配置');
-    expect(await screen.findByLabelText('队伍：作者名 · 2724 · 喷火龙核心')).toBeTruthy();
+    expect(await screen.findByLabelText('队伍：样例 · 喷火龙核心')).toBeTruthy();
   });
 
   it('allows real editing of temporary config: SP, nature, item, and move changes persist', async () => {

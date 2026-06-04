@@ -749,13 +749,22 @@ function TeamListCard({
   onGenerateImage: () => void;
 }) {
   const visibleMembers = team.members.slice(0, 6);
-  const sourceBadge = team.source?.kind === 'high-score-import' ? '高分导入' : team.source?.kind === 'external-report-import' ? '队报导入' : undefined;
+  const sourceBadge =
+    team.source?.kind === 'high-score-import'
+      ? '高分导入'
+      : team.source?.kind === 'environment-sample-import'
+        ? '样例导入'
+        : team.source?.kind === 'external-report-import'
+          ? '队报导入'
+          : undefined;
   const sourceSummary =
     team.source?.kind === 'high-score-import'
       ? `${team.source.author} · ${team.source.score} 分`
-      : team.source?.kind === 'external-report-import'
-        ? team.source.title
-        : team.notes || '本地队伍';
+      : team.source?.kind === 'environment-sample-import'
+        ? team.source.label
+        : team.source?.kind === 'external-report-import'
+          ? team.source.title
+          : team.notes || '本地队伍';
 
   return (
     <section
