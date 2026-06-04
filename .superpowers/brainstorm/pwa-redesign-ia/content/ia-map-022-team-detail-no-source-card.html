@@ -1,0 +1,93 @@
+<style>
+  .phone { width:min(430px,100%); margin:0 auto; border:1px solid #3c4452; border-radius:28px; overflow:hidden; background:#101318; color:#f8fafc; min-height:690px; }
+  .screen { padding:16px 14px 76px; }
+  h2,h3,p { margin:0; }
+  .header { display:grid; grid-template-columns:36px 1fr auto; gap:10px; align-items:start; }
+  .back,.iconbtn { width:34px; height:34px; border:1px solid #334155; border-radius:12px; background:#171c25; color:#dbeafe; font-size:18px; font-weight:900; }
+  .header h2 { font-size:22px; margin-bottom:4px; }
+  .sub { color:#a7b0c0; font-size:12px; line-height:1.45; }
+  .panel { border:1px solid #293140; background:#171c25; border-radius:16px; padding:12px; margin-top:14px; }
+  .section-title { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+  .section-title strong { font-size:15px; }
+  .section-title span { color:#93c5fd; font-size:12px; }
+  .member-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+  .slot { border:1px solid #293140; background:#0f172a; border-radius:15px; padding:10px; min-height:138px; }
+  .slot.active { border-color:#1d9bf0; box-shadow:0 0 0 2px rgba(29,155,240,.22); }
+  .poke { display:block; width:58px; height:58px; border-radius:16px; background:#dbeafe; margin:0 auto 8px; }
+  .slot strong { display:block; text-align:center; font-size:14px; line-height:1.2; }
+  .types { display:flex; justify-content:center; gap:4px; margin:7px 0; }
+  .type { border-radius:5px; padding:2px 5px; font-size:10px; font-weight:900; line-height:1; }
+  .fire { background:#fb923c; color:#431407; }
+  .fly { background:#93c5fd; color:#172554; }
+  .fairy { background:#f9a8d4; color:#500724; }
+  .grass { background:#86efac; color:#052e16; }
+  .dark { background:#334155; color:#fff; }
+  .ice { background:#7dd3fc; color:#083344; }
+  .steel { background:#cbd5e1; color:#0f172a; }
+  .psy { background:#fda4af; color:#4c0519; }
+  .item { display:flex; justify-content:center; align-items:center; gap:5px; color:#a7b0c0; font-size:11px; min-width:0; }
+  .item i { width:16px; height:16px; border-radius:5px; background:#fde68a; display:block; flex:0 0 auto; }
+  .quick { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:12px; }
+  .quick button { border:1px solid #293140; border-radius:12px; background:#0f172a; color:#dbeafe; padding:10px 4px; font-size:11px; font-weight:800; }
+  .risk-row { display:grid; grid-template-columns:1fr auto; gap:10px; border-top:1px solid #293140; padding:9px 0; font-size:12px; }
+  .risk-row:first-of-type { border-top:0; }
+  .risk-row span { color:#a7b0c0; }
+  .risk-row strong { color:#f8fafc; }
+</style>
+
+<h2>队伍详情去掉来源卡</h2>
+<p class="subtitle">导入后就是本地队伍。来源/队报不再占队伍详情页面空间，来源信息只保留在队伍标题和列表元信息里。</p>
+
+<div class="mockup">
+  <div class="mockup-header">队伍详情：直接进入成员与工具</div>
+  <div class="mockup-body">
+    <div class="phone">
+      <div class="screen">
+        <header class="header">
+          <button class="back">‹</button>
+          <div><h2>作者名 · 2724 · 喷火龙核心</h2><p class="sub">本地队伍 · 可自由编辑</p></div>
+          <button class="iconbtn">⋯</button>
+        </header>
+
+        <section class="panel">
+          <div class="section-title"><strong>队伍成员</strong><span>6/6</span></div>
+          <div class="member-grid">
+            <div class="slot active">
+              <i class="poke"></i>
+              <strong>喷火龙</strong>
+              <div class="types"><span class="type fire">火</span><span class="type fly">飞行</span></div>
+              <div class="item"><i></i><span>喷火龙进化石X</span></div>
+            </div>
+            <div class="slot">
+              <i class="poke"></i>
+              <strong>风妖精</strong>
+              <div class="types"><span class="type fairy">妖精</span><span class="type grass">草</span></div>
+              <div class="item"><i></i><span>气势披带</span></div>
+            </div>
+            <div class="slot">
+              <i class="poke"></i>
+              <strong>玛狃拉</strong>
+              <div class="types"><span class="type dark">恶</span><span class="type ice">冰</span></div>
+              <div class="item"><i></i><span>生命宝珠</span></div>
+            </div>
+            <div class="slot">
+              <i class="poke"></i>
+              <strong>巨金怪</strong>
+              <div class="types"><span class="type steel">钢</span><span class="type psy">超</span></div>
+              <div class="item"><i></i><span>突击背心</span></div>
+            </div>
+          </div>
+        </section>
+
+        <div class="quick"><button>生成图片</button><button>伤害计算</button><button>速度线</button></div>
+
+        <section class="panel">
+          <div class="section-title"><strong>队伍检查</strong><span>查看详情</span></div>
+          <div class="risk-row"><span>重复道具</span><strong>无</strong></div>
+          <div class="risk-row"><span>规则合法性</span><strong>待确认 1 项</strong></div>
+          <div class="risk-row"><span>环境高频压力</span><strong>玛狃拉 / 喷火龙</strong></div>
+        </section>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,106 @@
+<style>
+  .wrap { color:#f8fafc; }
+  h2,h3,p { margin:0; }
+  .subtitle { color:#a1a1aa; font-size:18px; line-height:1.6; margin:10px 0 22px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px; }
+  .panel { border:1px solid #2d3748; border-radius:18px; background:#151a22; padding:16px; }
+  .panel h3 { font-size:22px; margin-bottom:10px; }
+  .panel p { color:#a7b0c2; font-size:14px; line-height:1.55; margin-top:8px; }
+  .tagrow { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+  .tag { border:1px solid #334155; border-radius:999px; color:#bfdbfe; padding:6px 9px; font-size:12px; font-weight:800; }
+  .phone { width:min(390px,100%); margin:22px auto 0; border:1px solid #3a4251; border-radius:28px; overflow:hidden; background:#0f131a; min-height:630px; }
+  .screen { padding:22px 16px 92px; min-height:630px; position:relative; }
+  .brand h3 { font-size:23px; margin-bottom:5px; }
+  .brand p { color:#8f95a3; font-size:13px; }
+  .cards { display:grid; gap:12px; margin-top:24px; }
+  .card { border:1px solid #2a3548; border-radius:18px; background:#161c25; padding:16px; display:grid; grid-template-columns:52px 1fr auto; gap:14px; align-items:center; min-height:104px; }
+  .icon { width:52px; height:52px; border-radius:17px; background:#11213a; display:grid; place-items:center; color:#bfdbfe; font-size:24px; }
+  .card h3 { font-size:20px; margin-bottom:5px; }
+  .card p { color:#9aa6bb; font-size:13px; line-height:1.45; }
+  .arrow { color:#93c5fd; font-size:24px; }
+  .bottom { position:absolute; left:0; right:0; bottom:0; border-top:1px solid #262d38; background:#15181d; display:grid; grid-template-columns:repeat(4,1fr); padding:8px 6px 12px; }
+  .nav { text-align:center; color:#777f8d; font-size:12px; }
+  .nav b { display:block; font-size:20px; margin-bottom:4px; }
+  .nav.active { color:#7ea2ff; }
+</style>
+
+<div class="wrap">
+  <h2>现有 PWA 参考核对</h2>
+  <p class="subtitle">根据你发的截图和当前代码，重构不是另起一套视觉系统，而是在现有移动端工具风格上调整入口层级。</p>
+
+  <div class="grid">
+    <section class="panel">
+      <h3>速度线</h3>
+      <p>代码：SpeedPage.tsx。已有选择 Pokémon / 形态、SP 滑杆、最终速度卡、基准散点图、当前队伍 / 收藏 / 常见 / 全部 Tab、benchmark 详情 Sheet。</p>
+      <div class="tagrow">
+        <span class="tag">保留图表</span>
+        <span class="tag">保留收藏</span>
+        <span class="tag">保留队伍 benchmark</span>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h3>伤害计算</h3>
+      <p>代码：CalculatorPage.tsx。已有进攻方 / 防守方卡片、从队伍选择、搜索图鉴、能力配置折叠区、性格/特性/道具/招式/SP/阶级、天气场地规则和结果卡。</p>
+      <div class="tagrow">
+        <span class="tag">保留双侧卡片</span>
+        <span class="tag">保留从队伍选择</span>
+        <span class="tag">保留结果卡</span>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h3>规则图鉴</h3>
+      <p>代码：DexPage.tsx。已有 Pokémon / 招式 / 道具 / 特性 Tab，搜索、属性筛选、Mega 筛选、Pokemon 详情，以及跳速度线 / 伤害计算的入口。</p>
+      <div class="tagrow">
+        <span class="tag">保留多 Tab</span>
+        <span class="tag">保留搜索筛选</span>
+        <span class="tag">保留详情页</span>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h3>全局外壳</h3>
+      <p>代码：App.tsx、Header.tsx、BottomNav.tsx、ui.tsx。当前是 430px 移动端外壳、固定底部导航、深色卡片、Chip、TypeBadge、PokemonAvatar。</p>
+      <div class="tagrow">
+        <span class="tag">保留移动端密度</span>
+        <span class="tag">底部 4 Tab 重组</span>
+        <span class="tag">复用组件气质</span>
+      </div>
+    </section>
+  </div>
+
+  <div class="phone">
+    <div class="screen">
+      <div class="brand">
+        <h3>Champions Tool</h3>
+        <p>新结构示意：环境默认首页，工具页只是三个入口的聚合</p>
+      </div>
+
+      <div class="cards">
+        <article class="card">
+          <div class="icon">⌁</div>
+          <div><h3>伤害计算</h3><p>进入后沿用现有进攻方 / 防守方计算页面。</p></div>
+          <div class="arrow">›</div>
+        </article>
+        <article class="card">
+          <div class="icon">≋</div>
+          <div><h3>速度线计算</h3><p>进入后沿用现有速度线图表和 benchmark。</p></div>
+          <div class="arrow">›</div>
+        </article>
+        <article class="card">
+          <div class="icon">◇</div>
+          <div><h3>规则图鉴</h3><p>进入后沿用现有图鉴 Tab、搜索和详情。</p></div>
+          <div class="arrow">›</div>
+        </article>
+      </div>
+
+      <nav class="bottom">
+        <div class="nav active"><b>◎</b>环境</div>
+        <div class="nav"><b>▦</b>队伍</div>
+        <div class="nav"><b>◈</b>工具</div>
+        <div class="nav"><b>⚙</b>我的</div>
+      </nav>
+    </div>
+  </div>
+</div>

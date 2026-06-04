@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PWA 产品边界与页面层级</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin:0; background:#101318; color:#f8fafc; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif; }
+    main { max-width:1020px; margin:0 auto; padding:32px 22px 90px; }
+    h1 { margin:0 0 8px; font-size:34px; }
+    h2 { margin:0 0 12px; font-size:20px; }
+    p { color:#c3cad6; line-height:1.65; }
+    .section { margin-top:28px; }
+    .label { color:#92a4bc; font-size:13px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; margin-bottom:8px; }
+    .panel { border:1px solid #2b3443; border-radius:18px; background:#181d26; padding:18px; }
+    .grid4 { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+    .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .card { border:1px solid #384455; border-radius:16px; background:#202736; padding:16px; min-height:150px; }
+    .card h3 { margin:0; color:#fff; font-size:18px; }
+    .card p { margin:8px 0 0; color:#cbd5e1; font-size:13px; }
+    .tags { display:flex; flex-wrap:wrap; gap:7px; margin-top:12px; }
+    .tag { border-radius:999px; padding:5px 9px; background:#2f3a4b; color:#e5e7eb; font-size:12px; }
+    .hero { display:grid; grid-template-columns:1.1fr .9fr; gap:16px; align-items:start; }
+    .phone { width:280px; max-width:100%; margin:0 auto; border:1px solid #4b5563; border-radius:28px; background:#0f172a; padding:14px; }
+    .screen { min-height:500px; border-radius:20px; background:#f8fafc; color:#111827; padding:14px; }
+    .screen h3 { margin:0; color:#111827; font-size:17px; }
+    .muted { color:#64748b; font-size:12px; }
+    .mini-card { margin-top:10px; border:1px solid #e2e8f0; border-radius:12px; background:#fff; padding:10px; }
+    .rank-row { display:grid; grid-template-columns:24px 1fr auto; gap:8px; align-items:center; margin-top:8px; font-size:12px; }
+    .dot { width:24px; height:24px; border-radius:8px; background:#dbeafe; display:grid; place-items:center; color:#1d4ed8; font-weight:800; }
+    .team-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:5px; margin-top:8px; }
+    .slot { aspect-ratio:1; border-radius:8px; background:#e2e8f0; }
+    .bottom { display:grid; grid-template-columns:repeat(4,1fr); gap:4px; margin-top:12px; font-size:11px; text-align:center; }
+    .bottom div { border-radius:8px; background:#e2e8f0; color:#334155; padding:7px 2px; }
+    .bottom .active { background:#dbeafe; color:#1d4ed8; font-weight:900; }
+    .do-dont { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .do { border-color:#14532d; background:#12251b; }
+    .dont { border-color:#7f1d1d; background:#2a1719; }
+    .do h3 { color:#86efac; }
+    .dont h3 { color:#fca5a5; }
+    @media (max-width:780px){ .grid4,.grid2,.hero,.do-dont{grid-template-columns:1fr;} }
+  </style>
+</head>
+<body>
+<main>
+  <h1>产品边界：环境情报 + 队伍参考验证</h1>
+  <p>这不是强组队推荐工具。用户带着自己的理解、抄来的队伍、实战经验进来，用这里看环境、保存配置、对照数据、验证细节和复盘。</p>
+
+  <section class="section">
+    <div class="label">新版底部导航</div>
+    <div class="grid4">
+      <div class="card">
+        <h3>环境</h3>
+        <p>默认首页。看当前 meta、热门核心、热门队伍、趋势变化。</p>
+        <div class="tags"><span class="tag">全局视角</span><span class="tag">浅度用户</span></div>
+      </div>
+      <div class="card">
+        <h3>队伍</h3>
+        <p>保存、导入、复制热门队伍、二次编辑配置、队报记录。</p>
+        <div class="tags"><span class="tag">我的队伍</span><span class="tag">二次修改</span></div>
+      </div>
+      <div class="card">
+        <h3>工具</h3>
+        <p>伤害计算、速度线、图鉴、规则查询，独立可用，也可从队伍/环境跳入。</p>
+        <div class="tags"><span class="tag">计算</span><span class="tag">速度</span><span class="tag">图鉴</span></div>
+      </div>
+      <div class="card">
+        <h3>我的</h3>
+        <p>收藏、历史队报、设置、缓存、数据源说明。</p>
+        <div class="tags"><span class="tag">收藏</span><span class="tag">设置</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="label">环境首页第一屏</div>
+    <div class="hero">
+      <div class="panel">
+        <h2>默认是全局环境，不强绑定个人队伍</h2>
+        <p>浅度用户打开就能看：当前热门、变化、样本队伍。个人队伍对照是折叠小卡，不打扰没建队的人。</p>
+        <div class="do-dont">
+          <div class="card do">
+            <h3>应该像情报看板</h3>
+            <p>“高分队伍中常一起出现”“最近排名上升”“复制到队伍后二次编辑”。</p>
+          </div>
+          <div class="card dont">
+            <h3>不要像强推荐教练</h3>
+            <p>少用“你应该这样组”“系统建议替换”“必须补强”这类压迫式表达。</p>
+          </div>
+        </div>
+      </div>
+      <div class="phone">
+        <div class="screen">
+          <h3>M-1 双打环境</h3>
+          <div class="muted">更新于 05/24 · 68 支高分队伍 · Open Data</div>
+          <div class="mini-card">
+            <strong>环境快照</strong>
+            <div class="rank-row"><div class="dot">1</div><span>オオニューラ</span><strong>热门</strong></div>
+            <div class="rank-row"><div class="dot">2</div><span>ガブリアス</span><strong>高频</strong></div>
+            <div class="rank-row"><div class="dot">3</div><span>エルフーン</span><strong>核心</strong></div>
+          </div>
+          <div class="mini-card">
+            <strong>热门核心</strong>
+            <div class="team-grid"><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div></div>
+            <p class="muted">高分队伍中常一起出现，可查看样本或复制到队伍。</p>
+          </div>
+          <div class="mini-card">
+            <strong>我的队伍对照</strong>
+            <p class="muted">默认折叠。导入或创建队伍后，可对照当前环境。</p>
+          </div>
+          <div class="bottom">
+            <div class="active">环境</div><div>队伍</div><div>工具</div><div>我的</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="label">功能归属修正版</div>
+    <div class="grid2">
+      <div class="panel">
+        <h2>环境页承载</h2>
+        <p>使用率、趋势变化、热门核心、常见队友、热门构筑样本、数据更新时间。动作以“查看、收藏、复制、对照”为主。</p>
+      </div>
+      <div class="panel">
+        <h2>队伍页承载</h2>
+        <p>我的队伍、导入队伍、复制热门队伍后的二次编辑、队伍可视化、队报、导出，以及跳转计算/速度线。</p>
+      </div>
+    </div>
+  </section>
+</main>
+</body>
+</html>

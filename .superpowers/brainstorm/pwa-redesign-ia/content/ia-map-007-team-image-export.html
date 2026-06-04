@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>队伍页卡片与生成图片</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin:0; background:#101318; color:#f8fafc; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif; }
+    main { max-width:1080px; margin:0 auto; padding:32px 22px 92px; }
+    h1 { margin:0 0 8px; font-size:34px; }
+    h2 { margin:0 0 12px; font-size:20px; }
+    p { color:#c4ccda; line-height:1.65; }
+    .section { margin-top:28px; }
+    .label { color:#93a7c2; font-size:13px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; margin-bottom:8px; }
+    .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:start; }
+    .panel { border:1px solid #2b3443; border-radius:18px; background:#181d26; padding:18px; }
+    .phone { width:330px; max-width:100%; margin:0 auto; border:1px solid #4b5563; border-radius:28px; background:#0f172a; padding:14px; }
+    .screen { min-height:590px; border-radius:20px; background:#f8fafc; color:#111827; padding:14px; }
+    .screen h3 { margin:0; color:#111827; font-size:17px; }
+    .muted { color:#64748b; font-size:12px; }
+    .team-card { margin-top:10px; border:1px solid #e2e8f0; border-radius:14px; background:#fff; padding:12px; }
+    .source { display:inline-flex; margin-top:7px; border-radius:999px; background:#eef2ff; color:#4338ca; padding:4px 8px; font-size:11px; font-weight:800; }
+    .manual { background:#f1f5f9; color:#475569; }
+    .team-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:5px; margin-top:9px; }
+    .slot { aspect-ratio:1; border-radius:8px; background:#e2e8f0; }
+    .actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px; }
+    .btn { border-radius:10px; padding:9px 8px; font-size:12px; font-weight:900; text-align:center; }
+    .primary { background:#2563eb; color:#fff; }
+    .ghost { background:#e2e8f0; color:#334155; }
+    .bottom { display:grid; grid-template-columns:repeat(4,1fr); gap:4px; margin-top:12px; font-size:11px; text-align:center; }
+    .bottom div { border-radius:8px; background:#e2e8f0; color:#334155; padding:7px 2px; }
+    .bottom .active { background:#dbeafe; color:#1d4ed8; font-weight:900; }
+    .export-card { background:#05070b; border:1px solid #273244; border-radius:18px; padding:18px; color:#f8fafc; }
+    .export-head { display:flex; justify-content:space-between; gap:12px; border-bottom:1px solid #273244; padding-bottom:12px; }
+    .export-head strong { font-size:18px; }
+    .stamp { color:#94a3b8; font-size:12px; }
+    .export-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px; }
+    .mon { display:grid; grid-template-columns:62px 1fr; gap:10px; border:1px solid #263244; border-radius:14px; background:#111827; padding:10px; min-height:142px; }
+    .sprite { width:62px; height:62px; border-radius:12px; background:#1f2937; }
+    .mon h4 { margin:0; color:#fff; font-size:14px; }
+    .pill { display:inline-flex; border-radius:999px; background:#334155; color:#e5e7eb; padding:3px 6px; margin:4px 4px 0 0; font-size:10px; }
+    .moves { margin-top:6px; color:#cbd5e1; font-size:10px; line-height:1.45; }
+    .rules { display:grid; gap:10px; }
+    .rule { border:1px solid #384455; border-radius:14px; background:#202736; padding:14px; }
+    .rule strong { color:#fff; }
+    .rule p { margin:6px 0 0; color:#cbd5e1; font-size:13px; }
+    @media (max-width:880px){ .grid2,.export-grid{grid-template-columns:1fr;} }
+  </style>
+</head>
+<body>
+<main>
+  <h1>队伍页：统一卡片 + 生成队伍图片</h1>
+  <p>队伍页里所有卡片都是“我的本地队伍”，无论来源是高分队伍导入还是手动创建，主操作保持一致。</p>
+
+  <section class="section grid2">
+    <div>
+      <div class="label">队伍页列表</div>
+      <div class="phone">
+        <div class="screen">
+          <h3>队伍</h3>
+          <div class="muted">本地队伍列表 · 点击进入详情</div>
+
+          <div class="team-card">
+            <strong>Rank 1 · 2724 · 喷火龙+风妖精</strong>
+            <div class="source">来源：高分队伍 · 队报链接可用</div>
+            <div class="team-grid"><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div></div>
+            <div class="actions">
+              <div class="btn primary">编辑配置</div>
+              <div class="btn ghost">生成图片</div>
+            </div>
+          </div>
+
+          <div class="team-card">
+            <strong>我的雨天队</strong>
+            <div class="source manual">来源：手动创建</div>
+            <div class="team-grid"><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div></div>
+            <div class="actions">
+              <div class="btn primary">编辑配置</div>
+              <div class="btn ghost">生成图片</div>
+            </div>
+          </div>
+
+          <div class="bottom">
+            <div>环境</div><div class="active">队伍</div><div>工具</div><div>我的</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="label">生成图片参考结构</div>
+      <div class="export-card">
+        <div class="export-head">
+          <div>
+            <strong>Rank 1 · 2724 · 喷火龙+风妖精</strong>
+            <div class="stamp">Pokemon Champions Tool · 生成于 2026-05-27 21:30</div>
+          </div>
+          <div class="stamp">Reg M-A</div>
+        </div>
+        <div class="export-grid">
+          <div class="mon"><div class="sprite"></div><div><h4>喷火龙</h4><span class="pill">火</span><span class="pill">飞行</span><div class="moves">爽朗 · 猛火<br>道具：喷火龙石Y<br>热风 / 守住 / 空气斩 / ...</div></div></div>
+          <div class="mon"><div class="sprite"></div><div><h4>风妖精</h4><span class="pill">草</span><span class="pill">妖精</span><div class="moves">胆小 · 恶作剧之心<br>道具：妖精羽毛<br>顺风 / 月亮之力 / ...</div></div></div>
+          <div class="mon"><div class="sprite"></div><div><h4>仆刀将军</h4><span class="pill">恶</span><span class="pill">钢</span><div class="moves">固执 · 不服输<br>道具：抗性果<br>突袭 / 铁头 / ...</div></div></div>
+          <div class="mon"><div class="sprite"></div><div><h4>成员 4</h4><span class="pill">属性</span><div class="moves">性格 · 特性<br>道具<br>招式 1 / 招式 2 / ...</div></div></div>
+          <div class="mon"><div class="sprite"></div><div><h4>成员 5</h4><span class="pill">属性</span><div class="moves">性格 · 特性<br>道具<br>招式 1 / 招式 2 / ...</div></div></div>
+          <div class="mon"><div class="sprite"></div><div><h4>成员 6</h4><span class="pill">属性</span><div class="moves">性格 · 特性<br>道具<br>招式 1 / 招式 2 / ...</div></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="label">确认后的需求规则</div>
+    <div class="rules">
+      <div class="rule"><strong>卡片样式统一</strong><p>高分导入队和手动创建队在队伍页使用同一套卡片结构。来源只是标签，不改变主按钮。</p></div>
+      <div class="rule"><strong>右侧按钮改为生成图片</strong><p>不再把“导出”作为模糊动作。生成一张可保存/分享的队伍图片，包含队伍名、配置、图片和时间戳。</p></div>
+      <div class="rule"><strong>队报链接放在详情/来源区</strong><p>来源为高分队伍时保留队报链接，但列表卡片主按钮仍然是“编辑配置 / 生成图片”。</p></div>
+    </div>
+  </section>
+</main>
+</body>
+</html>

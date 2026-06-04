@@ -1,0 +1,114 @@
+<style>
+  .wrap { color:#f8fafc; }
+  h2,h3,p { margin:0; }
+  .subtitle { color:#a1a1aa; font-size:18px; line-height:1.6; margin:10px 0 22px; }
+  .phone { width:min(390px,100%); margin:0 auto; border:1px solid #3a4251; border-radius:28px; overflow:hidden; background:#0f131a; min-height:690px; }
+  .screen { padding:22px 16px 90px; min-height:690px; position:relative; }
+  .top h3 { font-size:32px; margin-bottom:7px; }
+  .top p { color:#9aa6bb; font-size:14px; line-height:1.45; }
+  .section { margin-top:22px; }
+  .section-title { color:#dbeafe; font-size:14px; font-weight:900; margin-bottom:10px; }
+  .list { border:1px solid #2a3548; border-radius:18px; overflow:hidden; background:#151a22; }
+  .row { display:grid; grid-template-columns:36px 1fr auto; gap:12px; align-items:center; padding:14px; border-bottom:1px solid #273142; }
+  .row:last-child { border-bottom:0; }
+  .icon { width:36px; height:36px; border-radius:12px; background:#101827; color:#bfdbfe; display:grid; place-items:center; font-weight:900; font-size:12px; }
+  .row strong { display:block; font-size:16px; }
+  .row span { display:block; color:#8e9bb0; font-size:12px; margin-top:4px; line-height:1.45; }
+  .arrow { color:#93c5fd; }
+  .danger { color:#f87171; }
+  .export-card { border:1px solid #2a3548; border-radius:18px; background:#151a22; padding:14px; }
+  .export-card h3 { font-size:18px; margin-bottom:7px; }
+  .export-card p { color:#8e9bb0; font-size:13px; line-height:1.55; }
+  .actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:13px; }
+  .btn { min-height:46px; border-radius:14px; border:1px solid #334155; background:#101827; color:#bfdbfe; font-weight:900; display:grid; place-items:center; text-align:center; font-size:13px; }
+  .btn.primary { border:0; background:#7ea2ff; color:#0f172a; }
+  .bottom { position:absolute; left:0; right:0; bottom:0; border-top:1px solid #262d38; background:#15181d; display:grid; grid-template-columns:repeat(4,1fr); padding:8px 6px 12px; }
+  .nav { text-align:center; color:#777f8d; font-size:12px; }
+  .nav b { display:block; font-size:20px; margin-bottom:4px; }
+  .nav.active { color:#7ea2ff; }
+  .note { max-width:760px; margin:18px auto 0; color:#aab7ca; font-size:15px; line-height:1.65; }
+  .note b { color:#fff; }
+</style>
+
+<div class="wrap">
+  <h2>我的页：导出是备份，不是队伍图片</h2>
+  <p class="subtitle">移除本地队伍数 / 收藏数。这里的导出用于迁移和备份，队伍页的生成图片用于分享展示，两者要分清。</p>
+
+  <div class="phone">
+    <div class="screen">
+      <div class="top">
+        <h3>我的</h3>
+        <p>偏好、本地资料、数据来源与缓存。</p>
+      </div>
+
+      <section class="section">
+        <div class="section-title">偏好</div>
+        <div class="list">
+          <div class="row">
+            <div class="icon">◐</div>
+            <div><strong>主题</strong><span>深色竞技场</span></div>
+            <div class="arrow">›</div>
+          </div>
+          <div class="row">
+            <div class="icon">文</div>
+            <div><strong>语言</strong><span>中文优先，保留英文名</span></div>
+            <div class="arrow">›</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-title">本地资料</div>
+        <div class="export-card">
+          <h3>备份与恢复</h3>
+          <p>导出 JSON 会包含本地队伍、收藏、偏好和缓存索引。队伍图片请在队伍页单独生成。</p>
+          <div class="actions">
+            <div class="btn primary">导出备份 JSON</div>
+            <div class="btn">导入备份</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-title">收藏</div>
+        <div class="list">
+          <div class="row">
+            <div class="icon">★</div>
+            <div><strong>收藏内容</strong><span>速度基准与后续可收藏内容</span></div>
+            <div class="arrow">›</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-title">数据与缓存</div>
+        <div class="list">
+          <div class="row">
+            <div class="icon">源</div>
+            <div><strong>数据来源</strong><span>高分样本、更新时间与字段边界</span></div>
+            <div class="arrow">›</div>
+          </div>
+          <div class="row">
+            <div class="icon">DB</div>
+            <div><strong>离线缓存</strong><span>已缓存当前数据版本</span></div>
+            <div class="arrow">›</div>
+          </div>
+          <div class="row">
+            <div class="icon danger">!</div>
+            <div><strong class="danger">清除本地数据</strong><span>队伍、收藏与偏好会被清空</span></div>
+            <div class="arrow">›</div>
+          </div>
+        </div>
+      </section>
+
+      <nav class="bottom">
+        <div class="nav"><b>◎</b>环境</div>
+        <div class="nav"><b>▦</b>队伍</div>
+        <div class="nav"><b>◈</b>工具</div>
+        <div class="nav active"><b>⚙</b>我的</div>
+      </nav>
+    </div>
+  </div>
+
+  <p class="note"><b>导出边界：</b>队伍页的“生成图片”用于分享，只包含单支队伍的视觉信息；我的页的“导出备份 JSON”用于迁移，应包含队伍、收藏、偏好、缓存索引等本地资料。</p>
+</div>

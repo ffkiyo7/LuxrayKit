@@ -1,0 +1,123 @@
+<style>
+  .wrap { color:#f8fafc; }
+  h2,h3,p { margin:0; }
+  .subtitle { color:#a1a1aa; font-size:18px; line-height:1.6; margin:10px 0 22px; }
+  .board { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:18px; align-items:start; }
+  .phone { width:min(360px,100%); margin:0 auto; border:1px solid #3a4251; border-radius:28px; overflow:hidden; background:#0f131a; min-height:650px; }
+  .screen { padding:20px 16px 84px; min-height:650px; }
+  .top h3 { font-size:30px; margin-bottom:5px; }
+  .top p { color:#9aa6bb; font-size:14px; line-height:1.45; }
+  .switch { display:inline-flex; gap:4px; margin-top:14px; border:1px solid #263247; border-radius:18px; padding:5px; background:#101827; }
+  .switch span { min-width:72px; text-align:center; border-radius:13px; padding:8px 0; color:#94a3b8; font-weight:900; }
+  .switch .active { background:#dbeafe; color:#0f172a; }
+  .banner { border:1px solid #4a3b1b; background:#241d11; color:#facc15; border-radius:14px; padding:11px 12px; margin-top:16px; font-size:13px; line-height:1.45; }
+  .banner.blue { border-color:#1d4ed8; background:#0f1e36; color:#bfdbfe; }
+  .banner.red { border-color:#7f1d1d; background:#2a1115; color:#fecaca; }
+  .panel { border:1px solid #2a3548; border-radius:18px; background:#161c25; padding:15px; margin-top:16px; }
+  .title-row { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px; }
+  .title-row h3 { font-size:20px; }
+  .link { color:#93c5fd; font-size:13px; }
+  .rank { display:grid; grid-template-columns:32px 58px 1fr auto; gap:10px; align-items:center; padding:10px 0; border-top:1px solid #273142; }
+  .rank:first-of-type { border-top:0; }
+  .avatar { width:54px; height:54px; border-radius:16px; background:linear-gradient(#dbeafe,#93c5fd); }
+  .rank strong { font-size:17px; }
+  .types { display:flex; gap:5px; margin-top:5px; }
+  .type { border-radius:999px; padding:3px 8px; font-size:11px; font-weight:900; line-height:1; }
+  .fire { background:#fb923c; color:#431407; }
+  .water { background:#93c5fd; color:#172554; }
+  .dark { background:#cbd5e1; color:#111827; }
+  .rate { color:#bfdbfe; font-size:18px; font-weight:900; text-align:right; }
+  .empty { display:grid; place-items:center; min-height:390px; text-align:center; color:#9aa6bb; }
+  .empty h3 { color:#fff; font-size:24px; margin:12px 0 8px; }
+  .retry { border:0; border-radius:14px; background:#7ea2ff; color:#0f172a; padding:12px 24px; font-weight:900; margin-top:18px; }
+  .team-card { border:1px solid #2a3548; border-radius:18px; background:#161c25; padding:15px; margin-top:16px; }
+  .sprites { display:flex; gap:7px; margin:12px 0; }
+  .sprite { width:38px; height:38px; border-radius:11px; background:#dbeafe; }
+  .actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .btn { min-height:42px; border-radius:13px; border:1px solid #334155; background:#101827; color:#bfdbfe; font-weight:900; }
+  .primary { border:0; background:#7ea2ff; color:#0f172a; }
+  .toast { position:absolute; left:18px; right:18px; bottom:92px; border-radius:15px; background:#0f2a1d; border:1px solid #166534; color:#bbf7d0; padding:12px; font-size:14px; }
+  .toast.warn { background:#241d11; border-color:#854d0e; color:#fde68a; }
+  .toast.error { background:#2a1115; border-color:#7f1d1d; color:#fecaca; }
+  .note { margin-top:14px; color:#aab7ca; font-size:15px; line-height:1.65; }
+  .note b { color:#fff; }
+</style>
+
+<div class="wrap">
+  <h2>状态逻辑：环境数据与队伍导入</h2>
+  <p class="subtitle">环境页只在完全无数据时阻断；只要有缓存，就继续展示内容。高分队伍导入则区分成功、可补全、失败。</p>
+
+  <div class="board">
+    <section>
+      <div class="phone">
+        <div class="screen">
+          <div class="top">
+            <h3>环境</h3>
+            <p>Season 1 · 基于高分构筑样本统计</p>
+            <div class="switch"><span class="active">单打</span><span>双打</span></div>
+          </div>
+          <div class="banner blue">离线模式 · 使用上次缓存，更新于 05-27 10:00</div>
+          <section class="panel">
+            <div class="title-row"><h3>热门宝可梦榜</h3><span class="link">查看全部</span></div>
+            <div class="rank">
+              <b>1</b><div class="avatar"></div><div><strong>玛狃拉</strong><div class="types"><span class="type dark">恶</span><span class="type water">冰</span></div></div><div class="rate">34.8%</div>
+            </div>
+            <div class="rank">
+              <b>2</b><div class="avatar"></div><div><strong>喷火龙</strong><div class="types"><span class="type fire">火</span></div></div><div class="rate">29.1%</div>
+            </div>
+            <div class="rank">
+              <b>3</b><div class="avatar"></div><div><strong>风妖精</strong><div class="types"><span class="type" style="background:#86efac;color:#052e16;">草</span></div></div><div class="rate">24.6%</div>
+            </div>
+          </section>
+          <section class="team-card">
+            <h3>热门队伍样本</h3>
+            <p style="color:#9aa6bb;margin-top:6px;">作者名 · 2724 分 · 晴天进攻</p>
+            <div class="sprites"><div class="sprite"></div><div class="sprite"></div><div class="sprite"></div><div class="sprite"></div><div class="sprite"></div><div class="sprite"></div></div>
+            <div class="actions"><button class="btn primary">导入配置</button><button class="btn">队报链接</button></div>
+          </section>
+        </div>
+      </div>
+      <p class="note"><b>原则：</b>离线有缓存、数据过期但可用，都不挡内容，只在标题附近给轻提示。</p>
+    </section>
+
+    <section>
+      <div class="phone">
+        <div class="screen">
+          <div class="top">
+            <h3>环境</h3>
+            <p>Season 1 · 基于高分构筑样本统计</p>
+          </div>
+          <div class="empty">
+            <div>
+              <div style="font-size:44px;">!</div>
+              <h3>无法加载环境数据</h3>
+              <p>当前离线且没有可用缓存。联网后可以重新获取环境榜单与队伍样本。</p>
+              <button class="retry">重试</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="note"><b>阻断条件：</b>只有“离线且无缓存 / 首次加载失败且无本地数据”才展示空状态。</p>
+    </section>
+
+    <section>
+      <div class="phone">
+        <div class="screen" style="position:relative;">
+          <div class="top">
+            <h3>高分队伍样本</h3>
+            <p>导入后会保存为本地队伍副本。</p>
+          </div>
+          <section class="team-card">
+            <h3>作者名 · 2724 · 喷火龙核心</h3>
+            <p style="color:#9aa6bb;margin-top:6px;">Season 1 · 单打 · 队报可用</p>
+            <div class="sprites"><div class="sprite"></div><div class="sprite"></div><div class="sprite"></div><div class="sprite"></div><div class="sprite"></div><div class="sprite"></div></div>
+            <div class="actions"><button class="btn primary">导入配置</button><button class="btn">队报链接</button></div>
+          </section>
+          <div class="toast">已导入配置 · 正在跳转队伍列表</div>
+          <div class="toast warn" style="bottom:38px;">已导入，可继续补全缺失配置</div>
+        </div>
+      </div>
+      <p class="note"><b>导入策略：</b>能形成队伍骨架就允许导入。字段缺失交给队伍校验/成员编辑提示；完全无法识别才失败。</p>
+    </section>
+  </div>
+</div>

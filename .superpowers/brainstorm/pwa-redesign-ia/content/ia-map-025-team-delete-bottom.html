@@ -1,0 +1,71 @@
+<style>
+  .phone { width:min(430px,100%); margin:0 auto; border:1px solid #3c4452; border-radius:28px; overflow:hidden; background:#101318; color:#f8fafc; min-height:720px; }
+  .screen { padding:16px 14px 76px; }
+  h2,h3,p { margin:0; }
+  .header { display:grid; grid-template-columns:36px 1fr; gap:10px; align-items:start; }
+  .back { width:34px; height:34px; border:1px solid #334155; border-radius:12px; background:#171c25; color:#dbeafe; font-size:18px; font-weight:900; }
+  .title { font-size:22px; line-height:1.25; font-weight:900; }
+  .sub { color:#a7b0c0; font-size:12px; line-height:1.45; margin-top:5px; }
+  .panel { border:1px solid #293140; background:#171c25; border-radius:16px; padding:12px; margin-top:14px; }
+  .section-title { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+  .section-title strong { font-size:15px; }
+  .section-title span { color:#93c5fd; font-size:12px; }
+  .member-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+  .slot { border:1px solid #293140; background:#0f172a; border-radius:15px; padding:10px; min-height:138px; }
+  .poke { display:block; width:58px; height:58px; border-radius:16px; background:#dbeafe; margin:0 auto 8px; }
+  .slot strong { display:block; text-align:center; font-size:14px; }
+  .types { display:flex; justify-content:center; gap:4px; margin:7px 0; }
+  .type { border-radius:5px; padding:2px 5px; font-size:10px; font-weight:900; line-height:1; }
+  .fire { background:#fb923c; color:#431407; }
+  .fly { background:#93c5fd; color:#172554; }
+  .fairy { background:#f9a8d4; color:#500724; }
+  .grass { background:#86efac; color:#052e16; }
+  .item { display:flex; justify-content:center; align-items:center; gap:5px; color:#a7b0c0; font-size:11px; }
+  .item i { width:16px; height:16px; border-radius:5px; background:#fde68a; display:block; }
+  .risk-row { display:grid; grid-template-columns:1fr auto; gap:10px; border-top:1px solid #293140; padding:9px 0; font-size:12px; }
+  .risk-row:first-of-type { border-top:0; }
+  .risk-row span { color:#a7b0c0; }
+  .risk-row strong { color:#f8fafc; }
+  .danger { margin-top:20px; border:1px solid #7f1d1d; background:#1f1115; border-radius:16px; padding:12px; }
+  .danger strong { display:block; color:#fecaca; font-size:14px; margin-bottom:5px; }
+  .danger p { color:#a7b0c0; font-size:11px; line-height:1.45; margin-bottom:10px; }
+  .danger button { width:100%; border:1px solid #991b1b; background:#2b1116; color:#fca5a5; border-radius:12px; padding:11px; font-weight:900; }
+</style>
+
+<h2>删除队伍放底部危险区</h2>
+<p class="subtitle">顶部不放更多菜单，也不放删除。标题可点击改名；删除作为低频危险操作放到底部。</p>
+
+<div class="mockup">
+  <div class="mockup-header">队伍详情最终方向：顶部干净，删除到底部</div>
+  <div class="mockup-body">
+    <div class="phone">
+      <div class="screen">
+        <header class="header">
+          <button class="back">‹</button>
+          <div><div class="title">作者名 · 2724 · 喷火龙核心</div><p class="sub">点标题可改名 · 本地队伍</p></div>
+        </header>
+
+        <section class="panel">
+          <div class="section-title"><strong>队伍成员</strong><span>6/6</span></div>
+          <div class="member-grid">
+            <div class="slot"><i class="poke"></i><strong>喷火龙</strong><div class="types"><span class="type fire">火</span><span class="type fly">飞行</span></div><div class="item"><i></i><span>喷火龙进化石X</span></div></div>
+            <div class="slot"><i class="poke"></i><strong>风妖精</strong><div class="types"><span class="type fairy">妖精</span><span class="type grass">草</span></div><div class="item"><i></i><span>气势披带</span></div></div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="section-title"><strong>队伍检查</strong><span>查看详情</span></div>
+          <div class="risk-row"><span>重复道具</span><strong>无</strong></div>
+          <div class="risk-row"><span>规则合法性</span><strong>待确认 1 项</strong></div>
+          <div class="risk-row"><span>环境高频压力</span><strong>玛狃拉 / 喷火龙</strong></div>
+        </section>
+
+        <section class="danger">
+          <strong>危险操作</strong>
+          <p>删除后该本地队伍会从列表中移除。导入来源不会受到影响。</p>
+          <button>删除队伍</button>
+        </section>
+      </div>
+    </div>
+  </div>
+</div>

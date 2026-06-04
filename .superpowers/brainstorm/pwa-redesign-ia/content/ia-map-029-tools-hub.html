@@ -1,0 +1,172 @@
+<style>
+  .wrap { color:#f8fafc; }
+  h2,h3,p { margin:0; }
+  .subtitle { color:#a1a1aa; font-size:18px; line-height:1.6; margin:10px 0 22px; }
+  .board { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:18px; align-items:start; }
+  .phone { width:min(360px,100%); margin:0 auto; border:1px solid #3a4251; border-radius:28px; overflow:hidden; background:#0f131a; min-height:650px; position:relative; }
+  .screen { padding:20px 16px 84px; min-height:650px; }
+  .top h3 { font-size:30px; margin-bottom:6px; }
+  .top p { color:#9aa6bb; font-size:14px; line-height:1.45; }
+  .section { margin-top:22px; }
+  .section-title { color:#dbeafe; font-size:14px; font-weight:900; margin-bottom:10px; }
+  .primary-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .tool-card { border:1px solid #2a3548; border-radius:18px; background:#161c25; padding:15px; min-height:128px; }
+  .tool-card.primary { background:#10213a; border-color:#244a76; }
+  .icon { width:42px; height:42px; border-radius:14px; display:grid; place-items:center; margin-bottom:14px; background:#1f3b64; color:#bfdbfe; font-size:22px; }
+  .tool-card h3 { font-size:20px; margin-bottom:7px; }
+  .tool-card p { color:#9aa6bb; font-size:13px; line-height:1.45; }
+  .list { border:1px solid #2a3548; border-radius:18px; overflow:hidden; background:#151a22; }
+  .row { display:grid; grid-template-columns:42px 1fr auto; gap:12px; align-items:center; padding:14px; border-bottom:1px solid #273142; }
+  .row:last-child { border-bottom:0; }
+  .row .icon { width:42px; height:42px; margin:0; background:#111827; }
+  .row strong { display:block; font-size:17px; }
+  .row span { display:block; color:#8e9bb0; font-size:12px; margin-top:4px; }
+  .arrow { color:#93c5fd; }
+  .import { border:1px solid #28456a; border-radius:18px; background:#111d2e; padding:14px; }
+  .import-head { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; }
+  .import-head strong { font-size:17px; }
+  .pill { border-radius:999px; background:#1d4ed8; color:#dbeafe; padding:5px 9px; font-size:12px; font-weight:900; }
+  .team-row { display:grid; grid-template-columns:1fr auto; gap:10px; align-items:center; border-radius:14px; background:#0f172a; padding:11px; margin-top:8px; }
+  .team-row b { display:block; font-size:15px; }
+  .team-row span { color:#8e9bb0; font-size:12px; }
+  .ghost { border:1px solid #334155; border-radius:999px; color:#bfdbfe; padding:6px 10px; font-size:12px; }
+  .note { margin-top:16px; color:#aab7ca; font-size:15px; line-height:1.65; }
+  .note b { color:#fff; }
+  .tabs { display:flex; gap:8px; border:1px solid #263247; border-radius:18px; padding:5px; background:#101827; margin-top:14px; }
+  .tab { flex:1; text-align:center; border-radius:13px; padding:9px 0; color:#94a3b8; font-weight:900; }
+  .tab.active { background:#dbeafe; color:#0f172a; }
+  .mini-panel { border:1px solid #2a3548; border-radius:18px; background:#151a22; padding:14px; margin-top:14px; }
+  .field { height:46px; border:1px solid #303847; border-radius:14px; display:flex; align-items:center; justify-content:space-between; padding:0 13px; margin-top:10px; background:#10151d; color:#dbeafe; }
+</style>
+
+<div class="wrap">
+  <h2>工具页：承接小工具，不回塞队伍详情</h2>
+  <p class="subtitle">队伍详情保持编辑专注；伤害计算、速度线、图鉴、当前规则统一收进“工具”。工具页提供“从队伍导入”的入口，让用户需要时再带配置进来。</p>
+
+  <div class="board">
+    <section>
+      <div class="phone">
+        <div class="screen">
+          <div class="top">
+            <h3>工具</h3>
+            <p>临时计算、查询与规则确认。可以手动选择，也可以从本地队伍带入配置。</p>
+          </div>
+
+          <section class="section">
+            <div class="section-title">常用</div>
+            <div class="primary-grid">
+              <article class="tool-card primary">
+                <div class="icon">⌁</div>
+                <h3>伤害计算</h3>
+                <p>攻防双方、招式、场地修正与结果区间。</p>
+              </article>
+              <article class="tool-card primary">
+                <div class="icon">≋</div>
+                <h3>速度线</h3>
+                <p>速度投入、顺风、常见基准对照。</p>
+              </article>
+            </div>
+          </section>
+
+          <section class="section">
+            <div class="section-title">查询</div>
+            <div class="list">
+              <div class="row">
+                <div class="icon">◇</div>
+                <div><strong>规则内图鉴</strong><span>Pokemon / 招式 / 道具 / 特性</span></div>
+                <div class="arrow">›</div>
+              </div>
+              <div class="row">
+                <div class="icon">◎</div>
+                <div><strong>当前规则</strong><span>赛季、规则、数据版本与来源</span></div>
+                <div class="arrow">›</div>
+              </div>
+            </div>
+          </section>
+
+          <section class="section">
+            <div class="section-title">从队伍带入</div>
+            <div class="import">
+              <div class="import-head">
+                <strong>选择本地队伍</strong>
+                <span class="pill">可选</span>
+              </div>
+              <div class="team-row">
+                <div><b>作者名 · 2724 · 喷火龙核心</b><span>6/6 成员 · 最近导入</span></div>
+                <div class="ghost">选择</div>
+              </div>
+              <div class="team-row">
+                <div><b>我的双打队伍</b><span>4/6 成员 · 本地编辑</span></div>
+                <div class="ghost">选择</div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="phone">
+        <div class="screen">
+          <div class="top">
+            <h3>伤害计算</h3>
+            <p>从队伍导入只是预填，临时修改不会自动改队伍。</p>
+          </div>
+          <div class="tabs">
+            <div class="tab active">手动</div>
+            <div class="tab">从队伍导入</div>
+          </div>
+          <section class="mini-panel">
+            <div class="section-title">攻击方</div>
+            <div class="field"><span>喷火龙</span><span>更换</span></div>
+            <div class="field"><span>闪焰冲锋</span><span>招式</span></div>
+            <div class="field"><span>喷火龙进化石X</span><span>道具</span></div>
+          </section>
+          <section class="mini-panel">
+            <div class="section-title">防守方</div>
+            <div class="field"><span>选择 Pokémon</span><span>搜索</span></div>
+            <div class="field"><span>HP / 防御 / 特防</span><span>配置</span></div>
+          </section>
+          <section class="mini-panel">
+            <div class="section-title">结果</div>
+            <p style="font-size:28px;font-weight:900;margin-top:8px;">62.4% - 74.1%</p>
+            <p style="color:#94a3b8;margin-top:6px;">示例结果区间，具体以计算器现有逻辑为准。</p>
+          </section>
+        </div>
+      </div>
+      <p class="note"><b>交互原则：</b>工具页可以导入队伍成员，但导入后是临时配置。用户调整伤害计算参数，不自动写回队伍，避免“查一下”变成误改配置。</p>
+    </section>
+
+    <section>
+      <div class="phone">
+        <div class="screen">
+          <div class="top">
+            <h3>速度线</h3>
+            <p>单个 Pokémon 速度计算，也可以直接生成整队速度基准。</p>
+          </div>
+          <div class="tabs">
+            <div class="tab active">单体</div>
+            <div class="tab">队伍</div>
+          </div>
+          <section class="mini-panel">
+            <div class="section-title">当前对象</div>
+            <div class="field"><span>喷火龙 · Mega X</span><span>更换</span></div>
+            <div class="field"><span>速度 SP 32</span><span>调整</span></div>
+            <div class="field"><span>性格 爽朗</span><span>调整</span></div>
+          </section>
+          <section class="mini-panel">
+            <div class="section-title">速度结果</div>
+            <p style="font-size:42px;font-weight:900;margin-top:6px;">169</p>
+            <p style="color:#94a3b8;margin-top:6px;">与常见基准按高低排序显示。</p>
+          </section>
+          <section class="mini-panel">
+            <div class="section-title">队伍导入时</div>
+            <div class="field"><span>显示 6 名成员速度</span><span>列表</span></div>
+            <div class="field"><span>突出最快 / 最慢 / 关键线</span><span>对照</span></div>
+          </section>
+        </div>
+      </div>
+      <p class="note"><b>信息层级：</b>工具入口要比队伍编辑轻，打开就是能算，不要求用户先建队。队伍导入只是加速入口。</p>
+    </section>
+  </div>
+</div>

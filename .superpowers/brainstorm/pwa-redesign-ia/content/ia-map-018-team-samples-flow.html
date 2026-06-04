@@ -1,0 +1,139 @@
+<style>
+  .split { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:16px; }
+  .phone { border:1px solid #3c4452; border-radius:28px; overflow:hidden; background:#101318; color:#f8fafc; min-height:720px; }
+  .screen { padding:16px 14px 76px; }
+  h2,h3,p { margin:0; }
+  .head h2 { font-size:28px; margin-bottom:6px; }
+  .sub { color:#a7b0c0; font-size:12px; line-height:1.45; }
+  .source { color:#93c5fd; font-size:11px; margin-top:6px; }
+  .rule-switch { margin-top:14px; display:inline-flex; gap:4px; padding:4px; border-radius:999px; border:1px solid #334155; background:#0b1220; }
+  .rule-switch span { border-radius:999px; padding:8px 22px; color:#94a3b8; font-size:13px; font-weight:900; }
+  .rule-switch .on { background:#e0f2fe; color:#082f49; }
+  .panel { border:1px solid #293140; background:#171c25; border-radius:16px; padding:12px; margin-top:14px; }
+  .title { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+  .title strong { font-size:16px; }
+  .title a { color:#93c5fd; font-size:12px; text-decoration:none; }
+  .rank-row { display:grid; grid-template-columns:30px 48px 1fr 60px; gap:9px; align-items:center; padding:10px 0; border-top:1px solid #293140; }
+  .rank-row:first-of-type { border-top:0; }
+  .rank { color:#bfdbfe; font-weight:900; text-align:center; font-size:14px; }
+  .img { width:48px; height:48px; border-radius:14px; background:linear-gradient(145deg,#dbeafe,#93c5fd); }
+  .main strong { display:block; font-size:14px; line-height:1.15; }
+  .types { display:flex; gap:4px; margin-top:6px; }
+  .type { border-radius:5px; padding:2px 5px; font-size:10px; font-weight:900; line-height:1; }
+  .dark { background:#334155; color:#fff; }
+  .ice { background:#7dd3fc; color:#083344; }
+  .fire { background:#fb923c; color:#431407; }
+  .fly { background:#93c5fd; color:#172554; }
+  .weight { text-align:right; }
+  .weight strong { display:block; color:#bfdbfe; font-size:14px; }
+  .weight span { display:block; color:#94a3b8; font-size:10px; margin-top:3px; }
+  .team-card { border:1px solid #293140; background:#0f172a; border-radius:15px; padding:11px; margin-top:10px; }
+  .team-head { display:flex; justify-content:space-between; gap:10px; align-items:flex-start; }
+  .team-head strong { display:block; font-size:14px; line-height:1.25; }
+  .team-head span { color:#94a3b8; font-size:11px; display:block; margin-top:4px; }
+  .badge { border:1px solid #334155; border-radius:999px; color:#dbeafe; padding:4px 7px; font-size:10px; white-space:nowrap; }
+  .team-icons { display:grid; grid-template-columns:repeat(6,1fr); gap:6px; margin:11px 0; }
+  .team-icons i { aspect-ratio:1; border-radius:10px; background:#dbeafe; display:block; }
+  .tags { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:10px; }
+  .tag { border-radius:999px; background:#172033; color:#cbd5e1; padding:4px 7px; font-size:10px; font-weight:800; }
+  .actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .actions button { border:0; border-radius:11px; padding:10px 4px; background:#2563eb; color:#fff; font-size:12px; font-weight:900; }
+  .actions button:last-child { background:#242c3a; color:#dbeafe; }
+  .header { display:grid; grid-template-columns:36px 1fr; gap:10px; align-items:start; }
+  .back { width:34px; height:34px; border:1px solid #334155; border-radius:12px; background:#171c25; color:#dbeafe; font-size:18px; font-weight:900; }
+  .header h2 { font-size:23px; margin-bottom:4px; }
+  .filters { display:flex; gap:7px; overflow:hidden; margin-top:12px; }
+  .filter { border:1px solid #334155; border-radius:999px; background:#0b1220; color:#dbeafe; padding:8px 10px; font-size:12px; font-weight:800; white-space:nowrap; }
+  .search { margin-top:12px; border:1px solid #293140; background:#0f172a; border-radius:13px; padding:10px 12px; color:#64748b; font-size:12px; }
+  @media (max-width: 900px) { .split { grid-template-columns:1fr; } }
+</style>
+
+<h2>热门队伍样本与高分队伍浏览</h2>
+<p class="subtitle">首页给少量高价值样本，更多进入队伍浏览页；每张卡的动作固定为“导入配置 / 队报链接”。</p>
+
+<div class="split">
+  <div class="mockup">
+    <div class="mockup-header">A. 环境首页中的队伍样本</div>
+    <div class="mockup-body">
+      <div class="phone">
+        <div class="screen">
+          <div class="head">
+            <h2>环境</h2>
+            <p class="sub">Season 1 · 基于高分构筑样本统计<br />更新于 05-27 10:00</p>
+            <p class="source">数据来源说明</p>
+            <div class="rule-switch"><span class="on">单打</span><span>双打</span></div>
+          </div>
+
+          <section class="panel">
+            <div class="title"><strong>热门宝可梦榜</strong><a href="#">查看全部</a></div>
+            <div class="rank-row"><span class="rank">1</span><div class="img"></div><div class="main"><strong>玛狃拉</strong><div class="types"><span class="type dark">恶</span><span class="type ice">冰</span></div></div><div class="weight"><strong>34.8%</strong><span>184 队</span></div></div>
+            <div class="rank-row"><span class="rank">2</span><div class="img"></div><div class="main"><strong>喷火龙</strong><div class="types"><span class="type fire">火</span><span class="type fly">飞行</span></div></div><div class="weight"><strong>29.1%</strong><span>154 队</span></div></div>
+          </section>
+
+          <section class="panel">
+            <div class="title"><strong>热门队伍样本</strong><a href="#">更多</a></div>
+            <article class="team-card">
+              <div class="team-head">
+                <div><strong>作者名 · 2724 分</strong><span>喷火龙 + 风妖精 · 晴天进攻</span></div>
+                <em class="badge">队报可读</em>
+              </div>
+              <div class="team-icons"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+              <div class="tags"><span class="tag">高分样本</span><span class="tag">含 #2 喷火龙</span></div>
+              <div class="actions"><button>导入配置</button><button>队报链接</button></div>
+            </article>
+            <article class="team-card">
+              <div class="team-head">
+                <div><strong>Rank 12 · 2688 分</strong><span>玛狃拉 + 巨金怪 · 高速压制</span></div>
+                <em class="badge">队报可读</em>
+              </div>
+              <div class="team-icons"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+              <div class="actions"><button>导入配置</button><button>队报链接</button></div>
+            </article>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">B. “更多”进入：高分队伍浏览页</div>
+    <div class="mockup-body">
+      <div class="phone">
+        <div class="screen">
+          <header class="header"><button class="back">‹</button><div><h2>高分队伍</h2><p class="sub">Season 1 · 单打 · 基于高分构筑样本</p><p class="source">数据来源说明</p></div></header>
+          <div class="filters"><span class="filter">单打</span><span class="filter">队报可读</span><span class="filter">包含宝可梦</span></div>
+          <div class="search">搜索宝可梦 / 作者 / 玩法标签</div>
+
+          <article class="team-card">
+            <div class="team-head">
+              <div><strong>作者名 · 2724 分</strong><span>喷火龙 + 风妖精 · 晴天进攻</span></div>
+              <em class="badge">Rank 3</em>
+            </div>
+            <div class="team-icons"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="tags"><span class="tag">队报可读</span><span class="tag">可导入</span><span class="tag">晴天</span></div>
+            <div class="actions"><button>导入配置</button><button>队报链接</button></div>
+          </article>
+
+          <article class="team-card">
+            <div class="team-head">
+              <div><strong>Rank 12 · 2688 分</strong><span>玛狃拉 + 巨金怪 · 高速压制</span></div>
+              <em class="badge">Rank 12</em>
+            </div>
+            <div class="team-icons"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="tags"><span class="tag">队报可读</span><span class="tag">可导入</span></div>
+            <div class="actions"><button>导入配置</button><button>队报链接</button></div>
+          </article>
+
+          <article class="team-card">
+            <div class="team-head">
+              <div><strong>Rank 29 · 2631 分</strong><span>雨天平衡 · 水系核心</span></div>
+              <em class="badge">Rank 29</em>
+            </div>
+            <div class="team-icons"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="actions"><button>导入配置</button><button>队报链接</button></div>
+          </article>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

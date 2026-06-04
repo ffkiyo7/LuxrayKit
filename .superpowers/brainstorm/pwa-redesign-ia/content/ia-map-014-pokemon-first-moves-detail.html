@@ -1,0 +1,123 @@
+<style>
+  .split { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:16px; }
+  .phone { border:1px solid #3c4452; border-radius:28px; overflow:hidden; background:#101318; color:#f8fafc; min-height:680px; }
+  .screen { padding:16px 14px 76px; }
+  h2,h3,p { margin:0; }
+  .head h2 { font-size:28px; margin-bottom:6px; }
+  .sub { color:#a7b0c0; font-size:12px; line-height:1.45; }
+  .source { color:#93c5fd; font-size:11px; margin-top:6px; }
+  .rule-switch { margin-top:14px; display:inline-flex; gap:4px; padding:4px; border-radius:999px; border:1px solid #334155; background:#0b1220; }
+  .rule-switch span { border-radius:999px; padding:8px 22px; color:#94a3b8; font-size:13px; font-weight:900; }
+  .rule-switch .on { background:#e0f2fe; color:#082f49; }
+  .panel { border:1px solid #293140; background:#171c25; border-radius:16px; padding:12px; margin-top:14px; }
+  .title-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+  .title-row strong { font-size:16px; }
+  .title-row a { color:#93c5fd; font-size:12px; text-decoration:none; }
+  .row { display:grid; grid-template-columns:30px 50px 1fr 60px; gap:9px; align-items:center; padding:11px 0; border-top:1px solid #293140; }
+  .row:first-of-type { border-top:0; }
+  .rank { color:#bfdbfe; font-weight:900; text-align:center; font-size:15px; }
+  .img { width:50px; height:50px; border-radius:14px; background:linear-gradient(145deg,#dbeafe,#93c5fd); }
+  .main strong { display:block; font-size:15px; line-height:1.15; }
+  .types { display:flex; gap:4px; margin-top:6px; }
+  .type { border-radius:5px; padding:2px 5px; font-size:10px; font-weight:900; line-height:1; }
+  .dark { background:#334155; color:#fff; }
+  .ice { background:#7dd3fc; color:#083344; }
+  .fire { background:#fb923c; color:#431407; }
+  .fly { background:#93c5fd; color:#172554; }
+  .fairy { background:#f9a8d4; color:#500724; }
+  .grass { background:#86efac; color:#052e16; }
+  .weight { text-align:right; }
+  .weight strong { display:block; color:#bfdbfe; font-size:15px; }
+  .weight span { display:block; color:#94a3b8; font-size:10px; margin-top:3px; }
+  .backhead { display:grid; grid-template-columns:36px 1fr; gap:10px; align-items:start; }
+  .back { width:34px; height:34px; border:1px solid #334155; border-radius:12px; background:#171c25; color:#dbeafe; font-size:18px; font-weight:900; }
+  .hero { display:grid; grid-template-columns:88px 1fr; gap:12px; align-items:center; margin-top:12px; }
+  .hero-img { width:88px; height:88px; border-radius:22px; background:linear-gradient(145deg,#dbeafe,#93c5fd); }
+  .hero h2 { font-size:25px; margin-bottom:7px; }
+  .metrics { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:14px; }
+  .metric { border:1px solid #293140; background:#171c25; border-radius:14px; padding:10px 8px; }
+  .metric span { display:block; color:#94a3b8; font-size:10px; margin-bottom:5px; }
+  .metric strong { display:block; color:#bfdbfe; font-size:16px; }
+  .move-row { display:grid; grid-template-columns:30px 1fr 58px; gap:10px; align-items:center; padding:10px 0; border-top:1px solid #293140; }
+  .move-row:first-of-type { border-top:0; }
+  .move-name { display:flex; flex-direction:column; gap:5px; }
+  .move-name strong { font-size:14px; }
+  .move-meta { display:flex; gap:5px; flex-wrap:wrap; }
+  .tag { border-radius:6px; padding:2px 5px; background:#0f172a; color:#cbd5e1; font-size:10px; font-weight:800; }
+  .bar { height:6px; border-radius:999px; background:#0f172a; overflow:hidden; margin-top:6px; }
+  .bar i { display:block; height:100%; background:#38bdf8; border-radius:999px; }
+  .mini-list { display:grid; gap:8px; }
+  .mini-line { display:grid; grid-template-columns:1fr 52px; gap:10px; align-items:center; }
+  .team-icons { display:flex; gap:5px; margin:8px 0 10px; }
+  .team-icons i { width:30px; height:30px; border-radius:9px; background:#dbeafe; display:block; }
+  .actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .actions button { border:0; border-radius:11px; padding:9px 4px; background:#2563eb; color:#fff; font-size:12px; font-weight:800; }
+  .actions button:last-child { background:#242c3a; color:#dbeafe; }
+  @media (max-width: 900px) { .split { grid-template-columns:1fr; } }
+</style>
+
+<h2>调整后：环境首页只做宝可梦榜，详情页突出常用招式</h2>
+<p class="subtitle">道具总榜下线；道具变成特定宝可梦详情里的携带趋势。常用招式作为详情页最高价值模块。</p>
+
+<div class="split">
+  <div class="mockup">
+    <div class="mockup-header">A. 环境首页：只保留宝可梦榜</div>
+    <div class="mockup-body">
+      <div class="phone">
+        <div class="screen">
+          <div class="head">
+            <h2>环境</h2>
+            <p class="sub">Season 1 · 基于高分构筑样本统计<br />更新于 05-27 10:00</p>
+            <p class="source">数据来源说明</p>
+            <div class="rule-switch"><span class="on">单打</span><span>双打</span></div>
+          </div>
+          <section class="panel">
+            <div class="title-row"><strong>热门宝可梦榜</strong><a href="#">查看全部</a></div>
+            <div class="row"><span class="rank">1</span><div class="img"></div><div class="main"><strong>玛狃拉</strong><div class="types"><span class="type dark">恶</span><span class="type ice">冰</span></div></div><div class="weight"><strong>34.8%</strong><span>184 队</span></div></div>
+            <div class="row"><span class="rank">2</span><div class="img"></div><div class="main"><strong>喷火龙</strong><div class="types"><span class="type fire">火</span><span class="type fly">飞行</span></div></div><div class="weight"><strong>29.1%</strong><span>154 队</span></div></div>
+            <div class="row"><span class="rank">3</span><div class="img"></div><div class="main"><strong>风妖精</strong><div class="types"><span class="type fairy">妖精</span><span class="type grass">草</span></div></div><div class="weight"><strong>24.6%</strong><span>130 队</span></div></div>
+          </section>
+          <section class="panel">
+            <div class="title-row"><strong>热门队伍样本</strong><a href="#">更多</a></div>
+            <p class="sub">作者名 · 2724 分 · 晴天进攻</p>
+            <div class="team-icons"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="actions"><button>导入配置</button><button>队报链接</button></div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">B. 宝可梦环境详情页：常用招式优先</div>
+    <div class="mockup-body">
+      <div class="phone">
+        <div class="screen">
+          <header class="backhead"><button class="back">‹</button><div><h2>环境详情</h2><p class="sub">Season 1 · 单打 · 高分构筑样本</p></div></header>
+          <section class="hero"><div class="hero-img"></div><div><h2>玛狃拉</h2><div class="types"><span class="type dark">恶</span><span class="type ice">冰</span></div><p class="source">数据来源说明</p></div></section>
+          <div class="metrics"><div class="metric"><span>排名</span><strong>#1</strong></div><div class="metric"><span>样本占比</span><strong>34.8%</strong></div><div class="metric"><span>出现队伍</span><strong>184</strong></div></div>
+
+          <section class="panel">
+            <div class="title-row"><strong>常用招式</strong><span class="source">详情页统计</span></div>
+            <div class="move-row"><span class="rank">1</span><div class="move-name"><strong>击掌奇袭</strong><div class="move-meta"><span class="tag">一般</span><span class="tag">物理</span><span class="tag">优先度+3</span></div><div class="bar"><i style="width:92%"></i></div></div><div class="weight"><strong>92%</strong></div></div>
+            <div class="move-row"><span class="rank">2</span><div class="move-name"><strong>冰柱坠击</strong><div class="move-meta"><span class="tag">冰</span><span class="tag">物理</span><span class="tag">85 威力</span></div><div class="bar"><i style="width:76%"></i></div></div><div class="weight"><strong>76%</strong></div></div>
+            <div class="move-row"><span class="rank">3</span><div class="move-name"><strong>守住</strong><div class="move-meta"><span class="tag">一般</span><span class="tag">变化</span></div><div class="bar"><i style="width:69%"></i></div></div><div class="weight"><strong>69%</strong></div></div>
+          </section>
+
+          <section class="panel">
+            <div class="title-row"><strong>常见携带道具</strong><span class="source">样本统计</span></div>
+            <div class="mini-list">
+              <div class="mini-line"><div><div class="move-meta"><strong>气势披带</strong></div><div class="bar"><i style="width:42%"></i></div></div><div class="weight"><strong>42%</strong></div></div>
+              <div class="mini-line"><div><div class="move-meta"><strong>生命宝珠</strong></div><div class="bar"><i style="width:22%"></i></div></div><div class="weight"><strong>22%</strong></div></div>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="title-row"><strong>常同队出现</strong><span class="source">非推荐</span></div>
+            <div class="row"><span class="rank">1</span><div class="img"></div><div class="main"><strong>喷火龙</strong><p class="sub">共同出现</p></div><div class="weight"><strong>28%</strong><span>52 队</span></div></div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

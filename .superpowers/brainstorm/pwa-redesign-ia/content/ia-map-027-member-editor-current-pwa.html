@@ -1,0 +1,134 @@
+<style>
+  .phone { width:min(430px,100%); margin:0 auto; border:1px solid #3c4452; border-radius:28px; overflow:hidden; background:#101318; color:#f8fafc; min-height:760px; position:relative; }
+  .screen { padding:16px 14px 76px; min-height:760px; }
+  h2,h3,p { margin:0; }
+  .dim { position:absolute; inset:0; background:rgba(2,6,23,.48); }
+  .sheet { position:absolute; left:0; right:0; bottom:0; max-height:86%; overflow:auto; background:#1a1d21; border:1px solid #30343b; border-bottom:0; border-radius:26px 26px 0 0; padding:18px 18px 96px; }
+  .grab { width:46px; height:5px; border-radius:999px; background:#4b5563; margin:0 auto 28px; }
+  .sheet-head { display:flex; justify-content:space-between; gap:12px; align-items:flex-start; margin-bottom:20px; }
+  .sheet-head h2 { font-size:26px; line-height:1.1; margin-bottom:6px; }
+  .sub { color:#898f99; font-size:15px; line-height:1.45; }
+  .close { width:42px; height:42px; border:0; border-radius:14px; background:#111827; color:#9ca3af; font-size:30px; line-height:1; }
+  .summary { border:1px solid #30343b; border-radius:16px; padding:26px 18px; display:grid; grid-template-columns:84px 1fr; gap:18px; align-items:center; background:#191b1f; margin-bottom:24px; }
+  .avatar { width:72px; height:72px; border-radius:50%; background:#dbeafe; }
+  .summary h3 { font-size:24px; margin-bottom:10px; }
+  .types { display:flex; gap:8px; margin-bottom:10px; }
+  .type { border-radius:999px; padding:5px 18px; font-size:16px; font-weight:900; line-height:1; }
+  .fire { background:#fb923c; color:#431407; }
+  .dark { background:#7c624f; color:#fff; }
+  .item-line { display:flex; align-items:center; gap:10px; color:#9ca3af; font-size:17px; }
+  .item-line i { width:22px; height:22px; border-radius:7px; background:#fde68a; display:block; }
+  .field-block { margin-top:22px; }
+  .label { color:#60656e; font-weight:800; font-size:16px; margin-bottom:10px; }
+  .select { height:58px; border:1px solid #30343b; border-radius:14px; background:#15171b; display:flex; align-items:center; justify-content:space-between; padding:0 18px; font-size:22px; font-weight:900; }
+  .chev { color:#d1d5db; font-size:26px; }
+  .search-panel { border:1px solid #30343b; border-radius:16px; background:#15171b; padding:14px; }
+  .search { height:54px; border:1px solid #30343b; border-radius:14px; display:flex; align-items:center; gap:12px; color:#6b7280; padding:0 16px; font-size:18px; margin-bottom:14px; }
+  .hint { color:#6b7280; font-size:14px; margin:10px 0 18px; }
+  .item-option { display:grid; grid-template-columns:48px 1fr; gap:14px; align-items:center; background:#1d1f23; border-radius:14px; padding:14px; margin-top:10px; }
+  .item-option i { width:38px; height:38px; border-radius:10px; background:#8b5cf6; }
+  .item-option strong { display:block; font-size:19px; }
+  .item-option span { display:block; color:#747b86; margin-top:5px; font-size:15px; }
+  .move-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .move { border:1px solid #30343b; border-radius:14px; background:#15171b; min-height:76px; padding:13px; display:flex; justify-content:space-between; gap:8px; align-items:center; }
+  .move span { display:block; color:#6b7280; font-size:14px; margin-bottom:7px; }
+  .move strong { display:block; font-size:17px; }
+  .sp-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+  .sp { border:1px solid #30343b; border-radius:14px; background:#15171b; padding:12px; }
+  .sp span { color:#6b7280; font-size:13px; }
+  .sp strong { display:block; color:#bfdbfe; font-size:24px; margin-top:4px; }
+  .validation { border:1px solid #334155; border-radius:15px; background:#15171b; padding:14px; color:#9ca3af; font-size:15px; }
+  .bottom-actions { position:absolute; left:18px; right:18px; bottom:18px; display:grid; grid-template-columns:1fr 1fr 1.4fr; gap:10px; background:#1a1d21; padding-top:10px; }
+  .bottom-actions button { border-radius:14px; height:56px; font-size:20px; font-weight:900; }
+  .delete { border:1px solid #7f1d1d; background:#2b1116; color:#ef4444; }
+  .cancel { border:1px solid #334155; background:#1f2937; color:#93a4c8; }
+  .save { border:0; background:#79a0ff; color:#111827; }
+</style>
+
+<h2>成员编辑：贴近当前 PWA 逻辑</h2>
+<p class="subtitle">不做新的“基础配置卡片网格”。沿用现有底部 Sheet + 纵向表单流，只在视觉层级上优化。</p>
+
+<div class="mockup">
+  <div class="mockup-header">参考当前 PWA：摘要卡 → 特性 → 道具搜索 → 性格 → 招式 → SP → 校验</div>
+  <div class="mockup-body">
+    <div class="phone">
+      <div class="screen">
+        <div style="height:220px;border:1px solid #293140;border-radius:16px;background:#171c25;"></div>
+      </div>
+      <div class="dim"></div>
+      <section class="sheet">
+        <div class="grab"></div>
+        <div class="sheet-head">
+          <div>
+            <h2>编辑成员</h2>
+            <p class="sub">字段级校验会在保存前实时更新</p>
+          </div>
+          <button class="close">×</button>
+        </div>
+
+        <section class="summary">
+          <div class="avatar"></div>
+          <div>
+            <h3>炽焰咆哮虎</h3>
+            <div class="types"><span class="type fire">火</span><span class="type dark">恶</span></div>
+            <div class="item-line"><i></i><span>文柚果</span></div>
+          </div>
+        </section>
+
+        <div class="field-block">
+          <div class="label">特性</div>
+          <div class="select"><span>威吓</span><span class="chev">⌄</span></div>
+        </div>
+
+        <div class="field-block">
+          <div class="label">道具</div>
+          <div class="search-panel">
+            <div class="search">⌕ 搜索携带物</div>
+            <p class="hint">当前规则可携带道具，列表完整</p>
+            <div class="item-option"><i></i><div><strong>黑带</strong><span>提升格斗属性招式威力。</span></div></div>
+            <div class="item-option"><i style="background:#475569"></i><div><strong>黑色眼镜</strong><span>提升恶属性招式威力。</span></div></div>
+            <div class="item-option"><i style="background:#86efac"></i><div><strong>光粉</strong><span>降低对手招式命中率。</span></div></div>
+          </div>
+        </div>
+
+        <div class="field-block">
+          <div class="label">性格</div>
+          <div class="select"><span>慎重（+特防 / -特攻）</span><span class="chev">⌄</span></div>
+        </div>
+
+        <div class="field-block">
+          <div class="label">招式</div>
+          <div class="move-grid">
+            <div class="move"><div><span>招式 1</span><strong>闪焰冲锋</strong></div><b>⌄</b></div>
+            <div class="move"><div><span>招式 2</span><strong>守住</strong></div><b>⌄</b></div>
+            <div class="move"><div><span>招式 3</span><strong>击掌奇袭</strong></div><b>⌄</b></div>
+            <div class="move"><div><span>招式 4</span><strong>急速折返</strong></div><b>⌄</b></div>
+          </div>
+        </div>
+
+        <div class="field-block">
+          <div class="label">SP 分配 · 已用 66/66</div>
+          <div class="sp-grid">
+            <div class="sp"><span>HP</span><strong>32</strong></div>
+            <div class="sp"><span>攻击</span><strong>0</strong></div>
+            <div class="sp"><span>防御</span><strong>16</strong></div>
+            <div class="sp"><span>特攻</span><strong>0</strong></div>
+            <div class="sp"><span>特防</span><strong>18</strong></div>
+            <div class="sp"><span>速度</span><strong>0</strong></div>
+          </div>
+        </div>
+
+        <div class="field-block">
+          <div class="label">校验结果</div>
+          <div class="validation">当前字段未发现问题。</div>
+        </div>
+
+        <div class="bottom-actions">
+          <button class="delete">删除</button>
+          <button class="cancel">取消</button>
+          <button class="save">保存</button>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>环境首页优先级</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin:0; background:#101318; color:#f8fafc; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif; }
+    main { max-width:1040px; margin:0 auto; padding:32px 22px 92px; }
+    h1 { margin:0 0 8px; font-size:34px; }
+    h2 { margin:0 0 12px; font-size:20px; }
+    p { color:#c4ccda; line-height:1.65; }
+    .section { margin-top:28px; }
+    .label { color:#93a7c2; font-size:13px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; margin-bottom:8px; }
+    .layout { display:grid; grid-template-columns:.95fr 1.05fr; gap:16px; align-items:start; }
+    .panel { border:1px solid #2b3443; border-radius:18px; background:#181d26; padding:18px; }
+    .priority { display:grid; gap:10px; }
+    .row { display:grid; grid-template-columns:42px 1fr auto; gap:12px; align-items:center; border:1px solid #354257; border-radius:14px; background:#202736; padding:12px; }
+    .num { width:34px; height:34px; border-radius:11px; display:grid; place-items:center; background:#dbeafe; color:#1d4ed8; font-weight:900; }
+    .row h3 { margin:0; color:#fff; font-size:16px; }
+    .row p { margin:4px 0 0; color:#cbd5e1; font-size:12px; }
+    .badge { border-radius:999px; padding:5px 9px; background:#334155; color:#e5e7eb; font-size:12px; white-space:nowrap; }
+    .phone { width:310px; max-width:100%; margin:0 auto; border:1px solid #4b5563; border-radius:28px; background:#0f172a; padding:14px; }
+    .screen { min-height:590px; border-radius:20px; background:#f8fafc; color:#111827; padding:14px; }
+    .screen h3 { margin:0; color:#111827; font-size:17px; }
+    .muted { color:#64748b; font-size:12px; }
+    .status { margin-top:10px; border-radius:12px; background:#0f172a; color:#f8fafc; padding:12px; }
+    .status p { margin:4px 0 0; color:#cbd5e1; font-size:12px; }
+    .card { margin-top:10px; border:1px solid #e2e8f0; border-radius:12px; background:#fff; padding:10px; }
+    .card-title { display:flex; justify-content:space-between; align-items:center; gap:8px; color:#111827; font-size:13px; font-weight:900; }
+    .rank { display:grid; grid-template-columns:24px 1fr auto; gap:8px; align-items:center; margin-top:9px; font-size:12px; }
+    .rankno { width:24px; height:24px; border-radius:8px; background:#dbeafe; display:grid; place-items:center; color:#1d4ed8; font-weight:900; }
+    .delta { color:#16a34a; font-weight:900; }
+    .team { display:grid; grid-template-columns:repeat(6,1fr); gap:5px; margin-top:9px; }
+    .slot { aspect-ratio:1; border-radius:8px; background:#e2e8f0; }
+    .items { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:8px; }
+    .item { border-radius:9px; background:#f1f5f9; padding:7px; font-size:11px; color:#334155; }
+    .fold { margin-top:10px; border:1px dashed #cbd5e1; border-radius:12px; padding:10px; background:#f8fafc; color:#64748b; font-size:12px; }
+    .bottom { display:grid; grid-template-columns:repeat(4,1fr); gap:4px; margin-top:12px; font-size:11px; text-align:center; }
+    .bottom div { border-radius:8px; background:#e2e8f0; color:#334155; padding:7px 2px; }
+    .bottom .active { background:#dbeafe; color:#1d4ed8; font-weight:900; }
+    .note { margin-top:14px; border-left:4px solid #60a5fa; padding:10px 12px; background:#172033; border-radius:10px; color:#dbeafe; }
+    @media (max-width:820px){ .layout{grid-template-columns:1fr;} }
+  </style>
+</head>
+<body>
+<main>
+  <h1>环境首页：热门榜优先</h1>
+  <p>首页默认服务浅度用户：打开就能看清当前环境。队伍对照默认折叠；常同队出现弱化，不做强推荐。</p>
+
+  <section class="section layout">
+    <div>
+      <div class="label">模块优先级</div>
+      <div class="priority">
+        <div class="row">
+          <div class="num">1</div>
+          <div>
+            <h3>热门宝可梦榜</h3>
+            <p>首页主模块。浅度用户最容易理解，也是环境页门面。</p>
+          </div>
+          <span class="badge">第一屏</span>
+        </div>
+        <div class="row">
+          <div class="num">2</div>
+          <div>
+            <h3>热门队伍样本</h3>
+            <p>高分构筑卡片。动作是查看、收藏、复制到队伍二次编辑。</p>
+          </div>
+          <span class="badge">第一屏/第二屏</span>
+        </div>
+        <div class="row">
+          <div class="num">3</div>
+          <div>
+            <h3>热门道具</h3>
+            <p>基于高分构筑样本统计。全局榜 + 宝可梦详情内常见道具。</p>
+          </div>
+          <span class="badge">第二屏</span>
+        </div>
+        <div class="row">
+          <div class="num">4</div>
+          <div>
+            <h3>我的队伍对照</h3>
+            <p>默认折叠。没有队伍时不打扰，有队伍时可手动展开对照。</p>
+          </div>
+          <span class="badge">折叠卡</span>
+        </div>
+        <div class="row">
+          <div class="num">5</div>
+          <div>
+            <h3>常同队出现</h3>
+            <p>弱化为详情页/折叠模块，避免变成“推荐队友”。</p>
+          </div>
+          <span class="badge">次级</span>
+        </div>
+      </div>
+      <div class="note">文案原则：用“样本统计 / 常同队出现 / 构筑参考”，避免“最佳队友 / 推荐搭档 / 你应该”。</div>
+    </div>
+
+    <div>
+      <div class="label">首页线框示意</div>
+      <div class="phone">
+        <div class="screen">
+          <h3>M-1 双打环境</h3>
+          <div class="muted">Open Data · 更新 05/24 · 68 支高分队伍</div>
+          <div class="status">
+            <strong>环境快照</strong>
+            <p>热门榜以宝可梦出现频次为主，道具基于高分构筑样本统计。</p>
+          </div>
+
+          <div class="card">
+            <div class="card-title"><span>热门宝可梦</span><span class="muted">Top 10</span></div>
+            <div class="rank"><div class="rankno">1</div><span>オオニューラ</span><span class="delta">高频</span></div>
+            <div class="rank"><div class="rankno">2</div><span>ガブリアス</span><span class="delta">高频</span></div>
+            <div class="rank"><div class="rankno">3</div><span>エルフーン</span><span class="delta">核心</span></div>
+          </div>
+
+          <div class="card">
+            <div class="card-title"><span>热门队伍样本</span><span class="muted">查看全部</span></div>
+            <div class="team"><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div></div>
+            <p class="muted">Rank 1 · 可复制到队伍后二次编辑</p>
+          </div>
+
+          <div class="card">
+            <div class="card-title"><span>热门道具</span><span class="muted">样本统计</span></div>
+            <div class="items">
+              <div class="item">气势披带</div>
+              <div class="item">文柚果</div>
+              <div class="item">Mega 石</div>
+              <div class="item">抗性果</div>
+            </div>
+          </div>
+
+          <div class="fold">我的队伍对照 · 默认关闭</div>
+          <div class="fold">常同队出现 · 放到详情页或折叠</div>
+
+          <div class="bottom">
+            <div class="active">环境</div><div>队伍</div><div>工具</div><div>我的</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+</body>
+</html>

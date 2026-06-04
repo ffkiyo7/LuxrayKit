@@ -1,0 +1,141 @@
+<style>
+  .split { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:16px; }
+  .phone { border:1px solid #3c4452; border-radius:28px; overflow:hidden; background:#101318; color:#f8fafc; min-height:720px; }
+  .screen { padding:16px 14px 76px; }
+  h2,h3,p { margin:0; }
+  .head { display:flex; justify-content:space-between; gap:12px; align-items:flex-start; }
+  .head h2 { font-size:27px; margin-bottom:5px; }
+  .sub { color:#a7b0c0; font-size:12px; line-height:1.45; }
+  .primary { border:0; border-radius:13px; background:#2563eb; color:#fff; padding:10px 12px; font-weight:900; font-size:12px; }
+  .team-card, .panel { border:1px solid #293140; background:#171c25; border-radius:16px; padding:12px; margin-top:14px; }
+  .team-card { background:#0f172a; }
+  .team-card.highlight { border-color:#60a5fa; box-shadow:0 0 0 2px rgba(96,165,250,.22); }
+  .team-head { display:flex; justify-content:space-between; gap:10px; align-items:flex-start; }
+  .team-head strong { display:block; font-size:14px; line-height:1.25; }
+  .team-head span { color:#94a3b8; font-size:11px; display:block; margin-top:4px; }
+  .badge { border:1px solid #334155; border-radius:999px; color:#dbeafe; padding:4px 7px; font-size:10px; white-space:nowrap; }
+  .team-icons { display:grid; grid-template-columns:repeat(6,1fr); gap:6px; margin:11px 0; }
+  .team-icons i { aspect-ratio:1; border-radius:10px; background:#dbeafe; display:block; }
+  .actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .actions button { border:0; border-radius:11px; padding:10px 4px; background:#2563eb; color:#fff; font-size:12px; font-weight:900; }
+  .actions button:last-child { background:#242c3a; color:#dbeafe; }
+  .nav { margin-top:18px; display:grid; grid-template-columns:repeat(4,1fr); border-top:1px solid #293140; }
+  .nav span { text-align:center; padding:11px 0 0; color:#94a3b8; font-size:11px; }
+  .nav .on { color:#60a5fa; font-weight:900; }
+  .header { display:grid; grid-template-columns:36px 1fr auto; gap:10px; align-items:start; }
+  .back { width:34px; height:34px; border:1px solid #334155; border-radius:12px; background:#171c25; color:#dbeafe; font-size:18px; font-weight:900; }
+  .header h2 { font-size:22px; margin-bottom:4px; }
+  .iconbtn { width:34px; height:34px; border:1px solid #334155; border-radius:12px; background:#171c25; color:#dbeafe; font-size:16px; font-weight:900; }
+  .source-box { border:1px solid #334155; background:#0f172a; border-radius:14px; padding:10px; margin-top:12px; }
+  .source-box strong { display:block; font-size:13px; }
+  .source-box a { display:inline-block; color:#93c5fd; margin-top:6px; font-size:12px; text-decoration:none; }
+  .member-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:12px; }
+  .slot { border:1px solid #293140; background:#0f172a; border-radius:14px; padding:8px; min-height:108px; }
+  .slot i { display:block; width:48px; height:48px; border-radius:13px; background:#dbeafe; margin:0 auto 7px; }
+  .slot strong { display:block; text-align:center; font-size:12px; line-height:1.2; }
+  .slot span { display:block; text-align:center; color:#94a3b8; font-size:10px; margin-top:4px; }
+  .quick { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:12px; }
+  .quick button { border:1px solid #293140; border-radius:12px; background:#0f172a; color:#dbeafe; padding:10px 4px; font-size:11px; font-weight:800; }
+  .section-title { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+  .section-title strong { font-size:15px; }
+  .section-title span { color:#93c5fd; font-size:12px; }
+  .risk-row { display:grid; grid-template-columns:1fr auto; gap:10px; border-top:1px solid #293140; padding:9px 0; font-size:12px; }
+  .risk-row:first-of-type { border-top:0; }
+  .risk-row span { color:#a7b0c0; }
+  .risk-row strong { color:#f8fafc; }
+  @media (max-width: 900px) { .split { grid-template-columns:1fr; } }
+</style>
+
+<h2>队伍页内部层级</h2>
+<p class="subtitle">队伍页默认列表；点击“编辑配置”进入队伍详情。详情页承载成员配置、来源信息和工具入口。</p>
+
+<div class="split">
+  <div class="mockup">
+    <div class="mockup-header">A. 队伍列表：所有来源卡片样式统一</div>
+    <div class="mockup-body">
+      <div class="phone">
+        <div class="screen">
+          <div class="head">
+            <div><h2>队伍</h2><p class="sub">本地保存的配置与导入队伍</p></div>
+            <button class="primary">新建</button>
+          </div>
+
+          <article class="team-card highlight">
+            <div class="team-head">
+              <div><strong>作者名 · 2724 · 喷火龙核心</strong><span>来源：高分队伍导入 · 队报链接可用</span></div>
+              <em class="badge">新导入</em>
+            </div>
+            <div class="team-icons"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="actions"><button>编辑配置</button><button>生成图片</button></div>
+          </article>
+
+          <article class="team-card">
+            <div class="team-head">
+              <div><strong>我的单打队伍</strong><span>来源：手动创建 · 最近编辑 05-28</span></div>
+              <em class="badge">本地</em>
+            </div>
+            <div class="team-icons"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="actions"><button>编辑配置</button><button>生成图片</button></div>
+          </article>
+
+          <article class="team-card">
+            <div class="team-head">
+              <div><strong>雨天平衡练习队</strong><span>来源：手动创建 · 5/6 已配置</span></div>
+              <em class="badge">草稿</em>
+            </div>
+            <div class="team-icons"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="actions"><button>编辑配置</button><button>生成图片</button></div>
+          </article>
+
+          <nav class="nav"><span>环境</span><span class="on">队伍</span><span>工具</span><span>我的</span></nav>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">B. 队伍详情 / 编辑配置入口页</div>
+    <div class="mockup-body">
+      <div class="phone">
+        <div class="screen">
+          <header class="header">
+            <button class="back">‹</button>
+            <div><h2>作者名 · 2724 · 喷火龙核心</h2><p class="sub">本地副本 · 可自由编辑</p></div>
+            <button class="iconbtn">⋯</button>
+          </header>
+
+          <div class="source-box">
+            <strong>来源：高分队伍导入</strong>
+            <p class="sub">原始样本：Season 1 · 单打 · 2724 分</p>
+            <a href="#">队报链接</a>
+          </div>
+
+          <section class="panel">
+            <div class="section-title"><strong>队伍成员</strong><span>6/6</span></div>
+            <div class="member-grid">
+              <div class="slot"><i></i><strong>喷火龙</strong><span>道具 · 4 招式</span></div>
+              <div class="slot"><i></i><strong>风妖精</strong><span>道具 · 4 招式</span></div>
+              <div class="slot"><i></i><strong>玛狃拉</strong><span>道具 · 4 招式</span></div>
+              <div class="slot"><i></i><strong>巨金怪</strong><span>道具 · 4 招式</span></div>
+              <div class="slot"><i></i><strong>洛托姆</strong><span>道具 · 4 招式</span></div>
+              <div class="slot"><i></i><strong>烈咬陆鲨</strong><span>道具 · 4 招式</span></div>
+            </div>
+          </section>
+
+          <div class="quick">
+            <button>生成图片</button>
+            <button>伤害计算</button>
+            <button>速度线</button>
+          </div>
+
+          <section class="panel">
+            <div class="section-title"><strong>队伍检查</strong><span>查看详情</span></div>
+            <div class="risk-row"><span>重复道具</span><strong>无</strong></div>
+            <div class="risk-row"><span>规则合法性</span><strong>待确认 1 项</strong></div>
+            <div class="risk-row"><span>环境高频压力</span><strong>玛狃拉 / 喷火龙</strong></div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

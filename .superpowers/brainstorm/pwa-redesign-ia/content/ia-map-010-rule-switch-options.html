@@ -1,0 +1,112 @@
+<style>
+  .compare {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+  }
+  .phone {
+    border: 1px solid #3c4452;
+    border-radius: 24px;
+    overflow: hidden;
+    background: #101318;
+    color: #f8fafc;
+    min-height: 560px;
+  }
+  .screen { padding: 16px 12px 64px; }
+  .head h2 { margin: 0 0 6px; font-size: 24px; }
+  .head p { margin: 0; color: #a7b0c0; font-size: 12px; line-height: 1.45; }
+  .head-row { display:flex; justify-content:space-between; gap:10px; align-items:flex-start; }
+  .pill { border:1px solid #394150; border-radius:999px; padding:8px 11px; background:#1a202b; color:#dbeafe; font-size:12px; font-weight:800; white-space:nowrap; }
+  .seg { display:grid; grid-template-columns:1fr 1fr; gap:4px; margin-top:12px; padding:4px; background:#0f172a; border-radius:13px; }
+  .seg span { text-align:center; border-radius:10px; padding:8px 0; color:#94a3b8; font-size:12px; font-weight:800; }
+  .seg .on { background:#2563eb; color:#fff; }
+  .chips { display:flex; gap:7px; margin-top:12px; overflow:hidden; }
+  .chips span { border:1px solid #394150; border-radius:999px; padding:7px 10px; color:#dbeafe; font-size:12px; white-space:nowrap; }
+  .module { border:1px solid #293140; background:#171c25; border-radius:16px; padding:12px; margin-top:14px; }
+  .tabs { display:grid; grid-template-columns:1fr 1fr; gap:6px; padding:4px; border-radius:13px; background:#0f172a; margin:10px 0; }
+  .tabs span { text-align:center; border-radius:10px; padding:8px 0; color:#94a3b8; font-size:12px; font-weight:800; }
+  .tabs .on { background:#2563eb; color:#fff; }
+  .row { display:grid; grid-template-columns:24px 42px 1fr 48px; gap:8px; align-items:center; border-top:1px solid #293140; padding:9px 0; }
+  .row:first-of-type { border-top:0; }
+  .img { width:42px; height:42px; border-radius:12px; background:#bfdbfe; }
+  .row strong { display:block; font-size:13px; }
+  .row small { color:#94a3b8; font-size:10px; }
+  .pct { color:#bfdbfe; text-align:right; font-weight:900; }
+  .note { margin-top:10px; color:#a7b0c0; font-size:12px; line-height:1.45; }
+  @media (max-width: 900px) { .compare { grid-template-columns: 1fr; } }
+</style>
+
+<h2>单双打环境切换位置方案</h2>
+<p class="subtitle">右上角“筛”会让人误解成普通筛选。这里给 3 个位置方案，我更推荐 A。</p>
+
+<div class="compare">
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-body">
+      <h3>A. 标题下方分段切换</h3>
+      <p>最直观，用户一眼知道当前看的是单打还是双打。</p>
+    </div>
+    <div class="phone">
+      <div class="screen">
+        <div class="head">
+          <h2>环境</h2>
+          <p>Season 1 · 基于高分构筑样本统计<br />更新于 05-27 10:00</p>
+          <div class="seg"><span class="on">单打</span><span>双打</span></div>
+        </div>
+        <div class="module">
+          <strong>环境榜单</strong>
+          <div class="tabs"><span class="on">宝可梦榜</span><span>道具榜</span></div>
+          <div class="row"><span>1</span><i class="img"></i><div><strong>玛狃拉</strong><small>恶 / 冰</small></div><span class="pct">34.8%</span></div>
+          <div class="row"><span>2</span><i class="img"></i><div><strong>喷火龙</strong><small>火 / 飞行</small></div><span class="pct">29.1%</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-body">
+      <h3>B. 赛季 / 规则胶囊</h3>
+      <p>适合后续赛季很多，但比 A 多一步理解成本。</p>
+    </div>
+    <div class="phone">
+      <div class="screen">
+        <div class="head">
+          <h2>环境</h2>
+          <p>基于高分构筑样本统计 · 更新于 05-27 10:00</p>
+          <div class="chips"><span>Season 1</span><span>单打</span><span>数据来源</span></div>
+        </div>
+        <div class="module">
+          <strong>环境榜单</strong>
+          <div class="tabs"><span class="on">宝可梦榜</span><span>道具榜</span></div>
+          <div class="row"><span>1</span><i class="img"></i><div><strong>玛狃拉</strong><small>恶 / 冰</small></div><span class="pct">34.8%</span></div>
+          <div class="row"><span>2</span><i class="img"></i><div><strong>喷火龙</strong><small>火 / 飞行</small></div><span class="pct">29.1%</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-body">
+      <h3>C. 右上角“规则”按钮</h3>
+      <p>保留顶部空间，但入口感弱，容易被当成设置。</p>
+    </div>
+    <div class="phone">
+      <div class="screen">
+        <div class="head-row">
+          <div class="head">
+            <h2>环境</h2>
+            <p>Season 1 · 单打<br />更新于 05-27 10:00</p>
+          </div>
+          <span class="pill">规则</span>
+        </div>
+        <div class="module">
+          <strong>环境榜单</strong>
+          <div class="tabs"><span class="on">宝可梦榜</span><span>道具榜</span></div>
+          <div class="row"><span>1</span><i class="img"></i><div><strong>玛狃拉</strong><small>恶 / 冰</small></div><span class="pct">34.8%</span></div>
+          <div class="row"><span>2</span><i class="img"></i><div><strong>喷火龙</strong><small>火 / 飞行</small></div><span class="pct">29.1%</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p class="note">建议：单双打是“环境维度”，不是普通筛选。它应该直接露出当前状态，优先用分段切换，不要藏在右上角小按钮里。</p>

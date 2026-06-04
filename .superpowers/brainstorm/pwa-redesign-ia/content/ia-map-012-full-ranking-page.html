@@ -1,0 +1,280 @@
+<style>
+  .phone {
+    width: min(390px, 100%);
+    margin: 0 auto;
+    border: 1px solid #3c4452;
+    border-radius: 28px;
+    overflow: hidden;
+    background: #101318;
+    color: #f8fafc;
+  }
+  .screen {
+    padding: 14px 14px 76px;
+  }
+  .header {
+    display: grid;
+    grid-template-columns: 38px 1fr;
+    gap: 10px;
+    align-items: start;
+  }
+  .back {
+    width: 34px;
+    height: 34px;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    background: #171c25;
+    color: #dbeafe;
+    font-size: 18px;
+    font-weight: 900;
+  }
+  .header h2 {
+    margin: 0 0 4px;
+    font-size: 24px;
+    line-height: 1.1;
+  }
+  .header p {
+    margin: 0;
+    color: #a7b0c0;
+    font-size: 12px;
+    line-height: 1.45;
+  }
+  .context {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .context .pill {
+    border-radius: 999px;
+    border: 1px solid #334155;
+    background: #0b1220;
+    padding: 7px 10px;
+    color: #dbeafe;
+    font-size: 12px;
+    font-weight: 800;
+  }
+  .context .active {
+    background: #e0f2fe;
+    color: #082f49;
+  }
+  .panel {
+    border: 1px solid #293140;
+    background: #171c25;
+    border-radius: 16px;
+    padding: 12px;
+    margin-top: 14px;
+  }
+  .tabs {
+    display: flex;
+    gap: 20px;
+    border-bottom: 1px solid #293140;
+  }
+  .tabs button {
+    position: relative;
+    border: 0;
+    background: transparent;
+    color: #94a3b8;
+    font-size: 14px;
+    font-weight: 900;
+    padding: 8px 0 11px;
+  }
+  .tabs .active {
+    color: #f8fafc;
+  }
+  .tabs .active::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 3px;
+    border-radius: 999px 999px 0 0;
+    background: #38bdf8;
+  }
+  .search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 12px 0 4px;
+    border: 1px solid #293140;
+    background: #0f172a;
+    border-radius: 13px;
+    padding: 10px 12px;
+    color: #64748b;
+    font-size: 12px;
+  }
+  .summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #94a3b8;
+    font-size: 11px;
+    padding: 8px 0 4px;
+  }
+  .rank-row {
+    display: grid;
+    grid-template-columns: 32px 48px 1fr 62px;
+    gap: 9px;
+    align-items: center;
+    padding: 10px 0;
+    border-top: 1px solid #293140;
+  }
+  .rank {
+    color: #bfdbfe;
+    font-weight: 900;
+    text-align: center;
+    font-size: 14px;
+  }
+  .img {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: linear-gradient(145deg, #dbeafe, #93c5fd);
+  }
+  .item-img {
+    width: 42px;
+    height: 42px;
+    margin-left: 3px;
+    border-radius: 12px;
+    background: linear-gradient(145deg, #fde68a, #f59e0b);
+  }
+  .main strong {
+    display: block;
+    font-size: 14px;
+    line-height: 1.15;
+  }
+  .main small {
+    display: block;
+    color: #94a3b8;
+    margin-top: 5px;
+    font-size: 10px;
+  }
+  .types {
+    display: flex;
+    gap: 4px;
+    margin-top: 6px;
+  }
+  .type {
+    border-radius: 5px;
+    padding: 2px 5px;
+    font-size: 10px;
+    font-weight: 900;
+    line-height: 1;
+  }
+  .dark { background: #334155; color: #fff; }
+  .ice { background: #7dd3fc; color: #083344; }
+  .fire { background: #fb923c; color: #431407; }
+  .fly { background: #93c5fd; color: #172554; }
+  .fairy { background: #f9a8d4; color: #500724; }
+  .grass { background: #86efac; color: #052e16; }
+  .weight { text-align: right; }
+  .weight strong {
+    display: block;
+    color: #bfdbfe;
+    font-size: 14px;
+  }
+  .weight span {
+    display: block;
+    color: #94a3b8;
+    font-size: 10px;
+    margin-top: 3px;
+  }
+  .note {
+    margin-top: 12px;
+    color: #94a3b8;
+    font-size: 11px;
+    line-height: 1.5;
+  }
+</style>
+
+<h2>“查看全部”二级页草图</h2>
+<p class="subtitle">从首页环境榜单进入。默认沿用当前 Tab，例如从宝可梦榜点进来就打开完整宝可梦榜。</p>
+
+<div class="mockup">
+  <div class="mockup-header">完整榜单页：列表深挖，不承载队伍推荐</div>
+  <div class="mockup-body">
+    <div class="phone">
+      <div class="screen">
+        <header class="header">
+          <button class="back">‹</button>
+          <div>
+            <h2>环境榜单</h2>
+            <p>Season 1 · 基于高分构筑样本统计<br />更新于 05-27 10:00</p>
+          </div>
+        </header>
+
+        <div class="context">
+          <span class="pill active">单打</span>
+          <span class="pill">双打</span>
+          <span class="pill">数据来源</span>
+        </div>
+
+        <section class="panel">
+          <nav class="tabs">
+            <button class="active">宝可梦榜</button>
+            <button>道具榜</button>
+          </nav>
+
+          <div class="search">搜索宝可梦 / 属性</div>
+
+          <div class="summary">
+            <span>显示 Top 50</span>
+            <span>点击条目查看详情</span>
+          </div>
+
+          <div class="rank-row">
+            <span class="rank">1</span>
+            <div class="img"></div>
+            <div class="main">
+              <strong>玛狃拉</strong>
+              <div class="types"><span class="type dark">恶</span><span class="type ice">冰</span></div>
+            </div>
+            <div class="weight"><strong>34.8%</strong><span>184 队</span></div>
+          </div>
+
+          <div class="rank-row">
+            <span class="rank">2</span>
+            <div class="img"></div>
+            <div class="main">
+              <strong>喷火龙</strong>
+              <div class="types"><span class="type fire">火</span><span class="type fly">飞行</span></div>
+            </div>
+            <div class="weight"><strong>29.1%</strong><span>154 队</span></div>
+          </div>
+
+          <div class="rank-row">
+            <span class="rank">3</span>
+            <div class="img"></div>
+            <div class="main">
+              <strong>风妖精</strong>
+              <div class="types"><span class="type fairy">妖精</span><span class="type grass">草</span></div>
+            </div>
+            <div class="weight"><strong>24.6%</strong><span>130 队</span></div>
+          </div>
+
+          <div class="rank-row">
+            <span class="rank">4</span>
+            <div class="img"></div>
+            <div class="main">
+              <strong>巨金怪</strong>
+              <div class="types"><span class="type fly">钢</span><span class="type ice">超</span></div>
+            </div>
+            <div class="weight"><strong>21.4%</strong><span>113 队</span></div>
+          </div>
+
+          <div class="rank-row">
+            <span class="rank">5</span>
+            <div class="img"></div>
+            <div class="main">
+              <strong>烈咬陆鲨</strong>
+              <div class="types"><span class="type fire">龙</span><span class="type dark">地</span></div>
+            </div>
+            <div class="weight"><strong>19.2%</strong><span>101 队</span></div>
+          </div>
+
+          <p class="note">道具榜使用同一页面结构：排名、道具图标、道具名称、比重、出现队伍数，并展示常见携带者。</p>
+        </section>
+      </div>
+    </div>
+  </div>
+</div>

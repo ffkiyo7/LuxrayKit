@@ -1,0 +1,62 @@
+<style>
+  .wrap { color:#f8fafc; }
+  h2,h3,p { margin:0; }
+  .subtitle { color:#a1a1aa; font-size:18px; line-height:1.6; margin:10px 0 22px; }
+  .phone { width:min(390px,100%); margin:0 auto; border:1px solid #3a4251; border-radius:28px; overflow:hidden; background:#0f131a; min-height:650px; }
+  .screen { padding:22px 16px 84px; min-height:650px; }
+  .top h3 { font-size:32px; margin-bottom:7px; }
+  .top p { color:#9aa6bb; font-size:14px; line-height:1.45; }
+  .tool-list { display:grid; gap:13px; margin-top:24px; }
+  .tool-card { border:1px solid #2a3548; border-radius:18px; background:#161c25; padding:16px; display:grid; grid-template-columns:54px 1fr auto; gap:14px; align-items:center; min-height:110px; }
+  .icon { width:54px; height:54px; border-radius:17px; background:#11213a; display:grid; place-items:center; color:#bfdbfe; font-size:26px; }
+  .tool-card h3 { font-size:21px; margin-bottom:6px; }
+  .tool-card p { color:#9aa6bb; font-size:13px; line-height:1.45; }
+  .arrow { color:#93c5fd; font-size:24px; }
+  .note { max-width:760px; margin:18px auto 0; color:#aab7ca; font-size:15px; line-height:1.65; }
+  .note b { color:#fff; }
+</style>
+
+<div class="wrap">
+  <h2>工具页：只保留工具入口</h2>
+  <p class="subtitle">首页不放解释性模块，不展示“队伍配置带入”。导入配置是具体工具内部的操作。</p>
+
+  <div class="phone">
+    <div class="screen">
+      <div class="top">
+        <h3>工具</h3>
+        <p>计算与查询工具。</p>
+      </div>
+
+      <section class="tool-list">
+        <article class="tool-card">
+          <div class="icon">⌁</div>
+          <div>
+            <h3>伤害计算</h3>
+            <p>攻防双方、招式、场地修正与伤害区间。</p>
+          </div>
+          <div class="arrow">›</div>
+        </article>
+
+        <article class="tool-card">
+          <div class="icon">≋</div>
+          <div>
+            <h3>速度线计算</h3>
+            <p>单体速度、整队速度、常见速度基准对照。</p>
+          </div>
+          <div class="arrow">›</div>
+        </article>
+
+        <article class="tool-card">
+          <div class="icon">◇</div>
+          <div>
+            <h3>规则图鉴</h3>
+            <p>当前规则内的 Pokémon、招式、道具、特性。</p>
+          </div>
+          <div class="arrow">›</div>
+        </article>
+      </section>
+    </div>
+  </div>
+
+  <p class="note"><b>内部能力：</b>伤害计算和速度线计算页面可以有“从队伍选择”按钮，但工具首页不提示、不解释、不占位。</p>
+</div>
