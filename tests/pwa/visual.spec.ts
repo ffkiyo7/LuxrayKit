@@ -4,6 +4,7 @@ const screenshotOptions = {
   animations: 'disabled' as const,
   caret: 'hide' as const,
   maxDiffPixelRatio: 0.02,
+  timeout: 15_000,
 };
 
 test.use({ serviceWorkers: 'block' });
@@ -26,8 +27,8 @@ test('captures the mobile visual regression smoke set', { timeout: 60_000 }, asy
   await expect(page.getByRole('heading', { name: '完整宝可梦榜' })).toBeVisible();
   await expect(page).toHaveScreenshot('02-environment-ranking.png', screenshotOptions);
 
-  await page.getByRole('button', { name: /喷火龙/ }).click();
-  await expect(page.getByRole('heading', { name: '喷火龙', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: /烈咬陆鲨/ }).click();
+  await expect(page.getByRole('heading', { name: '烈咬陆鲨', exact: true })).toBeVisible();
   await expect(page.getByText('相关样例队伍')).toBeVisible();
   await expect(page).toHaveScreenshot('03-pokemon-environment-detail.png', screenshotOptions);
 

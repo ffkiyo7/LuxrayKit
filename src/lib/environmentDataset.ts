@@ -8,6 +8,12 @@ export type EnvironmentDatasetSource = {
   notes?: string;
 };
 
+export type EnvironmentReferenceUsage = {
+  id: string;
+  usageRate: number;
+  teamCount: number;
+};
+
 export type EnvironmentPokemonUsage = {
   pokemonId: string;
   usageRate: number;
@@ -15,6 +21,9 @@ export type EnvironmentPokemonUsage = {
   moveIds: string[];
   itemIds: string[];
   teammateIds: string[];
+  moveStats?: EnvironmentReferenceUsage[];
+  itemStats?: EnvironmentReferenceUsage[];
+  teammateStats?: EnvironmentReferenceUsage[];
 };
 
 export type EnvironmentTeamSlot = {
@@ -102,6 +111,30 @@ const filterKnownIds = (
     return false;
   });
 
+const normalizeReferenceStats = (
+  stats: EnvironmentReferenceUsage[] | undefined,
+  knownIds: Set<string>,
+  code: Extract<EnvironmentDatasetAuditIssue['code'], 'missing-pokemon-ref' | 'missing-move-ref' | 'missing-item-ref'>,
+  path: string,
+  issues: EnvironmentDatasetAuditIssue[],
+) =>
+  (stats ?? []).filter((stat, index) => {
+    const statPath = `${path}[${index}]`;
+    if (!knownIds.has(stat.id)) {
+      issues.push(issue(code, `${statPath}.id`, `${statPath} references unknown id ${stat.id}.`));
+      return false;
+    }
+    const hasInvalidUsageRate = !isFiniteNumber(stat.usageRate) || stat.usageRate < 0 || stat.usageRate > 100;
+    const hasInvalidTeamCount = !Number.isInteger(stat.teamCount) || stat.teamCount < 0;
+    if (hasInvalidUsageRate) {
+      issues.push(issue('invalid-usage-rate', `${statPath}.usageRate`, `${statPath} has invalid usageRate ${stat.usageRate}.`));
+    }
+    if (hasInvalidTeamCount) {
+      issues.push(issue('invalid-team-count', `${statPath}.teamCount`, `${statPath} has invalid teamCount ${stat.teamCount}.`));
+    }
+    return !hasInvalidUsageRate && !hasInvalidTeamCount;
+  });
+
 const normalizeUsage = (
   usage: EnvironmentPokemonUsage,
   battleType: EnvironmentBattleType,
@@ -138,6 +171,9 @@ const normalizeUsage = (
     moveIds: filterKnownIds(usage.moveIds, ids.moves, 'missing-move-ref', `${path}.moveIds`, issues),
     itemIds: filterKnownIds(usage.itemIds, ids.items, 'missing-item-ref', `${path}.itemIds`, issues),
     teammateIds: filterKnownIds(usage.teammateIds, ids.pokemon, 'missing-pokemon-ref', `${path}.teammateIds`, issues),
+    moveStats: normalizeReferenceStats(usage.moveStats, ids.moves, 'missing-move-ref', `${path}.moveStats`, issues),
+    itemStats: normalizeReferenceStats(usage.itemStats, ids.items, 'missing-item-ref', `${path}.itemStats`, issues),
+    teammateStats: normalizeReferenceStats(usage.teammateStats, ids.pokemon, 'missing-pokemon-ref', `${path}.teammateStats`, issues),
   };
 };
 

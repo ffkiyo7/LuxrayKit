@@ -13,7 +13,6 @@ import {
   type EnvironmentPokemonUsage,
   type EnvironmentTeamSample,
 } from '../data/environment';
-import { currentRuleMovesForPokemon } from '../lib/currentRuleCatalog';
 import { Button, Card, PokemonAvatar, TypeBadge } from '../components/ui';
 
 const battleTypeLabels: Record<EnvironmentBattleType, string> = {
@@ -77,6 +76,7 @@ function RankingRow({
 function TeamSampleCard({ sample, onImport }: { sample: EnvironmentTeamSample; onImport: (sample: EnvironmentTeamSample) => Promise<void> | void }) {
   const [importing, setImporting] = useState(false);
   const visibleSlots = sample.slots.map((slot) => getEnvironmentPokemon(slot.pokemonId)).filter(Boolean);
+  const sampleBadge = sample.dataKind === 'external-snapshot' ? '真实样本' : '开发样例';
 
   const handleImport = async () => {
     setImporting(true);
@@ -94,7 +94,7 @@ function TeamSampleCard({ sample, onImport }: { sample: EnvironmentTeamSample; o
           <h3 className="truncate text-sm font-semibold">{sample.title}</h3>
           <p className="mt-1 text-xs text-textSecondary">{environmentDataStatusLabel} · {battleTypeLabels[sample.battleType]}</p>
         </div>
-        <span className="rounded-md bg-reviewBg px-2 py-1 text-[11px] font-semibold text-warning">开发样例</span>
+        <span className="rounded-md bg-reviewBg px-2 py-1 text-[11px] font-semibold text-warning">{sampleBadge}</span>
       </div>
       <div className="mt-3 flex gap-2">
         {visibleSlots.map((entry) => (
@@ -130,23 +130,31 @@ function PokemonEnvironmentDetail({
   const usage = environmentPokemonUsage[battleType].find((item) => item.pokemonId === pokemonId);
   const entry = getEnvironmentPokemon(pokemonId);
 
-  const fallbackMoves = currentRuleMovesForPokemon(pokemonId).slice(0, 10).map((move) => move.id);
-  const moveIds = usage?.moveIds.length ? usage.moveIds : fallbackMoves;
-  const itemIds = usage?.itemIds ?? [];
-  const teammateIds = usage?.teammateIds ?? [];
-
   if (!entry) return null;
 
-  const moves = moveIds.map(getEnvironmentMove).filter(Boolean);
-  const items = itemIds.map(getEnvironmentItem).filter(Boolean);
-  const teammates = teammateIds.map(getEnvironmentPokemon).filter(Boolean);
+  const moveRows = (usage?.moveStats ?? [])
+    .map((stat) => ({ stat, move: getEnvironmentMove(stat.id) }))
+    .filter((row): row is { stat: NonNullable<EnvironmentPokemonUsage['moveStats']>[number]; move: NonNullable<ReturnType<typeof getEnvironmentMove>> } =>
+      Boolean(row.move),
+    );
+  const itemRows = (usage?.itemStats ?? [])
+    .map((stat) => ({ stat, item: getEnvironmentItem(stat.id) }))
+    .filter((row): row is { stat: NonNullable<EnvironmentPokemonUsage['itemStats']>[number]; item: NonNullable<ReturnType<typeof getEnvironmentItem>> } =>
+      Boolean(row.item),
+    );
+  const teammateRows = (usage?.teammateStats ?? [])
+    .map((stat) => ({ stat, pokemon: getEnvironmentPokemon(stat.id) }))
+    .filter(
+      (row): row is { stat: NonNullable<EnvironmentPokemonUsage['teammateStats']>[number]; pokemon: NonNullable<ReturnType<typeof getEnvironmentPokemon>> } =>
+        Boolean(row.pokemon),
+    );
   const relatedSamples = environmentTeamSamples.filter(
     (sample) => sample.battleType === battleType && sample.slots.some((slot) => slot.pokemonId === pokemonId),
   );
 
-  const visibleMoves = expandedSection === 'moves' ? moves.slice(0, 10) : moves.slice(0, 5);
-  const visibleItems = expandedSection === 'items' ? items.slice(0, 10) : items.slice(0, 5);
-  const visibleTeammates = expandedSection === 'teammates' ? teammates.slice(0, 7) : teammates.slice(0, 4);
+  const visibleMoves = expandedSection === 'moves' ? moveRows.slice(0, 10) : moveRows.slice(0, 5);
+  const visibleItems = expandedSection === 'items' ? itemRows.slice(0, 10) : itemRows.slice(0, 5);
+  const visibleTeammates = expandedSection === 'teammates' ? teammateRows.slice(0, 7) : teammateRows.slice(0, 4);
 
   return (
     <div className="space-y-3">
@@ -175,71 +183,81 @@ function PokemonEnvironmentDetail({
         </div>
       </Card>
 
-      <Card>
-        <div className="mb-1 flex items-center justify-between">
-          <h3 className="text-sm font-semibold">常用招式</h3>
-          {moves.length > 5 && (
-            <button className="text-xs text-accent" onClick={() => setExpandedSection(expandedSection === 'moves' ? null : 'moves')}>
-              {expandedSection === 'moves' ? '收起' : '展开'}
-            </button>
-          )}
-        </div>
-        <div className="divide-y divide-divider">
-          {visibleMoves.map((move, index) => (
-            <div key={move!.id} className="grid grid-cols-[1fr_auto] gap-3 py-2">
-              <span className="min-w-0">
-                <span className="block truncate text-sm font-semibold">{move!.chineseName}</span>
-                <span className="mt-1 flex items-center gap-2 text-[11px] text-textSecondary">
-                  <TypeBadge type={move!.type} size="sm" />
-                  {move!.category}
+      {moveRows.length > 0 && (
+        <Card>
+          <div className="mb-1 flex items-center justify-between">
+            <h3 className="text-sm font-semibold">常用招式</h3>
+            {moveRows.length > 5 && (
+              <button className="text-xs text-accent" onClick={() => setExpandedSection(expandedSection === 'moves' ? null : 'moves')}>
+                {expandedSection === 'moves' ? '收起' : '展开'}
+              </button>
+            )}
+          </div>
+          <div className="divide-y divide-divider">
+            {visibleMoves.map(({ move, stat }) => (
+              <div key={move.id} className="grid grid-cols-[1fr_auto] gap-3 py-2">
+                <span className="min-w-0">
+                  <span className="block truncate text-sm font-semibold">{move.chineseName}</span>
+                  <span className="mt-1 flex items-center gap-2 text-[11px] text-textSecondary">
+                    <TypeBadge type={move.type} size="sm" />
+                    {move.category}
+                  </span>
                 </span>
-              </span>
-              <span className="text-sm font-semibold text-accent">{Math.max(8, 64 - index * 6)}%</span>
-            </div>
-          ))}
-        </div>
-      </Card>
-
-      <Card>
-        <div className="mb-1 flex items-center justify-between">
-          <h3 className="text-sm font-semibold">携带道具</h3>
-          {items.length > 5 && (
-            <button className="text-xs text-accent" onClick={() => setExpandedSection(expandedSection === 'items' ? null : 'items')}>
-              {expandedSection === 'items' ? '收起' : '展开'}
-            </button>
-          )}
-        </div>
-        <div className="space-y-2">
-          {visibleItems.map((item, index) => (
-            <div key={item!.id} className="flex items-center gap-3">
-              <PokemonAvatar iconRef={item!.iconRef} label={item!.chineseName} size="sm" />
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold">{item!.chineseName}</p>
-                <UsageBar value={Math.max(8, 48 - index * 8)} />
+                <span className="text-sm font-semibold text-accent">{stat.usageRate.toFixed(1)}%</span>
               </div>
-            </div>
-          ))}
-        </div>
-      </Card>
+            ))}
+          </div>
+        </Card>
+      )}
 
-      <Card>
-        <div className="mb-2 flex items-center justify-between">
-          <h3 className="text-sm font-semibold">常见队友</h3>
-          {teammates.length > 4 && (
-            <button className="text-xs text-accent" onClick={() => setExpandedSection(expandedSection === 'teammates' ? null : 'teammates')}>
-              {expandedSection === 'teammates' ? '收起' : '展开'}
-            </button>
-          )}
-        </div>
-        <div className="grid grid-cols-4 gap-2">
-          {visibleTeammates.map((mate) => (
-            <div key={mate!.id} className="rounded-lg border border-border bg-secondary p-2 text-center">
-              <PokemonAvatar iconRef={mate!.iconRef} label={mate!.chineseName} size="md" />
-              <p className="mt-2 truncate text-[11px] font-semibold">{mate!.chineseName}</p>
-            </div>
-          ))}
-        </div>
-      </Card>
+      {itemRows.length > 0 && (
+        <Card>
+          <div className="mb-1 flex items-center justify-between">
+            <h3 className="text-sm font-semibold">携带道具</h3>
+            {itemRows.length > 5 && (
+              <button className="text-xs text-accent" onClick={() => setExpandedSection(expandedSection === 'items' ? null : 'items')}>
+                {expandedSection === 'items' ? '收起' : '展开'}
+              </button>
+            )}
+          </div>
+          <div className="space-y-2">
+            {visibleItems.map(({ item, stat }) => (
+              <div key={item.id} className="flex items-center gap-3">
+                <PokemonAvatar iconRef={item.iconRef} label={item.chineseName} size="sm" />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="truncate text-sm font-semibold">{item.chineseName}</p>
+                    <p className="shrink-0 text-xs font-semibold text-accent">{stat.usageRate.toFixed(1)}%</p>
+                  </div>
+                  <UsageBar value={stat.usageRate} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {teammateRows.length > 0 && (
+        <Card>
+          <div className="mb-2 flex items-center justify-between">
+            <h3 className="text-sm font-semibold">常见队友</h3>
+            {teammateRows.length > 4 && (
+              <button className="text-xs text-accent" onClick={() => setExpandedSection(expandedSection === 'teammates' ? null : 'teammates')}>
+                {expandedSection === 'teammates' ? '收起' : '展开'}
+              </button>
+            )}
+          </div>
+          <div className="grid grid-cols-4 gap-2">
+            {visibleTeammates.map(({ pokemon: mate, stat }) => (
+              <div key={mate.id} className="rounded-lg border border-border bg-secondary p-2 text-center">
+                <PokemonAvatar iconRef={mate.iconRef} label={mate.chineseName} size="md" />
+                <p className="mt-2 truncate text-[11px] font-semibold">{mate.chineseName}</p>
+                <p className="mt-0.5 text-[10px] font-semibold text-accent">{stat.usageRate.toFixed(1)}%</p>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
 
       {relatedSamples.length > 0 && (
         <section className="space-y-2">

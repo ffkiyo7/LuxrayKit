@@ -4,8 +4,22 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { App } from './App';
+import {
+  environmentDataStatusLabel,
+  environmentPokemonUsage,
+  environmentSourceLabel,
+  environmentTeamSamples,
+  getEnvironmentPokemon,
+} from './data/environment';
 
 const DB_NAME = 'pokemon-champions-assistant';
+const firstSinglesSample = environmentTeamSamples.find((sample) => sample.battleType === 'singles')!;
+const firstSinglesSampleTeamLabel = `队伍：样例 · ${firstSinglesSample.title}`;
+const topSinglesPokemon = getEnvironmentPokemon(environmentPokemonUsage.singles[0].pokemonId)!;
+const relatedGarchompSample = environmentTeamSamples.find(
+  (sample) => sample.battleType === 'singles' && sample.slots.some((slot) => slot.pokemonId === 'garchomp'),
+)!;
+const relatedGarchompTeamLabel = `队伍：样例 · ${relatedGarchompSample.title}`;
 
 const deleteDb = () =>
   new Promise<void>((resolve, reject) => {
@@ -256,14 +270,14 @@ describe('App page flows', () => {
     await screen.findByRole('heading', { name: '环境' });
 
     await user.click(screen.getAllByRole('button', { name: /导入配置/ })[0]);
-    const importedCard = await screen.findByLabelText('队伍：样例 · 喷火龙核心');
+    const importedCard = await screen.findByLabelText(firstSinglesSampleTeamLabel);
     expect(within(importedCard).getByText('样例导入')).toBeTruthy();
-    expect(within(importedCard).getByText(/开发样例数据/)).toBeTruthy();
+    expect(within(importedCard).getByText(new RegExp(environmentDataStatusLabel))).toBeTruthy();
     expect(within(importedCard).getByRole('button', { name: '编辑配置' })).toBeTruthy();
     expect(within(importedCard).getByRole('button', { name: '生成图片' })).toBeTruthy();
 
     await user.click(within(importedCard).getByRole('button', { name: '编辑配置' }));
-    expect(await screen.findByRole('heading', { name: '样例 · 喷火龙核心' })).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: `样例 · ${firstSinglesSample.title}` })).toBeTruthy();
     expect(screen.queryByText('队报链接')).toBeNull();
     expect(screen.queryByText(/来源|原始样本|高分导入|样例导入/)).toBeNull();
   });
@@ -276,7 +290,7 @@ describe('App page flows', () => {
     await user.click(screen.getAllByRole('button', { name: /导入配置/ })[0]);
     expect((await screen.findByRole('status')).textContent).toContain('已导入配置');
 
-    const importedCard = await screen.findByLabelText('队伍：样例 · 喷火龙核心');
+    const importedCard = await screen.findByLabelText(firstSinglesSampleTeamLabel);
     expect(importedCard.dataset.importHighlighted).toBe('true');
 
     await waitFor(() => expect(importedCard.dataset.importHighlighted).toBeUndefined(), { timeout: 3500 });
@@ -294,9 +308,9 @@ describe('App page flows', () => {
     expect(screen.getByRole('button', { name: '双打' })).toBeTruthy();
     expect(screen.queryByText('热门队伍样本')).toBeNull();
 
-    await user.click(screen.getByRole('button', { name: /喷火龙/ }));
-    expect(await screen.findByRole('heading', { name: '喷火龙' })).toBeTruthy();
-    expect(screen.getByText('常用招式')).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: new RegExp(topSinglesPokemon.chineseName) }));
+    expect(await screen.findByRole('heading', { name: topSinglesPokemon.chineseName })).toBeTruthy();
+    expect(screen.queryByText('常用招式')).toBeNull();
     expect(screen.getByText('携带道具')).toBeTruthy();
     expect(screen.getByText('常见队友')).toBeTruthy();
   });
@@ -306,19 +320,19 @@ describe('App page flows', () => {
     render(<App />);
     await screen.findByRole('heading', { name: '环境' });
 
-    expect(screen.getByText(/开发预览/)).toBeTruthy();
+    expect(screen.getByText(environmentSourceLabel)).toBeTruthy();
     expect(screen.queryByText(/本页使用本地 seed 占位数据/)).toBeNull();
     expect(screen.queryByText(/不代表真实使用率/)).toBeNull();
     expect(screen.queryByText('高分样本')).toBeNull();
 
     await user.click(screen.getByRole('button', { name: /查看全部/ }));
     expect(await screen.findByRole('heading', { name: '完整宝可梦榜' })).toBeTruthy();
-    expect(screen.getByText(/开发预览/)).toBeTruthy();
+    expect(screen.getByText(environmentSourceLabel)).toBeTruthy();
     expect(screen.queryByText(/本页使用本地 seed 占位数据/)).toBeNull();
 
-    await user.click(screen.getByRole('button', { name: /喷火龙/ }));
-    expect(await screen.findByRole('heading', { name: '喷火龙' })).toBeTruthy();
-    expect(screen.getAllByText('开发样例').length).toBeGreaterThan(0);
+    await user.click(screen.getByRole('button', { name: new RegExp(topSinglesPokemon.chineseName) }));
+    expect(await screen.findByRole('heading', { name: topSinglesPokemon.chineseName })).toBeTruthy();
+    expect(screen.getAllByText('真实样本').length).toBeGreaterThan(0);
     expect(screen.queryByText(/本页使用本地 seed 占位数据/)).toBeNull();
   });
 
@@ -327,14 +341,14 @@ describe('App page flows', () => {
     render(<App />);
     await screen.findByRole('heading', { name: '环境' });
 
-    await user.click(screen.getByRole('button', { name: /喷火龙/ }));
-    expect(await screen.findByRole('heading', { name: '喷火龙' })).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: /烈咬陆鲨/ }));
+    expect(await screen.findByRole('heading', { name: '烈咬陆鲨' })).toBeTruthy();
     expect(screen.getByText('相关样例队伍')).toBeTruthy();
-    expect(screen.getByText('喷火龙核心')).toBeTruthy();
+    expect(screen.getByText(relatedGarchompSample.title)).toBeTruthy();
 
     await user.click(screen.getByRole('button', { name: '导入配置' }));
     expect((await screen.findByRole('status')).textContent).toContain('已导入配置');
-    expect(await screen.findByLabelText('队伍：样例 · 喷火龙核心')).toBeTruthy();
+    expect(await screen.findByLabelText(relatedGarchompTeamLabel)).toBeTruthy();
   });
 
   it('allows real editing of temporary config: SP, nature, item, and move changes persist', async () => {

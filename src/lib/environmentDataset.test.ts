@@ -197,8 +197,13 @@ describe('environment dataset audit', () => {
 
   it('keeps the current environment fixture audited before UI exports read it', () => {
     expect(environmentDatasetAuditIssues).toEqual([]);
-    expect(environmentSourceLabel).toContain('开发预览');
-    expect(environmentPokemonUsage.singles[0].pokemonId).toBe('charizard');
-    expect(environmentTeamSamples.map((sample) => sample.title)).toEqual(expect.arrayContaining(['喷火龙核心', '烈咬陆鲨平衡']));
+    expect(environmentSourceLabel).toContain('PokeDB');
+    expect(environmentPokemonUsage.singles.length).toBeGreaterThanOrEqual(20);
+    expect(environmentPokemonUsage.doubles.length).toBeGreaterThanOrEqual(20);
+    expect(environmentPokemonUsage.doubles[0]).toMatchObject({
+      pokemonId: 'basculegion-male',
+      moveIds: [],
+    });
+    expect(environmentTeamSamples.some((sample) => sample.dataKind === 'external-snapshot' && sample.reportUrl.startsWith('https://'))).toBe(true);
   });
 });

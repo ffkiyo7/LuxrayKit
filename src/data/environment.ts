@@ -1,5 +1,6 @@
 import { currentDataVersion, currentRuleSet, items, moves, pokemon } from './seed/regMA';
 import { currentEnvironmentDataset } from './environmentDatasetSeed';
+import { pokedbRegMAEnvironmentDataset } from './environmentPokeDbSnapshot';
 import {
   auditEnvironmentDataset,
   type EnvironmentBattleType,
@@ -17,7 +18,45 @@ export type {
   EnvironmentTeamSlot,
 };
 
-const auditedEnvironmentDataset = auditEnvironmentDataset(
+const selectEnvironmentDataset = () => {
+  const auditedPokeDbDataset = auditEnvironmentDataset(
+    pokedbRegMAEnvironmentDataset,
+    {
+      pokemonIds: pokemon.map((entry) => entry.id),
+      moveIds: moves.map((entry) => entry.id),
+      itemIds: items.map((entry) => entry.id),
+    },
+    {
+      ruleSetId: currentRuleSet.id,
+      dataVersionId: currentDataVersion.id,
+    },
+  );
+
+  const hasUsablePokeDbUsage =
+    auditedPokeDbDataset.dataset.battles.singles.pokemonUsage.length > 0 &&
+    auditedPokeDbDataset.dataset.battles.doubles.pokemonUsage.length > 0;
+
+  if (hasUsablePokeDbUsage) {
+    return auditedPokeDbDataset;
+  }
+
+  return auditEnvironmentDataset(
+    currentEnvironmentDataset,
+    {
+      pokemonIds: pokemon.map((entry) => entry.id),
+      moveIds: moves.map((entry) => entry.id),
+      itemIds: items.map((entry) => entry.id),
+    },
+    {
+      ruleSetId: currentRuleSet.id,
+      dataVersionId: currentDataVersion.id,
+    },
+  );
+};
+
+const auditedEnvironmentDataset = selectEnvironmentDataset();
+
+const currentEnvironmentSeedAudit = auditEnvironmentDataset(
   currentEnvironmentDataset,
   {
     pokemonIds: pokemon.map((entry) => entry.id),
@@ -32,7 +71,10 @@ const auditedEnvironmentDataset = auditEnvironmentDataset(
 
 const environmentDataset = auditedEnvironmentDataset.dataset;
 
-export const environmentDatasetAuditIssues: EnvironmentDatasetAuditIssue[] = auditedEnvironmentDataset.issues;
+export const environmentDatasetAuditIssues: EnvironmentDatasetAuditIssue[] = [
+  ...auditedEnvironmentDataset.issues,
+  ...currentEnvironmentSeedAudit.issues,
+];
 export const environmentUpdatedAt = environmentDataset.updatedAt;
 export const environmentDataStatusLabel = environmentDataset.statusLabel;
 
