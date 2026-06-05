@@ -29,7 +29,7 @@ test('captures the mobile visual regression smoke set', { timeout: 60_000 }, asy
 
   await page.getByRole('button', { name: /烈咬陆鲨/ }).click();
   await expect(page.getByRole('heading', { name: '烈咬陆鲨', exact: true })).toBeVisible();
-  await expect(page.getByText('相关样例队伍')).toBeVisible();
+  await expect(page.getByText('相关上位构筑')).toBeVisible();
   await expect(page).toHaveScreenshot('03-pokemon-environment-detail.png', screenshotOptions);
 
   await page.getByRole('button', { name: '返回环境' }).click();
@@ -46,7 +46,7 @@ test('captures the mobile visual regression smoke set', { timeout: 60_000 }, asy
   await expect(page).toHaveScreenshot('05-team-detail.png', screenshotOptions);
 
   await page.getByRole('button', { name: /^烈咬陆鲨 / }).click();
-  await expect(page.getByText('示例能力值')).toBeVisible();
+  await expect(page.getByText('能力值 / SP')).toBeVisible();
 
   await page.getByTitle('编辑成员').click();
   await expect(page.getByText('编辑成员')).toBeVisible();

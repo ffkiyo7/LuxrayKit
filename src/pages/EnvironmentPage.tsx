@@ -1,4 +1,4 @@
-import { ArrowLeft, BarChart3, ExternalLink, Import, List, Users } from 'lucide-react';
+import { ArrowLeft, BarChart3, ExternalLink, Import, List, RefreshCw, Users } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import {
   getEnvironmentItem,
@@ -15,6 +15,8 @@ const battleTypeLabels: Record<EnvironmentBattleType, string> = {
   singles: '单打',
   doubles: '双打',
 };
+
+const TEAM_SAMPLE_BATCH_SIZE = 4;
 
 const formatUpdatedAt = (value: string) =>
   new Intl.DateTimeFormat('zh-CN', {
@@ -269,7 +271,7 @@ function PokemonEnvironmentDetail({
         <section className="space-y-2">
           <div className="flex items-center gap-2 px-1">
             <Users size={16} className="text-accent" />
-            <h3 className="text-sm font-semibold">相关样例队伍</h3>
+            <h3 className="text-sm font-semibold">相关上位构筑</h3>
           </div>
           {relatedSamples.map((sample) => (
             <TeamSampleCard key={sample.id} sample={sample} statusLabel={environment.dataStatusLabel} onImport={onImportSample} />
@@ -346,7 +348,22 @@ export function EnvironmentPage({
   const [battleType, setBattleType] = useState<EnvironmentBattleType>('singles');
   const [view, setView] = useState<'home' | 'ranking'>('home');
   const [detailState, setDetailState] = useState<{ pokemonId: string; returnView: 'home' | 'ranking' } | null>(null);
+  const [teamSampleBatchIndex, setTeamSampleBatchIndex] = useState(0);
   const rankings = useMemo(() => environment.pokemonUsage[battleType], [battleType, environment.pokemonUsage]);
+  const teamSamples = useMemo(
+    () => environment.teamSamples.filter((sample) => sample.battleType === battleType),
+    [battleType, environment.teamSamples],
+  );
+  const teamSamplePageCount = Math.max(1, Math.ceil(teamSamples.length / TEAM_SAMPLE_BATCH_SIZE));
+  const normalizedTeamSampleBatchIndex = teamSampleBatchIndex % teamSamplePageCount;
+  const visibleTeamSamples = teamSamples.slice(
+    normalizedTeamSampleBatchIndex * TEAM_SAMPLE_BATCH_SIZE,
+    normalizedTeamSampleBatchIndex * TEAM_SAMPLE_BATCH_SIZE + TEAM_SAMPLE_BATCH_SIZE,
+  );
+  const changeBattleType = (nextBattleType: EnvironmentBattleType) => {
+    setBattleType(nextBattleType);
+    setTeamSampleBatchIndex(0);
+  };
 
   if (detailState) {
     return (
@@ -394,7 +411,7 @@ export function EnvironmentPage({
                 key={type}
                 className={`rounded-md px-3 py-2 ${battleType === type ? 'bg-accent text-page' : 'text-textSecondary'}`}
                 type="button"
-                onClick={() => setBattleType(type)}
+                onClick={() => changeBattleType(type)}
               >
                 {battleTypeLabels[type]}
               </button>
@@ -422,15 +439,25 @@ export function EnvironmentPage({
       </Card>
 
       <section className="space-y-2">
-        <div className="flex items-center gap-2 px-1">
-          <Users size={16} className="text-accent" />
-          <h3 className="text-sm font-semibold">样例队伍</h3>
+        <div className="flex items-center justify-between gap-3 px-1">
+          <div className="flex items-center gap-2">
+            <Users size={16} className="text-accent" />
+            <h3 className="text-sm font-semibold">上位构筑</h3>
+          </div>
+          {teamSamples.length > TEAM_SAMPLE_BATCH_SIZE && (
+            <button
+              className="inline-flex items-center gap-1 text-xs text-accent"
+              type="button"
+              onClick={() => setTeamSampleBatchIndex((current) => (current + 1) % teamSamplePageCount)}
+            >
+              <RefreshCw size={14} />
+              换一批
+            </button>
+          )}
         </div>
-        {environment.teamSamples
-          .filter((sample) => sample.battleType === battleType)
-          .map((sample) => (
-            <TeamSampleCard key={sample.id} sample={sample} statusLabel={environment.dataStatusLabel} onImport={onImportSample} />
-          ))}
+        {visibleTeamSamples.map((sample) => (
+          <TeamSampleCard key={sample.id} sample={sample} statusLabel={environment.dataStatusLabel} onImport={onImportSample} />
+        ))}
       </section>
     </div>
   );

@@ -6,7 +6,7 @@
 
 ## 当前验证
 
-- `npm test`：2026-06-05 通过，14 个测试文件，123 个用例。
+- `npm test`：2026-06-05 通过，16 个测试文件，135 个用例。
 - `npm run build`：2026-06-05 通过。
 - 伤害计算人工复核 fixtures：已建立首批 5 组，覆盖基础物理、天气特攻、非伤害道具、免疫特性、增伤特性。
 - `npm run test:pwa`：2026-06-05 通过，2 个 Playwright 用例覆盖离线与移动端视觉 smoke。
@@ -18,15 +18,16 @@
 - React + Vite + TypeScript + Tailwind 的移动端 PWA 壳。
 - 底部 4 Tab：环境、队伍、工具、我的。
 - IndexedDB 本地存储与 v2 迁移，支持队伍、偏好、benchmark 收藏。
-- 环境首页：单打 / 双打切换、宝可梦榜、真实样本队伍、队报链接、导入配置，并标注 PokeDB 上位构筑快照来源。
+- 环境首页：单打 / 双打切换、宝可梦榜、上位构筑卡片、换一批、队报链接、导入配置，并标注 PokeDB 上位构筑快照来源。
 - PokeDB Open Data 接入：内置 `s1_single_ranked_teams.json` 与 `s1_double_ranked_teams.json`，当前快照分别包含 528 / 71 支队伍。
 - PokeDB 转换器：把 PokeDB Pokémon key 映射到本地 Reg M-A Pokémon id，计算样本出现率、队伍数、当前宝可梦携带道具占比和常见队友占比。
 - PokeDB 维护脚本：新增 `npm run data:pokedb:environment:check` 与 `npm run data:pokedb:environment`，可下载 Open Data、解析前 50 Pokémon 详情页招式统计、解析 trainer/list 真实队报样本、校验 payload、报告未知 Pokémon / 未映射道具 / 失效 item id / 未映射 move key，并在干净时写入本地 snapshot。
 - 环境数据包：`EnvironmentDataset` schema 和 audit 入口已成为环境页唯一数据入口；UI 读取的是通过审计后的环境榜单与队伍样例。
 - 环境审计：未知 Pokémon / 招式 / 道具引用会被报告并从 UI 数据中剔除；规则版本、数据版本、使用率、队伍数和引用统计字段会在导入前校验。
 - 完整宝可梦榜：从环境首页进入，点击 Pokémon 进入环境详情，而不是跳传统图鉴页。
-- 宝可梦环境详情：展示常用招式、携带道具、常见队友和相关样例队伍，并支持从相关队伍导入配置；常用招式来自 PokeDB 详情页 `data-move-detail`，当前覆盖单打 / 双打各前 50 Pokémon。
-- 环境样例导入：生成本地队伍副本，保留来源 metadata，跳转队伍列表并高亮新导入队伍；当前导入标签为“样例导入”，详情页不显示来源卡或队报入口。
+- 宝可梦环境详情：展示常用招式、携带道具、常见队友和相关上位构筑，并支持从相关队伍导入配置；常用招式来自 PokeDB 详情页 `data-move-detail`，当前覆盖单打 / 双打各前 50 Pokémon。
+- 上位构筑导入：生成本地队伍副本，保留来源 metadata，跳转队伍列表并高亮新导入队伍；导入标签为“上位构筑导入”，详情页不显示来源卡或队报入口。
+- 上位构筑导入字段边界：PokeDB 快照目前只能稳定拿到队伍槽位的 Pokémon 与道具；可由 Mega 石确定的 Mega 形态 / 单一特性会自动推断，其余性格、SP 与完整配招不再伪造，导入后标记为需手动确认。
 - Reg M-A 规则元信息、官方 allowlist、Mega allowlist shell 和数据版本展示。
 - 213 只当前规则 Pokémon：181 基础形态 + 32 地区 / 特殊形态。
 - 35 个旧主系列 Mega 形态已具备 stats/types/abilities/sprite/Mega Stone 映射；Champions 新 Mega 保留 shell，不伪造战斗字段。
@@ -34,7 +35,7 @@
 - 117 个当前规则候选道具与本地道具图片快照。
 - 25 个性格、当前 catalog 特性中文名 / 中文说明、形态级特性拥有者映射。
 - TeamPage 队伍列表优先；队伍卡片统一提供编辑配置和生成图片；队伍详情不再展示来源卡、队报链接、伤害计算 / 速度线快捷入口。
-- TeamPage 队伍成员编辑：性格、特性、道具、招式、形态、Champions SP picker。
+- TeamPage 队伍成员卡片：展开态展示类似 Champions 状态卡的能力值 / SP 双列信息；成员编辑支持性格、特性、道具、招式、形态、Champions SP picker。
 - 队伍分享图：默认黑底 2x3 分享图，包含队伍名称、成员配置和生成时间戳，结果层只提供保存图片。
 - 速度线：基于 Champions SP v1 的速度计算、Mega 形态、benchmark、收藏。
 - CalculatorPage：攻击方 / 防守方独立临时配置，支持从图鉴搜索或队伍导入，不写回队伍 / IndexedDB。
@@ -58,14 +59,14 @@
 - 中文说明与部分社区来源存在授权边界，公开分发前需要确认署名 / 非商业 / 相同方式共享要求。
 - Reg M-B / 后续规则切换尚未实现。
 - 环境数据当前来自 PokeDB Open Data 独立 JSON snapshot，代表上位构筑样本，不代表官方完整环境使用率。
-- PokeDB Open Data 不包含完整配置招式、训练家名、队报链接或样本登记时间；训练家名与队报链接已通过 trainer/list 页面解析生成首批单打 / 双打各 8 条样本，但队报原文标题、正文和完整配置仍未解析。
+- PokeDB Open Data 不包含完整配置招式、训练家名、队报链接或样本登记时间；训练家名与队报链接已通过 trainer/list 页面解析生成当前单打 24 条、双打 19 条上位构筑样本，但队报原文标题、正文、性格、SP 与完整配招仍未解析。
 - 当前 PokeDB snapshot 已从前端主 bundle 拆为 `public/data/pokedb/reg-ma-s1-environment.json`，由 service worker 预缓存；后续若继续扩容，应优先考虑服务端定时产物和增量 diff。
 
 ## 下一轮重点
 
 详见 `docs/progress/NEXT_ROUND_PLAN.md`。优先级：
 
-1. 扩展外部样本采集：扩大 trainer/list 样本数，或解析队报原文标题 / 完整配置。
+1. 扩展外部样本采集：继续解析队报原文标题 / 完整配置，或寻找能稳定提供性格、SP、完整配招的来源。
 2. 继续拆分主包内的规则 catalog / 图鉴页面数据，降低剩余 Vite chunk warning。
 3. 继续交叉验证伤害计算公式与典型样例，补齐 Champions 特有招式 / 特性 / 道具对伤害的影响。
 4. 设计 Reg registry，避免未来规则切换散改数据入口。

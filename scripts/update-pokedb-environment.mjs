@@ -15,6 +15,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
 const checkOnly = process.argv.includes('--check');
 const MOVE_STATS_LIMIT = 50;
+const TEAM_SAMPLE_LIMIT = 24;
 const moveStatsOutputPath = resolve(ROOT, 'src/data/external/pokedb/s1_move_stats.json');
 const teamSamplesOutputPath = resolve(ROOT, 'src/data/external/pokedb/s1_team_samples.json');
 const environmentSnapshotOutputPath = resolve(ROOT, 'src/data/external/pokedb/s1_environment_snapshot.json');
@@ -273,7 +274,7 @@ async function buildTeamSamplesSnapshot({ pokemonKeyToId, pokemonNameById, itemN
         pokemonKeyToId,
         pokemonNameById,
         itemNameToId,
-        maxSamples: 8,
+        maxSamples: TEAM_SAMPLE_LIMIT,
         minSlots: 6,
       });
       return [source.battleType, samples];

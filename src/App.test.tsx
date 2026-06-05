@@ -13,6 +13,7 @@ import {
   getEnvironmentMove,
   getEnvironmentPokemon,
 } from './data/environment';
+import { repository } from './lib/db';
 
 const DB_NAME = 'pokemon-champions-assistant';
 const pokedbSnapshot = {
@@ -26,13 +27,13 @@ const pokedbSnapshot = {
 };
 const testEnvironmentState = createEnvironmentStateFromPokeDbSnapshot(pokedbSnapshot);
 const firstSinglesSample = testEnvironmentState.teamSamples.find((sample) => sample.battleType === 'singles')!;
-const firstSinglesSampleTeamLabel = `队伍：样例 · ${firstSinglesSample.title}`;
+const firstSinglesSampleTeamLabel = `队伍：上位构筑 · ${firstSinglesSample.title}`;
 const topSinglesPokemon = getEnvironmentPokemon(testEnvironmentState.pokemonUsage.singles[0].pokemonId)!;
 const topSinglesMove = getEnvironmentMove(testEnvironmentState.pokemonUsage.singles[0].moveStats?.[0]?.id ?? '')!;
 const relatedGarchompSample = testEnvironmentState.teamSamples.find(
   (sample) => sample.battleType === 'singles' && sample.slots.some((slot) => slot.pokemonId === 'garchomp'),
 )!;
-const relatedGarchompTeamLabel = `队伍：样例 · ${relatedGarchompSample.title}`;
+const relatedGarchompTeamLabel = `队伍：上位构筑 · ${relatedGarchompSample.title}`;
 
 const deleteDb = () =>
   new Promise<void>((resolve, reject) => {
@@ -175,13 +176,13 @@ describe('App page flows', () => {
     expect(await screen.findByText(/2\/6 成员/)).toBeTruthy();
 
     await user.click(screen.getByText('烈咬陆鲨'));
-    expect(await screen.findByText('示例能力值')).toBeTruthy();
-    await user.click(screen.getByRole('button', { name: /能力配置/ }));
+    expect(await screen.findByText('能力值 / SP')).toBeTruthy();
+    await user.click(screen.getByTitle('编辑成员'));
     expect(await screen.findByText('编辑成员')).toBeTruthy();
     await user.click(screen.getByTitle('关闭'));
 
     await user.click(screen.getByTitle('收起成员'));
-    expect(screen.queryByText('示例能力值')).toBeNull();
+    expect(screen.queryByText('能力值 / SP')).toBeNull();
   });
 
   it('keeps member editing focused on the selected Pokemon, moves, nature, item, ability, and six SP fields', { timeout: 15000 }, async () => {
@@ -294,15 +295,40 @@ describe('App page flows', () => {
 
     await user.click(screen.getAllByRole('button', { name: /导入配置/ })[0]);
     const importedCard = await screen.findByLabelText(firstSinglesSampleTeamLabel);
-    expect(within(importedCard).getByText('样例导入')).toBeTruthy();
+    expect(within(importedCard).getByText('上位构筑导入')).toBeTruthy();
     expect(within(importedCard).getByText(new RegExp(testEnvironmentState.dataStatusLabel))).toBeTruthy();
     expect(within(importedCard).getByRole('button', { name: '编辑配置' })).toBeTruthy();
     expect(within(importedCard).getByRole('button', { name: '生成图片' })).toBeTruthy();
 
     await user.click(within(importedCard).getByRole('button', { name: '编辑配置' }));
-    expect(await screen.findByRole('heading', { name: `样例 · ${firstSinglesSample.title}` })).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: `上位构筑 · ${firstSinglesSample.title}` })).toBeTruthy();
     expect(screen.queryByText('队报链接')).toBeNull();
-    expect(screen.queryByText(/来源|原始样本|高分导入|样例导入/)).toBeNull();
+    expect(screen.queryByText(/来源|原始样本|高分导入|上位构筑导入/)).toBeNull();
+  });
+
+  it('imports upper-build teams without inventing missing moves, nature, or SP details', async () => {
+    const user = await renderEnvironmentApp();
+
+    await user.click(screen.getAllByRole('button', { name: /导入配置/ })[0]);
+    await screen.findByLabelText(firstSinglesSampleTeamLabel);
+
+    let imported = undefined as Awaited<ReturnType<typeof repository.loadState>>['teams'][number] | undefined;
+    await waitFor(async () => {
+      const state = await repository.loadState();
+      imported = state.teams.find(
+        (team) => team.source?.kind === 'environment-sample-import' && team.source.sampleId === firstSinglesSample.id,
+      );
+      expect(imported).toBeTruthy();
+    });
+
+    const firstMember = imported!.members[0];
+    expect(firstMember.pokemonId).toBe(firstSinglesSample.slots[0].pokemonId);
+    expect(firstMember.itemId).toBe(firstSinglesSample.slots[0].itemId);
+    expect(firstMember.formId).toBe('mega-lucario');
+    expect(firstMember.abilityId).toBe('adaptability');
+    expect(firstMember.moveIds).toEqual([]);
+    expect(firstMember.statPoints).toEqual({});
+    expect(firstMember.nature).toBe('浮躁');
   });
 
   it('shows import success feedback and clears the imported team highlight', async () => {
@@ -335,6 +361,20 @@ describe('App page flows', () => {
     expect(screen.getByText('常见队友')).toBeTruthy();
   });
 
+  it('shows upper-build samples in small batches and cycles them', async () => {
+    const user = await renderEnvironmentApp();
+    const singlesSamples = testEnvironmentState.teamSamples.filter((sample) => sample.battleType === 'singles');
+
+    expect(screen.getByText('上位构筑')).toBeTruthy();
+    expect(screen.getByText(singlesSamples[0].title)).toBeTruthy();
+    expect(screen.queryByText(singlesSamples[4].title)).toBeNull();
+
+    await user.click(screen.getByRole('button', { name: '换一批' }));
+
+    expect(screen.getByText(singlesSamples[4].title)).toBeTruthy();
+    expect(screen.queryByText(singlesSamples[0].title)).toBeNull();
+  });
+
   it('keeps environment sample labeling lightweight without the bulky seed notice', async () => {
     const user = await renderEnvironmentApp();
 
@@ -359,7 +399,7 @@ describe('App page flows', () => {
 
     await user.click(screen.getByRole('button', { name: /烈咬陆鲨/ }));
     expect(await screen.findByRole('heading', { name: '烈咬陆鲨' })).toBeTruthy();
-    expect(screen.getByText('相关样例队伍')).toBeTruthy();
+    expect(screen.getByText('相关上位构筑')).toBeTruthy();
     expect(screen.getByText(relatedGarchompSample.title)).toBeTruthy();
 
     await user.click(screen.getAllByRole('button', { name: '导入配置' })[0]);
@@ -546,9 +586,9 @@ describe('App page flows', () => {
 
     // Expand member again — the team page is functional
     await user.click(screen.getByText('烈咬陆鲨'));
-    expect(screen.getByText(/能力配置/)).toBeTruthy();
-    expect(screen.getByText(/HP\+1/)).toBeTruthy();
-    expect(screen.queryByText(/HP\+12/)).toBeNull();
+    expect(screen.getByText('能力值 / SP')).toBeTruthy();
+    expect(screen.getByText(/已用 65\/66/)).toBeTruthy();
+    expect(screen.queryByText(/已用 76\/66/)).toBeNull();
   });
 
   it('selects both calculator sides from searchable Pokemon and team recommendations', async () => {

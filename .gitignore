@@ -2,6 +2,7 @@ node_modules
 dist
 .npm-cache
 .vite
+.codex-logs/
 *.local
 .vite-lan*.log
 test-results
