@@ -6,6 +6,8 @@ dist
 .vite-lan*.log
 test-results
 playwright-report
+.superpowers/
+tmp/
 
 # Local-only assets (copyrighted / not for redistribution)
 public/type-icons/
