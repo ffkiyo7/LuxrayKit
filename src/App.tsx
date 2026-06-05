@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { BottomNav } from './components/BottomNav';
 import { Header } from './components/Header';
 import { currentDataVersion, currentRuleSet, pokemon } from './data';
-import { environmentDataStatusLabel, type EnvironmentTeamSample } from './data/environment';
+import { environmentFallbackState, loadEnvironmentState, type EnvironmentState, type EnvironmentTeamSample } from './data/environment';
 import { currentRuleMovesForPokemon, currentRuleNatures } from './lib/currentRuleCatalog';
 import { createId } from './lib/id';
 import { AppProvider, useAppStore } from './state/AppContext';
@@ -46,7 +46,7 @@ const createImportedMember = (slot: EnvironmentTeamSample['slots'][number]): Tea
     nature: currentRuleNatures()[0] ?? '爽朗',
     statPoints: { speed: 32 },
     level: 50,
-    notes: '从环境开发样例导入，可继续编辑。',
+    notes: '从环境样本导入，可继续编辑。',
     legalityStatus: 'needs-review',
   };
 };
@@ -98,6 +98,7 @@ function AppShell() {
   const [activeTeamId, setActiveTeamId] = useState<string | undefined>();
   const [importToast, setImportToast] = useState<string | null>(null);
   const [highlightedImportTeamId, setHighlightedImportTeamId] = useState<string | undefined>();
+  const [environmentState, setEnvironmentState] = useState<EnvironmentState>(environmentFallbackState);
   const { loading, teams, preferences, saveTeam } = useAppStore();
 
   const activeTeam = teams.find((team) => team.id === activeTeamId) ?? teams[0];
@@ -121,6 +122,16 @@ function AppShell() {
     return () => window.clearTimeout(timeoutId);
   }, [highlightedImportTeamId, importToast]);
 
+  useEffect(() => {
+    let active = true;
+    loadEnvironmentState().then((nextState) => {
+      if (active) setEnvironmentState(nextState);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const openTool = useCallback((view: ToolView) => {
     setToolView(view);
     setActiveTab('tools');
@@ -143,7 +154,7 @@ function AppShell() {
           kind: 'environment-sample-import',
           sampleId: sample.id,
           title: sample.title,
-          label: environmentDataStatusLabel,
+          label: environmentState.dataStatusLabel,
           battleType: sample.battleType,
           reportUrl: sample.reportUrl,
           importedAt: timestamp,
@@ -155,7 +166,7 @@ function AppShell() {
       setImportToast('已导入配置');
       setActiveTab('teams');
     },
-    [saveTeam],
+    [environmentState.dataStatusLabel, saveTeam],
   );
 
   const page = useMemo(() => {
@@ -163,7 +174,7 @@ function AppShell() {
 
     switch (activeTab) {
       case 'environment':
-        return <EnvironmentPage onImportSample={importSampleTeam} />;
+        return <EnvironmentPage environment={environmentState} onImportSample={importSampleTeam} />;
       case 'teams':
         return (
           <TeamPage
@@ -197,7 +208,7 @@ function AppShell() {
       case 'profile':
         return <ProfilePage />;
     }
-  }, [activeTab, activeTeam, calculatorMemberId, highlightedImportTeamId, importSampleTeam, openTool, overlay, speedPokemonId, toolView]);
+  }, [activeTab, activeTeam, calculatorMemberId, environmentState, highlightedImportTeamId, importSampleTeam, openTool, overlay, speedPokemonId, toolView]);
 
   useEffect(() => {
     document.title = overlay === 'rule' ? '当前规则 · Champions Tool' : 'Champions Tool';

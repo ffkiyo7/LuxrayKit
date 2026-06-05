@@ -2,23 +2,34 @@
 import 'fake-indexeddb/auto';
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { App } from './App';
+import singleRankedTeams from './data/external/pokedb/s1_single_ranked_teams.json';
+import doubleRankedTeams from './data/external/pokedb/s1_double_ranked_teams.json';
+import moveStats from './data/external/pokedb/s1_move_stats.json';
+import teamSamples from './data/external/pokedb/s1_team_samples.json';
 import {
-  environmentDataStatusLabel,
-  environmentPokemonUsage,
-  environmentSourceLabel,
-  environmentTeamSamples,
+  createEnvironmentStateFromPokeDbSnapshot,
   getEnvironmentMove,
   getEnvironmentPokemon,
 } from './data/environment';
 
 const DB_NAME = 'pokemon-champions-assistant';
-const firstSinglesSample = environmentTeamSamples.find((sample) => sample.battleType === 'singles')!;
+const pokedbSnapshot = {
+  retrievedAt: '2026-06-05T06:34:02.661Z',
+  battles: {
+    singles: singleRankedTeams,
+    doubles: doubleRankedTeams,
+  },
+  moveStats,
+  teamSamples,
+};
+const testEnvironmentState = createEnvironmentStateFromPokeDbSnapshot(pokedbSnapshot);
+const firstSinglesSample = testEnvironmentState.teamSamples.find((sample) => sample.battleType === 'singles')!;
 const firstSinglesSampleTeamLabel = `队伍：样例 · ${firstSinglesSample.title}`;
-const topSinglesPokemon = getEnvironmentPokemon(environmentPokemonUsage.singles[0].pokemonId)!;
-const topSinglesMove = getEnvironmentMove(environmentPokemonUsage.singles[0].moveStats?.[0]?.id ?? '')!;
-const relatedGarchompSample = environmentTeamSamples.find(
+const topSinglesPokemon = getEnvironmentPokemon(testEnvironmentState.pokemonUsage.singles[0].pokemonId)!;
+const topSinglesMove = getEnvironmentMove(testEnvironmentState.pokemonUsage.singles[0].moveStats?.[0]?.id ?? '')!;
+const relatedGarchompSample = testEnvironmentState.teamSamples.find(
   (sample) => sample.battleType === 'singles' && sample.slots.some((slot) => slot.pokemonId === 'garchomp'),
 )!;
 const relatedGarchompTeamLabel = `队伍：样例 · ${relatedGarchompSample.title}`;
@@ -40,6 +51,13 @@ const renderApp = async () => {
   return user;
 };
 
+const renderEnvironmentApp = async () => {
+  const user = userEvent.setup();
+  render(<App />);
+  await screen.findByText(testEnvironmentState.sourceLabel);
+  return user;
+};
+
 const openTool = async (user: ReturnType<typeof userEvent.setup>, toolName: string | RegExp) => {
   const backToTools = screen.queryByRole('button', { name: /返回工具/ });
   if (backToTools) {
@@ -58,11 +76,16 @@ const openDefaultTeam = async (user: ReturnType<typeof userEvent.setup>) => {
 
 describe('App page flows', () => {
   beforeEach(async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(JSON.stringify(pokedbSnapshot), { status: 200 })),
+    );
     await deleteDb();
   });
 
   afterEach(() => {
     cleanup();
+    vi.unstubAllGlobals();
   });
 
   it('labels the loading state as local rule data instead of mock data', async () => {
@@ -267,14 +290,12 @@ describe('App page flows', () => {
   });
 
   it('keeps imported environment sample metadata on the list without showing a source card in detail', async () => {
-    const user = userEvent.setup();
-    render(<App />);
-    await screen.findByRole('heading', { name: '环境' });
+    const user = await renderEnvironmentApp();
 
     await user.click(screen.getAllByRole('button', { name: /导入配置/ })[0]);
     const importedCard = await screen.findByLabelText(firstSinglesSampleTeamLabel);
     expect(within(importedCard).getByText('样例导入')).toBeTruthy();
-    expect(within(importedCard).getByText(new RegExp(environmentDataStatusLabel))).toBeTruthy();
+    expect(within(importedCard).getByText(new RegExp(testEnvironmentState.dataStatusLabel))).toBeTruthy();
     expect(within(importedCard).getByRole('button', { name: '编辑配置' })).toBeTruthy();
     expect(within(importedCard).getByRole('button', { name: '生成图片' })).toBeTruthy();
 
@@ -285,9 +306,7 @@ describe('App page flows', () => {
   });
 
   it('shows import success feedback and clears the imported team highlight', async () => {
-    const user = userEvent.setup();
-    render(<App />);
-    await screen.findByRole('heading', { name: '环境' });
+    const user = await renderEnvironmentApp();
 
     await user.click(screen.getAllByRole('button', { name: /导入配置/ })[0]);
     expect((await screen.findByRole('status')).textContent).toContain('已导入配置');
@@ -300,9 +319,7 @@ describe('App page flows', () => {
   });
 
   it('opens a dedicated full environment ranking before pokemon environment detail', async () => {
-    const user = userEvent.setup();
-    render(<App />);
-    await screen.findByRole('heading', { name: '环境' });
+    const user = await renderEnvironmentApp();
 
     await user.click(screen.getByRole('button', { name: /查看全部/ }));
     expect(await screen.findByRole('heading', { name: '完整宝可梦榜' })).toBeTruthy();
@@ -319,18 +336,16 @@ describe('App page flows', () => {
   });
 
   it('keeps environment sample labeling lightweight without the bulky seed notice', async () => {
-    const user = userEvent.setup();
-    render(<App />);
-    await screen.findByRole('heading', { name: '环境' });
+    const user = await renderEnvironmentApp();
 
-    expect(screen.getByText(environmentSourceLabel)).toBeTruthy();
+    expect(screen.getByText(testEnvironmentState.sourceLabel)).toBeTruthy();
     expect(screen.queryByText(/本页使用本地 seed 占位数据/)).toBeNull();
     expect(screen.queryByText(/不代表真实使用率/)).toBeNull();
     expect(screen.queryByText('高分样本')).toBeNull();
 
     await user.click(screen.getByRole('button', { name: /查看全部/ }));
     expect(await screen.findByRole('heading', { name: '完整宝可梦榜' })).toBeTruthy();
-    expect(screen.getByText(environmentSourceLabel)).toBeTruthy();
+    expect(screen.getByText(testEnvironmentState.sourceLabel)).toBeTruthy();
     expect(screen.queryByText(/本页使用本地 seed 占位数据/)).toBeNull();
 
     await user.click(screen.getByRole('button', { name: new RegExp(topSinglesPokemon.chineseName) }));
@@ -340,9 +355,7 @@ describe('App page flows', () => {
   });
 
   it('shows related environment sample teams on pokemon environment detail and imports them', async () => {
-    const user = userEvent.setup();
-    render(<App />);
-    await screen.findByRole('heading', { name: '环境' });
+    const user = await renderEnvironmentApp();
 
     await user.click(screen.getByRole('button', { name: /烈咬陆鲨/ }));
     expect(await screen.findByRole('heading', { name: '烈咬陆鲨' })).toBeTruthy();

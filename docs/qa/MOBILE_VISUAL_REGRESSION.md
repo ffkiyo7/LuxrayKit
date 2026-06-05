@@ -39,8 +39,9 @@ npm run test:pwa
 - 2026-06-03：视觉 smoke 已切换到环境优先主路径，并重录 14 张基线截图。
 - 2026-06-03：旧 5 Tab 基线已移除；测试不再等待 `组队 / 计算 / 速度线 / 图鉴 / 设置` 旧底部导航。
 - 2026-06-04：环境页改为轻量开发预览 / 样例标识，并将全局 accent 收敛为低饱和钢蓝 / 蓝紫；已重录受影响截图。
-- 2026-06-05：环境页切换到 PokeDB bundled snapshot，重录环境首页、完整榜单和宝可梦环境详情截图；宝可梦环境详情已接入前 50 Pokémon 的真实常用招式 `moveStats`。
+- 2026-06-05：环境页切换到 PokeDB snapshot 数据，重录环境首页、完整榜单和宝可梦环境详情截图；宝可梦环境详情已接入前 50 Pokémon 的真实常用招式 `moveStats`。
 - 2026-06-05：PokeDB trainer/list 样本接入维护脚本，环境样例队伍改为单打 / 双打各 8 条真实队报链接样本；同步修正 PokeDB 页面 `rule=2` 单打、`rule=1` 双打映射，并通过视觉 smoke。
+- 2026-06-05：环境 snapshot 从主 JS bundle 拆为 `public/data/pokedb/reg-ma-s1-environment.json` 独立缓存资源；视觉 smoke 保持通过。
 
 ## 当前边界
 

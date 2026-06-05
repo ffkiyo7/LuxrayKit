@@ -2,7 +2,7 @@
 
 更新时间：2026-06-05
 
-当前阶段：**环境优先重构分支已跑通主信息架构，并完成第一阶段真实环境数据接入：默认进入环境页，环境页读取 PokeDB Season 1 单打 / 双打 Open Data bundled snapshot，队伍页列表优先，伤害计算 / 速度线 / 图鉴收束到工具页，我的页承接偏好、备份与缓存管理。当前环境数据表达为“上位构筑快照 / 样本占比”，不包装成官方完整使用率。**
+当前阶段：**环境优先重构分支已跑通主信息架构，并完成第一阶段真实环境数据接入：默认进入环境页，环境页从独立 JSON 缓存资源读取 PokeDB Season 1 单打 / 双打 Open Data snapshot，队伍页列表优先，伤害计算 / 速度线 / 图鉴收束到工具页，我的页承接偏好、备份与缓存管理。当前环境数据表达为“上位构筑快照 / 样本占比”，不包装成官方完整使用率。**
 
 ## 当前验证
 
@@ -11,7 +11,7 @@
 - 伤害计算人工复核 fixtures：已建立首批 5 组，覆盖基础物理、天气特攻、非伤害道具、免疫特性、增伤特性。
 - `npm run test:pwa`：2026-06-05 通过，2 个 Playwright 用例覆盖离线与移动端视觉 smoke。
 - `npm run test:visual`：2026-06-05 已重录环境真实快照 smoke 路径基线，覆盖环境首页、完整榜单、宝可梦环境详情、队伍列表 / 详情 / 成员编辑、工具页、计算、速度线、图鉴和我的页。
-- 构建存在 Vite chunk size warning，当前主要由完整 app 与内置环境 snapshot 共同造成，仅为体积提示，不影响功能正确性；后续可考虑把环境快照改为独立缓存资源。
+- 构建仍存在 Vite chunk size warning；环境 snapshot 已拆为独立 JSON 缓存资源，主 JS 从约 2.13 MB 降到约 1.47 MB，但完整 app、规则 catalog 与图鉴数据仍在主包内。
 
 ## 已完成能力
 
@@ -57,16 +57,16 @@
 - 24 个 Champions 新 Mega 仍缺少可安全写入的战斗字段。
 - 中文说明与部分社区来源存在授权边界，公开分发前需要确认署名 / 非商业 / 相同方式共享要求。
 - Reg M-B / 后续规则切换尚未实现。
-- 环境数据当前来自 PokeDB Open Data bundled snapshot，代表上位构筑样本，不代表官方完整环境使用率。
+- 环境数据当前来自 PokeDB Open Data 独立 JSON snapshot，代表上位构筑样本，不代表官方完整环境使用率。
 - PokeDB Open Data 不包含完整配置招式、训练家名、队报链接或样本登记时间；训练家名与队报链接已通过 trainer/list 页面解析生成首批单打 / 双打各 8 条样本，但队报原文标题、正文和完整配置仍未解析。
-- 当前 PokeDB snapshot 直接进入前端 bundle，构建体积已明显上升；后续应改为独立 JSON 缓存资源或服务端定时产物。
+- 当前 PokeDB snapshot 已从前端主 bundle 拆为 `public/data/pokedb/reg-ma-s1-environment.json`，由 service worker 预缓存；后续若继续扩容，应优先考虑服务端定时产物和增量 diff。
 
 ## 下一轮重点
 
 详见 `docs/progress/NEXT_ROUND_PLAN.md`。优先级：
 
-1. 把环境 snapshot 从主 bundle 拆为独立缓存资源，降低首包体积和 Vite chunk warning。
-2. 扩展外部样本采集：扩大 trainer/list 样本数，或解析队报原文标题 / 完整配置。
+1. 扩展外部样本采集：扩大 trainer/list 样本数，或解析队报原文标题 / 完整配置。
+2. 继续拆分主包内的规则 catalog / 图鉴页面数据，降低剩余 Vite chunk warning。
 3. 继续交叉验证伤害计算公式与典型样例，补齐 Champions 特有招式 / 特性 / 道具对伤害的影响。
 4. 设计 Reg registry，避免未来规则切换散改数据入口。
 

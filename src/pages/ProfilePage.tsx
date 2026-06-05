@@ -141,7 +141,7 @@ export function ProfilePage() {
           离线缓存
         </div>
         <p className="mt-2 text-xs text-textSecondary">
-          当前规则与本地队伍会保留在浏览器内。环境数据后续接入真实来源后，会在这里显示缓存状态。
+          当前规则、本地队伍与 PokeDB 环境快照会保留在浏览器内。离线时优先读取已缓存资源。
         </p>
         {lastRefreshError && <p className="mt-3 rounded-lg bg-reviewBg p-2 text-xs text-warning">{lastRefreshError}</p>}
       </Card>

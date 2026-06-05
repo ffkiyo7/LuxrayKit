@@ -11,7 +11,7 @@
 - 当前规则道具候选池 117 个，本地保存道具图片快照。
 - 性格、特性、中文名、说明和拥有者映射已接入当前 catalog。
 - 图鉴身高 / 体重已从缓存 PokeAPI Pokémon 端点抽取为本地 `physicalMetrics` seed 映射，单位保持 PokeAPI 的 dm / hg 并在前端格式化为 m / kg。
-- 环境页已新增 `EnvironmentDataset` schema 与审计入口；当前默认读取 PokeDB Open Data bundled snapshot，开发 seed 仅作为审计失败回退。
+- 环境页已新增 `EnvironmentDataset` schema 与审计入口；当前默认从 `public/data/pokedb/reg-ma-s1-environment.json` 加载 PokeDB Open Data 独立缓存快照，开发 seed 仅作为加载或审计失败回退。
 - PokeDB snapshot 当前包含 Season 1 单打 528 队、双打 71 队；可稳定计算 Pokémon 样本出现率、携带道具占比和常见队友占比。
 - PokeDB Open Data 不包含训练家名、队报链接、完整招式配置和样本登记时间；招式使用率通过维护脚本额外解析 Pokémon 详情页 `data-move-detail`，当前覆盖单打 / 双打各前 50 Pokémon；队报链接和训练家名来自 PokeDB trainer/list 页面解析，当前单打 / 双打各保留 8 条完整样本。
 
@@ -54,5 +54,5 @@
 - 将 PokeDB Open Data 维护脚本接入定期流程，并补充更细的 snapshot diff 摘要。
 - 扩大 PokeDB 宝可梦详情页招式统计覆盖范围，或改为按需缓存。
 - 扩展队报样本来源：trainer/list 解析已接入首批 8 + 8 条，后续可扩大样本数、补充文章标题、或按队报原文进一步解析完整配置。
-- 评估环境 snapshot 从主 bundle 拆分为独立缓存资源，降低首包体积。
+- 环境 snapshot 已从主 bundle 拆分为独立 JSON 缓存资源；后续体积工作转向页面代码拆分、规则 catalog 拆分和更细的 snapshot diff 摘要。
 - 为未来 Reg M-B 做 registry，而不是复制 Reg M-A 文件结构。

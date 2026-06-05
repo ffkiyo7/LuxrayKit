@@ -17,6 +17,8 @@ const checkOnly = process.argv.includes('--check');
 const MOVE_STATS_LIMIT = 50;
 const moveStatsOutputPath = resolve(ROOT, 'src/data/external/pokedb/s1_move_stats.json');
 const teamSamplesOutputPath = resolve(ROOT, 'src/data/external/pokedb/s1_team_samples.json');
+const environmentSnapshotOutputPath = resolve(ROOT, 'src/data/external/pokedb/s1_environment_snapshot.json');
+const publicEnvironmentSnapshotOutputPath = resolve(ROOT, 'public/data/pokedb/reg-ma-s1-environment.json');
 
 const sources = [
   {
@@ -348,6 +350,24 @@ const currentTeamSamplesText = await readFile(teamSamplesOutputPath, 'utf8').cat
 if (currentTeamSamplesText !== nextTeamSamplesText) {
   changedSources.push({ battleType: 'team-samples', outputPath: teamSamplesOutputPath, nextText: nextTeamSamplesText });
 }
+const currentEnvironmentSnapshotText = await readFile(environmentSnapshotOutputPath, 'utf8').catch(() => '');
+const currentEnvironmentSnapshot = currentEnvironmentSnapshotText ? JSON.parse(currentEnvironmentSnapshotText) : undefined;
+const environmentRetrievedAt =
+  changedSources.length > 0 ? new Date().toISOString() : currentEnvironmentSnapshot?.retrievedAt ?? new Date().toISOString();
+const environmentSnapshot = {
+  retrievedAt: environmentRetrievedAt,
+  battles,
+  moveStats: moveStatsSnapshot,
+  teamSamples: teamSamplesSnapshot,
+};
+const nextEnvironmentSnapshotText = stableJson(environmentSnapshot);
+if (currentEnvironmentSnapshotText !== nextEnvironmentSnapshotText) {
+  changedSources.push({ battleType: 'environment-snapshot', outputPath: environmentSnapshotOutputPath, nextText: nextEnvironmentSnapshotText });
+}
+const currentPublicEnvironmentSnapshotText = await readFile(publicEnvironmentSnapshotOutputPath, 'utf8').catch(() => '');
+if (currentPublicEnvironmentSnapshotText !== nextEnvironmentSnapshotText) {
+  changedSources.push({ battleType: 'public-environment-snapshot', outputPath: publicEnvironmentSnapshotOutputPath, nextText: nextEnvironmentSnapshotText });
+}
 
 if (checkOnly) {
   if (changedSources.length > 0) {
@@ -364,14 +384,6 @@ for (const source of changedSources) {
   console.log(`Wrote ${source.battleType} snapshot to ${source.outputPath}`);
 }
 
-if (changedSources.length > 0) {
-  const snapshotModulePath = resolve(ROOT, 'src/data/environmentPokeDbSnapshot.ts');
-  const currentModuleText = await readFile(snapshotModulePath, 'utf8');
-  const nextModuleText = currentModuleText.replace(/retrievedAt: '[^']+'/, `retrievedAt: '${new Date().toISOString()}'`);
-  if (currentModuleText !== nextModuleText) {
-    await writeFile(snapshotModulePath, nextModuleText, 'utf8');
-    console.log(`Updated retrievedAt in ${snapshotModulePath}`);
-  }
-} else {
+if (changedSources.length === 0) {
   console.log('\nPokeDB snapshots already match remote data.');
 }

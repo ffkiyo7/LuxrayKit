@@ -8,7 +8,7 @@
 - `public/sw.js` 预缓存 app shell，并 runtime cache 同源 GET 响应。
 - IndexedDB 保存队伍、偏好和 benchmark 收藏。
 - IndexedDB 当前版本为 v2，保留旧 EV-like `statPoints` 到 Champions SP 的迁移。
-- 当前环境数据使用内置 PokeDB Open Data bundled snapshot；离线时读取同一份本地打包快照，不提供远程刷新。
+- 当前环境数据使用 `public/data/pokedb/reg-ma-s1-environment.json` 独立 JSON 快照；service worker 会预缓存该资源，离线时读取同一份本地缓存快照，不提供远程刷新。
 
 ## 手动验收
 

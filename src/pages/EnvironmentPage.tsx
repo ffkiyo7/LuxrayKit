@@ -1,16 +1,12 @@
 import { ArrowLeft, BarChart3, ExternalLink, Import, List, Users } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import {
-  environmentDataStatusLabel,
-  environmentPokemonUsage,
-  environmentSourceLabel,
-  environmentTeamSamples,
-  environmentUpdatedAt,
   getEnvironmentItem,
   getEnvironmentMove,
   getEnvironmentPokemon,
   type EnvironmentBattleType,
   type EnvironmentPokemonUsage,
+  type EnvironmentState,
   type EnvironmentTeamSample,
 } from '../data/environment';
 import { Button, Card, PokemonAvatar, TypeBadge } from '../components/ui';
@@ -73,7 +69,15 @@ function RankingRow({
   );
 }
 
-function TeamSampleCard({ sample, onImport }: { sample: EnvironmentTeamSample; onImport: (sample: EnvironmentTeamSample) => Promise<void> | void }) {
+function TeamSampleCard({
+  sample,
+  statusLabel,
+  onImport,
+}: {
+  sample: EnvironmentTeamSample;
+  statusLabel: string;
+  onImport: (sample: EnvironmentTeamSample) => Promise<void> | void;
+}) {
   const [importing, setImporting] = useState(false);
   const visibleSlots = sample.slots.map((slot) => getEnvironmentPokemon(slot.pokemonId)).filter(Boolean);
   const sampleBadge = sample.dataKind === 'external-snapshot' ? '真实样本' : '开发样例';
@@ -92,7 +96,7 @@ function TeamSampleCard({ sample, onImport }: { sample: EnvironmentTeamSample; o
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 className="truncate text-sm font-semibold">{sample.title}</h3>
-          <p className="mt-1 text-xs text-textSecondary">{environmentDataStatusLabel} · {battleTypeLabels[sample.battleType]}</p>
+          <p className="mt-1 text-xs text-textSecondary">{statusLabel} · {battleTypeLabels[sample.battleType]}</p>
         </div>
         <span className="rounded-md bg-reviewBg px-2 py-1 text-[11px] font-semibold text-warning">{sampleBadge}</span>
       </div>
@@ -116,18 +120,20 @@ function TeamSampleCard({ sample, onImport }: { sample: EnvironmentTeamSample; o
 }
 
 function PokemonEnvironmentDetail({
+  environment,
   battleType,
   pokemonId,
   onBack,
   onImportSample,
 }: {
+  environment: EnvironmentState;
   battleType: EnvironmentBattleType;
   pokemonId: string;
   onBack: () => void;
   onImportSample: (sample: EnvironmentTeamSample) => Promise<void> | void;
 }) {
   const [expandedSection, setExpandedSection] = useState<'moves' | 'items' | 'teammates' | null>(null);
-  const usage = environmentPokemonUsage[battleType].find((item) => item.pokemonId === pokemonId);
+  const usage = environment.pokemonUsage[battleType].find((item) => item.pokemonId === pokemonId);
   const entry = getEnvironmentPokemon(pokemonId);
 
   if (!entry) return null;
@@ -148,7 +154,7 @@ function PokemonEnvironmentDetail({
       (row): row is { stat: NonNullable<EnvironmentPokemonUsage['teammateStats']>[number]; pokemon: NonNullable<ReturnType<typeof getEnvironmentPokemon>> } =>
         Boolean(row.pokemon),
     );
-  const relatedSamples = environmentTeamSamples.filter(
+  const relatedSamples = environment.teamSamples.filter(
     (sample) => sample.battleType === battleType && sample.slots.some((slot) => slot.pokemonId === pokemonId),
   );
 
@@ -266,7 +272,7 @@ function PokemonEnvironmentDetail({
             <h3 className="text-sm font-semibold">相关样例队伍</h3>
           </div>
           {relatedSamples.map((sample) => (
-            <TeamSampleCard key={sample.id} sample={sample} onImport={onImportSample} />
+            <TeamSampleCard key={sample.id} sample={sample} statusLabel={environment.dataStatusLabel} onImport={onImportSample} />
           ))}
         </section>
       )}
@@ -275,12 +281,14 @@ function PokemonEnvironmentDetail({
 }
 
 function FullRankingPage({
+  environment,
   battleType,
   rankings,
   onBattleTypeChange,
   onBack,
   onOpenPokemon,
 }: {
+  environment: EnvironmentState;
   battleType: EnvironmentBattleType;
   rankings: EnvironmentPokemonUsage[];
   onBattleTypeChange: (battleType: EnvironmentBattleType) => void;
@@ -299,8 +307,8 @@ function FullRankingPage({
           <div>
             <p className="text-[11px] uppercase tracking-wide text-textMuted">Ranking</p>
             <h2 className="mt-1 text-2xl font-semibold">完整宝可梦榜</h2>
-            <p className="mt-1 text-xs text-textSecondary">{environmentSourceLabel}</p>
-            <p className="mt-0.5 text-xs text-textSecondary">更新于 {formatUpdatedAt(environmentUpdatedAt)}</p>
+            <p className="mt-1 text-xs text-textSecondary">{environment.sourceLabel}</p>
+            <p className="mt-0.5 text-xs text-textSecondary">更新于 {formatUpdatedAt(environment.updatedAt)}</p>
           </div>
           <div className="grid grid-cols-2 rounded-lg border border-border bg-page p-1 text-sm font-semibold">
             {(Object.keys(battleTypeLabels) as EnvironmentBattleType[]).map((type) => (
@@ -328,15 +336,22 @@ function FullRankingPage({
   );
 }
 
-export function EnvironmentPage({ onImportSample }: { onImportSample: (sample: EnvironmentTeamSample) => Promise<void> | void }) {
+export function EnvironmentPage({
+  environment,
+  onImportSample,
+}: {
+  environment: EnvironmentState;
+  onImportSample: (sample: EnvironmentTeamSample) => Promise<void> | void;
+}) {
   const [battleType, setBattleType] = useState<EnvironmentBattleType>('singles');
   const [view, setView] = useState<'home' | 'ranking'>('home');
   const [detailState, setDetailState] = useState<{ pokemonId: string; returnView: 'home' | 'ranking' } | null>(null);
-  const rankings = useMemo(() => environmentPokemonUsage[battleType], [battleType]);
+  const rankings = useMemo(() => environment.pokemonUsage[battleType], [battleType, environment.pokemonUsage]);
 
   if (detailState) {
     return (
       <PokemonEnvironmentDetail
+        environment={environment}
         battleType={battleType}
         pokemonId={detailState.pokemonId}
         onImportSample={onImportSample}
@@ -351,6 +366,7 @@ export function EnvironmentPage({ onImportSample }: { onImportSample: (sample: E
   if (view === 'ranking') {
     return (
       <FullRankingPage
+        environment={environment}
         battleType={battleType}
         rankings={rankings}
         onBattleTypeChange={setBattleType}
@@ -369,8 +385,8 @@ export function EnvironmentPage({ onImportSample }: { onImportSample: (sample: E
           <div>
             <p className="text-[11px] uppercase tracking-wide text-textMuted">Environment</p>
             <h2 className="mt-1 text-2xl font-semibold">环境</h2>
-            <p className="mt-1 text-xs text-textSecondary">{environmentSourceLabel}</p>
-            <p className="mt-0.5 text-xs text-textSecondary">更新于 {formatUpdatedAt(environmentUpdatedAt)}</p>
+            <p className="mt-1 text-xs text-textSecondary">{environment.sourceLabel}</p>
+            <p className="mt-0.5 text-xs text-textSecondary">更新于 {formatUpdatedAt(environment.updatedAt)}</p>
           </div>
           <div className="grid grid-cols-2 rounded-lg border border-border bg-page p-1 text-sm font-semibold">
             {(Object.keys(battleTypeLabels) as EnvironmentBattleType[]).map((type) => (
@@ -410,10 +426,10 @@ export function EnvironmentPage({ onImportSample }: { onImportSample: (sample: E
           <Users size={16} className="text-accent" />
           <h3 className="text-sm font-semibold">样例队伍</h3>
         </div>
-        {environmentTeamSamples
+        {environment.teamSamples
           .filter((sample) => sample.battleType === battleType)
           .map((sample) => (
-            <TeamSampleCard key={sample.id} sample={sample} onImport={onImportSample} />
+            <TeamSampleCard key={sample.id} sample={sample} statusLabel={environment.dataStatusLabel} onImport={onImportSample} />
           ))}
       </section>
     </div>

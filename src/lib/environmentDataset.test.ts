@@ -5,18 +5,27 @@ import {
   type EnvironmentDataset,
   type EnvironmentDatasetCatalog,
 } from './environmentDataset';
-import {
-  environmentDatasetAuditIssues,
-  environmentPokemonUsage,
-  environmentSourceLabel,
-  environmentTeamSamples,
-} from '../data/environment';
+import singleRankedTeams from '../data/external/pokedb/s1_single_ranked_teams.json';
+import doubleRankedTeams from '../data/external/pokedb/s1_double_ranked_teams.json';
+import moveStats from '../data/external/pokedb/s1_move_stats.json';
+import teamSamples from '../data/external/pokedb/s1_team_samples.json';
+import { createEnvironmentStateFromPokeDbSnapshot } from '../data/environment';
 
 const catalog: EnvironmentDatasetCatalog = {
   pokemonIds: pokemon.map((entry) => entry.id),
   moveIds: moves.map((entry) => entry.id),
   itemIds: items.map((entry) => entry.id),
 };
+
+const pokedbEnvironmentState = createEnvironmentStateFromPokeDbSnapshot({
+  retrievedAt: '2026-06-05T06:34:02.661Z',
+  battles: {
+    singles: singleRankedTeams,
+    doubles: doubleRankedTeams,
+  },
+  moveStats,
+  teamSamples,
+});
 
 const makeDataset = (overrides: Partial<EnvironmentDataset> = {}): EnvironmentDataset => ({
   id: 'test-environment-dataset',
@@ -196,19 +205,19 @@ describe('environment dataset audit', () => {
   });
 
   it('keeps the current environment fixture audited before UI exports read it', () => {
-    expect(environmentDatasetAuditIssues).toEqual([]);
-    expect(environmentSourceLabel).toContain('PokeDB');
-    expect(environmentPokemonUsage.singles.length).toBeGreaterThanOrEqual(20);
-    expect(environmentPokemonUsage.doubles.length).toBeGreaterThanOrEqual(20);
-    expect(environmentPokemonUsage.doubles[0]).toMatchObject({
+    expect(pokedbEnvironmentState.auditIssues).toEqual([]);
+    expect(pokedbEnvironmentState.sourceLabel).toContain('PokeDB');
+    expect(pokedbEnvironmentState.pokemonUsage.singles.length).toBeGreaterThanOrEqual(20);
+    expect(pokedbEnvironmentState.pokemonUsage.doubles.length).toBeGreaterThanOrEqual(20);
+    expect(pokedbEnvironmentState.pokemonUsage.doubles[0]).toMatchObject({
       pokemonId: 'basculegion-male',
     });
-    expect(environmentPokemonUsage.doubles[0].moveIds.slice(0, 3)).toEqual(['last-respects', 'aqua-jet', 'wave-crash']);
-    expect(environmentPokemonUsage.singles.find((usage) => usage.pokemonId === 'garchomp')?.moveStats?.[0]).toEqual({
+    expect(pokedbEnvironmentState.pokemonUsage.doubles[0].moveIds.slice(0, 3)).toEqual(['last-respects', 'aqua-jet', 'wave-crash']);
+    expect(pokedbEnvironmentState.pokemonUsage.singles.find((usage) => usage.pokemonId === 'garchomp')?.moveStats?.[0]).toEqual({
       id: 'earthquake',
       usageRate: 99,
       teamCount: 282,
     });
-    expect(environmentTeamSamples.some((sample) => sample.dataKind === 'external-snapshot' && sample.reportUrl.startsWith('https://'))).toBe(true);
+    expect(pokedbEnvironmentState.teamSamples.some((sample) => sample.dataKind === 'external-snapshot' && sample.reportUrl.startsWith('https://'))).toBe(true);
   });
 });
