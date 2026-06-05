@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   createPokeDbOpenDataUpdateReport,
   formatPokeDbOpenDataUpdateReport,
+  parsePokeDbMoveStatsFromHtml,
   validatePokeDbRankedTeamsPayload,
 } from './pokedb-open-data-utils.mjs';
 
@@ -113,5 +114,43 @@ describe('PokeDB open data maintenance utils', () => {
     expect(text).toContain('9999-00');
     expect(text).toContain('unmapped item names');
     expect(text).toContain('未知アイテム');
+  });
+
+  it('extracts PokeDB move usage stats from pokemon detail HTML', () => {
+    const html = `
+      <span
+        class="pokemon-trend__move-name"
+        data-move-detail="{&quot;rank&quot;:1,&quot;move_key&quot;:89,&quot;name&quot;:&quot;じしん&quot;,&quot;rate&quot;:90.3,&quot;type&quot;:{&quot;id&quot;:4,&quot;name&quot;:&quot;じめん&quot;},&quot;category&quot;:1,&quot;category_label&quot;:&quot;物理&quot;,&quot;power&quot;:&quot;100&quot;,&quot;accuracy&quot;:&quot;100&quot;}"
+      >じしん</span>
+      <span
+        class="pokemon-trend__move-name"
+        data-move-detail="{&quot;rank&quot;:2,&quot;move_key&quot;:182,&quot;name&quot;:&quot;まもる&quot;,&quot;rate&quot;:69.6,&quot;type&quot;:{&quot;id&quot;:1,&quot;name&quot;:&quot;ノーマル&quot;},&quot;category&quot;:0,&quot;category_label&quot;:&quot;変化&quot;,&quot;power&quot;:&quot;−&quot;,&quot;accuracy&quot;:&quot;−&quot;}"
+      >まもる</span>
+      <span
+        class="pokemon-trend__move-name"
+        data-move-detail="{&quot;rank&quot;:3,&quot;move_key&quot;:99999,&quot;name&quot;:&quot;未知技&quot;,&quot;rate&quot;:12.5}"
+      >未知技</span>
+    `;
+
+    expect(parsePokeDbMoveStatsFromHtml(html, { moveKeyToId: { 89: 'earthquake', 182: 'protect' }, teamCount: 125, maxMoves: 10 })).toEqual({
+      stats: [
+        { id: 'earthquake', usageRate: 90.3, teamCount: 113 },
+        { id: 'protect', usageRate: 69.6, teamCount: 87 },
+      ],
+      unknownMoveKeys: [{ key: 99999, name: '未知技', count: 1 }],
+    });
+  });
+
+  it('keeps positive move usage visible for tiny samples', () => {
+    const html = `
+      <span
+        data-move-detail="{&quot;rank&quot;:1,&quot;move_key&quot;:89,&quot;name&quot;:&quot;move&quot;,&quot;rate&quot;:3.1}"
+      >move</span>
+    `;
+
+    expect(parsePokeDbMoveStatsFromHtml(html, { moveKeyToId: { 89: 'earthquake' }, teamCount: 2 })).toEqual({
+      stats: [{ id: 'earthquake', usageRate: 3.1, teamCount: 1 }],
+      unknownMoveKeys: [],
+    });
   });
 });

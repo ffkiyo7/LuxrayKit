@@ -32,12 +32,11 @@
 
 - `EnvironmentDataset` 已成为环境页唯一数据包入口；后续抓取结果必须先转换为该结构。
 - 所有环境数据必须通过 `auditEnvironmentDataset`，未知 Pokémon / 招式 / 道具引用不得静默进入 UI。
-- 当前已接入 PokeDB Open Data bundled snapshot：可稳定获得 Pokémon 样本出现率、携带道具占比、常见队友占比和队伍骨架。
-- Open Data 暂不包含招式统计、训练家名、队报链接和完整招式配置；这些字段不能在 UI 中伪造。
-- 优先把 PokeDB 宝可梦详情页的招式统计解析为 `moveStats`，再恢复“常用招式”模块。
+- 当前已接入 PokeDB bundled snapshot：Open Data 可稳定获得 Pokémon 样本出现率、携带道具占比、常见队友占比和队伍骨架；详情页解析可获得前 50 Pokémon 的真实 `moveStats`。
+- Open Data 暂不包含训练家名、队报链接和完整招式配置；这些字段不能在 UI 中伪造。
 - 对真实抓取数据建立 snapshot 与 audit 测试，避免无法识别 Pokémon、规则不匹配或字段缺失时静默写入坏数据。
 - 维护脚本已接入：`npm run data:pokedb:environment:check` 用于只读校验远端是否有更新，`npm run data:pokedb:environment` 用于写入本地 snapshot。
-- 继续增强维护脚本输出：后续可追加 trainer/list 队报解析、招式统计解析和更细的快照变更摘要。
+- 继续增强维护脚本输出：后续可追加 trainer/list 队报解析、更大范围的招式统计解析和更细的快照变更摘要。
 - 字段缺失但队伍骨架可识别时允许导入，并提示“已导入，可继续补全配置”。
 - 数据文案保持“上位构筑快照 / 样本占比”，不写成“官方使用率”或“全环境使用率”。
 - 评估把环境 snapshot 从主 bundle 拆成独立缓存文件，避免首包体积持续膨胀。

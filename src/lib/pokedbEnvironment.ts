@@ -136,6 +136,7 @@ const buildUsage = (
   pokemonKeyToId: Record<string, string>,
   itemNameToId: Record<string, string>,
   itemIds: Set<string>,
+  moveStatsByPokemonId: Record<string, EnvironmentReferenceUsage[]> = {},
 ): EnvironmentPokemonUsage[] => {
   const pokemonCounts = new Map<string, number>();
   const firstSeen = new Map<string, number>();
@@ -197,7 +198,8 @@ const buildUsage = (
         pokemonId,
         usageRate: Math.round((teamCount / teamTotal) * 1000) / 10,
         teamCount,
-        moveIds: [],
+        moveIds: moveStatsByPokemonId[pokemonId]?.map((stat) => stat.id) ?? [],
+        moveStats: moveStatsByPokemonId[pokemonId] ?? [],
         itemIds: sortedCounterKeys(itemCounts.get(pokemonId) ?? new Map(), itemFirstSeen.get(pokemonId) ?? new Map(), 10),
         itemStats,
         teammateIds: sortedCounterKeys(teammateCounts.get(pokemonId) ?? new Map(), teammateFirstSeen.get(pokemonId) ?? new Map(), 7),
@@ -215,6 +217,7 @@ export function buildEnvironmentDatasetFromPokeDbOpenData(options: {
   itemNameToId: Record<string, string>;
   itemIds: string[];
   battles: Partial<Record<EnvironmentBattleType, PokeDbRankedTeamsPayload>>;
+  moveStats?: Partial<Record<EnvironmentBattleType, Record<string, EnvironmentReferenceUsage[]>>>;
   teamSamples?: Partial<Record<EnvironmentBattleType, EnvironmentTeamSample[]>>;
 }): EnvironmentDataset {
   const itemIds = new Set(options.itemIds);
@@ -225,7 +228,7 @@ export function buildEnvironmentDatasetFromPokeDbOpenData(options: {
     const payload = options.battles[battleType];
     acc[battleType] = payload
       ? {
-          pokemonUsage: buildUsage(payload, options.pokemonKeyToId, options.itemNameToId, itemIds),
+          pokemonUsage: buildUsage(payload, options.pokemonKeyToId, options.itemNameToId, itemIds, options.moveStats?.[battleType]),
           teamSamples: options.teamSamples?.[battleType] ?? [],
         }
       : { ...emptyBattleDataset(), teamSamples: options.teamSamples?.[battleType] ?? [] };

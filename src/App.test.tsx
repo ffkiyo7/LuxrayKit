@@ -9,6 +9,7 @@ import {
   environmentPokemonUsage,
   environmentSourceLabel,
   environmentTeamSamples,
+  getEnvironmentMove,
   getEnvironmentPokemon,
 } from './data/environment';
 
@@ -16,6 +17,7 @@ const DB_NAME = 'pokemon-champions-assistant';
 const firstSinglesSample = environmentTeamSamples.find((sample) => sample.battleType === 'singles')!;
 const firstSinglesSampleTeamLabel = `队伍：样例 · ${firstSinglesSample.title}`;
 const topSinglesPokemon = getEnvironmentPokemon(environmentPokemonUsage.singles[0].pokemonId)!;
+const topSinglesMove = getEnvironmentMove(environmentPokemonUsage.singles[0].moveStats?.[0]?.id ?? '')!;
 const relatedGarchompSample = environmentTeamSamples.find(
   (sample) => sample.battleType === 'singles' && sample.slots.some((slot) => slot.pokemonId === 'garchomp'),
 )!;
@@ -310,7 +312,8 @@ describe('App page flows', () => {
 
     await user.click(screen.getByRole('button', { name: new RegExp(topSinglesPokemon.chineseName) }));
     expect(await screen.findByRole('heading', { name: topSinglesPokemon.chineseName })).toBeTruthy();
-    expect(screen.queryByText('常用招式')).toBeNull();
+    expect(screen.getByText('常用招式')).toBeTruthy();
+    expect(screen.getByText(topSinglesMove.chineseName)).toBeTruthy();
     expect(screen.getByText('携带道具')).toBeTruthy();
     expect(screen.getByText('常见队友')).toBeTruthy();
   });

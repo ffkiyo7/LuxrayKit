@@ -1,9 +1,10 @@
 import singleRankedTeams from './external/pokedb/s1_single_ranked_teams.json';
 import doubleRankedTeams from './external/pokedb/s1_double_ranked_teams.json';
+import moveStats from './external/pokedb/s1_move_stats.json';
 import { pokedbItemNameToId } from './external/pokedbItemNameMap';
 import { currentDataVersion, currentRuleSet, items, pokemon, regMaPokemonAllowlist } from './seed/regMA';
 import { buildEnvironmentDatasetFromPokeDbOpenData, createPokeDbPokemonKeyMap, type PokeDbRankedTeamsPayload } from '../lib/pokedbEnvironment';
-import type { EnvironmentTeamSample } from '../lib/environmentDataset';
+import type { EnvironmentBattleType, EnvironmentReferenceUsage, EnvironmentTeamSample } from '../lib/environmentDataset';
 
 const pokemonKeyToId = createPokeDbPokemonKeyMap(regMaPokemonAllowlist, pokemon);
 
@@ -48,7 +49,7 @@ export const pokedbRegMAEnvironmentDataset = buildEnvironmentDatasetFromPokeDbOp
   id: 'pokedb-reg-ma-s1-ranked-teams',
   ruleSetId: currentRuleSet.id,
   dataVersionId: currentDataVersion.id,
-  retrievedAt: '2026-06-05T03:44:11.814Z',
+  retrievedAt: '2026-06-05T06:19:56.088Z',
   pokemonKeyToId,
   itemNameToId: pokedbItemNameToId,
   itemIds: items.map((item) => item.id),
@@ -56,6 +57,7 @@ export const pokedbRegMAEnvironmentDataset = buildEnvironmentDatasetFromPokeDbOp
     singles: singleRankedTeams as PokeDbRankedTeamsPayload,
     doubles: doubleRankedTeams as PokeDbRankedTeamsPayload,
   },
+  moveStats: moveStats as Record<EnvironmentBattleType, Record<string, EnvironmentReferenceUsage[]>>,
   teamSamples: {
     singles: pokedbTeamSamples.filter((sample) => sample.battleType === 'singles'),
     doubles: pokedbTeamSamples.filter((sample) => sample.battleType === 'doubles'),

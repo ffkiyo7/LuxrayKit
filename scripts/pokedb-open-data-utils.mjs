@@ -14,6 +14,14 @@ const toSortedRecords = (map) =>
 
 const normalizeItemName = (value) => String(value ?? '').trim();
 
+const decodeHtmlAttribute = (value) =>
+  String(value ?? '')
+    .replace(/&quot;/g, '"')
+    .replace(/&#039;/g, "'")
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>');
+
 export function validatePokeDbRankedTeamsPayload(payload, label = 'payload') {
   const issues = [];
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
@@ -121,4 +129,37 @@ export function formatPokeDbOpenDataUpdateReport(report) {
   appendGroup('item ids missing from catalog', report.itemIdsMissingFromCatalog, (row) => `${row.id} (${row.count}) ${row.names.join(', ')}`);
 
   return lines.join('\n');
+}
+
+export function parsePokeDbMoveStatsFromHtml(html, { moveKeyToId, teamCount, maxMoves = 10 }) {
+  const unknownMoveKeys = new Map();
+  const stats = [];
+
+  for (const match of html.matchAll(/data-move-detail="([^"]+)"/g)) {
+    const detail = JSON.parse(decodeHtmlAttribute(match[1]));
+    const key = Number(detail.move_key);
+    const moveId = moveKeyToId[key];
+    if (!moveId) {
+      countByKey(unknownMoveKeys, key, (current) => ({
+        ...current,
+        name: current.name ?? String(detail.name ?? ''),
+      }));
+      continue;
+    }
+
+    const usageRate = Number(detail.rate);
+    if (!Number.isFinite(usageRate)) continue;
+    const approximateTeamCount = Math.round((usageRate / 100) * teamCount);
+    stats.push({
+      id: moveId,
+      usageRate,
+      teamCount: usageRate > 0 ? Math.max(1, approximateTeamCount) : 0,
+    });
+    if (stats.length >= maxMoves) break;
+  }
+
+  return {
+    stats,
+    unknownMoveKeys: toSortedRecords(unknownMoveKeys).map(({ key, name, count }) => ({ key: Number(key), name: name ?? '', count })),
+  };
 }

@@ -13,7 +13,7 @@
 - 图鉴身高 / 体重已从缓存 PokeAPI Pokémon 端点抽取为本地 `physicalMetrics` seed 映射，单位保持 PokeAPI 的 dm / hg 并在前端格式化为 m / kg。
 - 环境页已新增 `EnvironmentDataset` schema 与审计入口；当前默认读取 PokeDB Open Data bundled snapshot，开发 seed 仅作为审计失败回退。
 - PokeDB snapshot 当前包含 Season 1 单打 528 队、双打 71 队；可稳定计算 Pokémon 样本出现率、携带道具占比和常见队友占比。
-- PokeDB Open Data 不包含招式使用率、训练家名、队报链接、完整招式配置和样本登记时间；这些字段需要额外页面解析、人工补充或后续服务端产物。
+- PokeDB Open Data 不包含训练家名、队报链接、完整招式配置和样本登记时间；招式使用率通过维护脚本额外解析 Pokémon 详情页 `data-move-detail`，当前覆盖单打 / 双打各前 50 Pokémon。
 
 ## 来源优先级
 
@@ -34,9 +34,9 @@
 - 数据导入后必须经过 audit 测试。
 - 环境数据必须先转换为 `EnvironmentDataset`，再通过 `auditEnvironmentDataset`；未知 Pokémon / 招式 / 道具引用必须报告并从 UI 数据中剔除。
 - 真实环境抓取结果先落本地 snapshot，审计通过后才能成为默认环境数据。
-- Open Data 中不存在的字段不得伪造为统计结果；当前未接入真实招式统计时，环境详情页不展示“常用招式”榜。
+- Open Data 中不存在的字段不得伪造为统计结果；常用招式必须来自 PokeDB 详情页解析后的 `moveStats`。
 - 环境文案使用“上位构筑快照 / 样本占比”，避免“官方使用率 / 全环境使用率”等过度承诺。
-- PokeDB Open Data 更新必须通过 `npm run data:pokedb:environment` 写入；写入前脚本会校验 payload 结构，并报告未知 Pokémon key、未映射日文道具名和映射到不存在本地 catalog 的 item id。
+- PokeDB Open Data 更新必须通过 `npm run data:pokedb:environment` 写入；写入前脚本会校验 payload 结构，并报告未知 Pokémon key、未映射日文道具名、映射到不存在本地 catalog 的 item id 和未映射 move key。
 
 ## 授权边界
 
@@ -51,7 +51,7 @@
 - 对影响伤害的特性 / 道具建立审计清单。
 - 为图鉴身高 / 体重补充 sourceRefs / audit 脚本输出，降低未来重新生成时的漂移风险。
 - 将 PokeDB Open Data 维护脚本接入定期流程，并补充更细的 snapshot diff 摘要。
-- 解析 PokeDB 宝可梦详情页的招式统计，映射为 `moveStats` 后再恢复“常用招式”模块。
+- 扩大 PokeDB 宝可梦详情页招式统计覆盖范围，或改为按需缓存。
 - 扩展队报样本来源：Open Data 只提供队伍骨架，外部队报链接需要来自 trainer/list 页面解析或人工补充。
 - 评估环境 snapshot 从主 bundle 拆分为独立缓存资源，降低首包体积。
 - 为未来 Reg M-B 做 registry，而不是复制 Reg M-A 文件结构。

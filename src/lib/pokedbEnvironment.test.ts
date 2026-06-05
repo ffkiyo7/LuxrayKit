@@ -64,6 +64,14 @@ describe('PokeDB environment ingestion', () => {
       battles: {
         doubles: makePayload(),
       },
+      moveStats: {
+        doubles: {
+          charizard: [
+            { id: 'protect', usageRate: 92.3, teamCount: 2 },
+            { id: 'heat-wave', usageRate: 85, teamCount: 2 },
+          ],
+        },
+      },
     });
 
     expect(dataset.source.kind).toBe('community-snapshot');
@@ -75,7 +83,11 @@ describe('PokeDB environment ingestion', () => {
         pokemonId: 'charizard',
         usageRate: 100,
         teamCount: 2,
-        moveIds: [],
+        moveIds: ['protect', 'heat-wave'],
+        moveStats: [
+          { id: 'protect', usageRate: 92.3, teamCount: 2 },
+          { id: 'heat-wave', usageRate: 85, teamCount: 2 },
+        ],
         itemIds: ['charizardite-y'],
         itemStats: [{ id: 'charizardite-y', usageRate: 50, teamCount: 1 }],
         teammateIds: ['garchomp', 'sneasler'],
