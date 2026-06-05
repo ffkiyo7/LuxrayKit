@@ -36,6 +36,7 @@
 - 真实环境抓取结果先落本地 snapshot，审计通过后才能成为默认环境数据。
 - Open Data 中不存在的字段不得伪造为统计结果；当前未接入真实招式统计时，环境详情页不展示“常用招式”榜。
 - 环境文案使用“上位构筑快照 / 样本占比”，避免“官方使用率 / 全环境使用率”等过度承诺。
+- PokeDB Open Data 更新必须通过 `npm run data:pokedb:environment` 写入；写入前脚本会校验 payload 结构，并报告未知 Pokémon key、未映射日文道具名和映射到不存在本地 catalog 的 item id。
 
 ## 授权边界
 
@@ -49,7 +50,7 @@
 - 对 Champions 改动招式建立增量清单。
 - 对影响伤害的特性 / 道具建立审计清单。
 - 为图鉴身高 / 体重补充 sourceRefs / audit 脚本输出，降低未来重新生成时的漂移风险。
-- 将 PokeDB Open Data 更新流程脚本化：下载、校验、未知 item name 差异报告、生成 snapshot、跑 audit。
+- 将 PokeDB Open Data 维护脚本接入定期流程，并补充更细的 snapshot diff 摘要。
 - 解析 PokeDB 宝可梦详情页的招式统计，映射为 `moveStats` 后再恢复“常用招式”模块。
 - 扩展队报样本来源：Open Data 只提供队伍骨架，外部队报链接需要来自 trainer/list 页面解析或人工补充。
 - 评估环境 snapshot 从主 bundle 拆分为独立缓存资源，降低首包体积。

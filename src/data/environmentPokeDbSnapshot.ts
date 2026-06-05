@@ -48,7 +48,7 @@ export const pokedbRegMAEnvironmentDataset = buildEnvironmentDatasetFromPokeDbOp
   id: 'pokedb-reg-ma-s1-ranked-teams',
   ruleSetId: currentRuleSet.id,
   dataVersionId: currentDataVersion.id,
-  retrievedAt: '2026-06-05T10:45:00.000+08:00',
+  retrievedAt: '2026-06-05T03:44:11.814Z',
   pokemonKeyToId,
   itemNameToId: pokedbItemNameToId,
   itemIds: items.map((item) => item.id),

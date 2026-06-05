@@ -22,7 +22,7 @@ export type PokeDbRankedTeamSlot = {
 
 export type PokeDbRankedTeam = {
   rank: number;
-  rating_value: number;
+  rating_value: number | null;
   team: PokeDbRankedTeamSlot[];
 };
 

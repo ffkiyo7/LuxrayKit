@@ -36,7 +36,8 @@
 - Open Data 暂不包含招式统计、训练家名、队报链接和完整招式配置；这些字段不能在 UI 中伪造。
 - 优先把 PokeDB 宝可梦详情页的招式统计解析为 `moveStats`，再恢复“常用招式”模块。
 - 对真实抓取数据建立 snapshot 与 audit 测试，避免无法识别 Pokémon、规则不匹配或字段缺失时静默写入坏数据。
-- 编写维护脚本：下载 Open Data、校验 JSON、输出新增未知 Pokémon / item name、生成本地 snapshot。
+- 维护脚本已接入：`npm run data:pokedb:environment:check` 用于只读校验远端是否有更新，`npm run data:pokedb:environment` 用于写入本地 snapshot。
+- 继续增强维护脚本输出：后续可追加 trainer/list 队报解析、招式统计解析和更细的快照变更摘要。
 - 字段缺失但队伍骨架可识别时允许导入，并提示“已导入，可继续补全配置”。
 - 数据文案保持“上位构筑快照 / 样本占比”，不写成“官方使用率”或“全环境使用率”。
 - 评估把环境 snapshot 从主 bundle 拆成独立缓存文件，避免首包体积持续膨胀。

@@ -1,0 +1,124 @@
+const ignoredItemNames = new Set(['', '持ち物なし', '持ち物不明']);
+
+const countByKey = (map, key, update) => {
+  const current = map.get(key) ?? { count: 0 };
+  const next = update ? update(current) : current;
+  next.count += 1;
+  map.set(key, next);
+};
+
+const toSortedRecords = (map) =>
+  [...map.entries()]
+    .map(([key, value]) => ({ key, ...value }))
+    .sort((a, b) => b.count - a.count || a.key.localeCompare(b.key));
+
+const normalizeItemName = (value) => String(value ?? '').trim();
+
+export function validatePokeDbRankedTeamsPayload(payload, label = 'payload') {
+  const issues = [];
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+    return [`${label} must be an object.`];
+  }
+
+  if (typeof payload.season !== 'string' || !payload.season) issues.push(`${label}.season must be a non-empty string.`);
+  if (!Number.isInteger(payload.season_number)) issues.push(`${label}.season_number must be an integer.`);
+  if (typeof payload.rule !== 'string' || !payload.rule) issues.push(`${label}.rule must be a non-empty string.`);
+  if (typeof payload.updated_at !== 'string' || !payload.updated_at) issues.push(`${label}.updated_at must be a non-empty string.`);
+  if (!Array.isArray(payload.teams) || payload.teams.length === 0) {
+    issues.push(`${label}.teams must be a non-empty array.`);
+    return issues;
+  }
+
+  payload.teams.forEach((team, teamIndex) => {
+    const path = `${label}.teams[${teamIndex}]`;
+    if (!Number.isInteger(team?.rank)) issues.push(`${path}.rank must be an integer.`);
+    if (team?.rating_value !== null && !Number.isFinite(team?.rating_value)) issues.push(`${path}.rating_value must be a number or null.`);
+    if (!Array.isArray(team?.team) || team.team.length === 0) {
+      issues.push(`${path}.team must be a non-empty array.`);
+      return;
+    }
+    team.team.forEach((slot, slotIndex) => {
+      const slotPath = `${path}.team[${slotIndex}]`;
+      const isEmptySlot = !slot?.id && !slot?.pokemon && !slot?.item;
+      if (isEmptySlot) return;
+      if (typeof slot?.id !== 'string' || !slot.id) issues.push(`${slotPath}.id must be a non-empty string.`);
+      if (typeof slot?.pokemon !== 'string') issues.push(`${slotPath}.pokemon must be a string.`);
+      if (typeof slot?.item !== 'string') issues.push(`${slotPath}.item must be a string.`);
+    });
+  });
+
+  return issues;
+}
+
+export function createPokeDbOpenDataUpdateReport({ battles, pokemonKeyToId, itemNameToId, itemIds }) {
+  const itemIdSet = new Set(itemIds ?? []);
+  const unknownPokemon = new Map();
+  const unmappedItems = new Map();
+  const missingItemIds = new Map();
+
+  const battleSummaries = Object.entries(battles ?? {}).map(([battleType, payload]) => {
+    payload.teams.forEach((team) => {
+      team.team.forEach((slot) => {
+        if (!slot.id && !slot.pokemon && !slot.item) return;
+        if (!pokemonKeyToId[slot.id]) {
+          countByKey(unknownPokemon, slot.id, (current) => ({
+            ...current,
+            names: [...new Set([...(current.names ?? []), slot.pokemon].filter(Boolean))],
+          }));
+        }
+
+        const itemName = normalizeItemName(slot.item);
+        if (ignoredItemNames.has(itemName)) return;
+
+        const itemId = itemNameToId[itemName];
+        if (!itemId) {
+          countByKey(unmappedItems, itemName);
+          return;
+        }
+        if (itemIdSet.size > 0 && !itemIdSet.has(itemId)) {
+          countByKey(missingItemIds, itemId, (current) => ({
+            ...current,
+            names: [...new Set([...(current.names ?? []), itemName])],
+          }));
+        }
+      });
+    });
+
+    return {
+      battleType,
+      season: payload.season,
+      rule: payload.rule,
+      updatedAt: payload.updated_at,
+      teamCount: payload.teams.length,
+    };
+  });
+
+  return {
+    battles: battleSummaries,
+    unknownPokemonKeys: toSortedRecords(unknownPokemon).map(({ key, names, count }) => ({ key, names: names ?? [], count })),
+    unmappedItemNames: toSortedRecords(unmappedItems).map(({ key, count }) => ({ name: key, count })),
+    itemIdsMissingFromCatalog: toSortedRecords(missingItemIds).map(({ key, names, count }) => ({ id: key, names: names ?? [], count })),
+  };
+}
+
+export function hasBlockingPokeDbOpenDataIssues(report) {
+  return report.unknownPokemonKeys.length > 0 || report.unmappedItemNames.length > 0 || report.itemIdsMissingFromCatalog.length > 0;
+}
+
+export function formatPokeDbOpenDataUpdateReport(report) {
+  const lines = ['PokeDB Open Data report'];
+  report.battles.forEach((battle) => {
+    lines.push(`- ${battle.battleType}: ${battle.season} / ${battle.rule} / ${battle.teamCount} teams / updated ${battle.updatedAt}`);
+  });
+
+  const appendGroup = (title, rows, formatRow) => {
+    lines.push(`- ${title}: ${rows.length ? `${rows.length} issue(s)` : 'none'}`);
+    rows.forEach((row) => lines.push(`  - ${formatRow(row)}`));
+  };
+
+  appendGroup('unknown Pokemon keys', report.unknownPokemonKeys, (row) => `${row.key} (${row.count}) ${row.names.join(', ')}`);
+  appendGroup('unmapped item names', report.unmappedItemNames, (row) => `${row.name} (${row.count})`);
+  appendGroup('item ids missing from catalog', report.itemIdsMissingFromCatalog, (row) => `${row.id} (${row.count}) ${row.names.join(', ')}`);
+
+  return lines.join('\n');
+}

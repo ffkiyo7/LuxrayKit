@@ -21,6 +21,7 @@
 - 环境首页：单打 / 双打切换、宝可梦榜、真实样本队伍、队报链接、导入配置，并标注 PokeDB 上位构筑快照来源。
 - PokeDB Open Data 接入：内置 `s1_single_ranked_teams.json` 与 `s1_double_ranked_teams.json`，当前快照分别包含 528 / 71 支队伍。
 - PokeDB 转换器：把 PokeDB Pokémon key 映射到本地 Reg M-A Pokémon id，计算样本出现率、队伍数、当前宝可梦携带道具占比和常见队友占比。
+- PokeDB 维护脚本：新增 `npm run data:pokedb:environment:check` 与 `npm run data:pokedb:environment`，可下载 Open Data、校验 payload、报告未知 Pokémon / 未映射道具 / 失效 item id，并在干净时写入本地 snapshot。
 - 环境数据包：`EnvironmentDataset` schema 和 audit 入口已成为环境页唯一数据入口；UI 读取的是通过审计后的环境榜单与队伍样例。
 - 环境审计：未知 Pokémon / 招式 / 道具引用会被报告并从 UI 数据中剔除；规则版本、数据版本、使用率、队伍数和引用统计字段会在导入前校验。
 - 完整宝可梦榜：从环境首页进入，点击 Pokémon 进入环境详情，而不是跳传统图鉴页。
@@ -64,12 +65,11 @@
 
 详见 `docs/progress/NEXT_ROUND_PLAN.md`。优先级：
 
-1. 把 PokeDB Open Data 更新流程脚本化：下载、校验、生成 item name map 差异报告、写入 snapshot、跑 audit。
-2. 研究并实现 PokeDB 宝可梦详情页统计解析，优先接入真实常用招式 `moveStats`，避免 UI 再出现占位排名。
-3. 扩展外部样本采集，区分 Open Data 队伍骨架和真实队报链接来源。
-4. 把环境 snapshot 从主 bundle 拆为独立缓存资源，降低首包体积和 Vite chunk warning。
-5. 继续交叉验证伤害计算公式与典型样例，补齐 Champions 特有招式 / 特性 / 道具对伤害的影响。
-6. 设计 Reg registry，避免未来规则切换散改数据入口。
+1. 研究并实现 PokeDB 宝可梦详情页统计解析，优先接入真实常用招式 `moveStats`，避免 UI 再出现占位排名。
+2. 扩展外部样本采集，区分 Open Data 队伍骨架和真实队报链接来源。
+3. 把环境 snapshot 从主 bundle 拆为独立缓存资源，降低首包体积和 Vite chunk warning。
+4. 继续交叉验证伤害计算公式与典型样例，补齐 Champions 特有招式 / 特性 / 道具对伤害的影响。
+5. 设计 Reg registry，避免未来规则切换散改数据入口。
 
 ## 文档索引
 

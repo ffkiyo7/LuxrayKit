@@ -22,6 +22,13 @@ npm run dev
 npm run build
 ```
 
+环境快照维护：
+
+```bash
+npm run data:pokedb:environment:check
+npm run data:pokedb:environment
+```
+
 ## 当前实现范围
 
 - 4 个底部 Tab：环境、队伍、工具、我的
@@ -49,6 +56,6 @@ npm run build
 
 当前主数据是 `v0.2.0-seed` 版本化 Reg M-A seed，来源包括官方规则 / allowlist、PokeAPI、PokéBase Champions、社区中文资料与本地人工复核标记。图鉴身高 / 体重来自缓存 PokeAPI 主系列数据。
 
-环境页当前默认使用 `src/data/external/pokedb/` 下的 PokeDB Open Data bundled snapshot：单打 528 队，双打 71 队，更新时间分别来自 PokeDB payload。该数据代表“上位构筑样本”，不包装成官方完整使用率。Open Data 不包含招式使用率，因此宝可梦详情页暂不展示“常用招式”榜；待后续服务端抓取 / 解析 PokeDB 详情页统计后再接入。所有环境数据会先通过 `src/lib/environmentDataset.ts` 审计，未知 Pokémon / 招式 / 道具引用会被报告并从 UI 数据中剔除。
+环境页当前默认使用 `src/data/external/pokedb/` 下的 PokeDB Open Data bundled snapshot：单打 528 队，双打 71 队，更新时间分别来自 PokeDB payload。该数据代表“上位构筑样本”，不包装成官方完整使用率。Open Data 不包含招式使用率，因此宝可梦详情页暂不展示“常用招式”榜；待后续服务端抓取 / 解析 PokeDB 详情页统计后再接入。所有环境数据会先通过 `src/lib/environmentDataset.ts` 审计，未知 Pokémon / 招式 / 道具引用会被报告并从 UI 数据中剔除。`scripts/update-pokedb-environment.mjs` 会在写入前检查未知 Pokémon、未映射日文道具名和失效 item id。
 
 速度线基于 Champions SP v1 口径；伤害计算仍是 **experimental mainline approximation**：使用 `@smogon/calc` Gen9 主线公式近似，并代入项目采集的 Champions 招式参数与 SP 能力值。伤害、合法性和未确认机制不应被视为官方 Champions 正式结论。

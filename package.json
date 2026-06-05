@@ -12,7 +12,9 @@
     "test:visual": "playwright test tests/pwa/visual.spec.ts",
     "data:regma:allowlist": "node scripts/generate-regma-allowlist.mjs",
     "data:regma:abilities": "node scripts/generate-ability-effects.mjs",
-    "data:regma:moves": "node scripts/generate-champions-moves.mjs"
+    "data:regma:moves": "node scripts/generate-champions-moves.mjs",
+    "data:pokedb:environment": "node scripts/update-pokedb-environment.mjs",
+    "data:pokedb:environment:check": "node scripts/update-pokedb-environment.mjs --check"
   },
   "dependencies": {
     "@smogon/calc": "^0.11.0",
