@@ -69,6 +69,18 @@ const runStore = async <T>(
   });
 };
 
+const teamOrderValue = (team: Team, fallbackIndex: number) =>
+  typeof team.sortOrder === 'number' && Number.isFinite(team.sortOrder) ? team.sortOrder : fallbackIndex;
+
+const sortTeamsForList = (teams: Team[]) =>
+  teams
+    .map((team, index) => ({ team, index }))
+    .sort((a, b) => {
+      const orderDiff = teamOrderValue(a.team, a.index) - teamOrderValue(b.team, b.index);
+      return orderDiff || a.index - b.index;
+    })
+    .map(({ team }) => team);
+
 export const repository = {
   async loadState(): Promise<AppState> {
     const teams = await runStore<Team[]>(TEAM_STORE, 'readonly', (store) => store.getAll());
@@ -87,7 +99,7 @@ export const repository = {
     }
 
     return {
-      teams,
+      teams: sortTeamsForList(teams),
       preferences: preferencesRow?.value ?? defaultPreferences,
     };
   },

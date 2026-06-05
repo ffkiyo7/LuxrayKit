@@ -89,6 +89,7 @@ const normalizeTeam = (team: RawTeam, index: number, migrateLegacyStats = false)
     members: team.members.map((member, memberIndex) => migrateMember(member, memberIndex, migrateLegacyStats)),
     createdAt: team.createdAt || now(),
     updatedAt: team.updatedAt || now(),
+    ...(typeof team.sortOrder === 'number' && Number.isFinite(team.sortOrder) ? { sortOrder: team.sortOrder } : {}),
     notes: team.notes || '',
     ...(normalizedSource ? { source: normalizedSource } : {}),
   };

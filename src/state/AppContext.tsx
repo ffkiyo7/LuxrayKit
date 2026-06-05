@@ -22,6 +22,16 @@ const AppContext = createContext<Store | undefined>(undefined);
 
 const now = () => new Date().toISOString();
 
+const teamSortOrder = (team: Team, fallbackIndex: number) =>
+  typeof team.sortOrder === 'number' && Number.isFinite(team.sortOrder) ? team.sortOrder : fallbackIndex;
+
+const nextTopSortOrder = (teams: Team[]) => {
+  if (teams.length === 0) return 0;
+  return Math.min(...teams.map((team, index) => teamSortOrder(team, index))) - 1;
+};
+
+const withSequentialSortOrder = (teams: Team[]) => teams.map((team, index) => ({ ...team, sortOrder: index }));
+
 const createEmptyTeam = (name?: string): Team => ({
   id: createId('team'),
   name: name || `新队伍 ${new Date().toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' })}`,
@@ -61,13 +71,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const saveTeam = useCallback(async (team: Team) => {
-    const nextTeam = { ...team, updatedAt: now() };
+    const exists = teams.some((item) => item.id === team.id);
+    const nextTeam = {
+      ...team,
+      sortOrder: team.sortOrder ?? (exists ? team.sortOrder : nextTopSortOrder(teams)),
+      updatedAt: now(),
+    };
     setTeams((current) => {
-      const exists = current.some((item) => item.id === team.id);
       return exists ? current.map((item) => (item.id === team.id ? nextTeam : item)) : [nextTeam, ...current];
     });
     await repository.saveTeam(nextTeam);
-  }, []);
+  }, [teams]);
 
   const deleteTeam = useCallback(async (teamId: string) => {
     setTeams((current) => current.filter((item) => item.id !== teamId));
@@ -75,11 +89,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const addTeam = useCallback(async (name?: string) => {
-    const team = createEmptyTeam(name);
+    const team = { ...createEmptyTeam(name), sortOrder: nextTopSortOrder(teams) };
     setTeams((current) => [team, ...current]);
     await repository.saveTeam(team);
     return team;
-  }, []);
+  }, [teams]);
 
   const updateMember = useCallback(
     async (teamId: string, member: TeamMember) => {
@@ -125,8 +139,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   );
 
   const replaceTeams = useCallback(async (nextTeams: Team[]) => {
-    setTeams(nextTeams);
-    await repository.replaceTeams(nextTeams);
+    const orderedTeams = withSequentialSortOrder(nextTeams);
+    setTeams(orderedTeams);
+    await repository.replaceTeams(orderedTeams);
   }, []);
 
   const clearLocalData = useCallback(async () => {

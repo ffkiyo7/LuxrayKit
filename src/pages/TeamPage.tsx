@@ -1,5 +1,5 @@
-import { ArrowLeft, BarChart3, ChevronUp, Download, Edit3, Minus, Plus, Save, Search, Trash2, X } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { ArrowLeft, BarChart3, ChevronUp, Download, Edit3, GripVertical, Minus, Plus, Save, Search, Trash2, X } from 'lucide-react';
+import { useMemo, useRef, useState } from 'react';
 import { abilities, currentRuleNatureOptions, items, moves, pokemon } from '../data';
 import { buildTeamAnalysisDetails, memberBattleStats, memberLabel } from '../lib/calculations';
 import { currentRuleMovesForPokemon, currentRuleNatures, currentRuleSelectableItemsForPokemon, natureOptionLabel } from '../lib/currentRuleCatalog';
@@ -22,6 +22,18 @@ const blankMember = (): TeamMember => ({
   notes: '',
   legalityStatus: 'missing-config',
 });
+
+const DRAG_REORDER_FALLBACK_ROW_HEIGHT = 72;
+
+type TeamDragState = {
+  teamId: string;
+  sourceIndex: number;
+  startY: number;
+  currentY: number;
+  targetIndex: number;
+};
+
+const clampIndex = (index: number, length: number) => Math.max(0, Math.min(length - 1, index));
 
 function HeldItemIcon({
   iconRef,
@@ -747,73 +759,108 @@ function TeamListCard({
   team,
   active,
   recentlyImported,
+  index,
+  dragging,
+  dragOffsetY,
+  dropTarget,
+  setCardRef,
   onEdit,
   onGenerateImage,
+  onDelete,
+  onDragCancel,
+  onDragEnd,
+  onDragMove,
+  onDragStart,
 }: {
   team: Team;
   active: boolean;
   recentlyImported: boolean;
+  index: number;
+  dragging: boolean;
+  dragOffsetY: number;
+  dropTarget: boolean;
+  setCardRef: (element: HTMLElement | null) => void;
   onEdit: () => void;
   onGenerateImage: () => void;
+  onDelete: () => void;
+  onDragCancel: () => void;
+  onDragEnd: (event: React.PointerEvent<HTMLButtonElement>) => void;
+  onDragMove: (event: React.PointerEvent<HTMLButtonElement>) => void;
+  onDragStart: (event: React.PointerEvent<HTMLButtonElement>) => void;
 }) {
   const visibleMembers = team.members.slice(0, 6);
-  const sourceBadge =
-    team.source?.kind === 'high-score-import'
-      ? '高分导入'
-      : team.source?.kind === 'environment-sample-import'
-        ? '上位构筑导入'
-        : team.source?.kind === 'external-report-import'
-          ? '队报导入'
-          : undefined;
-  const sourceSummary =
-    team.source?.kind === 'high-score-import'
-      ? `${team.source.author} · ${team.source.score} 分`
-      : team.source?.kind === 'environment-sample-import'
-        ? team.source.label
-        : team.source?.kind === 'external-report-import'
-          ? team.source.title
-          : team.notes || '本地队伍';
 
   return (
     <section
+      ref={setCardRef}
       aria-label={`队伍：${team.name}`}
       data-import-highlighted={recentlyImported ? 'true' : undefined}
-      className={`surface-shadow rounded-lg border bg-card p-3 ${
+      style={dragging ? { transform: `translateY(${dragOffsetY}px)` } : undefined}
+      className={`surface-shadow relative rounded-lg border bg-card p-3 ${
         recentlyImported
           ? 'border-success ring-2 ring-success/45 shadow-[0_0_0_1px_rgb(var(--color-success)/0.35)]'
           : active
             ? 'border-accent shadow-[0_0_0_1px_rgb(var(--color-accent)/0.45)]'
             : 'border-border'
-      }`}
+      } ${
+        dragging
+          ? 'z-10 scale-[1.01] cursor-grabbing shadow-[0_18px_36px_rgb(0_0_0/0.32)] transition-none'
+          : 'transition-[transform,box-shadow,border-color] duration-150'
+      } ${dropTarget ? 'ring-1 ring-accent/35' : ''}`}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
+      <button
+        aria-label={`删除 ${team.name}`}
+        className="absolute right-3 top-3 grid h-3.5 w-3.5 place-items-center rounded-[4px] border border-danger/45 bg-black transition active:scale-[0.96]"
+        title={`删除 ${team.name}`}
+        type="button"
+        onClick={onDelete}
+      >
+        <span className="h-px w-1.5 rounded-full bg-danger" aria-hidden="true" />
+      </button>
+      <div className="flex items-start justify-between gap-3 pr-5">
+        <div className="min-w-0 flex-1">
           <span className="block truncate text-sm font-semibold">{team.name}</span>
-          <p className="mt-1 text-xs text-textSecondary">{team.members.length}/6 成员 · {sourceSummary}</p>
-        </div>
-        <div className="flex shrink-0 flex-wrap justify-end gap-1">
-          {sourceBadge && <Badge status="version">{sourceBadge}</Badge>}
-          {active && <Badge status="current">当前</Badge>}
+          <p className="mt-1 text-xs text-textSecondary">{team.members.length}/6 成员</p>
         </div>
       </div>
-      <div className="mt-3 flex gap-2">
-        {visibleMembers.map((member) => {
-          const entry = pokemon.find((item) => item.id === member.pokemonId);
-          const battleForm = getMemberBattleForm(member);
-          return (
-            <PokemonAvatar
-              key={member.id}
-              iconRef={battleForm?.iconRef ?? entry?.iconRef}
-              label={battleForm?.chineseName ?? entry?.chineseName ?? '未配置 Pokémon'}
-              size="sm"
-            />
-          );
-        })}
-        {Array.from({ length: Math.max(0, 6 - visibleMembers.length) }).map((_, index) => (
-          <span key={`empty-${index}`} className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-dashed border-border text-[10px] text-textMuted">
-            +
-          </span>
-        ))}
+      <div className="mt-3 flex items-center gap-2">
+        <div className="flex min-w-0 flex-1 gap-2 overflow-hidden">
+          {visibleMembers.map((member) => {
+            const entry = pokemon.find((item) => item.id === member.pokemonId);
+            const battleForm = getMemberBattleForm(member);
+            return (
+              <PokemonAvatar
+                key={member.id}
+                iconRef={battleForm?.iconRef ?? entry?.iconRef}
+                label={battleForm?.chineseName ?? entry?.chineseName ?? '未配置 Pokémon'}
+                size="sm"
+              />
+            );
+          })}
+          {Array.from({ length: Math.max(0, 6 - visibleMembers.length) }).map((_, emptyIndex) => (
+            <span key={`empty-${emptyIndex}`} className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-dashed border-border text-[10px] text-textMuted">
+              +
+            </span>
+          ))}
+        </div>
+        <button
+          aria-label={`拖动排序 ${team.name}`}
+          className="grid h-9 w-[18px] shrink-0 touch-none place-items-center rounded-md border border-border bg-secondary text-textMuted transition active:scale-[0.96] active:text-textSecondary"
+          title={`拖动排序 ${team.name}`}
+          type="button"
+          onPointerCancel={onDragCancel}
+          onPointerDown={(event) => {
+            event.currentTarget.setPointerCapture?.(event.pointerId);
+            onDragStart(event);
+          }}
+          onPointerMove={onDragMove}
+          onPointerUp={(event) => {
+            event.currentTarget.releasePointerCapture?.(event.pointerId);
+            onDragEnd(event);
+          }}
+        >
+          <GripVertical size={12} />
+        </button>
       </div>
       <div className="mt-3 grid grid-cols-2 gap-2">
         <Button variant="ghost" onClick={onEdit}>
@@ -854,6 +901,33 @@ function TeamImageResultDialog({
           <Download size={14} />
           保存图片
         </Button>
+      </div>
+    </div>
+  );
+}
+
+function ConfirmDeleteTeamDialog({
+  team,
+  onCancel,
+  onConfirm,
+}: {
+  team: Team;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-40 mx-auto max-w-[430px]" role="dialog" aria-label="确认删除队伍">
+      <div className="absolute inset-0 bg-overlay/70" onClick={onCancel} />
+      <div className="absolute inset-x-4 top-1/2 -translate-y-1/2 rounded-xl border border-danger/45 bg-card p-4 shadow-[0_18px_48px_rgb(0_0_0/0.45)]">
+        <h3 className="text-base font-semibold text-danger">删除队伍？</h3>
+        <p className="mt-2 text-sm text-textSecondary">确定删除「{team.name}」吗？此操作不能撤销。</p>
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          <Button variant="ghost" onClick={onCancel}>取消</Button>
+          <Button variant="danger" onClick={onConfirm}>
+            <Trash2 size={14} />
+            确认删除
+          </Button>
+        </div>
       </div>
     </div>
   );
@@ -906,7 +980,7 @@ export function TeamPage({
   highlightedTeamId?: string;
   onActiveTeamChange: (teamId: string | undefined) => void;
 }) {
-  const { teams, addTeam, deleteTeam, saveTeam, updateMember } = useAppStore();
+  const { teams, addTeam, deleteTeam, replaceTeams, saveTeam, updateMember } = useAppStore();
   const [detailTeamId, setDetailTeamId] = useState<string | null>(null);
   const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
   const [expandedMemberId, setExpandedMemberId] = useState<string | null>(null);
@@ -917,6 +991,9 @@ export function TeamPage({
   const [nameDraft, setNameDraft] = useState('');
   const [renamingTeamId, setRenamingTeamId] = useState<string | null>(null);
   const [inlineNameDraft, setInlineNameDraft] = useState('');
+  const [pendingDeleteTeam, setPendingDeleteTeam] = useState<Team | null>(null);
+  const [dragState, setDragState] = useState<TeamDragState | null>(null);
+  const teamCardRefs = useRef<Record<string, HTMLElement | null>>({});
   const activeListTeam = teams.find((team) => team.id === activeTeamId) ?? teams[0];
   const activeTeam = detailTeamId ? teams.find((team) => team.id === detailTeamId) : undefined;
   const editingMember = activeTeam?.members.find((member) => member.id === editingMemberId);
@@ -982,13 +1059,76 @@ export function TeamPage({
     setExpandedMemberId(null);
   };
 
-  const removeActiveTeam = async () => {
-    if (!activeTeam) return;
-    const nextTeam = teams.find((team) => team.id !== activeTeam.id);
-    await deleteTeam(activeTeam.id);
-    onActiveTeamChange(nextTeam?.id);
-    setDetailTeamId(null);
-    setExpandedMemberId(null);
+  const confirmDeleteTeam = async () => {
+    if (!pendingDeleteTeam) return;
+    const team = pendingDeleteTeam;
+    const teamIndex = teams.findIndex((candidate) => candidate.id === team.id);
+    const remainingTeams = teams.filter((candidate) => candidate.id !== team.id);
+    const nextActiveTeam = remainingTeams[Math.min(Math.max(teamIndex, 0), remainingTeams.length - 1)];
+    await deleteTeam(team.id);
+    if (activeTeamId === team.id) onActiveTeamChange(nextActiveTeam?.id);
+    if (detailTeamId === team.id) {
+      setDetailTeamId(null);
+      setExpandedMemberId(null);
+      setEditingMemberId(null);
+    }
+    setPendingDeleteTeam(null);
+  };
+
+  const resolveDragTargetIndex = (clientY: number, sourceIndex: number, startY: number) => {
+    const measuredRows = teams
+      .map((team, rowIndex) => {
+        const rect = teamCardRefs.current[team.id]?.getBoundingClientRect();
+        if (!rect || rect.height <= 0) return null;
+        return { rowIndex, midpoint: rect.top + rect.height / 2 };
+      })
+      .filter((row): row is { rowIndex: number; midpoint: number } => Boolean(row));
+
+    if (measuredRows.length > 0) {
+      return measuredRows.find((row) => clientY < row.midpoint)?.rowIndex ?? measuredRows[measuredRows.length - 1].rowIndex;
+    }
+
+    const fallbackSteps = Math.round((clientY - startY) / DRAG_REORDER_FALLBACK_ROW_HEIGHT);
+    return clampIndex(sourceIndex + fallbackSteps, teams.length);
+  };
+
+  const moveTeamToIndex = async (teamId: string, targetIndex: number) => {
+    const currentIndex = teams.findIndex((team) => team.id === teamId);
+    if (currentIndex < 0 || targetIndex < 0 || targetIndex >= teams.length || currentIndex === targetIndex) return;
+    const nextTeams = [...teams];
+    const [movedTeam] = nextTeams.splice(currentIndex, 1);
+    nextTeams.splice(targetIndex, 0, movedTeam);
+    await replaceTeams(nextTeams);
+  };
+
+  const startTeamDrag = (team: Team, index: number, event: React.PointerEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    setDragState({
+      teamId: team.id,
+      sourceIndex: index,
+      startY: event.clientY,
+      currentY: event.clientY,
+      targetIndex: index,
+    });
+  };
+
+  const updateTeamDrag = (event: React.PointerEvent<HTMLButtonElement>) => {
+    setDragState((current) => {
+      if (!current) return current;
+      return {
+        ...current,
+        currentY: event.clientY,
+        targetIndex: resolveDragTargetIndex(event.clientY, current.sourceIndex, current.startY),
+      };
+    });
+  };
+
+  const finishTeamDrag = async (event: React.PointerEvent<HTMLButtonElement>) => {
+    if (!dragState) return;
+    const targetIndex = resolveDragTargetIndex(event.clientY, dragState.sourceIndex, dragState.startY);
+    const draggedTeamId = dragState.teamId;
+    setDragState(null);
+    await moveTeamToIndex(draggedTeamId, targetIndex);
   };
 
   const handlePickPokemon = async (entry: typeof pokemon[number]) => {
@@ -1025,14 +1165,26 @@ export function TeamPage({
             <EmptyState title="还没有队伍" action={<Button onClick={openCreateModal}>新建第一支队伍</Button>} />
           ) : (
             <div className="space-y-2">
-              {teams.map((team) => (
+              {teams.map((team, index) => (
                 <TeamListCard
                   key={team.id}
                   team={team}
                   active={team.id === activeListTeam?.id}
                   recentlyImported={team.id === highlightedTeamId}
+                  index={index}
+                  dragging={dragState?.teamId === team.id}
+                  dragOffsetY={dragState?.teamId === team.id ? dragState.currentY - dragState.startY : 0}
+                  dropTarget={Boolean(dragState && dragState.teamId !== team.id && dragState.targetIndex === index)}
+                  setCardRef={(element) => {
+                    teamCardRefs.current[team.id] = element;
+                  }}
                   onEdit={() => openTeamDetail(team.id)}
                   onGenerateImage={() => void generateTeamImage(team)}
+                  onDelete={() => setPendingDeleteTeam(team)}
+                  onDragCancel={() => setDragState(null)}
+                  onDragEnd={(event) => void finishTeamDrag(event)}
+                  onDragMove={updateTeamDrag}
+                  onDragStart={(event) => startTeamDrag(team, index, event)}
                 />
               ))}
             </div>
@@ -1104,7 +1256,7 @@ export function TeamPage({
             展开队伍分析
           </Button>
 
-          <Button variant="danger" className="w-full" title="删除队伍" onClick={removeActiveTeam}>
+          <Button variant="danger" className="w-full" title="删除队伍" onClick={() => setPendingDeleteTeam(activeTeam)}>
             <Trash2 size={14} />
             删除队伍
           </Button>
@@ -1132,6 +1284,13 @@ export function TeamPage({
         onConfirm={confirmName}
         onClose={() => setShowNameModal(false)}
       />
+      {pendingDeleteTeam && (
+        <ConfirmDeleteTeamDialog
+          team={pendingDeleteTeam}
+          onCancel={() => setPendingDeleteTeam(null)}
+          onConfirm={() => void confirmDeleteTeam()}
+        />
+      )}
       {shareImage && <TeamImageResultDialog teamName={shareImage.teamName} image={shareImage.image} onClose={() => setShareImage(null)} />}
     </div>
   );

@@ -241,6 +241,7 @@ export type Team = {
   members: TeamMember[];
   createdAt: string;
   updatedAt: string;
+  sortOrder?: number;
   notes: string;
   source?: TeamSource;
 };
@@ -283,6 +284,7 @@ export type UserPreference = {
   defaultBenchmarkFilters: string[];
   cachedRuleSetId: string;
   lastDataRefreshAt: string;
+  hasSeenEnvironmentImportNotice: boolean;
 };
 
 export type AppState = {

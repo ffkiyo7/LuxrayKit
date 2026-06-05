@@ -1,12 +1,12 @@
-import { ArrowLeft, BarChart3, ShieldCheck, UserCircle, Users, Wrench } from 'lucide-react';
+import { ArrowLeft, BarChart3, ExternalLink, ShieldCheck, UserCircle, Users, Wrench } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { BottomNav } from './components/BottomNav';
 import { Header } from './components/Header';
+import { Button } from './components/ui';
 import { currentDataVersion, currentRuleNatureOptions, currentRuleSet, pokemon } from './data';
 import { environmentFallbackState, loadEnvironmentState, type EnvironmentState, type EnvironmentTeamSample } from './data/environment';
 import { currentRuleMovesForPokemon } from './lib/currentRuleCatalog';
 import { createId } from './lib/id';
-import { findMegaFormByItem } from './lib/pokemonForms';
 import { AppProvider, useAppStore } from './state/AppContext';
 import type { Team, TeamMember } from './types';
 import { CalculatorPage } from './pages/CalculatorPage';
@@ -36,15 +36,14 @@ const createImportedMember = (slot: EnvironmentTeamSample['slots'][number]): Tea
   const entry = pokemon.find((candidate) => candidate.id === slot.pokemonId);
   if (!entry) return null;
 
-  const inferredForm = findMegaFormByItem(entry, slot.itemId);
-  const inferredAbilityIds = inferredForm?.abilities ?? (entry.abilities.length === 1 ? entry.abilities : []);
+  const inferredAbilityIds = entry.abilities.length === 1 ? entry.abilities : [];
   const legalMoves = currentRuleMovesForPokemon(entry.id).map((move) => move.id);
   const moveIds = slot.moveIds.filter((moveId) => legalMoves.includes(moveId)).slice(0, 4);
 
   return {
     id: createId('member'),
     pokemonId: entry.id,
-    formId: inferredForm?.id ?? entry.id,
+    formId: entry.id,
     abilityId: inferredAbilityIds.length === 1 ? inferredAbilityIds[0] : undefined,
     itemId: slot.itemId,
     moveIds,
@@ -55,6 +54,37 @@ const createImportedMember = (slot: EnvironmentTeamSample['slots'][number]): Tea
     legalityStatus: 'needs-review',
   };
 };
+
+function ImportCoverageNoticeDialog({
+  sample,
+  onCancel,
+  onContinue,
+}: {
+  sample: EnvironmentTeamSample;
+  onCancel: () => void;
+  onContinue: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 mx-auto max-w-[430px]" role="dialog" aria-label="导入配置提示" aria-modal="true">
+      <button className="absolute inset-0 h-full w-full bg-black/70" type="button" aria-label="关闭导入配置提示" onClick={onCancel} />
+      <section className="surface-shadow absolute inset-x-4 top-1/2 -translate-y-1/2 rounded-xl border border-border bg-card p-4">
+        <h2 className="text-base font-semibold">导入配置提示</h2>
+        <p className="mt-2 text-sm leading-6 text-textSecondary">
+          目前可稳定带入 Pokémon 和道具；性格、SP、完整配招等信息可能缺失。需要原作者详细配置时，可以打开队报链接查看。
+        </p>
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          <Button variant="ghost" type="button" onClick={() => window.open(sample.reportUrl, '_blank', 'noopener,noreferrer')}>
+            <ExternalLink size={14} />
+            队报链接
+          </Button>
+          <Button type="button" onClick={onContinue}>
+            继续导入
+          </Button>
+        </div>
+      </section>
+    </div>
+  );
+}
 
 function ToolWorkspace({
   view,
@@ -103,8 +133,9 @@ function AppShell() {
   const [activeTeamId, setActiveTeamId] = useState<string | undefined>();
   const [importToast, setImportToast] = useState<string | null>(null);
   const [highlightedImportTeamId, setHighlightedImportTeamId] = useState<string | undefined>();
+  const [pendingImportSample, setPendingImportSample] = useState<EnvironmentTeamSample | null>(null);
   const [environmentState, setEnvironmentState] = useState<EnvironmentState>(environmentFallbackState);
-  const { loading, teams, preferences, saveTeam } = useAppStore();
+  const { loading, teams, preferences, replacePreferences, saveTeam } = useAppStore();
 
   const activeTeam = teams.find((team) => team.id === activeTeamId) ?? teams[0];
 
@@ -142,13 +173,13 @@ function AppShell() {
     setActiveTab('tools');
   }, []);
 
-  const importSampleTeam = useCallback(
+  const performImportSampleTeam = useCallback(
     async (sample: EnvironmentTeamSample) => {
       const members = sample.slots.map(createImportedMember).filter((member): member is TeamMember => Boolean(member));
       const timestamp = new Date().toISOString();
       const importedTeam: Team = {
         id: createId('team'),
-        name: `上位构筑 · ${sample.title}`,
+        name: sample.title,
         ruleSetId: currentRuleSet.id,
         dataVersionId: currentDataVersion.id,
         members,
@@ -173,6 +204,25 @@ function AppShell() {
     },
     [environmentState.dataStatusLabel, saveTeam],
   );
+
+  const importSampleTeam = useCallback(
+    async (sample: EnvironmentTeamSample) => {
+      if (!preferences.hasSeenEnvironmentImportNotice) {
+        setPendingImportSample(sample);
+        return;
+      }
+      await performImportSampleTeam(sample);
+    },
+    [performImportSampleTeam, preferences.hasSeenEnvironmentImportNotice],
+  );
+
+  const continuePendingImport = useCallback(async () => {
+    if (!pendingImportSample) return;
+    const sample = pendingImportSample;
+    setPendingImportSample(null);
+    await replacePreferences({ ...preferences, hasSeenEnvironmentImportNotice: true });
+    await performImportSampleTeam(sample);
+  }, [pendingImportSample, performImportSampleTeam, preferences, replacePreferences]);
 
   const page = useMemo(() => {
     if (overlay === 'rule') return <RulePage onBack={() => setOverlay(null)} />;
@@ -249,6 +299,15 @@ function AppShell() {
           <span className="mr-2 inline-block h-2 w-2 rounded-full bg-success" />
           {importToast}
         </div>
+      )}
+      {pendingImportSample && (
+        <ImportCoverageNoticeDialog
+          sample={pendingImportSample}
+          onCancel={() => setPendingImportSample(null)}
+          onContinue={() => {
+            void continuePendingImport();
+          }}
+        />
       )}
       {!overlay && <BottomNav activeTab={activeTab} tabs={tabs} onChange={setActiveTab} />}
     </main>

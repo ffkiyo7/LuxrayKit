@@ -41,6 +41,7 @@ export const defaultPreferences: UserPreference = {
   defaultBenchmarkFilters: ['preset'],
   cachedRuleSetId: currentRuleSet.id,
   lastDataRefreshAt: currentDataVersion.updatedAt,
+  hasSeenEnvironmentImportNotice: false,
 };
 
 export const dataSourceManifest: DataSourceManifest = {

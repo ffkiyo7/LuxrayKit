@@ -27,13 +27,13 @@ const pokedbSnapshot = {
 };
 const testEnvironmentState = createEnvironmentStateFromPokeDbSnapshot(pokedbSnapshot);
 const firstSinglesSample = testEnvironmentState.teamSamples.find((sample) => sample.battleType === 'singles')!;
-const firstSinglesSampleTeamLabel = `队伍：上位构筑 · ${firstSinglesSample.title}`;
+const firstSinglesSampleTeamLabel = `队伍：${firstSinglesSample.title}`;
 const topSinglesPokemon = getEnvironmentPokemon(testEnvironmentState.pokemonUsage.singles[0].pokemonId)!;
 const topSinglesMove = getEnvironmentMove(testEnvironmentState.pokemonUsage.singles[0].moveStats?.[0]?.id ?? '')!;
 const relatedGarchompSample = testEnvironmentState.teamSamples.find(
   (sample) => sample.battleType === 'singles' && sample.slots.some((slot) => slot.pokemonId === 'garchomp'),
 )!;
-const relatedGarchompTeamLabel = `队伍：上位构筑 · ${relatedGarchompSample.title}`;
+const relatedGarchompTeamLabel = `队伍：${relatedGarchompSample.title}`;
 
 const deleteDb = () =>
   new Promise<void>((resolve, reject) => {
@@ -57,6 +57,13 @@ const renderEnvironmentApp = async () => {
   render(<App />);
   await screen.findByText(testEnvironmentState.sourceLabel);
   return user;
+};
+
+const continueFirstImportNotice = async (user: ReturnType<typeof userEvent.setup>) => {
+  const dialog = await screen.findByRole('dialog', { name: '导入配置提示' });
+  expect(dialog.textContent).toContain('目前可稳定带入 Pokémon 和道具');
+  expect(dialog.textContent).toContain('队报链接');
+  await user.click(within(dialog).getByRole('button', { name: '继续导入' }));
 };
 
 const openTool = async (user: ReturnType<typeof userEvent.setup>, toolName: string | RegExp) => {
@@ -245,6 +252,8 @@ describe('App page flows', () => {
     await openDefaultTeam(user);
 
     await user.click(screen.getByTitle('删除队伍'));
+    const confirmDialog = await screen.findByRole('dialog', { name: '确认删除队伍' });
+    await user.click(within(confirmDialog).getByRole('button', { name: '确认删除' }));
     expect(await screen.findByText('还没有队伍')).toBeTruthy();
 
     await user.click(screen.getByRole('button', { name: '新建第一支队伍' }));
@@ -294,22 +303,80 @@ describe('App page flows', () => {
     const user = await renderEnvironmentApp();
 
     await user.click(screen.getAllByRole('button', { name: /导入配置/ })[0]);
+    await continueFirstImportNotice(user);
     const importedCard = await screen.findByLabelText(firstSinglesSampleTeamLabel);
-    expect(within(importedCard).getByText('上位构筑导入')).toBeTruthy();
-    expect(within(importedCard).getByText(new RegExp(testEnvironmentState.dataStatusLabel))).toBeTruthy();
+    expect(importedCard.textContent).not.toContain('上位构筑导入');
+    expect(importedCard.textContent).not.toContain('当前');
+    expect(importedCard.textContent).toContain(`${firstSinglesSample.slots.length}/6 成员`);
     expect(within(importedCard).getByRole('button', { name: '编辑配置' })).toBeTruthy();
     expect(within(importedCard).getByRole('button', { name: '生成图片' })).toBeTruthy();
 
     await user.click(within(importedCard).getByRole('button', { name: '编辑配置' }));
-    expect(await screen.findByRole('heading', { name: `上位构筑 · ${firstSinglesSample.title}` })).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: firstSinglesSample.title })).toBeTruthy();
     expect(screen.queryByText('队报链接')).toBeNull();
     expect(screen.queryByText(/来源|原始样本|高分导入|上位构筑导入/)).toBeNull();
+  });
+
+  it('shows the import coverage notice only before the first upper-build import', async () => {
+    const user = await renderEnvironmentApp();
+    const singlesSamples = testEnvironmentState.teamSamples.filter((sample) => sample.battleType === 'singles');
+
+    await user.click(screen.getAllByRole('button', { name: /导入配置/ })[0]);
+    const dialog = await screen.findByRole('dialog', { name: '导入配置提示' });
+    expect(within(dialog).getByRole('button', { name: '队报链接' })).toBeTruthy();
+    await user.click(within(dialog).getByRole('button', { name: '继续导入' }));
+    expect(await screen.findByLabelText(`队伍：${singlesSamples[0].title}`)).toBeTruthy();
+
+    await user.click(screen.getByRole('button', { name: '环境' }));
+    await user.click(screen.getAllByRole('button', { name: /导入配置/ })[1]);
+    expect(screen.queryByRole('dialog', { name: '导入配置提示' })).toBeNull();
+    expect(await screen.findByLabelText(`队伍：${singlesSamples[1].title}`)).toBeTruthy();
+  });
+
+  it('deletes teams directly from the list card', async () => {
+    const user = await renderApp();
+
+    expect(screen.getByLabelText('队伍：M-A 测试队')).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: '删除 M-A 测试队' }));
+    const confirmDialog = await screen.findByRole('dialog', { name: '确认删除队伍' });
+    expect(confirmDialog.textContent).toContain('M-A 测试队');
+    await user.click(within(confirmDialog).getByRole('button', { name: '取消' }));
+    expect(screen.getByLabelText('队伍：M-A 测试队')).toBeTruthy();
+
+    await user.click(screen.getByRole('button', { name: '删除 M-A 测试队' }));
+    await user.click(within(await screen.findByRole('dialog', { name: '确认删除队伍' })).getByRole('button', { name: '确认删除' }));
+
+    await waitFor(() => expect(screen.queryByLabelText('队伍：M-A 测试队')).toBeNull());
+    const state = await repository.loadState();
+    expect(state.teams.some((team) => team.name === 'M-A 测试队')).toBe(false);
+  });
+
+  it('reorders teams by dragging the list card handle', async () => {
+    const user = await renderApp();
+
+    await user.click(screen.getByRole('button', { name: /新建/ }));
+    await user.type(screen.getByPlaceholderText(/输入队伍名称/), '第二队');
+    await user.click(screen.getByRole('button', { name: '确认' }));
+    await user.click(screen.getByRole('button', { name: '返回队伍列表' }));
+
+    const secondTeamCard = await screen.findByLabelText('队伍：第二队');
+    const dragHandle = within(secondTeamCard).getByRole('button', { name: '拖动排序 第二队' });
+    expect(within(secondTeamCard).queryByRole('button', { name: /上移|下移/ })).toBeNull();
+    fireEvent.pointerDown(dragHandle, { pointerId: 1, clientY: 0 });
+    fireEvent.pointerMove(dragHandle, { pointerId: 1, clientY: 90 });
+    fireEvent.pointerUp(dragHandle, { pointerId: 1, clientY: 90 });
+
+    await waitFor(async () => {
+      const state = await repository.loadState();
+      expect(state.teams.map((team) => team.name).slice(0, 2)).toEqual(['M-A 测试队', '第二队']);
+    });
   });
 
   it('imports upper-build teams without inventing missing moves, nature, or SP details', async () => {
     const user = await renderEnvironmentApp();
 
     await user.click(screen.getAllByRole('button', { name: /导入配置/ })[0]);
+    await continueFirstImportNotice(user);
     await screen.findByLabelText(firstSinglesSampleTeamLabel);
 
     let imported = undefined as Awaited<ReturnType<typeof repository.loadState>>['teams'][number] | undefined;
@@ -324,8 +391,8 @@ describe('App page flows', () => {
     const firstMember = imported!.members[0];
     expect(firstMember.pokemonId).toBe(firstSinglesSample.slots[0].pokemonId);
     expect(firstMember.itemId).toBe(firstSinglesSample.slots[0].itemId);
-    expect(firstMember.formId).toBe('mega-lucario');
-    expect(firstMember.abilityId).toBe('adaptability');
+    expect(firstMember.formId).toBe(firstSinglesSample.slots[0].pokemonId);
+    expect(firstMember.abilityId).toBeUndefined();
     expect(firstMember.moveIds).toEqual([]);
     expect(firstMember.statPoints).toEqual({});
     expect(firstMember.nature).toBe('浮躁');
@@ -335,6 +402,7 @@ describe('App page flows', () => {
     const user = await renderEnvironmentApp();
 
     await user.click(screen.getAllByRole('button', { name: /导入配置/ })[0]);
+    await continueFirstImportNotice(user);
     expect((await screen.findByRole('status')).textContent).toContain('已导入配置');
 
     const importedCard = await screen.findByLabelText(firstSinglesSampleTeamLabel);
@@ -403,6 +471,7 @@ describe('App page flows', () => {
     expect(screen.getByText(relatedGarchompSample.title)).toBeTruthy();
 
     await user.click(screen.getAllByRole('button', { name: '导入配置' })[0]);
+    await continueFirstImportNotice(user);
     expect((await screen.findByRole('status')).textContent).toContain('已导入配置');
     expect(await screen.findByLabelText(relatedGarchompTeamLabel)).toBeTruthy();
   });
