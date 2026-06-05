@@ -9,7 +9,7 @@
 - 完成环境 / 队伍 / 工具 / 我的四入口的信息架构收尾。
 - 更新 PWA 离线和移动端视觉回归，避免旧 5 Tab 测试继续误报。
 - 保持伤害计算、速度线和图鉴作为工具页二级能力稳定可用。
-- 基于已完成的 `EnvironmentDataset` schema、audit 入口和 PokeDB Open Data 转换器，继续补齐自动刷新、招式统计和队报样本来源。
+- 基于已完成的 `EnvironmentDataset` schema、audit 入口和 PokeDB Open Data 转换器，继续补齐自动刷新、招式统计、队报样本来源和快照加载方式。
 
 ## 优先级
 
@@ -32,11 +32,11 @@
 
 - `EnvironmentDataset` 已成为环境页唯一数据包入口；后续抓取结果必须先转换为该结构。
 - 所有环境数据必须通过 `auditEnvironmentDataset`，未知 Pokémon / 招式 / 道具引用不得静默进入 UI。
-- 当前已接入 PokeDB bundled snapshot：Open Data 可稳定获得 Pokémon 样本出现率、携带道具占比、常见队友占比和队伍骨架；详情页解析可获得前 50 Pokémon 的真实 `moveStats`。
-- Open Data 暂不包含训练家名、队报链接和完整招式配置；这些字段不能在 UI 中伪造。
+- 当前已接入 PokeDB bundled snapshot：Open Data 可稳定获得 Pokémon 样本出现率、携带道具占比、常见队友占比和队伍骨架；详情页解析可获得前 50 Pokémon 的真实 `moveStats`；trainer/list 解析可获得单打 / 双打各 8 条真实队报链接样本。
+- Open Data 暂不包含训练家名、队报链接和完整招式配置；训练家名 / 队报链接目前来自 trainer/list 页面解析，完整招式配置仍不能在 UI 中伪造。
 - 对真实抓取数据建立 snapshot 与 audit 测试，避免无法识别 Pokémon、规则不匹配或字段缺失时静默写入坏数据。
 - 维护脚本已接入：`npm run data:pokedb:environment:check` 用于只读校验远端是否有更新，`npm run data:pokedb:environment` 用于写入本地 snapshot。
-- 继续增强维护脚本输出：后续可追加 trainer/list 队报解析、更大范围的招式统计解析和更细的快照变更摘要。
+- 继续增强维护脚本输出：后续可追加更大范围的招式统计解析、更细的快照变更摘要、队报标题解析和完整配置解析。
 - 字段缺失但队伍骨架可识别时允许导入，并提示“已导入，可继续补全配置”。
 - 数据文案保持“上位构筑快照 / 样本占比”，不写成“官方使用率”或“全环境使用率”。
 - 评估把环境 snapshot 从主 bundle 拆成独立缓存文件，避免首包体积持续膨胀。

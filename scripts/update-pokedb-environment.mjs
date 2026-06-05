@@ -4,8 +4,10 @@ import { fileURLToPath } from 'node:url';
 import {
   createPokeDbOpenDataUpdateReport,
   formatPokeDbOpenDataUpdateReport,
+  getPokeDbRuleParam,
   hasBlockingPokeDbOpenDataIssues,
   parsePokeDbMoveStatsFromHtml,
+  parsePokeDbTrainerSamplesFromHtml,
   validatePokeDbRankedTeamsPayload,
 } from './pokedb-open-data-utils.mjs';
 
@@ -14,6 +16,7 @@ const ROOT = resolve(__dirname, '..');
 const checkOnly = process.argv.includes('--check');
 const MOVE_STATS_LIMIT = 50;
 const moveStatsOutputPath = resolve(ROOT, 'src/data/external/pokedb/s1_move_stats.json');
+const teamSamplesOutputPath = resolve(ROOT, 'src/data/external/pokedb/s1_team_samples.json');
 
 const sources = [
   {
@@ -25,6 +28,17 @@ const sources = [
     battleType: 'doubles',
     url: 'https://champs.pokedb.tokyo/opendata/s1_double_ranked_teams.json',
     outputPath: resolve(ROOT, 'src/data/external/pokedb/s1_double_ranked_teams.json'),
+  },
+];
+
+const trainerSources = [
+  {
+    battleType: 'singles',
+    url: `https://champs.pokedb.tokyo/trainer/list?season=1&rule=${getPokeDbRuleParam('singles')}`,
+  },
+  {
+    battleType: 'doubles',
+    url: `https://champs.pokedb.tokyo/trainer/list?season=1&rule=${getPokeDbRuleParam('doubles')}`,
   },
 ];
 
@@ -89,6 +103,17 @@ function parseCatalogEnglishNameMap(texts) {
   let match;
   while ((match = regex.exec(joined))) {
     map.set(normalizeName(match[2]), match[1]);
+  }
+  return map;
+}
+
+function parseCatalogChineseNameById(texts) {
+  const map = {};
+  const joined = texts.join('\n');
+  const regex = /id: '([^']+)'[\s\S]{0,500}?chineseName: '([^']+)'/g;
+  let match;
+  while ((match = regex.exec(joined))) {
+    map[match[1]] = match[2];
   }
   return map;
 }
@@ -201,7 +226,7 @@ async function buildMoveStatsSnapshot({ battles, pokemonKeyToId, moveKeyToId }) 
     ),
     4,
     async ({ battleType, key, teamCount }) => {
-      const rule = battleType === 'singles' ? 1 : 2;
+      const rule = getPokeDbRuleParam(battleType);
       const html = await fetchText(`https://champs.pokedb.tokyo/pokemon/show/${key}?season=1&rule=${rule}`);
       const { stats, unknownMoveKeys: pageUnknownMoveKeys } = parsePokeDbMoveStatsFromHtml(html, {
         moveKeyToId,
@@ -236,6 +261,25 @@ async function buildMoveStatsSnapshot({ battles, pokemonKeyToId, moveKeyToId }) 
   return snapshot;
 }
 
+async function buildTeamSamplesSnapshot({ pokemonKeyToId, pokemonNameById, itemNameToId }) {
+  const entries = await Promise.all(
+    trainerSources.map(async (source) => {
+      const html = await fetchText(source.url);
+      const samples = parsePokeDbTrainerSamplesFromHtml(html, {
+        battleType: source.battleType,
+        sourceUrl: source.url,
+        pokemonKeyToId,
+        pokemonNameById,
+        itemNameToId,
+        maxSamples: 8,
+        minSlots: 6,
+      });
+      return [source.battleType, samples];
+    }),
+  );
+  return Object.fromEntries(entries);
+}
+
 const catalogTexts = await Promise.all(
   [
     'src/data/seed/regMA/catalog.ts',
@@ -252,6 +296,7 @@ const allowlistText = await readUtf8('src/data/seed/regMA/allowlist.ts');
 const itemMapText = await readUtf8('src/data/external/pokedbItemNameMap.ts');
 
 const catalogEnglishNameMap = parseCatalogEnglishNameMap(catalogTexts);
+const pokemonNameById = parseCatalogChineseNameById(catalogTexts);
 const pokemonKeyToId = parseAllowlistPokemonKeyMap(allowlistText, catalogEnglishNameMap);
 const itemIds = parseItemIds(catalogText);
 const itemNameToId = parsePokeDbItemNameMap(itemMapText);
@@ -271,6 +316,7 @@ const battles = Object.fromEntries(payloadEntries);
 const pokeApiMoves = await fetchJson({ url: 'https://pokeapi.co/api/v2/move?limit=2000' });
 const moveKeyToId = buildMoveKeyToId(pokeApiMoves, localMoveIds);
 const moveStatsSnapshot = await buildMoveStatsSnapshot({ battles, pokemonKeyToId, moveKeyToId });
+const teamSamplesSnapshot = await buildTeamSamplesSnapshot({ pokemonKeyToId, pokemonNameById, itemNameToId });
 
 const report = createPokeDbOpenDataUpdateReport({
   battles,
@@ -296,6 +342,11 @@ const nextMoveStatsText = stableJson(moveStatsSnapshot);
 const currentMoveStatsText = await readFile(moveStatsOutputPath, 'utf8').catch(() => '');
 if (currentMoveStatsText !== nextMoveStatsText) {
   changedSources.push({ battleType: 'move-stats', outputPath: moveStatsOutputPath, nextText: nextMoveStatsText });
+}
+const nextTeamSamplesText = stableJson(teamSamplesSnapshot);
+const currentTeamSamplesText = await readFile(teamSamplesOutputPath, 'utf8').catch(() => '');
+if (currentTeamSamplesText !== nextTeamSamplesText) {
+  changedSources.push({ battleType: 'team-samples', outputPath: teamSamplesOutputPath, nextText: nextTeamSamplesText });
 }
 
 if (checkOnly) {

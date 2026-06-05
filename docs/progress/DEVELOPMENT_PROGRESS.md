@@ -21,7 +21,7 @@
 - 环境首页：单打 / 双打切换、宝可梦榜、真实样本队伍、队报链接、导入配置，并标注 PokeDB 上位构筑快照来源。
 - PokeDB Open Data 接入：内置 `s1_single_ranked_teams.json` 与 `s1_double_ranked_teams.json`，当前快照分别包含 528 / 71 支队伍。
 - PokeDB 转换器：把 PokeDB Pokémon key 映射到本地 Reg M-A Pokémon id，计算样本出现率、队伍数、当前宝可梦携带道具占比和常见队友占比。
-- PokeDB 维护脚本：新增 `npm run data:pokedb:environment:check` 与 `npm run data:pokedb:environment`，可下载 Open Data、解析前 50 Pokémon 详情页招式统计、校验 payload、报告未知 Pokémon / 未映射道具 / 失效 item id / 未映射 move key，并在干净时写入本地 snapshot。
+- PokeDB 维护脚本：新增 `npm run data:pokedb:environment:check` 与 `npm run data:pokedb:environment`，可下载 Open Data、解析前 50 Pokémon 详情页招式统计、解析 trainer/list 真实队报样本、校验 payload、报告未知 Pokémon / 未映射道具 / 失效 item id / 未映射 move key，并在干净时写入本地 snapshot。
 - 环境数据包：`EnvironmentDataset` schema 和 audit 入口已成为环境页唯一数据入口；UI 读取的是通过审计后的环境榜单与队伍样例。
 - 环境审计：未知 Pokémon / 招式 / 道具引用会被报告并从 UI 数据中剔除；规则版本、数据版本、使用率、队伍数和引用统计字段会在导入前校验。
 - 完整宝可梦榜：从环境首页进入，点击 Pokémon 进入环境详情，而不是跳传统图鉴页。
@@ -58,15 +58,15 @@
 - 中文说明与部分社区来源存在授权边界，公开分发前需要确认署名 / 非商业 / 相同方式共享要求。
 - Reg M-B / 后续规则切换尚未实现。
 - 环境数据当前来自 PokeDB Open Data bundled snapshot，代表上位构筑样本，不代表官方完整环境使用率。
-- PokeDB Open Data 不包含完整配置招式、训练家名、队报链接或样本登记时间；首批队报链接样本仍为人工补充，后续需要服务端抓取 / 解析页面补齐。
+- PokeDB Open Data 不包含完整配置招式、训练家名、队报链接或样本登记时间；训练家名与队报链接已通过 trainer/list 页面解析生成首批单打 / 双打各 8 条样本，但队报原文标题、正文和完整配置仍未解析。
 - 当前 PokeDB snapshot 直接进入前端 bundle，构建体积已明显上升；后续应改为独立 JSON 缓存资源或服务端定时产物。
 
 ## 下一轮重点
 
 详见 `docs/progress/NEXT_ROUND_PLAN.md`。优先级：
 
-1. 扩展外部样本采集，区分 Open Data 队伍骨架和真实队报链接来源。
-2. 把环境 snapshot 从主 bundle 拆为独立缓存资源，降低首包体积和 Vite chunk warning。
+1. 把环境 snapshot 从主 bundle 拆为独立缓存资源，降低首包体积和 Vite chunk warning。
+2. 扩展外部样本采集：扩大 trainer/list 样本数，或解析队报原文标题 / 完整配置。
 3. 继续交叉验证伤害计算公式与典型样例，补齐 Champions 特有招式 / 特性 / 道具对伤害的影响。
 4. 设计 Reg registry，避免未来规则切换散改数据入口。
 

@@ -8,7 +8,7 @@
 
 本轮讨论的核心变化是：应用默认入口从“队伍 / 组队”调整为“环境”，让浅度用户打开后先获得当前赛季环境价值；队伍、计算器、速度线、图鉴等现有功能继续保留，但入口与层级需要重新组织。
 
-实现状态备注（2026-06-05）：环境页已接入 PokeDB Season 1 bundled snapshot，当前可展示 Pokémon 样本占比、常用招式、携带道具占比、常见队友占比与首批真实队报样本。常用招式不是 Open Data 字段，而是维护脚本解析 Pokémon 详情页 `data-move-detail` 生成的 `moveStats`，当前覆盖单打 / 双打各前 50 Pokémon。
+实现状态备注（2026-06-05）：环境页已接入 PokeDB Season 1 bundled snapshot，当前可展示 Pokémon 样本占比、常用招式、携带道具占比、常见队友占比与首批真实队报样本。常用招式不是 Open Data 字段，而是维护脚本解析 Pokémon 详情页 `data-move-detail` 生成的 `moveStats`，当前覆盖单打 / 双打各前 50 Pokémon；队报样本来自 PokeDB trainer/list 页面解析，当前单打 / 双打各保留 8 条完整队伍槽位样本和外部队报链接。
 
 ## 重构前项目对齐
 

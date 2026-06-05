@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   createPokeDbOpenDataUpdateReport,
   formatPokeDbOpenDataUpdateReport,
+  getPokeDbRuleParam,
+  parsePokeDbTrainerSamplesFromHtml,
   parsePokeDbMoveStatsFromHtml,
   validatePokeDbRankedTeamsPayload,
 } from './pokedb-open-data-utils.mjs';
@@ -34,6 +36,12 @@ const makePayload = () => ({
 });
 
 describe('PokeDB open data maintenance utils', () => {
+  it('keeps the website rule params aligned with PokeDB page labels', () => {
+    expect(getPokeDbRuleParam('doubles')).toBe(1);
+    expect(getPokeDbRuleParam('singles')).toBe(2);
+    expect(() => getPokeDbRuleParam('rotation')).toThrow('Unsupported PokeDB battle type');
+  });
+
   it('validates ranked-team payload shape before writing snapshots', () => {
     expect(validatePokeDbRankedTeamsPayload(makePayload(), 'singles')).toEqual([]);
     expect(validatePokeDbRankedTeamsPayload({ ...makePayload(), teams: [{ ...makePayload().teams[0], rating_value: null }] }, 'singles')).toEqual([]);
@@ -152,5 +160,75 @@ describe('PokeDB open data maintenance utils', () => {
       stats: [{ id: 'earthquake', usageRate: 3.1, teamCount: 1 }],
       unknownMoveKeys: [],
     });
+  });
+
+  it('extracts complete external-report team samples from trainer list HTML', () => {
+    const html = `
+      <article class="trainer-card">
+        <div class="trainer-card-rank is-family-monospace" data-rank="1"><span>1</span></div>
+        <div class="trainer-card-rating is-family-monospace"><span class="rating-integer">2724</span><span class="rating-decimal">.878</span></div>
+        <div class="trainer-card-name">suika</div>
+        <div class="trainer-card-team">
+          <div class="trainer-card-team__pokemon">
+            <a target="_blank" href="/pokemon/show/0006-00?rule=1"></a>
+            <div class="trainer-card-team__pokemon-name">Charizard</div>
+            <div class="trainer-card-team__pokemon-item">Charizardite Y</div>
+          </div>
+          <div class="trainer-card-team__pokemon">
+            <a target="_blank" href="/pokemon/show/0445-00?rule=1"></a>
+            <div class="trainer-card-team__pokemon-name">Garchomp</div>
+            <div class="trainer-card-team__pokemon-item">Sitrus Berry</div>
+          </div>
+          <div class="trainer-card-team__article">
+            <a href="https://x.com/example/status/1" target="_blank" rel="noopener noreferrer">report</a>
+          </div>
+        </div>
+      </article>
+      <article class="trainer-card">
+        <div class="trainer-card-rank is-family-monospace" data-rank="2"><span>2</span></div>
+        <div class="trainer-card-rating is-family-monospace"><span class="rating-integer">2681</span><span class="rating-decimal">.407</span></div>
+        <div class="trainer-card-name">no-report</div>
+      </article>
+      <article class="trainer-card">
+        <div class="trainer-card-rank is-family-monospace" data-rank="3"><span>3</span></div>
+        <div class="trainer-card-rating is-family-monospace"><span class="rating-integer">2600</span><span class="rating-decimal">.000</span></div>
+        <div class="trainer-card-name">partial</div>
+        <div class="trainer-card-team">
+          <div class="trainer-card-team__pokemon">
+            <a target="_blank" href="/pokemon/show/9999-00?rule=1"></a>
+            <div class="trainer-card-team__pokemon-name">Unknown</div>
+            <div class="trainer-card-team__pokemon-item">Sitrus Berry</div>
+          </div>
+          <div class="trainer-card-team__article">
+            <a href="https://x.com/example/status/3">report</a>
+          </div>
+        </div>
+      </article>
+    `;
+
+    expect(
+      parsePokeDbTrainerSamplesFromHtml(html, {
+        battleType: 'doubles',
+        sourceUrl: 'https://champs.pokedb.tokyo/trainer/list?season=1&rule=1',
+        pokemonKeyToId: { '0006-00': 'charizard', '0445-00': 'garchomp' },
+        pokemonNameById: { charizard: '喷火龙', garchomp: '烈咬陆鲨' },
+        itemNameToId: { 'Charizardite Y': 'charizardite-y', 'Sitrus Berry': 'sitrus-berry' },
+        minSlots: 2,
+      }),
+    ).toEqual([
+      {
+        id: 'pokedb-doubles-rank-1',
+        dataKind: 'external-snapshot',
+        author: 'suika',
+        score: 2724,
+        title: 'suika · 2724 · 喷火龙 / 烈咬陆鲨',
+        battleType: 'doubles',
+        reportUrl: 'https://x.com/example/status/1',
+        slots: [
+          { pokemonId: 'charizard', itemId: 'charizardite-y', moveIds: [] },
+          { pokemonId: 'garchomp', itemId: 'sitrus-berry', moveIds: [] },
+        ],
+      },
+    ]);
   });
 });

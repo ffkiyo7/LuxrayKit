@@ -203,11 +203,11 @@ describe('environment dataset audit', () => {
     expect(environmentPokemonUsage.doubles[0]).toMatchObject({
       pokemonId: 'basculegion-male',
     });
-    expect(environmentPokemonUsage.doubles[0].moveIds.slice(0, 3)).toEqual(['last-respects', 'wave-crash', 'aqua-jet']);
+    expect(environmentPokemonUsage.doubles[0].moveIds.slice(0, 3)).toEqual(['last-respects', 'aqua-jet', 'wave-crash']);
     expect(environmentPokemonUsage.singles.find((usage) => usage.pokemonId === 'garchomp')?.moveStats?.[0]).toEqual({
       id: 'earthquake',
-      usageRate: 90.3,
-      teamCount: 257,
+      usageRate: 99,
+      teamCount: 282,
     });
     expect(environmentTeamSamples.some((sample) => sample.dataKind === 'external-snapshot' && sample.reportUrl.startsWith('https://'))).toBe(true);
   });

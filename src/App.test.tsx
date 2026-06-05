@@ -349,7 +349,7 @@ describe('App page flows', () => {
     expect(screen.getByText('相关样例队伍')).toBeTruthy();
     expect(screen.getByText(relatedGarchompSample.title)).toBeTruthy();
 
-    await user.click(screen.getByRole('button', { name: '导入配置' }));
+    await user.click(screen.getAllByRole('button', { name: '导入配置' })[0]);
     expect((await screen.findByRole('status')).textContent).toContain('已导入配置');
     expect(await screen.findByLabelText(relatedGarchompTeamLabel)).toBeTruthy();
   });

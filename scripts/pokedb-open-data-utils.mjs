@@ -22,6 +22,26 @@ const decodeHtmlAttribute = (value) =>
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>');
 
+const toAbsoluteHttpUrl = (value, baseUrl) => {
+  try {
+    const url = new URL(decodeHtmlAttribute(value), baseUrl);
+    return /^https?:$/.test(url.protocol) ? url.toString() : '';
+  } catch {
+    return '';
+  }
+};
+
+export const pokeDbRuleParamByBattleType = Object.freeze({
+  doubles: 1,
+  singles: 2,
+});
+
+export function getPokeDbRuleParam(battleType) {
+  const rule = pokeDbRuleParamByBattleType[battleType];
+  if (!rule) throw new Error(`Unsupported PokeDB battle type: ${battleType}`);
+  return rule;
+}
+
 export function validatePokeDbRankedTeamsPayload(payload, label = 'payload') {
   const issues = [];
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
@@ -162,4 +182,58 @@ export function parsePokeDbMoveStatsFromHtml(html, { moveKeyToId, teamCount, max
     stats,
     unknownMoveKeys: toSortedRecords(unknownMoveKeys).map(({ key, name, count }) => ({ key: Number(key), name: name ?? '', count })),
   };
+}
+
+export function parsePokeDbTrainerSamplesFromHtml(
+  html,
+  { battleType, sourceUrl, pokemonKeyToId, pokemonNameById = {}, itemNameToId, maxSamples = 8, minSlots = 1 },
+) {
+  const articles = html.match(/<article class="trainer-card">[\s\S]*?<\/article>/g) ?? [];
+
+  return articles
+    .map((article) => {
+      const reportUrl = toAbsoluteHttpUrl(article.match(/trainer-card-team__article[\s\S]*?<a[^>]+href="([^"]+)"/)?.[1] ?? '', sourceUrl);
+      if (!reportUrl) return undefined;
+
+      const rank = Number(article.match(/data-rank="(\d+)"/)?.[1] ?? 0);
+      const ratingInteger = article.match(/rating-integer">([^<]*)/)?.[1] ?? '0';
+      const ratingDecimal = article.match(/rating-decimal">([^<]*)/)?.[1] ?? '';
+      const score = Math.floor(Number(`${ratingInteger}${ratingDecimal}`));
+      const author = decodeHtmlAttribute(article.match(/trainer-card-name">([^<]*)/)?.[1] ?? 'PokeDB').trim();
+      const slotBlocks = article.match(/<div class="trainer-card-team__pokemon">[\s\S]*?(?=<div class="trainer-card-team__pokemon">|<div class="trainer-card-team__article"|<\/article>)/g) ?? [];
+      const slots = slotBlocks
+        .map((block) => {
+          const pokemonKey = block.match(/\/pokemon\/show\/([^"?]+)/)?.[1] ?? '';
+          const pokemonId = pokemonKeyToId[pokemonKey];
+          if (!pokemonId) return undefined;
+          const itemName = decodeHtmlAttribute(block.match(/trainer-card-team__pokemon-item">([^<]*)/)?.[1] ?? '').trim();
+          const itemId = itemNameToId[itemName];
+          return {
+            pokemonId,
+            ...(itemId ? { itemId } : {}),
+            moveIds: [],
+          };
+        })
+        .filter(Boolean);
+
+      if (!rank || !Number.isFinite(score) || slots.length < minSlots) return undefined;
+
+      const coreNames = slots
+        .slice(0, 2)
+        .map((slot) => pokemonNameById[slot.pokemonId] ?? slot.pokemonId)
+        .join(' / ');
+
+      return {
+        id: `pokedb-${battleType}-rank-${rank}`,
+        dataKind: 'external-snapshot',
+        author,
+        score,
+        title: `${author} · ${score} · ${coreNames}`,
+        battleType,
+        reportUrl,
+        slots,
+      };
+    })
+    .filter(Boolean)
+    .slice(0, maxSamples);
 }

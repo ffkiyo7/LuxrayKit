@@ -34,7 +34,7 @@ npm run data:pokedb:environment
 - 4 个底部 Tab：环境、队伍、工具、我的
 - 环境：单打 / 双打切换、宝可梦榜、完整榜单、宝可梦环境详情、携带道具、常见队友、相关样例队伍
 - 环境快照：当前内置 PokeDB Season 1 单打 / 双打上位构筑 Open Data snapshot，用于计算样本出现率、携带道具占比和常见队友占比
-- 环境样例队伍：首批外部样本保留真实队报链接，支持导入配置；本地开发 seed 仅作为审计失败时的回退
+- 环境样例队伍：维护脚本从 PokeDB trainer/list 解析真实队报链接，当前单打 / 双打各保留 8 条完整样本，支持导入配置；本地开发 seed 仅作为审计失败时的回退
 - 环境数据地基：环境榜单和样例队伍已收束为 `EnvironmentDataset` 数据包，并在进入 UI 前经过引用、数值和统计字段审计
 - 队伍：本地队伍 CRUD、列表优先、成员快速添加、成员编辑、基础配队分析、导入队伍来源标签
 - 队伍分享：队伍列表生成默认 2x3 分享图，结果层只提供保存图片
@@ -56,6 +56,6 @@ npm run data:pokedb:environment
 
 当前主数据是 `v0.2.0-seed` 版本化 Reg M-A seed，来源包括官方规则 / allowlist、PokeAPI、PokéBase Champions、社区中文资料与本地人工复核标记。图鉴身高 / 体重来自缓存 PokeAPI 主系列数据。
 
-环境页当前默认使用 `src/data/external/pokedb/` 下的 PokeDB bundled snapshot：单打 528 队，双打 71 队，更新时间分别来自 PokeDB payload。该数据代表“上位构筑样本”，不包装成官方完整使用率。Open Data 提供队伍骨架、道具和队友统计基础；维护脚本额外解析前 50 Pokémon 详情页的 `data-move-detail`，生成真实常用招式 `moveStats`。所有环境数据会先通过 `src/lib/environmentDataset.ts` 审计，未知 Pokémon / 招式 / 道具引用会被报告并从 UI 数据中剔除。`scripts/update-pokedb-environment.mjs` 会在写入前检查未知 Pokémon、未映射日文道具名、失效 item id 和未映射 move key。
+环境页当前默认使用 `src/data/external/pokedb/` 下的 PokeDB bundled snapshot：单打 528 队，双打 71 队，更新时间分别来自 PokeDB payload。该数据代表“上位构筑样本”，不包装成官方完整使用率。Open Data 提供队伍骨架、道具和队友统计基础；维护脚本额外解析前 50 Pokémon 详情页的 `data-move-detail`，生成真实常用招式 `moveStats`，并从 trainer/list 页面生成带队报链接的样本队伍。PokeDB 页面参数目前是 `rule=2` 单打、`rule=1` 双打，脚本已固定映射。所有环境数据会先通过 `src/lib/environmentDataset.ts` 审计，未知 Pokémon / 招式 / 道具引用会被报告并从 UI 数据中剔除。`scripts/update-pokedb-environment.mjs` 会在写入前检查未知 Pokémon、未映射日文道具名、失效 item id 和未映射 move key。
 
 速度线基于 Champions SP v1 口径；伤害计算仍是 **experimental mainline approximation**：使用 `@smogon/calc` Gen9 主线公式近似，并代入项目采集的 Champions 招式参数与 SP 能力值。伤害、合法性和未确认机制不应被视为官方 Champions 正式结论。
