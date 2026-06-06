@@ -889,6 +889,176 @@ describe('damageAdapter', () => {
     expect(withAbility.assumptions).toContain(`Battle context: weather set by ability: ${weather}.`);
   });
 
+  it.each([
+    {
+      label: 'Tough Claws',
+      abilityId: 'tough-claws',
+      abilityText: '接触招式增强',
+      weather: '无天气',
+      attacker: makeConfig({
+        pokemonId: 'charizard',
+        abilityId: 'tough-claws',
+        nature: '固执',
+        statPoints: { attack: 32 },
+        moveIds: ['dragon-claw'],
+        selectedMoveId: 'dragon-claw',
+      }),
+    },
+    {
+      label: 'Technician',
+      abilityId: 'technician',
+      abilityText: '低威力招式增强',
+      weather: '无天气',
+      attacker: makeConfig({
+        pokemonId: 'scizor',
+        abilityId: 'technician',
+        nature: '固执',
+        statPoints: { attack: 32 },
+        moveIds: ['bullet-punch'],
+        selectedMoveId: 'bullet-punch',
+      }),
+    },
+    {
+      label: 'Strong Jaw',
+      abilityId: 'strong-jaw',
+      abilityText: '啃咬类招式增强',
+      weather: '无天气',
+      attacker: makeConfig({
+        pokemonId: 'tyrantrum',
+        abilityId: 'strong-jaw',
+        nature: '固执',
+        statPoints: { attack: 32 },
+        moveIds: ['psychic-fangs'],
+        selectedMoveId: 'psychic-fangs',
+      }),
+    },
+    {
+      label: 'Mega Launcher',
+      abilityId: 'mega-launcher',
+      abilityText: '波动类招式增强',
+      weather: '无天气',
+      attacker: makeConfig({
+        pokemonId: 'clawitzer',
+        abilityId: 'mega-launcher',
+        nature: '内敛',
+        statPoints: { specialAttack: 32 },
+        moveIds: ['aura-sphere'],
+        selectedMoveId: 'aura-sphere',
+      }),
+    },
+    {
+      label: 'Sharpness',
+      abilityId: 'sharpness',
+      abilityText: '切割类招式增强',
+      weather: '无天气',
+      attacker: makeConfig({
+        pokemonId: 'gallade',
+        abilityId: 'sharpness',
+        nature: '固执',
+        statPoints: { attack: 32 },
+        moveIds: ['psycho-cut'],
+        selectedMoveId: 'psycho-cut',
+      }),
+    },
+    {
+      label: 'Reckless',
+      abilityId: 'reckless',
+      abilityText: '反作用力招式增强',
+      weather: '无天气',
+      attacker: makeConfig({
+        pokemonId: 'emboar',
+        abilityId: 'reckless',
+        nature: '固执',
+        statPoints: { attack: 32 },
+        moveIds: ['flare-blitz'],
+        selectedMoveId: 'flare-blitz',
+      }),
+    },
+    {
+      label: 'Sand Force',
+      abilityId: 'sand-force',
+      abilityText: '沙暴中招式增强',
+      weather: '沙暴',
+      attacker: makeConfig({
+        pokemonId: 'excadrill',
+        abilityId: 'sand-force',
+        nature: '固执',
+        statPoints: { attack: 32 },
+        moveIds: ['earthquake'],
+        selectedMoveId: 'earthquake',
+      }),
+    },
+    {
+      label: 'Solar Power',
+      abilityId: 'solar-power',
+      abilityText: '晴天特攻增强',
+      weather: '晴天',
+      attacker: makeConfig({
+        pokemonId: 'charizard',
+        abilityId: 'solar-power',
+        nature: '内敛',
+        statPoints: { specialAttack: 32 },
+        moveIds: ['flamethrower'],
+        selectedMoveId: 'flamethrower',
+      }),
+    },
+    {
+      label: 'Hustle',
+      abilityId: 'hustle',
+      abilityText: '物理招式增强',
+      weather: '无天气',
+      attacker: makeConfig({
+        pokemonId: 'flapple',
+        abilityId: 'hustle',
+        nature: '固执',
+        statPoints: { attack: 32 },
+        moveIds: ['dragon-rush'],
+        selectedMoveId: 'dragon-rush',
+      }),
+    },
+    {
+      label: 'Pure Power',
+      abilityId: 'pure-power',
+      abilityText: '物理攻击提高',
+      weather: '无天气',
+      attacker: makeConfig({
+        pokemonId: 'medicham',
+        abilityId: 'pure-power',
+        nature: '固执',
+        statPoints: { attack: 32 },
+        moveIds: ['zen-headbutt'],
+        selectedMoveId: 'zen-headbutt',
+      }),
+    },
+  ])('applies $label as an offensive damage boost', ({ abilityId, abilityText, weather, attacker }) => {
+    const withAbility = computeDamage({
+      attacker,
+      defender: makeConfig({ pokemonId: 'torkoal', nature: '认真', statPoints: {} }),
+      battleType: 'singles',
+      weather,
+      terrain: '无场地',
+      attackStage: 0,
+    });
+    const withoutAbility = computeDamage({
+      attacker: {
+        ...withAbility.attackerConfig!,
+        abilityId: undefined,
+      },
+      defender: withAbility.defenderConfig!,
+      battleType: 'singles',
+      weather,
+      terrain: '无场地',
+      attackStage: 0,
+    });
+
+    expect(withAbility.status).toBe('experimental-success');
+    expect(withoutAbility.status).toBe('experimental-success');
+    expect(withAbility.maxDamage).toBeGreaterThan(withoutAbility.maxDamage!);
+    expect(withAbility.abilityEffects).toContainEqual(
+      expect.objectContaining({ side: 'attacker', abilityId, direction: 'boost', text: abilityText }),
+    );
+  });
+
   it('uses Snow Warning as battle weather for Champions Mega Froslass Weather Ball', () => {
     const snowWarning = computeDamage({
       attacker: makeConfig({

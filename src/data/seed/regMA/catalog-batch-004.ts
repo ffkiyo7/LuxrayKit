@@ -185,7 +185,7 @@ export const abilitiesBatch004: Ability[] = [
     englishName: 'Hustle',
     effectSummary: '自己的攻击变高，但命中率会降低。',
     pokemonIds: ['flapple'],
-    calculationImpact: 'pending',
+    calculationImpact: 'confirmed',
     legalInCurrentRule: true,
     sourceRefs: abilityRefs,
   },

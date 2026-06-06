@@ -545,7 +545,7 @@ export const abilitiesBatch001: Ability[] = [
     englishName: 'Technician',
     effectSummary: '攻击时可以将低威力招式的威力提高。',
     pokemonIds: ['scizor'],
-    calculationImpact: 'pending',
+    calculationImpact: 'confirmed',
     legalInCurrentRule: true,
     sourceRefs: abilityRefs,
   },
