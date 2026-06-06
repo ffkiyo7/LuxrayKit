@@ -1,4 +1,4 @@
-import { ArrowLeft, BarChart3, ExternalLink, Import, List, RefreshCw, Users } from 'lucide-react';
+import { ArrowLeft, BarChart3, ExternalLink, Import, Info, List, RefreshCw, Users } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import {
   getEnvironmentItem,
@@ -26,6 +26,8 @@ const formatUpdatedAt = (value: string) =>
     minute: '2-digit',
     hour12: false,
   }).format(new Date(value));
+
+const formatSampleCount = (value: number) => (value > 0 ? `${value} 队` : '暂无样本');
 
 function UsageBar({ value }: { value: number }) {
   return (
@@ -338,6 +340,102 @@ function FullRankingPage({
   );
 }
 
+function EnvironmentMethodologyPage({
+  environment,
+  battleType,
+  onBattleTypeChange,
+  onBack,
+}: {
+  environment: EnvironmentState;
+  battleType: EnvironmentBattleType;
+  onBattleTypeChange: (battleType: EnvironmentBattleType) => void;
+  onBack: () => void;
+}) {
+  const sampleCount = environment.sampleTeamCounts[battleType];
+  const isPokeDb = environment.loadStatus === 'pokedb';
+
+  return (
+    <div className="space-y-3">
+      <button className="inline-flex items-center gap-2 text-sm text-textSecondary" type="button" onClick={onBack}>
+        <ArrowLeft size={16} />
+        返回环境
+      </button>
+
+      <section className="rounded-xl border border-border bg-gradient-to-b from-elevated to-page p-4">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-[11px] uppercase tracking-wide text-textMuted">Methodology</p>
+            <h2 className="mt-1 text-2xl font-semibold">数据口径</h2>
+            <p className="mt-1 text-xs text-textSecondary">{environment.sourceLabel}</p>
+            <p className="mt-0.5 text-xs text-textSecondary">更新于 {formatUpdatedAt(environment.updatedAt)}</p>
+          </div>
+          <div className="grid grid-cols-2 rounded-lg border border-border bg-page p-1 text-sm font-semibold">
+            {(Object.keys(battleTypeLabels) as EnvironmentBattleType[]).map((type) => (
+              <button
+                key={type}
+                className={`rounded-md px-3 py-2 ${battleType === type ? 'bg-accent text-page' : 'text-textSecondary'}`}
+                type="button"
+                onClick={() => onBattleTypeChange(type)}
+              >
+                {battleTypeLabels[type]}
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <Card>
+        <h3 className="text-sm font-semibold">样本池</h3>
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          {(Object.keys(battleTypeLabels) as EnvironmentBattleType[]).map((type) => (
+            <div key={type} className={`rounded-lg border p-3 ${type === battleType ? 'border-accent bg-accent/10' : 'border-border bg-secondary'}`}>
+              <p className="text-xs text-textSecondary">{battleTypeLabels[type]}</p>
+              <p className="mt-1 text-lg font-semibold">{formatSampleCount(environment.sampleTeamCounts[type])}</p>
+            </div>
+          ))}
+        </div>
+        <p className="mt-3 text-xs leading-5 text-textSecondary">
+          当前查看的是{battleTypeLabels[battleType]}环境，百分比和队伍数都以这 {formatSampleCount(sampleCount)} 为分母。
+        </p>
+      </Card>
+
+      <Card>
+        <h3 className="text-sm font-semibold">数据来源</h3>
+        <p className="mt-2 text-xs leading-5 text-textSecondary">
+          {isPokeDb
+            ? '来源是 PokeDB 公开的 M-1 上位构筑快照和训练家队报页面。应用在维护时拉取公开数据，整理成离线可读的环境包。'
+            : '当前加载的是开发样例数据，只用于页面结构预览；不能代表真实环境。'}
+        </p>
+        <p className="mt-2 text-xs leading-5 text-textSecondary">
+          这不是全服实时统计，也不是所有玩家队伍全集；它反映的是当前数据包收录到的公开上位样本。
+        </p>
+      </Card>
+
+      <Card>
+        <h3 className="text-sm font-semibold">宝可梦榜</h3>
+        <p className="mt-2 text-xs leading-5 text-textSecondary">
+          宝可梦旁边的百分比表示：在当前样本池里，有多少比例的队伍携带了这只宝可梦。比如 54.0% / 285 队，意思是当前样本池中有
+          285 支队伍带了这只宝可梦，约占全部样本的 54.0%。
+        </p>
+      </Card>
+
+      <Card>
+        <h3 className="text-sm font-semibold">详情页统计</h3>
+        <p className="mt-2 text-xs leading-5 text-textSecondary">
+          常用招式、携带道具、常见队友的百分比，是在“已经带了这只宝可梦”的队伍里继续统计，不是以全部环境队伍为分母。
+        </p>
+      </Card>
+
+      <Card>
+        <h3 className="text-sm font-semibold">上位构筑</h3>
+        <p className="mt-2 text-xs leading-5 text-textSecondary">
+          上位构筑卡片来自公开队报链接，标题里的“最高第 N 名”和分数用于说明该队在上赛季达到过的排名表现。样本只可靠展示宝可梦和道具；性格、SP、配招仍需要打开队报或手动确认。
+        </p>
+      </Card>
+    </div>
+  );
+}
+
 export function EnvironmentPage({
   environment,
   onImportSample,
@@ -346,7 +444,7 @@ export function EnvironmentPage({
   onImportSample: (sample: EnvironmentTeamSample) => Promise<void> | void;
 }) {
   const [battleType, setBattleType] = useState<EnvironmentBattleType>('singles');
-  const [view, setView] = useState<'home' | 'ranking'>('home');
+  const [view, setView] = useState<'home' | 'ranking' | 'methodology'>('home');
   const [detailState, setDetailState] = useState<{ pokemonId: string; returnView: 'home' | 'ranking' } | null>(null);
   const [teamSampleBatchIndex, setTeamSampleBatchIndex] = useState(0);
   const rankings = useMemo(() => environment.pokemonUsage[battleType], [battleType, environment.pokemonUsage]);
@@ -393,11 +491,22 @@ export function EnvironmentPage({
     );
   }
 
+  if (view === 'methodology') {
+    return (
+      <EnvironmentMethodologyPage
+        environment={environment}
+        battleType={battleType}
+        onBattleTypeChange={changeBattleType}
+        onBack={() => setView('home')}
+      />
+    );
+  }
+
   const visibleRankings = rankings.slice(0, 4);
 
   return (
     <div className="space-y-3">
-      <section className="rounded-xl border border-border bg-gradient-to-b from-elevated to-page p-4">
+      <section className="relative rounded-xl border border-border bg-gradient-to-b from-elevated to-page p-4 pb-12">
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-[11px] uppercase tracking-wide text-textMuted">Environment</p>
@@ -418,6 +527,16 @@ export function EnvironmentPage({
             ))}
           </div>
         </div>
+        <button
+          aria-label="查看数据口径"
+          className="absolute bottom-3 right-3 inline-flex h-8 items-center gap-1.5 rounded-lg border border-border bg-card px-2 text-xs font-semibold text-textSecondary active:scale-[0.98]"
+          title="查看数据口径"
+          type="button"
+          onClick={() => setView('methodology')}
+        >
+          <Info size={15} />
+          数据口径
+        </button>
       </section>
 
       <Card>

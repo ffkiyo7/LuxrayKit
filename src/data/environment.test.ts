@@ -27,6 +27,7 @@ describe('environment runtime loading', () => {
     expect(state.sourceLabel).toContain('PokeDB');
     expect(state.pokemonUsage.singles.length).toBeGreaterThanOrEqual(20);
     expect(state.pokemonUsage.doubles[0]).toMatchObject({ pokemonId: 'basculegion-male' });
+    expect(state.sampleTeamCounts).toEqual({ singles: 528, doubles: 71 });
     expect(state.teamSamples.filter((sample) => sample.battleType === 'singles').length).toBeGreaterThanOrEqual(16);
     expect(state.teamSamples.filter((sample) => sample.battleType === 'doubles').length).toBeGreaterThanOrEqual(16);
     expect(state.teamSamples.find((sample) => sample.id === 'pokedb-singles-rank-1')).toMatchObject({

@@ -491,6 +491,22 @@ describe('App page flows', () => {
     expect(screen.queryByText(/本页使用本地 seed 占位数据/)).toBeNull();
   });
 
+  it('opens environment data methodology with source, sample count, and metric notes', async () => {
+    const user = await renderEnvironmentApp();
+
+    await user.click(screen.getByRole('button', { name: '查看数据口径' }));
+
+    expect(await screen.findByRole('heading', { name: '数据口径' })).toBeTruthy();
+    expect(screen.getByText('528 队')).toBeTruthy();
+    expect(screen.getByText('71 队')).toBeTruthy();
+    expect(screen.getByText(/54\.0% \/ 285 队/)).toBeTruthy();
+    expect(screen.getByText(/不是全服实时统计/)).toBeTruthy();
+    expect(screen.getByText(/常用招式、携带道具、常见队友/)).toBeTruthy();
+
+    await user.click(screen.getByRole('button', { name: '返回环境' }));
+    expect(await screen.findByRole('heading', { name: '环境' })).toBeTruthy();
+  });
+
   it('shows related environment sample teams on pokemon environment detail and imports them', async () => {
     const user = await renderEnvironmentApp();
 

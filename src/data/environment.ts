@@ -35,6 +35,7 @@ export type EnvironmentState = {
   updatedAt: string;
   dataStatusLabel: string;
   pokemonUsage: Record<EnvironmentBattleType, EnvironmentPokemonUsage[]>;
+  sampleTeamCounts: Record<EnvironmentBattleType, number>;
   teamSamples: EnvironmentTeamSample[];
   sourceLabel: string;
   loadStatus: 'pokedb' | 'fallback';
@@ -58,6 +59,17 @@ const auditDataset = (dataset: EnvironmentDataset) => auditEnvironmentDataset(da
 
 const currentEnvironmentSeedAudit = auditDataset(currentEnvironmentDataset);
 
+const estimateSampleTeamCount = (usage: EnvironmentPokemonUsage[]) => {
+  const estimates = usage
+    .map((entry) => (entry.usageRate > 0 ? Math.round(entry.teamCount / (entry.usageRate / 100)) : 0))
+    .filter((value) => Number.isInteger(value) && value > 0);
+  if (estimates.length === 0) return usage.reduce((max, entry) => Math.max(max, entry.teamCount), 0);
+
+  const counts = new Map<number, number>();
+  estimates.forEach((estimate) => counts.set(estimate, (counts.get(estimate) ?? 0) + 1));
+  return [...counts.entries()].sort((a, b) => b[1] - a[1] || b[0] - a[0])[0][0];
+};
+
 const toEnvironmentState = (
   dataset: EnvironmentDataset,
   loadStatus: EnvironmentState['loadStatus'],
@@ -71,6 +83,10 @@ const toEnvironmentState = (
     pokemonUsage: {
       singles: audited.dataset.battles.singles.pokemonUsage,
       doubles: audited.dataset.battles.doubles.pokemonUsage,
+    },
+    sampleTeamCounts: {
+      singles: audited.dataset.battles.singles.sampleCount ?? estimateSampleTeamCount(audited.dataset.battles.singles.pokemonUsage),
+      doubles: audited.dataset.battles.doubles.sampleCount ?? estimateSampleTeamCount(audited.dataset.battles.doubles.pokemonUsage),
     },
     teamSamples: [...audited.dataset.battles.singles.teamSamples, ...audited.dataset.battles.doubles.teamSamples],
     sourceLabel: audited.dataset.sourceLabel,

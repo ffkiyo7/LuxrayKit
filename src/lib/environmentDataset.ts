@@ -46,6 +46,7 @@ export type EnvironmentTeamSample = {
 
 export type EnvironmentBattleDataset = {
   pokemonUsage: EnvironmentPokemonUsage[];
+  sampleCount?: number;
   teamSamples: EnvironmentTeamSample[];
 };
 
@@ -285,6 +286,7 @@ export function auditEnvironmentDataset(
       pokemonUsage: battle.pokemonUsage
         .map((usage, index) => normalizeUsage(usage, battleType, index, ids, issues))
         .filter((usage): usage is EnvironmentPokemonUsage => Boolean(usage)),
+      ...(battle.sampleCount ? { sampleCount: battle.sampleCount } : {}),
       teamSamples: battle.teamSamples
         .map((sample, index) => normalizeSample(sample, battleType, index, ids, issues))
         .filter((sample): sample is EnvironmentTeamSample => Boolean(sample)),

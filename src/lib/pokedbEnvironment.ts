@@ -259,6 +259,7 @@ export function buildEnvironmentDatasetFromPokeDbOpenData(options: {
     acc[battleType] = payload
       ? {
           pokemonUsage: buildUsage(payload, options.pokemonKeyToId, options.itemNameToId, itemIds, options.moveStats?.[battleType]),
+          sampleCount: payload.teams.length,
           teamSamples: (options.teamSamples?.[battleType] ?? []).map((sample) => normalizeTeamSampleTitle(sample, options.pokemonNameById)),
         }
       : { ...emptyBattleDataset(), teamSamples: (options.teamSamples?.[battleType] ?? []).map((sample) => normalizeTeamSampleTitle(sample, options.pokemonNameById)) };

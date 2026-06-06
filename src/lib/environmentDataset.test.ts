@@ -209,6 +209,7 @@ describe('environment dataset audit', () => {
     expect(pokedbEnvironmentState.sourceLabel).toContain('PokeDB');
     expect(pokedbEnvironmentState.pokemonUsage.singles.length).toBeGreaterThanOrEqual(20);
     expect(pokedbEnvironmentState.pokemonUsage.doubles.length).toBeGreaterThanOrEqual(20);
+    expect(pokedbEnvironmentState.sampleTeamCounts).toEqual({ singles: 528, doubles: 71 });
     expect(pokedbEnvironmentState.pokemonUsage.doubles[0]).toMatchObject({
       pokemonId: 'basculegion-male',
     });
