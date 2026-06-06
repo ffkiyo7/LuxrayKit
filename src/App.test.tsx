@@ -135,6 +135,7 @@ describe('App page flows', () => {
     expect(await screen.findByRole('button', { name: /速度线计算/ })).toBeTruthy();
     expect(await screen.findByRole('button', { name: /规则图鉴/ })).toBeTruthy();
     expect(screen.queryByText(/三个入口并列|从本地队伍带入配置|队伍配置带入/)).toBeNull();
+    expect(screen.queryByText(/天气、场地/)).toBeNull();
     expect(screen.queryByRole('button', { name: '当前规则' })).toBeNull();
   });
 
@@ -519,6 +520,13 @@ describe('App page flows', () => {
     expect(screen.getByText(/公式：Gen9/)).toBeTruthy();
     expect(screen.queryByText(/当前无法|机制待确认|非官方 Champions 正式结论|Champions 伤害公式尚未/)).toBeNull();
     expect(screen.getByText(/% -/)).toBeTruthy();
+    expect(screen.queryByText('场地')).toBeNull();
+    expect(screen.queryByText('防守方保护')).toBeNull();
+    expect(screen.queryByText('进攻方 HP')).toBeNull();
+    expect(screen.queryByText('防守方 HP')).toBeNull();
+    expect(screen.queryByText('进攻方状态')).toBeNull();
+    expect(screen.queryByText('防守方状态')).toBeNull();
+    expect(screen.getByLabelText('会心一击')).toBeTruthy();
 
     // Expand attacker config
     const editBtns = screen.getAllByTitle('编辑能力配置');

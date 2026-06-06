@@ -12,7 +12,7 @@ const toolEntries: Array<{
   {
     id: 'calculator',
     title: '伤害计算',
-    description: '攻防双方、招式、天气、场地与伤害区间。',
+    description: '攻防双方、招式、天气与伤害区间。',
     icon: Calculator,
   },
   {

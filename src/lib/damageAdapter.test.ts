@@ -35,7 +35,6 @@ const defaults: DamageAdapterInput = {
   defender: makeConfig({ pokemonId: 'torkoal', statPoints: { hp: 32, defense: 17, specialDefense: 17 }, nature: '慎重' }),
   battleType: 'doubles',
   weather: '无天气',
-  terrain: '无场地',
   attackStage: 0,
 };
 
@@ -68,10 +67,10 @@ const championsMegaAbilityCoverage = {
   'mega-froslass': { abilityId: 'snow-warning', status: 'context-only', reason: 'field weather is chosen explicitly in the calculator' },
   'mega-chimecho': { abilityId: 'levitate', status: 'tested-damage' },
   'mega-emboar': { abilityId: 'mold-breaker', status: 'tested-damage' },
-  'mega-excadrill': { abilityId: 'piercing-drill', status: 'tested-damage' },
+  'mega-excadrill': { abilityId: 'piercing-drill', status: 'context-only', reason: 'only changes interaction with Protect, which is not a calculator input' },
   'mega-audino': { abilityId: 'healer', status: 'context-only', reason: 'ally status healing, not damage math' },
   'mega-chandelure': { abilityId: 'infiltrator', status: 'context-only', reason: 'screen/substitute context is not exposed yet' },
-  'mega-golurk': { abilityId: 'unseen-fist', status: 'tested-damage' },
+  'mega-golurk': { abilityId: 'unseen-fist', status: 'context-only', reason: 'only changes interaction with Protect, which is not a calculator input' },
   'mega-chesnaught': { abilityId: 'bulletproof', status: 'tested-damage' },
   'mega-delphox': { abilityId: 'levitate', status: 'tested-damage' },
   'mega-greninja': { abilityId: 'protean', status: 'tested-damage' },
@@ -108,7 +107,6 @@ const manualReviewFixtures: ManualReviewFixture[] = [
       }),
       battleType: 'doubles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     },
     expected: {
@@ -142,7 +140,6 @@ const manualReviewFixtures: ManualReviewFixture[] = [
       }),
       battleType: 'singles',
       weather: '雨天',
-      terrain: '无场地',
       attackStage: 0,
     },
     expected: {
@@ -173,7 +170,6 @@ const manualReviewFixtures: ManualReviewFixture[] = [
       defender: makeConfig({ pokemonId: 'houndoom', nature: '认真', statPoints: {} }),
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     },
     expected: {
@@ -208,7 +204,6 @@ const manualReviewFixtures: ManualReviewFixture[] = [
       }),
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     },
     expected: {
@@ -240,7 +235,6 @@ const manualReviewFixtures: ManualReviewFixture[] = [
       defender: makeConfig({ pokemonId: 'houndoom', nature: '认真', statPoints: {} }),
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     },
     expected: {
@@ -285,8 +279,8 @@ describe('damageAdapter', () => {
       }
     }
 
-    expect(Object.values(championsMegaAbilityCoverage).filter((entry) => entry.status === 'tested-damage')).toHaveLength(16);
-    expect(Object.values(championsMegaAbilityCoverage).filter((entry) => entry.status === 'context-only')).toHaveLength(8);
+    expect(Object.values(championsMegaAbilityCoverage).filter((entry) => entry.status === 'tested-damage')).toHaveLength(14);
+    expect(Object.values(championsMegaAbilityCoverage).filter((entry) => entry.status === 'context-only')).toHaveLength(10);
   });
 
   it('returns Gen9-based damage for valid input with Champions move params and SP stats', () => {
@@ -318,7 +312,6 @@ describe('damageAdapter', () => {
       }),
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     });
 
@@ -373,7 +366,6 @@ describe('damageAdapter', () => {
       }),
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     });
     expect(oneHit.status).toBe('experimental-success');
@@ -399,7 +391,6 @@ describe('damageAdapter', () => {
       }),
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     });
     const withoutHugePower = computeDamage({
@@ -418,7 +409,6 @@ describe('damageAdapter', () => {
       }),
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     });
 
@@ -447,7 +437,6 @@ describe('damageAdapter', () => {
       }),
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     });
 
@@ -487,7 +476,6 @@ describe('damageAdapter', () => {
       }),
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     });
 
@@ -520,7 +508,6 @@ describe('damageAdapter', () => {
       }),
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     });
 
@@ -546,7 +533,6 @@ describe('damageAdapter', () => {
       }),
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     });
     const withChoiceScarf = computeDamage({
@@ -565,7 +551,6 @@ describe('damageAdapter', () => {
       }),
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     });
 
@@ -602,7 +587,6 @@ describe('damageAdapter', () => {
       }),
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     });
     const liquidVoiceRain = computeDamage({
@@ -621,7 +605,6 @@ describe('damageAdapter', () => {
       }),
       battleType: 'singles',
       weather: '雨天',
-      terrain: '无场地',
       attackStage: 0,
     });
 
@@ -663,7 +646,6 @@ describe('damageAdapter', () => {
       }),
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     });
     const withoutAbility = computeDamage({
@@ -674,7 +656,6 @@ describe('damageAdapter', () => {
       defender: dragonize.defenderConfig!,
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     });
 
@@ -708,7 +689,6 @@ describe('damageAdapter', () => {
       }),
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     });
     const withoutAbility = computeDamage({
@@ -719,7 +699,6 @@ describe('damageAdapter', () => {
       defender: fairyAura.defenderConfig!,
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     });
 
@@ -752,7 +731,6 @@ describe('damageAdapter', () => {
       }),
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     });
     const withoutAbility = computeDamage({
@@ -763,7 +741,6 @@ describe('damageAdapter', () => {
       defender: megaSol.defenderConfig!,
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     });
 
@@ -858,7 +835,6 @@ describe('damageAdapter', () => {
       defender,
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     });
     const noAbility = computeDamage({
@@ -870,7 +846,6 @@ describe('damageAdapter', () => {
         : noWeather.defenderConfig!,
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     });
     const manualWeatherResult = computeDamage({
@@ -878,7 +853,6 @@ describe('damageAdapter', () => {
       defender,
       battleType: 'singles',
       weather: manualWeather,
-      terrain: '无场地',
       attackStage: 0,
     });
 
@@ -1057,7 +1031,6 @@ describe('damageAdapter', () => {
       defender: makeConfig({ pokemonId: 'torkoal', nature: '认真', statPoints: {} }),
       battleType: 'singles',
       weather,
-      terrain: '无场地',
       attackStage: 0,
     });
     const withoutAbility = computeDamage({
@@ -1068,7 +1041,6 @@ describe('damageAdapter', () => {
       defender: withAbility.defenderConfig!,
       battleType: 'singles',
       weather,
-      terrain: '无场地',
       attackStage: 0,
     });
 
@@ -1097,7 +1069,6 @@ describe('damageAdapter', () => {
       }),
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     });
     const withoutAbility = computeDamage({
@@ -1108,7 +1079,6 @@ describe('damageAdapter', () => {
       defender: scrappy.defenderConfig!,
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     });
 
@@ -1129,97 +1099,11 @@ describe('damageAdapter', () => {
 
   it.each([
     {
-      label: 'Blaze',
-      abilitySide: 'attacker',
-      abilityId: 'blaze',
-      direction: 'boost',
-      abilityText: '低 HP 火属性招式增强',
-      context: { attackerHpPercent: 33 },
-      attacker: makeConfig({
-        pokemonId: 'charizard',
-        abilityId: 'blaze',
-        nature: '内敛',
-        statPoints: { specialAttack: 32 },
-        moveIds: ['flamethrower'],
-        selectedMoveId: 'flamethrower',
-      }),
-      defender: makeConfig({ pokemonId: 'torkoal', nature: '认真', statPoints: { hp: 32, specialDefense: 17 } }),
-    },
-    {
-      label: 'Torrent',
-      abilitySide: 'attacker',
-      abilityId: 'torrent',
-      direction: 'boost',
-      abilityText: '低 HP 水属性招式增强',
-      context: { attackerHpPercent: 33 },
-      attacker: makeConfig({
-        pokemonId: 'blastoise',
-        abilityId: 'torrent',
-        nature: '内敛',
-        statPoints: { specialAttack: 32 },
-        moveIds: ['hydro-pump'],
-        selectedMoveId: 'hydro-pump',
-      }),
-      defender: makeConfig({ pokemonId: 'torkoal', nature: '认真', statPoints: { hp: 32, specialDefense: 17 } }),
-    },
-    {
-      label: 'Overgrow',
-      abilitySide: 'attacker',
-      abilityId: 'overgrow',
-      direction: 'boost',
-      abilityText: '低 HP 草属性招式增强',
-      context: { attackerHpPercent: 33 },
-      attacker: makeConfig({
-        pokemonId: 'venusaur',
-        abilityId: 'overgrow',
-        nature: '内敛',
-        statPoints: { specialAttack: 32 },
-        moveIds: ['energy-ball'],
-        selectedMoveId: 'energy-ball',
-      }),
-      defender: makeConfig({ pokemonId: 'torkoal', nature: '认真', statPoints: { hp: 32, specialDefense: 17 } }),
-    },
-    {
-      label: 'Swarm',
-      abilitySide: 'attacker',
-      abilityId: 'swarm',
-      direction: 'boost',
-      abilityText: '低 HP 虫属性招式增强',
-      context: { attackerHpPercent: 33 },
-      attacker: makeConfig({
-        pokemonId: 'scizor',
-        abilityId: 'swarm',
-        nature: '固执',
-        statPoints: { attack: 32 },
-        moveIds: ['x-scissor'],
-        selectedMoveId: 'x-scissor',
-      }),
-      defender: makeConfig({ pokemonId: 'torkoal', nature: '认真', statPoints: { hp: 32, defense: 17 } }),
-    },
-    {
-      label: 'Guts',
-      abilitySide: 'attacker',
-      abilityId: 'guts',
-      direction: 'boost',
-      abilityText: '异常状态物理招式增强',
-      context: { attackerStatus: 'brn' },
-      attacker: makeConfig({
-        pokemonId: 'machamp',
-        abilityId: 'guts',
-        nature: '固执',
-        statPoints: { attack: 32 },
-        moveIds: ['close-combat'],
-        selectedMoveId: 'close-combat',
-      }),
-      defender: makeConfig({ pokemonId: 'torkoal', nature: '认真', statPoints: { hp: 32, defense: 17 } }),
-    },
-    {
       label: 'Analytic',
       abilitySide: 'attacker',
       abilityId: 'analytic',
       direction: 'boost',
       abilityText: '后手招式增强',
-      context: {},
       attacker: makeConfig({
         pokemonId: 'starmie',
         abilityId: 'analytic',
@@ -1247,34 +1131,12 @@ describe('damageAdapter', () => {
       }),
       defender: makeConfig({ pokemonId: 'torkoal', nature: '认真', statPoints: { hp: 32, defense: 17 } }),
     },
-    {
-      label: 'Marvel Scale',
-      abilitySide: 'defender',
-      abilityId: 'marvel-scale',
-      direction: 'reduction',
-      abilityText: '异常状态防御提高',
-      context: { defenderStatus: 'brn' },
-      attacker: makeConfig({
-        pokemonId: 'garchomp',
-        nature: '固执',
-        statPoints: { attack: 32 },
-        moveIds: ['dragon-claw'],
-        selectedMoveId: 'dragon-claw',
-      }),
-      defender: makeConfig({
-        pokemonId: 'milotic',
-        abilityId: 'marvel-scale',
-        nature: '认真',
-        statPoints: { hp: 32, defense: 17, specialDefense: 17 },
-      }),
-    },
   ])('applies $label with explicit battle context', ({ abilitySide, abilityId, direction, abilityText, context, attacker, defender }) => {
     const withAbility = computeDamage({
       attacker,
       defender,
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
       ...context,
     });
@@ -1287,7 +1149,6 @@ describe('damageAdapter', () => {
         : withAbility.defenderConfig!,
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
       ...context,
     });
@@ -1302,6 +1163,74 @@ describe('damageAdapter', () => {
     expect(withAbility.abilityEffects).toContainEqual(
       expect.objectContaining({ side: abilitySide, abilityId, direction, text: abilityText }),
     );
+  });
+
+  it.each([
+    ['blaze', 'charizard', 'flamethrower', 'torkoal'],
+    ['torrent', 'blastoise', 'hydro-pump', 'torkoal'],
+    ['overgrow', 'venusaur', 'energy-ball', 'torkoal'],
+    ['swarm', 'scizor', 'x-scissor', 'torkoal'],
+    ['guts', 'machamp', 'close-combat', 'torkoal'],
+  ])('does not trigger HP/status-gated attacker ability %s from calculator context', (abilityId, pokemonId, moveId, defenderId) => {
+    const withAbility = computeDamage({
+      attacker: makeConfig({
+        pokemonId,
+        abilityId,
+        nature: '固执',
+        statPoints: { attack: 32, specialAttack: 32 },
+        moveIds: [moveId],
+        selectedMoveId: moveId,
+      }),
+      defender: makeConfig({ pokemonId: defenderId, nature: '认真', statPoints: { hp: 32, defense: 17, specialDefense: 17 } }),
+      battleType: 'singles',
+      weather: '无天气',
+      attackStage: 0,
+    });
+    const withoutAbility = computeDamage({
+      attacker: { ...withAbility.attackerConfig!, abilityId: undefined },
+      defender: withAbility.defenderConfig!,
+      battleType: 'singles',
+      weather: '无天气',
+      attackStage: 0,
+    });
+
+    expect(withAbility.status).toBe('experimental-success');
+    expect(withoutAbility.status).toBe('experimental-success');
+    expect(withAbility.damageRolls).toEqual(withoutAbility.damageRolls);
+    expect(withAbility.abilityEffects).toEqual([]);
+  });
+
+  it('does not trigger status-gated defender abilities from calculator context', () => {
+    const withAbility = computeDamage({
+      attacker: makeConfig({
+        pokemonId: 'garchomp',
+        nature: '固执',
+        statPoints: { attack: 32 },
+        moveIds: ['dragon-claw'],
+        selectedMoveId: 'dragon-claw',
+      }),
+      defender: makeConfig({
+        pokemonId: 'milotic',
+        abilityId: 'marvel-scale',
+        nature: '认真',
+        statPoints: { hp: 32, defense: 17, specialDefense: 17 },
+      }),
+      battleType: 'singles',
+      weather: '无天气',
+      attackStage: 0,
+    });
+    const withoutAbility = computeDamage({
+      attacker: withAbility.attackerConfig!,
+      defender: { ...withAbility.defenderConfig!, abilityId: undefined },
+      battleType: 'singles',
+      weather: '无天气',
+      attackStage: 0,
+    });
+
+    expect(withAbility.status).toBe('experimental-success');
+    expect(withoutAbility.status).toBe('experimental-success');
+    expect(withAbility.damageRolls).toEqual(withoutAbility.damageRolls);
+    expect(withAbility.abilityEffects).toEqual([]);
   });
 
   it.each([
@@ -1359,7 +1288,6 @@ describe('damageAdapter', () => {
       defender,
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     });
     const withoutAbility = computeDamage({
@@ -1370,7 +1298,6 @@ describe('damageAdapter', () => {
       defender: withAbility.defenderConfig!,
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     });
 
@@ -1500,7 +1427,6 @@ describe('damageAdapter', () => {
       defender,
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     });
     const withoutAbility = computeDamage({
@@ -1511,7 +1437,6 @@ describe('damageAdapter', () => {
       },
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     });
 
@@ -1656,7 +1581,6 @@ describe('damageAdapter', () => {
       defender,
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     });
     const withoutAbility = computeDamage({
@@ -1667,7 +1591,6 @@ describe('damageAdapter', () => {
       },
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     });
 
@@ -1723,7 +1646,6 @@ describe('damageAdapter', () => {
       defender,
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     });
     const withoutAbility = computeDamage({
@@ -1735,7 +1657,6 @@ describe('damageAdapter', () => {
         : withAbility.defenderConfig!,
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     });
 
@@ -1766,7 +1687,6 @@ describe('damageAdapter', () => {
       }),
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     });
     const withoutAbility = computeDamage({
@@ -1777,7 +1697,6 @@ describe('damageAdapter', () => {
       defender: noWeather.defenderConfig!,
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     });
     const manualSnow = computeDamage({
@@ -1785,7 +1704,6 @@ describe('damageAdapter', () => {
       defender: noWeather.defenderConfig!,
       battleType: 'singles',
       weather: '雪天',
-      terrain: '无场地',
       attackStage: 0,
     });
 
@@ -1821,7 +1739,6 @@ describe('damageAdapter', () => {
       }),
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     });
     const withoutAbility = computeDamage({
@@ -1832,7 +1749,6 @@ describe('damageAdapter', () => {
       },
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     });
 
@@ -1871,7 +1787,6 @@ describe('damageAdapter', () => {
       }),
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     });
     const withoutAbility = computeDamage({
@@ -1882,7 +1797,6 @@ describe('damageAdapter', () => {
       defender: hugePower.defenderConfig!,
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     });
 
@@ -1914,7 +1828,6 @@ describe('damageAdapter', () => {
       }),
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     });
     const withoutAbility = computeDamage({
@@ -1925,7 +1838,6 @@ describe('damageAdapter', () => {
       defender: adaptability.defenderConfig!,
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     });
 
@@ -1958,7 +1870,6 @@ describe('damageAdapter', () => {
       }),
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     });
     const withoutAbility = computeDamage({
@@ -1969,7 +1880,6 @@ describe('damageAdapter', () => {
       },
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     });
 
@@ -2007,7 +1917,6 @@ describe('damageAdapter', () => {
       }),
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     });
     const withoutAbility = computeDamage({
@@ -2018,7 +1927,6 @@ describe('damageAdapter', () => {
       },
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     });
 
@@ -2059,7 +1967,6 @@ describe('damageAdapter', () => {
       }),
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     });
     const withoutAbility = computeDamage({
@@ -2070,7 +1977,6 @@ describe('damageAdapter', () => {
       defender: moldBreaker.defenderConfig!,
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     });
 
@@ -2108,7 +2014,6 @@ describe('damageAdapter', () => {
       }),
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     });
     const withoutAbility = computeDamage({
@@ -2119,7 +2024,6 @@ describe('damageAdapter', () => {
       defender: ironFist.defenderConfig!,
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     });
 
@@ -2151,7 +2055,6 @@ describe('damageAdapter', () => {
       }),
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     });
     const withoutAbility = computeDamage({
@@ -2162,7 +2065,6 @@ describe('damageAdapter', () => {
       defender: protean.defenderConfig!,
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     });
 
@@ -2196,7 +2098,6 @@ describe('damageAdapter', () => {
       }),
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     });
     const withoutAbility = computeDamage({
@@ -2207,7 +2108,6 @@ describe('damageAdapter', () => {
       },
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     });
 
@@ -2243,7 +2143,6 @@ describe('damageAdapter', () => {
       }),
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     });
     const withoutAbility = computeDamage({
@@ -2254,7 +2153,6 @@ describe('damageAdapter', () => {
       },
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     });
 
@@ -2272,125 +2170,45 @@ describe('damageAdapter', () => {
     ]);
   });
 
-  it('blocks protectable moves when the defender is protected', () => {
-    const result = computeDamage({
-      ...defaults,
-      battleType: 'singles',
-      defenderProtected: true,
-    });
-
-    expect(result.status).toBe('experimental-success');
-    expect(result.damageRolls).toEqual([0]);
-    expect(result.minDamage).toBe(0);
-    expect(result.maxDamage).toBe(0);
-    expect(result.protectionMultiplier).toBe(0);
-    expect(result.protectionText).toBe('防守方守住，招式被挡下');
-    expect(result.possibleHkoText).toBe('无法造成伤害');
-  });
-
-  it('lets Unseen Fist contact moves ignore defender protection', () => {
-    const unseenFist = computeDamage({
+  it.each([
+    ['unseen-fist', 'golurk', 'mega-golurk', 'golurkite', 'shadow-punch', 'garchomp'],
+    ['piercing-drill', 'excadrill', 'mega-excadrill', 'excadrite', 'stomping-tantrum', 'torkoal'],
+  ])('keeps protection-only ability %s out of damage modifiers', (abilityId, pokemonId, formId, itemId, moveId, defenderId) => {
+    const withAbility = computeDamage({
       attacker: makeConfig({
-        pokemonId: 'golurk',
-        formId: 'mega-golurk',
-        abilityId: 'unseen-fist',
-        itemId: 'golurkite',
+        pokemonId,
+        formId,
+        abilityId,
+        itemId,
         nature: '固执',
         statPoints: { attack: 32, hp: 32, speed: 2 },
-        moveIds: ['shadow-punch'],
-        selectedMoveId: 'shadow-punch',
+        moveIds: [moveId],
+        selectedMoveId: moveId,
       }),
       defender: makeConfig({
-        pokemonId: 'garchomp',
+        pokemonId: defenderId,
         nature: '认真',
         statPoints: {},
       }),
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
-      defenderProtected: true,
       attackStage: 0,
     });
     const withoutAbility = computeDamage({
       attacker: {
-        ...unseenFist.attackerConfig!,
+        ...withAbility.attackerConfig!,
         abilityId: undefined,
       },
-      defender: unseenFist.defenderConfig!,
+      defender: withAbility.defenderConfig!,
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
-      defenderProtected: true,
       attackStage: 0,
     });
 
-    expect(unseenFist.status).toBe('experimental-success');
+    expect(withAbility.status).toBe('experimental-success');
     expect(withoutAbility.status).toBe('experimental-success');
-    expect(unseenFist.maxDamage).toBeGreaterThan(0);
-    expect(withoutAbility.maxDamage).toBe(0);
-    expect(unseenFist.protectionMultiplier).toBe(1);
-    expect(unseenFist.protectionText).toBe('无形拳无视守住');
-    expect(unseenFist.abilityEffects).toEqual([
-      expect.objectContaining({ side: 'attacker', abilityId: 'unseen-fist', direction: 'boost', text: '接触招式无视守住' }),
-    ]);
-  });
-
-  it('lets Piercing Drill contact moves hit protected targets for quarter damage', () => {
-    const piercingDrill = computeDamage({
-      attacker: makeConfig({
-        pokemonId: 'excadrill',
-        formId: 'mega-excadrill',
-        abilityId: 'piercing-drill',
-        itemId: 'excadrite',
-        nature: '固执',
-        statPoints: { attack: 32, speed: 32, hp: 2 },
-        moveIds: ['stomping-tantrum'],
-        selectedMoveId: 'stomping-tantrum',
-      }),
-      defender: makeConfig({
-        pokemonId: 'torkoal',
-        nature: '认真',
-        statPoints: {},
-      }),
-      battleType: 'singles',
-      weather: '无天气',
-      terrain: '无场地',
-      defenderProtected: true,
-      attackStage: 0,
-    });
-    const unprotected = computeDamage({
-      attacker: piercingDrill.attackerConfig!,
-      defender: piercingDrill.defenderConfig!,
-      battleType: 'singles',
-      weather: '无天气',
-      terrain: '无场地',
-      defenderProtected: false,
-      attackStage: 0,
-    });
-    const withoutAbility = computeDamage({
-      attacker: {
-        ...piercingDrill.attackerConfig!,
-        abilityId: undefined,
-      },
-      defender: piercingDrill.defenderConfig!,
-      battleType: 'singles',
-      weather: '无天气',
-      terrain: '无场地',
-      defenderProtected: true,
-      attackStage: 0,
-    });
-
-    expect(piercingDrill.status).toBe('experimental-success');
-    expect(unprotected.status).toBe('experimental-success');
-    expect(withoutAbility.status).toBe('experimental-success');
-    expect(piercingDrill.minDamage).toBeGreaterThan(0);
-    expect(piercingDrill.maxDamage).toBe(Math.floor(unprotected.maxDamage! * 0.25));
-    expect(withoutAbility.maxDamage).toBe(0);
-    expect(piercingDrill.protectionMultiplier).toBe(0.25);
-    expect(piercingDrill.protectionText).toBe('Piercing Drill 穿透守住，伤害变为 1/4');
-    expect(piercingDrill.abilityEffects).toEqual([
-      expect.objectContaining({ side: 'attacker', abilityId: 'piercing-drill', direction: 'boost', text: '守住中接触招式命中，伤害变为 1/4' }),
-    ]);
+    expect(withAbility.damageRolls).toEqual(withoutAbility.damageRolls);
+    expect(withAbility.abilityEffects).toEqual([]);
   });
 
   it('reports Spicy Spray as a post-damage burn event when the defender takes damage', () => {
@@ -2412,16 +2230,6 @@ describe('damageAdapter', () => {
       }),
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
-      attackStage: 0,
-    });
-    const protectedTarget = computeDamage({
-      attacker: spicySpray.attackerConfig!,
-      defender: spicySpray.defenderConfig!,
-      battleType: 'singles',
-      weather: '无天气',
-      terrain: '无场地',
-      defenderProtected: true,
       attackStage: 0,
     });
 
@@ -2430,9 +2238,6 @@ describe('damageAdapter', () => {
     expect(spicySpray.eventEffects).toEqual([
       expect.objectContaining({ side: 'attacker', abilityId: 'spicy-spray', kind: 'status', text: '攻击方会陷入灼伤' }),
     ]);
-    expect(protectedTarget.status).toBe('experimental-success');
-    expect(protectedTarget.maxDamage).toBe(0);
-    expect(protectedTarget.eventEffects).toEqual([]);
   });
 
   it('reports Innards Out recoil when the defender is knocked out', () => {
@@ -2457,7 +2262,6 @@ describe('damageAdapter', () => {
       }),
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     });
 
@@ -2490,7 +2294,6 @@ describe('damageAdapter', () => {
       }),
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     });
     const technician = computeDamage({
@@ -2507,7 +2310,6 @@ describe('damageAdapter', () => {
       }),
       battleType: 'singles',
       weather: '无天气',
-      terrain: '无场地',
       attackStage: 0,
     });
 

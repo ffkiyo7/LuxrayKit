@@ -10,7 +10,6 @@ import {
   validateStatPoints,
   type BattleTypeOption,
   type CalcSideConfig,
-  type CalcStatusOption,
 } from '../lib/damageAdapter';
 import { findBattleForm } from '../lib/pokemonForms';
 import { clampStatPointValue, MAX_STAT_POINTS_PER_STAT, MAX_TOTAL_STAT_POINTS } from '../lib/statPoints';
@@ -21,21 +20,6 @@ import { Card, PokemonAvatar, TypeBadge } from '../components/ui';
 type CalcSide = 'attacker' | 'defender';
 
 const weatherOptions = ['无天气', '晴天', '雨天', '沙暴', '雪天'];
-const terrainOptions = ['无场地', '青草场地', '电气场地', '精神场地', '薄雾场地'];
-const hpContextOptions = [
-  { value: 100, label: '满 HP' },
-  { value: 50, label: '半血' },
-  { value: 33, label: '低 HP' },
-];
-const statusOptions: Array<{ value: CalcStatusOption; label: string }> = [
-  { value: 'none', label: '无异常' },
-  { value: 'brn', label: '灼伤' },
-  { value: 'psn', label: '中毒' },
-  { value: 'tox', label: '剧毒' },
-  { value: 'par', label: '麻痹' },
-  { value: 'slp', label: '睡眠' },
-  { value: 'frz', label: '冰冻' },
-];
 const stageOptions = Array.from({ length: 13 }, (_, index) => String(index - 6));
 const STAT_LABELS: Array<{ key: keyof StatPoints; label: string; stageKey?: keyof NonNullable<CalcSideConfig['statStages']> }> = [
   { key: 'hp', label: 'HP' },
@@ -642,13 +626,6 @@ function DamageResultCard({
           </span>
         )
       : null,
-    result.protectionText
-      ? (
-          <span key="protection" className="rounded-full border border-accent/40 bg-accent/15 px-2 py-1 font-semibold text-accent">
-            {result.protectionText}{result.protectionMultiplier !== undefined && result.protectionMultiplier !== 1 ? ` ×${result.protectionMultiplier}` : ''}
-          </span>
-        )
-      : null,
     ...(result.abilityEffects ?? []).map((effect) => {
       const tone =
         effect.direction === 'boost'
@@ -757,12 +734,6 @@ export function CalculatorPage({
   const [query, setQuery] = useState('');
   const [battleType, setBattleType] = useState<BattleTypeOption>('doubles');
   const [weather, setWeather] = useState(weatherOptions[0]);
-  const [terrain, setTerrain] = useState(terrainOptions[0]);
-  const [defenderProtected, setDefenderProtected] = useState(false);
-  const [attackerHpPercent, setAttackerHpPercent] = useState(100);
-  const [defenderHpPercent, setDefenderHpPercent] = useState(100);
-  const [attackerStatus, setAttackerStatus] = useState<CalcStatusOption>('none');
-  const [defenderStatus, setDefenderStatus] = useState<CalcStatusOption>('none');
   const [isCritical, setIsCritical] = useState(false);
   const [showTeamPicker, setShowTeamPicker] = useState(false);
 
@@ -854,7 +825,7 @@ export function CalculatorPage({
   ];
 
   // Compute damage — illegal SP is stopped in the UI before invoking the adapter
-  const damageKey = `${attackerConfig.pokemonId}|${attackerConfig.formId}|${attackerConfig.selectedMoveId}|${attackerConfig.nature}|${JSON.stringify(attackerConfig.statPoints)}|${JSON.stringify(attackerConfig.statStages)}|${attackerConfig.abilityId}|${attackerConfig.itemId}||${defenderConfig.pokemonId}|${defenderConfig.formId}|${defenderConfig.nature}|${JSON.stringify(defenderConfig.statPoints)}|${JSON.stringify(defenderConfig.statStages)}|${defenderConfig.abilityId}|${defenderConfig.itemId}||${battleType}|${weather}|${terrain}|${defenderProtected}|${attackerHpPercent}|${defenderHpPercent}|${attackerStatus}|${defenderStatus}|${isCritical}|${currentMove?.category}`;
+  const damageKey = `${attackerConfig.pokemonId}|${attackerConfig.formId}|${attackerConfig.selectedMoveId}|${attackerConfig.nature}|${JSON.stringify(attackerConfig.statPoints)}|${JSON.stringify(attackerConfig.statStages)}|${attackerConfig.abilityId}|${attackerConfig.itemId}||${defenderConfig.pokemonId}|${defenderConfig.formId}|${defenderConfig.nature}|${JSON.stringify(defenderConfig.statPoints)}|${JSON.stringify(defenderConfig.statStages)}|${defenderConfig.abilityId}|${defenderConfig.itemId}||${battleType}|${weather}|${isCritical}|${currentMove?.category}`;
   const damageResult = useMemo(() => {
     if (!attackerConfig.selectedMoveId || !attackerConfig.pokemonId || !defenderConfig.pokemonId) return null;
     if (currentMove?.category === 'Status') return null;
@@ -864,12 +835,6 @@ export function CalculatorPage({
       defender: defenderConfig,
       battleType,
       weather,
-      terrain,
-      defenderProtected,
-      attackerHpPercent,
-      defenderHpPercent,
-      attackerStatus,
-      defenderStatus,
       isCritical,
       attackStage: 0,
     });
@@ -987,7 +952,7 @@ export function CalculatorPage({
           </div>
         </div>
 
-        <div className="mt-3 grid grid-cols-[1.15fr_1fr_1fr] gap-2">
+        <div className="mt-3 grid grid-cols-[1.15fr_1fr] gap-2">
           <div className="min-w-0">
             <span className="mb-1 block text-[10px] text-textMuted">规则</span>
             <div className="grid grid-cols-2 overflow-hidden rounded-lg border border-border bg-secondary">
@@ -1002,50 +967,6 @@ export function CalculatorPage({
             <span className="mb-1 block text-[10px] text-textMuted">天气</span>
             <select className="h-8 w-full rounded-lg border border-border bg-secondary px-2 text-xs outline-none" value={weather} onChange={(e) => setWeather(e.target.value)}>
               {weatherOptions.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-            </select>
-          </label>
-          <label className="min-w-0">
-            <span className="mb-1 block text-[10px] text-textMuted">场地</span>
-            <select className="h-8 w-full rounded-lg border border-border bg-secondary px-2 text-xs outline-none" value={terrain} onChange={(e) => setTerrain(e.target.value)}>
-              {terrainOptions.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-            </select>
-          </label>
-        </div>
-
-        <label className="mt-3 flex min-h-10 items-center justify-between gap-3 rounded-lg border border-border bg-secondary px-3 py-2">
-          <span className="text-xs font-semibold text-textSecondary">防守方保护</span>
-          <input
-            aria-label="防守方保护"
-            checked={defenderProtected}
-            className="h-4 w-4 accent-accent"
-            type="checkbox"
-            onChange={(event) => setDefenderProtected(event.target.checked)}
-          />
-        </label>
-
-        <div className="mt-3 grid grid-cols-2 gap-2">
-          <label className="min-w-0">
-            <span className="mb-1 block text-[10px] text-textMuted">进攻方 HP</span>
-            <select className="h-8 w-full rounded-lg border border-border bg-secondary px-2 text-xs outline-none" value={attackerHpPercent} onChange={(e) => setAttackerHpPercent(Number(e.target.value))}>
-              {hpContextOptions.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-            </select>
-          </label>
-          <label className="min-w-0">
-            <span className="mb-1 block text-[10px] text-textMuted">防守方 HP</span>
-            <select className="h-8 w-full rounded-lg border border-border bg-secondary px-2 text-xs outline-none" value={defenderHpPercent} onChange={(e) => setDefenderHpPercent(Number(e.target.value))}>
-              {hpContextOptions.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-            </select>
-          </label>
-          <label className="min-w-0">
-            <span className="mb-1 block text-[10px] text-textMuted">进攻方状态</span>
-            <select className="h-8 w-full rounded-lg border border-border bg-secondary px-2 text-xs outline-none" value={attackerStatus} onChange={(e) => setAttackerStatus(e.target.value as CalcStatusOption)}>
-              {statusOptions.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-            </select>
-          </label>
-          <label className="min-w-0">
-            <span className="mb-1 block text-[10px] text-textMuted">防守方状态</span>
-            <select className="h-8 w-full rounded-lg border border-border bg-secondary px-2 text-xs outline-none" value={defenderStatus} onChange={(e) => setDefenderStatus(e.target.value as CalcStatusOption)}>
-              {statusOptions.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
             </select>
           </label>
         </div>
