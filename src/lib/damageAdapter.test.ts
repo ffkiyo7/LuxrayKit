@@ -587,6 +587,141 @@ describe('damageAdapter', () => {
     ]);
   });
 
+  it('applies Dragonize to Normal moves for Champions Mega Feraligatr', () => {
+    const dragonize = computeDamage({
+      attacker: makeConfig({
+        pokemonId: 'feraligatr',
+        formId: 'mega-feraligatr',
+        abilityId: 'dragonize',
+        itemId: 'feraligite',
+        nature: '固执',
+        statPoints: { attack: 32, speed: 32, hp: 2 },
+        moveIds: ['body-slam'],
+        selectedMoveId: 'body-slam',
+      }),
+      defender: makeConfig({
+        pokemonId: 'garchomp',
+        nature: '认真',
+        statPoints: {},
+      }),
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+    const withoutAbility = computeDamage({
+      attacker: {
+        ...dragonize.attackerConfig!,
+        abilityId: undefined,
+      },
+      defender: dragonize.defenderConfig!,
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+
+    expect(dragonize.status).toBe('experimental-success');
+    expect(withoutAbility.status).toBe('experimental-success');
+    expect(dragonize.effectiveMoveType).toBe('Dragon');
+    expect(dragonize.stabMultiplier).toBe(1.5);
+    expect(dragonize.typeEffectiveness).toBe(2);
+    expect(dragonize.maxDamage).toBeGreaterThan(withoutAbility.maxDamage!);
+    expect(dragonize.abilityEffects).toEqual([
+      expect.objectContaining({ side: 'attacker', abilityId: 'dragonize', direction: 'boost', text: '一般招式变为龙属性，威力提高 20%' }),
+    ]);
+  });
+
+  it('uses calc Fairy Aura support for Champions Mega Floette Fairy moves', () => {
+    const fairyAura = computeDamage({
+      attacker: makeConfig({
+        pokemonId: 'floette',
+        formId: 'mega-floette',
+        abilityId: 'fairy-aura',
+        itemId: 'floettite',
+        nature: '内敛',
+        statPoints: { specialAttack: 32, speed: 32, hp: 2 },
+        moveIds: ['moonblast'],
+        selectedMoveId: 'moonblast',
+      }),
+      defender: makeConfig({
+        pokemonId: 'garchomp',
+        nature: '认真',
+        statPoints: {},
+      }),
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+    const withoutAbility = computeDamage({
+      attacker: {
+        ...fairyAura.attackerConfig!,
+        abilityId: undefined,
+      },
+      defender: fairyAura.defenderConfig!,
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+
+    expect(fairyAura.status).toBe('experimental-success');
+    expect(withoutAbility.status).toBe('experimental-success');
+    expect(fairyAura.effectiveMoveType).toBe('Fairy');
+    expect(fairyAura.typeEffectiveness).toBe(2);
+    expect(fairyAura.maxDamage).toBeGreaterThan(withoutAbility.maxDamage!);
+    expect(fairyAura.abilityEffects).toEqual([
+      expect.objectContaining({ side: 'attacker', abilityId: 'fairy-aura', direction: 'boost', text: '妖精属性招式增强' }),
+    ]);
+  });
+
+  it('treats Mega Sol Weather Ball as sunny Fire damage for Champions Mega Meganium', () => {
+    const megaSol = computeDamage({
+      attacker: makeConfig({
+        pokemonId: 'meganium',
+        formId: 'mega-meganium',
+        abilityId: 'mega-sol',
+        itemId: 'meganiumite',
+        nature: '内敛',
+        statPoints: { specialAttack: 32, speed: 32, hp: 2 },
+        moveIds: ['weather-ball'],
+        selectedMoveId: 'weather-ball',
+      }),
+      defender: makeConfig({
+        pokemonId: 'scizor',
+        nature: '认真',
+        statPoints: {},
+      }),
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+    const withoutAbility = computeDamage({
+      attacker: {
+        ...megaSol.attackerConfig!,
+        abilityId: undefined,
+      },
+      defender: megaSol.defenderConfig!,
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+
+    expect(megaSol.status).toBe('experimental-success');
+    expect(withoutAbility.status).toBe('experimental-success');
+    expect(megaSol.effectiveMoveType).toBe('Fire');
+    expect(megaSol.typeEffectiveness).toBe(4);
+    expect(megaSol.weatherMultiplier).toBe(1.5);
+    expect(megaSol.weatherText).toBe('晴天增强火属性');
+    expect(megaSol.maxDamage).toBeGreaterThan(withoutAbility.maxDamage!);
+    expect(megaSol.abilityEffects).toEqual([
+      expect.objectContaining({ side: 'attacker', abilityId: 'mega-sol', direction: 'boost', text: '自身招式按晴天处理' }),
+    ]);
+  });
+
   it('reports direct boost and reduction ability chips with specific reasons', () => {
     const thickFat = computeDamage({
       attacker: makeConfig({

@@ -326,8 +326,27 @@ function weatherImpact(moveType: PokemonType, weather: string): { multiplier: nu
   return { multiplier: 1, text: weather === '无天气' ? '无天气影响' : `${weather} 无直接招式修正` };
 }
 
-function effectiveMoveType(move: AppMove, attackerAbilityId?: string): PokemonType {
+function effectiveWeatherForMove(weather: string, attackerAbilityId?: string): string {
+  if (attackerAbilityId === 'mega-sol') return '晴天';
+  return weather;
+}
+
+function weatherBallType(weather: string): PokemonType | undefined {
+  if (weather === '晴天') return 'Fire';
+  if (weather === '雨天') return 'Water';
+  if (weather === '沙暴') return 'Rock';
+  if (weather === '雪天') return 'Ice';
+  return undefined;
+}
+
+function effectiveMoveType(move: AppMove, attackerAbilityId?: string, weather = '无天气'): PokemonType {
+  if (move.id === 'weather-ball') {
+    const type = weatherBallType(weather);
+    if (type) return type;
+  }
+
   if (move.type === 'Normal') {
+    if (attackerAbilityId === 'dragonize') return 'Dragon';
     if (attackerAbilityId === 'pixilate') return 'Fairy';
     if (attackerAbilityId === 'refrigerate') return 'Ice';
     if (attackerAbilityId === 'aerilate') return 'Flying';
@@ -335,6 +354,31 @@ function effectiveMoveType(move: AppMove, attackerAbilityId?: string): PokemonTy
   }
   if (attackerAbilityId === 'liquid-voice' && SOUND_MOVE_IDS.has(move.id)) return 'Water';
   return move.type;
+}
+
+function projectMoveOverrides(move: AppMove, attackerAbilityId?: string, weather = '无天气') {
+  let type = move.type;
+  let basePower = move.power;
+
+  if (move.id === 'weather-ball') {
+    const weatherType = weatherBallType(weather);
+    if (weatherType) {
+      type = weatherType;
+      basePower = 100;
+    }
+  }
+
+  if (type === 'Normal' && attackerAbilityId === 'dragonize') {
+    type = 'Dragon';
+    basePower = Math.max(1, Math.round((basePower ?? 1) * 1.2));
+  }
+
+  return {
+    basePower,
+    type,
+    category: move.category,
+    target: calcMoveTarget(move),
+  };
 }
 
 function attackerTypesForStab(attackerTypes: PokemonType[], moveType: PokemonType, attackerAbilityId?: string): PokemonType[] {
@@ -369,6 +413,7 @@ function specificAbilityEffectText(abilityId: string, direction: DamageAbilityEf
   if (move.type === 'Normal' && abilityId === 'refrigerate') return '一般招式变为冰属性';
   if (move.type === 'Normal' && abilityId === 'aerilate') return '一般招式变为飞行属性';
   if (move.type === 'Normal' && abilityId === 'galvanize') return '一般招式变为电属性';
+  if (move.type === 'Normal' && abilityId === 'dragonize') return '一般招式变为龙属性，威力提高 20%';
   if (abilityId === 'liquid-voice' && SOUND_MOVE_IDS.has(move.id)) return '声音招式变为水属性';
   if (abilityId === 'protean' || abilityId === 'libero') return '属性随招式变化';
 
@@ -389,6 +434,8 @@ function specificAbilityEffectText(abilityId: string, direction: DamageAbilityEf
     if (abilityId === 'water-bubble' && move.type === 'Water') return '水属性招式增强';
     if (abilityId === 'adaptability') return '本系招式增强';
     if (abilityId === 'technician') return '低威力招式增强';
+    if (abilityId === 'fairy-aura') return '妖精属性招式增强';
+    if (abilityId === 'mega-sol') return '自身招式按晴天处理';
     if (abilityId === 'tough-claws') return '接触招式增强';
     if (abilityId === 'iron-fist') return '拳类招式增强';
     if (abilityId === 'strong-jaw') return '啃咬类招式增强';
@@ -740,27 +787,23 @@ export function computeDamage(input: DamageAdapterInput): DamageAdapterResult {
   };
 
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const field = new (Field as any)({
-      gameType: input.battleType === 'doubles' ? 'Doubles' : 'Singles',
-      weather: WEATHER_MAP[input.weather],
-      terrain: TERRAIN_MAP[input.terrain],
-      attackerSide: new Side(), defenderSide: new Side(),
-    });
-
-    const calcMoveObj = new Move(9, calcMove.name, {
-      overrides: {
-        basePower: projectMove.power,
-        type: projectMove.type,
-        category: projectMove.category,
-        target: calcMoveTarget(projectMove),
-      },
-    });
-
     const runCalculation = (mode: 'actual' | 'without-attacker-ability' | 'without-defender-ability' | 'without-attacker-item' | 'without-defender-item') => {
+      const activeAttackerAbilityId = mode === 'without-attacker-ability' ? undefined : attackerConfig.abilityId;
+      const activeDefenderAbilityId = mode === 'without-defender-ability' ? undefined : defenderConfig.abilityId;
+      const calcWeather = effectiveWeatherForMove(input.weather, activeAttackerAbilityId);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const field = new (Field as any)({
+        gameType: input.battleType === 'doubles' ? 'Doubles' : 'Singles',
+        weather: WEATHER_MAP[calcWeather],
+        terrain: TERRAIN_MAP[input.terrain],
+        attackerSide: new Side(), defenderSide: new Side(),
+      });
+      const calcMoveObj = new Move(9, calcMove.name, {
+        overrides: projectMoveOverrides(projectMove, activeAttackerAbilityId, calcWeather),
+      });
       const attackerPoke = new Pokemon(9, calcAttackerSpecies.name, {
         level: 50,
-        ability: mode === 'without-attacker-ability' ? NO_ABILITY : attackerConfig.abilityId ? calcAbilityName(attackerConfig.abilityId) : NO_ABILITY,
+        ability: activeAttackerAbilityId ? calcAbilityName(activeAttackerAbilityId) : NO_ABILITY,
         item: mode === 'without-attacker-item' ? undefined : attackerConfig.itemId ? calcItemName(attackerConfig.itemId) : undefined,
         nature: calcNatureName(attackerConfig.nature),
         ivs: BASE_STATS_DECLARATION.ivs,
@@ -770,7 +813,7 @@ export function computeDamage(input: DamageAdapterInput): DamageAdapterResult {
       });
       const defenderPoke = new Pokemon(9, calcDefenderSpecies.name, {
         level: 50,
-        ability: mode === 'without-defender-ability' ? NO_ABILITY : defenderConfig.abilityId ? calcAbilityName(defenderConfig.abilityId) : NO_ABILITY,
+        ability: activeDefenderAbilityId ? calcAbilityName(activeDefenderAbilityId) : NO_ABILITY,
         item: mode === 'without-defender-item' ? undefined : defenderConfig.itemId ? calcItemName(defenderConfig.itemId) : undefined,
         nature: calcNatureName(defenderConfig.nature),
         ivs: BASE_STATS_DECLARATION.ivs,
@@ -809,10 +852,11 @@ export function computeDamage(input: DamageAdapterInput): DamageAdapterResult {
     const defensiveStatLabel = projectMove.category === 'Physical' ? '防御' : '特防';
     const offensiveStatValue = projectMove.category === 'Physical' ? actualCalc.attackerPoke.rawStats.atk : actualCalc.attackerPoke.rawStats.spa;
     const defensiveStatValue = projectMove.category === 'Physical' ? actualCalc.defenderPoke.rawStats.def : actualCalc.defenderPoke.rawStats.spd;
-    const displayedMoveType = effectiveMoveType(projectMove, attackerConfig.abilityId);
+    const displayedWeather = effectiveWeatherForMove(input.weather, attackerConfig.abilityId);
+    const displayedMoveType = effectiveMoveType(projectMove, attackerConfig.abilityId, displayedWeather);
     const attackerStabTypes = attackerTypesForStab(attackerForm.types, displayedMoveType, attackerConfig.abilityId);
     const typeEffectiveness = defensiveMatchupMultiplier(displayedMoveType, defenderForm.types);
-    const weather = weatherImpact(displayedMoveType, input.weather);
+    const weather = weatherImpact(displayedMoveType, displayedWeather);
     const withoutAttackerAbility = runCalculation('without-attacker-ability').damages;
     const withoutDefenderAbility = runCalculation('without-defender-ability').damages;
     const withoutAttackerItem = runCalculation('without-attacker-item').damages;
