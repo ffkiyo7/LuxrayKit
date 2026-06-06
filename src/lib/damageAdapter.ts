@@ -1016,6 +1016,7 @@ export function computeDamage(input: DamageAdapterInput): DamageAdapterResult {
       `防守方 HP: ${defenderStats.hp}, Def: ${defenderStats.defense}, SpD: ${defenderStats.specialDefense}`,
     );
     if (input.weather === '无天气' && displayedBattleWeather !== '无天气') assumptions.push(`Battle context: weather set by ability: ${displayedBattleWeather}.`);
+    if (defenderConfig.abilityId === 'multiscale') assumptions.push('Battle context: defender is treated as full HP for Multiscale.');
     if (input.defenderProtected) assumptions.push('Battle context: defender is protected this turn.');
 
     return {

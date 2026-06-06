@@ -779,6 +779,56 @@ describe('damageAdapter', () => {
     expect(manualRain.weatherText).toBe('雨天增强水属性');
   });
 
+  it('applies Multiscale as full-HP reduction for Champions Mega Dragonite', () => {
+    const multiscale = computeDamage({
+      attacker: makeConfig({
+        pokemonId: 'garchomp',
+        nature: '固执',
+        statPoints: { attack: 32 },
+        moveIds: ['dragon-claw'],
+        selectedMoveId: 'dragon-claw',
+      }),
+      defender: makeConfig({
+        pokemonId: 'dragonite',
+        formId: 'mega-dragonite',
+        abilityId: 'multiscale',
+        itemId: 'dragoninite',
+        nature: '认真',
+        statPoints: { hp: 32, defense: 32 },
+      }),
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+    const withoutAbility = computeDamage({
+      attacker: multiscale.attackerConfig!,
+      defender: {
+        ...multiscale.defenderConfig!,
+        abilityId: undefined,
+      },
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+
+    expect(multiscale.status).toBe('experimental-success');
+    expect(withoutAbility.status).toBe('experimental-success');
+    expect(multiscale.defenderBattleForm?.id).toBe('mega-dragonite');
+    expect(multiscale.damageRolls).toEqual(withoutAbility.damageRolls!.map((damage) => Math.floor(damage / 2)));
+    expect(multiscale.maxDamage).toBeLessThan(withoutAbility.maxDamage!);
+    expect(multiscale.abilityEffects).toEqual([
+      expect.objectContaining({
+        side: 'defender',
+        abilityId: 'multiscale',
+        direction: 'reduction',
+        text: '满 HP 伤害减弱',
+      }),
+    ]);
+    expect(multiscale.assumptions).toContain('Battle context: defender is treated as full HP for Multiscale.');
+  });
+
   it('blocks protectable moves when the defender is protected', () => {
     const result = computeDamage({
       ...defaults,

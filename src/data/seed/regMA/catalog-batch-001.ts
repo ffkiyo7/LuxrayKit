@@ -455,7 +455,7 @@ export const abilitiesBatch001: Ability[] = [
     englishName: 'Multiscale',
     effectSummary: 'ＨＰ全满时，受到的伤害会变少。',
     pokemonIds: ['dragonite'],
-    calculationImpact: 'pending',
+    calculationImpact: 'confirmed',
     legalInCurrentRule: true,
     sourceRefs: abilityRefs,
   },
