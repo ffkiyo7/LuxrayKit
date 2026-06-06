@@ -478,6 +478,7 @@ function specificAbilityEffectText(abilityId: string, direction: DamageAbilityEf
   if (WEATHER_ABILITY_TEXT[abilityId] && (direction === 'boost' || direction === 'reduction' || direction === 'changed')) {
     return WEATHER_ABILITY_TEXT[abilityId];
   }
+  if (abilityId === 'unaware' && direction !== 'immunity') return '无视能力阶级';
 
   if (direction === 'reduction') {
     if (abilityId === 'thick-fat' && (move.type === 'Fire' || move.type === 'Ice')) return `${TYPE_LABELS[move.type]}属性伤害减半`;
@@ -510,10 +511,6 @@ function specificAbilityEffectText(abilityId: string, direction: DamageAbilityEf
     if (abilityId === 'sand-force') return '沙暴中招式增强';
     if (abilityId === 'solar-power') return '晴天特攻增强';
     if (abilityId === 'hustle') return '物理招式增强';
-  }
-
-  if (direction === 'changed') {
-    if (abilityId === 'unaware') return '无视能力阶级';
   }
 
   return undefined;

@@ -95,7 +95,7 @@ export const abilitiesBatch004: Ability[] = [
     englishName: 'Water Bubble',
     effectSummary: '降低自己受到的火属性招式的威力，不会灼伤。',
     pokemonIds: ['araquanid'],
-    calculationImpact: 'pending',
+    calculationImpact: 'confirmed',
     legalInCurrentRule: true,
     sourceRefs: abilityRefs,
   },

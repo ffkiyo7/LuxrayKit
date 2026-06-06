@@ -1139,6 +1139,369 @@ describe('damageAdapter', () => {
     );
   });
 
+  it.each([
+    {
+      label: 'Thick Fat',
+      abilityId: 'thick-fat',
+      abilityText: '火属性伤害减半',
+      attacker: makeConfig({
+        pokemonId: 'charizard',
+        nature: '内敛',
+        statPoints: { specialAttack: 32 },
+        moveIds: ['flamethrower'],
+        selectedMoveId: 'flamethrower',
+      }),
+      defender: makeConfig({
+        pokemonId: 'snorlax',
+        abilityId: 'thick-fat',
+        nature: '认真',
+        statPoints: { hp: 32, specialDefense: 32 },
+      }),
+    },
+    {
+      label: 'Heatproof',
+      abilityId: 'heatproof',
+      abilityText: '火属性伤害减半',
+      attacker: makeConfig({
+        pokemonId: 'charizard',
+        nature: '内敛',
+        statPoints: { specialAttack: 32 },
+        moveIds: ['flamethrower'],
+        selectedMoveId: 'flamethrower',
+      }),
+      defender: makeConfig({
+        pokemonId: 'sinistcha',
+        abilityId: 'heatproof',
+        nature: '认真',
+        statPoints: { hp: 32, specialDefense: 32 },
+      }),
+    },
+    {
+      label: 'Water Bubble',
+      abilityId: 'water-bubble',
+      abilityText: '火属性伤害减半',
+      attacker: makeConfig({
+        pokemonId: 'charizard',
+        nature: '内敛',
+        statPoints: { specialAttack: 32 },
+        moveIds: ['flamethrower'],
+        selectedMoveId: 'flamethrower',
+      }),
+      defender: makeConfig({
+        pokemonId: 'araquanid',
+        abilityId: 'water-bubble',
+        nature: '认真',
+        statPoints: { hp: 32, specialDefense: 32 },
+      }),
+    },
+    {
+      label: 'Purifying Salt',
+      abilityId: 'purifying-salt',
+      abilityText: '幽灵属性伤害减半',
+      attacker: makeConfig({
+        pokemonId: 'chandelure',
+        nature: '内敛',
+        statPoints: { specialAttack: 32 },
+        moveIds: ['shadow-ball'],
+        selectedMoveId: 'shadow-ball',
+      }),
+      defender: makeConfig({
+        pokemonId: 'garganacl',
+        abilityId: 'purifying-salt',
+        nature: '认真',
+        statPoints: { hp: 32, specialDefense: 32 },
+      }),
+    },
+    {
+      label: 'Fur Coat',
+      abilityId: 'fur-coat',
+      abilityText: '物理招式伤害减半',
+      attacker: makeConfig({
+        pokemonId: 'garchomp',
+        nature: '固执',
+        statPoints: { attack: 32 },
+        moveIds: ['dragon-claw'],
+        selectedMoveId: 'dragon-claw',
+      }),
+      defender: makeConfig({
+        pokemonId: 'furfrou',
+        abilityId: 'fur-coat',
+        nature: '认真',
+        statPoints: { hp: 32, defense: 32 },
+      }),
+    },
+    {
+      label: 'Unaware',
+      abilityId: 'unaware',
+      abilityText: '无视能力阶级',
+      attacker: makeConfig({
+        pokemonId: 'garchomp',
+        nature: '固执',
+        statPoints: { attack: 32 },
+        statStages: { attack: 2 },
+        moveIds: ['earthquake'],
+        selectedMoveId: 'earthquake',
+      }),
+      defender: makeConfig({
+        pokemonId: 'skeledirge',
+        abilityId: 'unaware',
+        nature: '认真',
+        statPoints: { hp: 32, defense: 32 },
+      }),
+    },
+  ])('applies $label as defender damage reduction', ({ abilityId, abilityText, attacker, defender }) => {
+    const withAbility = computeDamage({
+      attacker,
+      defender,
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+    const withoutAbility = computeDamage({
+      attacker: withAbility.attackerConfig!,
+      defender: {
+        ...withAbility.defenderConfig!,
+        abilityId: undefined,
+      },
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+
+    expect(withAbility.status).toBe('experimental-success');
+    expect(withoutAbility.status).toBe('experimental-success');
+    expect(withAbility.maxDamage).toBeLessThan(withoutAbility.maxDamage!);
+    expect(withAbility.abilityEffects).toContainEqual(
+      expect.objectContaining({ side: 'defender', abilityId, direction: 'reduction', text: abilityText }),
+    );
+  });
+
+  it.each([
+    {
+      label: 'Water Absorb',
+      abilityId: 'water-absorb',
+      abilityText: '水属性招式无效',
+      attacker: makeConfig({
+        pokemonId: 'blastoise',
+        nature: '内敛',
+        statPoints: { specialAttack: 32 },
+        moveIds: ['hydro-pump'],
+        selectedMoveId: 'hydro-pump',
+      }),
+      defender: makeConfig({
+        pokemonId: 'vaporeon',
+        abilityId: 'water-absorb',
+        nature: '认真',
+        statPoints: { hp: 32, specialDefense: 32 },
+      }),
+    },
+    {
+      label: 'Dry Skin water immunity',
+      abilityId: 'dry-skin',
+      abilityText: '水属性招式无效',
+      attacker: makeConfig({
+        pokemonId: 'blastoise',
+        nature: '内敛',
+        statPoints: { specialAttack: 32 },
+        moveIds: ['hydro-pump'],
+        selectedMoveId: 'hydro-pump',
+      }),
+      defender: makeConfig({
+        pokemonId: 'toxicroak',
+        abilityId: 'dry-skin',
+        nature: '认真',
+        statPoints: { hp: 32, specialDefense: 32 },
+      }),
+    },
+    {
+      label: 'Volt Absorb',
+      abilityId: 'volt-absorb',
+      abilityText: '电属性招式无效',
+      attacker: makeConfig({
+        pokemonId: 'jolteon',
+        nature: '内敛',
+        statPoints: { specialAttack: 32 },
+        moveIds: ['thunderbolt'],
+        selectedMoveId: 'thunderbolt',
+      }),
+      defender: makeConfig({
+        pokemonId: 'jolteon',
+        abilityId: 'volt-absorb',
+        nature: '认真',
+        statPoints: { hp: 32, specialDefense: 32 },
+      }),
+    },
+    {
+      label: 'Lightning Rod',
+      abilityId: 'lightning-rod',
+      abilityText: '电属性招式无效',
+      attacker: makeConfig({
+        pokemonId: 'jolteon',
+        nature: '内敛',
+        statPoints: { specialAttack: 32 },
+        moveIds: ['thunderbolt'],
+        selectedMoveId: 'thunderbolt',
+      }),
+      defender: makeConfig({
+        pokemonId: 'manectric',
+        abilityId: 'lightning-rod',
+        nature: '认真',
+        statPoints: { hp: 32, specialDefense: 32 },
+      }),
+    },
+    {
+      label: 'Sap Sipper',
+      abilityId: 'sap-sipper',
+      abilityText: '草属性招式无效',
+      attacker: makeConfig({
+        pokemonId: 'roserade',
+        nature: '内敛',
+        statPoints: { specialAttack: 32 },
+        moveIds: ['energy-ball'],
+        selectedMoveId: 'energy-ball',
+      }),
+      defender: makeConfig({
+        pokemonId: 'azumarill',
+        abilityId: 'sap-sipper',
+        nature: '认真',
+        statPoints: { hp: 32, specialDefense: 32 },
+      }),
+    },
+    {
+      label: 'Flash Fire',
+      abilityId: 'flash-fire',
+      abilityText: '火属性招式无效',
+      attacker: makeConfig({
+        pokemonId: 'charizard',
+        nature: '内敛',
+        statPoints: { specialAttack: 32 },
+        moveIds: ['flamethrower'],
+        selectedMoveId: 'flamethrower',
+      }),
+      defender: makeConfig({
+        pokemonId: 'houndoom',
+        abilityId: 'flash-fire',
+        nature: '认真',
+        statPoints: { hp: 32, specialDefense: 32 },
+      }),
+    },
+    {
+      label: 'Soundproof',
+      abilityId: 'soundproof',
+      abilityText: '声音招式无效',
+      attacker: makeConfig({
+        pokemonId: 'sylveon',
+        nature: '内敛',
+        statPoints: { specialAttack: 32 },
+        moveIds: ['hyper-voice'],
+        selectedMoveId: 'hyper-voice',
+      }),
+      defender: makeConfig({
+        pokemonId: 'kommo-o',
+        abilityId: 'soundproof',
+        nature: '认真',
+        statPoints: { hp: 32, specialDefense: 32 },
+      }),
+    },
+  ])('applies $label as defender damage immunity', ({ abilityId, abilityText, attacker, defender }) => {
+    const withAbility = computeDamage({
+      attacker,
+      defender,
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+    const withoutAbility = computeDamage({
+      attacker: withAbility.attackerConfig!,
+      defender: {
+        ...withAbility.defenderConfig!,
+        abilityId: undefined,
+      },
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+
+    expect(withAbility.status).toBe('experimental-success');
+    expect(withoutAbility.status).toBe('experimental-success');
+    expect(withAbility.maxDamage).toBe(0);
+    expect(withoutAbility.maxDamage).toBeGreaterThan(0);
+    expect(withAbility.abilityEffects).toContainEqual(
+      expect.objectContaining({ side: 'defender', abilityId, direction: 'immunity', text: abilityText }),
+    );
+  });
+
+  it.each([
+    {
+      label: 'Water Bubble',
+      abilityId: 'water-bubble',
+      abilitySide: 'attacker',
+      abilityText: '水属性招式增强',
+      direction: 'boost',
+      attacker: makeConfig({
+        pokemonId: 'araquanid',
+        abilityId: 'water-bubble',
+        nature: '固执',
+        statPoints: { attack: 32 },
+        moveIds: ['liquidation'],
+        selectedMoveId: 'liquidation',
+      }),
+      defender: makeConfig({ pokemonId: 'torkoal', nature: '认真', statPoints: { hp: 32, defense: 32 } }),
+    },
+    {
+      label: 'Dry Skin fire vulnerability',
+      abilityId: 'dry-skin',
+      abilitySide: 'defender',
+      abilityText: '火属性伤害增加',
+      direction: 'boost',
+      attacker: makeConfig({
+        pokemonId: 'charizard',
+        nature: '内敛',
+        statPoints: { specialAttack: 32 },
+        moveIds: ['flamethrower'],
+        selectedMoveId: 'flamethrower',
+      }),
+      defender: makeConfig({
+        pokemonId: 'toxicroak',
+        abilityId: 'dry-skin',
+        nature: '认真',
+        statPoints: { hp: 32, specialDefense: 32 },
+      }),
+    },
+  ])('applies $label as a mixed damage modifier', ({ abilityId, abilitySide, abilityText, direction, attacker, defender }) => {
+    const withAbility = computeDamage({
+      attacker,
+      defender,
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+    const withoutAbility = computeDamage({
+      attacker: abilitySide === 'attacker'
+        ? { ...withAbility.attackerConfig!, abilityId: undefined }
+        : withAbility.attackerConfig!,
+      defender: abilitySide === 'defender'
+        ? { ...withAbility.defenderConfig!, abilityId: undefined }
+        : withAbility.defenderConfig!,
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+
+    expect(withAbility.status).toBe('experimental-success');
+    expect(withoutAbility.status).toBe('experimental-success');
+    expect(withAbility.maxDamage).toBeGreaterThan(withoutAbility.maxDamage!);
+    expect(withAbility.abilityEffects).toContainEqual(
+      expect.objectContaining({ side: abilitySide, abilityId, direction, text: abilityText }),
+    );
+  });
+
   it('uses Snow Warning as battle weather for Champions Mega Froslass Weather Ball', () => {
     const snowWarning = computeDamage({
       attacker: makeConfig({

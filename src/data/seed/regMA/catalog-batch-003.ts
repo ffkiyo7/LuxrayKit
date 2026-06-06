@@ -235,7 +235,7 @@ export const abilitiesBatch003: Ability[] = [
     englishName: 'Fur Coat',
     effectSummary: '对手给予的物理招式的伤害会减半。',
     pokemonIds: ['furfrou'],
-    calculationImpact: 'pending',
+    calculationImpact: 'confirmed',
     legalInCurrentRule: true,
     sourceRefs: abilityRefs,
   },
