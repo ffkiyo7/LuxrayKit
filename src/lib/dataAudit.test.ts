@@ -240,7 +240,7 @@ describe('seed data audit', () => {
   });
 
   it('keeps ability text complete and maps abilities back to current Pokemon', () => {
-    expect(abilities).toHaveLength(187);
+    expect(abilities).toHaveLength(188);
     expect(abilities.every((ability) => ability.effectSummary && !ability.effectSummary.includes('待确认'))).toBe(true);
 
     const expectedPokemonIdsByAbility = new Map<string, string[]>();

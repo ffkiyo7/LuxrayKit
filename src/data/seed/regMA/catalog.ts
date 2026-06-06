@@ -266,6 +266,16 @@ const abilityRows: Ability[] = [
     sourceRefs: abilityRefs,
   },
   {
+    id: 'filter',
+    chineseName: '过滤',
+    englishName: 'Filter',
+    effectSummary: '受到效果绝佳的攻击时，可以减弱其威力。',
+    pokemonIds: [],
+    calculationImpact: 'confirmed',
+    legalInCurrentRule: true,
+    sourceRefs: abilityRefs,
+  },
+  {
     id: 'curious-medicine',
     chineseName: '怪药',
     englishName: 'Curious Medicine',

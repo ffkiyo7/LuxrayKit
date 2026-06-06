@@ -115,7 +115,7 @@ export const abilitiesBatch002: Ability[] = [
     englishName: 'Solid Rock',
     effectSummary: '受到效果绝佳的攻击时，可以减弱其威力。',
     pokemonIds: ['camerupt', 'rhyperior'],
-    calculationImpact: 'pending',
+    calculationImpact: 'confirmed',
     legalInCurrentRule: true,
     sourceRefs: abilityRefs,
   },

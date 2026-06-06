@@ -370,7 +370,7 @@ function protectionImpact(
   return { multiplier: 0, text: '防守方守住，招式被挡下' };
 }
 
-function applyProtectionToDamageRolls(damages: number[], multiplier: number): number[] {
+function applyDamageRollMultiplier(damages: number[], multiplier: number): number[] {
   if (multiplier === 1) return damages;
   if (multiplier === 0) return [0];
   return damages.map((damage) => (damage <= 0 ? 0 : Math.max(1, Math.floor(damage * multiplier))));
@@ -937,7 +937,7 @@ export function computeDamage(input: DamageAdapterInput): DamageAdapterResult {
       const calcResult = calculate(gen, attackerPoke, defenderPoke, calcMoveObj, field);
       const damageData = (calcResult as unknown as Record<string, unknown>)?.damage;
       const protection = protectionImpact(projectMove, activeAttackerAbilityId, input.defenderProtected);
-      const damages = applyProtectionToDamageRolls(normalizeDamageRolls(damageData), protection.multiplier);
+      const damages = applyDamageRollMultiplier(normalizeDamageRolls(damageData), protection.multiplier);
       return { attackerPoke, defenderPoke, damages, protection };
     };
 

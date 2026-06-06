@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import {
+  abilities,
   currentDataVersion,
   currentRuleSet,
   pokemon,
 } from '../data';
+import { championsOnlyMegaNames, megaFormsByParentId } from '../data/seed/regMA/mega-catalog';
 import { currentRuleMovesForPokemon } from './currentRuleCatalog';
 import {
   buildCalcConfigFromTeamMember,
@@ -60,6 +62,33 @@ type ManualReviewFixture = {
     }>;
   };
 };
+
+const championsMegaAbilityCoverage = {
+  'mega-skarmory': { abilityId: 'stalwart', status: 'context-only' },
+  'mega-froslass': { abilityId: 'snow-warning', status: 'tested-damage' },
+  'mega-chimecho': { abilityId: 'levitate', status: 'tested-damage' },
+  'mega-emboar': { abilityId: 'mold-breaker', status: 'tested-damage' },
+  'mega-excadrill': { abilityId: 'piercing-drill', status: 'tested-damage' },
+  'mega-audino': { abilityId: 'healer', status: 'context-only' },
+  'mega-chandelure': { abilityId: 'infiltrator', status: 'context-only' },
+  'mega-golurk': { abilityId: 'unseen-fist', status: 'tested-damage' },
+  'mega-chesnaught': { abilityId: 'bulletproof', status: 'tested-damage' },
+  'mega-delphox': { abilityId: 'levitate', status: 'tested-damage' },
+  'mega-greninja': { abilityId: 'protean', status: 'tested-damage' },
+  'mega-floette': { abilityId: 'fairy-aura', status: 'tested-damage' },
+  'mega-meowstic': { abilityId: 'trace', status: 'context-only' },
+  'mega-hawlucha': { abilityId: 'no-guard', status: 'context-only' },
+  'mega-crabominable': { abilityId: 'iron-fist', status: 'tested-damage' },
+  'mega-drampa': { abilityId: 'berserk', status: 'context-only' },
+  'mega-scovillain': { abilityId: 'spicy-spray', status: 'tested-damage' },
+  'mega-glimmora': { abilityId: 'adaptability', status: 'tested-damage' },
+  'mega-clefable': { abilityId: 'magic-bounce', status: 'context-only' },
+  'mega-victreebel': { abilityId: 'innards-out', status: 'tested-damage' },
+  'mega-starmie': { abilityId: 'huge-power', status: 'tested-damage' },
+  'mega-dragonite': { abilityId: 'multiscale', status: 'tested-damage' },
+  'mega-meganium': { abilityId: 'mega-sol', status: 'tested-damage' },
+  'mega-feraligatr': { abilityId: 'dragonize', status: 'tested-damage' },
+} satisfies Record<string, { abilityId: string; status: 'tested-damage' | 'context-only' }>;
 
 const manualReviewFixtures: ManualReviewFixture[] = [
   {
@@ -232,6 +261,31 @@ const manualReviewFixtures: ManualReviewFixture[] = [
 ];
 
 describe('damageAdapter', () => {
+  it('classifies every Champions-added Mega ability for damage verification', () => {
+    const championsMegaForms = Object.values(megaFormsByParentId)
+      .flat()
+      .filter((form) => championsOnlyMegaNames.has(form.englishName));
+    const matrixFormIds = Object.keys(championsMegaAbilityCoverage).sort();
+    const catalogFormIds = championsMegaForms.map((form) => form.id).sort();
+
+    expect(championsMegaForms).toHaveLength(24);
+    expect(matrixFormIds).toEqual(catalogFormIds);
+
+    for (const form of championsMegaForms) {
+      const coverage = championsMegaAbilityCoverage[form.id as keyof typeof championsMegaAbilityCoverage];
+      const ability = abilities.find((candidate) => candidate.id === coverage.abilityId);
+
+      expect(form.abilities).toEqual([coverage.abilityId]);
+      expect(ability, `${coverage.abilityId} should exist in the ability catalog`).toBeDefined();
+      if (coverage.status === 'tested-damage') {
+        expect(ability?.calculationImpact).toBe('confirmed');
+      }
+    }
+
+    expect(Object.values(championsMegaAbilityCoverage).filter((entry) => entry.status === 'tested-damage')).toHaveLength(17);
+    expect(Object.values(championsMegaAbilityCoverage).filter((entry) => entry.status === 'context-only')).toHaveLength(7);
+  });
+
   it('returns Gen9-based damage for valid input with Champions move params and SP stats', () => {
     const result = computeDamage(defaults);
     expect(result.status).toBe('experimental-success');
@@ -1151,6 +1205,101 @@ describe('damageAdapter', () => {
     expect(protean.maxDamage).toBeGreaterThan(withoutAbility.maxDamage!);
     expect(protean.abilityEffects).toEqual([
       expect.objectContaining({ side: 'attacker', abilityId: 'protean', direction: 'boost', text: '属性随招式变化' }),
+    ]);
+  });
+
+  it('applies Filter super-effective reduction for Mega Aggron', () => {
+    const filter = computeDamage({
+      attacker: makeConfig({
+        pokemonId: 'infernape',
+        nature: '固执',
+        statPoints: { attack: 32 },
+        moveIds: ['close-combat'],
+        selectedMoveId: 'close-combat',
+      }),
+      defender: makeConfig({
+        pokemonId: 'aggron',
+        formId: 'mega-aggron',
+        abilityId: 'filter',
+        itemId: 'aggronite',
+        nature: '认真',
+        statPoints: { hp: 32, defense: 32 },
+      }),
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+    const withoutAbility = computeDamage({
+      attacker: filter.attackerConfig!,
+      defender: {
+        ...filter.defenderConfig!,
+        abilityId: undefined,
+      },
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+
+    expect(filter.status).toBe('experimental-success');
+    expect(withoutAbility.status).toBe('experimental-success');
+    expect(filter.defenderBattleForm?.id).toBe('mega-aggron');
+    expect(filter.typeEffectiveness).toBe(2);
+    expect(filter.damageRolls).toEqual(withoutAbility.damageRolls!.map((damage) => Math.floor(damage * 0.75)));
+    expect(filter.abilityEffects).toEqual([
+      expect.objectContaining({
+        side: 'defender',
+        abilityId: 'filter',
+        direction: 'reduction',
+        text: '效果绝佳伤害减弱',
+      }),
+    ]);
+  });
+
+  it('applies Solid Rock super-effective reduction for Rhyperior', () => {
+    const solidRock = computeDamage({
+      attacker: makeConfig({
+        pokemonId: 'blastoise',
+        nature: '内敛',
+        statPoints: { specialAttack: 32 },
+        moveIds: ['hydro-pump'],
+        selectedMoveId: 'hydro-pump',
+      }),
+      defender: makeConfig({
+        pokemonId: 'rhyperior',
+        abilityId: 'solid-rock',
+        nature: '认真',
+        statPoints: { hp: 32, specialDefense: 32 },
+      }),
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+    const withoutAbility = computeDamage({
+      attacker: solidRock.attackerConfig!,
+      defender: {
+        ...solidRock.defenderConfig!,
+        abilityId: undefined,
+      },
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+
+    expect(solidRock.status).toBe('experimental-success');
+    expect(withoutAbility.status).toBe('experimental-success');
+    expect(solidRock.typeEffectiveness).toBe(4);
+    expect(solidRock.damageRolls).toEqual(withoutAbility.damageRolls!.map((damage) => Math.floor(damage * 0.75)));
+    expect(solidRock.abilityEffects).toEqual([
+      expect.objectContaining({
+        side: 'defender',
+        abilityId: 'solid-rock',
+        direction: 'reduction',
+        text: '效果绝佳伤害减弱',
+      }),
     ]);
   });
 
