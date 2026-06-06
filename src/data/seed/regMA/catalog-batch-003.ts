@@ -295,7 +295,7 @@ export const abilitiesBatch003: Ability[] = [
     englishName: 'Refrigerate',
     effectSummary: '一般属性的招式会变为冰属性。威力会少量提高。',
     pokemonIds: ['aurorus'],
-    calculationImpact: 'pending',
+    calculationImpact: 'confirmed',
     legalInCurrentRule: true,
     sourceRefs: abilityRefs,
   },

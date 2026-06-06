@@ -1059,6 +1059,86 @@ describe('damageAdapter', () => {
     );
   });
 
+  it.each([
+    {
+      label: 'Pixilate',
+      abilityId: 'pixilate',
+      abilityText: '一般招式变为妖精属性',
+      effectiveMoveType: 'Fairy',
+      typeEffectiveness: 2,
+      attacker: makeConfig({
+        pokemonId: 'sylveon',
+        abilityId: 'pixilate',
+        nature: '内敛',
+        statPoints: { specialAttack: 32 },
+        moveIds: ['hyper-voice'],
+        selectedMoveId: 'hyper-voice',
+      }),
+      defender: makeConfig({ pokemonId: 'garchomp', nature: '认真', statPoints: {} }),
+    },
+    {
+      label: 'Refrigerate',
+      abilityId: 'refrigerate',
+      abilityText: '一般招式变为冰属性',
+      effectiveMoveType: 'Ice',
+      typeEffectiveness: 4,
+      attacker: makeConfig({
+        pokemonId: 'aurorus',
+        abilityId: 'refrigerate',
+        nature: '内敛',
+        statPoints: { specialAttack: 32 },
+        moveIds: ['hyper-voice'],
+        selectedMoveId: 'hyper-voice',
+      }),
+      defender: makeConfig({ pokemonId: 'garchomp', nature: '认真', statPoints: {} }),
+    },
+    {
+      label: 'Liquid Voice',
+      abilityId: 'liquid-voice',
+      abilityText: '声音招式变为水属性',
+      effectiveMoveType: 'Water',
+      typeEffectiveness: 2,
+      attacker: makeConfig({
+        pokemonId: 'primarina',
+        abilityId: 'liquid-voice',
+        nature: '内敛',
+        statPoints: { specialAttack: 32 },
+        moveIds: ['hyper-voice'],
+        selectedMoveId: 'hyper-voice',
+      }),
+      defender: makeConfig({ pokemonId: 'torkoal', nature: '认真', statPoints: {} }),
+    },
+  ])('applies $label as a move type conversion', ({ abilityId, abilityText, effectiveMoveType, typeEffectiveness, attacker, defender }) => {
+    const withAbility = computeDamage({
+      attacker,
+      defender,
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+    const withoutAbility = computeDamage({
+      attacker: {
+        ...withAbility.attackerConfig!,
+        abilityId: undefined,
+      },
+      defender: withAbility.defenderConfig!,
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+
+    expect(withAbility.status).toBe('experimental-success');
+    expect(withoutAbility.status).toBe('experimental-success');
+    expect(withAbility.effectiveMoveType).toBe(effectiveMoveType);
+    expect(withAbility.typeEffectiveness).toBe(typeEffectiveness);
+    expect(withAbility.maxDamage).toBeGreaterThan(withoutAbility.maxDamage!);
+    expect(withAbility.abilityEffects).toContainEqual(
+      expect.objectContaining({ side: 'attacker', abilityId, direction: 'boost', text: abilityText }),
+    );
+  });
+
   it('uses Snow Warning as battle weather for Champions Mega Froslass Weather Ball', () => {
     const snowWarning = computeDamage({
       attacker: makeConfig({
