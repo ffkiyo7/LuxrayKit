@@ -50,6 +50,7 @@ export type DamageAdapterInput = {
   battleType: BattleTypeOption;
   weather: string;
   terrain: string;
+  defenderProtected?: boolean;
   attackStage: number;
   defenseStage?: number;
   specialAttackStage?: number;
@@ -98,6 +99,8 @@ export type DamageAdapterResult = {
   weatherMultiplier?: number;
   weatherText?: string;
   spreadMultiplier?: number;
+  protectionMultiplier?: number;
+  protectionText?: string;
   dataVersionId: string;
   ruleSetId: string;
 };
@@ -326,6 +329,30 @@ function weatherImpact(moveType: PokemonType, weather: string): { multiplier: nu
   return { multiplier: 1, text: weather === '无天气' ? '无天气影响' : `${weather} 无直接招式修正` };
 }
 
+function protectionImpact(
+  move: AppMove,
+  attackerAbilityId: string | undefined,
+  defenderProtected: boolean | undefined,
+): { multiplier: number; text?: string } {
+  if (!defenderProtected) return { multiplier: 1 };
+  if (!move.affectedByProtect) return { multiplier: 1, text: '防守方保护不影响该招式' };
+
+  if (move.makesContact && attackerAbilityId === 'unseen-fist') {
+    return { multiplier: 1, text: '无形拳无视守住' };
+  }
+  if (move.makesContact && attackerAbilityId === 'piercing-drill') {
+    return { multiplier: 0.25, text: 'Piercing Drill 穿透守住，伤害变为 1/4' };
+  }
+
+  return { multiplier: 0, text: '防守方守住，招式被挡下' };
+}
+
+function applyProtectionToDamageRolls(damages: number[], multiplier: number): number[] {
+  if (multiplier === 1) return damages;
+  if (multiplier === 0) return [0];
+  return damages.map((damage) => (damage <= 0 ? 0 : Math.max(1, Math.floor(damage * multiplier))));
+}
+
 function effectiveWeatherForMove(weather: string, attackerAbilityId?: string): string {
   if (attackerAbilityId === 'mega-sol') return '晴天';
   return weather;
@@ -436,6 +463,8 @@ function specificAbilityEffectText(abilityId: string, direction: DamageAbilityEf
     if (abilityId === 'technician') return '低威力招式增强';
     if (abilityId === 'fairy-aura') return '妖精属性招式增强';
     if (abilityId === 'mega-sol') return '自身招式按晴天处理';
+    if (abilityId === 'unseen-fist') return '接触招式无视守住';
+    if (abilityId === 'piercing-drill') return '守住中接触招式命中，伤害变为 1/4';
     if (abilityId === 'tough-claws') return '接触招式增强';
     if (abilityId === 'iron-fist') return '拳类招式增强';
     if (abilityId === 'strong-jaw') return '啃咬类招式增强';
@@ -823,8 +852,9 @@ export function computeDamage(input: DamageAdapterInput): DamageAdapterResult {
       });
       const calcResult = calculate(gen, attackerPoke, defenderPoke, calcMoveObj, field);
       const damageData = (calcResult as unknown as Record<string, unknown>)?.damage;
-      const damages = normalizeDamageRolls(damageData);
-      return { attackerPoke, defenderPoke, damages };
+      const protection = protectionImpact(projectMove, activeAttackerAbilityId, input.defenderProtected);
+      const damages = applyProtectionToDamageRolls(normalizeDamageRolls(damageData), protection.multiplier);
+      return { attackerPoke, defenderPoke, damages, protection };
     };
 
     const actualCalc = runCalculation('actual');
@@ -857,6 +887,7 @@ export function computeDamage(input: DamageAdapterInput): DamageAdapterResult {
     const attackerStabTypes = attackerTypesForStab(attackerForm.types, displayedMoveType, attackerConfig.abilityId);
     const typeEffectiveness = defensiveMatchupMultiplier(displayedMoveType, defenderForm.types);
     const weather = weatherImpact(displayedMoveType, displayedWeather);
+    const protection = actualCalc.protection;
     const withoutAttackerAbility = runCalculation('without-attacker-ability').damages;
     const withoutDefenderAbility = runCalculation('without-defender-ability').damages;
     const withoutAttackerItem = runCalculation('without-attacker-item').damages;
@@ -894,6 +925,7 @@ export function computeDamage(input: DamageAdapterInput): DamageAdapterResult {
       `进攻方能力值: ${attackerStats.attack} Atk / ${attackerStats.specialAttack} SpA / ${attackerStats.speed} Spe`,
       `防守方 HP: ${defenderStats.hp}, Def: ${defenderStats.defense}, SpD: ${defenderStats.specialDefense}`,
     );
+    if (input.defenderProtected) assumptions.push('Battle context: defender is protected this turn.');
 
     return {
       ...makeBase(),
@@ -923,6 +955,8 @@ export function computeDamage(input: DamageAdapterInput): DamageAdapterResult {
       weatherMultiplier: weather.multiplier,
       weatherText: weather.text,
       spreadMultiplier: spread ? 0.75 : 1,
+      protectionMultiplier: protection.text ? protection.multiplier : undefined,
+      protectionText: protection.text,
     };
   } catch (error) {
     blockedReasons.push(`计算引擎内部错误: ${error instanceof Error ? error.message : String(error)}`);

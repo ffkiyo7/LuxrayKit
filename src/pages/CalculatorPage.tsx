@@ -627,6 +627,13 @@ function DamageResultCard({
           </span>
         )
       : null,
+    result.protectionText
+      ? (
+          <span key="protection" className="rounded-full border border-accent/40 bg-accent/15 px-2 py-1 font-semibold text-accent">
+            {result.protectionText}{result.protectionMultiplier !== undefined && result.protectionMultiplier !== 1 ? ` ×${result.protectionMultiplier}` : ''}
+          </span>
+        )
+      : null,
     ...(result.abilityEffects ?? []).map((effect) => {
       const tone =
         effect.direction === 'boost'
@@ -721,6 +728,7 @@ export function CalculatorPage({
   const [battleType, setBattleType] = useState<BattleTypeOption>('doubles');
   const [weather, setWeather] = useState(weatherOptions[0]);
   const [terrain, setTerrain] = useState(terrainOptions[0]);
+  const [defenderProtected, setDefenderProtected] = useState(false);
   const [showTeamPicker, setShowTeamPicker] = useState(false);
 
   // Guard: only apply selectedMemberId ONCE, never overwrite user edits
@@ -811,7 +819,7 @@ export function CalculatorPage({
   ];
 
   // Compute damage — illegal SP is stopped in the UI before invoking the adapter
-  const damageKey = `${attackerConfig.pokemonId}|${attackerConfig.formId}|${attackerConfig.selectedMoveId}|${attackerConfig.nature}|${JSON.stringify(attackerConfig.statPoints)}|${JSON.stringify(attackerConfig.statStages)}|${attackerConfig.abilityId}|${attackerConfig.itemId}||${defenderConfig.pokemonId}|${defenderConfig.formId}|${defenderConfig.nature}|${JSON.stringify(defenderConfig.statPoints)}|${JSON.stringify(defenderConfig.statStages)}|${defenderConfig.abilityId}|${defenderConfig.itemId}||${battleType}|${weather}|${terrain}|${currentMove?.category}`;
+  const damageKey = `${attackerConfig.pokemonId}|${attackerConfig.formId}|${attackerConfig.selectedMoveId}|${attackerConfig.nature}|${JSON.stringify(attackerConfig.statPoints)}|${JSON.stringify(attackerConfig.statStages)}|${attackerConfig.abilityId}|${attackerConfig.itemId}||${defenderConfig.pokemonId}|${defenderConfig.formId}|${defenderConfig.nature}|${JSON.stringify(defenderConfig.statPoints)}|${JSON.stringify(defenderConfig.statStages)}|${defenderConfig.abilityId}|${defenderConfig.itemId}||${battleType}|${weather}|${terrain}|${defenderProtected}|${currentMove?.category}`;
   const damageResult = useMemo(() => {
     if (!attackerConfig.selectedMoveId || !attackerConfig.pokemonId || !defenderConfig.pokemonId) return null;
     if (currentMove?.category === 'Status') return null;
@@ -822,6 +830,7 @@ export function CalculatorPage({
       battleType,
       weather,
       terrain,
+      defenderProtected,
       attackStage: 0,
     });
     // eslint-disable-next-line
@@ -962,6 +971,17 @@ export function CalculatorPage({
             </select>
           </label>
         </div>
+
+        <label className="mt-3 flex min-h-10 items-center justify-between gap-3 rounded-lg border border-border bg-secondary px-3 py-2">
+          <span className="text-xs font-semibold text-textSecondary">防守方保护</span>
+          <input
+            aria-label="防守方保护"
+            checked={defenderProtected}
+            className="h-4 w-4 accent-accent"
+            type="checkbox"
+            onChange={(event) => setDefenderProtected(event.target.checked)}
+          />
+        </label>
       </Card>
 
       {/* Damage result */}

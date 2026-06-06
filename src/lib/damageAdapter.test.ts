@@ -722,6 +722,127 @@ describe('damageAdapter', () => {
     ]);
   });
 
+  it('blocks protectable moves when the defender is protected', () => {
+    const result = computeDamage({
+      ...defaults,
+      battleType: 'singles',
+      defenderProtected: true,
+    });
+
+    expect(result.status).toBe('experimental-success');
+    expect(result.damageRolls).toEqual([0]);
+    expect(result.minDamage).toBe(0);
+    expect(result.maxDamage).toBe(0);
+    expect(result.protectionMultiplier).toBe(0);
+    expect(result.protectionText).toBe('防守方守住，招式被挡下');
+    expect(result.possibleHkoText).toBe('无法造成伤害');
+  });
+
+  it('lets Unseen Fist contact moves ignore defender protection', () => {
+    const unseenFist = computeDamage({
+      attacker: makeConfig({
+        pokemonId: 'golurk',
+        formId: 'mega-golurk',
+        abilityId: 'unseen-fist',
+        itemId: 'golurkite',
+        nature: '固执',
+        statPoints: { attack: 32, hp: 32, speed: 2 },
+        moveIds: ['shadow-punch'],
+        selectedMoveId: 'shadow-punch',
+      }),
+      defender: makeConfig({
+        pokemonId: 'garchomp',
+        nature: '认真',
+        statPoints: {},
+      }),
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      defenderProtected: true,
+      attackStage: 0,
+    });
+    const withoutAbility = computeDamage({
+      attacker: {
+        ...unseenFist.attackerConfig!,
+        abilityId: undefined,
+      },
+      defender: unseenFist.defenderConfig!,
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      defenderProtected: true,
+      attackStage: 0,
+    });
+
+    expect(unseenFist.status).toBe('experimental-success');
+    expect(withoutAbility.status).toBe('experimental-success');
+    expect(unseenFist.maxDamage).toBeGreaterThan(0);
+    expect(withoutAbility.maxDamage).toBe(0);
+    expect(unseenFist.protectionMultiplier).toBe(1);
+    expect(unseenFist.protectionText).toBe('无形拳无视守住');
+    expect(unseenFist.abilityEffects).toEqual([
+      expect.objectContaining({ side: 'attacker', abilityId: 'unseen-fist', direction: 'boost', text: '接触招式无视守住' }),
+    ]);
+  });
+
+  it('lets Piercing Drill contact moves hit protected targets for quarter damage', () => {
+    const piercingDrill = computeDamage({
+      attacker: makeConfig({
+        pokemonId: 'excadrill',
+        formId: 'mega-excadrill',
+        abilityId: 'piercing-drill',
+        itemId: 'excadrite',
+        nature: '固执',
+        statPoints: { attack: 32, speed: 32, hp: 2 },
+        moveIds: ['stomping-tantrum'],
+        selectedMoveId: 'stomping-tantrum',
+      }),
+      defender: makeConfig({
+        pokemonId: 'torkoal',
+        nature: '认真',
+        statPoints: {},
+      }),
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      defenderProtected: true,
+      attackStage: 0,
+    });
+    const unprotected = computeDamage({
+      attacker: piercingDrill.attackerConfig!,
+      defender: piercingDrill.defenderConfig!,
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      defenderProtected: false,
+      attackStage: 0,
+    });
+    const withoutAbility = computeDamage({
+      attacker: {
+        ...piercingDrill.attackerConfig!,
+        abilityId: undefined,
+      },
+      defender: piercingDrill.defenderConfig!,
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      defenderProtected: true,
+      attackStage: 0,
+    });
+
+    expect(piercingDrill.status).toBe('experimental-success');
+    expect(unprotected.status).toBe('experimental-success');
+    expect(withoutAbility.status).toBe('experimental-success');
+    expect(piercingDrill.minDamage).toBeGreaterThan(0);
+    expect(piercingDrill.maxDamage).toBe(Math.floor(unprotected.maxDamage! * 0.25));
+    expect(withoutAbility.maxDamage).toBe(0);
+    expect(piercingDrill.protectionMultiplier).toBe(0.25);
+    expect(piercingDrill.protectionText).toBe('Piercing Drill 穿透守住，伤害变为 1/4');
+    expect(piercingDrill.abilityEffects).toEqual([
+      expect.objectContaining({ side: 'attacker', abilityId: 'piercing-drill', direction: 'boost', text: '守住中接触招式命中，伤害变为 1/4' }),
+    ]);
+  });
+
   it('reports direct boost and reduction ability chips with specific reasons', () => {
     const thickFat = computeDamage({
       attacker: makeConfig({
