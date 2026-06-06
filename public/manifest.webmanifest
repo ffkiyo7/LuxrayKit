@@ -1,11 +1,11 @@
 {
-  "name": "Pokémon Champions 对战助手",
-  "short_name": "Champions Tool",
+  "name": "LuxrayKit",
+  "short_name": "LuxrayKit",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#141414",
   "theme_color": "#141414",
-  "description": "Regulation Set M-A 移动端 PWA 对战助手",
+  "description": "Pokémon Champions Season M-2 / Regulation M-A 对战助手",
   "icons": [
     {
       "src": "/icon.svg",

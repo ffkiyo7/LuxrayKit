@@ -102,6 +102,9 @@ describe('App page flows', () => {
     expect(screen.getByText('正在载入本地缓存与规则数据...')).toBeTruthy();
     expect(screen.queryByText(/模拟数据/)).toBeNull();
     expect(await screen.findByRole('heading', { name: '环境' })).toBeTruthy();
+    expect(screen.getByText('LuxrayKit')).toBeTruthy();
+    expect(screen.getByText('Season M-2 · Regulation M-A')).toBeTruthy();
+    expect(screen.queryByText(/移动端 PWA/)).toBeNull();
   });
 
   it('navigates bottom tabs and keeps the teams tab focused on local teams', { timeout: 15000 }, async () => {

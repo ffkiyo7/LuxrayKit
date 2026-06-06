@@ -24,9 +24,10 @@ describe('team image generation', () => {
     });
     const svg = decodeURIComponent(image.dataUrl.replace('data:image/svg+xml;charset=utf-8,', ''));
 
-    expect(image.filename).toBe('champions-team-m-a-2026-06-03.svg');
+    expect(image.filename).toBe('luxraykit-team-m-a-2026-06-03.svg');
     expect(svg).toContain('<svg');
     expect(svg).toContain('M-A 测试队');
+    expect(svg).toContain('LuxrayKit');
     expect(svg).toContain('生成时间 2026-06-03 12:34');
     expect(svg).toContain('炽焰咆哮虎');
     expect(svg).toContain('文柚果');

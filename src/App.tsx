@@ -3,6 +3,7 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react
 import { BottomNav } from './components/BottomNav';
 import { Header } from './components/Header';
 import { Button } from './components/ui';
+import { productName } from './branding';
 import type { EnvironmentState, EnvironmentTeamSample } from './data/environment';
 import { AppProvider, useAppStore } from './state/AppContext';
 import type { Team } from './types';
@@ -236,7 +237,7 @@ function AppShell() {
   ]);
 
   useEffect(() => {
-    document.title = overlay === 'rule' ? '当前规则 · Champions Tool' : 'Champions Tool';
+    document.title = overlay === 'rule' ? `当前规则 · ${productName}` : productName;
   }, [overlay]);
 
   useEffect(() => {

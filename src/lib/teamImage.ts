@@ -1,5 +1,6 @@
 import { abilities, items, moves } from '../data';
 import type { PokemonType, Team } from '../types';
+import { productName } from '../branding';
 import { getMemberBattleForm } from './pokemonForms';
 
 const typeLabels: Record<PokemonType, string> = {
@@ -211,7 +212,7 @@ export function createTeamShareImage(
       <rect width="1200" height="760" fill="#0d0d0d" />
       <rect x="24" y="24" width="1152" height="712" rx="28" fill="#111111" stroke="#2b2b2b" />
       <text x="48" y="66" font-size="34" font-weight="850" fill="#f5f5f5">${escapeXml(team.name)}</text>
-      <text x="48" y="96" font-size="16" fill="#a1a1aa">Champions Tool · 生成时间 ${escapeXml(generatedAt)}</text>
+      <text x="48" y="96" font-size="16" fill="#a1a1aa">${productName} · 生成时间 ${escapeXml(generatedAt)}</text>
       <text x="1030" y="94" font-size="16" text-anchor="end" fill="#6fa8ff">${team.members.length}/6</text>
       ${slots.map((slot, index) => renderSlot(slot, index, options)).join('')}
     </svg>
@@ -219,7 +220,7 @@ export function createTeamShareImage(
   const day = now.toISOString().slice(0, 10);
   return {
     dataUrl: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`,
-    filename: `champions-team-${slugTeamName(team.name)}-${day}.svg`,
+    filename: `luxraykit-team-${slugTeamName(team.name)}-${day}.svg`,
   };
 }
 

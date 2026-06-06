@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
-import { currentRuleSet } from '../data/seed/regMA/metadata';
+import { productContextLabel, productName } from '../branding';
 import { IconButton } from './ui';
 
 export function Header({
@@ -14,8 +14,8 @@ export function Header({
   return (
     <header className="mb-3 flex items-center justify-between">
       <div>
-        <h1 className="text-[17px] font-semibold tracking-normal">Champions Tool</h1>
-        <p className="text-xs text-textSecondary">{currentRuleSet.name} · 移动端 PWA</p>
+        <h1 className="text-[17px] font-semibold tracking-normal">{productName}</h1>
+        <p className="text-xs text-textSecondary">{productContextLabel}</p>
       </div>
       {rightIcon && onRightClick ? <IconButton icon={rightIcon} label={rightLabel} onClick={onRightClick} /> : null}
     </header>
