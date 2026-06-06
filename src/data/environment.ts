@@ -52,6 +52,7 @@ const expectedEnvironmentMetadata = {
 };
 
 const pokemonKeyToId = createPokeDbPokemonKeyMap(regMaPokemonAllowlist, pokemon);
+const pokemonNameById = Object.fromEntries(pokemon.map((entry) => [entry.id, entry.chineseName]));
 
 const auditDataset = (dataset: EnvironmentDataset) => auditEnvironmentDataset(dataset, environmentCatalog, expectedEnvironmentMetadata);
 
@@ -86,6 +87,7 @@ export const createPokeDbEnvironmentDatasetFromSnapshot = (snapshot: PokeDbEnvir
     dataVersionId: currentDataVersion.id,
     retrievedAt: snapshot.retrievedAt,
     pokemonKeyToId,
+    pokemonNameById,
     itemNameToId: pokedbItemNameToId,
     itemIds: items.map((item) => item.id),
     battles: snapshot.battles,

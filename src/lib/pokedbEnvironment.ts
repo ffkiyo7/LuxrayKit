@@ -108,6 +108,35 @@ const convertSlot = (
   };
 };
 
+const getRankFromSampleId = (sampleId: string) => {
+  const rank = Number(sampleId.match(/rank-(\d+)$/)?.[1] ?? 0);
+  return Number.isInteger(rank) && rank > 0 ? rank : undefined;
+};
+
+const formatTeamSampleTitle = (
+  sample: Pick<EnvironmentTeamSample, 'id' | 'author' | 'score' | 'slots'> & { rank?: number },
+  pokemonNameById?: Record<string, string>,
+) => {
+  const rank = sample.rank ?? getRankFromSampleId(sample.id);
+  const rankText = rank ? `最高第 ${rank} 名` : undefined;
+  const scoreText = Number.isFinite(sample.score) ? `${Math.floor(sample.score)} 分` : undefined;
+  const coreName = sample.slots[0] ? pokemonNameById?.[sample.slots[0].pokemonId] ?? sample.slots[0].pokemonId : undefined;
+  return [sample.author, rankText, scoreText, coreName].filter(Boolean).join(' · ');
+};
+
+const normalizeTeamSampleTitle = (
+  sample: EnvironmentTeamSample,
+  pokemonNameById?: Record<string, string>,
+): EnvironmentTeamSample => {
+  const rank = sample.rank ?? getRankFromSampleId(sample.id);
+  return {
+    ...sample,
+    ...(rank ? { rank } : {}),
+    score: Math.floor(sample.score),
+    title: formatTeamSampleTitle({ ...sample, rank }, pokemonNameById),
+  };
+};
+
 const sortedCounterKeys = (counter: Map<string, number>, firstSeen: Map<string, number>, limit: number) =>
   [...counter.entries()]
     .sort((a, b) => b[1] - a[1] || (firstSeen.get(a[0]) ?? Number.MAX_SAFE_INTEGER) - (firstSeen.get(b[0]) ?? Number.MAX_SAFE_INTEGER))
@@ -214,6 +243,7 @@ export function buildEnvironmentDatasetFromPokeDbOpenData(options: {
   dataVersionId: string;
   retrievedAt: string;
   pokemonKeyToId: Record<string, string>;
+  pokemonNameById?: Record<string, string>;
   itemNameToId: Record<string, string>;
   itemIds: string[];
   battles: Partial<Record<EnvironmentBattleType, PokeDbRankedTeamsPayload>>;
@@ -229,9 +259,9 @@ export function buildEnvironmentDatasetFromPokeDbOpenData(options: {
     acc[battleType] = payload
       ? {
           pokemonUsage: buildUsage(payload, options.pokemonKeyToId, options.itemNameToId, itemIds, options.moveStats?.[battleType]),
-          teamSamples: options.teamSamples?.[battleType] ?? [],
+          teamSamples: (options.teamSamples?.[battleType] ?? []).map((sample) => normalizeTeamSampleTitle(sample, options.pokemonNameById)),
         }
-      : { ...emptyBattleDataset(), teamSamples: options.teamSamples?.[battleType] ?? [] };
+      : { ...emptyBattleDataset(), teamSamples: (options.teamSamples?.[battleType] ?? []).map((sample) => normalizeTeamSampleTitle(sample, options.pokemonNameById)) };
     return acc;
   }, {} as Record<EnvironmentBattleType, EnvironmentBattleDataset>);
 
@@ -288,21 +318,19 @@ export function parsePokeDbTrainerSamples(
 
       if (!rank || !Number.isFinite(score) || slots.length === 0) return undefined;
 
-      const coreNames = slots
-        .slice(0, 2)
-        .map((slot) => options.pokemonNameById?.[slot.pokemonId] ?? slot.pokemonId)
-        .join(' / ');
-
-      return {
+      const sample = {
         id: `pokedb-${options.battleType}-rank-${rank}`,
         dataKind: 'external-snapshot',
         author,
         score,
-        title: `${author} · ${score} · ${coreNames}`,
+        rank,
+        title: '',
         battleType: options.battleType,
         reportUrl,
         slots,
-      };
+      } satisfies EnvironmentTeamSample;
+
+      return normalizeTeamSampleTitle(sample, options.pokemonNameById);
     })
     .filter((sample): sample is EnvironmentTeamSample => Boolean(sample))
     .slice(0, maxSamples);

@@ -29,6 +29,11 @@ describe('environment runtime loading', () => {
     expect(state.pokemonUsage.doubles[0]).toMatchObject({ pokemonId: 'basculegion-male' });
     expect(state.teamSamples.filter((sample) => sample.battleType === 'singles').length).toBeGreaterThanOrEqual(16);
     expect(state.teamSamples.filter((sample) => sample.battleType === 'doubles').length).toBeGreaterThanOrEqual(16);
+    expect(state.teamSamples.find((sample) => sample.id === 'pokedb-singles-rank-1')).toMatchObject({
+      rank: 1,
+      score: 2815,
+      title: 'フリあげ♭ · 最高第 1 名 · 2815 分 · 路卡利欧',
+    });
   });
 
   it('loads the PokeDB environment from the standalone cached JSON resource', async () => {

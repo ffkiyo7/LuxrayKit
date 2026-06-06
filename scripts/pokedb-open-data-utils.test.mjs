@@ -221,7 +221,8 @@ describe('PokeDB open data maintenance utils', () => {
         dataKind: 'external-snapshot',
         author: 'suika',
         score: 2724,
-        title: 'suika · 2724 · 喷火龙 / 烈咬陆鲨',
+        rank: 1,
+        title: 'suika · 最高第 1 名 · 2724 分 · 喷火龙',
         battleType: 'doubles',
         reportUrl: 'https://x.com/example/status/1',
         slots: [

@@ -37,6 +37,7 @@ export type EnvironmentTeamSample = {
   dataKind: 'development-sample' | 'external-snapshot';
   author: string;
   score: number;
+  rank?: number;
   title: string;
   battleType: EnvironmentBattleType;
   reportUrl: string;

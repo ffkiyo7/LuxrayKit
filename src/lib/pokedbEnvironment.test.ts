@@ -172,7 +172,8 @@ describe('PokeDB environment ingestion', () => {
         dataKind: 'external-snapshot',
         author: 'すいか',
         score: 2724,
-        title: 'すいか · 2724 · 喷火龙 / 烈咬陆鲨',
+        rank: 1,
+        title: 'すいか · 最高第 1 名 · 2724 分 · 喷火龙',
         battleType: 'doubles',
         reportUrl: 'https://x.com/mihono_suica/status/2054478796812943367?s=20',
         slots: [

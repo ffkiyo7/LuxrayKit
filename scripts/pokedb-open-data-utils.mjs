@@ -218,17 +218,15 @@ export function parsePokeDbTrainerSamplesFromHtml(
 
       if (!rank || !Number.isFinite(score) || slots.length < minSlots) return undefined;
 
-      const coreNames = slots
-        .slice(0, 2)
-        .map((slot) => pokemonNameById[slot.pokemonId] ?? slot.pokemonId)
-        .join(' / ');
+      const coreName = pokemonNameById[slots[0].pokemonId] ?? slots[0].pokemonId;
 
       return {
         id: `pokedb-${battleType}-rank-${rank}`,
         dataKind: 'external-snapshot',
         author,
         score,
-        title: `${author} · ${score} · ${coreNames}`,
+        rank,
+        title: `${author} · 最高第 ${rank} 名 · ${score} 分 · ${coreName}`,
         battleType,
         reportUrl,
         slots,
