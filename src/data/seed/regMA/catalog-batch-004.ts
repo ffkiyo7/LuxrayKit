@@ -155,7 +155,7 @@ export const abilitiesBatch004: Ability[] = [
     englishName: 'Berserk',
     effectSummary: '因对手的攻击ＨＰ变为一半时，特攻会提高。',
     pokemonIds: ['drampa'],
-    calculationImpact: 'pending',
+    calculationImpact: 'none',
     legalInCurrentRule: true,
     sourceRefs: abilityRefs,
   },

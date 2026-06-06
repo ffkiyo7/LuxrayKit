@@ -125,7 +125,7 @@ export const abilitiesBatch005: Ability[] = [
     englishName: 'Stalwart',
     effectSummary: '能无视具有吸引对手招式效果的特性或招式的影响。',
     pokemonIds: ['archaludon'],
-    calculationImpact: 'pending',
+    calculationImpact: 'none',
     legalInCurrentRule: true,
     sourceRefs: abilityRefs,
   },

@@ -64,31 +64,31 @@ type ManualReviewFixture = {
 };
 
 const championsMegaAbilityCoverage = {
-  'mega-skarmory': { abilityId: 'stalwart', status: 'context-only' },
+  'mega-skarmory': { abilityId: 'stalwart', status: 'context-only', reason: 'redirection targeting, not damage math' },
   'mega-froslass': { abilityId: 'snow-warning', status: 'tested-damage' },
   'mega-chimecho': { abilityId: 'levitate', status: 'tested-damage' },
   'mega-emboar': { abilityId: 'mold-breaker', status: 'tested-damage' },
   'mega-excadrill': { abilityId: 'piercing-drill', status: 'tested-damage' },
-  'mega-audino': { abilityId: 'healer', status: 'context-only' },
-  'mega-chandelure': { abilityId: 'infiltrator', status: 'context-only' },
+  'mega-audino': { abilityId: 'healer', status: 'context-only', reason: 'ally status healing, not damage math' },
+  'mega-chandelure': { abilityId: 'infiltrator', status: 'context-only', reason: 'screen/substitute context is not exposed yet' },
   'mega-golurk': { abilityId: 'unseen-fist', status: 'tested-damage' },
   'mega-chesnaught': { abilityId: 'bulletproof', status: 'tested-damage' },
   'mega-delphox': { abilityId: 'levitate', status: 'tested-damage' },
   'mega-greninja': { abilityId: 'protean', status: 'tested-damage' },
   'mega-floette': { abilityId: 'fairy-aura', status: 'tested-damage' },
-  'mega-meowstic': { abilityId: 'trace', status: 'context-only' },
-  'mega-hawlucha': { abilityId: 'no-guard', status: 'context-only' },
+  'mega-meowstic': { abilityId: 'trace', status: 'context-only', reason: 'copied ability choice requires battle context' },
+  'mega-hawlucha': { abilityId: 'no-guard', status: 'context-only', reason: 'accuracy mechanic, not damage math' },
   'mega-crabominable': { abilityId: 'iron-fist', status: 'tested-damage' },
-  'mega-drampa': { abilityId: 'berserk', status: 'context-only' },
+  'mega-drampa': { abilityId: 'berserk', status: 'context-only', reason: 'requires current HP and post-hit stat stage context' },
   'mega-scovillain': { abilityId: 'spicy-spray', status: 'tested-damage' },
   'mega-glimmora': { abilityId: 'adaptability', status: 'tested-damage' },
-  'mega-clefable': { abilityId: 'magic-bounce', status: 'context-only' },
+  'mega-clefable': { abilityId: 'magic-bounce', status: 'context-only', reason: 'status move reflection, not damage math' },
   'mega-victreebel': { abilityId: 'innards-out', status: 'tested-damage' },
   'mega-starmie': { abilityId: 'huge-power', status: 'tested-damage' },
   'mega-dragonite': { abilityId: 'multiscale', status: 'tested-damage' },
   'mega-meganium': { abilityId: 'mega-sol', status: 'tested-damage' },
   'mega-feraligatr': { abilityId: 'dragonize', status: 'tested-damage' },
-} satisfies Record<string, { abilityId: string; status: 'tested-damage' | 'context-only' }>;
+} satisfies Record<string, { abilityId: string; status: 'tested-damage'; reason?: never } | { abilityId: string; status: 'context-only'; reason: string }>;
 
 const manualReviewFixtures: ManualReviewFixture[] = [
   {
@@ -279,6 +279,9 @@ describe('damageAdapter', () => {
       expect(ability, `${coverage.abilityId} should exist in the ability catalog`).toBeDefined();
       if (coverage.status === 'tested-damage') {
         expect(ability?.calculationImpact).toBe('confirmed');
+      } else {
+        expect(coverage.reason).toBeTruthy();
+        expect(ability?.calculationImpact).toBe('none');
       }
     }
 

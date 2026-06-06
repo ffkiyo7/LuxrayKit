@@ -35,7 +35,7 @@ export const abilitiesBatch003: Ability[] = [
     englishName: 'Healer',
     effectSummary: '有时会治愈异常状态的同伴。',
     pokemonIds: ['audino', 'aromatisse'],
-    calculationImpact: 'pending',
+    calculationImpact: 'none',
     legalInCurrentRule: true,
     sourceRefs: abilityRefs,
   },
