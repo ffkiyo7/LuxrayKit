@@ -145,7 +145,7 @@ export const abilitiesBatch003: Ability[] = [
     englishName: 'Protean',
     effectSummary: '变为与自己使出的招式相同的属性。每次出场战斗仅生效一次。',
     pokemonIds: ['greninja'],
-    calculationImpact: 'pending',
+    calculationImpact: 'confirmed',
     legalInCurrentRule: true,
     sourceRefs: abilityRefs,
   },

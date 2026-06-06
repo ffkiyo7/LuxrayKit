@@ -215,7 +215,7 @@ export const abilitiesBatch002: Ability[] = [
     englishName: 'Iron Fist',
     effectSummary: '使用拳类招式的威力会提高。',
     pokemonIds: ['infernape'],
-    calculationImpact: 'pending',
+    calculationImpact: 'confirmed',
     legalInCurrentRule: true,
     sourceRefs: abilityRefs,
   },

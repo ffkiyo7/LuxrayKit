@@ -506,6 +506,7 @@ function specificAbilityEffectText(abilityId: string, direction: DamageAbilityEf
     if (abilityId === 'mega-launcher') return '波动类招式增强';
     if (abilityId === 'sharpness') return '切割类招式增强';
     if (abilityId === 'reckless') return '反作用力招式增强';
+    if (abilityId === 'mold-breaker') return '无视防守特性影响';
     if (abilityId === 'sand-force') return '沙暴中招式增强';
     if (abilityId === 'solar-power') return '晴天特攻增强';
     if (abilityId === 'hustle') return '物理招式增强';

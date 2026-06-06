@@ -335,7 +335,7 @@ export const abilitiesBatch001: Ability[] = [
     englishName: 'Mold Breaker',
     effectSummary: '可以不受对手特性的干扰，向对手使出招式。',
     pokemonIds: ['pinsir'],
-    calculationImpact: 'pending',
+    calculationImpact: 'confirmed',
     legalInCurrentRule: true,
     sourceRefs: abilityRefs,
   },

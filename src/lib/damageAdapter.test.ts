@@ -1014,6 +1014,146 @@ describe('damageAdapter', () => {
     ]);
   });
 
+  it('applies Mold Breaker to bypass defender immunity for Champions Mega Emboar', () => {
+    const moldBreaker = computeDamage({
+      attacker: makeConfig({
+        pokemonId: 'emboar',
+        formId: 'mega-emboar',
+        abilityId: 'mold-breaker',
+        itemId: 'emboarite',
+        nature: '固执',
+        statPoints: { attack: 32, hp: 32 },
+        moveIds: ['earthquake'],
+        selectedMoveId: 'earthquake',
+      }),
+      defender: makeConfig({
+        pokemonId: 'chimecho',
+        formId: 'mega-chimecho',
+        abilityId: 'levitate',
+        itemId: 'chimechite',
+        nature: '认真',
+        statPoints: { hp: 32, defense: 32 },
+      }),
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+    const withoutAbility = computeDamage({
+      attacker: {
+        ...moldBreaker.attackerConfig!,
+        abilityId: undefined,
+      },
+      defender: moldBreaker.defenderConfig!,
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+
+    expect(moldBreaker.status).toBe('experimental-success');
+    expect(withoutAbility.status).toBe('experimental-success');
+    expect(moldBreaker.attackerBattleForm?.id).toBe('mega-emboar');
+    expect(moldBreaker.maxDamage).toBeGreaterThan(0);
+    expect(withoutAbility.damageRolls).toEqual([0]);
+    expect(moldBreaker.abilityEffects).toEqual([
+      expect.objectContaining({
+        side: 'attacker',
+        abilityId: 'mold-breaker',
+        direction: 'boost',
+        text: '无视防守特性影响',
+      }),
+    ]);
+  });
+
+  it('applies Iron Fist punch boost for Champions Mega Crabominable', () => {
+    const ironFist = computeDamage({
+      attacker: makeConfig({
+        pokemonId: 'crabominable',
+        formId: 'mega-crabominable',
+        abilityId: 'iron-fist',
+        itemId: 'crabominite',
+        nature: '固执',
+        statPoints: { attack: 32, hp: 32 },
+        moveIds: ['ice-punch'],
+        selectedMoveId: 'ice-punch',
+      }),
+      defender: makeConfig({
+        pokemonId: 'garchomp',
+        nature: '认真',
+        statPoints: {},
+      }),
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+    const withoutAbility = computeDamage({
+      attacker: {
+        ...ironFist.attackerConfig!,
+        abilityId: undefined,
+      },
+      defender: ironFist.defenderConfig!,
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+
+    expect(ironFist.status).toBe('experimental-success');
+    expect(withoutAbility.status).toBe('experimental-success');
+    expect(ironFist.attackerBattleForm?.id).toBe('mega-crabominable');
+    expect(ironFist.maxDamage).toBeGreaterThan(withoutAbility.maxDamage!);
+    expect(ironFist.abilityEffects).toEqual([
+      expect.objectContaining({ side: 'attacker', abilityId: 'iron-fist', direction: 'boost', text: '拳类招式增强' }),
+    ]);
+  });
+
+  it('applies Protean STAB typing for Champions Mega Greninja', () => {
+    const protean = computeDamage({
+      attacker: makeConfig({
+        pokemonId: 'greninja',
+        formId: 'mega-greninja',
+        abilityId: 'protean',
+        itemId: 'greninjite',
+        nature: '内敛',
+        statPoints: { specialAttack: 32, speed: 32 },
+        moveIds: ['ice-beam'],
+        selectedMoveId: 'ice-beam',
+      }),
+      defender: makeConfig({
+        pokemonId: 'garchomp',
+        nature: '认真',
+        statPoints: {},
+      }),
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+    const withoutAbility = computeDamage({
+      attacker: {
+        ...protean.attackerConfig!,
+        abilityId: undefined,
+      },
+      defender: protean.defenderConfig!,
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+
+    expect(protean.status).toBe('experimental-success');
+    expect(withoutAbility.status).toBe('experimental-success');
+    expect(protean.attackerBattleForm?.id).toBe('mega-greninja');
+    expect(protean.effectiveMoveType).toBe('Ice');
+    expect(protean.stabMultiplier).toBe(1.5);
+    expect(protean.maxDamage).toBeGreaterThan(withoutAbility.maxDamage!);
+    expect(protean.abilityEffects).toEqual([
+      expect.objectContaining({ side: 'attacker', abilityId: 'protean', direction: 'boost', text: '属性随招式变化' }),
+    ]);
+  });
+
   it('blocks protectable moves when the defender is protected', () => {
     const result = computeDamage({
       ...defaults,
