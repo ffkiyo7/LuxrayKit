@@ -220,6 +220,18 @@ function calcItemName(id: string): string {
 const WEATHER_MAP: Record<string, string | undefined> = {
   '无天气': undefined, '晴天': 'Sun', '雨天': 'Rain', '沙暴': 'Sand', '雪天': 'Snow',
 };
+const WEATHER_ABILITY_MAP: Record<string, string> = {
+  drought: '晴天',
+  drizzle: '雨天',
+  'sand-stream': '沙暴',
+  'snow-warning': '雪天',
+};
+const WEATHER_ABILITY_TEXT: Record<string, string> = {
+  drought: '日照形成晴天',
+  drizzle: '降雨形成雨天',
+  'sand-stream': '扬沙形成沙暴',
+  'snow-warning': '降雪形成雪天',
+};
 const TERRAIN_MAP: Record<string, string | undefined> = {
   '无场地': undefined, '青草场地': 'Grassy', '电气场地': 'Electric',
   '精神场地': 'Psychic', '薄雾场地': 'Misty',
@@ -369,6 +381,15 @@ function effectiveWeatherForMove(weather: string, attackerAbilityId?: string): s
   return weather;
 }
 
+function effectiveWeatherForBattle(weather: string, attackerAbilityId?: string, defenderAbilityId?: string): string {
+  if (weather !== '无天气') return weather;
+  const abilityWeathers = [attackerAbilityId, defenderAbilityId]
+    .map((abilityId) => abilityId ? WEATHER_ABILITY_MAP[abilityId] : undefined)
+    .filter((candidate): candidate is string => Boolean(candidate));
+  const uniqueWeathers = Array.from(new Set(abilityWeathers));
+  return uniqueWeathers.length === 1 ? uniqueWeathers[0] : weather;
+}
+
 function weatherBallType(weather: string): PokemonType | undefined {
   if (weather === '晴天') return 'Fire';
   if (weather === '雨天') return 'Water';
@@ -454,6 +475,9 @@ function specificAbilityEffectText(abilityId: string, direction: DamageAbilityEf
   if (move.type === 'Normal' && abilityId === 'dragonize') return '一般招式变为龙属性，威力提高 20%';
   if (abilityId === 'liquid-voice' && SOUND_MOVE_IDS.has(move.id)) return '声音招式变为水属性';
   if (abilityId === 'protean' || abilityId === 'libero') return '属性随招式变化';
+  if (WEATHER_ABILITY_TEXT[abilityId] && (direction === 'boost' || direction === 'reduction' || direction === 'changed')) {
+    return WEATHER_ABILITY_TEXT[abilityId];
+  }
 
   if (direction === 'reduction') {
     if (abilityId === 'thick-fat' && (move.type === 'Fire' || move.type === 'Ice')) return `${TYPE_LABELS[move.type]}属性伤害减半`;
@@ -877,7 +901,8 @@ export function computeDamage(input: DamageAdapterInput): DamageAdapterResult {
     const runCalculation = (mode: 'actual' | 'without-attacker-ability' | 'without-defender-ability' | 'without-attacker-item' | 'without-defender-item') => {
       const activeAttackerAbilityId = mode === 'without-attacker-ability' ? undefined : attackerConfig.abilityId;
       const activeDefenderAbilityId = mode === 'without-defender-ability' ? undefined : defenderConfig.abilityId;
-      const calcWeather = effectiveWeatherForMove(input.weather, activeAttackerAbilityId);
+      const battleWeather = effectiveWeatherForBattle(input.weather, activeAttackerAbilityId, activeDefenderAbilityId);
+      const calcWeather = effectiveWeatherForMove(battleWeather, activeAttackerAbilityId);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const field = new (Field as any)({
         gameType: input.battleType === 'doubles' ? 'Doubles' : 'Singles',
@@ -940,7 +965,8 @@ export function computeDamage(input: DamageAdapterInput): DamageAdapterResult {
     const defensiveStatLabel = projectMove.category === 'Physical' ? '防御' : '特防';
     const offensiveStatValue = projectMove.category === 'Physical' ? actualCalc.attackerPoke.rawStats.atk : actualCalc.attackerPoke.rawStats.spa;
     const defensiveStatValue = projectMove.category === 'Physical' ? actualCalc.defenderPoke.rawStats.def : actualCalc.defenderPoke.rawStats.spd;
-    const displayedWeather = effectiveWeatherForMove(input.weather, attackerConfig.abilityId);
+    const displayedBattleWeather = effectiveWeatherForBattle(input.weather, attackerConfig.abilityId, defenderConfig.abilityId);
+    const displayedWeather = effectiveWeatherForMove(displayedBattleWeather, attackerConfig.abilityId);
     const displayedMoveType = effectiveMoveType(projectMove, attackerConfig.abilityId, displayedWeather);
     const attackerStabTypes = attackerTypesForStab(attackerForm.types, displayedMoveType, attackerConfig.abilityId);
     const typeEffectiveness = defensiveMatchupMultiplier(displayedMoveType, defenderForm.types);
@@ -989,6 +1015,7 @@ export function computeDamage(input: DamageAdapterInput): DamageAdapterResult {
       `进攻方能力值: ${attackerStats.attack} Atk / ${attackerStats.specialAttack} SpA / ${attackerStats.speed} Spe`,
       `防守方 HP: ${defenderStats.hp}, Def: ${defenderStats.defense}, SpD: ${defenderStats.specialDefense}`,
     );
+    if (input.weather === '无天气' && displayedBattleWeather !== '无天气') assumptions.push(`Battle context: weather set by ability: ${displayedBattleWeather}.`);
     if (input.defenderProtected) assumptions.push('Battle context: defender is protected this turn.');
 
     return {

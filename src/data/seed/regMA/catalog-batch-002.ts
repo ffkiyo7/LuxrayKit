@@ -305,7 +305,7 @@ export const abilitiesBatch002: Ability[] = [
     englishName: 'Snow Warning',
     effectSummary: '出场时，会将天气变为下雪。',
     pokemonIds: ['abomasnow'],
-    calculationImpact: 'pending',
+    calculationImpact: 'confirmed',
     legalInCurrentRule: true,
     sourceRefs: abilityRefs,
   },

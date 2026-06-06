@@ -722,6 +722,63 @@ describe('damageAdapter', () => {
     ]);
   });
 
+  it('uses Snow Warning as battle weather for Champions Mega Froslass Weather Ball', () => {
+    const snowWarning = computeDamage({
+      attacker: makeConfig({
+        pokemonId: 'froslass',
+        formId: 'mega-froslass',
+        abilityId: 'snow-warning',
+        itemId: 'froslassite',
+        nature: '内敛',
+        statPoints: { specialAttack: 32, speed: 32, hp: 2 },
+        moveIds: ['weather-ball'],
+        selectedMoveId: 'weather-ball',
+      }),
+      defender: makeConfig({
+        pokemonId: 'garchomp',
+        nature: '认真',
+        statPoints: {},
+      }),
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+    const withoutAbility = computeDamage({
+      attacker: {
+        ...snowWarning.attackerConfig!,
+        abilityId: undefined,
+      },
+      defender: snowWarning.defenderConfig!,
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+    const manualRain = computeDamage({
+      attacker: snowWarning.attackerConfig!,
+      defender: snowWarning.defenderConfig!,
+      battleType: 'singles',
+      weather: '雨天',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+
+    expect(snowWarning.status).toBe('experimental-success');
+    expect(withoutAbility.status).toBe('experimental-success');
+    expect(manualRain.status).toBe('experimental-success');
+    expect(snowWarning.effectiveMoveType).toBe('Ice');
+    expect(snowWarning.typeEffectiveness).toBe(4);
+    expect(snowWarning.weatherText).toBe('雪天 无直接招式修正');
+    expect(snowWarning.maxDamage).toBeGreaterThan(withoutAbility.maxDamage!);
+    expect(snowWarning.abilityEffects).toEqual([
+      expect.objectContaining({ side: 'attacker', abilityId: 'snow-warning', direction: 'boost', text: '降雪形成雪天' }),
+    ]);
+    expect(snowWarning.assumptions).toContain('Battle context: weather set by ability: 雪天.');
+    expect(manualRain.effectiveMoveType).toBe('Water');
+    expect(manualRain.weatherText).toBe('雨天增强水属性');
+  });
+
   it('blocks protectable moves when the defender is protected', () => {
     const result = computeDamage({
       ...defaults,
