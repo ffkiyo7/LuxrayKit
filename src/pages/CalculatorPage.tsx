@@ -44,6 +44,9 @@ const sortedNatureOptions = () => {
 const sourceLabel = (config: CalcSideConfig): string =>
   config.source === 'team-member' ? '来自队伍配置' : '手动临时配置';
 
+const statPointSummary = (statPoints: StatPoints) =>
+  `HP ${clampStatPointValue(statPoints.hp ?? 0)} · 攻 ${clampStatPointValue(statPoints.attack ?? 0)} · 防 ${clampStatPointValue(statPoints.defense ?? 0)} · 特攻 ${clampStatPointValue(statPoints.specialAttack ?? 0)} · 特防 ${clampStatPointValue(statPoints.specialDefense ?? 0)} · 速 ${clampStatPointValue(statPoints.speed ?? 0)}`;
+
 const stageLabel = (value: number | string) => {
   const numeric = Number(value) || 0;
   return numeric > 0 ? `+${numeric}` : String(numeric);
@@ -289,6 +292,9 @@ function SideConfigCard({
           <p className="mt-1 text-[11px] text-textSecondary">
             {config.nature} · {ability?.chineseName ?? '未选特性'} · {item?.chineseName ?? '无道具'}
           </p>
+          <p className="mt-1 text-[11px] text-textMuted">
+            SP：{statPointSummary(config.statPoints)} · 已用 {spTotal}/{MAX_TOTAL_STAT_POINTS}
+          </p>
         </button>
         <div className="flex shrink-0 flex-col items-end gap-1">
           <button
@@ -299,8 +305,8 @@ function SideConfigCard({
                   ? 'border-accent/50 bg-card text-accent'
                   : 'border-border bg-card text-textSecondary'
             }`}
-            title={active ? (detailVisible ? '收起配置' : '编辑能力配置') : '切换到此侧'}
-            aria-label={active ? (detailVisible ? '收起能力配置' : '展开能力配置') : '切换到此侧'}
+            title={active ? (detailVisible ? '收起配置' : '编辑 SP/能力配置') : '切换到此侧'}
+            aria-label={active ? (detailVisible ? '收起 SP/能力配置' : '展开 SP/能力配置') : '切换到此侧'}
             type="button"
             aria-expanded={detailVisible}
             onClick={() => {
@@ -308,7 +314,7 @@ function SideConfigCard({
               if (active) setExpanded(!expanded);
             }}
           >
-            <span>{active ? '能力配置' : '选择宝可梦'}</span>
+            <span>{active ? '编辑 SP' : '选择宝可梦'}</span>
             {detailVisible ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
           </button>
         </div>
@@ -425,7 +431,7 @@ function SideConfigCard({
           {/* SP editor */}
           <fieldset className="space-y-1.5">
             <div className="flex items-center justify-between gap-2">
-              <p className="text-[11px] text-textMuted">能力配置：Champions SP 分配 / 能力阶级</p>
+              <p className="text-[11px] text-textMuted">HP SP、攻防 SP 可编辑 / 能力阶级</p>
               <span className={`text-[11px] ${spIssues.length > 0 ? 'text-danger' : 'text-textMuted'}`}>
                 已用 {spTotal}/{MAX_TOTAL_STAT_POINTS}
               </span>
@@ -437,6 +443,7 @@ function SideConfigCard({
                   <div key={key} className={`rounded-lg border bg-card p-2 ${spIssues.length > 0 ? 'border-danger' : 'border-border'}`}>
                     <button
                       aria-label={`${label} ${clampStatPointValue(config.statPoints[key] ?? 0)}`}
+                      title={`${label} SP 可编辑`}
                       className="w-full text-left active:scale-[0.99]"
                       type="button"
                       onClick={() => setEditingStatKey(key)}
@@ -667,6 +674,22 @@ function DamageResultCard({
         <p className={`text-[28px] font-bold ${damageTone}`}>{result.minPercent}% - {result.maxPercent}%</p>
         <p className="mt-1 text-sm text-textSecondary">{result.minDamage} - {result.maxDamage} 伤害 / 对方 HP: {result.defenderHp ?? '-'}</p>
       </div>
+
+      {(result.attackerStats || result.defenderStats) && (
+        <div className="mt-4 rounded-lg border border-border bg-secondary px-3 py-2 text-[11px] text-textSecondary">
+          <p className="font-semibold text-textPrimary">代入能力值</p>
+          {result.attackerStats && (
+            <p className="mt-1">
+              进攻方能力值：攻击 {result.attackerStats.attack} · 特攻 {result.attackerStats.specialAttack} · 速度 {result.attackerStats.speed}
+            </p>
+          )}
+          {result.defenderStats && (
+            <p className="mt-1">
+              防守方能力值：HP {result.defenderStats.hp} · 防御 {result.defenderStats.defense} · 特防 {result.defenderStats.specialDefense}
+            </p>
+          )}
+        </div>
+      )}
 
       {modifierChips.length > 0 && (
         <>

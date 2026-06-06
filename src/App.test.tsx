@@ -550,9 +550,9 @@ describe('App page flows', () => {
     expect(screen.getByLabelText('会心一击')).toBeTruthy();
 
     // Expand attacker config
-    const editBtns = screen.getAllByTitle('编辑能力配置');
+    const editBtns = screen.getAllByTitle('编辑 SP/能力配置');
     await user.click(editBtns[0]);
-    expect(await screen.findByText(/Champions SP 分配/)).toBeTruthy();
+    expect(await screen.findByText(/HP SP、攻防 SP 可编辑/)).toBeTruthy();
     expect(screen.getByText(/临时修改不会自动保存到队伍/)).toBeTruthy();
 
     // ── Test SP editing: temporary Pokemon starts at 0 SP, change HP to 8 through the picker ──
@@ -565,7 +565,7 @@ describe('App page flows', () => {
     fireEvent.change(hpSlider, { target: { value: '8' } });
     expect((hpSlider as HTMLInputElement).value).toBe('8');
     await user.click(screen.getByTitle('关闭 SP 调整'));
-    expect(screen.getByText(/已用 8\/66/)).toBeTruthy();
+    expect(screen.getAllByText(/已用 8\/66/).length).toBeGreaterThanOrEqual(1);
     await user.click(screen.getByRole('button', { name: /攻击\s*0/ }));
     const attackSlider = screen.getByRole('slider', { name: '攻击 SP' });
     fireEvent.change(attackSlider, { target: { value: '32' } });
@@ -574,7 +574,7 @@ describe('App page flows', () => {
     const speedSlider = screen.getByRole('slider', { name: '速度 SP' });
     fireEvent.change(speedSlider, { target: { value: '32' } });
     await user.click(screen.getByTitle('关闭 SP 调整'));
-    expect(screen.getByText(/已用 72\/66/)).toBeTruthy();
+    expect(screen.getAllByText(/已用 72\/66/).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText(/SP 分配不合法/)).toBeTruthy();
     expect(screen.getByText(/SP 分配需要调整/)).toBeTruthy();
 
@@ -613,17 +613,44 @@ describe('App page flows', () => {
     await user.selectOptions(weatherSelect, '晴天');
     expect(weatherSelect.value).toBe('晴天');
     // Re-expand and verify HP is still 8
-    await user.click(screen.getAllByTitle('编辑能力配置')[0]);
+    await user.click(screen.getAllByTitle('编辑 SP/能力配置')[0]);
     expect(screen.getByRole('button', { name: /HP\s*8/ })).toBeTruthy();
 
     // ── Defender gets the same temporary SP picker behavior ──
     await user.click(screen.getByRole('button', { name: /防守方/ }));
-    await user.click(screen.getAllByTitle('编辑能力配置')[0]);
+    await user.click(screen.getAllByTitle('编辑 SP/能力配置')[0]);
     await user.click(screen.getAllByRole('button', { name: /防御\s*0/ }).at(-1)!);
     const defenderDefenseSlider = screen.getByRole('slider', { name: '防御 SP' });
     fireEvent.change(defenderDefenseSlider, { target: { value: '20' } });
     await user.click(screen.getByTitle('关闭 SP 调整'));
-    expect(screen.getByText(/已用 20\/66/)).toBeTruthy();
+    expect(screen.getAllByText(/已用 20\/66/).length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('applies defender HP SP to the displayed damage target HP', async () => {
+    const user = await renderApp();
+
+    await openTool(user, /伤害计算/);
+    expect(await screen.findByText('选择进攻方')).toBeTruthy();
+
+    const initialHpText = screen.getByText(/对方 HP:/).textContent ?? '';
+    const initialHp = Number(initialHpText.match(/对方 HP: (\d+)/)?.[1]);
+    expect(Number.isFinite(initialHp)).toBe(true);
+    expect(screen.getByText(/防守方能力值：HP/)).toBeTruthy();
+    expect(screen.getAllByText(/SP：HP 0/).length).toBeGreaterThanOrEqual(1);
+
+    await user.click(screen.getByRole('button', { name: /防守方/ }));
+    await user.click(screen.getAllByTitle('编辑 SP/能力配置')[0]);
+    expect(await screen.findByText(/HP SP、攻防 SP 可编辑/)).toBeTruthy();
+
+    await user.click(screen.getByRole('button', { name: /HP\s*0/ }));
+    const defenderHpSlider = screen.getByRole('slider', { name: 'HP SP' });
+    fireEvent.change(defenderHpSlider, { target: { value: '32' } });
+    await user.click(screen.getByTitle('关闭 SP 调整'));
+
+    await waitFor(() => {
+      expect(screen.getByText(new RegExp(`对方 HP: ${initialHp + 32}`))).toBeTruthy();
+    });
+    expect(screen.getAllByText(/SP：HP 32/).length).toBeGreaterThanOrEqual(1);
   });
 
   it('keeps calculator move search results synced with the selected move', async () => {
@@ -635,7 +662,7 @@ describe('App page flows', () => {
     await user.type(screen.getByPlaceholderText('搜索名称'), 'Incineroar');
     await user.click(await screen.findByText('炽焰咆哮虎'));
 
-    await user.click(screen.getAllByTitle('编辑能力配置')[0]);
+    await user.click(screen.getAllByTitle('编辑 SP/能力配置')[0]);
     const moveSearch = await screen.findByPlaceholderText('搜索攻击招式');
     await user.type(moveSearch, 'D');
 
@@ -658,7 +685,7 @@ describe('App page flows', () => {
 
     await user.type(screen.getByPlaceholderText('搜索名称'), 'Houndoom');
     await user.click(await screen.findByText('黑鲁加'));
-    await user.click(screen.getAllByTitle('编辑能力配置')[0]);
+    await user.click(screen.getAllByTitle('编辑 SP/能力配置')[0]);
     const moveSearch = await screen.findByPlaceholderText('搜索攻击招式');
     await user.type(moveSearch, '闪焰冲锋');
     expect(await screen.findByText(/闪焰冲锋 · 120 威力/)).toBeTruthy();
@@ -669,7 +696,7 @@ describe('App page flows', () => {
     const arcanineResult = (await screen.findAllByText('风速狗'))[0].closest('button');
     expect(arcanineResult).toBeTruthy();
     await user.click(arcanineResult!);
-    await user.click(screen.getAllByTitle('编辑能力配置').at(-1)!);
+    await user.click(screen.getAllByTitle('编辑 SP/能力配置').at(-1)!);
     const flashFireSelect = screen.getAllByRole('combobox').find((select) =>
       Array.from((select as HTMLSelectElement).options).some((option) => option.value === 'flash-fire'),
     ) as HTMLSelectElement;
@@ -692,9 +719,9 @@ describe('App page flows', () => {
     expect(garchompElements.length).toBeGreaterThanOrEqual(1);
 
     // Expand the attacker config and edit SP
-    const editBtns = screen.getAllByTitle('编辑能力配置');
+    const editBtns = screen.getAllByTitle('编辑 SP/能力配置');
     await user.click(editBtns[0]);
-    await screen.findByText(/Champions SP 分配/);
+    await screen.findByText(/HP SP、攻防 SP 可编辑/);
 
     await user.click(screen.getByRole('button', { name: /HP\s*\d+/ }));
     const hpSlider = screen.getByRole('slider', { name: 'HP SP' });
