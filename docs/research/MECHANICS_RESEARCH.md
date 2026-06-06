@@ -1,12 +1,12 @@
 # 机制边界
 
-更新时间：2026-05-06
+更新时间：2026-06-06
 
 ## 已作为产品机制启用
 
 - Regulation Set M-A 日期、重复道具规则、计时规则。
 - Regulation Set M-A Pokémon allowlist。
-- Regulation Set M-A Mega allowlist shell。
+- Regulation Set M-A Mega allowlist 与本地 Mega form 映射。
 - Champions SP v1：
   - 单项 `0-32`。
   - 单只总量 `66`。
@@ -31,7 +31,7 @@
 - Champions 是否完全沿用 Gen9 伤害公式和所有 rounding 顺序。
 - Champions 改动招式的威力、分类、目标和特殊效果。
 - 全量会影响伤害的特性与道具。
-- Champions 新 Mega 的真实战斗字段。
+- Champions 新增 Mega 的新增特性与 Mega 交互样例。
 - 未来规则对 Pokémon、道具、Mega 和计时的变化。
 
 ## 处理原则

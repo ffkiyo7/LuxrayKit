@@ -32,9 +32,9 @@
 - 上位构筑导入：生成本地队伍副本，保留来源 metadata，按样本标题命名，跳转队伍列表并高亮新导入队伍；队伍列表不展示“上位构筑导入 / 当前”等来源标签，详情页不显示来源卡或队报入口。
 - 上位构筑首次导入提示：用户第一次点击“导入配置”时会先看到一次轻量提示，说明当前可稳定带入 Pokémon 和道具，性格、SP、完整配招等需要通过队报链接或手动编辑确认；用户继续导入后，该提示写入本地偏好，后续导入不再重复打断。
 - 上位构筑导入字段边界：PokeDB Open Data 快照目前只能稳定拿到队伍槽位的 Pokémon 与道具；导入时保持普通 Pokémon 形态，即使道具是 Mega Stone 也不自动切到 Mega 形态，Mega 形态由用户在成员编辑页确认。只有原形态单一特性会自动填入，其余性格、SP、普通多特性与完整配招不再伪造，导入后标记为需手动确认。PokeDB Pokémon 详情页可解析聚合的常用招式、性格、SP 分布，但不能反推某一支样本队伍的原作者完整配置。
-- Reg M-A 规则元信息、官方 allowlist、Mega allowlist shell 和数据版本展示。
+- Reg M-A 规则元信息、官方 allowlist、Mega allowlist 与数据版本展示。
 - 213 只当前规则 Pokémon：181 基础形态 + 32 地区 / 特殊形态。
-- 35 个旧主系列 Mega 形态已具备 stats/types/abilities/sprite/Mega Stone 映射；Champions 新 Mega 保留 shell，不伪造战斗字段。
+- 59 个 Reg M-A Mega 形态已具备 stats/types/abilities/sprite/Mega Stone 映射；其中 24 个 Champions 新增 Mega 来自 PokéBase Champions 页面，并保留 manual-review / pending 机制验证边界。
 - 539 个当前规则招式与 13387 条 Pokémon-learnset 关系。
 - 117 个当前规则候选道具与本地道具图片快照。
 - 25 个性格、当前 catalog 特性中文名 / 中文说明、形态级特性拥有者映射。
@@ -59,7 +59,7 @@
 
 - 伤害计算仍是 **experimental mainline approximation**：主线 Gen9 公式 + Champions 数据 / SP 适配，不是官方 Champions 正式公式声明。
 - Champions 特有招式威力、特性、道具、Mega 交互仍需继续补齐和交叉验证。
-- 24 个 Champions 新 Mega 仍缺少可安全写入的战斗字段。
+- 24 个 Champions 新增 Mega 已接入 PokéBase stats/types/abilities/sprite；其新增特性与 Mega 交互仍需战斗样例验证。
 - 中文说明与部分社区来源存在授权边界，公开分发前需要确认署名 / 非商业 / 相同方式共享要求。
 - Reg M-B / 后续规则切换尚未实现。
 - 环境数据当前来自 PokeDB Open Data 独立 JSON snapshot，代表上位构筑样本，不代表官方完整环境使用率。

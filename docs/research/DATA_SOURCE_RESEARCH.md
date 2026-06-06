@@ -1,12 +1,12 @@
 # 数据来源策略
 
-更新时间：2026-06-05
+更新时间：2026-06-06
 
 ## 当前数据状态
 
 - Regulation Set M-A 元信息与 allowlist 来自官方页面。
 - Pokémon catalog 已覆盖当前规则 213 只 Pokémon。
-- 35 个旧主系列 Mega 形态已接入；24 个 Champions 新 Mega 仍保留 shell。
+- 59 个 Reg M-A Mega 形态已接入；24 个 Champions 新增 Mega 的 stats/types/abilities/sprite 来自 PokéBase Champions Pokémon 页面。
 - 当前规则招式 catalog 与 learnset 已覆盖 213 只 Pokémon。
 - 当前规则道具候选池 117 个，本地保存道具图片快照。
 - 性格、特性、中文名、说明和拥有者映射已接入当前 catalog。
@@ -19,7 +19,7 @@
 
 1. 官方 Pokémon HOME / Champions 页面：规则、时间、允许列表、Mega 允许列表。
 2. PokeAPI：结构化 Pokémon/form、名称、属性、种族值、身高、体重、sprite/artwork 引用。
-3. PokéBase Champions：当前规则招式、learnset、道具图片快照。
+3. PokéBase Champions：当前规则招式、learnset、道具图片快照、Champions 新增 Mega 形态战斗字段与图片快照。
 4. 52poke / Bulbapedia 等社区资料：中文名、说明、机制交叉参考，仅在保留来源和授权风险说明时使用。
 5. PokeDB / PkmnChamps Open Data：上位构筑样本统计与队伍骨架，进入 UI 前必须转换为 `EnvironmentDataset` 并审计。
 6. 人工样例：用于计算交叉验证或首批队报链接补充，必须记录版本、配置、链接和观察日期。
@@ -27,7 +27,7 @@
 ## 数据写入规则
 
 - 新增 seed row 必须有 `sourceRefs` 或明确 `manual-review`。
-- 不确定的 Champions 新 Mega 不写 stats/types/ability/sprite。
+- 不确定或缺少明确页面来源的 Champions 新 Mega 字段不得写入；已写入字段必须保留 `pokebase-champions-mega-data` 或等价 sourceRef。
 - 不复制大段官方或社区描述，前端使用简短项目化说明。
 - 图片资源优先使用本地快照或可接受的稳定 URL，并保留来源。
 - PokeAPI 身高 / 体重仅作为主系列图鉴展示数据；地区形态、Mega 形态或 Champions 新 Mega 若缺少明确字段，不推断或伪造专属数值。
@@ -47,7 +47,7 @@
 
 ## 后续数据工作
 
-- 补齐 Champions 新 Mega 的可靠战斗字段。
+- 对 Champions 新增 Mega 的新增特性与 Mega 交互建立战斗样例验证清单。
 - 对 Champions 改动招式建立增量清单。
 - 对影响伤害的特性 / 道具建立审计清单。
 - 为图鉴身高 / 体重补充 sourceRefs / audit 脚本输出，降低未来重新生成时的漂移风险。

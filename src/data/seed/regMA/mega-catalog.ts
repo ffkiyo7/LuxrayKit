@@ -10,7 +10,41 @@ const megaRefs = [
   'manual-seed-review',
 ];
 
+const championsMegaRefs = [
+  'reg-ma-official-mega-list',
+  'pokebase-champions-mega-data',
+  'manual-seed-review',
+];
+
 const artwork = (n: number) => `/assets/pokemon/thumbs/${n}.png`;
+const championsMegaArtwork = (id: string) => `/assets/pokemon/thumbs/${id}.png`;
+
+const championsMega = (
+  id: string,
+  pokemonId: string,
+  englishName: string,
+  chineseName: string,
+  japaneseName: string,
+  requiredItemId: string,
+  types: PokemonForm['types'],
+  baseStats: PokemonForm['baseStats'],
+  abilities: string[],
+): PokemonForm => ({
+  id,
+  pokemonId,
+  name: englishName,
+  chineseName,
+  englishName,
+  japaneseName,
+  iconRef: championsMegaArtwork(id),
+  isMega: true,
+  requiredItemId,
+  types,
+  baseStats,
+  abilities,
+  legalInCurrentRule: true,
+  sourceRefs: championsMegaRefs,
+});
 
 // Mega form entries keyed by parent Pokemon ID
 // Each entry maps base pokemon id → mega forms array
@@ -643,6 +677,78 @@ export const megaFormsByParentId: Record<string, PokemonForm[]> = {
       sourceRefs: megaRefs,
     },
   ],
+  'skarmory': [
+    championsMega('mega-skarmory', 'skarmory', 'Mega Skarmory', '超级盔甲鸟', 'メガエアームド', 'skarmorite', ['Steel', 'Flying'], { hp: 65, attack: 140, defense: 110, specialAttack: 40, specialDefense: 100, speed: 110 }, ['stalwart']),
+  ],
+  'froslass': [
+    championsMega('mega-froslass', 'froslass', 'Mega Froslass', '超级雪妖女', 'メガユキメノコ', 'froslassite', ['Ice', 'Ghost'], { hp: 70, attack: 80, defense: 70, specialAttack: 140, specialDefense: 100, speed: 120 }, ['snow-warning']),
+  ],
+  'chimecho': [
+    championsMega('mega-chimecho', 'chimecho', 'Mega Chimecho', '超级风铃铃', 'メガチリーン', 'chimechite', ['Psychic', 'Steel'], { hp: 75, attack: 50, defense: 110, specialAttack: 135, specialDefense: 120, speed: 65 }, ['levitate']),
+  ],
+  'emboar': [
+    championsMega('mega-emboar', 'emboar', 'Mega Emboar', '超级炎武王', 'メガエンブオー', 'emboarite', ['Fire', 'Fighting'], { hp: 110, attack: 148, defense: 75, specialAttack: 110, specialDefense: 110, speed: 75 }, ['mold-breaker']),
+  ],
+  'excadrill': [
+    championsMega('mega-excadrill', 'excadrill', 'Mega Excadrill', '超级龙头地鼠', 'メガドリュウズ', 'excadrite', ['Ground', 'Steel'], { hp: 110, attack: 165, defense: 100, specialAttack: 65, specialDefense: 65, speed: 103 }, ['piercing-drill']),
+  ],
+  'audino': [
+    championsMega('mega-audino', 'audino', 'Mega Audino', '超级差不多娃娃', 'メガタブンネ', 'audinite', ['Normal', 'Fairy'], { hp: 103, attack: 60, defense: 126, specialAttack: 80, specialDefense: 126, speed: 50 }, ['healer']),
+  ],
+  'chandelure': [
+    championsMega('mega-chandelure', 'chandelure', 'Mega Chandelure', '超级水晶灯火灵', 'メガシャンデラ', 'chandelurite', ['Ghost', 'Fire'], { hp: 60, attack: 75, defense: 110, specialAttack: 175, specialDefense: 110, speed: 90 }, ['infiltrator']),
+  ],
+  'golurk': [
+    championsMega('mega-golurk', 'golurk', 'Mega Golurk', '超级泥偶巨人', 'メガゴルーグ', 'golurkite', ['Ground', 'Ghost'], { hp: 89, attack: 159, defense: 105, specialAttack: 70, specialDefense: 105, speed: 55 }, ['unseen-fist']),
+  ],
+  'chesnaught': [
+    championsMega('mega-chesnaught', 'chesnaught', 'Mega Chesnaught', '超级布里卡隆', 'メガブリガロン', 'chesnaughtite', ['Grass', 'Fighting'], { hp: 88, attack: 137, defense: 172, specialAttack: 74, specialDefense: 115, speed: 44 }, ['bulletproof']),
+  ],
+  'delphox': [
+    championsMega('mega-delphox', 'delphox', 'Mega Delphox', '超级妖火红狐', 'メガマフォクシー', 'delphoxite', ['Fire', 'Psychic'], { hp: 75, attack: 69, defense: 72, specialAttack: 159, specialDefense: 125, speed: 134 }, ['levitate']),
+  ],
+  'greninja': [
+    championsMega('mega-greninja', 'greninja', 'Mega Greninja', '超级甲贺忍蛙', 'メガゲッコウガ', 'greninjite', ['Water', 'Dark'], { hp: 72, attack: 125, defense: 77, specialAttack: 133, specialDefense: 81, speed: 142 }, ['protean']),
+  ],
+  'floette': [
+    championsMega('mega-floette', 'floette', 'Mega Floette', '超级花叶蒂', 'メガフラエッテ', 'floettite', ['Fairy'], { hp: 74, attack: 85, defense: 87, specialAttack: 155, specialDefense: 148, speed: 102 }, ['fairy-aura']),
+  ],
+  'meowstic-male': [
+    championsMega('mega-meowstic', 'meowstic-male', 'Mega Meowstic', '超级超能妙喵', 'メガニャオニクス', 'meowsticite', ['Psychic'], { hp: 74, attack: 48, defense: 76, specialAttack: 143, specialDefense: 101, speed: 124 }, ['trace']),
+  ],
+  'hawlucha': [
+    championsMega('mega-hawlucha', 'hawlucha', 'Mega Hawlucha', '超级摔角鹰人', 'メガルチャブル', 'hawluchanite', ['Fighting', 'Flying'], { hp: 78, attack: 137, defense: 100, specialAttack: 74, specialDefense: 93, speed: 118 }, ['no-guard']),
+  ],
+  'crabominable': [
+    championsMega('mega-crabominable', 'crabominable', 'Mega Crabominable', '超级好胜毛蟹', 'メガケケンカニ', 'crabominite', ['Fighting', 'Ice'], { hp: 97, attack: 157, defense: 122, specialAttack: 62, specialDefense: 107, speed: 33 }, ['iron-fist']),
+  ],
+  'drampa': [
+    championsMega('mega-drampa', 'drampa', 'Mega Drampa', '超级老翁龙', 'メガジジーロン', 'drampanite', ['Normal', 'Dragon'], { hp: 78, attack: 85, defense: 110, specialAttack: 160, specialDefense: 116, speed: 36 }, ['berserk']),
+  ],
+  'scovillain': [
+    championsMega('mega-scovillain', 'scovillain', 'Mega Scovillain', '超级狠辣椒', 'メガスコヴィラン', 'scovillainite', ['Grass', 'Fire'], { hp: 65, attack: 138, defense: 85, specialAttack: 138, specialDefense: 85, speed: 75 }, ['spicy-spray']),
+  ],
+  'glimmora': [
+    championsMega('mega-glimmora', 'glimmora', 'Mega Glimmora', '超级晶光花', 'メガキラフロル', 'glimmoranite', ['Rock', 'Poison'], { hp: 83, attack: 90, defense: 105, specialAttack: 150, specialDefense: 96, speed: 101 }, ['adaptability']),
+  ],
+  'clefable': [
+    championsMega('mega-clefable', 'clefable', 'Mega Clefable', '超级皮可西', 'メガピクシー', 'clefablite', ['Fairy', 'Flying'], { hp: 95, attack: 80, defense: 93, specialAttack: 135, specialDefense: 110, speed: 70 }, ['magic-bounce']),
+  ],
+  'victreebel': [
+    championsMega('mega-victreebel', 'victreebel', 'Mega Victreebel', '超级大食花', 'メガウツボット', 'victreebelite', ['Grass', 'Poison'], { hp: 80, attack: 125, defense: 85, specialAttack: 135, specialDefense: 95, speed: 70 }, ['innards-out']),
+  ],
+  'starmie': [
+    championsMega('mega-starmie', 'starmie', 'Mega Starmie', '超级宝石海星', 'メガスターミー', 'starminite', ['Water', 'Psychic'], { hp: 60, attack: 100, defense: 105, specialAttack: 130, specialDefense: 105, speed: 120 }, ['huge-power']),
+  ],
+  'dragonite': [
+    championsMega('mega-dragonite', 'dragonite', 'Mega Dragonite', '超级快龙', 'メガカイリュー', 'dragoninite', ['Dragon', 'Flying'], { hp: 91, attack: 124, defense: 115, specialAttack: 145, specialDefense: 125, speed: 100 }, ['multiscale']),
+  ],
+  'meganium': [
+    championsMega('mega-meganium', 'meganium', 'Mega Meganium', '超级大竺葵', 'メガメガニウム', 'meganiumite', ['Grass', 'Fairy'], { hp: 80, attack: 92, defense: 115, specialAttack: 143, specialDefense: 115, speed: 80 }, ['mega-sol']),
+  ],
+  'feraligatr': [
+    championsMega('mega-feraligatr', 'feraligatr', 'Mega Feraligatr', '超级大力鳄', 'メガオーダイル', 'feraligite', ['Water', 'Dragon'], { hp: 85, attack: 160, defense: 125, specialAttack: 89, specialDefense: 93, speed: 78 }, ['dragonize']),
+  ],
 };
 
 // Mega Stone ID → parent Pokemon ID mapping
@@ -682,9 +788,33 @@ export const megaStoneParentMap: Record<string, string> = {
   'lucarionite': 'lucario',
   'abomasite': 'abomasnow',
   'galladite': 'gallade',
+  'skarmorite': 'skarmory',
+  'froslassite': 'froslass',
+  'chimechite': 'chimecho',
+  'emboarite': 'emboar',
+  'excadrite': 'excadrill',
+  'audinite': 'audino',
+  'chandelurite': 'chandelure',
+  'golurkite': 'golurk',
+  'chesnaughtite': 'chesnaught',
+  'delphoxite': 'delphox',
+  'greninjite': 'greninja',
+  'floettite': 'floette',
+  'meowsticite': 'meowstic-male',
+  'hawluchanite': 'hawlucha',
+  'crabominite': 'crabominable',
+  'drampanite': 'drampa',
+  'scovillainite': 'scovillain',
+  'glimmoranite': 'glimmora',
+  'clefablite': 'clefable',
+  'victreebelite': 'victreebel',
+  'starminite': 'starmie',
+  'dragoninite': 'dragonite',
+  'meganiumite': 'meganium',
+  'feraligite': 'feraligatr',
 };
 
-// Base Pokemon IDs that can Mega evolve (old-gen, with data)
+// Base Pokemon IDs that can Mega evolve with local battle data
 export const megaCapableBaseIds = new Set([
   'venusaur',
   'charizard',
@@ -720,9 +850,33 @@ export const megaCapableBaseIds = new Set([
   'lucario',
   'abomasnow',
   'gallade',
+  'skarmory',
+  'froslass',
+  'chimecho',
+  'emboar',
+  'excadrill',
+  'audino',
+  'chandelure',
+  'golurk',
+  'chesnaught',
+  'delphox',
+  'greninja',
+  'floette',
+  'meowstic-male',
+  'hawlucha',
+  'crabominable',
+  'drampa',
+  'scovillain',
+  'glimmora',
+  'clefable',
+  'victreebel',
+  'starmie',
+  'dragonite',
+  'meganium',
+  'feraligatr',
 ]);
 
-// Champions-only Megas (no old-gen data, never fabricate)
+// Champions-specific Mega forms sourced from PokéBase Champions pages.
 export const championsOnlyMegaNames = new Set([
   'Mega Skarmory',
   'Mega Froslass',

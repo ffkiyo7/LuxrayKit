@@ -11,6 +11,7 @@ import { championsMoves } from './move-catalog';
 
 const catalogRefs = ['reg-ma-official-eligible-pokemon', 'pokeapi-pokemon-data', 'pokeapi-official-artwork', 'manual-seed-review'];
 const abilityRefs = ['pokemon-zhwiki-ability-text', 'pokeapi-pokemon-data'];
+const championsAbilityRefs = ['pokebase-champions-mega-data', 'manual-seed-review'];
 const megaRefs = ['reg-ma-official-mega-list', 'pokeapi-pokemon-data', 'pokeapi-official-artwork', 'manual-seed-review'];
 const itemCandidateRefs = ['reg-ma-community-item-snapshot', 'manual-seed-review'];
 const megaItemRefs = ['reg-ma-official-mega-list', 'reg-ma-community-item-snapshot', 'manual-seed-review'];
@@ -24,6 +25,76 @@ const abilityRows: Ability[] = [
   ...abilitiesBatch003,
   ...abilitiesBatch002,
   ...abilitiesBatch001,
+  {
+    id: 'piercing-drill',
+    chineseName: 'Piercing Drill',
+    englishName: 'Piercing Drill',
+    effectSummary: '使用接触类招式时，即使目标正在保护自己也能命中，但只造成原本 1/4 的伤害；保护以外的效果仍会触发。',
+    pokemonIds: [],
+    calculationImpact: 'pending',
+    legalInCurrentRule: true,
+    sourceRefs: championsAbilityRefs,
+  },
+  {
+    id: 'unseen-fist',
+    chineseName: '无形拳',
+    englishName: 'Unseen Fist',
+    effectSummary: '使用接触类招式时，可以无视对手的守住等保护效果造成伤害。',
+    pokemonIds: [],
+    calculationImpact: 'pending',
+    legalInCurrentRule: true,
+    sourceRefs: championsAbilityRefs,
+  },
+  {
+    id: 'fairy-aura',
+    chineseName: '妖精气场',
+    englishName: 'Fairy Aura',
+    effectSummary: '场上所有宝可梦的妖精属性招式威力提高 33%。',
+    pokemonIds: [],
+    calculationImpact: 'pending',
+    legalInCurrentRule: true,
+    sourceRefs: championsAbilityRefs,
+  },
+  {
+    id: 'spicy-spray',
+    chineseName: 'Spicy Spray',
+    englishName: 'Spicy Spray',
+    effectSummary: '受到招式伤害时，会让攻击方陷入灼伤状态。',
+    pokemonIds: [],
+    calculationImpact: 'pending',
+    legalInCurrentRule: true,
+    sourceRefs: championsAbilityRefs,
+  },
+  {
+    id: 'innards-out',
+    chineseName: '飞出的内在物',
+    englishName: 'Innards Out',
+    effectSummary: '被攻击打倒时，会给予攻击方等同于自己最后损失 HP 的伤害。',
+    pokemonIds: [],
+    calculationImpact: 'pending',
+    legalInCurrentRule: true,
+    sourceRefs: championsAbilityRefs,
+  },
+  {
+    id: 'mega-sol',
+    chineseName: 'Mega Sol',
+    englishName: 'Mega Sol',
+    effectSummary: '即使天气不是大晴天，也能像在大晴天下一样使用自身招式。',
+    pokemonIds: [],
+    calculationImpact: 'pending',
+    legalInCurrentRule: true,
+    sourceRefs: championsAbilityRefs,
+  },
+  {
+    id: 'dragonize',
+    chineseName: 'Dragonize',
+    englishName: 'Dragonize',
+    effectSummary: '一般属性招式会变为龙属性，威力提高 20%。',
+    pokemonIds: [],
+    calculationImpact: 'pending',
+    legalInCurrentRule: true,
+    sourceRefs: championsAbilityRefs,
+  },
   {
     id: 'overgrow',
     chineseName: '茂盛',

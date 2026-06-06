@@ -792,17 +792,22 @@ describe('damageAdapter', () => {
     expect(result.attackerConfig?.nature).toBe('爽朗');
   });
 
-  // ── Block Champions-new Mega ──
+  it('resolves Champions-added Mega form damage', () => {
+    const result = computeDamage({
+      ...defaults,
+      attacker: makeConfig({
+        pokemonId: 'starmie',
+        formId: 'mega-starmie',
+        abilityId: 'huge-power',
+        itemId: 'starminite',
+        moveIds: ['hydro-pump'],
+        selectedMoveId: 'hydro-pump',
+        statPoints: { specialAttack: 32, speed: 32, hp: 2 },
+      }),
+    });
 
-  it('blocks Champions-new Mega forms', () => {
-    const skarmory = pokemon.find((p) => p.id === 'skarmory');
-    if (skarmory) {
-      const result = computeDamage({
-        ...defaults,
-        attacker: makeConfig({ pokemonId: 'skarmory', formId: 'mega-skarmory', selectedMoveId: 'brave-bird' }),
-      });
-      expect(result.status).toBe('blocked');
-      expect(result.blockedReasons.some((r) => r.includes('Champions'))).toBe(true);
-    }
+    expect(result.status).toBe('experimental-success');
+    expect(result.attackerBattleForm?.id).toBe('mega-starmie');
+    expect(result.attackerBattleForm?.baseStats.attack).toBe(100);
   });
 });

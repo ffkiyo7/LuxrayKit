@@ -118,17 +118,6 @@ export type DamageItemEffect = {
   direction: 'boost' | 'reduction';
 };
 
-// ── Hard block list ──
-
-const BLOCKED_MEGA_FORMS = new Set<string>([
-  'mega-emboar', 'mega-excadrill', 'mega-audino', 'mega-chandelure',
-  'mega-golurk', 'mega-chesnaught', 'mega-delphox', 'mega-greninja',
-  'mega-floette', 'mega-meowstic', 'mega-hawlucha', 'mega-crabominable',
-  'mega-drampa', 'mega-scovillain', 'mega-glimmora', 'mega-skarmory',
-  'mega-froslass', 'mega-chimecho', 'mega-clefable', 'mega-victreebel',
-  'mega-starmie', 'mega-dragonite', 'mega-meganium', 'mega-feraligatr',
-]);
-
 // ── SP validation ──
 
 export const MAX_SP_PER_STAT = 32;
@@ -189,6 +178,18 @@ const SPECIES_ID_MAP: Record<string, string> = {
   'mega-lopunny': 'lopunnymega', 'mega-garchomp': 'garchompmega',
   'mega-lucario': 'lucariomega', 'mega-abomasnow': 'abomasnowmega',
   'mega-gallade': 'gallademega',
+  'mega-skarmory': 'skarmory', 'mega-froslass': 'froslass',
+  'mega-chimecho': 'chimecho', 'mega-emboar': 'emboar',
+  'mega-excadrill': 'excadrill', 'mega-audino': 'audino',
+  'mega-chandelure': 'chandelure', 'mega-golurk': 'golurk',
+  'mega-chesnaught': 'chesnaught', 'mega-delphox': 'delphox',
+  'mega-greninja': 'greninja', 'mega-floette': 'floette',
+  'mega-meowstic': 'meowstic', 'mega-hawlucha': 'hawlucha',
+  'mega-crabominable': 'crabominable', 'mega-drampa': 'drampa',
+  'mega-scovillain': 'scovillain', 'mega-glimmora': 'glimmora',
+  'mega-clefable': 'clefable', 'mega-victreebel': 'victreebel',
+  'mega-starmie': 'starmie', 'mega-dragonite': 'dragonite',
+  'mega-meganium': 'meganium', 'mega-feraligatr': 'feraligatr',
 };
 
 function calcSpeciesId(projectId: string): ReturnType<typeof toID> {
@@ -672,16 +673,6 @@ export function computeDamage(input: DamageAdapterInput): DamageAdapterResult {
   if (!defenderEntry) {
     blockedReasons.push(`防守方 Pokémon "${defenderConfig.pokemonId}" 不在图鉴中。`);
     return { ...makeBase(), status: 'invalid-input', attackerConfig, defenderConfig };
-  }
-
-  // ── Mega form data check ──
-  if (attackerConfig.formId && BLOCKED_MEGA_FORMS.has(attackerConfig.formId)) {
-    blockedReasons.push(`Mega 形态 "${attackerConfig.formId}" 缺少战斗数据（Champions 新 Mega）。`);
-    return { ...makeBase(), status: 'blocked', attackerConfig, defenderConfig };
-  }
-  if (defenderConfig.formId && BLOCKED_MEGA_FORMS.has(defenderConfig.formId)) {
-    blockedReasons.push(`Mega 形态 "${defenderConfig.formId}" 缺少战斗数据（Champions 新 Mega）。`);
-    return { ...makeBase(), status: 'blocked', attackerConfig, defenderConfig };
   }
 
   const attackerForm = findBattleForm(attackerEntry.id, attackerConfig.formId) ?? findBattleForm(attackerEntry.id, attackerEntry.id);

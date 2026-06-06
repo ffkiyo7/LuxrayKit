@@ -94,7 +94,7 @@ export const dataSourceManifest: DataSourceManifest = {
       retrievedAt: '2026-05-01T00:00:00.000Z',
       sourceVersion: 'mega-count-59',
       fieldsUsed: ['megaEvolution.englishName', 'megaEvolution.legalInCurrentRule'],
-      notes: 'Official Pokemon HOME Regulation Set M-A announcement lists the Mega Evolutions permitted in this ruleset. Local form stats, sprites, and Mega Stone IDs still require catalog-level source refs.',
+      notes: 'Official Pokemon HOME Regulation Set M-A announcement lists the Mega Evolutions permitted in this ruleset. Catalog-level sourceRefs document form stats, sprites, and Mega Stone IDs.',
     },
     {
       id: 'reg-ma-community-item-snapshot',
@@ -189,7 +189,17 @@ export const dataSourceManifest: DataSourceManifest = {
       retrievedAt: '2026-05-02T00:00:00.000Z',
       sourcePath: 'scripts/generate-mega-forms.mjs',
       fieldsUsed: ['megaForms.baseStats', 'megaForms.types', 'megaForms.abilities', 'megaForms.chineseName', 'megaForms.englishName', 'megaForms.japaneseName', 'megaForms.iconRef'],
-      notes: 'Old-gen Mega Evolution competitive data (stats, types, abilities) sourced from well-documented game data. Chinese names from PokeAPI species endpoint. Champions-only Megas (24 entries) retain shell status without fabricated data.',
+      notes: 'Old-gen Mega Evolution competitive data (stats, types, abilities) sourced from well-documented game data. Chinese names from PokeAPI species endpoint.',
+    },
+    {
+      id: 'pokebase-champions-mega-data',
+      url: 'https://pokebase.app/pokemon-champions/pokemon',
+      sourceType: 'community',
+      licenseRisk: 'high',
+      retrievedAt: '2026-06-06T00:00:00.000Z',
+      sourcePath: 'src/data/seed/regMA/mega-catalog.ts',
+      fieldsUsed: ['megaForms.baseStats', 'megaForms.types', 'megaForms.abilities', 'megaForms.iconRef', 'abilities.effectSummary'],
+      notes: 'PokéBase Champions Pokémon pages used to fill the 24 Champions-added Mega forms, including local snapshots of their form artwork. Ability text for Champions-only effects is translated from page descriptions and remains pending battle-mechanics verification.',
     },
     {
       id: 'pokebase-champions-item-icons',

@@ -42,6 +42,7 @@ describe('seed data audit', () => {
     expect(sourceRefIds.has('champions-official-training')).toBe(true);
     expect(sourceRefIds.has('champions-stat-point-review')).toBe(true);
     expect(sourceRefIds.has('pokemon-zhwiki-ability-text')).toBe(true);
+    expect(sourceRefIds.has('pokebase-champions-mega-data')).toBe(true);
     expect(sourceRefIds.has('pokebase-champions-learnsets')).toBe(true);
     expect(sourceRefIds.has('pokeapi-move-data')).toBe(true);
     expect(sourceRefIds.has('pokemon-zh-dataset-move-text')).toBe(true);
@@ -61,16 +62,74 @@ describe('seed data audit', () => {
     expect(regMaPokemonAllowlist.every((entry) => entry.verificationStatus === 'manual-review')).toBe(true);
   });
 
-  it('keeps the official Reg M-A Mega allowlist shell traceable', () => {
+  it('keeps the official Reg M-A Mega allowlist traceable', () => {
     expect(regMaMegaAllowlistExpectedCount).toBe(59);
     expect(regMaMegaAllowlist).toHaveLength(regMaMegaAllowlistExpectedCount);
     expect(regMaMegaAllowlist).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ englishName: 'Mega Garchomp', basePokemonId: 'garchomp', formId: 'mega-garchomp' }),
-        expect.objectContaining({ englishName: 'Mega Dragonite', legalInCurrentRule: true }),
+        expect.objectContaining({ englishName: 'Mega Dragonite', basePokemonId: 'dragonite', formId: 'mega-dragonite' }),
+        expect.objectContaining({ englishName: 'Mega Starmie', basePokemonId: 'starmie', formId: 'mega-starmie' }),
       ]),
     );
     expect(regMaMegaAllowlist.every((entry) => entry.verificationStatus === 'manual-review')).toBe(true);
+  });
+
+  it('connects Champions-added Mega forms to Pokemon, stones, and local assets', () => {
+    const expectedForms = [
+      ['skarmory', 'mega-skarmory', 'skarmorite'],
+      ['froslass', 'mega-froslass', 'froslassite'],
+      ['chimecho', 'mega-chimecho', 'chimechite'],
+      ['emboar', 'mega-emboar', 'emboarite'],
+      ['excadrill', 'mega-excadrill', 'excadrite'],
+      ['audino', 'mega-audino', 'audinite'],
+      ['chandelure', 'mega-chandelure', 'chandelurite'],
+      ['golurk', 'mega-golurk', 'golurkite'],
+      ['chesnaught', 'mega-chesnaught', 'chesnaughtite'],
+      ['delphox', 'mega-delphox', 'delphoxite'],
+      ['greninja', 'mega-greninja', 'greninjite'],
+      ['floette', 'mega-floette', 'floettite'],
+      ['meowstic-male', 'mega-meowstic', 'meowsticite'],
+      ['hawlucha', 'mega-hawlucha', 'hawluchanite'],
+      ['crabominable', 'mega-crabominable', 'crabominite'],
+      ['drampa', 'mega-drampa', 'drampanite'],
+      ['scovillain', 'mega-scovillain', 'scovillainite'],
+      ['glimmora', 'mega-glimmora', 'glimmoranite'],
+      ['clefable', 'mega-clefable', 'clefablite'],
+      ['victreebel', 'mega-victreebel', 'victreebelite'],
+      ['starmie', 'mega-starmie', 'starminite'],
+      ['dragonite', 'mega-dragonite', 'dragoninite'],
+      ['meganium', 'mega-meganium', 'meganiumite'],
+      ['feraligatr', 'mega-feraligatr', 'feraligite'],
+    ] as const;
+
+    for (const [pokemonId, formId, itemId] of expectedForms) {
+      const entry = pokemon.find((candidate) => candidate.id === pokemonId);
+      const form = entry?.megaForms.find((candidate) => candidate.id === formId);
+      const item = items.find((candidate) => candidate.id === itemId);
+
+      expect(entry?.canMega, `${pokemonId} should be Mega-capable`).toBe(true);
+      expect(form?.requiredItemId, `${formId} item`).toBe(itemId);
+      expect(form?.iconRef, `${formId} icon`).toBe(`/assets/pokemon/thumbs/${formId}.png`);
+      expect(form?.artworkRef, `${formId} artwork`).toBe(`/assets/pokemon/artwork/${formId}.png`);
+      expect(item?.applicablePokemonIds, `${itemId} applicability`).toContain(pokemonId);
+    }
+
+    const starmie = pokemon.find((entry) => entry.id === 'starmie');
+    const megaStarmie = starmie?.megaForms.find((form) => form.id === 'mega-starmie');
+    const starminite = items.find((item) => item.id === 'starminite');
+
+    expect(starmie?.canMega).toBe(true);
+    expect(megaStarmie).toEqual(expect.objectContaining({
+      pokemonId: 'starmie',
+      requiredItemId: 'starminite',
+      types: ['Water', 'Psychic'],
+      baseStats: { hp: 60, attack: 100, defense: 105, specialAttack: 130, specialDefense: 105, speed: 120 },
+      abilities: ['huge-power'],
+    }));
+    expect(megaStarmie?.iconRef).toBe('/assets/pokemon/thumbs/mega-starmie.png');
+    expect(megaStarmie?.artworkRef).toBe('/assets/pokemon/artwork/mega-starmie.png');
+    expect(starminite?.applicablePokemonIds).toEqual(['starmie']);
   });
 
   it('keeps unverified or out-of-rule items out of the current selector pool', () => {
@@ -181,7 +240,7 @@ describe('seed data audit', () => {
   });
 
   it('keeps ability text complete and maps abilities back to current Pokemon', () => {
-    expect(abilities).toHaveLength(180);
+    expect(abilities).toHaveLength(187);
     expect(abilities.every((ability) => ability.effectSummary && !ability.effectSummary.includes('待确认'))).toBe(true);
 
     const expectedPokemonIdsByAbility = new Map<string, string[]>();
@@ -241,9 +300,13 @@ describe('seed data audit', () => {
       const movesForForm = currentRuleMovesForPokemon(id);
       expect(movesForForm.length, `${id} must have learnable moves`).toBeGreaterThan(0);
 
-      // canMega must be false
-      expect(entry.canMega, `${id} canMega must be false`).toBe(false);
-      expect(entry.megaForms, `${id} megaForms must be empty`).toEqual([]);
+      if (id === 'meowstic-male') {
+        expect(entry.canMega, `${id} carries the shared Mega Meowstic form`).toBe(true);
+        expect(entry.megaForms.map((form) => form.id)).toEqual(['mega-meowstic']);
+      } else {
+        expect(entry.canMega, `${id} canMega must be false`).toBe(false);
+        expect(entry.megaForms, `${id} megaForms must be empty`).toEqual([]);
+      }
     }
 
     // Key type assertions: prevent accidental base-form type inheritance

@@ -398,6 +398,32 @@ describe('App page flows', () => {
     expect(firstMember.nature).toBe('浮躁');
   });
 
+  it('allows imported Starminite Starmie to switch to its Champions Mega form', async () => {
+    const user = await renderEnvironmentApp();
+    const singlesSamples = testEnvironmentState.teamSamples.filter((sample) => sample.battleType === 'singles');
+    const starmieSampleIndex = singlesSamples.findIndex((sample) =>
+      sample.slots.some((slot) => slot.pokemonId === 'starmie' && slot.itemId === 'starminite'),
+    );
+    const starmieSample = singlesSamples[starmieSampleIndex];
+
+    expect(starmieSampleIndex).toBeGreaterThanOrEqual(0);
+    await user.click(screen.getAllByRole('button', { name: /导入配置/ })[starmieSampleIndex]);
+    await continueFirstImportNotice(user);
+
+    const importedCard = await screen.findByLabelText(`队伍：${starmieSample.title}`);
+    await user.click(within(importedCard).getByRole('button', { name: '编辑配置' }));
+    expect(await screen.findByRole('heading', { name: starmieSample.title })).toBeTruthy();
+
+    await user.click(screen.getByText('宝石海星'));
+    await user.click(screen.getByTitle('编辑成员'));
+    const formSelect = (await screen.findByLabelText('形态预览')) as HTMLSelectElement;
+
+    expect(Array.from(formSelect.options).map((option) => option.value)).toContain('mega-starmie');
+    expect(formSelect.value).toBe('starmie');
+    await user.selectOptions(formSelect, 'mega-starmie');
+    expect(formSelect.value).toBe('mega-starmie');
+  });
+
   it('shows import success feedback and clears the imported team highlight', async () => {
     const user = await renderEnvironmentApp();
 

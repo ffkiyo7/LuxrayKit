@@ -63,7 +63,7 @@ Pokemon Champions Tool 是一个面向手机端的本地优先对战助手，用
 
 - 不宣称当前伤害计算是官方 Champions 正式公式。
 - 不自动保存 CalculatorPage 临时配置。
-- 不伪造 Champions 新 Mega 的 stats/types/ability/sprite。
+- Champions 新 Mega 的 stats/types/ability/sprite 必须来自明确来源；缺少来源时不伪造。
 - 不做远程刷新。
 - 不做 Showdown paste。
 - 不做 Reg M-B 数据接入，直到 registry 设计完成。
