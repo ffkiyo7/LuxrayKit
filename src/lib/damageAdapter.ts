@@ -85,6 +85,7 @@ export type DamageAdapterResult = {
   twoHitKoChance?: number;
   abilityEffects?: DamageAbilityEffect[];
   itemEffects?: DamageItemEffect[];
+  eventEffects?: DamageEventEffect[];
   defenderHp?: number;
   attackerStats?: ReturnType<typeof calculateBattleStats>;
   defenderStats?: ReturnType<typeof calculateBattleStats>;
@@ -119,6 +120,16 @@ export type DamageItemEffect = {
   label: string;
   text: string;
   direction: 'boost' | 'reduction';
+};
+
+export type DamageEventEffect = {
+  side: 'attacker' | 'defender';
+  abilityId: string;
+  label: string;
+  text: string;
+  kind: 'status' | 'damage';
+  chance?: number;
+  damage?: number;
 };
 
 // ── SP validation ──
@@ -598,6 +609,53 @@ function uniqueAbilityEffects(effects: Array<DamageAbilityEffect | undefined>): 
   });
 }
 
+function damageEventEffects({
+  defenderAbilityId,
+  damages,
+  defenderHp,
+  attackerTypes,
+}: {
+  defenderAbilityId?: string;
+  damages: number[];
+  defenderHp: number;
+  attackerTypes: PokemonType[];
+}): DamageEventEffect[] {
+  if (!defenderAbilityId) return [];
+  const ability = abilities.find((candidate) => candidate.id === defenderAbilityId);
+  if (!ability) return [];
+
+  const label = `防守特性：${ability.chineseName}`;
+  const maxDamage = damages.length > 0 ? Math.max(...damages) : 0;
+
+  if (defenderAbilityId === 'spicy-spray' && maxDamage > 0 && !attackerTypes.includes('Fire')) {
+    return [{
+      side: 'attacker',
+      abilityId: defenderAbilityId,
+      label,
+      text: '攻击方会陷入灼伤',
+      kind: 'status',
+    }];
+  }
+
+  if (defenderAbilityId === 'innards-out' && defenderHp > 0 && maxDamage >= defenderHp) {
+    const koRolls = damages.filter((damage) => damage >= defenderHp).length;
+    const chance = damages.length > 0 ? (koRolls / damages.length) * 100 : 0;
+    return [{
+      side: 'attacker',
+      abilityId: defenderAbilityId,
+      label,
+      text: chance >= 100
+        ? `防守方被击倒时，攻击方受到 ${defenderHp} 反伤`
+        : `击倒防守方时，攻击方受到 ${defenderHp} 反伤（触发概率 ${percentText(chance)}）`,
+      kind: 'damage',
+      chance,
+      damage: defenderHp,
+    }];
+  }
+
+  return [];
+}
+
 function itemEffectChip({
   side,
   itemId,
@@ -916,6 +974,12 @@ export function computeDamage(input: DamageAdapterInput): DamageAdapterResult {
       itemEffectChip({ side: 'attacker', itemId: attackerConfig.itemId, actual: damages, without: withoutAttackerItem }),
       itemEffectChip({ side: 'defender', itemId: defenderConfig.itemId, actual: damages, without: withoutDefenderItem }),
     ]);
+    const eventEffects = damageEventEffects({
+      defenderAbilityId: defenderConfig.abilityId,
+      damages,
+      defenderHp: hp,
+      attackerTypes: attackerForm.types,
+    });
 
     warnings.push('使用 @smogon/calc Gen9 伤害公式，并代入本项目采集的 Champions 招式参数与 SP 能力值。');
     assumptions.push(
@@ -941,6 +1005,7 @@ export function computeDamage(input: DamageAdapterInput): DamageAdapterResult {
       twoHitKoChance,
       abilityEffects,
       itemEffects,
+      eventEffects,
       defenderHp: defenderStats.hp,
       attackerStats,
       defenderStats,

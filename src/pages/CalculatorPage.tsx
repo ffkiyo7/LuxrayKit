@@ -659,6 +659,7 @@ function DamageResultCard({
       );
     }),
   ].filter(Boolean);
+  const eventEffects = result.eventEffects ?? [];
 
   return (
     <Card>
@@ -688,6 +689,20 @@ function DamageResultCard({
         <p className="text-[11px] uppercase tracking-wide opacity-75">结论</p>
         <p className="mt-1 text-[18px] font-bold leading-tight">{result.possibleHkoText}</p>
       </div>
+
+      {eventEffects.length > 0 && (
+        <div className="mt-3 rounded-lg border border-border bg-secondary px-3 py-2">
+          <p className="text-[11px] font-semibold text-textSecondary">后续效果</p>
+          <div className="mt-2 space-y-1.5">
+            {eventEffects.map((effect) => (
+              <p key={`event-${effect.side}-${effect.abilityId}`} className="text-xs text-textPrimary">
+                {effect.label} · {effect.text}
+              </p>
+            ))}
+          </div>
+        </div>
+      )}
+
       <p className="mt-4 text-center text-[10px] text-textMuted">
         公式：Gen9 · 招式参数：Champions 目录 · 数据 {currentDataVersion.versionName}
       </p>

@@ -843,6 +843,88 @@ describe('damageAdapter', () => {
     ]);
   });
 
+  it('reports Spicy Spray as a post-damage burn event when the defender takes damage', () => {
+    const spicySpray = computeDamage({
+      attacker: makeConfig({
+        pokemonId: 'garchomp',
+        nature: '固执',
+        statPoints: { attack: 32, speed: 32, hp: 2 },
+        moveIds: ['earthquake'],
+        selectedMoveId: 'earthquake',
+      }),
+      defender: makeConfig({
+        pokemonId: 'scovillain',
+        formId: 'mega-scovillain',
+        abilityId: 'spicy-spray',
+        itemId: 'scovillainite',
+        nature: '认真',
+        statPoints: {},
+      }),
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+    const protectedTarget = computeDamage({
+      attacker: spicySpray.attackerConfig!,
+      defender: spicySpray.defenderConfig!,
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      defenderProtected: true,
+      attackStage: 0,
+    });
+
+    expect(spicySpray.status).toBe('experimental-success');
+    expect(spicySpray.maxDamage).toBeGreaterThan(0);
+    expect(spicySpray.eventEffects).toEqual([
+      expect.objectContaining({ side: 'attacker', abilityId: 'spicy-spray', kind: 'status', text: '攻击方会陷入灼伤' }),
+    ]);
+    expect(protectedTarget.status).toBe('experimental-success');
+    expect(protectedTarget.maxDamage).toBe(0);
+    expect(protectedTarget.eventEffects).toEqual([]);
+  });
+
+  it('reports Innards Out recoil when the defender is knocked out', () => {
+    const innardsOut = computeDamage({
+      attacker: makeConfig({
+        pokemonId: 'charizard',
+        formId: 'mega-charizard-x',
+        abilityId: 'tough-claws',
+        itemId: 'charizardite-x',
+        nature: '固执',
+        statPoints: { attack: 32, speed: 32, hp: 2 },
+        moveIds: ['flare-blitz'],
+        selectedMoveId: 'flare-blitz',
+      }),
+      defender: makeConfig({
+        pokemonId: 'victreebel',
+        formId: 'mega-victreebel',
+        abilityId: 'innards-out',
+        itemId: 'victreebelite',
+        nature: '认真',
+        statPoints: {},
+      }),
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+
+    expect(innardsOut.status).toBe('experimental-success');
+    expect(innardsOut.minDamage).toBeGreaterThanOrEqual(innardsOut.defenderHp!);
+    expect(innardsOut.eventEffects).toEqual([
+      expect.objectContaining({
+        side: 'attacker',
+        abilityId: 'innards-out',
+        kind: 'damage',
+        chance: 100,
+        damage: innardsOut.defenderHp,
+        text: `防守方被击倒时，攻击方受到 ${innardsOut.defenderHp} 反伤`,
+      }),
+    ]);
+  });
+
   it('reports direct boost and reduction ability chips with specific reasons', () => {
     const thickFat = computeDamage({
       attacker: makeConfig({
