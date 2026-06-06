@@ -495,7 +495,7 @@ export const abilitiesBatch001: Ability[] = [
     englishName: 'Huge Power',
     effectSummary: '物理攻击的威力会变为２倍。',
     pokemonIds: ['azumarill'],
-    calculationImpact: 'pending',
+    calculationImpact: 'confirmed',
     legalInCurrentRule: true,
     sourceRefs: abilityRefs,
   },

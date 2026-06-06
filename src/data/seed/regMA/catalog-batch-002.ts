@@ -175,7 +175,7 @@ export const abilitiesBatch002: Ability[] = [
     englishName: 'Levitate',
     effectSummary: '从地面浮起，从而不会受到地面属性招式的攻击。',
     pokemonIds: ['chimecho'],
-    calculationImpact: 'pending',
+    calculationImpact: 'confirmed',
     legalInCurrentRule: true,
     sourceRefs: abilityRefs,
   },

@@ -829,6 +829,191 @@ describe('damageAdapter', () => {
     expect(multiscale.assumptions).toContain('Battle context: defender is treated as full HP for Multiscale.');
   });
 
+  it('applies Huge Power to physical damage for Champions Mega Starmie', () => {
+    const hugePower = computeDamage({
+      attacker: makeConfig({
+        pokemonId: 'starmie',
+        formId: 'mega-starmie',
+        abilityId: 'huge-power',
+        itemId: 'starminite',
+        nature: '固执',
+        statPoints: { attack: 32, speed: 32 },
+        moveIds: ['waterfall'],
+        selectedMoveId: 'waterfall',
+      }),
+      defender: makeConfig({
+        pokemonId: 'houndoom',
+        nature: '认真',
+        statPoints: {},
+      }),
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+    const withoutAbility = computeDamage({
+      attacker: {
+        ...hugePower.attackerConfig!,
+        abilityId: undefined,
+      },
+      defender: hugePower.defenderConfig!,
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+
+    expect(hugePower.status).toBe('experimental-success');
+    expect(withoutAbility.status).toBe('experimental-success');
+    expect(hugePower.attackerBattleForm?.id).toBe('mega-starmie');
+    expect(hugePower.maxDamage).toBeGreaterThan(withoutAbility.maxDamage!);
+    expect(hugePower.abilityEffects).toEqual([
+      expect.objectContaining({ side: 'attacker', abilityId: 'huge-power', direction: 'boost', text: '物理攻击提高' }),
+    ]);
+  });
+
+  it('applies Adaptability STAB boost for Champions Mega Glimmora', () => {
+    const adaptability = computeDamage({
+      attacker: makeConfig({
+        pokemonId: 'glimmora',
+        formId: 'mega-glimmora',
+        abilityId: 'adaptability',
+        itemId: 'glimmoranite',
+        nature: '内敛',
+        statPoints: { specialAttack: 32, speed: 32 },
+        moveIds: ['power-gem'],
+        selectedMoveId: 'power-gem',
+      }),
+      defender: makeConfig({
+        pokemonId: 'charizard',
+        nature: '认真',
+        statPoints: {},
+      }),
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+    const withoutAbility = computeDamage({
+      attacker: {
+        ...adaptability.attackerConfig!,
+        abilityId: undefined,
+      },
+      defender: adaptability.defenderConfig!,
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+
+    expect(adaptability.status).toBe('experimental-success');
+    expect(withoutAbility.status).toBe('experimental-success');
+    expect(adaptability.attackerBattleForm?.id).toBe('mega-glimmora');
+    expect(adaptability.stabMultiplier).toBe(1.5);
+    expect(adaptability.maxDamage).toBeGreaterThan(withoutAbility.maxDamage!);
+    expect(adaptability.abilityEffects).toEqual([
+      expect.objectContaining({ side: 'attacker', abilityId: 'adaptability', direction: 'boost', text: '本系招式增强' }),
+    ]);
+  });
+
+  it('applies Bulletproof immunity for Champions Mega Chesnaught', () => {
+    const bulletproof = computeDamage({
+      attacker: makeConfig({
+        pokemonId: 'chandelure',
+        nature: '内敛',
+        statPoints: { specialAttack: 32 },
+        moveIds: ['shadow-ball'],
+        selectedMoveId: 'shadow-ball',
+      }),
+      defender: makeConfig({
+        pokemonId: 'chesnaught',
+        formId: 'mega-chesnaught',
+        abilityId: 'bulletproof',
+        itemId: 'chesnaughtite',
+        nature: '认真',
+        statPoints: { hp: 32, specialDefense: 32 },
+      }),
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+    const withoutAbility = computeDamage({
+      attacker: bulletproof.attackerConfig!,
+      defender: {
+        ...bulletproof.defenderConfig!,
+        abilityId: undefined,
+      },
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+
+    expect(bulletproof.status).toBe('experimental-success');
+    expect(withoutAbility.status).toBe('experimental-success');
+    expect(bulletproof.defenderBattleForm?.id).toBe('mega-chesnaught');
+    expect(bulletproof.damageRolls).toEqual([0]);
+    expect(withoutAbility.maxDamage).toBeGreaterThan(0);
+    expect(bulletproof.abilityEffects).toEqual([
+      expect.objectContaining({
+        side: 'defender',
+        abilityId: 'bulletproof',
+        direction: 'immunity',
+        text: '球和弹类招式无效',
+      }),
+    ]);
+  });
+
+  it('applies Levitate ground immunity for Champions Mega Chimecho', () => {
+    const levitate = computeDamage({
+      attacker: makeConfig({
+        pokemonId: 'garchomp',
+        nature: '固执',
+        statPoints: { attack: 32 },
+        moveIds: ['earthquake'],
+        selectedMoveId: 'earthquake',
+      }),
+      defender: makeConfig({
+        pokemonId: 'chimecho',
+        formId: 'mega-chimecho',
+        abilityId: 'levitate',
+        itemId: 'chimechite',
+        nature: '认真',
+        statPoints: { hp: 32, defense: 32 },
+      }),
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+    const withoutAbility = computeDamage({
+      attacker: levitate.attackerConfig!,
+      defender: {
+        ...levitate.defenderConfig!,
+        abilityId: undefined,
+      },
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+
+    expect(levitate.status).toBe('experimental-success');
+    expect(withoutAbility.status).toBe('experimental-success');
+    expect(levitate.defenderBattleForm?.id).toBe('mega-chimecho');
+    expect(levitate.damageRolls).toEqual([0]);
+    expect(withoutAbility.maxDamage).toBeGreaterThan(0);
+    expect(levitate.abilityEffects).toEqual([
+      expect.objectContaining({
+        side: 'defender',
+        abilityId: 'levitate',
+        direction: 'immunity',
+        text: '地面属性招式无效',
+      }),
+    ]);
+  });
+
   it('blocks protectable moves when the defender is protected', () => {
     const result = computeDamage({
       ...defaults,

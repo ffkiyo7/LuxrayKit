@@ -261,7 +261,7 @@ const abilityRows: Ability[] = [
     englishName: 'Adaptability',
     effectSummary: '与自身同属性的招式威力会提高。',
     pokemonIds: [],
-    calculationImpact: 'pending',
+    calculationImpact: 'confirmed',
     legalInCurrentRule: true,
     sourceRefs: abilityRefs,
   },

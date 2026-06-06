@@ -125,7 +125,7 @@ export const abilitiesBatch003: Ability[] = [
     englishName: 'Bulletproof',
     effectSummary: '可以防住对手的球和弹类招式。',
     pokemonIds: ['chesnaught'],
-    calculationImpact: 'pending',
+    calculationImpact: 'confirmed',
     legalInCurrentRule: true,
     sourceRefs: abilityRefs,
   },
