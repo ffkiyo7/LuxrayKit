@@ -12,6 +12,8 @@ test-results
 playwright-report
 .superpowers/
 tmp/
+docs/
+CLAUDE.md
 
 # Local-only assets (copyrighted / not for redistribution)
 public/type-icons/
