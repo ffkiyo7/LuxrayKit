@@ -811,7 +811,9 @@ describe('App page flows', () => {
     await user.click(screen.getByText('烈咬陆鲨'));
     expect(await screen.findByText(/Garchomp/)).toBeTruthy();
     expect(screen.getByText(/ガブリアス/)).toBeTruthy();
-    expect((screen.getByRole('button', { name: /敬请期待/ }) as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.queryByRole('button', { name: /敬请期待/ })).toBeNull();
+    expect(screen.getByRole('button', { name: /加入队伍/ })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /计算/ })).toBeTruthy();
     const detailAvatarSrc = screen.getAllByAltText('烈咬陆鲨')[0].getAttribute('src');
     expect(detailAvatarSrc).toContain('/assets/pokemon/thumbs/');
     expect(screen.getByText('身高')).toBeTruthy();

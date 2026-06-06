@@ -585,13 +585,10 @@ function PokemonDetail({
           )}
         </section>
 
-        <div className="mt-3 grid grid-cols-3 gap-2">
+        <div className="mt-3 grid grid-cols-2 gap-2">
           <Button variant="ghost" onClick={addToTeam}>
             <Plus size={13} />
             加入队伍
-          </Button>
-          <Button disabled variant="ghost">
-            敬请期待
           </Button>
           <Button variant="ghost" onClick={() => onOpenCalculator(entry.basePokemon.id)}>
             → 计算
