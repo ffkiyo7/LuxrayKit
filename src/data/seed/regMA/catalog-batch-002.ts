@@ -15,7 +15,7 @@ export const abilitiesBatch002: Ability[] = [
     englishName: 'Sand Stream',
     effectSummary: '出场时，会把天气变为沙暴。',
     pokemonIds: ['tyranitar', 'hippowdon'],
-    calculationImpact: 'pending',
+    calculationImpact: 'confirmed',
     legalInCurrentRule: true,
     sourceRefs: abilityRefs,
   },

@@ -779,6 +779,116 @@ describe('damageAdapter', () => {
     ]);
   });
 
+  it.each([
+    {
+      label: 'Drought',
+      abilitySide: 'attacker',
+      abilityId: 'drought',
+      weather: '晴天',
+      weatherText: '晴天增强火属性',
+      abilityText: '日照形成晴天',
+      effectiveMoveType: 'Fire',
+      attacker: makeConfig({
+        pokemonId: 'charizard',
+        abilityId: 'drought',
+        nature: '内敛',
+        statPoints: { specialAttack: 32 },
+        moveIds: ['weather-ball'],
+        selectedMoveId: 'weather-ball',
+      }),
+      defender: makeConfig({ pokemonId: 'scizor', nature: '认真', statPoints: {} }),
+    },
+    {
+      label: 'Drizzle',
+      abilitySide: 'attacker',
+      abilityId: 'drizzle',
+      weather: '雨天',
+      weatherText: '雨天增强水属性',
+      abilityText: '降雨形成雨天',
+      effectiveMoveType: 'Water',
+      attacker: makeConfig({
+        pokemonId: 'politoed',
+        abilityId: 'drizzle',
+        nature: '内敛',
+        statPoints: { specialAttack: 32 },
+        moveIds: ['weather-ball'],
+        selectedMoveId: 'weather-ball',
+      }),
+      defender: makeConfig({ pokemonId: 'torkoal', nature: '认真', statPoints: {} }),
+    },
+    {
+      label: 'Sand Stream',
+      abilitySide: 'defender',
+      abilityId: 'sand-stream',
+      weather: '沙暴',
+      weatherText: '沙暴 无直接招式修正',
+      abilityText: '扬沙形成沙暴',
+      effectiveMoveType: 'Rock',
+      attacker: makeConfig({
+        pokemonId: 'charizard',
+        nature: '内敛',
+        statPoints: { specialAttack: 32 },
+        moveIds: ['weather-ball'],
+        selectedMoveId: 'weather-ball',
+      }),
+      defender: makeConfig({
+        pokemonId: 'tyranitar',
+        abilityId: 'sand-stream',
+        nature: '认真',
+        statPoints: {},
+      }),
+    },
+    {
+      label: 'Snow Warning',
+      abilitySide: 'attacker',
+      abilityId: 'snow-warning',
+      weather: '雪天',
+      weatherText: '雪天 无直接招式修正',
+      abilityText: '降雪形成雪天',
+      effectiveMoveType: 'Ice',
+      attacker: makeConfig({
+        pokemonId: 'froslass',
+        abilityId: 'snow-warning',
+        nature: '内敛',
+        statPoints: { specialAttack: 32 },
+        moveIds: ['weather-ball'],
+        selectedMoveId: 'weather-ball',
+      }),
+      defender: makeConfig({ pokemonId: 'garchomp', nature: '认真', statPoints: {} }),
+    },
+  ])('uses $label as battle weather for Weather Ball', ({ abilitySide, abilityId, weather, weatherText, abilityText, effectiveMoveType, attacker, defender }) => {
+    const withAbility = computeDamage({
+      attacker,
+      defender,
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+    const withoutAbility = computeDamage({
+      attacker: abilitySide === 'attacker'
+        ? { ...withAbility.attackerConfig!, abilityId: undefined }
+        : withAbility.attackerConfig!,
+      defender: abilitySide === 'defender'
+        ? { ...withAbility.defenderConfig!, abilityId: undefined }
+        : withAbility.defenderConfig!,
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+
+    expect(withAbility.status).toBe('experimental-success');
+    expect(withoutAbility.status).toBe('experimental-success');
+    expect(withAbility.effectiveMoveType).toBe(effectiveMoveType);
+    expect(withAbility.weatherText).toBe(weatherText);
+    expect(withAbility.maxDamage).toBeGreaterThan(withoutAbility.maxDamage!);
+    expect(withAbility.abilityEffects).toContainEqual(
+      expect.objectContaining({ side: abilitySide, abilityId, direction: 'boost', text: abilityText }),
+    );
+    expect(withAbility.assumptions).toContain(`Battle context: weather set by ability: ${weather}.`);
+  });
+
   it('uses Snow Warning as battle weather for Champions Mega Froslass Weather Ball', () => {
     const snowWarning = computeDamage({
       attacker: makeConfig({
