@@ -10,6 +10,7 @@ import {
   validateStatPoints,
   type BattleTypeOption,
   type CalcSideConfig,
+  type CalcStatusOption,
 } from '../lib/damageAdapter';
 import { findBattleForm } from '../lib/pokemonForms';
 import { clampStatPointValue, MAX_STAT_POINTS_PER_STAT, MAX_TOTAL_STAT_POINTS } from '../lib/statPoints';
@@ -21,6 +22,20 @@ type CalcSide = 'attacker' | 'defender';
 
 const weatherOptions = ['无天气', '晴天', '雨天', '沙暴', '雪天'];
 const terrainOptions = ['无场地', '青草场地', '电气场地', '精神场地', '薄雾场地'];
+const hpContextOptions = [
+  { value: 100, label: '满 HP' },
+  { value: 50, label: '半血' },
+  { value: 33, label: '低 HP' },
+];
+const statusOptions: Array<{ value: CalcStatusOption; label: string }> = [
+  { value: 'none', label: '无异常' },
+  { value: 'brn', label: '灼伤' },
+  { value: 'psn', label: '中毒' },
+  { value: 'tox', label: '剧毒' },
+  { value: 'par', label: '麻痹' },
+  { value: 'slp', label: '睡眠' },
+  { value: 'frz', label: '冰冻' },
+];
 const stageOptions = Array.from({ length: 13 }, (_, index) => String(index - 6));
 const STAT_LABELS: Array<{ key: keyof StatPoints; label: string; stageKey?: keyof NonNullable<CalcSideConfig['statStages']> }> = [
   { key: 'hp', label: 'HP' },
@@ -744,6 +759,11 @@ export function CalculatorPage({
   const [weather, setWeather] = useState(weatherOptions[0]);
   const [terrain, setTerrain] = useState(terrainOptions[0]);
   const [defenderProtected, setDefenderProtected] = useState(false);
+  const [attackerHpPercent, setAttackerHpPercent] = useState(100);
+  const [defenderHpPercent, setDefenderHpPercent] = useState(100);
+  const [attackerStatus, setAttackerStatus] = useState<CalcStatusOption>('none');
+  const [defenderStatus, setDefenderStatus] = useState<CalcStatusOption>('none');
+  const [isCritical, setIsCritical] = useState(false);
   const [showTeamPicker, setShowTeamPicker] = useState(false);
 
   // Guard: only apply selectedMemberId ONCE, never overwrite user edits
@@ -834,7 +854,7 @@ export function CalculatorPage({
   ];
 
   // Compute damage — illegal SP is stopped in the UI before invoking the adapter
-  const damageKey = `${attackerConfig.pokemonId}|${attackerConfig.formId}|${attackerConfig.selectedMoveId}|${attackerConfig.nature}|${JSON.stringify(attackerConfig.statPoints)}|${JSON.stringify(attackerConfig.statStages)}|${attackerConfig.abilityId}|${attackerConfig.itemId}||${defenderConfig.pokemonId}|${defenderConfig.formId}|${defenderConfig.nature}|${JSON.stringify(defenderConfig.statPoints)}|${JSON.stringify(defenderConfig.statStages)}|${defenderConfig.abilityId}|${defenderConfig.itemId}||${battleType}|${weather}|${terrain}|${defenderProtected}|${currentMove?.category}`;
+  const damageKey = `${attackerConfig.pokemonId}|${attackerConfig.formId}|${attackerConfig.selectedMoveId}|${attackerConfig.nature}|${JSON.stringify(attackerConfig.statPoints)}|${JSON.stringify(attackerConfig.statStages)}|${attackerConfig.abilityId}|${attackerConfig.itemId}||${defenderConfig.pokemonId}|${defenderConfig.formId}|${defenderConfig.nature}|${JSON.stringify(defenderConfig.statPoints)}|${JSON.stringify(defenderConfig.statStages)}|${defenderConfig.abilityId}|${defenderConfig.itemId}||${battleType}|${weather}|${terrain}|${defenderProtected}|${attackerHpPercent}|${defenderHpPercent}|${attackerStatus}|${defenderStatus}|${isCritical}|${currentMove?.category}`;
   const damageResult = useMemo(() => {
     if (!attackerConfig.selectedMoveId || !attackerConfig.pokemonId || !defenderConfig.pokemonId) return null;
     if (currentMove?.category === 'Status') return null;
@@ -846,6 +866,11 @@ export function CalculatorPage({
       weather,
       terrain,
       defenderProtected,
+      attackerHpPercent,
+      defenderHpPercent,
+      attackerStatus,
+      defenderStatus,
+      isCritical,
       attackStage: 0,
     });
     // eslint-disable-next-line
@@ -995,6 +1020,44 @@ export function CalculatorPage({
             className="h-4 w-4 accent-accent"
             type="checkbox"
             onChange={(event) => setDefenderProtected(event.target.checked)}
+          />
+        </label>
+
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <label className="min-w-0">
+            <span className="mb-1 block text-[10px] text-textMuted">进攻方 HP</span>
+            <select className="h-8 w-full rounded-lg border border-border bg-secondary px-2 text-xs outline-none" value={attackerHpPercent} onChange={(e) => setAttackerHpPercent(Number(e.target.value))}>
+              {hpContextOptions.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+            </select>
+          </label>
+          <label className="min-w-0">
+            <span className="mb-1 block text-[10px] text-textMuted">防守方 HP</span>
+            <select className="h-8 w-full rounded-lg border border-border bg-secondary px-2 text-xs outline-none" value={defenderHpPercent} onChange={(e) => setDefenderHpPercent(Number(e.target.value))}>
+              {hpContextOptions.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+            </select>
+          </label>
+          <label className="min-w-0">
+            <span className="mb-1 block text-[10px] text-textMuted">进攻方状态</span>
+            <select className="h-8 w-full rounded-lg border border-border bg-secondary px-2 text-xs outline-none" value={attackerStatus} onChange={(e) => setAttackerStatus(e.target.value as CalcStatusOption)}>
+              {statusOptions.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+            </select>
+          </label>
+          <label className="min-w-0">
+            <span className="mb-1 block text-[10px] text-textMuted">防守方状态</span>
+            <select className="h-8 w-full rounded-lg border border-border bg-secondary px-2 text-xs outline-none" value={defenderStatus} onChange={(e) => setDefenderStatus(e.target.value as CalcStatusOption)}>
+              {statusOptions.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+            </select>
+          </label>
+        </div>
+
+        <label className="mt-3 flex min-h-10 items-center justify-between gap-3 rounded-lg border border-border bg-secondary px-3 py-2">
+          <span className="text-xs font-semibold text-textSecondary">会心一击</span>
+          <input
+            aria-label="会心一击"
+            checked={isCritical}
+            className="h-4 w-4 accent-accent"
+            type="checkbox"
+            onChange={(event) => setIsCritical(event.target.checked)}
           />
         </label>
       </Card>

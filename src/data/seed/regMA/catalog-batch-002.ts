@@ -135,7 +135,7 @@ export const abilitiesBatch002: Ability[] = [
     englishName: 'Marvel Scale',
     effectSummary: '如果变为异常状态，神奇鳞片会发生反应，防御会提高。',
     pokemonIds: ['milotic'],
-    calculationImpact: 'pending',
+    calculationImpact: 'confirmed',
     legalInCurrentRule: true,
     sourceRefs: abilityRefs,
   },

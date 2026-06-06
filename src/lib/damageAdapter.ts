@@ -43,6 +43,7 @@ export type CalcSideConfig = {
 };
 
 export type BattleTypeOption = 'singles' | 'doubles';
+export type CalcStatusOption = 'none' | 'brn' | 'psn' | 'tox' | 'par' | 'slp' | 'frz';
 
 export type DamageAdapterInput = {
   attacker: CalcSideConfig;
@@ -51,6 +52,11 @@ export type DamageAdapterInput = {
   weather: string;
   terrain: string;
   defenderProtected?: boolean;
+  attackerHpPercent?: number;
+  defenderHpPercent?: number;
+  attackerStatus?: CalcStatusOption;
+  defenderStatus?: CalcStatusOption;
+  isCritical?: boolean;
   attackStage: number;
   defenseStage?: number;
   specialAttackStage?: number;
@@ -257,6 +263,14 @@ const TYPE_LABELS: Record<PokemonType, string> = {
   Steel: '钢',
   Fairy: '妖精',
 };
+const STATUS_LABELS: Record<Exclude<CalcStatusOption, 'none'>, string> = {
+  brn: '灼伤',
+  psn: '中毒',
+  tox: '剧毒',
+  par: '麻痹',
+  slp: '睡眠',
+  frz: '冰冻',
+};
 
 const MOLD_BREAKER_ABILITIES = new Set(['mold-breaker', 'teravolt', 'turboblaze']);
 
@@ -385,6 +399,15 @@ function applyDamageRollMultiplier(damages: number[], multiplier: number): numbe
   if (multiplier === 1) return damages;
   if (multiplier === 0) return [0];
   return damages.map((damage) => (damage <= 0 ? 0 : Math.max(1, Math.floor(damage * multiplier))));
+}
+
+function hpPercentToCurrentHp(maxHp: number, percent: number | undefined): number {
+  const safePercent = Math.min(100, Math.max(1, percent ?? 100));
+  return Math.max(1, Math.floor((maxHp * safePercent) / 100));
+}
+
+function calcStatusValue(status: CalcStatusOption | undefined) {
+  return status && status !== 'none' ? status : undefined;
 }
 
 function effectiveWeatherForMove(weather: string, attackerAbilityId?: string): string {
@@ -524,6 +547,17 @@ function specificAbilityEffectText(abilityId: string, direction: DamageAbilityEf
     if (abilityId === 'hustle') return '物理招式增强';
     if (abilityId === 'sheer-force') return '追加效果招式增强';
     if (abilityId === 'scrappy') return '一般和格斗招式可命中幽灵属性';
+    if (abilityId === 'blaze') return '低 HP 火属性招式增强';
+    if (abilityId === 'torrent') return '低 HP 水属性招式增强';
+    if (abilityId === 'overgrow') return '低 HP 草属性招式增强';
+    if (abilityId === 'swarm') return '低 HP 虫属性招式增强';
+    if (abilityId === 'guts') return '异常状态物理招式增强';
+    if (abilityId === 'analytic') return '后手招式增强';
+    if (abilityId === 'sniper') return '会心伤害增强';
+  }
+
+  if (direction === 'reduction') {
+    if (abilityId === 'marvel-scale') return '异常状态防御提高';
   }
 
   return undefined;
@@ -922,6 +956,7 @@ export function computeDamage(input: DamageAdapterInput): DamageAdapterResult {
         attackerSide: new Side(), defenderSide: new Side(),
       });
       const calcMoveObj = new Move(9, calcMove.name, {
+        isCrit: input.isCritical,
         overrides: projectMoveOverrides(projectMove, activeAttackerAbilityId, calcWeather),
       });
       const attackerPoke = new Pokemon(9, calcAttackerSpecies.name, {
@@ -929,6 +964,8 @@ export function computeDamage(input: DamageAdapterInput): DamageAdapterResult {
         ability: activeAttackerAbilityId ? calcAbilityName(activeAttackerAbilityId) : NO_ABILITY,
         item: mode === 'without-attacker-item' ? undefined : attackerConfig.itemId ? calcItemName(attackerConfig.itemId) : undefined,
         nature: calcNatureName(attackerConfig.nature),
+        curHP: hpPercentToCurrentHp(attackerStats.hp, input.attackerHpPercent),
+        status: calcStatusValue(input.attackerStatus),
         ivs: BASE_STATS_DECLARATION.ivs,
         evs: statPointsToEvs(attackerConfig.statPoints),
         boosts: legacyAttackerBoosts,
@@ -939,6 +976,8 @@ export function computeDamage(input: DamageAdapterInput): DamageAdapterResult {
         ability: activeDefenderAbilityId ? calcAbilityName(activeDefenderAbilityId) : NO_ABILITY,
         item: mode === 'without-defender-item' ? undefined : defenderConfig.itemId ? calcItemName(defenderConfig.itemId) : undefined,
         nature: calcNatureName(defenderConfig.nature),
+        curHP: hpPercentToCurrentHp(defenderStats.hp, input.defenderHpPercent),
+        status: calcStatusValue(input.defenderStatus),
         ivs: BASE_STATS_DECLARATION.ivs,
         evs: statPointsToEvs(defenderConfig.statPoints),
         boosts: legacyDefenderBoosts,
@@ -1027,7 +1066,14 @@ export function computeDamage(input: DamageAdapterInput): DamageAdapterResult {
       `防守方 HP: ${defenderStats.hp}, Def: ${defenderStats.defense}, SpD: ${defenderStats.specialDefense}`,
     );
     if (input.weather === '无天气' && displayedBattleWeather !== '无天气') assumptions.push(`Battle context: weather set by ability: ${displayedBattleWeather}.`);
-    if (defenderConfig.abilityId === 'multiscale') assumptions.push('Battle context: defender is treated as full HP for Multiscale.');
+    if (input.attackerHpPercent && input.attackerHpPercent !== 100) assumptions.push(`Battle context: attacker HP is treated as ${input.attackerHpPercent}%.`);
+    if (input.defenderHpPercent && input.defenderHpPercent !== 100) assumptions.push(`Battle context: defender HP is treated as ${input.defenderHpPercent}%.`);
+    if (input.attackerStatus && input.attackerStatus !== 'none') assumptions.push(`Battle context: attacker status is ${STATUS_LABELS[input.attackerStatus]}.`);
+    if (input.defenderStatus && input.defenderStatus !== 'none') assumptions.push(`Battle context: defender status is ${STATUS_LABELS[input.defenderStatus]}.`);
+    if (input.isCritical) assumptions.push('Battle context: move is treated as a critical hit.');
+    if (defenderConfig.abilityId === 'multiscale' && hpPercentToCurrentHp(defenderStats.hp, input.defenderHpPercent) === defenderStats.hp) {
+      assumptions.push('Battle context: defender is treated as full HP for Multiscale.');
+    }
     if (input.defenderProtected) assumptions.push('Battle context: defender is protected this turn.');
 
     return {

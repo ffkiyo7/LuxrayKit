@@ -1122,6 +1122,183 @@ describe('damageAdapter', () => {
 
   it.each([
     {
+      label: 'Blaze',
+      abilitySide: 'attacker',
+      abilityId: 'blaze',
+      direction: 'boost',
+      abilityText: '低 HP 火属性招式增强',
+      context: { attackerHpPercent: 33 },
+      attacker: makeConfig({
+        pokemonId: 'charizard',
+        abilityId: 'blaze',
+        nature: '内敛',
+        statPoints: { specialAttack: 32 },
+        moveIds: ['flamethrower'],
+        selectedMoveId: 'flamethrower',
+      }),
+      defender: makeConfig({ pokemonId: 'torkoal', nature: '认真', statPoints: { hp: 32, specialDefense: 17 } }),
+    },
+    {
+      label: 'Torrent',
+      abilitySide: 'attacker',
+      abilityId: 'torrent',
+      direction: 'boost',
+      abilityText: '低 HP 水属性招式增强',
+      context: { attackerHpPercent: 33 },
+      attacker: makeConfig({
+        pokemonId: 'blastoise',
+        abilityId: 'torrent',
+        nature: '内敛',
+        statPoints: { specialAttack: 32 },
+        moveIds: ['hydro-pump'],
+        selectedMoveId: 'hydro-pump',
+      }),
+      defender: makeConfig({ pokemonId: 'torkoal', nature: '认真', statPoints: { hp: 32, specialDefense: 17 } }),
+    },
+    {
+      label: 'Overgrow',
+      abilitySide: 'attacker',
+      abilityId: 'overgrow',
+      direction: 'boost',
+      abilityText: '低 HP 草属性招式增强',
+      context: { attackerHpPercent: 33 },
+      attacker: makeConfig({
+        pokemonId: 'venusaur',
+        abilityId: 'overgrow',
+        nature: '内敛',
+        statPoints: { specialAttack: 32 },
+        moveIds: ['energy-ball'],
+        selectedMoveId: 'energy-ball',
+      }),
+      defender: makeConfig({ pokemonId: 'torkoal', nature: '认真', statPoints: { hp: 32, specialDefense: 17 } }),
+    },
+    {
+      label: 'Swarm',
+      abilitySide: 'attacker',
+      abilityId: 'swarm',
+      direction: 'boost',
+      abilityText: '低 HP 虫属性招式增强',
+      context: { attackerHpPercent: 33 },
+      attacker: makeConfig({
+        pokemonId: 'scizor',
+        abilityId: 'swarm',
+        nature: '固执',
+        statPoints: { attack: 32 },
+        moveIds: ['x-scissor'],
+        selectedMoveId: 'x-scissor',
+      }),
+      defender: makeConfig({ pokemonId: 'torkoal', nature: '认真', statPoints: { hp: 32, defense: 17 } }),
+    },
+    {
+      label: 'Guts',
+      abilitySide: 'attacker',
+      abilityId: 'guts',
+      direction: 'boost',
+      abilityText: '异常状态物理招式增强',
+      context: { attackerStatus: 'brn' },
+      attacker: makeConfig({
+        pokemonId: 'machamp',
+        abilityId: 'guts',
+        nature: '固执',
+        statPoints: { attack: 32 },
+        moveIds: ['close-combat'],
+        selectedMoveId: 'close-combat',
+      }),
+      defender: makeConfig({ pokemonId: 'torkoal', nature: '认真', statPoints: { hp: 32, defense: 17 } }),
+    },
+    {
+      label: 'Analytic',
+      abilitySide: 'attacker',
+      abilityId: 'analytic',
+      direction: 'boost',
+      abilityText: '后手招式增强',
+      context: {},
+      attacker: makeConfig({
+        pokemonId: 'starmie',
+        abilityId: 'analytic',
+        nature: '内敛',
+        statPoints: { specialAttack: 32 },
+        moveIds: ['psychic'],
+        selectedMoveId: 'psychic',
+      }),
+      defender: makeConfig({ pokemonId: 'jolteon', nature: '爽朗', statPoints: { speed: 32 } }),
+    },
+    {
+      label: 'Sniper',
+      abilitySide: 'attacker',
+      abilityId: 'sniper',
+      direction: 'boost',
+      abilityText: '会心伤害增强',
+      context: { isCritical: true },
+      attacker: makeConfig({
+        pokemonId: 'beedrill',
+        abilityId: 'sniper',
+        nature: '固执',
+        statPoints: { attack: 32 },
+        moveIds: ['poison-jab'],
+        selectedMoveId: 'poison-jab',
+      }),
+      defender: makeConfig({ pokemonId: 'torkoal', nature: '认真', statPoints: { hp: 32, defense: 17 } }),
+    },
+    {
+      label: 'Marvel Scale',
+      abilitySide: 'defender',
+      abilityId: 'marvel-scale',
+      direction: 'reduction',
+      abilityText: '异常状态防御提高',
+      context: { defenderStatus: 'brn' },
+      attacker: makeConfig({
+        pokemonId: 'garchomp',
+        nature: '固执',
+        statPoints: { attack: 32 },
+        moveIds: ['dragon-claw'],
+        selectedMoveId: 'dragon-claw',
+      }),
+      defender: makeConfig({
+        pokemonId: 'milotic',
+        abilityId: 'marvel-scale',
+        nature: '认真',
+        statPoints: { hp: 32, defense: 17, specialDefense: 17 },
+      }),
+    },
+  ])('applies $label with explicit battle context', ({ abilitySide, abilityId, direction, abilityText, context, attacker, defender }) => {
+    const withAbility = computeDamage({
+      attacker,
+      defender,
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+      ...context,
+    });
+    const withoutAbility = computeDamage({
+      attacker: abilitySide === 'attacker'
+        ? { ...withAbility.attackerConfig!, abilityId: undefined }
+        : withAbility.attackerConfig!,
+      defender: abilitySide === 'defender'
+        ? { ...withAbility.defenderConfig!, abilityId: undefined }
+        : withAbility.defenderConfig!,
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+      ...context,
+    });
+
+    expect(withAbility.status).toBe('experimental-success');
+    expect(withoutAbility.status).toBe('experimental-success');
+    if (direction === 'boost') {
+      expect(withAbility.maxDamage).toBeGreaterThan(withoutAbility.maxDamage!);
+    } else {
+      expect(withAbility.maxDamage).toBeLessThan(withoutAbility.maxDamage!);
+    }
+    expect(withAbility.abilityEffects).toContainEqual(
+      expect.objectContaining({ side: abilitySide, abilityId, direction, text: abilityText }),
+    );
+  });
+
+  it.each([
+    {
       label: 'Pixilate',
       abilityId: 'pixilate',
       abilityText: '一般招式变为妖精属性',
