@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
-import { currentRuleSet } from '../data';
+import { currentRuleSet } from '../data/seed/regMA/metadata';
 import { IconButton } from './ui';
 
 export function Header({

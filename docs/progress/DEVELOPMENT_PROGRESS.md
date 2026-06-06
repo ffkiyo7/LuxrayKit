@@ -1,17 +1,18 @@
 # Pokemon Champions Tool 开发进度
 
-更新时间：2026-06-05
+更新时间：2026-06-06
 
-当前阶段：**环境优先重构分支已跑通主信息架构，并完成第一阶段真实环境数据接入：默认进入环境页，环境页从独立 JSON 缓存资源读取 PokeDB Season 1 单打 / 双打 Open Data snapshot，队伍页列表优先，伤害计算 / 速度线 / 图鉴收束到工具页，我的页承接偏好、备份与缓存管理。当前环境数据表达为“上位构筑快照 / 样本占比”，不包装成官方完整使用率。**
+当前阶段：**环境优先重构已进入 main，并完成第一阶段真实环境数据接入和首轮主包体积拆分：默认进入环境页，环境页从独立 JSON 缓存资源读取 PokeDB Season 1 单打 / 双打 Open Data snapshot，队伍页列表优先，伤害计算 / 速度线 / 图鉴收束到工具页，我的页承接偏好、备份与缓存管理。当前环境数据表达为“上位构筑快照 / 样本占比”，不包装成官方完整使用率。**
 
 ## 当前验证
 
-- `npm test`：2026-06-05 通过，16 个测试文件，135 个用例。
-- `npm run build`：2026-06-05 通过。
+- `npm run data:pokedb:environment:check`：2026-06-06 通过；维护脚本已避免 Windows CRLF / LF 换行差异导致 snapshot false stale。
+- `npm test`：2026-06-06 通过，16 个测试文件，138 个用例。
+- `npm run build`：2026-06-06 通过；Vite chunk size warning 已消除。
 - 伤害计算人工复核 fixtures：已建立首批 5 组，覆盖基础物理、天气特攻、非伤害道具、免疫特性、增伤特性。
-- `npm run test:pwa`：2026-06-05 通过，2 个 Playwright 用例覆盖离线与移动端视觉 smoke。
+- `npm run test:pwa`：2026-06-06 通过，2 个 Playwright 用例覆盖离线与移动端视觉 smoke。
 - `npm run test:visual`：2026-06-05 已重录环境真实快照 smoke 路径基线，覆盖环境首页、完整榜单、宝可梦环境详情、队伍列表 / 详情 / 成员编辑、工具页、计算、速度线、图鉴和我的页。
-- 构建仍存在 Vite chunk size warning；环境 snapshot 已拆为独立 JSON 缓存资源，主 JS 从约 2.13 MB 降到约 1.47 MB，但完整 app、规则 catalog 与图鉴数据仍在主包内。
+- 首轮主包体积拆分已完成：环境 snapshot 继续作为独立 JSON 缓存资源；页面组件、环境数据加载和上位构筑导入 helper 改为按需加载；Reg M-A catalog / move catalog / calc engine 通过 manual chunks 拆分。入口 JS 从约 1.47 MB 降到约 216 KB，最大异步 chunk 为 `calc-engine` 约 479.5 KB。
 
 ## 已完成能力
 
@@ -22,6 +23,8 @@
 - PokeDB Open Data 接入：内置 `s1_single_ranked_teams.json` 与 `s1_double_ranked_teams.json`，当前快照分别包含 528 / 71 支队伍。
 - PokeDB 转换器：把 PokeDB Pokémon key 映射到本地 Reg M-A Pokémon id，计算样本出现率、队伍数、当前宝可梦携带道具占比和常见队友占比。
 - PokeDB 维护脚本：新增 `npm run data:pokedb:environment:check` 与 `npm run data:pokedb:environment`，可下载 Open Data、解析前 50 Pokémon 详情页招式统计、解析 trainer/list 真实队报样本、校验 payload、报告未知 Pokémon / 未映射道具 / 失效 item id / 未映射 move key，并在干净时写入本地 snapshot。
+- PokeDB 维护脚本：生成文件比较会规范化 CRLF / LF 换行，避免 Windows 工作区把未变化的 snapshot 误报为 stale。
+- 首屏体积优化：App 页面采用 `React.lazy` / `Suspense` 分块；默认环境数据模块动态导入；上位构筑导入时才加载完整队伍生成 helper；Vite manual chunks 拆分计算引擎、Reg M-A Pokémon catalog 和 move catalog。
 - 环境数据包：`EnvironmentDataset` schema 和 audit 入口已成为环境页唯一数据入口；UI 读取的是通过审计后的环境榜单与队伍样例。
 - 环境审计：未知 Pokémon / 招式 / 道具引用会被报告并从 UI 数据中剔除；规则版本、数据版本、使用率、队伍数和引用统计字段会在导入前校验。
 - 完整宝可梦榜：从环境首页进入，点击 Pokémon 进入环境详情，而不是跳传统图鉴页。
@@ -67,7 +70,7 @@
 
 详见 `docs/progress/NEXT_ROUND_PLAN.md`。优先级：
 
-1. 继续拆分主包内的规则 catalog / 图鉴页面数据，降低剩余 Vite chunk warning。
+1. 继续观察 lazy chunk 离线缓存和首屏加载体验；如后续继续扩容，优先考虑更细的数据索引或服务端定时产物。
 2. 继续交叉验证伤害计算公式与典型样例，补齐 Champions 特有招式 / 特性 / 道具对伤害的影响。
 3. 设计 Reg registry，避免未来规则切换散改数据入口。
 4. 外部队报原文解析暂缓：后续仅在投入产出比重新确认后，再评估逐站点解析完整配置或寻找稳定提供性格、SP、完整配招的来源。

@@ -1,5 +1,6 @@
 import type { AppState, Team, UserPreference } from '../types';
-import { defaultPreferences, defaultTeams } from '../data';
+import { defaultPreferences } from '../data/seed/regMA/metadata';
+import { defaultTeams } from '../data/seed/regMA/defaultTeams';
 import { migrateLegacyEvStatPoints } from './statPoints';
 
 const DB_NAME = 'pokemon-champions-assistant';

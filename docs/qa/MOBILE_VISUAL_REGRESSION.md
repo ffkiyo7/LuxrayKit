@@ -43,6 +43,7 @@ npm run test:pwa
 - 2026-06-05：PokeDB trainer/list 样本接入维护脚本，环境样例队伍首批接入单打 / 双打各 8 条真实队报链接样本；同步修正 PokeDB 页面 `rule=2` 单打、`rule=1` 双打映射，并通过视觉 smoke。
 - 2026-06-05：环境 snapshot 从主 JS bundle 拆为 `public/data/pokedb/reg-ma-s1-environment.json` 独立缓存资源；视觉 smoke 保持通过。
 - 2026-06-05：环境样例队伍改名为上位构筑，首页增加“换一批”，样本扩展到单打 24 条 / 双打 19 条；队伍详情成员卡片改为能力值 / SP 展示，并重录视觉 smoke。
+- 2026-06-06：页面与 catalog 懒加载拆包后，`npm run test:pwa` 通过，视觉 smoke 无需重录基线。
 
 ## 当前边界
 

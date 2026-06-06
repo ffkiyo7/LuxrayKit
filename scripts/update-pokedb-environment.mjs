@@ -61,6 +61,7 @@ const normalizeName = (value) =>
 const readUtf8 = (relativePath) => readFile(resolve(ROOT, relativePath), 'utf8');
 
 const stableJson = (payload) => `${JSON.stringify(payload)}\n`;
+const normalizeGeneratedText = (text) => text.replace(/\r\n/g, '\n');
 
 function findArrayRange(text, marker) {
   const markerIndex = text.indexOf(marker);
@@ -339,20 +340,23 @@ const changedSources = [];
 for (const source of sources) {
   const nextText = stableJson(battles[source.battleType]);
   const currentText = await readFile(source.outputPath, 'utf8').catch(() => '');
-  if (currentText !== nextText) changedSources.push({ ...source, nextText });
+  if (normalizeGeneratedText(currentText) !== nextText) changedSources.push({ ...source, nextText });
 }
 const nextMoveStatsText = stableJson(moveStatsSnapshot);
 const currentMoveStatsText = await readFile(moveStatsOutputPath, 'utf8').catch(() => '');
-if (currentMoveStatsText !== nextMoveStatsText) {
+if (normalizeGeneratedText(currentMoveStatsText) !== nextMoveStatsText) {
   changedSources.push({ battleType: 'move-stats', outputPath: moveStatsOutputPath, nextText: nextMoveStatsText });
 }
 const nextTeamSamplesText = stableJson(teamSamplesSnapshot);
 const currentTeamSamplesText = await readFile(teamSamplesOutputPath, 'utf8').catch(() => '');
-if (currentTeamSamplesText !== nextTeamSamplesText) {
+if (normalizeGeneratedText(currentTeamSamplesText) !== nextTeamSamplesText) {
   changedSources.push({ battleType: 'team-samples', outputPath: teamSamplesOutputPath, nextText: nextTeamSamplesText });
 }
 const currentEnvironmentSnapshotText = await readFile(environmentSnapshotOutputPath, 'utf8').catch(() => '');
-const currentEnvironmentSnapshot = currentEnvironmentSnapshotText ? JSON.parse(currentEnvironmentSnapshotText) : undefined;
+const normalizedCurrentEnvironmentSnapshotText = normalizeGeneratedText(currentEnvironmentSnapshotText);
+const currentEnvironmentSnapshot = normalizedCurrentEnvironmentSnapshotText
+  ? JSON.parse(normalizedCurrentEnvironmentSnapshotText)
+  : undefined;
 const environmentRetrievedAt =
   changedSources.length > 0 ? new Date().toISOString() : currentEnvironmentSnapshot?.retrievedAt ?? new Date().toISOString();
 const environmentSnapshot = {
@@ -362,11 +366,11 @@ const environmentSnapshot = {
   teamSamples: teamSamplesSnapshot,
 };
 const nextEnvironmentSnapshotText = stableJson(environmentSnapshot);
-if (currentEnvironmentSnapshotText !== nextEnvironmentSnapshotText) {
+if (normalizedCurrentEnvironmentSnapshotText !== nextEnvironmentSnapshotText) {
   changedSources.push({ battleType: 'environment-snapshot', outputPath: environmentSnapshotOutputPath, nextText: nextEnvironmentSnapshotText });
 }
 const currentPublicEnvironmentSnapshotText = await readFile(publicEnvironmentSnapshotOutputPath, 'utf8').catch(() => '');
-if (currentPublicEnvironmentSnapshotText !== nextEnvironmentSnapshotText) {
+if (normalizeGeneratedText(currentPublicEnvironmentSnapshotText) !== nextEnvironmentSnapshotText) {
   changedSources.push({ battleType: 'public-environment-snapshot', outputPath: publicEnvironmentSnapshotOutputPath, nextText: nextEnvironmentSnapshotText });
 }
 

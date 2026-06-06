@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { currentDataVersion, currentRuleSet, defaultPreferences } from '../data';
+import { currentDataVersion, currentRuleSet, defaultPreferences } from '../data/seed/regMA/metadata';
 import { repository } from '../lib/db';
 import { createId } from '../lib/id';
 import type { AppState, Team, TeamMember, UserPreference } from '../types';

@@ -6,6 +6,7 @@
 
 - `public/manifest.webmanifest` 提供安装元信息。
 - `public/sw.js` 预缓存 app shell，并 runtime cache 同源 GET 响应。
+- 页面与 catalog 已拆为懒加载 chunk；这些 chunk 依赖 service worker runtime cache，需在完整 PWA 回归中覆盖已访问页面的离线可用性。
 - IndexedDB 保存队伍、偏好和 benchmark 收藏。
 - IndexedDB 当前版本为 v2，保留旧 EV-like `statPoints` 到 Champions SP 的迁移。
 - 当前环境数据使用 `public/data/pokedb/reg-ma-s1-environment.json` 独立 JSON 快照；service worker 会预缓存该资源，离线时读取同一份本地缓存快照，不提供远程刷新。
@@ -41,6 +42,7 @@ npm run test:pwa
 - IndexedDB 队伍读取。
 - benchmark 收藏读取。
 - IndexedDB v1 -> v2 SP 迁移。
+- 2026-06-06：主包拆分和 lazy chunks 接入后，`npm run test:pwa` 通过。
 
 ## 已知限制
 

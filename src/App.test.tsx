@@ -73,7 +73,7 @@ const openTool = async (user: ReturnType<typeof userEvent.setup>, toolName: stri
   } else {
     await user.click(screen.getByRole('button', { name: '工具' }));
   }
-  await user.click(screen.getByRole('button', { name: toolName }));
+  await user.click(await screen.findByRole('button', { name: toolName }));
 };
 
 const openDefaultTeam = async (user: ReturnType<typeof userEvent.setup>) => {
@@ -130,10 +130,10 @@ describe('App page flows', () => {
 
     await user.click(screen.getByRole('button', { name: '工具' }));
 
-    expect(screen.getByRole('heading', { name: '工具' })).toBeTruthy();
-    expect(screen.getByRole('button', { name: /伤害计算/ })).toBeTruthy();
-    expect(screen.getByRole('button', { name: /速度线计算/ })).toBeTruthy();
-    expect(screen.getByRole('button', { name: /规则图鉴/ })).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: '工具' })).toBeTruthy();
+    expect(await screen.findByRole('button', { name: /伤害计算/ })).toBeTruthy();
+    expect(await screen.findByRole('button', { name: /速度线计算/ })).toBeTruthy();
+    expect(await screen.findByRole('button', { name: /规则图鉴/ })).toBeTruthy();
     expect(screen.queryByText(/三个入口并列|从本地队伍带入配置|队伍配置带入/)).toBeNull();
     expect(screen.queryByRole('button', { name: '当前规则' })).toBeNull();
   });
@@ -143,7 +143,7 @@ describe('App page flows', () => {
 
     expect(document.documentElement.dataset.theme).toBe('dark');
     await user.click(screen.getByRole('button', { name: '我的' }));
-    await user.click(screen.getByRole('button', { name: '切换深色和浅色主题' }));
+    await user.click(await screen.findByRole('button', { name: '切换深色和浅色主题' }));
     expect(document.documentElement.dataset.theme).toBe('light');
     expect(await screen.findByText('浅色工具界面')).toBeTruthy();
 
@@ -159,7 +159,7 @@ describe('App page flows', () => {
 
     await user.click(screen.getByRole('button', { name: '我的' }));
 
-    expect(screen.getByRole('heading', { name: '我的' })).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: '我的' })).toBeTruthy();
     expect(screen.getByText('主题')).toBeTruthy();
     expect(screen.getByRole('button', { name: /导出备份/ })).toBeTruthy();
     expect(screen.getByRole('button', { name: /导入备份/ })).toBeTruthy();

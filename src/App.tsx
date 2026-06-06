@@ -1,22 +1,21 @@
 import { ArrowLeft, BarChart3, ExternalLink, ShieldCheck, UserCircle, Users, Wrench } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { BottomNav } from './components/BottomNav';
 import { Header } from './components/Header';
 import { Button } from './components/ui';
-import { currentDataVersion, currentRuleNatureOptions, currentRuleSet, pokemon } from './data';
-import { environmentFallbackState, loadEnvironmentState, type EnvironmentState, type EnvironmentTeamSample } from './data/environment';
-import { currentRuleMovesForPokemon } from './lib/currentRuleCatalog';
-import { createId } from './lib/id';
+import type { EnvironmentState, EnvironmentTeamSample } from './data/environment';
 import { AppProvider, useAppStore } from './state/AppContext';
-import type { Team, TeamMember } from './types';
-import { CalculatorPage } from './pages/CalculatorPage';
-import { DexPage } from './pages/DexPage';
-import { EnvironmentPage } from './pages/EnvironmentPage';
-import { ProfilePage } from './pages/ProfilePage';
-import { RulePage } from './pages/RulePage';
-import { SpeedPage } from './pages/SpeedPage';
-import { TeamPage } from './pages/TeamPage';
-import { ToolsPage, type ToolView } from './pages/ToolsPage';
+import type { Team } from './types';
+import type { ToolView } from './pages/ToolsPage';
+
+const CalculatorPage = lazy(() => import('./pages/CalculatorPage').then((module) => ({ default: module.CalculatorPage })));
+const DexPage = lazy(() => import('./pages/DexPage').then((module) => ({ default: module.DexPage })));
+const EnvironmentPage = lazy(() => import('./pages/EnvironmentPage').then((module) => ({ default: module.EnvironmentPage })));
+const ProfilePage = lazy(() => import('./pages/ProfilePage').then((module) => ({ default: module.ProfilePage })));
+const RulePage = lazy(() => import('./pages/RulePage').then((module) => ({ default: module.RulePage })));
+const SpeedPage = lazy(() => import('./pages/SpeedPage').then((module) => ({ default: module.SpeedPage })));
+const TeamPage = lazy(() => import('./pages/TeamPage').then((module) => ({ default: module.TeamPage })));
+const ToolsPage = lazy(() => import('./pages/ToolsPage').then((module) => ({ default: module.ToolsPage })));
 
 export type TabId = 'environment' | 'teams' | 'tools' | 'profile';
 export type OverlayPage = 'rule' | null;
@@ -30,30 +29,13 @@ const tabs = [
 
 const IMPORT_FEEDBACK_DURATION_MS = 2500;
 
-const neutralImportNature = () => currentRuleNatureOptions.find((option) => option.neutral)?.id ?? '认真';
-
-const createImportedMember = (slot: EnvironmentTeamSample['slots'][number]): TeamMember | null => {
-  const entry = pokemon.find((candidate) => candidate.id === slot.pokemonId);
-  if (!entry) return null;
-
-  const inferredAbilityIds = entry.abilities.length === 1 ? entry.abilities : [];
-  const legalMoves = currentRuleMovesForPokemon(entry.id).map((move) => move.id);
-  const moveIds = slot.moveIds.filter((moveId) => legalMoves.includes(moveId)).slice(0, 4);
-
-  return {
-    id: createId('member'),
-    pokemonId: entry.id,
-    formId: entry.id,
-    abilityId: inferredAbilityIds.length === 1 ? inferredAbilityIds[0] : undefined,
-    itemId: slot.itemId,
-    moveIds,
-    nature: neutralImportNature(),
-    statPoints: {},
-    level: 50,
-    notes: '从环境上位构筑导入；PokeDB 快照仅包含宝可梦与道具，性格 / SP / 配招需手动确认。',
-    legalityStatus: 'needs-review',
-  };
-};
+function PageLoading({ label = '正在载入页面...' }: { label?: string }) {
+  return (
+    <div className="rounded-lg border border-border bg-card px-4 py-8 text-center text-sm text-textSecondary">
+      {label}
+    </div>
+  );
+}
 
 function ImportCoverageNoticeDialog({
   sample,
@@ -134,7 +116,8 @@ function AppShell() {
   const [importToast, setImportToast] = useState<string | null>(null);
   const [highlightedImportTeamId, setHighlightedImportTeamId] = useState<string | undefined>();
   const [pendingImportSample, setPendingImportSample] = useState<EnvironmentTeamSample | null>(null);
-  const [environmentState, setEnvironmentState] = useState<EnvironmentState>(environmentFallbackState);
+  const [environmentState, setEnvironmentState] = useState<EnvironmentState | null>(null);
+  const [environmentLoadFailed, setEnvironmentLoadFailed] = useState(false);
   const { loading, teams, preferences, replacePreferences, saveTeam } = useAppStore();
 
   const activeTeam = teams.find((team) => team.id === activeTeamId) ?? teams[0];
@@ -160,9 +143,18 @@ function AppShell() {
 
   useEffect(() => {
     let active = true;
-    loadEnvironmentState().then((nextState) => {
-      if (active) setEnvironmentState(nextState);
-    });
+    import('./data/environment')
+      .then(({ loadEnvironmentState }) => loadEnvironmentState())
+      .then((nextState) => {
+        if (!active) return;
+        setEnvironmentState(nextState);
+        setEnvironmentLoadFailed(false);
+      })
+      .catch(() => {
+        if (!active) return;
+        setEnvironmentState(null);
+        setEnvironmentLoadFailed(true);
+      });
     return () => {
       active = false;
     };
@@ -175,34 +167,15 @@ function AppShell() {
 
   const performImportSampleTeam = useCallback(
     async (sample: EnvironmentTeamSample) => {
-      const members = sample.slots.map(createImportedMember).filter((member): member is TeamMember => Boolean(member));
-      const timestamp = new Date().toISOString();
-      const importedTeam: Team = {
-        id: createId('team'),
-        name: sample.title,
-        ruleSetId: currentRuleSet.id,
-        dataVersionId: currentDataVersion.id,
-        members,
-        createdAt: timestamp,
-        updatedAt: timestamp,
-        notes: '',
-        source: {
-          kind: 'environment-sample-import',
-          sampleId: sample.id,
-          title: sample.title,
-          label: environmentState.dataStatusLabel,
-          battleType: sample.battleType,
-          reportUrl: sample.reportUrl,
-          importedAt: timestamp,
-        },
-      };
+      const { createImportedTeamFromEnvironmentSample } = await import('./lib/environmentImport');
+      const importedTeam: Team = createImportedTeamFromEnvironmentSample(sample, environmentState?.dataStatusLabel ?? '环境数据');
       await saveTeam(importedTeam);
       setActiveTeamId(importedTeam.id);
       setHighlightedImportTeamId(importedTeam.id);
       setImportToast('已导入配置');
       setActiveTab('teams');
     },
-    [environmentState.dataStatusLabel, saveTeam],
+    [environmentState?.dataStatusLabel, saveTeam],
   );
 
   const importSampleTeam = useCallback(
@@ -229,7 +202,11 @@ function AppShell() {
 
     switch (activeTab) {
       case 'environment':
-        return <EnvironmentPage environment={environmentState} onImportSample={importSampleTeam} />;
+        return environmentState ? (
+          <EnvironmentPage environment={environmentState} onImportSample={importSampleTeam} />
+        ) : (
+          <PageLoading label={environmentLoadFailed ? '环境数据加载失败，请稍后重试。' : '正在载入环境数据...'} />
+        );
       case 'teams':
         return (
           <TeamPage
@@ -263,7 +240,19 @@ function AppShell() {
       case 'profile':
         return <ProfilePage />;
     }
-  }, [activeTab, activeTeam, calculatorMemberId, environmentState, highlightedImportTeamId, importSampleTeam, openTool, overlay, speedPokemonId, toolView]);
+  }, [
+    activeTab,
+    activeTeam,
+    calculatorMemberId,
+    environmentLoadFailed,
+    environmentState,
+    highlightedImportTeamId,
+    importSampleTeam,
+    openTool,
+    overlay,
+    speedPokemonId,
+    toolView,
+  ]);
 
   useEffect(() => {
     document.title = overlay === 'rule' ? '当前规则 · Champions Tool' : 'Champions Tool';
@@ -288,7 +277,7 @@ function AppShell() {
     <main className="app-shell mx-auto min-h-screen max-w-[430px] text-textPrimary">
       <div className="safe-bottom min-h-screen px-4 pt-4">
         <Header />
-        {page}
+        <Suspense fallback={<PageLoading />}>{page}</Suspense>
       </div>
       {importToast && (
         <div
