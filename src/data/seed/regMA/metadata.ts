@@ -68,7 +68,7 @@ export const dataSourceManifest: DataSourceManifest = {
     },
     {
       id: 'manual-seed-review',
-      url: 'local://docs/research/DATA_SOURCE_RESEARCH.md',
+      url: 'local://src/data/seed/regMA/catalog.ts',
       sourceType: 'manual-observation',
       licenseRisk: 'medium',
       retrievedAt: currentDataVersion.updatedAt,

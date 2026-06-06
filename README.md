@@ -3,7 +3,7 @@
 **宝可梦 Champions 对战伴侣 · 非官方粉丝工具 · 移动端优先 PWA**
 
 [![PWA](https://img.shields.io/badge/PWA-ready-38BDF8)](https://luxraykit.com)
-[![Data](https://img.shields.io/badge/data-v0.2.0--seed-F59E0B)](./docs/)
+[![Data](https://img.shields.io/badge/data-v0.2.0--seed-F59E0B)](./src/data/seed/regMA/)
 [![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 [![Platform](https://img.shields.io/badge/platform-mobile--first-slate)](./tests/pwa/visual.spec.ts)
 
@@ -126,15 +126,6 @@ npm run test:visual -- --update-snapshots
 | 计算 | `@smogon/calc` Gen9 主线公式近似 |
 | 测试 | Vitest + Playwright |
 | 部署 | 静态部署，当前推荐 Cloudflare Pages |
-
-## 项目文档
-
-| 文件 | 内容 |
-| --- | --- |
-| `docs/product/Pokemon Champions PRD.md` | 产品需求文档 |
-| `docs/progress/DEVELOPMENT_PROGRESS.md` | 开发进度记录 |
-| `docs/research/` | 赛制、数据和计算机制调研 |
-| `docs/qa/` | PWA 与移动端视觉 QA 清单 |
 
 ## 路线图
 

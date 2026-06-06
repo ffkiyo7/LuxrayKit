@@ -5,6 +5,9 @@ dist
 .codex-logs/
 *.local
 .vite-lan*.log
+.vite-phone*.log
+pokemon-champions-mobile-redesign*.html
+pokemon-champions-mobile-redesign*.artifact.json
 test-results
 playwright-report
 .superpowers/
