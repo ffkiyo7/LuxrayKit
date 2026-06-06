@@ -1030,6 +1030,20 @@ describe('damageAdapter', () => {
         selectedMoveId: 'zen-headbutt',
       }),
     },
+    {
+      label: 'Sheer Force',
+      abilityId: 'sheer-force',
+      abilityText: '追加效果招式增强',
+      weather: '无天气',
+      attacker: makeConfig({
+        pokemonId: 'feraligatr',
+        abilityId: 'sheer-force',
+        nature: '固执',
+        statPoints: { attack: 32 },
+        moveIds: ['ice-punch'],
+        selectedMoveId: 'ice-punch',
+      }),
+    },
   ])('applies $label as an offensive damage boost', ({ abilityId, abilityText, weather, attacker }) => {
     const withAbility = computeDamage({
       attacker,
@@ -1056,6 +1070,53 @@ describe('damageAdapter', () => {
     expect(withAbility.maxDamage).toBeGreaterThan(withoutAbility.maxDamage!);
     expect(withAbility.abilityEffects).toContainEqual(
       expect.objectContaining({ side: 'attacker', abilityId, direction: 'boost', text: abilityText }),
+    );
+  });
+
+  it('applies Scrappy so Fighting damage can hit Ghost targets', () => {
+    const scrappy = computeDamage({
+      attacker: makeConfig({
+        pokemonId: 'pangoro',
+        abilityId: 'scrappy',
+        nature: '固执',
+        statPoints: { attack: 32 },
+        moveIds: ['close-combat'],
+        selectedMoveId: 'close-combat',
+      }),
+      defender: makeConfig({
+        pokemonId: 'chandelure',
+        nature: '认真',
+        statPoints: { hp: 32, defense: 17, specialDefense: 17 },
+      }),
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+    const withoutAbility = computeDamage({
+      attacker: {
+        ...scrappy.attackerConfig!,
+        abilityId: undefined,
+      },
+      defender: scrappy.defenderConfig!,
+      battleType: 'singles',
+      weather: '无天气',
+      terrain: '无场地',
+      attackStage: 0,
+    });
+
+    expect(scrappy.status).toBe('experimental-success');
+    expect(withoutAbility.status).toBe('experimental-success');
+    expect(scrappy.typeEffectiveness).toBe(1);
+    expect(scrappy.maxDamage).toBeGreaterThan(0);
+    expect(withoutAbility.maxDamage).toBe(0);
+    expect(scrappy.abilityEffects).toContainEqual(
+      expect.objectContaining({
+        side: 'attacker',
+        abilityId: 'scrappy',
+        direction: 'boost',
+        text: '一般和格斗招式可命中幽灵属性',
+      }),
     );
   });
 

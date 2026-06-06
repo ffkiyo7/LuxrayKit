@@ -352,6 +352,17 @@ function weatherImpact(moveType: PokemonType, weather: string): { multiplier: nu
   return { multiplier: 1, text: weather === '无天气' ? '无天气影响' : `${weather} 无直接招式修正` };
 }
 
+function displayedTypeEffectiveness(
+  moveType: PokemonType,
+  defenderTypes: PokemonType[],
+  attackerAbilityId?: string,
+): number {
+  if (attackerAbilityId === 'scrappy' && (moveType === 'Normal' || moveType === 'Fighting')) {
+    return defensiveMatchupMultiplier(moveType, defenderTypes.filter((type) => type !== 'Ghost'));
+  }
+  return defensiveMatchupMultiplier(moveType, defenderTypes);
+}
+
 function protectionImpact(
   move: AppMove,
   attackerAbilityId: string | undefined,
@@ -511,6 +522,8 @@ function specificAbilityEffectText(abilityId: string, direction: DamageAbilityEf
     if (abilityId === 'sand-force') return '沙暴中招式增强';
     if (abilityId === 'solar-power') return '晴天特攻增强';
     if (abilityId === 'hustle') return '物理招式增强';
+    if (abilityId === 'sheer-force') return '追加效果招式增强';
+    if (abilityId === 'scrappy') return '一般和格斗招式可命中幽灵属性';
   }
 
   return undefined;
@@ -967,7 +980,7 @@ export function computeDamage(input: DamageAdapterInput): DamageAdapterResult {
     const displayedWeather = effectiveWeatherForMove(displayedBattleWeather, attackerConfig.abilityId);
     const displayedMoveType = effectiveMoveType(projectMove, attackerConfig.abilityId, displayedWeather);
     const attackerStabTypes = attackerTypesForStab(attackerForm.types, displayedMoveType, attackerConfig.abilityId);
-    const typeEffectiveness = defensiveMatchupMultiplier(displayedMoveType, defenderForm.types);
+    const typeEffectiveness = displayedTypeEffectiveness(displayedMoveType, defenderForm.types, attackerConfig.abilityId);
     const weather = weatherImpact(displayedMoveType, displayedWeather);
     const protection = actualCalc.protection;
     const withoutAttackerAbility = runCalculation('without-attacker-ability').damages;
