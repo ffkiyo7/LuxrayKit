@@ -134,6 +134,14 @@ describe('App page flows', () => {
     await user.click(screen.getByRole('button', { name: '工具' }));
 
     expect(await screen.findByRole('heading', { name: '工具' })).toBeTruthy();
+    const toolButtons = screen.getAllByRole('button').filter((button) =>
+      /规则图鉴|伤害计算|速度线计算/.test(button.textContent ?? ''),
+    );
+    expect(toolButtons.map((button) => button.textContent?.replace(/\s+/g, ''))).toEqual([
+      '规则图鉴当前规则内的宝可梦、招式、道具、特性。',
+      '伤害计算攻防双方、招式、天气与伤害区间。',
+      '速度线计算敬请期待未开放',
+    ]);
     expect(await screen.findByRole('button', { name: /伤害计算/ })).toBeTruthy();
     const speedTool = await screen.findByRole('button', { name: /速度线计算/ });
     expect((speedTool as HTMLButtonElement).disabled).toBe(true);

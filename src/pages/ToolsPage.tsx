@@ -11,6 +11,12 @@ const toolEntries: Array<{
   disabled?: boolean;
 }> = [
   {
+    id: 'dex',
+    title: '规则图鉴',
+    description: '当前规则内的宝可梦、招式、道具、特性。',
+    icon: Search,
+  },
+  {
     id: 'calculator',
     title: '伤害计算',
     description: '攻防双方、招式、天气与伤害区间。',
@@ -22,12 +28,6 @@ const toolEntries: Array<{
     description: '敬请期待',
     icon: Gauge,
     disabled: true,
-  },
-  {
-    id: 'dex',
-    title: '规则图鉴',
-    description: '当前规则内的宝可梦、招式、道具、特性。',
-    icon: Search,
   },
 ];
 
