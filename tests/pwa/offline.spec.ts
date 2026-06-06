@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-test('keeps app shell, teams, and favorite benchmarks available offline', async ({ page, context }) => {
+test('keeps app shell, teams, and unavailable tools available offline', async ({ page, context }) => {
   await context.clearCookies();
   await page.goto('/');
   await expect(page.getByRole('heading', { name: '环境' })).toBeVisible();
@@ -27,9 +27,8 @@ test('keeps app shell, teams, and favorite benchmarks available offline', async 
   await expect(page.getByRole('button', { name: /导出备份/ })).toBeVisible();
 
   await page.getByRole('button', { name: '工具' }).click();
-  await page.getByRole('button', { name: /速度线计算/ }).click();
-  await page.getByRole('button', { name: '收藏' }).first().click();
-  await expect(page.getByRole('button', { name: /最速烈咬陆鲨 最终速度 169/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /速度线计算/ })).toBeDisabled();
+  await expect(page.getByRole('button', { name: /速度线计算/ })).toContainText('敬请期待');
 
   await context.setOffline(true);
   await page.reload({ waitUntil: 'domcontentloaded' });
@@ -42,9 +41,8 @@ test('keeps app shell, teams, and favorite benchmarks available offline', async 
   await expect(page.getByText('离线缓存', { exact: true })).toBeVisible();
 
   await page.getByRole('button', { name: '工具' }).click();
-  await page.getByRole('button', { name: /速度线计算/ }).click();
-  await page.getByRole('button', { name: '收藏' }).first().click();
-  await expect(page.getByRole('button', { name: /最速烈咬陆鲨 最终速度 169/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /速度线计算/ })).toBeDisabled();
+  await expect(page.getByRole('button', { name: /速度线计算/ })).toContainText('敬请期待');
 
   await context.setOffline(false);
 });

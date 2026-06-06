@@ -1,13 +1,14 @@
 import { Calculator, ChevronRight, Gauge, Search } from 'lucide-react';
 import { Card } from '../components/ui';
 
-export type ToolView = 'calculator' | 'speed' | 'dex';
+export type ToolView = 'calculator' | 'dex';
 
 const toolEntries: Array<{
-  id: ToolView;
+  id: ToolView | 'speed';
   title: string;
   description: string;
   icon: typeof Calculator;
+  disabled?: boolean;
 }> = [
   {
     id: 'calculator',
@@ -18,8 +19,9 @@ const toolEntries: Array<{
   {
     id: 'speed',
     title: '速度线计算',
-    description: '单体速度、队伍速度、常见 benchmark 对照。',
+    description: '敬请期待',
     icon: Gauge,
+    disabled: true,
   },
   {
     id: 'dex',
@@ -38,17 +40,32 @@ export function ToolsPage({ onOpenTool }: { onOpenTool: (tool: ToolView) => void
       <div className="space-y-3">
         {toolEntries.map((entry) => {
           const Icon = entry.icon;
+          const disabled = Boolean(entry.disabled);
           return (
             <Card key={entry.id} className="p-0">
-              <button className="flex w-full items-center gap-3 p-4 text-left" type="button" onClick={() => onOpenTool(entry.id)}>
-                <span className="grid h-12 w-12 shrink-0 place-items-center rounded-lg bg-accent/10 text-accent">
+              <button
+                aria-disabled={disabled}
+                className={`flex w-full items-center gap-3 p-4 text-left ${
+                  disabled ? 'cursor-not-allowed opacity-55' : ''
+                }`}
+                disabled={disabled}
+                type="button"
+                onClick={() => {
+                  if (!disabled) onOpenTool(entry.id as ToolView);
+                }}
+              >
+                <span className={`grid h-12 w-12 shrink-0 place-items-center rounded-lg ${disabled ? 'bg-disabled/20 text-textMuted' : 'bg-accent/10 text-accent'}`}>
                   <Icon size={22} />
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block text-lg font-semibold">{entry.title}</span>
                   <span className="mt-1 block text-sm text-textSecondary">{entry.description}</span>
                 </span>
-                <ChevronRight className="shrink-0 text-textMuted" size={20} />
+                {disabled ? (
+                  <span className="shrink-0 rounded border border-border px-2 py-1 text-[11px] font-semibold text-textMuted">未开放</span>
+                ) : (
+                  <ChevronRight className="shrink-0 text-textMuted" size={20} />
+                )}
               </button>
             </Card>
           );

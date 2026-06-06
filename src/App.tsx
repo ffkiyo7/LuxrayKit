@@ -13,7 +13,6 @@ const DexPage = lazy(() => import('./pages/DexPage').then((module) => ({ default
 const EnvironmentPage = lazy(() => import('./pages/EnvironmentPage').then((module) => ({ default: module.EnvironmentPage })));
 const ProfilePage = lazy(() => import('./pages/ProfilePage').then((module) => ({ default: module.ProfilePage })));
 const RulePage = lazy(() => import('./pages/RulePage').then((module) => ({ default: module.RulePage })));
-const SpeedPage = lazy(() => import('./pages/SpeedPage').then((module) => ({ default: module.SpeedPage })));
 const TeamPage = lazy(() => import('./pages/TeamPage').then((module) => ({ default: module.TeamPage })));
 const ToolsPage = lazy(() => import('./pages/ToolsPage').then((module) => ({ default: module.ToolsPage })));
 
@@ -73,26 +72,17 @@ function ToolWorkspace({
   onBack,
   selectedMemberId,
   onPickMember,
-  selectedPokemonId,
-  onSelectPokemon,
-  activeTeam,
-  onOpenSpeed,
   onOpenCalculator,
 }: {
   view: ToolView;
   onBack: () => void;
   selectedMemberId?: string;
   onPickMember: (memberId: string) => void;
-  selectedPokemonId: string;
-  onSelectPokemon: (pokemonId: string) => void;
-  activeTeam?: Team;
-  onOpenSpeed: (pokemonId: string) => void;
   onOpenCalculator: (pokemonId: string) => void;
 }) {
   const content = {
     calculator: <CalculatorPage selectedMemberId={selectedMemberId} onPickMember={onPickMember} />,
-    speed: <SpeedPage selectedPokemonId={selectedPokemonId} onSelectPokemon={onSelectPokemon} activeTeam={activeTeam} />,
-    dex: <DexPage onOpenSpeed={onOpenSpeed} onOpenCalculator={onOpenCalculator} />,
+    dex: <DexPage onOpenCalculator={onOpenCalculator} />,
   }[view];
 
   return (
@@ -110,7 +100,6 @@ function AppShell() {
   const [activeTab, setActiveTab] = useState<TabId>('environment');
   const [overlay, setOverlay] = useState<OverlayPage>(null);
   const [toolView, setToolView] = useState<ToolView | null>(null);
-  const [speedPokemonId, setSpeedPokemonId] = useState('garchomp');
   const [calculatorMemberId, setCalculatorMemberId] = useState<string | undefined>();
   const [activeTeamId, setActiveTeamId] = useState<string | undefined>();
   const [importToast, setImportToast] = useState<string | null>(null);
@@ -222,13 +211,6 @@ function AppShell() {
             onBack={() => setToolView(null)}
             selectedMemberId={calculatorMemberId}
             onPickMember={setCalculatorMemberId}
-            selectedPokemonId={speedPokemonId}
-            onSelectPokemon={setSpeedPokemonId}
-            activeTeam={activeTeam}
-            onOpenSpeed={(pokemonId) => {
-              setSpeedPokemonId(pokemonId);
-              setToolView('speed');
-            }}
             onOpenCalculator={(pokemonId) => {
               setCalculatorMemberId(pokemonId);
               setToolView('calculator');
@@ -250,7 +232,6 @@ function AppShell() {
     importSampleTeam,
     openTool,
     overlay,
-    speedPokemonId,
     toolView,
   ]);
 

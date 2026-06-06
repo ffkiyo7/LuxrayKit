@@ -365,12 +365,10 @@ function MoveTypeFilterSheet({
 function PokemonDetail({
   entry,
   onBack,
-  onOpenSpeed,
   onOpenCalculator,
 }: {
   entry: DexFormEntry;
   onBack: () => void;
-  onOpenSpeed: (pokemonId: string) => void;
   onOpenCalculator: (pokemonId: string) => void;
 }) {
   const { teams, updateMember } = useAppStore();
@@ -592,8 +590,8 @@ function PokemonDetail({
             <Plus size={13} />
             加入队伍
           </Button>
-          <Button variant="ghost" onClick={() => onOpenSpeed(entry.basePokemon.id)}>
-            → 速度线
+          <Button disabled variant="ghost">
+            敬请期待
           </Button>
           <Button variant="ghost" onClick={() => onOpenCalculator(entry.basePokemon.id)}>
             → 计算
@@ -617,10 +615,8 @@ function PokemonDetail({
 }
 
 export function DexPage({
-  onOpenSpeed,
   onOpenCalculator,
 }: {
-  onOpenSpeed: (pokemonId: string) => void;
   onOpenCalculator: (pokemonId: string) => void;
 }) {
   const [tab, setTab] = useState<DexTab>('pokemon');
@@ -779,7 +775,6 @@ export function DexPage({
             <PokemonDetail
               entry={detailPokemon}
               onBack={() => setDetailPokemonId(null)}
-              onOpenSpeed={onOpenSpeed}
               onOpenCalculator={onOpenCalculator}
             />
           ) : (

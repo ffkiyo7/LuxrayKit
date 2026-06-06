@@ -67,28 +67,24 @@ test('captures the mobile visual regression smoke set', { timeout: 60_000 }, asy
   await expect(page).toHaveScreenshot('09-calculator-selector.png', screenshotOptions);
 
   await page.getByRole('button', { name: '返回工具' }).click();
-  await page.getByRole('button', { name: /速度线计算/ }).click();
-  await scrollTop(page);
-  await expect(page.getByText('最终速度', { exact: true })).toBeVisible();
-  await expect(page).toHaveScreenshot('10-speed-line.png', screenshotOptions);
+  await expect(page.getByRole('button', { name: /速度线计算/ })).toBeDisabled();
 
-  await page.getByRole('button', { name: '返回工具' }).click();
   await page.getByRole('button', { name: /规则图鉴/ }).click();
   await scrollTop(page);
   await expect(page.getByText('规则内图鉴')).toBeVisible();
-  await expect(page).toHaveScreenshot('11-dex.png', screenshotOptions);
+  await expect(page).toHaveScreenshot('10-dex.png', screenshotOptions);
   await page.getByRole('button', { name: /^烈咬陆鲨 / }).click();
   await expect(page.getByRole('heading', { name: '可学会招式' })).toBeVisible();
-  await expect(page).toHaveScreenshot('12-dex-detail.png', screenshotOptions);
+  await expect(page).toHaveScreenshot('11-dex-detail.png', screenshotOptions);
   await page.getByRole('button', { name: /返回图鉴列表/ }).click();
   await page.getByRole('button', { name: '打开图鉴过滤' }).click();
   await expect(page.getByText('最多选择 2 个属性')).toBeVisible();
-  await expect(page).toHaveScreenshot('13-dex-type-filter.png', screenshotOptions);
+  await expect(page).toHaveScreenshot('12-dex-type-filter.png', screenshotOptions);
   await page.getByTitle('关闭属性筛选').click();
 
   await page.getByRole('button', { name: '我的', exact: true }).click();
   await scrollTop(page);
   await expect(page.getByRole('heading', { name: '我的' })).toBeVisible();
   await expect(page.getByText('本地备份')).toBeVisible();
-  await expect(page).toHaveScreenshot('14-profile.png', screenshotOptions);
+  await expect(page).toHaveScreenshot('13-profile.png', screenshotOptions);
 });
