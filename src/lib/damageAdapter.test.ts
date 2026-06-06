@@ -65,7 +65,7 @@ type ManualReviewFixture = {
 
 const championsMegaAbilityCoverage = {
   'mega-skarmory': { abilityId: 'stalwart', status: 'context-only', reason: 'redirection targeting, not damage math' },
-  'mega-froslass': { abilityId: 'snow-warning', status: 'tested-damage' },
+  'mega-froslass': { abilityId: 'snow-warning', status: 'context-only', reason: 'field weather is chosen explicitly in the calculator' },
   'mega-chimecho': { abilityId: 'levitate', status: 'tested-damage' },
   'mega-emboar': { abilityId: 'mold-breaker', status: 'tested-damage' },
   'mega-excadrill': { abilityId: 'piercing-drill', status: 'tested-damage' },
@@ -285,8 +285,8 @@ describe('damageAdapter', () => {
       }
     }
 
-    expect(Object.values(championsMegaAbilityCoverage).filter((entry) => entry.status === 'tested-damage')).toHaveLength(17);
-    expect(Object.values(championsMegaAbilityCoverage).filter((entry) => entry.status === 'context-only')).toHaveLength(7);
+    expect(Object.values(championsMegaAbilityCoverage).filter((entry) => entry.status === 'tested-damage')).toHaveLength(16);
+    expect(Object.values(championsMegaAbilityCoverage).filter((entry) => entry.status === 'context-only')).toHaveLength(8);
   });
 
   it('returns Gen9-based damage for valid input with Champions move params and SP stats', () => {
@@ -784,10 +784,9 @@ describe('damageAdapter', () => {
       label: 'Drought',
       abilitySide: 'attacker',
       abilityId: 'drought',
-      weather: '晴天',
-      weatherText: '晴天增强火属性',
-      abilityText: '日照形成晴天',
-      effectiveMoveType: 'Fire',
+      manualWeather: '晴天',
+      manualWeatherText: '晴天增强火属性',
+      manualMoveType: 'Fire',
       attacker: makeConfig({
         pokemonId: 'charizard',
         abilityId: 'drought',
@@ -802,10 +801,9 @@ describe('damageAdapter', () => {
       label: 'Drizzle',
       abilitySide: 'attacker',
       abilityId: 'drizzle',
-      weather: '雨天',
-      weatherText: '雨天增强水属性',
-      abilityText: '降雨形成雨天',
-      effectiveMoveType: 'Water',
+      manualWeather: '雨天',
+      manualWeatherText: '雨天增强水属性',
+      manualMoveType: 'Water',
       attacker: makeConfig({
         pokemonId: 'politoed',
         abilityId: 'drizzle',
@@ -820,10 +818,9 @@ describe('damageAdapter', () => {
       label: 'Sand Stream',
       abilitySide: 'defender',
       abilityId: 'sand-stream',
-      weather: '沙暴',
-      weatherText: '沙暴 无直接招式修正',
-      abilityText: '扬沙形成沙暴',
-      effectiveMoveType: 'Rock',
+      manualWeather: '沙暴',
+      manualWeatherText: '沙暴 无直接招式修正',
+      manualMoveType: 'Rock',
       attacker: makeConfig({
         pokemonId: 'charizard',
         nature: '内敛',
@@ -842,10 +839,9 @@ describe('damageAdapter', () => {
       label: 'Snow Warning',
       abilitySide: 'attacker',
       abilityId: 'snow-warning',
-      weather: '雪天',
-      weatherText: '雪天 无直接招式修正',
-      abilityText: '降雪形成雪天',
-      effectiveMoveType: 'Ice',
+      manualWeather: '雪天',
+      manualWeatherText: '雪天 无直接招式修正',
+      manualMoveType: 'Ice',
       attacker: makeConfig({
         pokemonId: 'froslass',
         abilityId: 'snow-warning',
@@ -856,8 +852,8 @@ describe('damageAdapter', () => {
       }),
       defender: makeConfig({ pokemonId: 'garchomp', nature: '认真', statPoints: {} }),
     },
-  ])('uses $label as battle weather for Weather Ball', ({ abilitySide, abilityId, weather, weatherText, abilityText, effectiveMoveType, attacker, defender }) => {
-    const withAbility = computeDamage({
+  ])('keeps $label from overriding the selected weather', ({ abilitySide, abilityId, manualWeather, manualWeatherText, manualMoveType, attacker, defender }) => {
+    const noWeather = computeDamage({
       attacker,
       defender,
       battleType: 'singles',
@@ -865,28 +861,39 @@ describe('damageAdapter', () => {
       terrain: '无场地',
       attackStage: 0,
     });
-    const withoutAbility = computeDamage({
+    const noAbility = computeDamage({
       attacker: abilitySide === 'attacker'
-        ? { ...withAbility.attackerConfig!, abilityId: undefined }
-        : withAbility.attackerConfig!,
+        ? { ...noWeather.attackerConfig!, abilityId: undefined }
+        : noWeather.attackerConfig!,
       defender: abilitySide === 'defender'
-        ? { ...withAbility.defenderConfig!, abilityId: undefined }
-        : withAbility.defenderConfig!,
+        ? { ...noWeather.defenderConfig!, abilityId: undefined }
+        : noWeather.defenderConfig!,
       battleType: 'singles',
       weather: '无天气',
       terrain: '无场地',
       attackStage: 0,
     });
+    const manualWeatherResult = computeDamage({
+      attacker,
+      defender,
+      battleType: 'singles',
+      weather: manualWeather,
+      terrain: '无场地',
+      attackStage: 0,
+    });
 
-    expect(withAbility.status).toBe('experimental-success');
-    expect(withoutAbility.status).toBe('experimental-success');
-    expect(withAbility.effectiveMoveType).toBe(effectiveMoveType);
-    expect(withAbility.weatherText).toBe(weatherText);
-    expect(withAbility.maxDamage).toBeGreaterThan(withoutAbility.maxDamage!);
-    expect(withAbility.abilityEffects).toContainEqual(
-      expect.objectContaining({ side: abilitySide, abilityId, direction: 'boost', text: abilityText }),
+    expect(noWeather.status).toBe('experimental-success');
+    expect(noAbility.status).toBe('experimental-success');
+    expect(manualWeatherResult.status).toBe('experimental-success');
+    expect(noWeather.effectiveMoveType).toBe('Normal');
+    expect(noWeather.weatherText).toBe('无天气影响');
+    expect(noWeather.damageRolls).toEqual(noAbility.damageRolls);
+    expect(noWeather.abilityEffects).not.toContainEqual(
+      expect.objectContaining({ side: abilitySide, abilityId }),
     );
-    expect(withAbility.assumptions).toContain(`Battle context: weather set by ability: ${weather}.`);
+    expect(noWeather.assumptions).not.toContain(`Battle context: weather set by ability: ${manualWeather}.`);
+    expect(manualWeatherResult.effectiveMoveType).toBe(manualMoveType);
+    expect(manualWeatherResult.weatherText).toBe(manualWeatherText);
   });
 
   it.each([
@@ -1740,8 +1747,8 @@ describe('damageAdapter', () => {
     );
   });
 
-  it('uses Snow Warning as battle weather for Champions Mega Froslass Weather Ball', () => {
-    const snowWarning = computeDamage({
+  it('uses the selected weather, not Snow Warning, for Champions Mega Froslass Weather Ball', () => {
+    const noWeather = computeDamage({
       attacker: makeConfig({
         pokemonId: 'froslass',
         formId: 'mega-froslass',
@@ -1764,37 +1771,35 @@ describe('damageAdapter', () => {
     });
     const withoutAbility = computeDamage({
       attacker: {
-        ...snowWarning.attackerConfig!,
+        ...noWeather.attackerConfig!,
         abilityId: undefined,
       },
-      defender: snowWarning.defenderConfig!,
+      defender: noWeather.defenderConfig!,
       battleType: 'singles',
       weather: '无天气',
       terrain: '无场地',
       attackStage: 0,
     });
-    const manualRain = computeDamage({
-      attacker: snowWarning.attackerConfig!,
-      defender: snowWarning.defenderConfig!,
+    const manualSnow = computeDamage({
+      attacker: noWeather.attackerConfig!,
+      defender: noWeather.defenderConfig!,
       battleType: 'singles',
-      weather: '雨天',
+      weather: '雪天',
       terrain: '无场地',
       attackStage: 0,
     });
 
-    expect(snowWarning.status).toBe('experimental-success');
+    expect(noWeather.status).toBe('experimental-success');
     expect(withoutAbility.status).toBe('experimental-success');
-    expect(manualRain.status).toBe('experimental-success');
-    expect(snowWarning.effectiveMoveType).toBe('Ice');
-    expect(snowWarning.typeEffectiveness).toBe(4);
-    expect(snowWarning.weatherText).toBe('雪天 无直接招式修正');
-    expect(snowWarning.maxDamage).toBeGreaterThan(withoutAbility.maxDamage!);
-    expect(snowWarning.abilityEffects).toEqual([
-      expect.objectContaining({ side: 'attacker', abilityId: 'snow-warning', direction: 'boost', text: '降雪形成雪天' }),
-    ]);
-    expect(snowWarning.assumptions).toContain('Battle context: weather set by ability: 雪天.');
-    expect(manualRain.effectiveMoveType).toBe('Water');
-    expect(manualRain.weatherText).toBe('雨天增强水属性');
+    expect(manualSnow.status).toBe('experimental-success');
+    expect(noWeather.effectiveMoveType).toBe('Normal');
+    expect(noWeather.weatherText).toBe('无天气影响');
+    expect(noWeather.damageRolls).toEqual(withoutAbility.damageRolls);
+    expect(noWeather.abilityEffects).toEqual([]);
+    expect(manualSnow.effectiveMoveType).toBe('Ice');
+    expect(manualSnow.typeEffectiveness).toBe(4);
+    expect(manualSnow.weatherText).toBe('雪天 无直接招式修正');
+    expect(manualSnow.maxDamage).toBeGreaterThan(noWeather.maxDamage!);
   });
 
   it('applies Multiscale as full-HP reduction for Champions Mega Dragonite', () => {
