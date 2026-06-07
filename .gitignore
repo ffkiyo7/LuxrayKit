@@ -19,3 +19,8 @@ CLAUDE.md
 # Local-only assets (copyrighted / not for redistribution)
 public/type-icons/
 .claude/settings.local.json
+
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example
