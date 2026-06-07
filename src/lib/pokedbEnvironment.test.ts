@@ -8,7 +8,6 @@ import {
 } from './pokedbEnvironment';
 
 const pokemonKeyToId = createPokeDbPokemonKeyMap(regMaPokemonAllowlist, pokemon);
-const pokemonNameById = Object.fromEntries(pokemon.map((entry) => [entry.id, entry.chineseName]));
 
 const itemNameToId = {
   'リザードナイトＹ': 'charizardite-y',
@@ -161,7 +160,6 @@ describe('PokeDB environment ingestion', () => {
       battleType: 'doubles',
       sourceUrl: 'https://champs.pokedb.tokyo/trainer/list?season=1&rule=1',
       pokemonKeyToId,
-      pokemonNameById,
       itemNameToId,
       maxSamples: 10,
     });
@@ -173,7 +171,7 @@ describe('PokeDB environment ingestion', () => {
         author: 'すいか',
         score: 2724,
         rank: 1,
-        title: 'すいか · 最高第 1 名 · 2724 分 · 喷火龙',
+        title: '最高第 1 名 · 2724 分',
         battleType: 'doubles',
         reportUrl: 'https://x.com/mihono_suica/status/2054478796812943367?s=20',
         slots: [

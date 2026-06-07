@@ -499,7 +499,9 @@ describe('App page flows', () => {
 
     await user.click(screen.getByRole('button', { name: new RegExp(topSinglesPokemon.chineseName) }));
     expect(await screen.findByRole('heading', { name: topSinglesPokemon.chineseName })).toBeTruthy();
-    expect(screen.getAllByText('真实样本').length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/原作者：/).length).toBeGreaterThan(0);
+    expect(screen.queryByText('真实样本')).toBeNull();
+    expect(screen.queryByText('PokeDB公开数据')).toBeNull();
     expect(screen.queryByText(/本页使用本地 seed 占位数据/)).toBeNull();
   });
 

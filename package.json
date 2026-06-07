@@ -15,7 +15,14 @@
     "data:regma:abilities": "node scripts/generate-ability-effects.mjs",
     "data:regma:moves": "node scripts/generate-champions-moves.mjs",
     "data:pokedb:environment": "node scripts/update-pokedb-environment.mjs",
-    "data:pokedb:environment:check": "node scripts/update-pokedb-environment.mjs --check"
+    "data:pokedb:environment:check": "node scripts/update-pokedb-environment.mjs --check",
+    "worker:environment:dev": "wrangler dev --config cloudflare/environment-worker/wrangler.jsonc --test-scheduled",
+    "worker:environment:check": "wrangler deploy --config cloudflare/environment-worker/wrangler.jsonc --dry-run",
+    "worker:environment:deploy": "wrangler deploy --config cloudflare/environment-worker/wrangler.jsonc",
+    "worker:app:types": "wrangler types --config cloudflare/environment-worker/wrangler.jsonc cloudflare/environment-worker/src/worker-configuration.d.ts",
+    "worker:app:dev": "npm run build && wrangler dev --config cloudflare/environment-worker/wrangler.jsonc --test-scheduled",
+    "worker:app:check": "npm run build && wrangler deploy --config cloudflare/environment-worker/wrangler.jsonc --dry-run",
+    "worker:app:deploy": "npm run build && wrangler deploy --config cloudflare/environment-worker/wrangler.jsonc"
   },
   "dependencies": {
     "@smogon/calc": "^0.11.0",
@@ -39,6 +46,7 @@
     "postcss": "^8.5.0",
     "sharp": "^0.34.5",
     "tailwindcss": "^3.4.17",
-    "vitest": "^4.1.5"
+    "vitest": "^4.1.5",
+    "wrangler": "^4.98.0"
   }
 }

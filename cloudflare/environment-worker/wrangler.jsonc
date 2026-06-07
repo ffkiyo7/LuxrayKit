@@ -1,0 +1,48 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "luxraykit-app",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-06-06",
+  "workers_dev": true,
+  "routes": [
+    {
+      "pattern": "luxraykit.com/*",
+      "zone_name": "luxraykit.com"
+    },
+    {
+      "pattern": "www.luxraykit.com/*",
+      "zone_name": "luxraykit.com"
+    }
+  ],
+  "assets": {
+    "directory": "../../dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": [
+      "/api/*",
+      "/health"
+    ]
+  },
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  },
+  "triggers": {
+    "crons": [
+      "17 */6 * * *"
+    ]
+  },
+  "vars": {
+    "POKEDB_BASE_URL": "https://champs.pokedb.tokyo",
+    "SEASON_CANDIDATES": "2,1",
+    "MAX_CACHE_AGE_SECONDS": "21600",
+    "ALLOWED_ORIGINS": "*"
+  },
+  "kv_namespaces": [
+    {
+      "binding": "ENVIRONMENT_CACHE",
+      "id": "43aafe9bdd2c4d01a980325d75eb9630",
+      "preview_id": "880eb89e7fd44e7bbe582b224778b4ed"
+    }
+  ]
+}

@@ -36,6 +36,7 @@ export type EnvironmentTeamSample = {
   id: string;
   dataKind: 'development-sample' | 'external-snapshot';
   author: string;
+  season?: string;
   score: number;
   rank?: number;
   title: string;
