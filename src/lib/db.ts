@@ -7,6 +7,9 @@ const DB_NAME = 'pokemon-champions-assistant';
 const DB_VERSION = 2;
 const TEAM_STORE = 'teams';
 const META_STORE = 'meta';
+const STARTER_TEAM_ID = 'team-starter';
+const LEGACY_STARTER_TEAM_NAME = 'M-A 测试队';
+const LEGACY_STARTER_MEMBER_IDS = new Set(['member-garchomp', 'member-incineroar']);
 
 type StoreName = typeof TEAM_STORE | typeof META_STORE;
 
@@ -82,6 +85,22 @@ const sortTeamsForList = (teams: Team[]) =>
     })
     .map(({ team }) => team);
 
+const isLegacyStarterTeam = (team: Team) =>
+  team.id === STARTER_TEAM_ID && (team.name === LEGACY_STARTER_TEAM_NAME || team.members.some((member) => LEGACY_STARTER_MEMBER_IDS.has(member.id)));
+
+const migrateLegacyStarterTeam = (teams: Team[]) => {
+  let changed = false;
+  const migratedTeams = teams.map((team) => {
+    if (!isLegacyStarterTeam(team)) return team;
+    changed = true;
+    return {
+      ...defaultTeams[0],
+      sortOrder: team.sortOrder,
+    };
+  });
+  return { changed, teams: migratedTeams };
+};
+
 export const repository = {
   async loadState(): Promise<AppState> {
     const teams = await runStore<Team[]>(TEAM_STORE, 'readonly', (store) => store.getAll());
@@ -99,8 +118,13 @@ export const repository = {
       return { teams: defaultTeams, preferences: defaultPreferences };
     }
 
+    const starterMigration = migrateLegacyStarterTeam(teams);
+    if (starterMigration.changed) {
+      await Promise.all(starterMigration.teams.filter((team) => team.id === STARTER_TEAM_ID).map((team) => this.saveTeam(team)));
+    }
+
     return {
-      teams: sortTeamsForList(teams),
+      teams: sortTeamsForList(starterMigration.teams),
       preferences: preferencesRow?.value ?? defaultPreferences,
     };
   },

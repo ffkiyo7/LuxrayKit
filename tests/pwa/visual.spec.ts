@@ -40,12 +40,13 @@ test('captures the mobile visual regression smoke set', { timeout: 60_000 }, asy
   await expect(page.getByText('我的队伍')).toBeVisible();
   await expect(page).toHaveScreenshot('04-team-list.png', screenshotOptions);
 
-  const teamCard = page.getByLabel('队伍：M-A 测试队');
-  await teamCard.getByRole('button', { name: '编辑配置' }).click();
-  await expect(page.getByRole('heading', { name: 'M-A 测试队' })).toBeVisible();
+  const teamCard = page.getByLabel('队伍：Luxray test');
+  await teamCard.click();
+  await expect(page.getByRole('heading', { name: 'Luxray test' })).toBeVisible();
+  await page.getByRole('button', { name: '继续编辑' }).click();
   await expect(page).toHaveScreenshot('05-team-detail.png', screenshotOptions);
 
-  await page.getByRole('button', { name: /^烈咬陆鲨 / }).click();
+  await page.getByRole('button', { name: /^伦琴猫 / }).click();
   await expect(page.getByText('能力值 / SP')).toBeVisible();
 
   await page.getByTitle('编辑成员').click();

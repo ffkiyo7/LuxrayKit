@@ -59,7 +59,10 @@ describe('team analysis details', () => {
   it('keeps function-slot analysis explicit about duplicate items', () => {
     const analysis = buildTeamAnalysisDetails({
       ...defaultTeams[0],
-      members: defaultTeams[0].members.map((member) => ({ ...member, itemId: 'clear-amulet' })),
+      members: [
+        { ...defaultTeams[0].members[0], itemId: 'clear-amulet' },
+        { ...defaultTeams[0].members[0], id: 'member-luxray-duplicate', itemId: 'clear-amulet' },
+      ],
     });
     const functionSection = analysis.sections.find((section) => section.title === '功能位 / 重复定位');
 

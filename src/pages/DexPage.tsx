@@ -257,7 +257,7 @@ function TypeFilterSheet({
   onClose: () => void;
 }) {
   return (
-    <div className="fixed inset-x-0 bottom-0 z-30 mx-auto max-w-[430px] rounded-t-2xl border border-border bg-card p-4 shadow-none">
+    <div className="fixed inset-x-0 bottom-0 z-30 mx-auto max-w-[430px] rounded-t-2xl border border-border bg-card p-4 shadow-none" data-bottom-nav-lock="true">
       <div className="mx-auto mb-3 h-1 w-9 rounded-full bg-disabled" />
       <div className="mb-3 flex items-start justify-between gap-3">
         <div>
@@ -322,7 +322,7 @@ function MoveTypeFilterSheet({
   onClose: () => void;
 }) {
   return (
-    <div className="fixed inset-x-0 bottom-0 z-30 mx-auto max-w-[430px] rounded-t-2xl border border-border bg-card p-4 shadow-none">
+    <div className="fixed inset-x-0 bottom-0 z-30 mx-auto max-w-[430px] rounded-t-2xl border border-border bg-card p-4 shadow-none" data-bottom-nav-lock="true">
       <div className="mx-auto mb-3 h-1 w-9 rounded-full bg-disabled" />
       <div className="mb-3 flex items-start justify-between gap-3">
         <div>
@@ -596,7 +596,7 @@ function PokemonDetail({
         </div>
       </Card>
       {showLargeImage && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-overlay/70 p-6" role="dialog" aria-modal="true" aria-label={`${entry.chineseName}大图`}>
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-overlay/70 p-6" role="dialog" aria-modal="true" aria-label={`${entry.chineseName}大图`} data-bottom-nav-lock="true">
           <button className="absolute inset-0 cursor-default" type="button" aria-label="关闭" onClick={() => setShowLargeImage(false)} />
           <div className="relative z-10 w-full max-w-[360px]">
             <button className="absolute right-0 top-0 z-20 grid h-9 w-9 place-items-center rounded-lg bg-card text-textSecondary" type="button" title="关闭" onClick={() => setShowLargeImage(false)}>

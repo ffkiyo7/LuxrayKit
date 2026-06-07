@@ -24,6 +24,8 @@ const blankMember = (): TeamMember => ({
 });
 
 const DRAG_REORDER_FALLBACK_ROW_HEIGHT = 72;
+const LUXRAY_EASTER_TEAM_ID = 'team-starter';
+const defaultNewTeamName = (teamCount: number) => `队伍${teamCount + 1}`;
 
 type TeamDragState = {
   teamId: string;
@@ -789,14 +791,21 @@ function TeamListCard({
   onDragStart: (event: React.PointerEvent<HTMLButtonElement>) => void;
 }) {
   const visibleMembers = team.members.slice(0, 6);
+  const openOnKeyboard = (event: React.KeyboardEvent<HTMLElement>) => {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    event.preventDefault();
+    onEdit();
+  };
 
   return (
     <section
       ref={setCardRef}
       aria-label={`队伍：${team.name}`}
+      role="button"
+      tabIndex={0}
       data-import-highlighted={recentlyImported ? 'true' : undefined}
       style={dragging ? { transform: `translateY(${dragOffsetY}px)` } : undefined}
-      className={`surface-shadow relative rounded-lg border bg-card p-3 ${
+      className={`surface-shadow relative cursor-pointer rounded-lg border bg-card p-3 focus:outline-none focus:ring-2 focus:ring-accent/55 ${
         recentlyImported
           ? 'border-success ring-2 ring-success/45 shadow-[0_0_0_1px_rgb(var(--color-success)/0.35)]'
           : active
@@ -807,13 +816,18 @@ function TeamListCard({
           ? 'z-10 scale-[1.01] cursor-grabbing shadow-[0_18px_36px_rgb(0_0_0/0.32)] transition-none'
           : 'transition-[transform,box-shadow,border-color] duration-150'
       } ${dropTarget ? 'ring-1 ring-accent/35' : ''}`}
+      onClick={onEdit}
+      onKeyDown={openOnKeyboard}
     >
       <button
         aria-label={`删除 ${team.name}`}
         className="absolute right-3 top-3 grid h-3.5 w-3.5 place-items-center rounded-[4px] border border-danger/45 bg-black transition active:scale-[0.96]"
         title={`删除 ${team.name}`}
         type="button"
-        onClick={onDelete}
+        onClick={(event) => {
+          event.stopPropagation();
+          onDelete();
+        }}
       >
         <span className="h-px w-1.5 rounded-full bg-danger" aria-hidden="true" />
       </button>
@@ -848,13 +862,19 @@ function TeamListCard({
           className="grid h-9 w-[18px] shrink-0 touch-none place-items-center rounded-md border border-border bg-secondary text-textMuted transition active:scale-[0.96] active:text-textSecondary"
           title={`拖动排序 ${team.name}`}
           type="button"
+          onClick={(event) => event.stopPropagation()}
           onPointerCancel={onDragCancel}
           onPointerDown={(event) => {
+            event.stopPropagation();
             event.currentTarget.setPointerCapture?.(event.pointerId);
             onDragStart(event);
           }}
-          onPointerMove={onDragMove}
+          onPointerMove={(event) => {
+            event.stopPropagation();
+            onDragMove(event);
+          }}
           onPointerUp={(event) => {
+            event.stopPropagation();
             event.currentTarget.releasePointerCapture?.(event.pointerId);
             onDragEnd(event);
           }}
@@ -863,11 +883,22 @@ function TeamListCard({
         </button>
       </div>
       <div className="mt-3 grid grid-cols-2 gap-2">
-        <Button variant="ghost" onClick={onEdit}>
+        <Button
+          variant="ghost"
+          onClick={(event) => {
+            event.stopPropagation();
+            onEdit();
+          }}
+        >
           <Edit3 size={14} />
           编辑配置
         </Button>
-        <Button onClick={onGenerateImage}>
+        <Button
+          onClick={(event) => {
+            event.stopPropagation();
+            onGenerateImage();
+          }}
+        >
           <Download size={14} />
           生成图片
         </Button>
@@ -957,7 +988,6 @@ function TeamNameModal({
         <input
           autoFocus
           className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-textPrimary outline-none placeholder:text-textMuted"
-          placeholder="输入队伍名称，例如：雨天 Mega 队"
           value={draft}
           onChange={(e) => onDraftChange(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') onConfirm(); }}
@@ -967,6 +997,33 @@ function TeamNameModal({
           <Button onClick={onConfirm} disabled={!draft.trim()}>确认</Button>
         </div>
       </div>
+    </div>
+  );
+}
+
+function LuxrayEasterEggDialog({ onClose }: { onClose: () => void }) {
+  const luxray = pokemon.find((entry) => entry.id === 'luxray');
+
+  return (
+    <div className="fixed inset-0 z-40 mx-auto max-w-[430px]" role="dialog" aria-label="Luxray test 彩蛋" data-bottom-nav-lock="true">
+      <div className="absolute inset-0 bg-overlay/70" onClick={onClose} />
+      <section className="absolute inset-x-4 top-1/2 -translate-y-1/2 rounded-xl border border-accent/45 bg-card p-4 shadow-[0_18px_48px_rgb(0_0_0/0.45)]">
+        <div className="flex items-center gap-3">
+          <PokemonAvatar iconRef={luxray?.iconRef} label="伦琴猫" size="xl" />
+          <div className="min-w-0">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-accent">Luxray test</p>
+            <h3 className="mt-1 text-lg font-semibold">隐藏调试队已接通</h3>
+            <p className="mt-1 text-xs leading-5 text-textSecondary">这支初始队伍只保留伦琴猫。它负责照亮配置页，也提醒你：真正重要的队伍，可以从一只喜欢的 Pokémon 开始。</p>
+          </div>
+        </div>
+        <div className="mt-4 rounded-lg border border-border bg-secondary p-3">
+          <p className="text-xs font-semibold text-textPrimary">启动读数</p>
+          <p className="mt-1 text-xs text-textSecondary">威吓在线 · 磁铁校准 · 疯狂伏特待命</p>
+        </div>
+        <Button className="mt-4 w-full" onClick={onClose}>
+          继续编辑
+        </Button>
+      </section>
     </div>
   );
 }
@@ -993,13 +1050,14 @@ export function TeamPage({
   const [inlineNameDraft, setInlineNameDraft] = useState('');
   const [pendingDeleteTeam, setPendingDeleteTeam] = useState<Team | null>(null);
   const [dragState, setDragState] = useState<TeamDragState | null>(null);
+  const [showLuxrayEasterEgg, setShowLuxrayEasterEgg] = useState(false);
   const teamCardRefs = useRef<Record<string, HTMLElement | null>>({});
   const activeListTeam = teams.find((team) => team.id === activeTeamId) ?? teams[0];
   const activeTeam = detailTeamId ? teams.find((team) => team.id === detailTeamId) : undefined;
   const editingMember = activeTeam?.members.find((member) => member.id === editingMemberId);
 
   const openCreateModal = () => {
-    setNameDraft('');
+    setNameDraft(defaultNewTeamName(teams.length));
     setShowNameModal(true);
   };
 
@@ -1011,6 +1069,7 @@ export function TeamPage({
     setShowAnalysis(false);
     setShowPicker(false);
     setRenamingTeamId(null);
+    setShowLuxrayEasterEgg(teamId === LUXRAY_EASTER_TEAM_ID);
   };
 
   const closeTeamDetail = () => {
@@ -1020,6 +1079,7 @@ export function TeamPage({
     setShowAnalysis(false);
     setShowPicker(false);
     setRenamingTeamId(null);
+    setShowLuxrayEasterEgg(false);
   };
 
   const generateTeamImage = async (team: Team) => {
@@ -1218,8 +1278,9 @@ export function TeamPage({
                 />
               ) : (
                 <h2 className="text-xl font-semibold">
-                  <button className="block max-w-full truncate text-left" title="编辑队伍名称" type="button" onClick={() => beginInlineRename(activeTeam)}>
-                    {activeTeam.name}
+                  <button className="flex max-w-full items-center gap-1.5 text-left" title="编辑队伍名称" type="button" onClick={() => beginInlineRename(activeTeam)}>
+                    <span className="truncate">{activeTeam.name}</span>
+                    <Edit3 size={15} className="shrink-0 text-textMuted" />
                   </button>
                 </h2>
               )}
@@ -1292,6 +1353,7 @@ export function TeamPage({
         />
       )}
       {shareImage && <TeamImageResultDialog teamName={shareImage.teamName} image={shareImage.image} onClose={() => setShareImage(null)} />}
+      {showLuxrayEasterEgg && <LuxrayEasterEggDialog onClose={() => setShowLuxrayEasterEgg(false)} />}
     </div>
   );
 }

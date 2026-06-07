@@ -82,6 +82,31 @@ describe('IndexedDB repository', () => {
     });
   });
 
+  it('replaces the legacy starter test team with the Luxray starter team', async () => {
+    const legacyStarter = cloneTeam(defaultTeams[0], {
+      name: 'M-A 测试队',
+      sortOrder: 4,
+      members: [
+        {
+          ...defaultTeams[0].members[0],
+          id: 'member-garchomp',
+          pokemonId: 'garchomp',
+        },
+      ],
+    });
+    await createV1DbWithTeam(legacyStarter);
+
+    const state = await repository.loadState();
+
+    expect(state.teams[0]).toMatchObject({
+      id: defaultTeams[0].id,
+      name: 'Luxray test',
+      sortOrder: 4,
+    });
+    expect(state.teams[0].members).toHaveLength(1);
+    expect(state.teams[0].members[0].pokemonId).toBe('luxray');
+  });
+
   it('saves and reloads a team', async () => {
     await repository.loadState();
     const savedTeam = cloneTeam(defaultTeams[0], {
