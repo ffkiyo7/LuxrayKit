@@ -75,16 +75,13 @@ function RankingRow({
 
 function TeamSampleCard({
   sample,
-  statusLabel,
   onImport,
 }: {
   sample: EnvironmentTeamSample;
-  statusLabel: string;
   onImport: (sample: EnvironmentTeamSample) => Promise<void> | void;
 }) {
   const [importing, setImporting] = useState(false);
   const visibleSlots = sample.slots.map((slot) => getEnvironmentPokemon(slot.pokemonId)).filter(Boolean);
-  const sampleBadge = sample.dataKind === 'external-snapshot' ? '真实样本' : '开发样例';
 
   const handleImport = async () => {
     setImporting(true);
@@ -97,12 +94,9 @@ function TeamSampleCard({
 
   return (
     <Card className="bg-secondary">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <h3 className="truncate text-sm font-semibold">{sample.title}</h3>
-          <p className="mt-1 text-xs text-textSecondary">{statusLabel} · {battleTypeLabels[sample.battleType]}</p>
-        </div>
-        <span className="rounded-md bg-reviewBg px-2 py-1 text-[11px] font-semibold text-warning">{sampleBadge}</span>
+      <div className="min-w-0">
+        <h3 className="truncate text-sm font-semibold">{sample.title}</h3>
+        <p className="mt-1 text-xs text-textSecondary">原作者：{sample.author} · {battleTypeLabels[sample.battleType]}</p>
       </div>
       <div className="mt-3 flex gap-2">
         {visibleSlots.map((entry) => (
@@ -276,7 +270,7 @@ function PokemonEnvironmentDetail({
             <h3 className="text-sm font-semibold">相关上位构筑</h3>
           </div>
           {relatedSamples.map((sample) => (
-            <TeamSampleCard key={sample.id} sample={sample} statusLabel={environment.dataStatusLabel} onImport={onImportSample} />
+            <TeamSampleCard key={sample.id} sample={sample} onImport={onImportSample} />
           ))}
         </section>
       )}
@@ -575,7 +569,7 @@ export function EnvironmentPage({
           )}
         </div>
         {visibleTeamSamples.map((sample) => (
-          <TeamSampleCard key={sample.id} sample={sample} statusLabel={environment.dataStatusLabel} onImport={onImportSample} />
+          <TeamSampleCard key={sample.id} sample={sample} onImport={onImportSample} />
         ))}
       </section>
     </div>

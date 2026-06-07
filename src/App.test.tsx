@@ -77,9 +77,13 @@ const openTool = async (user: ReturnType<typeof userEvent.setup>, toolName: stri
 };
 
 const openDefaultTeam = async (user: ReturnType<typeof userEvent.setup>) => {
-  const teamCard = await screen.findByLabelText('队伍：M-A 测试队');
-  await user.click(within(teamCard).getByRole('button', { name: '编辑配置' }));
-  await screen.findByRole('heading', { name: 'M-A 测试队' });
+  const teamCard = await screen.findByLabelText('队伍：Luxray test');
+  await user.click(teamCard);
+  await screen.findByRole('heading', { name: 'Luxray test' });
+  const easterEgg = screen.queryByRole('dialog', { name: 'Luxray test 彩蛋' });
+  if (easterEgg) {
+    await user.click(within(easterEgg).getByRole('button', { name: '继续编辑' }));
+  }
 };
 
 describe('App page flows', () => {
@@ -187,16 +191,18 @@ describe('App page flows', () => {
     const user = await renderApp();
 
     await user.click(screen.getByRole('button', { name: /新建/ }));
-    await user.type(screen.getByPlaceholderText(/输入队伍名称/), '测试队');
+    const nameInput = screen.getByRole('textbox');
+    await user.clear(nameInput);
+    await user.type(nameInput, '测试队');
     await user.click(screen.getByRole('button', { name: '确认' }));
     expect(await screen.findByRole('heading', { name: '测试队' })).toBeTruthy();
     expect(await screen.findByText(/0\/6 成员/)).toBeTruthy();
 
     await user.click(screen.getByRole('button', { name: '返回队伍列表' }));
     await openDefaultTeam(user);
-    expect(await screen.findByText(/2\/6 成员/)).toBeTruthy();
+    expect(await screen.findByText(/1\/6 成员/)).toBeTruthy();
 
-    await user.click(screen.getByText('烈咬陆鲨'));
+    await user.click(screen.getByText('伦琴猫'));
     expect(await screen.findByText('能力值 / SP')).toBeTruthy();
     await user.click(screen.getByTitle('编辑成员'));
     expect(await screen.findByText('编辑成员')).toBeTruthy();
@@ -210,17 +216,16 @@ describe('App page flows', () => {
     const user = await renderApp();
     await openDefaultTeam(user);
 
-    await user.click(screen.getByText('烈咬陆鲨'));
+    await user.click(screen.getByText('伦琴猫'));
     await user.click(screen.getByTitle('编辑成员'));
 
     expect(await screen.findByText('编辑成员')).toBeTruthy();
-    expect(screen.getByText('形态预览只影响能力值 / 属性展示；Mega Stone 作为道具独立配置。')).toBeTruthy();
     expect(screen.queryByLabelText('Pokemon')).toBeNull();
     expect(screen.queryByText('等级')).toBeNull();
     expect(screen.queryByText('备注')).toBeNull();
     const itemSearch = screen.getByPlaceholderText('搜索携带物');
-    await user.type(itemSearch, '文柚');
-    expect(screen.getAllByRole('button', { name: /文柚果/ }).length).toBeGreaterThan(0);
+    await user.type(itemSearch, '磁铁');
+    expect(screen.getAllByRole('button', { name: /磁铁/ }).length).toBeGreaterThan(0);
     await user.clear(itemSearch);
     await user.type(itemSearch, '突击背心');
     expect(screen.queryByRole('button', { name: /突击背心/ })).toBeNull();
@@ -228,17 +233,11 @@ describe('App page flows', () => {
     await user.type(itemSearch, '清净坠饰');
     expect(screen.queryByRole('button', { name: /清净坠饰/ })).toBeNull();
     await user.clear(itemSearch);
-    await user.type(itemSearch, '烈咬陆鲨');
-    await user.click(screen.getByRole('button', { name: /烈咬陆鲨进化石/ }));
-    expect((screen.getByLabelText('形态预览') as HTMLSelectElement).value).toBe('garchomp');
-    await user.selectOptions(screen.getByLabelText('形态预览'), 'mega-garchomp');
-    expect(screen.getAllByText('烈咬陆鲨进化石').length).toBeGreaterThan(0);
-    await user.selectOptions(screen.getByLabelText('形态预览'), 'garchomp');
-    expect(screen.getAllByText('烈咬陆鲨进化石').length).toBeGreaterThan(0);
+    expect(screen.queryByLabelText('形态预览')).toBeNull();
     const moveSearch = screen.getAllByPlaceholderText('搜索招式')[0];
-    await user.type(moveSearch, '龙爪');
-    await user.click(screen.getAllByRole('button', { name: /龙爪/ })[0]);
-    expect(screen.getByRole('button', { name: /招式 3.*龙爪/ })).toBeTruthy();
+    await user.type(moveSearch, '雷电牙');
+    await user.click(screen.getAllByRole('button', { name: /雷电牙/ })[0]);
+    expect(screen.getByRole('button', { name: /招式 3.*雷电牙/ })).toBeTruthy();
 
     ['HP SP', '攻击 SP', '防御 SP', '特攻 SP', '特防 SP', '速度 SP'].forEach((label) => {
       expect(screen.getAllByText(label.replace(' SP', '')).length).toBeGreaterThan(0);
@@ -256,9 +255,9 @@ describe('App page flows', () => {
     const user = await renderApp();
     await openDefaultTeam(user);
 
-    expect(await screen.findByText(/2\/6 成员/)).toBeTruthy();
-    await user.click(screen.getAllByTitle('删除成员')[0]);
     expect(await screen.findByText(/1\/6 成员/)).toBeTruthy();
+    await user.click(screen.getAllByTitle('删除成员')[0]);
+    expect(await screen.findByText(/0\/6 成员/)).toBeTruthy();
   });
 
   it('creates a team after all teams have been deleted', async () => {
@@ -271,10 +270,10 @@ describe('App page flows', () => {
     expect(await screen.findByText('还没有队伍')).toBeTruthy();
 
     await user.click(screen.getByRole('button', { name: '新建第一支队伍' }));
-    await user.type(screen.getByPlaceholderText(/输入队伍名称/), '重建队伍');
+    expect((screen.getByRole('textbox') as HTMLInputElement).value).toBe('队伍1');
     await user.click(screen.getByRole('button', { name: '确认' }));
 
-    expect(await screen.findByText('重建队伍')).toBeTruthy();
+    expect(await screen.findByText('队伍1')).toBeTruthy();
     expect(screen.getByText(/0\/6 成员/)).toBeTruthy();
   });
 
@@ -302,12 +301,12 @@ describe('App page flows', () => {
   it('generates a team image from the list and only offers save', async () => {
     const user = await renderApp();
 
-    const teamCard = await screen.findByLabelText('队伍：M-A 测试队');
+    const teamCard = await screen.findByLabelText('队伍：Luxray test');
     expect(within(teamCard).getByRole('button', { name: '编辑配置' })).toBeTruthy();
     await user.click(within(teamCard).getByRole('button', { name: '生成图片' }));
 
     const dialog = await screen.findByRole('dialog', { name: '队伍分享图' });
-    const image = within(dialog).getByRole('img', { name: 'M-A 测试队 队伍分享图' }) as HTMLImageElement;
+    const image = within(dialog).getByRole('img', { name: 'Luxray test 队伍分享图' }) as HTMLImageElement;
     expect(image.src).toContain('data:image/svg+xml');
     expect(within(dialog).getByRole('button', { name: '保存图片' })).toBeTruthy();
     expect(within(dialog).queryByRole('button', { name: /分享|取消|关闭/ })).toBeNull();
@@ -350,26 +349,28 @@ describe('App page flows', () => {
   it('deletes teams directly from the list card', async () => {
     const user = await renderApp();
 
-    expect(screen.getByLabelText('队伍：M-A 测试队')).toBeTruthy();
-    await user.click(screen.getByRole('button', { name: '删除 M-A 测试队' }));
+    expect(screen.getByLabelText('队伍：Luxray test')).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: '删除 Luxray test' }));
     const confirmDialog = await screen.findByRole('dialog', { name: '确认删除队伍' });
-    expect(confirmDialog.textContent).toContain('M-A 测试队');
+    expect(confirmDialog.textContent).toContain('Luxray test');
     await user.click(within(confirmDialog).getByRole('button', { name: '取消' }));
-    expect(screen.getByLabelText('队伍：M-A 测试队')).toBeTruthy();
+    expect(screen.getByLabelText('队伍：Luxray test')).toBeTruthy();
 
-    await user.click(screen.getByRole('button', { name: '删除 M-A 测试队' }));
+    await user.click(screen.getByRole('button', { name: '删除 Luxray test' }));
     await user.click(within(await screen.findByRole('dialog', { name: '确认删除队伍' })).getByRole('button', { name: '确认删除' }));
 
-    await waitFor(() => expect(screen.queryByLabelText('队伍：M-A 测试队')).toBeNull());
+    await waitFor(() => expect(screen.queryByLabelText('队伍：Luxray test')).toBeNull());
     const state = await repository.loadState();
-    expect(state.teams.some((team) => team.name === 'M-A 测试队')).toBe(false);
+    expect(state.teams.some((team) => team.name === 'Luxray test')).toBe(false);
   });
 
   it('reorders teams by dragging the list card handle', async () => {
     const user = await renderApp();
 
     await user.click(screen.getByRole('button', { name: /新建/ }));
-    await user.type(screen.getByPlaceholderText(/输入队伍名称/), '第二队');
+    const nameInput = screen.getByRole('textbox');
+    await user.clear(nameInput);
+    await user.type(nameInput, '第二队');
     await user.click(screen.getByRole('button', { name: '确认' }));
     await user.click(screen.getByRole('button', { name: '返回队伍列表' }));
 
@@ -382,7 +383,7 @@ describe('App page flows', () => {
 
     await waitFor(async () => {
       const state = await repository.loadState();
-      expect(state.teams.map((team) => team.name).slice(0, 2)).toEqual(['M-A 测试队', '第二队']);
+      expect(state.teams.map((team) => team.name).slice(0, 2)).toEqual(['Luxray test', '第二队']);
     });
   });
 
@@ -498,7 +499,9 @@ describe('App page flows', () => {
 
     await user.click(screen.getByRole('button', { name: new RegExp(topSinglesPokemon.chineseName) }));
     expect(await screen.findByRole('heading', { name: topSinglesPokemon.chineseName })).toBeTruthy();
-    expect(screen.getAllByText('真实样本').length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/原作者：/).length).toBeGreaterThan(0);
+    expect(screen.queryByText('真实样本')).toBeNull();
+    expect(screen.queryByText('PokeDB公开数据')).toBeNull();
     expect(screen.queryByText(/本页使用本地 seed 占位数据/)).toBeNull();
   });
 
@@ -722,9 +725,9 @@ describe('App page flows', () => {
 
     expect(await screen.findByRole('heading', { name: '伤害计算' })).toBeTruthy();
     await user.click(screen.getByRole('button', { name: /从队伍选择/ }));
-    await user.click(screen.getByRole('button', { name: /烈咬陆鲨/ }));
-    const garchompElements = screen.getAllByText(/烈咬陆鲨/);
-    expect(garchompElements.length).toBeGreaterThanOrEqual(1);
+    await user.click(screen.getByRole('button', { name: /伦琴猫/ }));
+    const luxrayElements = screen.getAllByText(/伦琴猫/);
+    expect(luxrayElements.length).toBeGreaterThanOrEqual(1);
 
     // Expand the attacker config and edit SP
     const editBtns = screen.getAllByTitle('编辑 SP/能力配置');
@@ -744,7 +747,7 @@ describe('App page flows', () => {
     await openDefaultTeam(user);
 
     // Expand member again — the team page is functional
-    await user.click(screen.getByText('烈咬陆鲨'));
+    await user.click(screen.getByText('伦琴猫'));
     expect(screen.getByText('能力值 / SP')).toBeTruthy();
     expect(screen.getByText(/已用 65\/66/)).toBeTruthy();
     expect(screen.queryByText(/已用 76\/66/)).toBeNull();
@@ -765,8 +768,8 @@ describe('App page flows', () => {
     expect(selector).toBeTruthy();
 
     await user.click(within(selector as HTMLElement).getByRole('button', { name: /从队伍选择/ }));
-    const garchompBtn = within(selector as HTMLElement).getByRole('button', { name: /烈咬陆鲨/ });
-    await user.click(garchompBtn);
+    const luxrayBtn = within(selector as HTMLElement).getByRole('button', { name: /伦琴猫/ });
+    await user.click(luxrayBtn);
     await user.type(screen.getByPlaceholderText('搜索名称'), 'Torkoal');
     await user.click(within(selector as HTMLElement).getByText('煤炭龟'));
 

@@ -12,6 +12,7 @@ test-results
 playwright-report
 .superpowers/
 tmp/
+.wrangler/
 docs/
 CLAUDE.md
 

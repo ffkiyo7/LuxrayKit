@@ -8,13 +8,13 @@ describe('team image generation', () => {
 
     expect(slots).toHaveLength(6);
     expect(slots[0]).toMatchObject({
-      pokemonName: '烈咬陆鲨',
-      itemName: '无道具',
+      pokemonName: '伦琴猫',
+      itemName: '磁铁',
       nature: '爽朗',
     });
-    expect(slots[0].types).toContain('Dragon');
-    expect(slots[0].moveNames).toContain('地震');
-    expect(slots[1].pokemonName).toBe('炽焰咆哮虎');
+    expect(slots[0].types).toContain('Electric');
+    expect(slots[0].moveNames).toContain('疯狂伏特');
+    expect(slots[1].pokemonName).toBe('空位');
   });
 
   it('creates a downloadable image data URL containing the team title and generated timestamp', () => {
@@ -24,13 +24,13 @@ describe('team image generation', () => {
     });
     const svg = decodeURIComponent(image.dataUrl.replace('data:image/svg+xml;charset=utf-8,', ''));
 
-    expect(image.filename).toBe('luxraykit-team-m-a-2026-06-03.svg');
+    expect(image.filename).toBe('luxraykit-team-luxray-test-2026-06-03.svg');
     expect(svg).toContain('<svg');
-    expect(svg).toContain('M-A 测试队');
+    expect(svg).toContain('Luxray test');
     expect(svg).toContain('LuxrayKit');
     expect(svg).toContain('生成时间 2026-06-03 12:34');
-    expect(svg).toContain('炽焰咆哮虎');
-    expect(svg).toContain('文柚果');
+    expect(svg).toContain('伦琴猫');
+    expect(svg).toContain('磁铁');
   });
 
   it('embeds local artwork and item assets before creating the preview image', async () => {

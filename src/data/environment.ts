@@ -21,6 +21,7 @@ export type {
   EnvironmentTeamSlot,
 };
 
+export const WORKER_ENVIRONMENT_SNAPSHOT_URL = '/api/environment/latest';
 export const POKEDB_ENVIRONMENT_SNAPSHOT_URL = '/data/pokedb/reg-ma-s1-environment.json';
 
 export type PokeDbEnvironmentSnapshotPayload = {
@@ -53,7 +54,6 @@ const expectedEnvironmentMetadata = {
 };
 
 const pokemonKeyToId = createPokeDbPokemonKeyMap(regMaPokemonAllowlist, pokemon);
-const pokemonNameById = Object.fromEntries(pokemon.map((entry) => [entry.id, entry.chineseName]));
 
 const auditDataset = (dataset: EnvironmentDataset) => auditEnvironmentDataset(dataset, environmentCatalog, expectedEnvironmentMetadata);
 
@@ -103,7 +103,6 @@ export const createPokeDbEnvironmentDatasetFromSnapshot = (snapshot: PokeDbEnvir
     dataVersionId: currentDataVersion.id,
     retrievedAt: snapshot.retrievedAt,
     pokemonKeyToId,
-    pokemonNameById,
     itemNameToId: pokedbItemNameToId,
     itemIds: items.map((item) => item.id),
     battles: snapshot.battles,
@@ -118,18 +117,29 @@ export const createEnvironmentStateFromPokeDbSnapshot = (snapshot: PokeDbEnviron
   return hasUsablePokeDbUsage ? state : environmentFallbackState;
 };
 
+const fetchEnvironmentSnapshot = async (fetcher: typeof fetch, url: string, cache: RequestCache): Promise<PokeDbEnvironmentSnapshotPayload> => {
+  const response = await fetcher(url, {
+    cache,
+    headers: { Accept: 'application/json' },
+  });
+  if (!response.ok) throw new Error(`Failed to load environment snapshot: ${response.status}`);
+  return (await response.json()) as PokeDbEnvironmentSnapshotPayload;
+};
+
 export const loadEnvironmentState = async (
   fetcher: typeof fetch | undefined = typeof fetch === 'function' ? fetch : undefined,
 ): Promise<EnvironmentState> => {
   if (!fetcher) return environmentFallbackState;
 
   try {
-    const response = await fetcher(POKEDB_ENVIRONMENT_SNAPSHOT_URL, {
-      cache: 'force-cache',
-      headers: { Accept: 'application/json' },
-    });
-    if (!response.ok) throw new Error(`Failed to load environment snapshot: ${response.status}`);
-    const snapshot = (await response.json()) as PokeDbEnvironmentSnapshotPayload;
+    const snapshot = await fetchEnvironmentSnapshot(fetcher, WORKER_ENVIRONMENT_SNAPSHOT_URL, 'no-store');
+    return createEnvironmentStateFromPokeDbSnapshot(snapshot);
+  } catch {
+    // Static deployments and offline installs can keep using the bundled maintenance snapshot.
+  }
+
+  try {
+    const snapshot = await fetchEnvironmentSnapshot(fetcher, POKEDB_ENVIRONMENT_SNAPSHOT_URL, 'force-cache');
     return createEnvironmentStateFromPokeDbSnapshot(snapshot);
   } catch {
     return environmentFallbackState;

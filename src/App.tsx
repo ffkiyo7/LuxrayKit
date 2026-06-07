@@ -5,6 +5,7 @@ import { Header } from './components/Header';
 import { Button } from './components/ui';
 import { productName } from './branding';
 import type { EnvironmentState, EnvironmentTeamSample } from './data/environment';
+import { useAutoHideBottomNav } from './hooks/useAutoHideBottomNav';
 import { AppProvider, useAppStore } from './state/AppContext';
 import type { Team } from './types';
 import type { ToolView } from './pages/ToolsPage';
@@ -47,7 +48,7 @@ function ImportCoverageNoticeDialog({
   onContinue: () => void;
 }) {
   return (
-    <div className="fixed inset-0 z-50 mx-auto max-w-[430px]" role="dialog" aria-label="导入配置提示" aria-modal="true">
+    <div className="fixed inset-0 z-50 mx-auto max-w-[430px]" role="dialog" aria-label="导入配置提示" aria-modal="true" data-bottom-nav-lock="true">
       <button className="absolute inset-0 h-full w-full bg-black/70" type="button" aria-label="关闭导入配置提示" onClick={onCancel} />
       <section className="surface-shadow absolute inset-x-4 top-1/2 -translate-y-1/2 rounded-xl border border-border bg-card p-4">
         <h2 className="text-base font-semibold">导入配置提示</h2>
@@ -111,6 +112,11 @@ function AppShell() {
   const { loading, teams, preferences, replacePreferences, saveTeam } = useAppStore();
 
   const activeTeam = teams.find((team) => team.id === activeTeamId) ?? teams[0];
+  const bottomNavAutoHideEnabled = !overlay && (activeTab === 'environment' || (activeTab === 'tools' && toolView === 'dex'));
+  const bottomNavAutoHide = useAutoHideBottomNav({
+    enabled: bottomNavAutoHideEnabled,
+    lock: Boolean(pendingImportSample),
+  });
 
   useEffect(() => {
     if (teams.length === 0) {
@@ -280,7 +286,7 @@ function AppShell() {
           }}
         />
       )}
-      {!overlay && <BottomNav activeTab={activeTab} tabs={tabs} onChange={setActiveTab} />}
+      {!overlay && <BottomNav activeTab={activeTab} tabs={tabs} onChange={setActiveTab} hidden={bottomNavAutoHide.hidden} />}
     </main>
   );
 }
