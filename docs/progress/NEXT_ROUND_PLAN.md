@@ -12,7 +12,7 @@
   1. `opendata/s2_*_ranked_teams.json` **404**（PokeDB 没公开当季聚合榜 JSON）。
   2. `trainer/list?season=2` 的**队伍阵容被刻意隐藏**（防抄队）：M-2 进行中，每行只有名字+评分，阵容位是 `none.png` 占位；M-1 已结束才放出完整阵容。所以从 roster 拆队伍这条路**当季拿不到任何数据**。
 - **真正的当季数据源：PokeDB 自己聚合好的「统计页」**（不暴露任何人具体队伍，故不受防抄队隐藏，M-2 完整可用，已逐项实测）：
-  - 排行：`/pokemon/list?season=<S>&rule=<R>` → 213 只按使用率排序（含 rank + key）。单打 `rule=2` / 双打 `rule=1`。
+  - 排行：`/pokemon/list?season=<S>&rule=<R>` → 213 只按使用率排序（含 rank + key）。单打 `rule=0` / 双打 `rule=1`（2026-06-11 实测；旧参数 `rule=2` 会规范化到单打页）。
   - 详情：`/pokemon/show/<key>?season=<S>&rule=<R>` → **道具 %、招式 %、队友、特性 %、性格 %** 全部当季填充（实测 Garchomp M-2：气势头带 37.7% / 地震 99.2% / 鲨鱼肌 99.4% / 爽朗 51.4%）。**含招式**，顺带补掉原 moveStats 缺口。
 - **可导入「上位构筑」样本**：统计页只有聚合 %，给不了某支具体可导入队伍。这块继续用 roster 解析（已结束赛季 M-1 的 `trainer/list` 阵容）或 構築記事（`/article/search`，当季目前仅 ~1 篇，后期会变多）。
 - **已有产物**：Codex 已实现并通过审查的 `trainer/list` roster 解析 + 聚合（`parsePokeDbTrainerListPage` 等）**保留**，由「环境榜聚合」降级为「可导入样本来源」。WIP 在分支 `feat/env-trainer-list-aggregation`。
@@ -37,7 +37,7 @@
 - **目标**：环境榜（排行 + 道具 + 招式 + 队友 + 特性/性格）从 PokeDB 统计页实时聚合当季（M-2）数据；可导入「上位构筑」样本走 roster/構築記事。
 - **涉及文件**：`cloudflare/environment-worker/src/index.ts`（取数/赛季/throttle/KV）、`src/lib/pokedbEnvironment.ts`（新增统计页解析 + 复用 roster 解析）、`src/data/environment.ts`（快照结构判别已支持新格式，按需扩展招式/特性字段）。
 - **改动要点**：
-  - **排行**：抓 `/pokemon/list?season=<S>&rule=<R>`（单打 `rule=2` / 双打 `rule=1`）→ 解析出有序宝可梦列表（rank + pokeDbKey → 经 allowlist 映射到本地 id）。复用已实现的 `detectLatestPokeDbSeason` 选当季。
+  - **排行**：抓 `/pokemon/list?season=<S>&rule=<R>`（单打 `rule=0` / 双打 `rule=1`）→ 解析出有序宝可梦列表（rank + pokeDbKey → 经 allowlist 映射到本地 id）。复用已实现的 `detectLatestPokeDbSeason` 选当季。
   - **详情**：对榜单 **top-N**（建议 60–80，长尾只留排名）抓 `/pokemon/show/<key>?season=<S>&rule=<R>`，解析道具 %、**招式 %**、队友、特性 %、性格 %（百分比 PokeDB 已算好，直接读）。映射进 `EnvironmentPokemonUsage`（含 `moveStats` / `itemStats` / `teammateStats`）。
   - **节流**：详情页是 N 次请求（top-N × 单双打）。沿用 250ms 间隔 + 礼貌 UA；给 top-N 和总页数一个硬上限，避免子请求/CPU 超限（Workers scheduled 限额）。
   - **样本（保留 roster 路径）**：`parsePokeDbTrainerListPage` / `parsePokeDbTrainerSamples` 不动，用来出可导入 `teamSamples`——已结束赛季（M-1 阵容已公开）或 構築記事；当季 roster 为空时样本可空，不影响排行。

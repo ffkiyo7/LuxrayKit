@@ -33,12 +33,12 @@ const toAbsoluteHttpUrl = (value, baseUrl) => {
 
 export const pokeDbRuleParamByBattleType = Object.freeze({
   doubles: 1,
-  singles: 2,
+  singles: 0,
 });
 
 export function getPokeDbRuleParam(battleType) {
   const rule = pokeDbRuleParamByBattleType[battleType];
-  if (!rule) throw new Error(`Unsupported PokeDB battle type: ${battleType}`);
+  if (rule === undefined) throw new Error(`Unsupported PokeDB battle type: ${battleType}`);
   return rule;
 }
 

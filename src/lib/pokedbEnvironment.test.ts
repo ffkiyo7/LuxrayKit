@@ -2,11 +2,15 @@ import { describe, expect, it } from 'vitest';
 import { currentDataVersion, currentRuleSet, items, pokemon, regMaPokemonAllowlist } from '../data';
 import {
   buildEnvironmentDatasetFromPokeDbOpenData,
+  buildEnvironmentDatasetFromPokeDbStatistics,
   buildEnvironmentDatasetFromPokeDbTrainerLists,
   createPokeDbPokemonKeyMap,
+  parsePokeDbPokemonDetailPage,
+  parsePokeDbPokemonListPage,
   parsePokeDbTrainerListPage,
   parsePokeDbTrainerSamples,
   type PokeDbRankedTeamsPayload,
+  type PokeDbPokemonStatisticsPayload,
   type PokeDbTrainerListPayload,
 } from './pokedbEnvironment';
 
@@ -87,6 +91,74 @@ describe('PokeDB environment ingestion', () => {
     expect(pokemonKeyToId['0903-00']).toBe('sneasler');
   });
 
+  it('parses ordered Pokemon rankings from the current statistics list page', () => {
+    const html = `
+      <title>ポケモン使用率ランキング シーズンM-2（シングルバトル）</title>
+      <select name="season"><option value="2" selected>シーズンM-2</option></select>
+      <span class="tag is-light is-info">更新日</span><span class="tag is-light">2026/6/10 23:58</span>
+      <a href="/pokemon/show/0445-00?season=2&amp;rule=0" class="list-pokemon button is-fullwidth">
+        <div class="pokemon-rank is-family-monospace">1</div>
+        <div class="pokemon-name">ガブリアス</div>
+      </a>
+      <a href="/pokemon/show/1018-00?season=2&amp;rule=0" class="list-pokemon button is-fullwidth">
+        <div class="pokemon-rank is-family-monospace">2</div>
+        <div class="pokemon-name">ブリジュラス</div>
+      </a>
+      <a href="/pokemon/show/9999-00?season=2&amp;rule=0" class="list-pokemon button is-fullwidth">
+        <div class="pokemon-rank is-family-monospace">3</div>
+        <div class="pokemon-name">未知</div>
+      </a>
+    `;
+
+    expect(parsePokeDbPokemonListPage(html, {
+      battleType: 'singles',
+      sourceUrl: 'https://champs.pokedb.tokyo/pokemon/list?season=2&rule=0',
+      pokemonKeyToId,
+    })).toMatchObject({
+      season: 'M-2',
+      seasonNumber: 2,
+      updatedAt: '2026-06-10 23:58:00',
+      resultCount: 3,
+      rankings: [
+        { rank: 1, pokeDbKey: '0445-00', pokemonId: 'garchomp', pokemonName: 'ガブリアス' },
+        { rank: 2, pokeDbKey: '1018-00', pokemonId: 'archaludon', pokemonName: 'ブリジュラス' },
+      ],
+      audit: { unknownPokemonKeys: ['9999-00'] },
+    });
+  });
+
+  it('parses detail statistics for moves, items, teammates, abilities, and natures', () => {
+    const html = `
+      <span data-move-detail="{&quot;move_key&quot;:89,&quot;name&quot;:&quot;じしん&quot;,&quot;rate&quot;:99.2}">じしん</span>
+      <div class="card" x-data="window.usagePieChart([{&quot;ability_key&quot;:24,&quot;name&quot;:&quot;さめはだ&quot;,&quot;rate&quot;:99.4}])"></div>
+      <div class="card" x-data="window.usagePieChart([{&quot;personality_key&quot;:13,&quot;name&quot;:&quot;ようき&quot;,&quot;rate&quot;:51.4}])"></div>
+      <div class="card" x-data="window.usagePieChart([{&quot;item_key&quot;:275,&quot;name&quot;:&quot;きあいのタスキ&quot;,&quot;rate&quot;:37.7}])"></div>
+      <div class="column pokemon-trend__column-same_team">
+        <a class="usage-pokemon-link" href="/pokemon/show/1018-00?season=2&amp;rule=0">ブリジュラス</a>
+        <a class="usage-pokemon-link" href="/pokemon/show/0730-00?season=2&amp;rule=0">アシレーヌ</a>
+      </div>
+      <div class="column pokemon-trend__column-counter"></div>
+    `;
+
+    expect(parsePokeDbPokemonDetailPage(html, {
+      teamCount: 100,
+      pokemonKeyToId,
+      itemNameToId,
+      moveKeyToId: { 89: 'earthquake' },
+      abilityKeyToId: { 24: 'rough-skin' },
+      natureNameToId: { ようき: '爽朗' },
+    })).toMatchObject({
+      moveStats: [{ id: 'earthquake', usageRate: 99.2, teamCount: 99 }],
+      itemStats: [{ id: 'focus-sash', usageRate: 37.7, teamCount: 38 }],
+      teammateStats: [
+        { id: 'archaludon', usageRate: 100, teamCount: 100 },
+        { id: 'primarina', usageRate: 50, teamCount: 50 },
+      ],
+      abilityStats: [{ id: 'rough-skin', usageRate: 99.4, teamCount: 99 }],
+      natureStats: [{ id: '爽朗', usageRate: 51.4, teamCount: 51 }],
+    });
+  });
+
   it('builds audited environment usage from PokeDB public ranked-team JSON', () => {
     const dataset = buildEnvironmentDatasetFromPokeDbOpenData({
       id: 'pokedb-test',
@@ -110,6 +182,7 @@ describe('PokeDB environment ingestion', () => {
     });
 
     expect(dataset.source.kind).toBe('community-snapshot');
+    expect(dataset.overallUsageBasis).toBe('absolute');
     expect(dataset.updatedAt).toBe('2026-06-04T23:08:02.000+09:00');
     expect(dataset.sourceLabel).toContain('PokeDB');
     expect(dataset.battles.singles.pokemonUsage).toEqual([]);
@@ -161,6 +234,37 @@ describe('PokeDB environment ingestion', () => {
         ],
       },
     ]);
+  });
+
+  it('marks Pokemon statistics usage as rank-relative', () => {
+    const payload: PokeDbPokemonStatisticsPayload = {
+      season: 'M-2',
+      seasonNumber: 2,
+      rule: 'singles',
+      updatedAt: '2026-06-10 23:58:00',
+      sourceUrl: 'https://champs.pokedb.tokyo/pokemon/list?season=2&rule=0',
+      resultCount: 213,
+      detailCount: 1,
+      pokemonUsage: [],
+      audit: {
+        unknownPokemonKeys: [],
+        unknownItemNames: [],
+        unknownMoveKeys: [],
+        unknownAbilityKeys: [],
+        unknownNatureNames: [],
+        failedDetailKeys: [],
+      },
+    };
+
+    const dataset = buildEnvironmentDatasetFromPokeDbStatistics({
+      id: 'statistics-test',
+      ruleSetId: currentRuleSet.id,
+      dataVersionId: currentDataVersion.id,
+      retrievedAt: '2026-06-11T09:00:00.000Z',
+      battles: { singles: payload },
+    });
+
+    expect(dataset.overallUsageBasis).toBe('rank-relative');
   });
 
   it('extracts only trainer samples with external report links from PokeDB trainer HTML', () => {
@@ -289,6 +393,7 @@ describe('PokeDB environment ingestion', () => {
     });
 
     expect(dataset.updatedAt).toBe('2026-06-10T23:58:00.000+09:00');
+    expect(dataset.overallUsageBasis).toBe('absolute');
     expect(dataset.sourceLabel).toContain('M-2');
     expect(dataset.battles.doubles.sampleCount).toBe(2);
     expect(dataset.battles.doubles.pokemonUsage.slice(0, 3)).toMatchObject([

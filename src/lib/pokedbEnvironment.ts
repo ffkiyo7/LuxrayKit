@@ -57,6 +57,46 @@ export type PokeDbTrainerListPayload = {
   };
 };
 
+export type PokeDbPokemonRankingEntry = {
+  rank: number;
+  pokeDbKey: string;
+  pokemonId: string;
+  pokemonName: string;
+};
+
+export type PokeDbPokemonStatisticsPayload = {
+  season: string;
+  seasonNumber: number;
+  rule: EnvironmentBattleType;
+  updatedAt: string;
+  sourceUrl: string;
+  resultCount: number;
+  detailCount: number;
+  pokemonUsage: EnvironmentPokemonUsage[];
+  audit: {
+    unknownPokemonKeys: string[];
+    unknownItemNames: string[];
+    unknownMoveKeys: number[];
+    unknownAbilityKeys: number[];
+    unknownNatureNames: string[];
+    failedDetailKeys: string[];
+  };
+};
+
+export type PokeDbPokemonListPayload = Omit<PokeDbPokemonStatisticsPayload, 'detailCount' | 'pokemonUsage' | 'audit'> & {
+  rankings: PokeDbPokemonRankingEntry[];
+  audit: Pick<PokeDbPokemonStatisticsPayload['audit'], 'unknownPokemonKeys'>;
+};
+
+export type PokeDbPokemonDetailPayload = {
+  moveStats: EnvironmentReferenceUsage[];
+  itemStats: EnvironmentReferenceUsage[];
+  teammateStats: EnvironmentReferenceUsage[];
+  abilityStats: EnvironmentReferenceUsage[];
+  natureStats: EnvironmentReferenceUsage[];
+  audit: Omit<PokeDbPokemonStatisticsPayload['audit'], 'unknownPokemonKeys' | 'failedDetailKeys'>;
+};
+
 const battleTypes = ['singles', 'doubles'] as const satisfies EnvironmentBattleType[];
 
 const normalizeName = (value: string) =>
@@ -109,6 +149,28 @@ const normalizePokeDbTimestamp = (value: string | undefined) => {
   return `${match[1]}T${match[2]}:${match[3] ?? '00'}.000+09:00`;
 };
 
+const parsePokeDbPageMetadata = (html: string, sourceUrl: string) => {
+  const titleSeason = decodeHtml(html.match(/<title>[\s\S]*?シーズン(M-\d+)/)?.[1] ?? '');
+  const selectedSeason = Number(
+    html.match(/<option\s+value="(\d+)"[^>]*selected/)?.[1] ??
+      new URL(sourceUrl).searchParams.get('season') ??
+      0,
+  );
+  const rawUpdatedText = decodeHtml(
+    html.match(/更新日<\/span>\s*<span class="tag is-light">([^<]+)</)?.[1] ?? '',
+  );
+  const updatedParts = rawUpdatedText.match(/^(\d{4})[/-](\d{1,2})[/-](\d{1,2})\s+(\d{2}:\d{2})$/);
+  const updatedText = updatedParts
+    ? `${updatedParts[1]}-${updatedParts[2].padStart(2, '0')}-${updatedParts[3].padStart(2, '0')} ${updatedParts[4]}`
+    : rawUpdatedText.replace(/\//g, '-');
+
+  return {
+    season: titleSeason || (selectedSeason > 0 ? `M-${selectedSeason}` : 'unknown'),
+    seasonNumber: selectedSeason,
+    updatedAt: /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(updatedText) ? `${updatedText}:00` : updatedText,
+  };
+};
+
 const latestTimestamp = (values: string[]) =>
   values
     .map((value) => normalizePokeDbTimestamp(value))
@@ -124,6 +186,43 @@ const normalizeItemId = (itemName: string, itemNameToId: Record<string, string>,
   if (!itemId || (itemIds && !itemIds.has(itemId))) return undefined;
   return itemId;
 };
+
+const approximateCount = (usageRate: number, teamCount: number) =>
+  usageRate > 0 ? Math.max(1, Math.round((usageRate / 100) * teamCount)) : 0;
+
+const rankPercentile = (rank: number, total: number) =>
+  Math.round(((Math.max(total - rank + 1, 1) / Math.max(total, 1)) * 100) * 10) / 10;
+
+const parseUsagePieCharts = (html: string) => {
+  const charts: Array<Array<Record<string, unknown>>> = [];
+  for (const match of html.matchAll(/usagePieChart\((\[.*?\])\)/g)) {
+    try {
+      charts.push(JSON.parse(decodeHtml(match[1])) as Array<Record<string, unknown>>);
+    } catch {
+      // Ignore malformed chart data while preserving the other detail sections.
+    }
+  }
+  return charts;
+};
+
+const mappedStats = (
+  rows: Array<Record<string, unknown>>,
+  keyField: string,
+  idByKey: Record<string | number, string>,
+  teamCount: number,
+  unknownKeys: Set<string | number>,
+) =>
+  rows.flatMap((row) => {
+    const key = row[keyField] as string | number | undefined;
+    const usageRate = Number(row.rate);
+    const id = key === undefined ? undefined : idByKey[key];
+    if (!id) {
+      if (key !== undefined) unknownKeys.add(key);
+      return [];
+    }
+    if (!Number.isFinite(usageRate) || usageRate < 0 || usageRate > 100) return [];
+    return [{ id, usageRate, teamCount: approximateCount(usageRate, teamCount) }];
+  });
 
 const convertSlot = (
   slot: Pick<PokeDbRankedTeamSlot, 'id' | 'item'>,
@@ -362,6 +461,7 @@ function buildEnvironmentDatasetFromTrainerPayloads(options: {
     id: options.id,
     ruleSetId: options.ruleSetId,
     dataVersionId: options.dataVersionId,
+    overallUsageBasis: 'absolute',
     sourceLabel: `PokeDB · ${firstPayload?.season ?? 'unknown season'} · 上位构筑快照`,
     statusLabel: '上位构筑快照',
     updatedAt,
@@ -433,6 +533,183 @@ export function buildEnvironmentDatasetFromPokeDbTrainerLists(options: {
   return buildEnvironmentDatasetFromTrainerPayloads(options);
 }
 
+export function buildEnvironmentDatasetFromPokeDbStatistics(options: {
+  id: string;
+  ruleSetId: string;
+  dataVersionId: string;
+  retrievedAt: string;
+  battles: Partial<Record<EnvironmentBattleType, PokeDbPokemonStatisticsPayload>>;
+  teamSamples?: Partial<Record<EnvironmentBattleType, EnvironmentTeamSample[]>>;
+}): EnvironmentDataset {
+  const firstPayload = battleTypes.map((battleType) => options.battles[battleType]).find(Boolean);
+  const updatedAt =
+    latestTimestamp(battleTypes.map((battleType) => options.battles[battleType]?.updatedAt ?? '')) ?? options.retrievedAt;
+  const battles = battleTypes.reduce((acc, battleType) => {
+    const payload = options.battles[battleType];
+    acc[battleType] = {
+      pokemonUsage: payload?.pokemonUsage ?? [],
+      ...(payload ? { sampleCount: payload.resultCount } : {}),
+      teamSamples: (options.teamSamples?.[battleType] ?? []).map((sample) =>
+        normalizeTeamSampleTitle(sample, payload?.season),
+      ),
+    };
+    return acc;
+  }, {} as Record<EnvironmentBattleType, EnvironmentBattleDataset>);
+
+  return {
+    id: options.id,
+    ruleSetId: options.ruleSetId,
+    dataVersionId: options.dataVersionId,
+    overallUsageBasis: 'rank-relative',
+    sourceLabel: `PokeDB · ${firstPayload?.season ?? 'unknown season'} · 宝可梦使用率统计`,
+    statusLabel: '当季聚合统计',
+    updatedAt,
+    source: {
+      kind: 'community-snapshot',
+      name: 'PokeDB Pokemon statistics',
+      url: firstPayload?.sourceUrl ?? 'https://champs.pokedb.tokyo/pokemon/list',
+      retrievedAt: options.retrievedAt,
+      notes:
+        'Server-side snapshot of PokeDB Pokemon ranking and detail statistics. Rank percentiles are used where PokeDB does not publish an absolute usage percentage.',
+    },
+    battles,
+  };
+}
+
+export function parsePokeDbPokemonListPage(
+  html: string,
+  options: {
+    battleType: EnvironmentBattleType;
+    sourceUrl: string;
+    pokemonKeyToId: Record<string, string>;
+  },
+): PokeDbPokemonListPayload {
+  const metadata = parsePokeDbPageMetadata(html, options.sourceUrl);
+  const unknownPokemonKeys = new Set<string>();
+  const rankingMatches = [...html.matchAll(
+    /<a[^>]+href="\/pokemon\/show\/([^"?]+)\?[^"]*"[^>]*class="[^"]*\blist-pokemon\b[^"]*"[^>]*>[\s\S]*?<div class="pokemon-rank[^"]*">\s*(\d+)\s*<\/div>[\s\S]*?<div class="pokemon-name">\s*([^<]+?)\s*<\/div>[\s\S]*?<\/a>/g,
+  )];
+  const rankings = rankingMatches.flatMap((match) => {
+    const pokeDbKey = match[1];
+    const pokemonId = options.pokemonKeyToId[pokeDbKey];
+    if (!pokemonId) {
+      unknownPokemonKeys.add(pokeDbKey);
+      return [];
+    }
+    return [{
+      rank: Number(match[2]),
+      pokeDbKey,
+      pokemonId,
+      pokemonName: decodeHtml(match[3]),
+    }];
+  });
+
+  if (rankings.length === 0) {
+    throw new Error(`${options.battleType} Pokemon ranking page contained no mapped Pokemon`);
+  }
+
+  return {
+    ...metadata,
+    rule: options.battleType,
+    sourceUrl: options.sourceUrl,
+    resultCount: Math.max(rankingMatches.length, ...rankingMatches.map((match) => Number(match[2]))),
+    rankings,
+    audit: { unknownPokemonKeys: [...unknownPokemonKeys].sort() },
+  };
+}
+
+export function parsePokeDbPokemonDetailPage(
+  html: string,
+  options: {
+    teamCount: number;
+    pokemonKeyToId: Record<string, string>;
+    itemNameToId: Record<string, string>;
+    moveKeyToId: Record<number, string>;
+    abilityKeyToId: Record<number, string>;
+    natureNameToId: Record<string, string>;
+  },
+): PokeDbPokemonDetailPayload {
+  const unknownMoveKeys = new Set<number>();
+  const unknownItemNames = new Set<string>();
+  const unknownAbilityKeys = new Set<number>();
+  const unknownNatureNames = new Set<string>();
+  const charts = parseUsagePieCharts(html);
+  const abilityRows = charts.find((rows) => rows.some((row) => 'ability_key' in row)) ?? [];
+  const natureRows = charts.find((rows) => rows.some((row) => 'personality_key' in row)) ?? [];
+  const itemRows = charts.find((rows) => rows.some((row) => 'item_key' in row)) ?? [];
+  const abilityStats = mappedStats(
+    abilityRows,
+    'ability_key',
+    options.abilityKeyToId,
+    options.teamCount,
+    unknownAbilityKeys,
+  );
+  const natureStats = natureRows.flatMap((row) => {
+    const name = String(row.name ?? '');
+    const id = options.natureNameToId[name];
+    const usageRate = Number(row.rate);
+    if (!id) {
+      if (name) unknownNatureNames.add(name);
+      return [];
+    }
+    if (!Number.isFinite(usageRate) || usageRate < 0 || usageRate > 100) return [];
+    return [{ id, usageRate, teamCount: approximateCount(usageRate, options.teamCount) }];
+  });
+  const itemStats = itemRows.flatMap((row) => {
+    const name = String(row.name ?? '');
+    const id = options.itemNameToId[name];
+    const usageRate = Number(row.rate);
+    if (!id) {
+      if (name) unknownItemNames.add(name);
+      return [];
+    }
+    if (!Number.isFinite(usageRate) || usageRate < 0 || usageRate > 100) return [];
+    return [{ id, usageRate, teamCount: approximateCount(usageRate, options.teamCount) }];
+  });
+  const moveStats = [...html.matchAll(/data-move-detail="([^"]+)"/g)].flatMap((match) => {
+    try {
+      const detail = JSON.parse(decodeHtml(match[1])) as { move_key?: number; rate?: number };
+      const key = Number(detail.move_key);
+      const id = options.moveKeyToId[key];
+      const usageRate = Number(detail.rate);
+      if (!id) {
+        if (Number.isInteger(key)) unknownMoveKeys.add(key);
+        return [];
+      }
+      if (!Number.isFinite(usageRate) || usageRate < 0 || usageRate > 100) return [];
+      return [{ id, usageRate, teamCount: approximateCount(usageRate, options.teamCount) }];
+    } catch {
+      return [];
+    }
+  }).slice(0, 10);
+
+  const sameTeamSection = html.match(
+    /pokemon-trend__column-same_team[\s\S]*?(?=<div class="column[^"]*pokemon-trend__column-|<\/section>)/,
+  )?.[0] ?? '';
+  const teammateKeys = [...sameTeamSection.matchAll(/class="usage-pokemon-link"[^>]+href="\/pokemon\/show\/([^"?]+)/g)]
+    .map((match) => match[1]);
+  const teammateStats = teammateKeys.flatMap((key, index) => {
+    const id = options.pokemonKeyToId[key];
+    if (!id) return [];
+    const usageRate = rankPercentile(index + 1, teammateKeys.length);
+    return [{ id, usageRate, teamCount: approximateCount(usageRate, options.teamCount) }];
+  });
+
+  return {
+    moveStats,
+    itemStats,
+    teammateStats,
+    abilityStats,
+    natureStats,
+    audit: {
+      unknownItemNames: [...unknownItemNames].sort(),
+      unknownMoveKeys: [...unknownMoveKeys].sort((a, b) => a - b),
+      unknownAbilityKeys: [...unknownAbilityKeys].sort((a, b) => a - b),
+      unknownNatureNames: [...unknownNatureNames].sort(),
+    },
+  };
+}
+
 export function parsePokeDbTrainerListPage(
   html: string,
   options: {
@@ -442,23 +719,7 @@ export function parsePokeDbTrainerListPage(
     itemNameToId: Record<string, string>;
   },
 ): PokeDbTrainerListPayload {
-  const titleSeason = decodeHtml(html.match(/<title>[\s\S]*?シーズン(M-\d+)/)?.[1] ?? '');
-  const selectedSeason = Number(
-    html.match(/<option\s+value="(\d+)"[^>]*selected/)?.[1] ??
-      new URL(options.sourceUrl).searchParams.get('season') ??
-      0,
-  );
-  const season = titleSeason || (selectedSeason > 0 ? `M-${selectedSeason}` : 'unknown');
-  const rawUpdatedText = decodeHtml(
-    html.match(/更新日<\/span>\s*<span class="tag is-light">([^<]+)</)?.[1] ?? '',
-  );
-  const updatedParts = rawUpdatedText.match(/^(\d{4})[/-](\d{1,2})[/-](\d{1,2})\s+(\d{2}:\d{2})$/);
-  const updatedText = updatedParts
-    ? `${updatedParts[1]}-${updatedParts[2].padStart(2, '0')}-${updatedParts[3].padStart(2, '0')} ${updatedParts[4]}`
-    : rawUpdatedText.replace(/\//g, '-');
-  const updatedAt = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(updatedText)
-    ? `${updatedText}:00`
-    : updatedText;
+  const metadata = parsePokeDbPageMetadata(html, options.sourceUrl);
   const resultCount = Number(
     decodeHtml(html.match(/検索結果<\/span>\s*<span class="tag is-light">([^<]+)</)?.[1] ?? '').replace(/\D/g, ''),
   );
@@ -517,10 +778,10 @@ export function parsePokeDbTrainerListPage(
     .filter((team): team is PokeDbTrainerTeam => Boolean(team));
 
   return {
-    season,
-    seasonNumber: selectedSeason,
+    season: metadata.season,
+    seasonNumber: metadata.seasonNumber,
     rule: options.battleType,
-    updatedAt,
+    updatedAt: metadata.updatedAt,
     sourceUrl: options.sourceUrl,
     resultCount: Number.isInteger(resultCount) ? resultCount : articles.length,
     pageCount,

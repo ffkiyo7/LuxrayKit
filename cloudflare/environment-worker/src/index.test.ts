@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { detectLatestPokeDbSeason, fetchTrainerBattlePages, refreshSnapshot } from './index';
+import { detectLatestPokeDbSeason, fetchPokemonStatisticsBattle, fetchTrainerBattlePages, refreshSnapshot } from './index';
 
 const pageHtml = (options: {
   season?: number;
@@ -47,11 +47,97 @@ const pageHtml = (options: {
 };
 
 describe('environment Worker PokeDB ingestion', () => {
-  it('detects the latest season from the trainer-list season selector', async () => {
-    const fetcher = vi.fn(async () => new Response(pageHtml({ page: 1 }), { status: 200 }));
+  it('detects the latest season from the Pokemon-list season selector', async () => {
+    const fetcher = vi.fn(async (_input: string | URL | Request) => new Response(pageHtml({ page: 1 }), { status: 200 }));
 
     await expect(detectLatestPokeDbSeason('https://example.com', fetcher)).resolves.toBe(2);
     expect(fetcher).toHaveBeenCalledOnce();
+    expect(String(fetcher.mock.calls[0][0])).toBe('https://example.com/pokemon/list?rule=0');
+  });
+
+  it('fetches only top-N detail pages and throttles each request after the first', async () => {
+    const listHtml = `
+      <title>ポケモン使用率ランキング シーズンM-2（シングルバトル）</title>
+      <select><option value="2" selected>シーズンM-2</option></select>
+      <span>更新日</span><span class="tag is-light">2026/6/10 23:58</span>
+      <a href="/pokemon/show/0445-00?season=2&amp;rule=0" class="list-pokemon button">
+        <div class="pokemon-rank">1</div><div class="pokemon-name">ガブリアス</div>
+      </a>
+      <a href="/pokemon/show/0006-00?season=2&amp;rule=0" class="list-pokemon button">
+        <div class="pokemon-rank">2</div><div class="pokemon-name">リザードン</div>
+      </a>
+      <a href="/pokemon/show/0730-00?season=2&amp;rule=0" class="list-pokemon button">
+        <div class="pokemon-rank">3</div><div class="pokemon-name">アシレーヌ</div>
+      </a>
+    `;
+    const detailHtml = `
+      <span data-move-detail="{&quot;move_key&quot;:89,&quot;rate&quot;:99.2}">じしん</span>
+      <div x-data="window.usagePieChart([{&quot;item_key&quot;:275,&quot;name&quot;:&quot;きあいのタスキ&quot;,&quot;rate&quot;:37.7}])"></div>
+    `;
+    const fetcher = vi.fn(async (input: string | URL | Request) =>
+      new Response(new URL(String(input)).pathname === '/pokemon/list' ? listHtml : detailHtml, { status: 200 }),
+    );
+    const waits: number[] = [];
+
+    const payload = await fetchPokemonStatisticsBattle({
+      baseUrl: 'https://example.com',
+      season: 2,
+      battleType: 'singles',
+      detailLimit: 2,
+      fetcher,
+      wait: async (milliseconds) => {
+        waits.push(milliseconds);
+      },
+    });
+
+    expect(fetcher).toHaveBeenCalledTimes(3);
+    expect(waits).toEqual([250]);
+    expect(fetcher.mock.calls.map(([input]) => String(input))).toEqual([
+      'https://example.com/pokemon/list?season=2&rule=0',
+      'https://example.com/pokemon/show/0445-00?season=2&rule=0',
+      'https://example.com/pokemon/show/0006-00?season=2&rule=0',
+    ]);
+    expect(payload.detailCount).toBe(2);
+    expect(payload.pokemonUsage[0]).toMatchObject({
+      pokemonId: 'garchomp',
+      usageRate: 100,
+      moveStats: [{ id: 'earthquake', usageRate: 99.2 }],
+      itemStats: [{ id: 'focus-sash', usageRate: 37.7 }],
+    });
+    expect(payload.pokemonUsage[2]).toMatchObject({
+      pokemonId: 'primarina',
+      moveStats: [],
+      itemStats: [],
+    });
+  });
+
+  it('rejects the statistics payload when a top-N detail request fails', async () => {
+    const listHtml = `
+      <title>シーズンM-2</title>
+      <option value="2" selected>M-2</option>
+      <a href="/pokemon/show/0445-00?season=2&amp;rule=0" class="list-pokemon">
+        <div class="pokemon-rank">1</div><div class="pokemon-name">ガブリアス</div>
+      </a>
+      <a href="/pokemon/show/0006-00?season=2&amp;rule=0" class="list-pokemon">
+        <div class="pokemon-rank">2</div><div class="pokemon-name">リザードン</div>
+      </a>
+    `;
+    const fetcher = vi.fn(async (input: string | URL | Request) => {
+      const path = new URL(String(input)).pathname;
+      if (path === '/pokemon/list') return new Response(listHtml, { status: 200 });
+      return path.endsWith('/0006-00')
+        ? new Response('upstream error', { status: 503 })
+        : new Response('<span data-move-detail="{&quot;move_key&quot;:89,&quot;rate&quot;:99.2}"></span>', { status: 200 });
+    });
+
+    await expect(fetchPokemonStatisticsBattle({
+      baseUrl: 'https://example.com',
+      season: 2,
+      battleType: 'singles',
+      detailLimit: 2,
+      fetcher,
+      wait: async () => undefined,
+    })).rejects.toThrow('0006-00');
   });
 
   it('fetches every trainer-list page and merges parsed teams', async () => {

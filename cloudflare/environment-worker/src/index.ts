@@ -1,21 +1,28 @@
 import { pokedbItemNameToId } from '../../../src/data/external/pokedbItemNameMap';
+import { pokedbAbilityKeyToId, pokedbMoveKeyToId } from '../../../src/data/external/pokedbResourceKeyMap';
 import { regMaPokemonAllowlist } from '../../../src/data/seed/regMA/allowlist';
 import { pokemon } from '../../../src/data/seed/regMA/catalog';
 import {
+  parsePokeDbPokemonDetailPage,
+  parsePokeDbPokemonListPage,
   parsePokeDbTrainerListPage,
+  type PokeDbPokemonStatisticsPayload,
   type PokeDbTrainerListPayload,
   type PokeDbTrainerTeam,
 } from '../../../src/lib/pokedbEnvironment';
+import type { EnvironmentPokemonUsage, EnvironmentTeamSample } from '../../../src/lib/environmentDataset';
 
 type BattleType = 'singles' | 'doubles';
 
 type EnvironmentSnapshot = {
   retrievedAt: string;
-  battles: Partial<Record<BattleType, PokeDbTrainerListPayload>>;
+  battles: Partial<Record<BattleType, PokeDbPokemonStatisticsPayload>>;
+  teamSamples?: Partial<Record<BattleType, EnvironmentTeamSample[]>>;
   dataFreshness?: {
-    source: 'pokedb-trainer-list';
+    source: 'pokedb-pokemon-statistics';
     selectedSeason: number;
-    completeness: 'trainer-list-complete';
+    completeness: 'rankings-complete-details-top-n';
+    detailLimit: number;
     notes: string;
   };
 };
@@ -49,6 +56,7 @@ type CacheStatus = {
 
 type AppEnv = Env & {
   ADMIN_REFRESH_TOKEN?: string;
+  POKEDB_DETAIL_LIMIT?: string;
 };
 
 const SNAPSHOT_KEY = 'environment:latest';
@@ -58,6 +66,8 @@ const DEFAULT_POKEDB_BASE_URL = 'https://champs.pokedb.tokyo';
 const DEFAULT_MAX_CACHE_AGE_SECONDS = 6 * 60 * 60;
 const DEFAULT_TEAM_LIMIT = 24;
 const MAX_TEAM_LIMIT = 50;
+const DEFAULT_DETAIL_LIMIT = 60;
+const MAX_DETAIL_LIMIT = 80;
 const PAGE_REQUEST_DELAY_MS = 250;
 const POKEDB_USER_AGENT = 'LuxrayKitEnvironmentWorker/0.2 (+https://luxraykit.com)';
 
@@ -108,8 +118,36 @@ const isFresh = (refreshedAt: string | undefined, maxAgeSeconds: number) => {
 
 const pokeDbRuleParamByBattleType = {
   doubles: 1,
-  singles: 2,
+  singles: 0,
 } satisfies Record<BattleType, number>;
+
+const pokeDbNatureNameToId: Record<string, string> = {
+  さみしがり: '怕寂寞',
+  いじっぱり: '固执',
+  やんちゃ: '顽皮',
+  ゆうかん: '勇敢',
+  ずぶとい: '大胆',
+  わんぱく: '淘气',
+  のうてんき: '乐天',
+  のんき: '悠闲',
+  ひかえめ: '内敛',
+  おっとり: '慢吞吞',
+  うっかりや: '马虎',
+  れいせい: '冷静',
+  おだやか: '温和',
+  おとなしい: '温顺',
+  しんちょう: '慎重',
+  なまいき: '自大',
+  おくびょう: '胆小',
+  せっかち: '急躁',
+  ようき: '爽朗',
+  むじゃき: '天真',
+  てれや: '害羞',
+  がんばりや: '勤奋',
+  すなお: '坦率',
+  きまぐれ: '浮躁',
+  まじめ: '认真',
+};
 
 const trainerListUrl = (baseUrl: string, season: number, battleType: BattleType, page = 1) => {
   const url = new URL('/trainer/list', `${baseUrl.replace(/\/$/, '')}/`);
@@ -117,6 +155,20 @@ const trainerListUrl = (baseUrl: string, season: number, battleType: BattleType,
   url.searchParams.set('rule', String(pokeDbRuleParamByBattleType[battleType]));
   url.searchParams.set('with_team', '1');
   url.searchParams.set('page', String(page));
+  return url.toString();
+};
+
+const pokemonListUrl = (baseUrl: string, season: number, battleType: BattleType) => {
+  const url = new URL('/pokemon/list', `${baseUrl.replace(/\/$/, '')}/`);
+  url.searchParams.set('season', String(season));
+  url.searchParams.set('rule', String(pokeDbRuleParamByBattleType[battleType]));
+  return url.toString();
+};
+
+const pokemonDetailUrl = (baseUrl: string, season: number, battleType: BattleType, pokeDbKey: string) => {
+  const url = new URL(`/pokemon/show/${pokeDbKey}`, `${baseUrl.replace(/\/$/, '')}/`);
+  url.searchParams.set('season', String(season));
+  url.searchParams.set('rule', String(pokeDbRuleParamByBattleType[battleType]));
   return url.toString();
 };
 
@@ -138,13 +190,13 @@ const fetchPokeDbHtml = async (url: string, fetcher: Fetcher) => {
 };
 
 export async function detectLatestPokeDbSeason(baseUrl: string, fetcher: Fetcher = fetch): Promise<number> {
-  const url = `${baseUrl.replace(/\/$/, '')}/trainer/list?rule=${pokeDbRuleParamByBattleType.singles}`;
+  const url = `${baseUrl.replace(/\/$/, '')}/pokemon/list?rule=${pokeDbRuleParamByBattleType.singles}`;
   const html = await fetchPokeDbHtml(url, fetcher);
   const seasons = [...html.matchAll(/<option\s+value="(\d+)"/g)]
     .map((match) => Number(match[1]))
     .filter((season) => Number.isInteger(season) && season > 0);
   if (seasons.length === 0) {
-    throw new Error('PokeDB trainer list did not expose any season options');
+    throw new Error('PokeDB Pokemon list did not expose any season options');
   }
   return Math.max(...seasons);
 }
@@ -212,27 +264,165 @@ export async function fetchTrainerBattlePages(options: {
   };
 }
 
+const mergeUnique = <T extends string | number>(values: T[][]) => [...new Set(values.flat())].sort();
+
+export async function fetchPokemonStatisticsBattle(options: {
+  baseUrl: string;
+  season: number;
+  battleType: BattleType;
+  detailLimit?: number;
+  fetcher?: Fetcher;
+  wait?: (milliseconds: number) => Promise<void>;
+}): Promise<PokeDbPokemonStatisticsPayload> {
+  const fetcher = options.fetcher ?? fetch;
+  const wait = options.wait ?? ((milliseconds: number) => new Promise((resolve) => setTimeout(resolve, milliseconds)));
+  const detailLimit = Math.min(Math.max(options.detailLimit ?? DEFAULT_DETAIL_LIMIT, 1), MAX_DETAIL_LIMIT);
+  const listUrl = pokemonListUrl(options.baseUrl, options.season, options.battleType);
+  const listHtml = await fetchPokeDbHtml(listUrl, fetcher);
+  const list = parsePokeDbPokemonListPage(listHtml, {
+    battleType: options.battleType,
+    sourceUrl: listUrl,
+    pokemonKeyToId: pokemonKeyToIdRecord,
+  });
+  const topRankings = list.rankings.slice(0, detailLimit);
+  const detailByPokemonId = new Map<string, ReturnType<typeof parsePokeDbPokemonDetailPage>>();
+
+  for (const [index, ranking] of topRankings.entries()) {
+    if (index > 0) await wait(PAGE_REQUEST_DELAY_MS);
+    const detailUrl = pokemonDetailUrl(options.baseUrl, options.season, options.battleType, ranking.pokeDbKey);
+    const html = await fetchPokeDbHtml(detailUrl, fetcher);
+    detailByPokemonId.set(
+      ranking.pokemonId,
+      parsePokeDbPokemonDetailPage(html, {
+        teamCount: Math.max(list.resultCount - ranking.rank + 1, 1),
+        pokemonKeyToId: pokemonKeyToIdRecord,
+        itemNameToId: pokedbItemNameToId,
+        moveKeyToId: pokedbMoveKeyToId,
+        abilityKeyToId: pokedbAbilityKeyToId,
+        natureNameToId: pokeDbNatureNameToId,
+      }),
+    );
+  }
+
+  const pokemonUsage: EnvironmentPokemonUsage[] = list.rankings.map((ranking) => {
+    const teamCount = Math.max(list.resultCount - ranking.rank + 1, 1);
+    const detail = detailByPokemonId.get(ranking.pokemonId);
+    return {
+      pokemonId: ranking.pokemonId,
+      usageRate: Math.round(((teamCount / Math.max(list.resultCount, 1)) * 100) * 10) / 10,
+      teamCount,
+      moveIds: detail?.moveStats.map((stat) => stat.id) ?? [],
+      itemIds: detail?.itemStats.map((stat) => stat.id) ?? [],
+      teammateIds: detail?.teammateStats.map((stat) => stat.id) ?? [],
+      abilityIds: detail?.abilityStats.map((stat) => stat.id) ?? [],
+      natureIds: detail?.natureStats.map((stat) => stat.id) ?? [],
+      moveStats: detail?.moveStats ?? [],
+      itemStats: detail?.itemStats ?? [],
+      teammateStats: detail?.teammateStats ?? [],
+      abilityStats: detail?.abilityStats ?? [],
+      natureStats: detail?.natureStats ?? [],
+    };
+  });
+  const details = [...detailByPokemonId.values()];
+
+  return {
+    season: list.season,
+    seasonNumber: list.seasonNumber,
+    rule: options.battleType,
+    updatedAt: list.updatedAt,
+    sourceUrl: list.sourceUrl,
+    resultCount: list.resultCount,
+    detailCount: details.length,
+    pokemonUsage,
+    audit: {
+      unknownPokemonKeys: list.audit.unknownPokemonKeys,
+      unknownItemNames: mergeUnique(details.map((detail) => detail.audit.unknownItemNames)),
+      unknownMoveKeys: mergeUnique(details.map((detail) => detail.audit.unknownMoveKeys)),
+      unknownAbilityKeys: mergeUnique(details.map((detail) => detail.audit.unknownAbilityKeys)),
+      unknownNatureNames: mergeUnique(details.map((detail) => detail.audit.unknownNatureNames)),
+      failedDetailKeys: [],
+    },
+  };
+}
+
+async function fetchPreviousSeasonSamples(options: {
+  baseUrl: string;
+  season: number;
+  battleType: BattleType;
+}): Promise<EnvironmentTeamSample[]> {
+  if (options.season <= 1) return [];
+  const sourceUrl = trainerListUrl(options.baseUrl, options.season - 1, options.battleType, 1);
+  try {
+    const html = await fetchPokeDbHtml(sourceUrl, fetch);
+    const payload = parsePokeDbTrainerListPage(html, {
+      battleType: options.battleType,
+      sourceUrl,
+      pokemonKeyToId: pokemonKeyToIdRecord,
+      itemNameToId: pokedbItemNameToId,
+    });
+    return payload.teams
+      .filter((team): team is PokeDbTrainerTeam & { reportUrl: string } => Boolean(team.reportUrl))
+      .slice(0, DEFAULT_TEAM_LIMIT)
+      .map((team) => ({
+        id: `pokedb-${options.battleType}-rank-${team.rank}`,
+        dataKind: 'external-snapshot',
+        author: team.author,
+        season: payload.season,
+        score: Math.floor(team.ratingValue ?? 0),
+        rank: team.rank,
+        title: `${payload.season} · 最高第 ${team.rank} 名 · ${Math.floor(team.ratingValue ?? 0)} 分`,
+        battleType: options.battleType,
+        reportUrl: team.reportUrl,
+        slots: team.slots,
+      }));
+  } catch (error) {
+    console.log(JSON.stringify({
+      event: 'environment_sample_refresh_failure',
+      battleType: options.battleType,
+      error: error instanceof Error ? error.message : String(error),
+    }));
+    return [];
+  }
+}
+
 async function buildLatestSnapshot(env: AppEnv): Promise<EnvironmentSnapshot> {
   const baseUrl = env.POKEDB_BASE_URL || DEFAULT_POKEDB_BASE_URL;
   const season = await detectLatestPokeDbSeason(baseUrl);
+  const configuredDetailLimit = Number(env.POKEDB_DETAIL_LIMIT ?? DEFAULT_DETAIL_LIMIT);
+  const detailLimit = Number.isInteger(configuredDetailLimit)
+    ? Math.min(Math.max(configuredDetailLimit, 1), MAX_DETAIL_LIMIT)
+    : DEFAULT_DETAIL_LIMIT;
   const [singles, doubles] = await Promise.all([
-    fetchTrainerBattlePages({ baseUrl, season, battleType: 'singles' }),
-    fetchTrainerBattlePages({ baseUrl, season, battleType: 'doubles' }),
+    fetchPokemonStatisticsBattle({ baseUrl, season, battleType: 'singles', detailLimit }),
+    fetchPokemonStatisticsBattle({ baseUrl, season, battleType: 'doubles', detailLimit }),
   ]);
-  const unknownPokemonKeys = [...new Set([...singles.audit.unknownPokemonKeys, ...doubles.audit.unknownPokemonKeys])];
-  const unknownItemNames = [...new Set([...singles.audit.unknownItemNames, ...doubles.audit.unknownItemNames])];
+  const [singlesSamples, doublesSamples] = await Promise.all([
+    fetchPreviousSeasonSamples({ baseUrl, season, battleType: 'singles' }),
+    fetchPreviousSeasonSamples({ baseUrl, season, battleType: 'doubles' }),
+  ]);
+  const unknownPokemonKeys = mergeUnique([singles.audit.unknownPokemonKeys, doubles.audit.unknownPokemonKeys]);
+  const unknownItemNames = mergeUnique([singles.audit.unknownItemNames, doubles.audit.unknownItemNames]);
+  const unknownMoveKeys = mergeUnique([singles.audit.unknownMoveKeys, doubles.audit.unknownMoveKeys]);
+  const unknownAbilityKeys = mergeUnique([singles.audit.unknownAbilityKeys, doubles.audit.unknownAbilityKeys]);
+  const unknownNatureNames = mergeUnique([singles.audit.unknownNatureNames, doubles.audit.unknownNatureNames]);
 
   return {
     retrievedAt: new Date().toISOString(),
     battles: { singles, doubles },
+    teamSamples: { singles: singlesSamples, doubles: doublesSamples },
     dataFreshness: {
-      source: 'pokedb-trainer-list',
+      source: 'pokedb-pokemon-statistics',
       selectedSeason: season,
-      completeness: 'trainer-list-complete',
+      completeness: 'rankings-complete-details-top-n',
+      detailLimit,
       notes: [
-        'Aggregated from complete public PokeDB trainer-list pagination.',
+        `Complete Pokemon rankings with detail statistics for the top ${detailLimit}.`,
+        'Overall and teammate percentages are rank-relative because PokeDB does not publish absolute values for those fields.',
         unknownPokemonKeys.length > 0 ? `Unknown Pokemon keys: ${unknownPokemonKeys.join(', ')}.` : '',
         unknownItemNames.length > 0 ? `Unknown item names: ${unknownItemNames.join(', ')}.` : '',
+        unknownMoveKeys.length > 0 ? `Unknown move keys: ${unknownMoveKeys.join(', ')}.` : '',
+        unknownAbilityKeys.length > 0 ? `Unknown ability keys: ${unknownAbilityKeys.join(', ')}.` : '',
+        unknownNatureNames.length > 0 ? `Unknown nature names: ${unknownNatureNames.join(', ')}.` : '',
       ]
         .filter(Boolean)
         .join(' '),
@@ -258,8 +448,8 @@ export async function refreshSnapshot(
       selectedSeason: snapshot.dataFreshness?.selectedSeason,
       selectedSeasonLabel: snapshot.battles.singles?.season ?? snapshot.battles.doubles?.season,
       teamCounts: {
-        singles: snapshot.battles.singles?.teams.length,
-        doubles: snapshot.battles.doubles?.teams.length,
+        singles: snapshot.battles.singles?.resultCount,
+        doubles: snapshot.battles.doubles?.resultCount,
       },
     };
 
@@ -294,7 +484,7 @@ function normalizeLimit(value: string | null) {
   return Math.min(parsed, MAX_TEAM_LIMIT);
 }
 
-function toTeamSummary(team: PokeDbTrainerTeam): TeamSummary {
+function toTeamSummary(team: Pick<PokeDbTrainerTeam, 'rank' | 'ratingValue' | 'slots'>): TeamSummary {
   return {
     rank: team.rank,
     ratingValue: team.ratingValue,
@@ -311,11 +501,12 @@ function buildTeamIndex(snapshot: EnvironmentSnapshot): TeamIndex {
   const index: TeamIndex = { singles: {}, doubles: {} };
 
   (['singles', 'doubles'] as const).forEach((battleType) => {
-    const payload = snapshot.battles[battleType];
-    if (!payload) return;
-
-    payload.teams.forEach((team) => {
-      const summary = toTeamSummary(team);
+    (snapshot.teamSamples?.[battleType] ?? []).forEach((sample) => {
+      const summary = toTeamSummary({
+        rank: sample.rank ?? 0,
+        ratingValue: sample.score,
+        slots: sample.slots,
+      });
       const uniquePokemonIds = new Set(summary.slots.map((slot) => slot.pokemonId).filter((id): id is string => Boolean(id)));
 
       uniquePokemonIds.forEach((pokemonId) => {
