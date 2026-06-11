@@ -13,7 +13,6 @@ playwright-report
 .superpowers/
 tmp/
 .wrangler/
-docs/
 CLAUDE.md
 
 # Local-only assets (copyrighted / not for redistribution)
