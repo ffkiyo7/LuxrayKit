@@ -34,6 +34,29 @@ export type PokeDbRankedTeamsPayload = {
   teams: PokeDbRankedTeam[];
 };
 
+export type PokeDbTrainerTeam = {
+  rank: number;
+  ratingValue: number | null;
+  author: string;
+  reportUrl?: string;
+  slots: EnvironmentTeamSlot[];
+};
+
+export type PokeDbTrainerListPayload = {
+  season: string;
+  seasonNumber: number;
+  rule: EnvironmentBattleType;
+  updatedAt: string;
+  sourceUrl: string;
+  resultCount: number;
+  pageCount: number;
+  teams: PokeDbTrainerTeam[];
+  audit: {
+    unknownPokemonKeys: string[];
+    unknownItemNames: string[];
+  };
+};
+
 const battleTypes = ['singles', 'doubles'] as const satisfies EnvironmentBattleType[];
 
 const normalizeName = (value: string) =>
@@ -53,6 +76,15 @@ const decodeHtml = (value: string) =>
     .replace(/&gt;/g, '>')
     .trim();
 
+const toAbsoluteHttpUrl = (value: string, baseUrl: string) => {
+  try {
+    const url = new URL(decodeHtml(value), baseUrl);
+    return /^https?:$/.test(url.protocol) ? url.toString() : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
 const toPokeDbPokemonKey = (championsFormId: string) => {
   const [dexNo, formNo = '000'] = championsFormId.split('-');
   return `${dexNo}-${String(Number(formNo)).padStart(2, '0')}`;
@@ -71,9 +103,10 @@ export function createPokeDbPokemonKeyMap(allowlist: EligiblePokemon[], pokemon:
 
 const normalizePokeDbTimestamp = (value: string | undefined) => {
   if (!value) return undefined;
-  const match = value.trim().match(/^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2}:\d{2})$/);
+  const normalized = value.trim().replace(/\//g, '-');
+  const match = normalized.match(/^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2})(?::(\d{2}))?$/);
   if (!match) return value;
-  return `${match[1]}T${match[2]}.000+09:00`;
+  return `${match[1]}T${match[2]}:${match[3] ?? '00'}.000+09:00`;
 };
 
 const latestTimestamp = (values: string[]) =>
@@ -137,32 +170,26 @@ const normalizeTeamSampleTitle = (
   };
 };
 
-const buildRankedTeamSamples = (
-  payload: PokeDbRankedTeamsPayload,
+const buildTrainerTeamSamples = (
+  payload: Pick<PokeDbTrainerListPayload, 'season' | 'teams'>,
   battleType: EnvironmentBattleType,
-  pokemonKeyToId: Record<string, string>,
-  itemNameToId: Record<string, string>,
-  itemIds: Set<string>,
   limit = 24,
 ): EnvironmentTeamSample[] =>
   payload.teams
     .map((team): EnvironmentTeamSample | undefined => {
-      const slots = team.team
-        .map((slot) => convertSlot(slot, pokemonKeyToId, itemNameToId, itemIds))
-        .filter((slot): slot is EnvironmentTeamSlot => Boolean(slot));
-      if (!Number.isInteger(team.rank) || slots.length === 0) return undefined;
+      if (!Number.isInteger(team.rank) || team.slots.length === 0 || !team.reportUrl) return undefined;
 
       const sample = {
         id: `pokedb-${battleType}-rank-${team.rank}`,
         dataKind: 'external-snapshot',
-        author: 'PokeDB Open Data',
+        author: team.author,
         season: payload.season,
-        score: Math.floor(team.rating_value ?? 0),
+        score: Math.floor(team.ratingValue ?? 0),
         rank: team.rank,
         title: '',
         battleType,
-        reportUrl: 'https://champs.pokedb.tokyo/guide/opendata',
-        slots,
+        reportUrl: team.reportUrl,
+        slots: team.slots,
       } satisfies EnvironmentTeamSample;
 
       return normalizeTeamSampleTitle(sample, payload.season);
@@ -194,10 +221,7 @@ const sortedCounterStats = (
 };
 
 const buildUsage = (
-  payload: PokeDbRankedTeamsPayload,
-  pokemonKeyToId: Record<string, string>,
-  itemNameToId: Record<string, string>,
-  itemIds: Set<string>,
+  teams: Array<Pick<PokeDbTrainerTeam, 'slots'>>,
   moveStatsByPokemonId: Record<string, EnvironmentReferenceUsage[]> = {},
 ): EnvironmentPokemonUsage[] => {
   const pokemonCounts = new Map<string, number>();
@@ -208,10 +232,8 @@ const buildUsage = (
   const teammateFirstSeen = new Map<string, Map<string, number>>();
   let seenIndex = 0;
 
-  payload.teams.forEach((team) => {
-    const slots = team.team
-      .map((slot) => convertSlot(slot, pokemonKeyToId, itemNameToId, itemIds))
-      .filter((slot): slot is EnvironmentTeamSlot => Boolean(slot));
+  teams.forEach((team) => {
+    const slots = team.slots;
     const uniquePokemonIds = [...new Set(slots.map((slot) => slot.pokemonId))];
 
     uniquePokemonIds.forEach((pokemonId) => {
@@ -243,7 +265,7 @@ const buildUsage = (
     });
   });
 
-  const teamTotal = Math.max(payload.teams.length, 1);
+  const teamTotal = Math.max(teams.length, 1);
 
   return [...pokemonCounts.entries()]
     .sort((a, b) => b[1] - a[1] || (firstSeen.get(a[0]) ?? 0) - (firstSeen.get(b[0]) ?? 0))
@@ -270,6 +292,92 @@ const buildUsage = (
     });
 };
 
+const convertRankedPayload = (
+  payload: PokeDbRankedTeamsPayload,
+  battleType: EnvironmentBattleType,
+  pokemonKeyToId: Record<string, string>,
+  itemNameToId: Record<string, string>,
+  itemIds: Set<string>,
+): PokeDbTrainerListPayload => ({
+  season: payload.season,
+  seasonNumber: payload.season_number,
+  rule: battleType,
+  updatedAt: payload.updated_at,
+  sourceUrl: 'https://champs.pokedb.tokyo/guide/opendata',
+  resultCount: payload.teams.length,
+  pageCount: 1,
+  teams: payload.teams
+    .map((team): PokeDbTrainerTeam | undefined => {
+      const slots = team.team
+        .map((slot) => convertSlot(slot, pokemonKeyToId, itemNameToId, itemIds))
+        .filter((slot): slot is EnvironmentTeamSlot => Boolean(slot));
+      if (!Number.isInteger(team.rank) || slots.length === 0) return undefined;
+      return {
+        rank: team.rank,
+        ratingValue: team.rating_value,
+        author: 'PokeDB Open Data',
+        reportUrl: 'https://champs.pokedb.tokyo/guide/opendata',
+        slots,
+      };
+    })
+    .filter((team): team is PokeDbTrainerTeam => Boolean(team)),
+  audit: { unknownPokemonKeys: [], unknownItemNames: [] },
+});
+
+function buildEnvironmentDatasetFromTrainerPayloads(options: {
+  id: string;
+  ruleSetId: string;
+  dataVersionId: string;
+  retrievedAt: string;
+  battles: Partial<Record<EnvironmentBattleType, PokeDbTrainerListPayload>>;
+  moveStats?: Partial<Record<EnvironmentBattleType, Record<string, EnvironmentReferenceUsage[]>>>;
+  teamSamples?: Partial<Record<EnvironmentBattleType, EnvironmentTeamSample[]>>;
+  source?: {
+    name: string;
+    url: string;
+    notes: string;
+  };
+}): EnvironmentDataset {
+  const firstPayload = battleTypes.map((battleType) => options.battles[battleType]).find(Boolean);
+  const updatedAt =
+    latestTimestamp(battleTypes.map((battleType) => options.battles[battleType]?.updatedAt ?? '')) ?? options.retrievedAt;
+
+  const battles = battleTypes.reduce((acc, battleType) => {
+    const payload = options.battles[battleType];
+    const providedTeamSamples = (options.teamSamples?.[battleType] ?? []).map((sample) =>
+      normalizeTeamSampleTitle(sample, payload?.season),
+    );
+    acc[battleType] = payload
+      ? {
+          pokemonUsage: buildUsage(payload.teams, options.moveStats?.[battleType]),
+          sampleCount: payload.teams.length,
+          teamSamples:
+            providedTeamSamples.length > 0 ? providedTeamSamples : buildTrainerTeamSamples(payload, battleType),
+        }
+      : { ...emptyBattleDataset(), teamSamples: providedTeamSamples };
+    return acc;
+  }, {} as Record<EnvironmentBattleType, EnvironmentBattleDataset>);
+
+  return {
+    id: options.id,
+    ruleSetId: options.ruleSetId,
+    dataVersionId: options.dataVersionId,
+    sourceLabel: `PokeDB · ${firstPayload?.season ?? 'unknown season'} · 上位构筑快照`,
+    statusLabel: '上位构筑快照',
+    updatedAt,
+    source: {
+      kind: 'community-snapshot',
+      name: options.source?.name ?? 'PokeDB public trainer reports',
+      url: options.source?.url ?? firstPayload?.sourceUrl ?? 'https://champs.pokedb.tokyo/trainer/list',
+      retrievedAt: options.retrievedAt,
+      notes:
+        options.source?.notes ??
+        'Snapshot aggregated server-side from public PokeDB trainer-list team reports. End-user devices never scrape PokeDB.',
+    },
+    battles,
+  };
+}
+
 export function buildEnvironmentDatasetFromPokeDbOpenData(options: {
   id: string;
   ruleSetId: string;
@@ -283,40 +391,144 @@ export function buildEnvironmentDatasetFromPokeDbOpenData(options: {
   teamSamples?: Partial<Record<EnvironmentBattleType, EnvironmentTeamSample[]>>;
 }): EnvironmentDataset {
   const itemIds = new Set(options.itemIds);
-  const firstPayload = battleTypes.map((battleType) => options.battles[battleType]).find(Boolean);
-  const updatedAt = latestTimestamp(battleTypes.map((battleType) => options.battles[battleType]?.updated_at ?? '')) ?? options.retrievedAt;
-
   const battles = battleTypes.reduce((acc, battleType) => {
     const payload = options.battles[battleType];
-    const providedTeamSamples = (options.teamSamples?.[battleType] ?? []).map((sample) => normalizeTeamSampleTitle(sample, payload?.season));
-    acc[battleType] = payload
-        ? {
-          pokemonUsage: buildUsage(payload, options.pokemonKeyToId, options.itemNameToId, itemIds, options.moveStats?.[battleType]),
-          sampleCount: payload.teams.length,
-          teamSamples:
-            providedTeamSamples.length > 0
-              ? providedTeamSamples
-              : buildRankedTeamSamples(payload, battleType, options.pokemonKeyToId, options.itemNameToId, itemIds),
-        }
-      : { ...emptyBattleDataset(), teamSamples: providedTeamSamples };
+    if (payload) {
+      acc[battleType] = convertRankedPayload(
+        payload,
+        battleType,
+        options.pokemonKeyToId,
+        options.itemNameToId,
+        itemIds,
+      );
+    }
     return acc;
-  }, {} as Record<EnvironmentBattleType, EnvironmentBattleDataset>);
+  }, {} as Partial<Record<EnvironmentBattleType, PokeDbTrainerListPayload>>);
 
-  return {
+  return buildEnvironmentDatasetFromTrainerPayloads({
     id: options.id,
     ruleSetId: options.ruleSetId,
     dataVersionId: options.dataVersionId,
-    sourceLabel: `PokeDB · ${firstPayload?.season ?? 'M-1'} · 上位构筑快照`,
-    statusLabel: '上位构筑快照',
-    updatedAt,
+    retrievedAt: options.retrievedAt,
+    battles,
+    moveStats: options.moveStats,
+    teamSamples: options.teamSamples,
     source: {
-      kind: 'community-snapshot',
       name: 'PokeDB public ranked teams',
       url: 'https://champs.pokedb.tokyo/guide/opendata',
-      retrievedAt: options.retrievedAt,
-      notes: 'Bundled snapshot derived from PokeDB public open data. It is downloaded server-side during maintenance, not from end-user devices.',
+      notes:
+        'Bundled snapshot derived from PokeDB public open data. It is downloaded server-side during maintenance, not from end-user devices.',
     },
-    battles,
+  });
+}
+
+export function buildEnvironmentDatasetFromPokeDbTrainerLists(options: {
+  id: string;
+  ruleSetId: string;
+  dataVersionId: string;
+  retrievedAt: string;
+  battles: Partial<Record<EnvironmentBattleType, PokeDbTrainerListPayload>>;
+  moveStats?: Partial<Record<EnvironmentBattleType, Record<string, EnvironmentReferenceUsage[]>>>;
+}): EnvironmentDataset {
+  return buildEnvironmentDatasetFromTrainerPayloads(options);
+}
+
+export function parsePokeDbTrainerListPage(
+  html: string,
+  options: {
+    battleType: EnvironmentBattleType;
+    sourceUrl: string;
+    pokemonKeyToId: Record<string, string>;
+    itemNameToId: Record<string, string>;
+  },
+): PokeDbTrainerListPayload {
+  const titleSeason = decodeHtml(html.match(/<title>[\s\S]*?シーズン(M-\d+)/)?.[1] ?? '');
+  const selectedSeason = Number(
+    html.match(/<option\s+value="(\d+)"[^>]*selected/)?.[1] ??
+      new URL(options.sourceUrl).searchParams.get('season') ??
+      0,
+  );
+  const season = titleSeason || (selectedSeason > 0 ? `M-${selectedSeason}` : 'unknown');
+  const rawUpdatedText = decodeHtml(
+    html.match(/更新日<\/span>\s*<span class="tag is-light">([^<]+)</)?.[1] ?? '',
+  );
+  const updatedParts = rawUpdatedText.match(/^(\d{4})[/-](\d{1,2})[/-](\d{1,2})\s+(\d{2}:\d{2})$/);
+  const updatedText = updatedParts
+    ? `${updatedParts[1]}-${updatedParts[2].padStart(2, '0')}-${updatedParts[3].padStart(2, '0')} ${updatedParts[4]}`
+    : rawUpdatedText.replace(/\//g, '-');
+  const updatedAt = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(updatedText)
+    ? `${updatedText}:00`
+    : updatedText;
+  const resultCount = Number(
+    decodeHtml(html.match(/検索結果<\/span>\s*<span class="tag is-light">([^<]+)</)?.[1] ?? '').replace(/\D/g, ''),
+  );
+  const pageNumbers = [...html.matchAll(/[?&](?:amp;)?page=(\d+)/g)].map((match) => Number(match[1]));
+  const pageCount = Math.max(1, ...pageNumbers.filter((page) => Number.isInteger(page) && page > 0));
+  const unknownPokemonKeys = new Set<string>();
+  const unknownItemNames = new Set<string>();
+  const articles = html.match(/<article class="trainer-card">[\s\S]*?<\/article>/g) ?? [];
+  const teams = articles
+    .map((article): PokeDbTrainerTeam | undefined => {
+      const rank = Number(article.match(/data-rank="(\d+)"/)?.[1] ?? 0);
+      const ratingInteger = article.match(/rating-integer">([^<]*)/)?.[1] ?? '0';
+      const ratingDecimal = article.match(/rating-decimal">([^<]*)/)?.[1] ?? '';
+      const ratingValue = Number(`${ratingInteger}${ratingDecimal}`);
+      const author = decodeHtml(article.match(/trainer-card-name">([^<]*)/)?.[1] ?? 'PokeDB');
+      const reportUrl = toAbsoluteHttpUrl(
+        article.match(/trainer-card-team__article[\s\S]*?<a[^>]+href="([^"]+)"/)?.[1] ?? '',
+        options.sourceUrl,
+      );
+      const slotBlocks =
+        article.match(
+          /<div class="trainer-card-team__pokemon">[\s\S]*?(?=<div class="trainer-card-team__pokemon">|<div class="trainer-card-team__article"|<\/article>)/g,
+        ) ?? [];
+      const slots = slotBlocks
+        .map((block): EnvironmentTeamSlot | undefined => {
+          const pokemonKey = block.match(/\/pokemon\/show\/([^"?]+)/)?.[1] ?? '';
+          const pokemonId = options.pokemonKeyToId[pokemonKey];
+          if (!pokemonId) {
+            if (pokemonKey) unknownPokemonKeys.add(pokemonKey);
+            return undefined;
+          }
+          const itemName = decodeHtml(block.match(/trainer-card-team__pokemon-item">([^<]*)/)?.[1] ?? '');
+          const itemId = normalizeItemId(itemName, options.itemNameToId);
+          if (itemName && itemName !== '持ち物なし' && itemName !== '持ち物不明' && !itemId) {
+            unknownItemNames.add(itemName);
+          }
+          return {
+            pokemonId,
+            ...(itemId ? { itemId } : {}),
+            moveIds: [],
+          };
+        })
+        .filter((slot): slot is EnvironmentTeamSlot => Boolean(slot));
+
+      if (!Number.isInteger(rank) || rank <= 0 || !Number.isFinite(ratingValue) || slots.length === 0) {
+        return undefined;
+      }
+      return {
+        rank,
+        ratingValue,
+        author,
+        ...(reportUrl ? { reportUrl } : {}),
+        slots,
+      };
+    })
+    .filter((team): team is PokeDbTrainerTeam => Boolean(team));
+
+  return {
+    season,
+    seasonNumber: selectedSeason,
+    rule: options.battleType,
+    updatedAt,
+    sourceUrl: options.sourceUrl,
+    resultCount: Number.isInteger(resultCount) ? resultCount : articles.length,
+    pageCount,
+    teams,
+    audit: {
+      unknownPokemonKeys: [...unknownPokemonKeys].sort(),
+      unknownItemNames: [...unknownItemNames].sort(),
+    },
   };
 }
 
@@ -331,43 +543,21 @@ export function parsePokeDbTrainerSamples(
   },
 ): EnvironmentTeamSample[] {
   const maxSamples = options.maxSamples ?? 8;
-  const articles = html.match(/<article class="trainer-card">[\s\S]*?<\/article>/g) ?? [];
-
-  return articles
-    .map((article): EnvironmentTeamSample | undefined => {
-      const reportUrl = decodeHtml(article.match(/trainer-card-team__article[\s\S]*?<a[^>]+href="([^"]+)"/)?.[1] ?? '');
-      if (!/^https?:\/\//.test(reportUrl)) return undefined;
-
-      const rank = Number(article.match(/data-rank="(\d+)"/)?.[1] ?? 0);
-      const ratingInteger = article.match(/rating-integer">([^<]*)/)?.[1] ?? '0';
-      const ratingDecimal = article.match(/rating-decimal">([^<]*)/)?.[1] ?? '';
-      const score = Math.floor(Number(`${ratingInteger}${ratingDecimal}`));
-      const author = decodeHtml(article.match(/trainer-card-name">([^<]*)/)?.[1] ?? 'PokeDB');
-      const slotBlocks = article.match(/<div class="trainer-card-team__pokemon">[\s\S]*?(?=<div class="trainer-card-team__pokemon">|<div class="trainer-card-team__article"|<\/article>)/g) ?? [];
-      const slots = slotBlocks
-        .map((block) => {
-          const pokemonKey = block.match(/\/pokemon\/show\/([^"?]+)/)?.[1] ?? '';
-          const itemName = decodeHtml(block.match(/trainer-card-team__pokemon-item">([^<]*)/)?.[1] ?? '');
-          return convertSlot({ id: pokemonKey, item: itemName }, options.pokemonKeyToId, options.itemNameToId);
-        })
-        .filter((slot): slot is EnvironmentTeamSlot => Boolean(slot));
-
-      if (!rank || !Number.isFinite(score) || slots.length === 0) return undefined;
-
-      const sample = {
-        id: `pokedb-${options.battleType}-rank-${rank}`,
+  const payload = parsePokeDbTrainerListPage(html, options);
+  return payload.teams
+    .filter((team): team is PokeDbTrainerTeam & { reportUrl: string } => Boolean(team.reportUrl))
+    .map((team) =>
+      normalizeTeamSampleTitle({
+        id: `pokedb-${options.battleType}-rank-${team.rank}`,
         dataKind: 'external-snapshot',
-        author,
-        score,
-        rank,
+        author: team.author,
+        score: Math.floor(team.ratingValue ?? 0),
+        rank: team.rank,
         title: '',
         battleType: options.battleType,
-        reportUrl,
-        slots,
-      } satisfies EnvironmentTeamSample;
-
-      return normalizeTeamSampleTitle(sample);
-    })
-    .filter((sample): sample is EnvironmentTeamSample => Boolean(sample))
+        reportUrl: team.reportUrl,
+        slots: team.slots,
+      }),
+    )
     .slice(0, maxSamples);
 }

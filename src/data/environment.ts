@@ -11,7 +11,13 @@ import {
   type EnvironmentTeamSample,
   type EnvironmentTeamSlot,
 } from '../lib/environmentDataset';
-import { buildEnvironmentDatasetFromPokeDbOpenData, createPokeDbPokemonKeyMap, type PokeDbRankedTeamsPayload } from '../lib/pokedbEnvironment';
+import {
+  buildEnvironmentDatasetFromPokeDbOpenData,
+  buildEnvironmentDatasetFromPokeDbTrainerLists,
+  createPokeDbPokemonKeyMap,
+  type PokeDbRankedTeamsPayload,
+  type PokeDbTrainerListPayload,
+} from '../lib/pokedbEnvironment';
 
 export type {
   EnvironmentBattleType,
@@ -26,7 +32,7 @@ export const POKEDB_ENVIRONMENT_SNAPSHOT_URL = '/data/pokedb/reg-ma-s1-environme
 
 export type PokeDbEnvironmentSnapshotPayload = {
   retrievedAt: string;
-  battles: Partial<Record<EnvironmentBattleType, PokeDbRankedTeamsPayload>>;
+  battles: Partial<Record<EnvironmentBattleType, PokeDbRankedTeamsPayload | PokeDbTrainerListPayload>>;
   moveStats?: Partial<Record<EnvironmentBattleType, Record<string, EnvironmentReferenceUsage[]>>>;
   teamSamples?: Partial<Record<EnvironmentBattleType, EnvironmentTeamSample[]>>;
 };
@@ -96,8 +102,24 @@ const toEnvironmentState = (
 
 export const environmentFallbackState = toEnvironmentState(currentEnvironmentDataset, 'fallback');
 
-export const createPokeDbEnvironmentDatasetFromSnapshot = (snapshot: PokeDbEnvironmentSnapshotPayload): EnvironmentDataset =>
-  buildEnvironmentDatasetFromPokeDbOpenData({
+const isTrainerListPayload = (
+  payload: PokeDbRankedTeamsPayload | PokeDbTrainerListPayload | undefined,
+): payload is PokeDbTrainerListPayload => Boolean(payload && 'seasonNumber' in payload && 'updatedAt' in payload);
+
+export const createPokeDbEnvironmentDatasetFromSnapshot = (snapshot: PokeDbEnvironmentSnapshotPayload): EnvironmentDataset => {
+  const firstPayload = snapshot.battles.singles ?? snapshot.battles.doubles;
+  if (isTrainerListPayload(firstPayload)) {
+    return buildEnvironmentDatasetFromPokeDbTrainerLists({
+      id: `pokedb-reg-ma-${firstPayload.season.toLowerCase()}-trainer-list`,
+      ruleSetId: currentRuleSet.id,
+      dataVersionId: currentDataVersion.id,
+      retrievedAt: snapshot.retrievedAt,
+      battles: snapshot.battles as Partial<Record<EnvironmentBattleType, PokeDbTrainerListPayload>>,
+      moveStats: snapshot.moveStats,
+    });
+  }
+
+  return buildEnvironmentDatasetFromPokeDbOpenData({
     id: 'pokedb-reg-ma-s1-ranked-teams',
     ruleSetId: currentRuleSet.id,
     dataVersionId: currentDataVersion.id,
@@ -105,10 +127,11 @@ export const createPokeDbEnvironmentDatasetFromSnapshot = (snapshot: PokeDbEnvir
     pokemonKeyToId,
     itemNameToId: pokedbItemNameToId,
     itemIds: items.map((item) => item.id),
-    battles: snapshot.battles,
+    battles: snapshot.battles as Partial<Record<EnvironmentBattleType, PokeDbRankedTeamsPayload>>,
     moveStats: snapshot.moveStats,
     teamSamples: snapshot.teamSamples,
   });
+};
 
 export const createEnvironmentStateFromPokeDbSnapshot = (snapshot: PokeDbEnvironmentSnapshotPayload): EnvironmentState => {
   const pokedbDataset = createPokeDbEnvironmentDatasetFromSnapshot(snapshot);

@@ -1,45 +1,21 @@
 import { pokedbItemNameToId } from '../../../src/data/external/pokedbItemNameMap';
 import { regMaPokemonAllowlist } from '../../../src/data/seed/regMA/allowlist';
 import { pokemon } from '../../../src/data/seed/regMA/catalog';
-import { parsePokeDbTrainerSamples } from '../../../src/lib/pokedbEnvironment';
-import type { EnvironmentTeamSample } from '../../../src/lib/environmentDataset';
+import {
+  parsePokeDbTrainerListPage,
+  type PokeDbTrainerListPayload,
+  type PokeDbTrainerTeam,
+} from '../../../src/lib/pokedbEnvironment';
 
 type BattleType = 'singles' | 'doubles';
 
-type PokeDbRankedTeamSlot = {
-  id: string;
-  pokemon: string;
-  form: string;
-  type1: string;
-  type2: string;
-  category: string;
-  terastal: string;
-  item: string;
-};
-
-type PokeDbRankedTeam = {
-  rank: number;
-  rating_value: number | null;
-  team: PokeDbRankedTeamSlot[];
-};
-
-type PokeDbRankedTeamsPayload = {
-  season: string;
-  season_number: number;
-  rule: string;
-  updated_at: string;
-  teams: PokeDbRankedTeam[];
-};
-
 type EnvironmentSnapshot = {
   retrievedAt: string;
-  battles: Partial<Record<BattleType, PokeDbRankedTeamsPayload>>;
-  teamSamples?: Partial<Record<BattleType, EnvironmentTeamSample[]>>;
+  battles: Partial<Record<BattleType, PokeDbTrainerListPayload>>;
   dataFreshness?: {
-    source: 'pokedb-opendata';
-    requestedSeasons: number[];
+    source: 'pokedb-trainer-list';
     selectedSeason: number;
-    completeness: 'ranked-teams-with-team-samples' | 'ranked-teams-only';
+    completeness: 'trainer-list-complete';
     notes: string;
   };
 };
@@ -64,6 +40,7 @@ type TeamIndex = Record<BattleType, Record<string, TeamSummary[]>>;
 type CacheStatus = {
   ok: boolean;
   refreshedAt?: string;
+  failedAt?: string;
   selectedSeason?: number;
   selectedSeasonLabel?: string;
   teamCounts?: Partial<Record<BattleType, number>>;
@@ -78,11 +55,11 @@ const SNAPSHOT_KEY = 'environment:latest';
 const STATUS_KEY = 'environment:status';
 const TEAM_INDEX_KEY = 'environment:team-index';
 const DEFAULT_POKEDB_BASE_URL = 'https://champs.pokedb.tokyo';
-const DEFAULT_SEASON_CANDIDATES = [2, 1];
 const DEFAULT_MAX_CACHE_AGE_SECONDS = 6 * 60 * 60;
 const DEFAULT_TEAM_LIMIT = 24;
 const MAX_TEAM_LIMIT = 50;
-const TEAM_SAMPLE_LIMIT = 24;
+const PAGE_REQUEST_DELAY_MS = 250;
+const POKEDB_USER_AGENT = 'LuxrayKitEnvironmentWorker/0.2 (+https://luxraykit.com)';
 
 const normalizeName = (value: string) =>
   value
@@ -106,6 +83,8 @@ const pokemonKeyToId = new Map(
   }),
 );
 const pokemonKeyToIdRecord = Object.fromEntries(pokemonKeyToId);
+const pokemonKeyById = new Map([...pokemonKeyToId.entries()].map(([key, id]) => [id, key]));
+const pokeDbItemNameById = new Map(Object.entries(pokedbItemNameToId).map(([name, id]) => [id, name]));
 
 const jsonHeaders = (env: AppEnv, extra: HeadersInit = {}) => ({
   'content-type': 'application/json; charset=utf-8',
@@ -121,23 +100,10 @@ const jsonResponse = (env: AppEnv, payload: unknown, init: ResponseInit = {}) =>
     headers: jsonHeaders(env, init.headers),
   });
 
-const parseSeasonCandidates = (value: string | undefined) => {
-  const parsed = (value ?? '')
-    .split(',')
-    .map((part) => Number(part.trim()))
-    .filter((season) => Number.isInteger(season) && season > 0);
-  return parsed.length > 0 ? parsed : DEFAULT_SEASON_CANDIDATES;
-};
-
 const isFresh = (refreshedAt: string | undefined, maxAgeSeconds: number) => {
   if (!refreshedAt) return false;
   const ageMs = Date.now() - Date.parse(refreshedAt);
   return Number.isFinite(ageMs) && ageMs >= 0 && ageMs <= maxAgeSeconds * 1000;
-};
-
-const rankedTeamsUrl = (baseUrl: string, season: number, battleType: BattleType) => {
-  const battleSlug = battleType === 'singles' ? 'single' : 'double';
-  return `${baseUrl.replace(/\/$/, '')}/opendata/s${season}_${battleSlug}_ranked_teams.json`;
 };
 
 const pokeDbRuleParamByBattleType = {
@@ -145,117 +111,147 @@ const pokeDbRuleParamByBattleType = {
   singles: 2,
 } satisfies Record<BattleType, number>;
 
-const trainerListUrl = (baseUrl: string, season: number, battleType: BattleType) =>
-  `${baseUrl.replace(/\/$/, '')}/trainer/list?season=${season}&rule=${pokeDbRuleParamByBattleType[battleType]}`;
-
-const validatePokeDbPayload = (payload: unknown): payload is PokeDbRankedTeamsPayload => {
-  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return false;
-  const candidate = payload as Partial<PokeDbRankedTeamsPayload>;
-  return (
-    typeof candidate.season === 'string' &&
-    Number.isInteger(candidate.season_number) &&
-    typeof candidate.rule === 'string' &&
-    typeof candidate.updated_at === 'string' &&
-    Array.isArray(candidate.teams) &&
-    candidate.teams.length > 0
-  );
+const trainerListUrl = (baseUrl: string, season: number, battleType: BattleType, page = 1) => {
+  const url = new URL('/trainer/list', `${baseUrl.replace(/\/$/, '')}/`);
+  url.searchParams.set('season', String(season));
+  url.searchParams.set('rule', String(pokeDbRuleParamByBattleType[battleType]));
+  url.searchParams.set('with_team', '1');
+  url.searchParams.set('page', String(page));
+  return url.toString();
 };
 
-async function fetchRankedTeams(baseUrl: string, season: number, battleType: BattleType) {
-  const response = await fetch(rankedTeamsUrl(baseUrl, season, battleType), {
-    headers: {
-      accept: 'application/json',
-      'user-agent': 'LuxrayKitEnvironmentWorker/0.1 (+https://luxraykit.com)',
-    },
-  });
+type Fetcher = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
 
-  if (!response.ok) {
-    throw new Error(`${battleType} season ${season} returned ${response.status}`);
-  }
-
-  const payload = await response.json();
-  if (!validatePokeDbPayload(payload)) {
-    throw new Error(`${battleType} season ${season} returned an invalid ranked-teams payload`);
-  }
-
-  return payload;
-}
-
-async function fetchTrainerSamples(baseUrl: string, season: number, battleType: BattleType) {
-  const sourceUrl = trainerListUrl(baseUrl, season, battleType);
-  const response = await fetch(sourceUrl, {
+const fetchPokeDbHtml = async (url: string, fetcher: Fetcher) => {
+  const response = await fetcher(url, {
     headers: {
       accept: 'text/html',
-      'user-agent': 'LuxrayKitEnvironmentWorker/0.1 (+https://luxraykit.com)',
+      'user-agent': POKEDB_USER_AGENT,
     },
   });
 
   if (!response.ok) {
-    throw new Error(`${battleType} trainer list season ${season} returned ${response.status}`);
+    throw new Error(`${url} returned ${response.status}`);
   }
 
-  const html = await response.text();
-  return parsePokeDbTrainerSamples(html, {
-    battleType,
-    sourceUrl,
+  return response.text();
+};
+
+export async function detectLatestPokeDbSeason(baseUrl: string, fetcher: Fetcher = fetch): Promise<number> {
+  const url = `${baseUrl.replace(/\/$/, '')}/trainer/list?rule=${pokeDbRuleParamByBattleType.singles}`;
+  const html = await fetchPokeDbHtml(url, fetcher);
+  const seasons = [...html.matchAll(/<option\s+value="(\d+)"/g)]
+    .map((match) => Number(match[1]))
+    .filter((season) => Number.isInteger(season) && season > 0);
+  if (seasons.length === 0) {
+    throw new Error('PokeDB trainer list did not expose any season options');
+  }
+  return Math.max(...seasons);
+}
+
+const mergeAuditValues = (payloads: PokeDbTrainerListPayload[], key: keyof PokeDbTrainerListPayload['audit']) =>
+  [...new Set(payloads.flatMap((payload) => payload.audit[key]))].sort();
+
+export async function fetchTrainerBattlePages(options: {
+  baseUrl: string;
+  season: number;
+  battleType: BattleType;
+  fetcher?: Fetcher;
+  wait?: (milliseconds: number) => Promise<void>;
+}): Promise<PokeDbTrainerListPayload> {
+  const fetcher = options.fetcher ?? fetch;
+  const wait = options.wait ?? ((milliseconds: number) => new Promise((resolve) => setTimeout(resolve, milliseconds)));
+  const firstUrl = trainerListUrl(options.baseUrl, options.season, options.battleType, 1);
+  const firstHtml = await fetchPokeDbHtml(firstUrl, fetcher);
+  const firstPage = parsePokeDbTrainerListPage(firstHtml, {
+    battleType: options.battleType,
+    sourceUrl: firstUrl,
     pokemonKeyToId: pokemonKeyToIdRecord,
     itemNameToId: pokedbItemNameToId,
-    maxSamples: TEAM_SAMPLE_LIMIT,
   });
+  const pages = [firstPage];
+
+  for (let page = 2; page <= firstPage.pageCount; page += 1) {
+    await wait(PAGE_REQUEST_DELAY_MS);
+    const pageUrl = trainerListUrl(options.baseUrl, options.season, options.battleType, page);
+    const response = await fetcher(pageUrl, {
+      headers: {
+        accept: 'text/html',
+        'user-agent': POKEDB_USER_AGENT,
+      },
+    });
+    if (!response.ok) {
+      throw new Error(`${options.battleType} season ${options.season} page ${page} returned ${response.status}`);
+    }
+    const html = await response.text();
+    pages.push(
+      parsePokeDbTrainerListPage(html, {
+        battleType: options.battleType,
+        sourceUrl: pageUrl,
+        pokemonKeyToId: pokemonKeyToIdRecord,
+        itemNameToId: pokedbItemNameToId,
+      }),
+    );
+  }
+
+  const teamsByRank = new Map<number, PokeDbTrainerTeam>();
+  pages.flatMap((page) => page.teams).forEach((team) => teamsByRank.set(team.rank, team));
+  const teams = [...teamsByRank.values()].sort((a, b) => a.rank - b.rank);
+  if (teams.length === 0) {
+    throw new Error(`${options.battleType} season ${options.season} has no public trainer teams`);
+  }
+
+  return {
+    ...firstPage,
+    sourceUrl: trainerListUrl(options.baseUrl, options.season, options.battleType),
+    teams,
+    audit: {
+      unknownPokemonKeys: mergeAuditValues(pages, 'unknownPokemonKeys'),
+      unknownItemNames: mergeAuditValues(pages, 'unknownItemNames'),
+    },
+  };
 }
 
 async function buildLatestSnapshot(env: AppEnv): Promise<EnvironmentSnapshot> {
   const baseUrl = env.POKEDB_BASE_URL || DEFAULT_POKEDB_BASE_URL;
-  const seasons = parseSeasonCandidates(env.SEASON_CANDIDATES);
-  const failures: string[] = [];
+  const season = await detectLatestPokeDbSeason(baseUrl);
+  const [singles, doubles] = await Promise.all([
+    fetchTrainerBattlePages({ baseUrl, season, battleType: 'singles' }),
+    fetchTrainerBattlePages({ baseUrl, season, battleType: 'doubles' }),
+  ]);
+  const unknownPokemonKeys = [...new Set([...singles.audit.unknownPokemonKeys, ...doubles.audit.unknownPokemonKeys])];
+  const unknownItemNames = [...new Set([...singles.audit.unknownItemNames, ...doubles.audit.unknownItemNames])];
 
-  for (const season of seasons) {
-    try {
-      const [singles, doubles] = await Promise.all([
-        fetchRankedTeams(baseUrl, season, 'singles'),
-        fetchRankedTeams(baseUrl, season, 'doubles'),
-      ]);
-      const sampleResults = await Promise.allSettled([
-        fetchTrainerSamples(baseUrl, season, 'singles'),
-        fetchTrainerSamples(baseUrl, season, 'doubles'),
-      ]);
-      const [singlesSamplesResult, doublesSamplesResult] = sampleResults;
-      const teamSamples = {
-        singles: singlesSamplesResult.status === 'fulfilled' ? singlesSamplesResult.value : [],
-        doubles: doublesSamplesResult.status === 'fulfilled' ? doublesSamplesResult.value : [],
-      } satisfies Record<BattleType, EnvironmentTeamSample[]>;
-      const sampleFailures = sampleResults
-        .filter((result): result is PromiseRejectedResult => result.status === 'rejected')
-        .map((result) => (result.reason instanceof Error ? result.reason.message : String(result.reason)));
-      const hasTeamSamples = teamSamples.singles.length > 0 || teamSamples.doubles.length > 0;
-
-      return {
-        retrievedAt: new Date().toISOString(),
-        battles: { singles, doubles },
-        teamSamples,
-        dataFreshness: {
-          source: 'pokedb-opendata',
-          requestedSeasons: seasons,
-          selectedSeason: season,
-          completeness: hasTeamSamples ? 'ranked-teams-with-team-samples' : 'ranked-teams-only',
-          notes: hasTeamSamples
-            ? `This Worker caches PokeDB ranked-team open data and report-linked team samples.${sampleFailures.length > 0 ? ` Sample fetch warnings: ${sampleFailures.join('; ')}` : ''}`
-            : `This Worker caches PokeDB ranked-team open data. Team sample fetch failed: ${sampleFailures.join('; ') || 'no linked samples found'}.`,
-        },
-      };
-    } catch (error) {
-      failures.push(error instanceof Error ? error.message : String(error));
-    }
-  }
-
-  throw new Error(`No complete PokeDB season snapshot was available. ${failures.join('; ')}`);
+  return {
+    retrievedAt: new Date().toISOString(),
+    battles: { singles, doubles },
+    dataFreshness: {
+      source: 'pokedb-trainer-list',
+      selectedSeason: season,
+      completeness: 'trainer-list-complete',
+      notes: [
+        'Aggregated from complete public PokeDB trainer-list pagination.',
+        unknownPokemonKeys.length > 0 ? `Unknown Pokemon keys: ${unknownPokemonKeys.join(', ')}.` : '',
+        unknownItemNames.length > 0 ? `Unknown item names: ${unknownItemNames.join(', ')}.` : '',
+      ]
+        .filter(Boolean)
+        .join(' '),
+    },
+  };
 }
 
-async function refreshSnapshot(env: AppEnv): Promise<CacheStatus> {
+export async function refreshSnapshot(
+  env: AppEnv,
+  snapshotBuilder: (env: AppEnv) => Promise<EnvironmentSnapshot> = buildLatestSnapshot,
+  now: () => Date = () => new Date(),
+): Promise<CacheStatus> {
+  const previousStatusText = await env.ENVIRONMENT_CACHE.get(STATUS_KEY);
+  const previousStatus = previousStatusText ? (JSON.parse(previousStatusText) as CacheStatus) : undefined;
+
   try {
-    const snapshot = await buildLatestSnapshot(env);
+    const snapshot = await snapshotBuilder(env);
     const teamIndex = buildTeamIndex(snapshot);
-    const refreshedAt = new Date().toISOString();
+    const refreshedAt = now().toISOString();
     const status: CacheStatus = {
       ok: true,
       refreshedAt,
@@ -277,8 +273,9 @@ async function refreshSnapshot(env: AppEnv): Promise<CacheStatus> {
     return status;
   } catch (error) {
     const status: CacheStatus = {
+      ...previousStatus,
       ok: false,
-      refreshedAt: new Date().toISOString(),
+      failedAt: now().toISOString(),
       error: error instanceof Error ? error.message : String(error),
     };
     await env.ENVIRONMENT_CACHE.put(STATUS_KEY, JSON.stringify(status));
@@ -297,24 +294,16 @@ function normalizeLimit(value: string | null) {
   return Math.min(parsed, MAX_TEAM_LIMIT);
 }
 
-function toTeamSummary(team: PokeDbRankedTeam): TeamSummary {
+function toTeamSummary(team: PokeDbTrainerTeam): TeamSummary {
   return {
     rank: team.rank,
-    ratingValue: team.rating_value,
-    slots: team.team
-      .filter((slot) => Boolean(slot.id))
-      .map((slot) => {
-        const pokemonId = pokemonKeyToId.get(slot.id);
-        const itemId = pokedbItemNameToId[slot.item];
-        return {
-          pokeDbKey: slot.id,
-          ...(pokemonId ? { pokemonId } : {}),
-          pokemonName: pokemonId ? pokemonNameById.get(pokemonId) ?? slot.pokemon : slot.pokemon,
-          ...(slot.form ? { form: slot.form } : {}),
-          ...(itemId ? { itemId } : {}),
-          ...(slot.item ? { itemName: slot.item } : {}),
-        };
-      }),
+    ratingValue: team.ratingValue,
+    slots: team.slots.map((slot) => ({
+      pokeDbKey: pokemonKeyById.get(slot.pokemonId) ?? slot.pokemonId,
+      pokemonId: slot.pokemonId,
+      pokemonName: pokemonNameById.get(slot.pokemonId) ?? slot.pokemonId,
+      ...(slot.itemId ? { itemId: slot.itemId, itemName: pokeDbItemNameById.get(slot.itemId) ?? slot.itemId } : {}),
+    })),
   };
 }
 
@@ -390,7 +379,10 @@ async function handleLatest(request: Request, env: AppEnv) {
   }
 
   const maxAgeSeconds = Number(env.MAX_CACHE_AGE_SECONDS ?? DEFAULT_MAX_CACHE_AGE_SECONDS);
-  const cacheState = isFresh(status?.refreshedAt, Number.isFinite(maxAgeSeconds) ? maxAgeSeconds : DEFAULT_MAX_CACHE_AGE_SECONDS)
+  const cacheState = status?.ok && isFresh(
+    status.refreshedAt,
+    Number.isFinite(maxAgeSeconds) ? maxAgeSeconds : DEFAULT_MAX_CACHE_AGE_SECONDS,
+  )
     ? 'fresh'
     : 'stale';
 
@@ -441,7 +433,7 @@ async function handlePokemonTeams(url: URL, env: AppEnv, pokemonId: string) {
       count: teams.length,
       source: {
         season: payload?.season,
-        updatedAt: payload?.updated_at,
+        updatedAt: payload?.updatedAt,
         retrievedAt: snapshot.retrievedAt,
         cacheCompleteness: snapshot.dataFreshness?.completeness ?? 'unknown',
       },

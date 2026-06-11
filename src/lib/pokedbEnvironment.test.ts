@@ -2,9 +2,12 @@ import { describe, expect, it } from 'vitest';
 import { currentDataVersion, currentRuleSet, items, pokemon, regMaPokemonAllowlist } from '../data';
 import {
   buildEnvironmentDatasetFromPokeDbOpenData,
+  buildEnvironmentDatasetFromPokeDbTrainerLists,
   createPokeDbPokemonKeyMap,
+  parsePokeDbTrainerListPage,
   parsePokeDbTrainerSamples,
   type PokeDbRankedTeamsPayload,
+  type PokeDbTrainerListPayload,
 } from './pokedbEnvironment';
 
 const pokemonKeyToId = createPokeDbPokemonKeyMap(regMaPokemonAllowlist, pokemon);
@@ -42,6 +45,39 @@ const makePayload = (): PokeDbRankedTeamsPayload => ({
     },
   ],
 });
+
+const trainerListHtml = `
+  <title>上位トレーナーランキング シーズンM-2（ダブルバトル）</title>
+  <select name="season">
+    <option value="2" selected>シーズンM-2</option>
+    <option value="1">シーズンM-1</option>
+  </select>
+  <span class="tag is-light is-link">検索結果</span>
+  <span class="tag is-light">299件</span>
+  <span class="tag is-light is-warning">更新日</span>
+  <span class="tag is-light">2026/6/10 23:58</span>
+  <a class="scroll-pagination__link is-active" href="/trainer/list?season=2&amp;rule=1&amp;page=1">1</a>
+  <a class="scroll-pagination__link" href="/trainer/list?season=2&amp;rule=1&amp;page=2">2</a>
+  <a class="scroll-pagination__link" href="/trainer/list?season=2&amp;rule=1&amp;page=3">3</a>
+  <article class="trainer-card">
+    <div class="trainer-card-rank is-family-monospace" data-rank="1"><span>1</span></div>
+    <div class="trainer-card-rating is-family-monospace"><span class="rating-integer">2724</span><span class="rating-decimal">.878</span></div>
+    <div class="trainer-card-name">すいか</div>
+    <div class="trainer-card-team">
+      <div class="trainer-card-team__pokemon">
+        <a target="_blank" href="/pokemon/show/0006-00?rule=1"></a>
+        <div class="trainer-card-team__pokemon-item">リザードナイトＹ</div>
+      </div>
+      <div class="trainer-card-team__pokemon">
+        <a target="_blank" href="/pokemon/show/0445-00?rule=1"></a>
+        <div class="trainer-card-team__pokemon-item">オボンのみ</div>
+      </div>
+      <div class="trainer-card-team__article">
+        <a href="https://example.com/team/1">team report</a>
+      </div>
+    </div>
+  </article>
+`;
 
 describe('PokeDB environment ingestion', () => {
   it('maps PokeDB pokemon keys through the current Reg M-A allowlist', () => {
@@ -178,6 +214,103 @@ describe('PokeDB environment ingestion', () => {
           { pokemonId: 'charizard', itemId: 'charizardite-y', moveIds: [] },
           { pokemonId: 'garchomp', itemId: 'sitrus-berry', moveIds: [] },
         ],
+      },
+    ]);
+  });
+
+  it('parses trainer-list metadata and all mapped team slots without applying a sample limit', () => {
+    const page = parsePokeDbTrainerListPage(trainerListHtml, {
+      battleType: 'doubles',
+      sourceUrl: 'https://champs.pokedb.tokyo/trainer/list?season=2&rule=1&page=1',
+      pokemonKeyToId,
+      itemNameToId,
+    });
+
+    expect(page).toMatchObject({
+      season: 'M-2',
+      seasonNumber: 2,
+      updatedAt: '2026-06-10 23:58:00',
+      resultCount: 299,
+      pageCount: 3,
+      teams: [
+        {
+          rank: 1,
+          ratingValue: 2724.878,
+          author: 'すいか',
+          reportUrl: 'https://example.com/team/1',
+          slots: [
+            { pokemonId: 'charizard', itemId: 'charizardite-y', moveIds: [] },
+            { pokemonId: 'garchomp', itemId: 'sitrus-berry', moveIds: [] },
+          ],
+        },
+      ],
+    });
+  });
+
+  it('aggregates usage from parsed trainer-list team slots', () => {
+    const payload: PokeDbTrainerListPayload = {
+      season: 'M-2',
+      seasonNumber: 2,
+      rule: 'doubles',
+      updatedAt: '2026-06-10 23:58:00',
+      sourceUrl: 'https://champs.pokedb.tokyo/trainer/list?season=2&rule=1',
+      resultCount: 2,
+      pageCount: 1,
+      teams: [
+        {
+          rank: 1,
+          ratingValue: 2500.5,
+          author: 'one',
+          reportUrl: 'https://example.com/one',
+          slots: [
+            { pokemonId: 'charizard', itemId: 'charizardite-y', moveIds: [] },
+            { pokemonId: 'garchomp', itemId: 'sitrus-berry', moveIds: [] },
+          ],
+        },
+        {
+          rank: 2,
+          ratingValue: 2450.25,
+          author: 'two',
+          slots: [
+            { pokemonId: 'charizard', moveIds: [] },
+            { pokemonId: 'sneasler', itemId: 'focus-sash', moveIds: [] },
+          ],
+        },
+      ],
+      audit: { unknownPokemonKeys: [], unknownItemNames: [] },
+    };
+
+    const dataset = buildEnvironmentDatasetFromPokeDbTrainerLists({
+      id: 'trainer-list-test',
+      ruleSetId: currentRuleSet.id,
+      dataVersionId: currentDataVersion.id,
+      retrievedAt: '2026-06-11T09:00:00.000Z',
+      battles: { doubles: payload },
+    });
+
+    expect(dataset.updatedAt).toBe('2026-06-10T23:58:00.000+09:00');
+    expect(dataset.sourceLabel).toContain('M-2');
+    expect(dataset.battles.doubles.sampleCount).toBe(2);
+    expect(dataset.battles.doubles.pokemonUsage.slice(0, 3)).toMatchObject([
+      {
+        pokemonId: 'charizard',
+        usageRate: 100,
+        teamCount: 2,
+        itemStats: [{ id: 'charizardite-y', usageRate: 50, teamCount: 1 }],
+        teammateStats: [
+          { id: 'garchomp', usageRate: 50, teamCount: 1 },
+          { id: 'sneasler', usageRate: 50, teamCount: 1 },
+        ],
+      },
+      {
+        pokemonId: 'garchomp',
+        usageRate: 50,
+        teamCount: 1,
+      },
+      {
+        pokemonId: 'sneasler',
+        usageRate: 50,
+        teamCount: 1,
       },
     ]);
   });
