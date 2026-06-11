@@ -1,6 +1,6 @@
 # 下一轮开发计划 / TASKS
 
-更新日期：2026-06-11
+更新日期：2026-06-12
 
 ## 开发流程
 
@@ -18,6 +18,14 @@
 - **已有产物**：Codex 已实现并通过审查的 `trainer/list` roster 解析 + 聚合（`parsePokeDbTrainerListPage` 等）**保留**，由「环境榜聚合」降级为「可导入样本来源」。WIP 在分支 `feat/env-trainer-list-aggregation`。
 - **待实现时确认**：榜单行的总「使用率 %」（如 54.0%）在 `/pokemon/list` 与详情页上未直接看到，可能被页面其它处藏着或当季只给排名。实现时确认；拿不到就用排名或相对值兜底。
 
+## 部署实情与新约束（2026-06-12，Task B 已上线）
+
+- **Task B 已合并并部署，线上已从 S1 切到 M-2**（`/api/environment/status` → `selectedSeason:2`）。部署前基线为 `selectedSeason:1 / M-1`。
+- **踩坑：Cloudflare 免费版单次 Worker 调用硬上限 50 个外部子请求**（之前误判为付费版 1000）。top-60 双模式一次刷新 ~125 子请求 → `1101 Too many subrequests`。**自定义域名免费版也能用，不代表付费版。**
+- **临时兜底**：线上 dashboard 把 `POKEDB_DETAIL_LIMIT` 覆盖成 20（单次降到 ~47），刷新才成功 → 当前**只有 top-20 有详情统计，21–213 仅排名**。**仓库 `wrangler.jsonc` 仍是 60**，下次普通 deploy 会回退 60 → cron 静默失败。**这是配置漂移定时炸弹，Task F 必须消除。**
+- **PokeDB 取数合规性已查证**：robots.txt 只对具名 AI 爬虫（GPTBot/ClaudeBot 等）`Disallow: /`，通配 `*` 仅禁 `/error-pages/`，我们抓的 `/pokemon/*`、`/trainer/*` **未被禁，合规**（别碰 `/error-pages/`）。源站是**裸 nginx，前面无 Cloudflare**，无 Bot 质询；限流只会是 nginx/应用层按 IP/UA。我们 UA 具名带联系 URL（`LuxrayKitEnvironmentWorker/0.2 (+https://luxraykit.com)`）= 完全可被识别，有意为之，保留。
+- **足迹过剩**：源 `更新日` ~每天一次，我们 6h 一刷（4×/天）有 3/4 在抓没变的数据，且单双打并发会产生 ~60 连击突发——这是唯一可能踩 nginx 限流的点。Task F 一并降足迹。
+
 ## 任务清单
 
 ### Task A — 删除队伍分析功能（就绪 · 独立）
@@ -30,7 +38,7 @@
   - 删除 `src/lib/teamAnalysis.test.ts`。
 - **验收**：编辑页无分析入口/弹层；无悬空引用与未用 import；`npm test`、`npm run build` 通过。
 
-### Task B — 环境数据改用 PokeDB「统计页」当季聚合（核心 · 门控 C）
+### Task B — 环境数据改用 PokeDB「统计页」当季聚合（✅ 已合并并部署 · 受 Task F 收尾）
 
 > **修订说明**：原方案"从 trainer/list 拆队伍聚合"当季拿不到数据（阵容被隐藏）。改为以 PokeDB 自己的聚合统计页为主源，能拿到 M-2 的排行/道具/招式/队友/特性。已写好的 roster 解析保留，退居"可导入样本"来源。在 `feat/env-trainer-list-aggregation` 分支上继续做。
 
@@ -73,11 +81,32 @@
 
 统计页 `/pokemon/show` 直接带招式 %，moveStats 在 Task B 内一并产出，无需单独任务。
 
+### Task F — 刷新分批化，免费版保 top-60（✅ 已完成并部署 · 2026-06-12）
+
+> **由来**：Task B 上线后撞上免费版 50 子请求/次硬上限，靠线上把 detail 压到 20 救急。本任务在不升级套餐的前提下恢复 top-60。
+
+- **已实现**：KV 游标（`environment:refresh-job`）+ 自链式 STEP。START 探测赛季 + 抓两个 list 建 top-60×2 pending；STEP 每次抓 ≤40 详情（chunk+1≤50 预算）、250ms 节流、`SELF` service binding 自链（public 自调会 522，故用 binding）、内部步 202 + `ctx.waitUntil` 不 await 整链；FINALIZE 才原子写 `environment:latest`/`team-index`/`status`；jobId 守卫、stale/失败续跑、MAX_STEPS 断路、失败保旧 KV。
+- **配置漂移已修**：`wrangler.jsonc` `POKEDB_DETAIL_LIMIT=60` + `POKEDB_DETAIL_CHUNK_SIZE=40` + `WORKER_SELF_URL` + `SELF` service binding；dashboard 的 top-20 覆盖已删，线上=仓库=60。
+- **评审修复（Claude，2026-06-12）**：`fetchPreviousSeasonSamples` 原误改为失败 throw → 会让可选样本抓取失败连带卡死整个 FINALIZE 发布（prod 永久 stale）。已改回失败返回 `[]`，并补单测「样本失败时 FINALIZE 仍发布快照」。
+- **线上验收通过**：`/api/environment/status` = `M-2`；`/latest` 单双打各 213 排名、detailCount 60、rank-50（dragapult/lucario）`moveStats`/`itemStats` 非空。`npm test` 222 项、build、`worker:app:check` 全绿。
+- **遗留小项**：线上 audit 报 4 个特性 key 未映射（182/299/45/84），这些特性不渲染——补 `src/data/external/pokedbResourceKeyMap.ts` 即可，归入下次。
+
+### Task G — 降低 PokeDB 足迹（礼貌三条 · 下次做 · 本轮未排，用户确认暂缓）
+
+> 源 `更新日` ~日更，我们目前仍 6h 一刷（4×/天），3/4 在抓没变的数据。Task F 的分批结构已让详情天然串行，下面三条进一步把足迹压到与源更新频率相称。**非紧急，robots 合规、源站裸 nginx 无 bot 质询（见上「部署实情」），当前不会触发风控。**
+
+- **cron 6h → 每天 1 次**：改 `wrangler.jsonc` 的 `crons`（当前 `"17 */6 * * *"`）。
+- **节流 250ms → ~400–600ms**：`PAGE_REQUEST_DELAY_MS`，进一步削平连击。
+- **更新日短路**：START 先读一个 list 页拿 `更新日`，与上次 status 记录的源 `updated_at` 相同则整轮跳过（没变的日子近乎零脚印）；需在 status/游标记一份「上次源 updated_at」。
+- **验收**：`npm test`/`build`/`worker:app:check` 全绿；cron 为每日一次；更新日相同则短路不抓详情有单测。
+
 ## 暂不做
 
 - 引入 PokeDB 之外的第三方数据源（已评估：同样要 HTML 解析且滞后，无优势）。
 - 完整战斗模拟器、用户账号 / 云同步 / 跨设备队伍、多赛季趋势库。
 - 队伍分析（本轮已下线，暂无需求）。
+- 升级 Workers Paid（$5/mo 解 50 子请求限制）—— 已评估，本轮选 Task F 的免费分批方案，付费暂不需要。
+- 详情上限永久压到 top-20 —— 已评估，覆盖度损失大，由 Task F 恢复 top-60 取代。
 
 ## 全局验证（每个任务合并前）
 
@@ -91,3 +120,5 @@ npm run test:visual        # 涉及 UI / 口径页时
 - Task A：编辑页无分析入口/弹层，无悬空引用。
 - Task B：环境榜由 PokeDB 统计页聚合当季，dry-run 通过，部署后 /status 显示 M-2，详情页含招式；list/show 解析、节流、部分失败保旧 KV 有单测。
 - Task C/D：三态正确标注来源与赛季；口径页为图标定义列表、无硬编码 M-1。
+- Task F（✅ 已完成）：分批刷新免费版不再 1101、仅 FINALIZE 写完整快照、断链续跑、样本失败不挡发布、`POKEDB_DETAIL_LIMIT` 仓库=线上=60、线上抽查 rank-50 详情非空。
+- Task G（下次）：cron 每日一次、节流 ~500ms、更新日短路（有单测）。
