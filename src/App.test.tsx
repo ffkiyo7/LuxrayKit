@@ -287,6 +287,8 @@ describe('App page flows', () => {
     expect(screen.getByRole('button', { name: '返回队伍列表' })).toBeTruthy();
     expect(screen.queryByTitle('编辑名称')).toBeNull();
     expect(screen.getByTitle('删除队伍')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: '展开队伍分析' })).toBeNull();
+    expect(screen.queryByText('配队分析详情')).toBeNull();
 
     await user.click(screen.getByTitle('编辑队伍名称'));
     const nameInput = screen.getByLabelText('队伍名称');
