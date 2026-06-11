@@ -1,4 +1,5 @@
 export type EnvironmentBattleType = 'singles' | 'doubles';
+export type EnvironmentUsageBasis = 'absolute' | 'rank-relative';
 
 export type EnvironmentDatasetSource = {
   kind: 'development-seed' | 'community-snapshot' | 'official-ingestion';
@@ -21,9 +22,13 @@ export type EnvironmentPokemonUsage = {
   moveIds: string[];
   itemIds: string[];
   teammateIds: string[];
+  abilityIds?: string[];
+  natureIds?: string[];
   moveStats?: EnvironmentReferenceUsage[];
   itemStats?: EnvironmentReferenceUsage[];
   teammateStats?: EnvironmentReferenceUsage[];
+  abilityStats?: EnvironmentReferenceUsage[];
+  natureStats?: EnvironmentReferenceUsage[];
 };
 
 export type EnvironmentTeamSlot = {
@@ -55,6 +60,7 @@ export type EnvironmentDataset = {
   id: string;
   ruleSetId: string;
   dataVersionId: string;
+  overallUsageBasis?: EnvironmentUsageBasis;
   sourceLabel: string;
   statusLabel: string;
   updatedAt: string;
@@ -66,6 +72,8 @@ export type EnvironmentDatasetCatalog = {
   pokemonIds: Iterable<string>;
   moveIds: Iterable<string>;
   itemIds: Iterable<string>;
+  abilityIds?: Iterable<string>;
+  natureIds?: Iterable<string>;
 };
 
 export type EnvironmentDatasetAuditIssue = {
@@ -76,6 +84,8 @@ export type EnvironmentDatasetAuditIssue = {
     | 'missing-pokemon-ref'
     | 'missing-move-ref'
     | 'missing-item-ref'
+    | 'missing-ability-ref'
+    | 'missing-nature-ref'
     | 'invalid-usage-rate'
     | 'invalid-team-count'
     | 'sample-battle-type-mismatch'
@@ -104,7 +114,10 @@ const isFiniteNumber = (value: number) => Number.isFinite(value);
 const filterKnownIds = (
   ids: string[],
   knownIds: Set<string>,
-  code: Extract<EnvironmentDatasetAuditIssue['code'], 'missing-pokemon-ref' | 'missing-move-ref' | 'missing-item-ref'>,
+  code: Extract<
+    EnvironmentDatasetAuditIssue['code'],
+    'missing-pokemon-ref' | 'missing-move-ref' | 'missing-item-ref' | 'missing-ability-ref' | 'missing-nature-ref'
+  >,
   path: string,
   issues: EnvironmentDatasetAuditIssue[],
 ) =>
@@ -117,7 +130,10 @@ const filterKnownIds = (
 const normalizeReferenceStats = (
   stats: EnvironmentReferenceUsage[] | undefined,
   knownIds: Set<string>,
-  code: Extract<EnvironmentDatasetAuditIssue['code'], 'missing-pokemon-ref' | 'missing-move-ref' | 'missing-item-ref'>,
+  code: Extract<
+    EnvironmentDatasetAuditIssue['code'],
+    'missing-pokemon-ref' | 'missing-move-ref' | 'missing-item-ref' | 'missing-ability-ref' | 'missing-nature-ref'
+  >,
   path: string,
   issues: EnvironmentDatasetAuditIssue[],
 ) =>
@@ -142,7 +158,7 @@ const normalizeUsage = (
   usage: EnvironmentPokemonUsage,
   battleType: EnvironmentBattleType,
   index: number,
-  ids: { pokemon: Set<string>; moves: Set<string>; items: Set<string> },
+  ids: { pokemon: Set<string>; moves: Set<string>; items: Set<string>; abilities: Set<string>; natures: Set<string> },
   issues: EnvironmentDatasetAuditIssue[],
 ): EnvironmentPokemonUsage | undefined => {
   const path = `battles.${battleType}.pokemonUsage[${index}]`;
@@ -174,9 +190,13 @@ const normalizeUsage = (
     moveIds: filterKnownIds(usage.moveIds, ids.moves, 'missing-move-ref', `${path}.moveIds`, issues),
     itemIds: filterKnownIds(usage.itemIds, ids.items, 'missing-item-ref', `${path}.itemIds`, issues),
     teammateIds: filterKnownIds(usage.teammateIds, ids.pokemon, 'missing-pokemon-ref', `${path}.teammateIds`, issues),
+    abilityIds: filterKnownIds(usage.abilityIds ?? [], ids.abilities, 'missing-ability-ref', `${path}.abilityIds`, issues),
+    natureIds: filterKnownIds(usage.natureIds ?? [], ids.natures, 'missing-nature-ref', `${path}.natureIds`, issues),
     moveStats: normalizeReferenceStats(usage.moveStats, ids.moves, 'missing-move-ref', `${path}.moveStats`, issues),
     itemStats: normalizeReferenceStats(usage.itemStats, ids.items, 'missing-item-ref', `${path}.itemStats`, issues),
     teammateStats: normalizeReferenceStats(usage.teammateStats, ids.pokemon, 'missing-pokemon-ref', `${path}.teammateStats`, issues),
+    abilityStats: normalizeReferenceStats(usage.abilityStats, ids.abilities, 'missing-ability-ref', `${path}.abilityStats`, issues),
+    natureStats: normalizeReferenceStats(usage.natureStats, ids.natures, 'missing-nature-ref', `${path}.natureStats`, issues),
   };
 };
 
@@ -185,7 +205,7 @@ const normalizeSlot = (
   battleType: EnvironmentBattleType,
   sampleIndex: number,
   slotIndex: number,
-  ids: { pokemon: Set<string>; moves: Set<string>; items: Set<string> },
+  ids: { pokemon: Set<string>; moves: Set<string>; items: Set<string>; abilities: Set<string>; natures: Set<string> },
   issues: EnvironmentDatasetAuditIssue[],
 ): EnvironmentTeamSlot | undefined => {
   const path = `battles.${battleType}.teamSamples[${sampleIndex}].slots[${slotIndex}]`;
@@ -216,7 +236,7 @@ const normalizeSample = (
   sample: EnvironmentTeamSample,
   battleType: EnvironmentBattleType,
   index: number,
-  ids: { pokemon: Set<string>; moves: Set<string>; items: Set<string> },
+  ids: { pokemon: Set<string>; moves: Set<string>; items: Set<string>; abilities: Set<string>; natures: Set<string> },
   issues: EnvironmentDatasetAuditIssue[],
 ): EnvironmentTeamSample | undefined => {
   const path = `battles.${battleType}.teamSamples[${index}]`;
@@ -257,6 +277,8 @@ export function auditEnvironmentDataset(
     pokemon: toSet(catalog.pokemonIds),
     moves: toSet(catalog.moveIds),
     items: toSet(catalog.itemIds),
+    abilities: toSet(catalog.abilityIds ?? []),
+    natures: toSet(catalog.natureIds ?? []),
   };
 
   if (expected && dataset.ruleSetId !== expected.ruleSetId) {

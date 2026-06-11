@@ -25,6 +25,7 @@ describe('environment runtime loading', () => {
     const state = createEnvironmentStateFromPokeDbSnapshot(pokedbSnapshot);
 
     expect(state.auditIssues).toEqual([]);
+    expect(state.overallUsageBasis).toBe('absolute');
     expect(state.sourceLabel).toContain('PokeDB');
     expect(state.pokemonUsage.singles.length).toBeGreaterThanOrEqual(20);
     expect(state.pokemonUsage.doubles[0]).toMatchObject({ pokemonId: 'basculegion-male' });
@@ -48,6 +49,62 @@ describe('environment runtime loading', () => {
     expect(fetcher).toHaveBeenCalledTimes(1);
     expect(state.sourceLabel).toContain('PokeDB');
     expect(state.loadStatus).toBe('pokedb');
+  });
+
+  it('loads the current-season Pokemon statistics snapshot format with move details', () => {
+    const battle = {
+      season: 'M-2',
+      seasonNumber: 2,
+      rule: 'singles' as const,
+      updatedAt: '2026-06-10 23:58:00',
+      sourceUrl: 'https://champs.pokedb.tokyo/pokemon/list?season=2&rule=0',
+      resultCount: 213,
+      detailCount: 1,
+      pokemonUsage: [{
+        pokemonId: 'garchomp',
+        usageRate: 100,
+        teamCount: 213,
+        moveIds: ['earthquake'],
+        itemIds: ['focus-sash'],
+        teammateIds: ['archaludon'],
+        abilityIds: ['rough-skin'],
+        natureIds: ['爽朗'],
+        moveStats: [{ id: 'earthquake', usageRate: 99.2, teamCount: 211 }],
+        itemStats: [{ id: 'focus-sash', usageRate: 37.7, teamCount: 80 }],
+        teammateStats: [{ id: 'archaludon', usageRate: 100, teamCount: 213 }],
+        abilityStats: [{ id: 'rough-skin', usageRate: 99.4, teamCount: 212 }],
+        natureStats: [{ id: '爽朗', usageRate: 51.4, teamCount: 109 }],
+      }],
+      audit: {
+        unknownPokemonKeys: [],
+        unknownItemNames: [],
+        unknownMoveKeys: [],
+        unknownAbilityKeys: [],
+        unknownNatureNames: [],
+        failedDetailKeys: [],
+      },
+    };
+
+    const state = createEnvironmentStateFromPokeDbSnapshot({
+      retrievedAt: '2026-06-11T09:00:00.000Z',
+      battles: {
+        singles: battle,
+        doubles: { ...battle, rule: 'doubles', sourceUrl: 'https://champs.pokedb.tokyo/pokemon/list?season=2&rule=1' },
+      },
+      teamSamples: { singles: [], doubles: [] },
+    });
+
+    expect(state.loadStatus).toBe('pokedb');
+    expect(state.overallUsageBasis).toBe('rank-relative');
+    expect(state.sourceLabel).toContain('M-2');
+    expect(state.dataStatusLabel).toBe('当季聚合统计');
+    expect(state.sampleTeamCounts).toEqual({ singles: 213, doubles: 213 });
+    expect(state.pokemonUsage.singles[0]).toMatchObject({
+      pokemonId: 'garchomp',
+      moveStats: [{ id: 'earthquake', usageRate: 99.2 }],
+      abilityStats: [{ id: 'rough-skin', usageRate: 99.4 }],
+      natureStats: [{ id: '爽朗', usageRate: 51.4 }],
+    });
   });
 
   it('creates visible team samples when the Worker snapshot only has ranked teams', () => {
@@ -98,6 +155,7 @@ describe('environment runtime loading', () => {
     expect(fetcher).toHaveBeenNthCalledWith(1, WORKER_ENVIRONMENT_SNAPSHOT_URL, expect.any(Object));
     expect(fetcher).toHaveBeenNthCalledWith(2, POKEDB_ENVIRONMENT_SNAPSHOT_URL, expect.any(Object));
     expect(state.loadStatus).toBe('fallback');
+    expect(state.overallUsageBasis).toBe('absolute');
     expect(state.sourceLabel).not.toContain('PokeDB');
   });
 });

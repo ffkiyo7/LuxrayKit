@@ -5,7 +5,7 @@ interface __BaseEnv_Env {
 	ENVIRONMENT_CACHE: KVNamespace;
 	ASSETS: Fetcher;
 	POKEDB_BASE_URL: "https://champs.pokedb.tokyo";
-	SEASON_CANDIDATES: "2,1";
+	POKEDB_DETAIL_LIMIT: "60";
 	MAX_CACHE_AGE_SECONDS: "21600";
 	ALLOWED_ORIGINS: "*";
 }

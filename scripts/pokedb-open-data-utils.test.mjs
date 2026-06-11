@@ -38,7 +38,7 @@ const makePayload = () => ({
 describe('PokeDB open data maintenance utils', () => {
   it('keeps the website rule params aligned with PokeDB page labels', () => {
     expect(getPokeDbRuleParam('doubles')).toBe(1);
-    expect(getPokeDbRuleParam('singles')).toBe(2);
+    expect(getPokeDbRuleParam('singles')).toBe(0);
     expect(() => getPokeDbRuleParam('rotation')).toThrow('Unsupported PokeDB battle type');
   });
 

@@ -1,4 +1,4 @@
-import { currentDataVersion, currentRuleSet, items, moves, pokemon, regMaPokemonAllowlist } from './seed/regMA';
+import { abilities, currentDataVersion, currentRuleNatureOptions, currentRuleSet, items, moves, pokemon, regMaPokemonAllowlist } from './seed/regMA';
 import { currentEnvironmentDataset } from './environmentDatasetSeed';
 import { pokedbItemNameToId } from './external/pokedbItemNameMap';
 import {
@@ -10,8 +10,17 @@ import {
   type EnvironmentReferenceUsage,
   type EnvironmentTeamSample,
   type EnvironmentTeamSlot,
+  type EnvironmentUsageBasis,
 } from '../lib/environmentDataset';
-import { buildEnvironmentDatasetFromPokeDbOpenData, createPokeDbPokemonKeyMap, type PokeDbRankedTeamsPayload } from '../lib/pokedbEnvironment';
+import {
+  buildEnvironmentDatasetFromPokeDbOpenData,
+  buildEnvironmentDatasetFromPokeDbStatistics,
+  buildEnvironmentDatasetFromPokeDbTrainerLists,
+  createPokeDbPokemonKeyMap,
+  type PokeDbRankedTeamsPayload,
+  type PokeDbPokemonStatisticsPayload,
+  type PokeDbTrainerListPayload,
+} from '../lib/pokedbEnvironment';
 
 export type {
   EnvironmentBattleType,
@@ -19,6 +28,7 @@ export type {
   EnvironmentPokemonUsage,
   EnvironmentTeamSample,
   EnvironmentTeamSlot,
+  EnvironmentUsageBasis,
 };
 
 export const WORKER_ENVIRONMENT_SNAPSHOT_URL = '/api/environment/latest';
@@ -26,7 +36,7 @@ export const POKEDB_ENVIRONMENT_SNAPSHOT_URL = '/data/pokedb/reg-ma-s1-environme
 
 export type PokeDbEnvironmentSnapshotPayload = {
   retrievedAt: string;
-  battles: Partial<Record<EnvironmentBattleType, PokeDbRankedTeamsPayload>>;
+  battles: Partial<Record<EnvironmentBattleType, PokeDbRankedTeamsPayload | PokeDbTrainerListPayload | PokeDbPokemonStatisticsPayload>>;
   moveStats?: Partial<Record<EnvironmentBattleType, Record<string, EnvironmentReferenceUsage[]>>>;
   teamSamples?: Partial<Record<EnvironmentBattleType, EnvironmentTeamSample[]>>;
 };
@@ -35,6 +45,7 @@ export type EnvironmentState = {
   auditIssues: EnvironmentDatasetAuditIssue[];
   updatedAt: string;
   dataStatusLabel: string;
+  overallUsageBasis: EnvironmentUsageBasis;
   pokemonUsage: Record<EnvironmentBattleType, EnvironmentPokemonUsage[]>;
   sampleTeamCounts: Record<EnvironmentBattleType, number>;
   teamSamples: EnvironmentTeamSample[];
@@ -46,6 +57,8 @@ const environmentCatalog = {
   pokemonIds: pokemon.map((entry) => entry.id),
   moveIds: moves.map((entry) => entry.id),
   itemIds: items.map((entry) => entry.id),
+  abilityIds: abilities.map((entry) => entry.id),
+  natureIds: currentRuleNatureOptions.map((entry) => entry.id),
 };
 
 const expectedEnvironmentMetadata = {
@@ -80,6 +93,7 @@ const toEnvironmentState = (
     auditIssues: [...audited.issues, ...extraAuditIssues],
     updatedAt: audited.dataset.updatedAt,
     dataStatusLabel: audited.dataset.statusLabel,
+    overallUsageBasis: audited.dataset.overallUsageBasis ?? 'absolute',
     pokemonUsage: {
       singles: audited.dataset.battles.singles.pokemonUsage,
       doubles: audited.dataset.battles.doubles.pokemonUsage,
@@ -96,8 +110,38 @@ const toEnvironmentState = (
 
 export const environmentFallbackState = toEnvironmentState(currentEnvironmentDataset, 'fallback');
 
-export const createPokeDbEnvironmentDatasetFromSnapshot = (snapshot: PokeDbEnvironmentSnapshotPayload): EnvironmentDataset =>
-  buildEnvironmentDatasetFromPokeDbOpenData({
+const isTrainerListPayload = (
+  payload: PokeDbRankedTeamsPayload | PokeDbTrainerListPayload | PokeDbPokemonStatisticsPayload | undefined,
+): payload is PokeDbTrainerListPayload => Boolean(payload && 'seasonNumber' in payload && 'updatedAt' in payload);
+
+const isStatisticsPayload = (
+  payload: PokeDbRankedTeamsPayload | PokeDbTrainerListPayload | PokeDbPokemonStatisticsPayload | undefined,
+): payload is PokeDbPokemonStatisticsPayload => Boolean(payload && 'pokemonUsage' in payload && 'detailCount' in payload);
+
+export const createPokeDbEnvironmentDatasetFromSnapshot = (snapshot: PokeDbEnvironmentSnapshotPayload): EnvironmentDataset => {
+  const firstPayload = snapshot.battles.singles ?? snapshot.battles.doubles;
+  if (isStatisticsPayload(firstPayload)) {
+    return buildEnvironmentDatasetFromPokeDbStatistics({
+      id: `pokedb-reg-ma-${firstPayload.season.toLowerCase()}-pokemon-statistics`,
+      ruleSetId: currentRuleSet.id,
+      dataVersionId: currentDataVersion.id,
+      retrievedAt: snapshot.retrievedAt,
+      battles: snapshot.battles as Partial<Record<EnvironmentBattleType, PokeDbPokemonStatisticsPayload>>,
+      teamSamples: snapshot.teamSamples,
+    });
+  }
+  if (isTrainerListPayload(firstPayload)) {
+    return buildEnvironmentDatasetFromPokeDbTrainerLists({
+      id: `pokedb-reg-ma-${firstPayload.season.toLowerCase()}-trainer-list`,
+      ruleSetId: currentRuleSet.id,
+      dataVersionId: currentDataVersion.id,
+      retrievedAt: snapshot.retrievedAt,
+      battles: snapshot.battles as Partial<Record<EnvironmentBattleType, PokeDbTrainerListPayload>>,
+      moveStats: snapshot.moveStats,
+    });
+  }
+
+  return buildEnvironmentDatasetFromPokeDbOpenData({
     id: 'pokedb-reg-ma-s1-ranked-teams',
     ruleSetId: currentRuleSet.id,
     dataVersionId: currentDataVersion.id,
@@ -105,10 +149,11 @@ export const createPokeDbEnvironmentDatasetFromSnapshot = (snapshot: PokeDbEnvir
     pokemonKeyToId,
     itemNameToId: pokedbItemNameToId,
     itemIds: items.map((item) => item.id),
-    battles: snapshot.battles,
+    battles: snapshot.battles as Partial<Record<EnvironmentBattleType, PokeDbRankedTeamsPayload>>,
     moveStats: snapshot.moveStats,
     teamSamples: snapshot.teamSamples,
   });
+};
 
 export const createEnvironmentStateFromPokeDbSnapshot = (snapshot: PokeDbEnvironmentSnapshotPayload): EnvironmentState => {
   const pokedbDataset = createPokeDbEnvironmentDatasetFromSnapshot(snapshot);

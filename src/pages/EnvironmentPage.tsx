@@ -42,12 +42,14 @@ function RankingRow({
   usageRate,
   teamCount,
   rank,
+  usageBasis,
   onOpen,
 }: {
   pokemonId: string;
   usageRate: number;
   teamCount: number;
   rank: number;
+  usageBasis: EnvironmentState['overallUsageBasis'];
   onOpen: (pokemonId: string) => void;
 }) {
   const entry = getEnvironmentPokemon(pokemonId);
@@ -66,8 +68,14 @@ function RankingRow({
         </span>
       </span>
       <span className="w-[74px] shrink-0 text-right">
-        <span className="block text-lg font-semibold text-accent">{usageRate.toFixed(1)}%</span>
-        <span className="text-[11px] text-textMuted">{teamCount} 队</span>
+        {usageBasis === 'rank-relative' ? (
+          <span className="block text-sm font-semibold text-accent">排名第 {rank}</span>
+        ) : (
+          <>
+            <span className="block text-lg font-semibold text-accent">{usageRate.toFixed(1)}%</span>
+            <span className="text-[11px] text-textMuted">{teamCount} 队</span>
+          </>
+        )}
       </span>
     </button>
   );
@@ -132,6 +140,7 @@ function PokemonEnvironmentDetail({
 }) {
   const [expandedSection, setExpandedSection] = useState<'moves' | 'items' | 'teammates' | null>(null);
   const usage = environment.pokemonUsage[battleType].find((item) => item.pokemonId === pokemonId);
+  const usageRank = environment.pokemonUsage[battleType].findIndex((item) => item.pokemonId === pokemonId) + 1;
   const entry = getEnvironmentPokemon(pokemonId);
 
   if (!entry) return null;
@@ -180,8 +189,14 @@ function PokemonEnvironmentDetail({
           </div>
           {usage && (
             <div className="text-right">
-              <p className="text-2xl font-semibold text-accent">{usage.usageRate.toFixed(1)}%</p>
-              <p className="text-[11px] text-textMuted">{usage.teamCount} 队</p>
+              {environment.overallUsageBasis === 'rank-relative' ? (
+                <p className="text-base font-semibold text-accent">排名第 {usageRank}</p>
+              ) : (
+                <>
+                  <p className="text-2xl font-semibold text-accent">{usage.usageRate.toFixed(1)}%</p>
+                  <p className="text-[11px] text-textMuted">{usage.teamCount} 队</p>
+                </>
+              )}
             </div>
           )}
         </div>
@@ -256,7 +271,9 @@ function PokemonEnvironmentDetail({
               <div key={mate.id} className="rounded-lg border border-border bg-secondary p-2 text-center">
                 <PokemonAvatar iconRef={mate.iconRef} label={mate.chineseName} size="md" />
                 <p className="mt-2 truncate text-[11px] font-semibold">{mate.chineseName}</p>
-                <p className="mt-0.5 text-[10px] font-semibold text-accent">{stat.usageRate.toFixed(1)}%</p>
+                {environment.overallUsageBasis === 'absolute' && (
+                  <p className="mt-0.5 text-[10px] font-semibold text-accent">{stat.usageRate.toFixed(1)}%</p>
+                )}
               </div>
             ))}
           </div>
@@ -326,7 +343,13 @@ function FullRankingPage({
       <Card>
         <div>
           {rankings.map((item, index) => (
-            <RankingRow key={item.pokemonId} rank={index + 1} onOpen={onOpenPokemon} {...item} />
+            <RankingRow
+              key={item.pokemonId}
+              rank={index + 1}
+              usageBasis={environment.overallUsageBasis}
+              onOpen={onOpenPokemon}
+              {...item}
+            />
           ))}
         </div>
       </Card>
@@ -389,7 +412,9 @@ function EnvironmentMethodologyPage({
           ))}
         </div>
         <p className="mt-3 text-xs leading-5 text-textSecondary">
-          当前查看的是{battleTypeLabels[battleType]}环境，百分比和队伍数都以这 {formatSampleCount(sampleCount)} 为分母。
+          {environment.overallUsageBasis === 'rank-relative'
+            ? `当前查看的是${battleTypeLabels[battleType]}环境，宝可梦榜按使用排名排序；${formatSampleCount(sampleCount)} 是榜单结果数，不作为绝对携带率分母。`
+            : `当前查看的是${battleTypeLabels[battleType]}环境，百分比和队伍数都以这 ${formatSampleCount(sampleCount)} 为分母。`}
         </p>
       </Card>
 
@@ -408,15 +433,18 @@ function EnvironmentMethodologyPage({
       <Card>
         <h3 className="text-sm font-semibold">宝可梦榜</h3>
         <p className="mt-2 text-xs leading-5 text-textSecondary">
-          宝可梦旁边的百分比表示：在当前样本池里，有多少比例的队伍携带了这只宝可梦。比如 54.0% / 285 队，意思是当前样本池中有
-          285 支队伍带了这只宝可梦，约占全部样本的 54.0%。
+          {environment.overallUsageBasis === 'rank-relative'
+            ? '宝可梦榜按 PokeDB 公布的使用排名排序。页面展示名次，不把排名派生值解释为队伍携带比例。'
+            : '宝可梦旁边的百分比表示：在当前样本池里，有多少比例的队伍携带了这只宝可梦。比如 54.0% / 285 队，意思是当前样本池中有 285 支队伍带了这只宝可梦，约占全部样本的 54.0%。'}
         </p>
       </Card>
 
       <Card>
         <h3 className="text-sm font-semibold">详情页统计</h3>
         <p className="mt-2 text-xs leading-5 text-textSecondary">
-          常用招式、携带道具、常见队友的百分比，是在“已经带了这只宝可梦”的队伍里继续统计，不是以全部环境队伍为分母。
+          {environment.overallUsageBasis === 'rank-relative'
+            ? '常用招式、携带道具等百分比沿用 PokeDB 公布的真实占比；常见队友只按搭档排名展示，不解释为绝对携带率。'
+            : '常用招式、携带道具、常见队友的百分比，是在“已经带了这只宝可梦”的队伍里继续统计，不是以全部环境队伍为分母。'}
         </p>
       </Card>
 
@@ -546,7 +574,13 @@ export function EnvironmentPage({
         </div>
         <div>
           {visibleRankings.map((item, index) => (
-            <RankingRow key={item.pokemonId} rank={index + 1} onOpen={(pokemonId) => setDetailState({ pokemonId, returnView: 'home' })} {...item} />
+            <RankingRow
+              key={item.pokemonId}
+              rank={index + 1}
+              usageBasis={environment.overallUsageBasis}
+              onOpen={(pokemonId) => setDetailState({ pokemonId, returnView: 'home' })}
+              {...item}
+            />
           ))}
         </div>
       </Card>
