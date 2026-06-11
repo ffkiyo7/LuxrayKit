@@ -6,6 +6,9 @@ import {
   parsePokeDbPokemonDetailPage,
   parsePokeDbPokemonListPage,
   parsePokeDbTrainerListPage,
+  type PokeDbPokemonDetailPayload,
+  type PokeDbPokemonListPayload,
+  type PokeDbPokemonRankingEntry,
   type PokeDbPokemonStatisticsPayload,
   type PokeDbTrainerListPayload,
   type PokeDbTrainerTeam,
@@ -54,20 +57,54 @@ type CacheStatus = {
   error?: string;
 };
 
+type RefreshPendingDetail = Pick<PokeDbPokemonRankingEntry, 'pokeDbKey' | 'pokemonId' | 'rank'> & {
+  battleType: BattleType;
+};
+
+type RefreshJob = {
+  jobId: string;
+  season: number;
+  detailLimit: number;
+  startedAt: string;
+  updatedAt: string;
+  stepCount: number;
+  phase: 'collecting' | 'finalizing';
+  lists: Record<BattleType, PokeDbPokemonListPayload>;
+  pending: RefreshPendingDetail[];
+  details: Record<BattleType, Record<string, PokeDbPokemonDetailPayload>>;
+};
+
+type RefreshTriggerResult = {
+  ok: true;
+  state: 'started' | 'in-progress' | 'resumed';
+  jobId: string;
+  season: number;
+  pendingCount: number;
+};
+
 type AppEnv = Env & {
   ADMIN_REFRESH_TOKEN?: string;
   POKEDB_DETAIL_LIMIT?: string;
+  POKEDB_DETAIL_CHUNK_SIZE?: string;
+  WORKER_SELF_URL?: string;
+  SELF?: Fetcher;
 };
 
 const SNAPSHOT_KEY = 'environment:latest';
 const STATUS_KEY = 'environment:status';
 const TEAM_INDEX_KEY = 'environment:team-index';
+const REFRESH_JOB_KEY = 'environment:refresh-job';
 const DEFAULT_POKEDB_BASE_URL = 'https://champs.pokedb.tokyo';
+const DEFAULT_WORKER_SELF_URL = 'https://luxraykit-app.ffkiyo7.workers.dev';
 const DEFAULT_MAX_CACHE_AGE_SECONDS = 6 * 60 * 60;
 const DEFAULT_TEAM_LIMIT = 24;
 const MAX_TEAM_LIMIT = 50;
 const DEFAULT_DETAIL_LIMIT = 60;
 const MAX_DETAIL_LIMIT = 80;
+const DEFAULT_DETAIL_CHUNK_SIZE = 40;
+const MAX_DETAIL_CHUNK_SIZE = 40;
+const REFRESH_JOB_STALE_MS = 10 * 60 * 1000;
+const MAX_REFRESH_JOB_STEPS = 10;
 const PAGE_REQUEST_DELAY_MS = 250;
 const POKEDB_USER_AGENT = 'LuxrayKitEnvironmentWorker/0.2 (+https://luxraykit.com)';
 
@@ -266,47 +303,48 @@ export async function fetchTrainerBattlePages(options: {
 
 const mergeUnique = <T extends string | number>(values: T[][]) => [...new Set(values.flat())].sort();
 
-export async function fetchPokemonStatisticsBattle(options: {
+async function fetchPokemonList(options: {
   baseUrl: string;
   season: number;
   battleType: BattleType;
-  detailLimit?: number;
   fetcher?: Fetcher;
-  wait?: (milliseconds: number) => Promise<void>;
-}): Promise<PokeDbPokemonStatisticsPayload> {
-  const fetcher = options.fetcher ?? fetch;
-  const wait = options.wait ?? ((milliseconds: number) => new Promise((resolve) => setTimeout(resolve, milliseconds)));
-  const detailLimit = Math.min(Math.max(options.detailLimit ?? DEFAULT_DETAIL_LIMIT, 1), MAX_DETAIL_LIMIT);
+}): Promise<PokeDbPokemonListPayload> {
   const listUrl = pokemonListUrl(options.baseUrl, options.season, options.battleType);
-  const listHtml = await fetchPokeDbHtml(listUrl, fetcher);
-  const list = parsePokeDbPokemonListPage(listHtml, {
+  const listHtml = await fetchPokeDbHtml(listUrl, options.fetcher ?? fetch);
+  return parsePokeDbPokemonListPage(listHtml, {
     battleType: options.battleType,
     sourceUrl: listUrl,
     pokemonKeyToId: pokemonKeyToIdRecord,
   });
-  const topRankings = list.rankings.slice(0, detailLimit);
-  const detailByPokemonId = new Map<string, ReturnType<typeof parsePokeDbPokemonDetailPage>>();
+}
 
-  for (const [index, ranking] of topRankings.entries()) {
-    if (index > 0) await wait(PAGE_REQUEST_DELAY_MS);
-    const detailUrl = pokemonDetailUrl(options.baseUrl, options.season, options.battleType, ranking.pokeDbKey);
-    const html = await fetchPokeDbHtml(detailUrl, fetcher);
-    detailByPokemonId.set(
-      ranking.pokemonId,
-      parsePokeDbPokemonDetailPage(html, {
-        teamCount: Math.max(list.resultCount - ranking.rank + 1, 1),
-        pokemonKeyToId: pokemonKeyToIdRecord,
-        itemNameToId: pokedbItemNameToId,
-        moveKeyToId: pokedbMoveKeyToId,
-        abilityKeyToId: pokedbAbilityKeyToId,
-        natureNameToId: pokeDbNatureNameToId,
-      }),
-    );
-  }
+async function fetchPokemonDetail(options: {
+  baseUrl: string;
+  season: number;
+  battleType: BattleType;
+  ranking: Pick<PokeDbPokemonRankingEntry, 'pokeDbKey' | 'rank'>;
+  resultCount: number;
+  fetcher?: Fetcher;
+}): Promise<PokeDbPokemonDetailPayload> {
+  const detailUrl = pokemonDetailUrl(options.baseUrl, options.season, options.battleType, options.ranking.pokeDbKey);
+  const html = await fetchPokeDbHtml(detailUrl, options.fetcher ?? fetch);
+  return parsePokeDbPokemonDetailPage(html, {
+    teamCount: Math.max(options.resultCount - options.ranking.rank + 1, 1),
+    pokemonKeyToId: pokemonKeyToIdRecord,
+    itemNameToId: pokedbItemNameToId,
+    moveKeyToId: pokedbMoveKeyToId,
+    abilityKeyToId: pokedbAbilityKeyToId,
+    natureNameToId: pokeDbNatureNameToId,
+  });
+}
 
+function buildPokemonStatisticsPayload(
+  list: PokeDbPokemonListPayload,
+  detailsByPokemonId: Record<string, PokeDbPokemonDetailPayload>,
+): PokeDbPokemonStatisticsPayload {
   const pokemonUsage: EnvironmentPokemonUsage[] = list.rankings.map((ranking) => {
     const teamCount = Math.max(list.resultCount - ranking.rank + 1, 1);
-    const detail = detailByPokemonId.get(ranking.pokemonId);
+    const detail = detailsByPokemonId[ranking.pokemonId];
     return {
       pokemonId: ranking.pokemonId,
       usageRate: Math.round(((teamCount / Math.max(list.resultCount, 1)) * 100) * 10) / 10,
@@ -323,12 +361,12 @@ export async function fetchPokemonStatisticsBattle(options: {
       natureStats: detail?.natureStats ?? [],
     };
   });
-  const details = [...detailByPokemonId.values()];
+  const details = Object.values(detailsByPokemonId);
 
   return {
     season: list.season,
     seasonNumber: list.seasonNumber,
-    rule: options.battleType,
+    rule: list.rule,
     updatedAt: list.updatedAt,
     sourceUrl: list.sourceUrl,
     resultCount: list.resultCount,
@@ -345,15 +383,51 @@ export async function fetchPokemonStatisticsBattle(options: {
   };
 }
 
+export async function fetchPokemonStatisticsBattle(options: {
+  baseUrl: string;
+  season: number;
+  battleType: BattleType;
+  detailLimit?: number;
+  fetcher?: Fetcher;
+  wait?: (milliseconds: number) => Promise<void>;
+}): Promise<PokeDbPokemonStatisticsPayload> {
+  const fetcher = options.fetcher ?? fetch;
+  const wait = options.wait ?? ((milliseconds: number) => new Promise((resolve) => setTimeout(resolve, milliseconds)));
+  const detailLimit = Math.min(Math.max(options.detailLimit ?? DEFAULT_DETAIL_LIMIT, 1), MAX_DETAIL_LIMIT);
+  const list = await fetchPokemonList({
+    baseUrl: options.baseUrl,
+    season: options.season,
+    battleType: options.battleType,
+    fetcher,
+  });
+  const topRankings = list.rankings.slice(0, detailLimit);
+  const detailsByPokemonId: Record<string, PokeDbPokemonDetailPayload> = {};
+
+  for (const [index, ranking] of topRankings.entries()) {
+    if (index > 0) await wait(PAGE_REQUEST_DELAY_MS);
+    detailsByPokemonId[ranking.pokemonId] = await fetchPokemonDetail({
+      baseUrl: options.baseUrl,
+      season: options.season,
+      battleType: options.battleType,
+      ranking,
+      resultCount: list.resultCount,
+      fetcher,
+    });
+  }
+
+  return buildPokemonStatisticsPayload(list, detailsByPokemonId);
+}
+
 async function fetchPreviousSeasonSamples(options: {
   baseUrl: string;
   season: number;
   battleType: BattleType;
+  fetcher?: Fetcher;
 }): Promise<EnvironmentTeamSample[]> {
   if (options.season <= 1) return [];
   const sourceUrl = trainerListUrl(options.baseUrl, options.season - 1, options.battleType, 1);
   try {
-    const html = await fetchPokeDbHtml(sourceUrl, fetch);
+    const html = await fetchPokeDbHtml(sourceUrl, options.fetcher ?? fetch);
     const payload = parsePokeDbTrainerListPage(html, {
       battleType: options.battleType,
       sourceUrl,
@@ -376,6 +450,8 @@ async function fetchPreviousSeasonSamples(options: {
         slots: team.slots,
       }));
   } catch (error) {
+    // Importable samples are best-effort: a previous-season fetch failure must
+    // never block publishing the current-season rankings/details in FINALIZE.
     console.log(JSON.stringify({
       event: 'environment_sample_refresh_failure',
       battleType: options.battleType,
@@ -385,21 +461,18 @@ async function fetchPreviousSeasonSamples(options: {
   }
 }
 
-async function buildLatestSnapshot(env: AppEnv): Promise<EnvironmentSnapshot> {
-  const baseUrl = env.POKEDB_BASE_URL || DEFAULT_POKEDB_BASE_URL;
-  const season = await detectLatestPokeDbSeason(baseUrl);
-  const configuredDetailLimit = Number(env.POKEDB_DETAIL_LIMIT ?? DEFAULT_DETAIL_LIMIT);
-  const detailLimit = Number.isInteger(configuredDetailLimit)
-    ? Math.min(Math.max(configuredDetailLimit, 1), MAX_DETAIL_LIMIT)
-    : DEFAULT_DETAIL_LIMIT;
-  const [singles, doubles] = await Promise.all([
-    fetchPokemonStatisticsBattle({ baseUrl, season, battleType: 'singles', detailLimit }),
-    fetchPokemonStatisticsBattle({ baseUrl, season, battleType: 'doubles', detailLimit }),
-  ]);
-  const [singlesSamples, doublesSamples] = await Promise.all([
-    fetchPreviousSeasonSamples({ baseUrl, season, battleType: 'singles' }),
-    fetchPreviousSeasonSamples({ baseUrl, season, battleType: 'doubles' }),
-  ]);
+const configuredInteger = (value: string | undefined, fallback: number, maximum: number) => {
+  const parsed = Number(value ?? fallback);
+  return Number.isInteger(parsed) ? Math.min(Math.max(parsed, 1), maximum) : fallback;
+};
+
+function buildSnapshotFromRefreshJob(
+  job: RefreshJob,
+  teamSamples: Record<BattleType, EnvironmentTeamSample[]>,
+  retrievedAt: string,
+): EnvironmentSnapshot {
+  const singles = buildPokemonStatisticsPayload(job.lists.singles, job.details.singles);
+  const doubles = buildPokemonStatisticsPayload(job.lists.doubles, job.details.doubles);
   const unknownPokemonKeys = mergeUnique([singles.audit.unknownPokemonKeys, doubles.audit.unknownPokemonKeys]);
   const unknownItemNames = mergeUnique([singles.audit.unknownItemNames, doubles.audit.unknownItemNames]);
   const unknownMoveKeys = mergeUnique([singles.audit.unknownMoveKeys, doubles.audit.unknownMoveKeys]);
@@ -407,16 +480,16 @@ async function buildLatestSnapshot(env: AppEnv): Promise<EnvironmentSnapshot> {
   const unknownNatureNames = mergeUnique([singles.audit.unknownNatureNames, doubles.audit.unknownNatureNames]);
 
   return {
-    retrievedAt: new Date().toISOString(),
+    retrievedAt,
     battles: { singles, doubles },
-    teamSamples: { singles: singlesSamples, doubles: doublesSamples },
+    teamSamples,
     dataFreshness: {
       source: 'pokedb-pokemon-statistics',
-      selectedSeason: season,
+      selectedSeason: job.season,
       completeness: 'rankings-complete-details-top-n',
-      detailLimit,
+      detailLimit: job.detailLimit,
       notes: [
-        `Complete Pokemon rankings with detail statistics for the top ${detailLimit}.`,
+        `Complete Pokemon rankings with detail statistics for the top ${job.detailLimit}.`,
         'Overall and teammate percentages are rank-relative because PokeDB does not publish absolute values for those fields.',
         unknownPokemonKeys.length > 0 ? `Unknown Pokemon keys: ${unknownPokemonKeys.join(', ')}.` : '',
         unknownItemNames.length > 0 ? `Unknown item names: ${unknownItemNames.join(', ')}.` : '',
@@ -430,46 +503,241 @@ async function buildLatestSnapshot(env: AppEnv): Promise<EnvironmentSnapshot> {
   };
 }
 
-export async function refreshSnapshot(
-  env: AppEnv,
-  snapshotBuilder: (env: AppEnv) => Promise<EnvironmentSnapshot> = buildLatestSnapshot,
-  now: () => Date = () => new Date(),
-): Promise<CacheStatus> {
+async function recordRefreshFailure(env: AppEnv, error: unknown, now: () => Date) {
   const previousStatusText = await env.ENVIRONMENT_CACHE.get(STATUS_KEY);
   const previousStatus = previousStatusText ? (JSON.parse(previousStatusText) as CacheStatus) : undefined;
+  const status: CacheStatus = {
+    ...previousStatus,
+    ok: false,
+    failedAt: now().toISOString(),
+    error: error instanceof Error ? error.message : String(error),
+  };
+  await env.ENVIRONMENT_CACHE.put(STATUS_KEY, JSON.stringify(status));
+  console.log(JSON.stringify({ event: 'environment_refresh_failure', ...status }));
+}
+
+async function publishRefreshJob(
+  env: AppEnv,
+  job: RefreshJob,
+  fetcher: Fetcher,
+  now: () => Date,
+): Promise<CacheStatus> {
+  const baseUrl = env.POKEDB_BASE_URL || DEFAULT_POKEDB_BASE_URL;
+  const [singlesSamples, doublesSamples] = await Promise.all([
+    fetchPreviousSeasonSamples({ baseUrl, season: job.season, battleType: 'singles', fetcher }),
+    fetchPreviousSeasonSamples({ baseUrl, season: job.season, battleType: 'doubles', fetcher }),
+  ]);
+  const refreshedAt = now().toISOString();
+  const snapshot = buildSnapshotFromRefreshJob(
+    job,
+    { singles: singlesSamples, doubles: doublesSamples },
+    refreshedAt,
+  );
+  const teamIndex = buildTeamIndex(snapshot);
+  const status: CacheStatus = {
+    ok: true,
+    refreshedAt,
+    selectedSeason: job.season,
+    selectedSeasonLabel: snapshot.battles.singles?.season ?? snapshot.battles.doubles?.season,
+    teamCounts: {
+      singles: snapshot.battles.singles?.resultCount,
+      doubles: snapshot.battles.doubles?.resultCount,
+    },
+  };
+
+  await Promise.all([
+    env.ENVIRONMENT_CACHE.put(SNAPSHOT_KEY, JSON.stringify(snapshot)),
+    env.ENVIRONMENT_CACHE.put(STATUS_KEY, JSON.stringify(status)),
+    env.ENVIRONMENT_CACHE.put(TEAM_INDEX_KEY, JSON.stringify(teamIndex)),
+  ]);
+  await env.ENVIRONMENT_CACHE.delete(REFRESH_JOB_KEY);
+  console.log(JSON.stringify({ event: 'environment_refresh_success', jobId: job.jobId, ...status }));
+  return status;
+}
+
+type RefreshJobDependencies = {
+  fetcher?: Fetcher;
+  wait?: (milliseconds: number) => Promise<void>;
+  now?: () => Date;
+  createJobId?: () => string;
+};
+
+type ScheduleRefreshStep = (jobId: string) => void;
+
+export async function startRefreshJob(
+  env: AppEnv,
+  scheduleNext: ScheduleRefreshStep,
+  dependencies: RefreshJobDependencies = {},
+): Promise<RefreshTriggerResult> {
+  const now = dependencies.now ?? (() => new Date());
+  const currentTime = now();
+  const [currentJobText, currentStatusText] = await Promise.all([
+    env.ENVIRONMENT_CACHE.get(REFRESH_JOB_KEY),
+    env.ENVIRONMENT_CACHE.get(STATUS_KEY),
+  ]);
+  if (currentJobText) {
+    const currentJob = JSON.parse(currentJobText) as RefreshJob;
+    const currentStatus = currentStatusText ? (JSON.parse(currentStatusText) as CacheStatus) : undefined;
+    const isStale = currentTime.getTime() - Date.parse(currentJob.updatedAt) > REFRESH_JOB_STALE_MS;
+    const stoppedAfterFailure =
+      currentStatus?.ok === false &&
+      Boolean(currentStatus.failedAt) &&
+      Date.parse(currentStatus.failedAt!) >= Date.parse(currentJob.startedAt);
+    if (isStale || stoppedAfterFailure) scheduleNext(currentJob.jobId);
+    return {
+      ok: true,
+      state: isStale || stoppedAfterFailure ? 'resumed' : 'in-progress',
+      jobId: currentJob.jobId,
+      season: currentJob.season,
+      pendingCount: currentJob.pending.length,
+    };
+  }
+
+  const fetcher = dependencies.fetcher ?? fetch;
+  const baseUrl = env.POKEDB_BASE_URL || DEFAULT_POKEDB_BASE_URL;
+  try {
+    const season = await detectLatestPokeDbSeason(baseUrl, fetcher);
+    const [singles, doubles] = await Promise.all([
+      fetchPokemonList({ baseUrl, season, battleType: 'singles', fetcher }),
+      fetchPokemonList({ baseUrl, season, battleType: 'doubles', fetcher }),
+    ]);
+    const detailLimit = configuredInteger(env.POKEDB_DETAIL_LIMIT, DEFAULT_DETAIL_LIMIT, MAX_DETAIL_LIMIT);
+    const pending = (['singles', 'doubles'] as const).flatMap((battleType) =>
+      ({ singles, doubles })[battleType].rankings.slice(0, detailLimit).map((ranking) => ({
+        battleType,
+        pokeDbKey: ranking.pokeDbKey,
+        pokemonId: ranking.pokemonId,
+        rank: ranking.rank,
+      })),
+    );
+    const timestamp = currentTime.toISOString();
+    const job: RefreshJob = {
+      jobId: dependencies.createJobId?.() ?? crypto.randomUUID(),
+      season,
+      detailLimit,
+      startedAt: timestamp,
+      updatedAt: timestamp,
+      stepCount: 0,
+      phase: 'collecting',
+      lists: { singles, doubles },
+      pending,
+      details: { singles: {}, doubles: {} },
+    };
+    await env.ENVIRONMENT_CACHE.put(REFRESH_JOB_KEY, JSON.stringify(job));
+    scheduleNext(job.jobId);
+    console.log(JSON.stringify({
+      event: 'environment_refresh_started',
+      jobId: job.jobId,
+      season,
+      detailLimit,
+      pendingCount: pending.length,
+    }));
+    return {
+      ok: true,
+      state: 'started',
+      jobId: job.jobId,
+      season,
+      pendingCount: pending.length,
+    };
+  } catch (error) {
+    await recordRefreshFailure(env, error, now);
+    throw error;
+  }
+}
+
+export async function runRefreshJobStep(
+  env: AppEnv,
+  jobId: string,
+  scheduleNext: ScheduleRefreshStep,
+  dependencies: RefreshJobDependencies = {},
+): Promise<CacheStatus | { ok: true; state: 'collecting' | 'finalizing'; jobId: string; pendingCount: number }> {
+  const now = dependencies.now ?? (() => new Date());
+  const fetcher = dependencies.fetcher ?? fetch;
+  const wait = dependencies.wait ?? ((milliseconds: number) => new Promise((resolve) => setTimeout(resolve, milliseconds)));
+  const jobText = await env.ENVIRONMENT_CACHE.get(REFRESH_JOB_KEY);
+  if (!jobText) throw new Error('Environment refresh job was not found');
+  const job = JSON.parse(jobText) as RefreshJob;
+  if (job.jobId !== jobId) throw new Error(`Environment refresh job ${jobId} is no longer active`);
+  if (job.stepCount >= MAX_REFRESH_JOB_STEPS) {
+    const error = new Error(`Environment refresh job ${jobId} exceeded ${MAX_REFRESH_JOB_STEPS} steps`);
+    await recordRefreshFailure(env, error, now);
+    throw error;
+  }
 
   try {
-    const snapshot = await snapshotBuilder(env);
-    const teamIndex = buildTeamIndex(snapshot);
-    const refreshedAt = now().toISOString();
-    const status: CacheStatus = {
+    if (job.phase === 'finalizing') {
+      return await publishRefreshJob(env, job, fetcher, now);
+    }
+
+    const chunkSize = configuredInteger(
+      env.POKEDB_DETAIL_CHUNK_SIZE,
+      DEFAULT_DETAIL_CHUNK_SIZE,
+      MAX_DETAIL_CHUNK_SIZE,
+    );
+    const chunk = job.pending.slice(0, chunkSize);
+    if (chunk.length === 0) {
+      const finalizingJob: RefreshJob = {
+        ...job,
+        phase: 'finalizing',
+        stepCount: job.stepCount + 1,
+        updatedAt: now().toISOString(),
+      };
+      await env.ENVIRONMENT_CACHE.put(REFRESH_JOB_KEY, JSON.stringify(finalizingJob));
+      scheduleNext(job.jobId);
+      return { ok: true, state: 'finalizing', jobId: job.jobId, pendingCount: 0 };
+    }
+
+    const chunkDetails: Array<[RefreshPendingDetail, PokeDbPokemonDetailPayload]> = [];
+    for (const [index, pending] of chunk.entries()) {
+      if (index > 0) await wait(PAGE_REQUEST_DELAY_MS);
+      const detail = await fetchPokemonDetail({
+        baseUrl: env.POKEDB_BASE_URL || DEFAULT_POKEDB_BASE_URL,
+        season: job.season,
+        battleType: pending.battleType,
+        ranking: pending,
+        resultCount: job.lists[pending.battleType].resultCount,
+        fetcher,
+      });
+      chunkDetails.push([pending, detail]);
+    }
+
+    chunkDetails.forEach(([pending, detail]) => {
+      job.details[pending.battleType][pending.pokemonId] = detail;
+    });
+    job.pending = job.pending.slice(chunk.length);
+    job.phase = job.pending.length > 0 ? 'collecting' : 'finalizing';
+    job.stepCount += 1;
+    job.updatedAt = now().toISOString();
+    await env.ENVIRONMENT_CACHE.put(REFRESH_JOB_KEY, JSON.stringify(job));
+    scheduleNext(job.jobId);
+    return {
       ok: true,
-      refreshedAt,
-      selectedSeason: snapshot.dataFreshness?.selectedSeason,
-      selectedSeasonLabel: snapshot.battles.singles?.season ?? snapshot.battles.doubles?.season,
-      teamCounts: {
-        singles: snapshot.battles.singles?.resultCount,
-        doubles: snapshot.battles.doubles?.resultCount,
-      },
+      state: job.phase,
+      jobId: job.jobId,
+      pendingCount: job.pending.length,
     };
-
-    await Promise.all([
-      env.ENVIRONMENT_CACHE.put(SNAPSHOT_KEY, JSON.stringify(snapshot)),
-      env.ENVIRONMENT_CACHE.put(STATUS_KEY, JSON.stringify(status)),
-      env.ENVIRONMENT_CACHE.put(TEAM_INDEX_KEY, JSON.stringify(teamIndex)),
-    ]);
-
-    console.log(JSON.stringify({ event: 'environment_refresh_success', ...status }));
-    return status;
   } catch (error) {
-    const status: CacheStatus = {
-      ...previousStatus,
-      ok: false,
-      failedAt: now().toISOString(),
-      error: error instanceof Error ? error.message : String(error),
-    };
-    await env.ENVIRONMENT_CACHE.put(STATUS_KEY, JSON.stringify(status));
-    console.log(JSON.stringify({ event: 'environment_refresh_failure', ...status }));
+    await recordRefreshFailure(env, error, now);
+    throw error;
+  }
+}
+
+async function triggerRefreshStep(env: AppEnv, jobId: string, fetcher: Fetcher = fetch) {
+  try {
+    if (!env.ADMIN_REFRESH_TOKEN) throw new Error('ADMIN_REFRESH_TOKEN is required for chained refresh steps');
+    const selfUrl = new URL('/api/environment/refresh', env.WORKER_SELF_URL || DEFAULT_WORKER_SELF_URL);
+    selfUrl.searchParams.set('step', '1');
+    selfUrl.searchParams.set('jobId', jobId);
+    const request = new Request(selfUrl, {
+      method: 'POST',
+      headers: { authorization: `Bearer ${env.ADMIN_REFRESH_TOKEN}` },
+    });
+    const response = env.SELF ? await env.SELF.fetch(request) : await fetcher(request);
+    if (!response.ok) {
+      throw new Error(`Environment refresh self-chain returned ${response.status}: ${await response.text()}`);
+    }
+  } catch (error) {
+    await recordRefreshFailure(env, error, () => new Date());
     throw error;
   }
 }
@@ -639,7 +907,7 @@ async function handlePokemonTeams(url: URL, env: AppEnv, pokemonId: string) {
 }
 
 export default {
-  async fetch(request: Request, env: AppEnv): Promise<Response> {
+  async fetch(request: Request, env: AppEnv, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
 
     if (request.method === 'OPTIONS') {
@@ -667,8 +935,35 @@ export default {
       if (!(await isAuthorizedRefresh(request, env))) {
         return jsonResponse(env, { error: 'unauthorized' }, { status: 401, headers: { 'cache-control': 'no-store' } });
       }
-      const status = await refreshSnapshot(env);
-      return jsonResponse(env, status, { headers: { 'cache-control': 'no-store' } });
+      const scheduleNext = (jobId: string) => {
+        ctx.waitUntil(triggerRefreshStep(env, jobId));
+      };
+      try {
+        if (url.searchParams.get('step') === '1') {
+          const jobId = url.searchParams.get('jobId');
+          if (!jobId) {
+            return jsonResponse(
+              env,
+              { ok: false, error: 'missing_refresh_job_id' },
+              { status: 400, headers: { 'cache-control': 'no-store' } },
+            );
+          }
+          ctx.waitUntil(runRefreshJobStep(env, jobId, scheduleNext));
+          return jsonResponse(
+            env,
+            { ok: true, state: 'accepted', jobId },
+            { status: 202, headers: { 'cache-control': 'no-store' } },
+          );
+        }
+        const result = await startRefreshJob(env, scheduleNext);
+        return jsonResponse(env, result, { status: 202, headers: { 'cache-control': 'no-store' } });
+      } catch (error) {
+        return jsonResponse(
+          env,
+          { ok: false, error: error instanceof Error ? error.message : String(error) },
+          { status: 500, headers: { 'cache-control': 'no-store' } },
+        );
+      }
     }
 
     if (url.pathname.startsWith('/api/')) {
@@ -679,6 +974,9 @@ export default {
   },
 
   async scheduled(_event: ScheduledEvent, env: AppEnv, ctx: ExecutionContext): Promise<void> {
-    ctx.waitUntil(refreshSnapshot(env));
+    const scheduleNext = (jobId: string) => {
+      ctx.waitUntil(triggerRefreshStep(env, jobId));
+    };
+    ctx.waitUntil(startRefreshJob(env, scheduleNext));
   },
 };

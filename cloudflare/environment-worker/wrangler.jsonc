@@ -35,6 +35,8 @@
   "vars": {
     "POKEDB_BASE_URL": "https://champs.pokedb.tokyo",
     "POKEDB_DETAIL_LIMIT": "60",
+    "POKEDB_DETAIL_CHUNK_SIZE": "40",
+    "WORKER_SELF_URL": "https://luxraykit-app.ffkiyo7.workers.dev",
     "MAX_CACHE_AGE_SECONDS": "21600",
     "ALLOWED_ORIGINS": "*"
   },
@@ -43,6 +45,12 @@
       "binding": "ENVIRONMENT_CACHE",
       "id": "43aafe9bdd2c4d01a980325d75eb9630",
       "preview_id": "880eb89e7fd44e7bbe582b224778b4ed"
+    }
+  ],
+  "services": [
+    {
+      "binding": "SELF",
+      "service": "luxraykit-app"
     }
   ]
 }
