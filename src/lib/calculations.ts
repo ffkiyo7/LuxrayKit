@@ -1,6 +1,6 @@
 import type { BaseStats, PokemonType, SpeedBenchmark, Team, TeamMember } from '../types';
 import { currentRuleNatureOptions, items } from '../data';
-import { findPokemon, getMemberBattleForm, type BattleFormView } from './pokemonForms';
+import { findPokemon, getMemberBattleForm } from './pokemonForms';
 import { clampStatPointValue } from './statPoints';
 
 const natureStatMap: Record<string, keyof BaseStats> = {
@@ -151,19 +151,6 @@ export const buildTeamBenchmarks = (team: Team): SpeedBenchmark[] =>
       };
     });
 
-type AnalysisStatus = 'ok' | 'review' | 'warning';
-
-export type TeamAnalysisSection = {
-  title: string;
-  status: AnalysisStatus;
-  items: string[];
-};
-
-export type TeamAnalysisDetails = {
-  chips: string[];
-  sections: TeamAnalysisSection[];
-};
-
 export const attackingTypes: PokemonType[] = [
   'Normal',
   'Fire',
@@ -214,100 +201,3 @@ export const defensiveMatchupMultiplier = (attackType: PokemonType, defenderType
     if (matchup?.resisted?.includes(defenderType)) return multiplier * 0.5;
     return multiplier;
   }, 1);
-
-const matchupMultiplier = (attackType: PokemonType, defender: { types: PokemonType[] }) => defensiveMatchupMultiplier(attackType, defender.types);
-
-export const buildTeamAnalysisDetails = (team: Team): TeamAnalysisDetails => {
-  const members = team.members.map((member) => getMemberBattleForm(member)).filter((entry): entry is BattleFormView => Boolean(entry));
-  const typeCounts = members.flatMap((entry) => entry.types).reduce<Record<string, number>>((acc, type) => {
-    acc[type] = (acc[type] ?? 0) + 1;
-    return acc;
-  }, {});
-  const physicalBias = members.filter((entry) => entry.baseStats.attack >= entry.baseStats.specialAttack).length;
-  const speedCoverage = members.filter((entry) => entry.baseStats.speed >= 90).length;
-  const membersWithSpeed = team.members
-    .map((member) => ({ member, pokemon: getMemberBattleForm(member), speed: memberSpeed(member) }))
-    .filter((entry): entry is { member: TeamMember; pokemon: NonNullable<ReturnType<typeof getMemberBattleForm>>; speed: number } => Boolean(entry.pokemon));
-
-  const weaknessCounts = attackingTypes
-    .map((attackType) => ({
-      attackType,
-      weakCount: members.filter((member) => matchupMultiplier(attackType, member) > 1).length,
-      resistCount: members.filter((member) => matchupMultiplier(attackType, member) > 0 && matchupMultiplier(attackType, member) < 1).length,
-      immuneCount: members.filter((member) => matchupMultiplier(attackType, member) === 0).length,
-    }))
-    .sort((a, b) => b.weakCount - a.weakCount);
-
-  const topWeaknesses = weaknessCounts.filter((entry) => entry.weakCount > 0).slice(0, 4);
-  const topDefenses = weaknessCounts
-    .filter((entry) => entry.resistCount + entry.immuneCount > 0)
-    .sort((a, b) => b.resistCount + b.immuneCount - (a.resistCount + a.immuneCount))
-    .slice(0, 4);
-  const sortedSpeed = [...membersWithSpeed].sort((a, b) => b.speed - a.speed);
-  const duplicateTypes = Object.entries(typeCounts).filter(([, count]) => count >= 3);
-  const weatherSetters = team.members
-    .filter((member) => ['drought', 'drizzle'].includes(member.abilityId ?? ''))
-    .map((member) => memberLabel(member));
-  const itemDuplicates = Object.entries(
-    team.members.reduce<Record<string, number>>((acc, member) => {
-      if (member.itemId) acc[member.itemId] = (acc[member.itemId] ?? 0) + 1;
-      return acc;
-    }, {}),
-  ).filter(([, count]) => count > 1);
-
-  const chips = [
-    members.length < 6 ? `缺少配置 ${6 - members.length}` : '6 位齐整',
-    physicalBias > members.length / 2 ? '物攻倾向' : '攻防较均衡',
-    speedCoverage >= 2 ? '速度覆盖' : '速度偏慢',
-    duplicateTypes.length > 0 ? '属性重复需复核' : '属性分布可读',
-  ];
-
-  return {
-    chips,
-    sections: [
-      {
-        title: '属性弱点',
-        status: topWeaknesses.some((entry) => entry.weakCount >= 2) ? 'warning' : 'ok',
-        items:
-          topWeaknesses.length > 0
-            ? topWeaknesses.map((entry) => `${entry.attackType} 打点命中 ${entry.weakCount} 名成员弱点`)
-            : ['当前 seed 队伍未识别到集中弱点。'],
-      },
-      {
-        title: '抗性 / 免疫',
-        status: topDefenses.length > 0 ? 'ok' : 'review',
-        items:
-          topDefenses.length > 0
-            ? topDefenses.map((entry) => `${entry.attackType}：${entry.resistCount} 个抗性，${entry.immuneCount} 个免疫`)
-            : ['暂无明确抗性或免疫覆盖，需要更多成员数据。'],
-      },
-      {
-        title: '攻防倾向',
-        status: Math.abs(physicalBias - (members.length - physicalBias)) >= 3 ? 'review' : 'ok',
-        items: [
-          `物攻倾向成员 ${physicalBias} 名，特攻倾向成员 ${Math.max(0, members.length - physicalBias)} 名`,
-          physicalBias > members.length / 2 ? '当前更依赖物理输出，需留意威吓和物理墙。' : '当前输出倾向相对均衡。',
-        ],
-      },
-      {
-        title: '速度覆盖',
-        status: speedCoverage >= 2 ? 'ok' : 'review',
-        items:
-          sortedSpeed.length > 0
-            ? sortedSpeed.map((entry) => `${entry.pokemon.chineseName}：最终速度 ${entry.speed}`)
-            : ['暂无可计算速度的队伍成员。'],
-      },
-      {
-        title: '功能位 / 重复定位',
-        status: itemDuplicates.length > 0 || duplicateTypes.length > 0 ? 'warning' : 'review',
-        items: [
-          weatherSetters.length > 0 ? `天气来源：${weatherSetters.join('、')}` : '暂未识别明确天气来源。',
-          itemDuplicates.length > 0 ? `重复道具：${itemDuplicates.map(([itemId]) => items.find((item) => item.id === itemId)?.chineseName ?? itemId).join('、')}` : '未发现重复道具。',
-          duplicateTypes.length > 0 ? `重复属性：${duplicateTypes.map(([type, count]) => `${type}×${count}`).join('、')}` : '未发现 3 个以上成员共享同一属性。',
-        ],
-      },
-    ],
-  };
-};
-
-export const teamAnalysis = (team: Team) => buildTeamAnalysisDetails(team).chips;

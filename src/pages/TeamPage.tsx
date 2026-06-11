@@ -1,7 +1,7 @@
-import { ArrowLeft, BarChart3, ChevronUp, Download, Edit3, GripVertical, Minus, Plus, Save, Search, Trash2, X } from 'lucide-react';
+import { ArrowLeft, ChevronUp, Download, Edit3, GripVertical, Minus, Plus, Save, Search, Trash2, X } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
 import { abilities, currentRuleNatureOptions, items, moves, pokemon } from '../data';
-import { buildTeamAnalysisDetails, memberBattleStats, memberLabel } from '../lib/calculations';
+import { memberBattleStats, memberLabel } from '../lib/calculations';
 import { currentRuleMovesForPokemon, currentRuleNatures, currentRuleSelectableItemsForPokemon, natureOptionLabel } from '../lib/currentRuleCatalog';
 import { createId } from '../lib/id';
 import { evaluateMemberLegality } from '../lib/legality';
@@ -701,62 +701,6 @@ function MemberEditor({
   );
 }
 
-function AnalysisDetailSheet({
-  team,
-  onClose,
-}: {
-  team: Team;
-  onClose: () => void;
-}) {
-  const details = buildTeamAnalysisDetails(team);
-  const statusColor = {
-    ok: 'text-success',
-    review: 'text-warning',
-    warning: 'text-danger',
-  };
-
-  return (
-    <div className="fixed inset-x-0 bottom-0 z-30 mx-auto max-w-[430px] rounded-t-2xl border border-border bg-card p-4 shadow-none">
-      <div className="mx-auto mb-3 h-1 w-9 rounded-full bg-disabled" />
-      <div className="mb-3 flex items-start justify-between gap-3">
-        <div>
-          <h3 className="text-base font-semibold">配队分析详情</h3>
-          <p className="text-xs text-textSecondary">基于当前 seed data 的可解释提示，正式结论仍需真实数据复核</p>
-        </div>
-        <button className="grid h-8 w-8 place-items-center rounded-lg text-textSecondary" title="关闭" onClick={onClose}>
-          <X size={18} />
-        </button>
-      </div>
-
-      <div className="mb-3 flex gap-2 overflow-x-auto hide-scrollbar">
-        {details.chips.map((chip) => (
-          <Chip key={chip}>{chip}</Chip>
-        ))}
-      </div>
-
-      <div className="max-h-[62vh] space-y-2 overflow-y-auto pr-1">
-        {details.sections.map((section) => (
-          <Card key={section.title} className="bg-secondary">
-            <div className="mb-2 flex items-center justify-between">
-              <h4 className="text-sm font-semibold">{section.title}</h4>
-              <span className={`text-[11px] font-semibold ${statusColor[section.status]}`}>
-                {section.status === 'ok' ? '可读' : section.status === 'review' ? '需复核' : '风险'}
-              </span>
-            </div>
-            <div className="space-y-1">
-              {section.items.map((item) => (
-                <p key={item} className="text-xs text-textSecondary">
-                  {item}
-                </p>
-              ))}
-            </div>
-          </Card>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 function TeamListCard({
   team,
   active,
@@ -1041,7 +985,6 @@ export function TeamPage({
   const [detailTeamId, setDetailTeamId] = useState<string | null>(null);
   const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
   const [expandedMemberId, setExpandedMemberId] = useState<string | null>(null);
-  const [showAnalysis, setShowAnalysis] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
   const [showNameModal, setShowNameModal] = useState(false);
   const [shareImage, setShareImage] = useState<{ teamName: string; image: TeamShareImage } | null>(null);
@@ -1066,7 +1009,6 @@ export function TeamPage({
     setDetailTeamId(teamId);
     setExpandedMemberId(null);
     setEditingMemberId(null);
-    setShowAnalysis(false);
     setShowPicker(false);
     setRenamingTeamId(null);
     setShowLuxrayEasterEgg(teamId === LUXRAY_EASTER_TEAM_ID);
@@ -1076,7 +1018,6 @@ export function TeamPage({
     setDetailTeamId(null);
     setExpandedMemberId(null);
     setEditingMemberId(null);
-    setShowAnalysis(false);
     setShowPicker(false);
     setRenamingTeamId(null);
     setShowLuxrayEasterEgg(false);
@@ -1312,11 +1253,6 @@ export function TeamPage({
             </Button>
           )}
 
-          <Button variant="ghost" className="w-full" onClick={() => setShowAnalysis(true)}>
-            <BarChart3 size={14} />
-            展开队伍分析
-          </Button>
-
           <Button variant="danger" className="w-full" title="删除队伍" onClick={() => setPendingDeleteTeam(activeTeam)}>
             <Trash2 size={14} />
             删除队伍
@@ -1333,7 +1269,6 @@ export function TeamPage({
               onSave={(member) => updateMember(activeTeam.id, member)}
             />
           )}
-          {showAnalysis && <AnalysisDetailSheet team={activeTeam} onClose={() => setShowAnalysis(false)} />}
           <PokemonPicker open={showPicker} onClose={() => setShowPicker(false)} onPick={handlePickPokemon} />
         </>
       )}
