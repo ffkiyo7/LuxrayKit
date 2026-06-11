@@ -6,11 +6,17 @@
 
 需求 → Claude Code 拆解为本文件任务 → Codex app 领取单个任务、开独立 worktree 实现 → Claude Code 审 diff。每个任务尽量自包含、可独立合并；标注「依赖」的任务按序进行。
 
-## 背景与关键发现
+## 背景与关键发现（已实测 PokeDB，2026-06-11）
 
-- **环境“数据不更新”不是 cron 问题。** Worker 已有每 6h cron（`17 */6 * * *`）且跑得通。根因：PokeDB 的 `opendata/s2_*_ranked_teams.json` 当前 **404**（当季 M-2 聚合榜未公开），只有 `s1_*`（“M-1”，已结束的上赛季）。Worker 赛季回退一直落 S1，每 6h 拉同一份上赛季数据。
-- **决策：直接解析 PokeDB 当季 HTML。** 不引入外部替代源（同样要解析且滞后）。PokeDB `trainer/list?season=2&rule=2` 是当季的（M-2，约 299 条，近日更新）。`parsePokeDbTrainerSamples` 已验证能从该 HTML 解析每张卡的完整队伍（宝可梦 + 携带物），聚合 usage 复用 `buildUsage`。
-- **限制**：列表 HTML 不含招式，`moveStats`（详情页「常用招式」）需另抓各 report 页 → P1。
+- **环境“数据不更新”不是 cron 问题，也不是解析 bug。** 6h cron 正常。根因有两层：
+  1. `opendata/s2_*_ranked_teams.json` **404**（PokeDB 没公开当季聚合榜 JSON）。
+  2. `trainer/list?season=2` 的**队伍阵容被刻意隐藏**（防抄队）：M-2 进行中，每行只有名字+评分，阵容位是 `none.png` 占位；M-1 已结束才放出完整阵容。所以从 roster 拆队伍这条路**当季拿不到任何数据**。
+- **真正的当季数据源：PokeDB 自己聚合好的「统计页」**（不暴露任何人具体队伍，故不受防抄队隐藏，M-2 完整可用，已逐项实测）：
+  - 排行：`/pokemon/list?season=<S>&rule=<R>` → 213 只按使用率排序（含 rank + key）。单打 `rule=2` / 双打 `rule=1`。
+  - 详情：`/pokemon/show/<key>?season=<S>&rule=<R>` → **道具 %、招式 %、队友、特性 %、性格 %** 全部当季填充（实测 Garchomp M-2：气势头带 37.7% / 地震 99.2% / 鲨鱼肌 99.4% / 爽朗 51.4%）。**含招式**，顺带补掉原 moveStats 缺口。
+- **可导入「上位构筑」样本**：统计页只有聚合 %，给不了某支具体可导入队伍。这块继续用 roster 解析（已结束赛季 M-1 的 `trainer/list` 阵容）或 構築記事（`/article/search`，当季目前仅 ~1 篇，后期会变多）。
+- **已有产物**：Codex 已实现并通过审查的 `trainer/list` roster 解析 + 聚合（`parsePokeDbTrainerListPage` 等）**保留**，由「环境榜聚合」降级为「可导入样本来源」。WIP 在分支 `feat/env-trainer-list-aggregation`。
+- **待实现时确认**：榜单行的总「使用率 %」（如 54.0%）在 `/pokemon/list` 与详情页上未直接看到，可能被页面其它处藏着或当季只给排名。实现时确认；拿不到就用排名或相对值兜底。
 
 ## 任务清单
 
@@ -24,18 +30,21 @@
   - 删除 `src/lib/teamAnalysis.test.ts`。
 - **验收**：编辑页无分析入口/弹层；无悬空引用与未用 import；`npm test`、`npm run build` 通过。
 
-### Task B — 环境数据改用 PokeDB 当季 trainer/list 聚合（核心 · 门控 C）
+### Task B — 环境数据改用 PokeDB「统计页」当季聚合（核心 · 门控 C）
 
-- **目标**：环境榜单从“当季 PokeDB 队报”实时聚合，而非滞后一季的 `ranked_teams.json`，让数据真正随赛季更新。
-- **涉及文件**：`cloudflare/environment-worker/src/index.ts`（取数/赛季/聚合/KV）、`src/lib/pokedbEnvironment.ts`（解析与聚合）、必要时 `src/data/environment.ts`（快照结构）。
+> **修订说明**：原方案"从 trainer/list 拆队伍聚合"当季拿不到数据（阵容被隐藏）。改为以 PokeDB 自己的聚合统计页为主源，能拿到 M-2 的排行/道具/招式/队友/特性。已写好的 roster 解析保留，退居"可导入样本"来源。在 `feat/env-trainer-list-aggregation` 分支上继续做。
+
+- **目标**：环境榜（排行 + 道具 + 招式 + 队友 + 特性/性格）从 PokeDB 统计页实时聚合当季（M-2）数据；可导入「上位构筑」样本走 roster/構築記事。
+- **涉及文件**：`cloudflare/environment-worker/src/index.ts`（取数/赛季/throttle/KV）、`src/lib/pokedbEnvironment.ts`（新增统计页解析 + 复用 roster 解析）、`src/data/environment.ts`（快照结构判别已支持新格式，按需扩展招式/特性字段）。
 - **改动要点**：
-  - Worker 取当季 `trainer/list`（单打 `rule=2` / 双打 `rule=1`），**分页**抓取以获得足够样本（覆盖约 299 条，注意频率与礼貌 user-agent，控制在 6h cron 内）。
-  - 解析：复用/外提 `parsePokeDbTrainerSamples` 的 card→队伍解析；解除其 `maxSamples` 截断用于聚合。
-  - 聚合：重构 `buildUsage`，使其接受“已解析队伍列表（slots）”而非 `PokeDbRankedTeamsPayload`，产出 `EnvironmentPokemonUsage[]`（usage% / item / teammate）；top-N 仍作可导入样本。
-  - 赛季选择：自动探测当前/最新可用赛季（trainer/list 当季可用），替代硬编码 `SEASON_CANDIDATES`；`ranked_teams.json` 降级为可选回退或移除。
-  - snapshot 携带真实赛季标签、源 `updated_at`、completeness。
-  - **四条不可破边界**：公开只读缓存、不代用户抓取、未知宝可梦/道具引用走审计、源失败回退静态快照。
-- **验收**：`npm run worker:app:check` 通过；新增单测（HTML 聚合 / 赛季探测 / 分页 / 部分失败回退）；部署后 `/api/environment/status` 显示当季（M-2）。
+  - **排行**：抓 `/pokemon/list?season=<S>&rule=<R>`（单打 `rule=2` / 双打 `rule=1`）→ 解析出有序宝可梦列表（rank + pokeDbKey → 经 allowlist 映射到本地 id）。复用已实现的 `detectLatestPokeDbSeason` 选当季。
+  - **详情**：对榜单 **top-N**（建议 60–80，长尾只留排名）抓 `/pokemon/show/<key>?season=<S>&rule=<R>`，解析道具 %、**招式 %**、队友、特性 %、性格 %（百分比 PokeDB 已算好，直接读）。映射进 `EnvironmentPokemonUsage`（含 `moveStats` / `itemStats` / `teammateStats`）。
+  - **节流**：详情页是 N 次请求（top-N × 单双打）。沿用 250ms 间隔 + 礼貌 UA；给 top-N 和总页数一个硬上限，避免子请求/CPU 超限（Workers scheduled 限额）。
+  - **样本（保留 roster 路径）**：`parsePokeDbTrainerListPage` / `parsePokeDbTrainerSamples` 不动，用来出可导入 `teamSamples`——已结束赛季（M-1 阵容已公开）或 構築記事；当季 roster 为空时样本可空，不影响排行。
+  - **失败与边界（已实现，保持）**：分页/详情失败不覆盖旧 `environment:latest`/`team-index`，仅写 `status.ok=false`+`failedAt`，前端判 stale；未知宝可梦/道具/招式引用走审计；纯服务端只读缓存、不代用户抓取；失败回退静态包。
+  - snapshot 携真实赛季标签、源更新时间、completeness。
+- **待确认**：总使用率 %（榜单行 54.0% 那个）能否从统计页拿到；拿不到则用排名/相对值兜底（见背景）。
+- **验收**：`npm run worker:app:check` 通过；新增单测（list 排行解析 / show 详情解析含道具+招式+队友 / 赛季探测 / top-N 节流 / 部分失败保旧 KV）；部署后 `/api/environment/status` 显示当季 M-2，详情页「常用招式」非空。
 
 ### Task C — 来源/赛季/新鲜度透明化（前端 · 依赖 B · 门控 D）
 
@@ -60,11 +69,9 @@
 - **改动要点**：保留「样本池」分母小卡（数字有价值），其余说明压成图标定义列表；可留一个极简示例（54.0%/285 队＝…）。赛季文案用 Task C 的真实赛季。
 - **验收**：无大段文字；展示真实赛季；`npm run test:visual` 更新对应快照。
 
-### Task E（P1）— 在线详情补齐 moveStats
+### ~~Task E（P1）— 在线详情补齐 moveStats~~（已并入 Task B）
 
-- **目标**：在线详情页「常用招式」不再为空。
-- **现状**：trainer/list 列表 HTML 不含招式（Task B 聚合后详情仍缺招式）；静态包含 `moveStats`，故在线比离线稀疏。
-- **取舍**：评估跟进各 trainer report 页解析招式分布（抓取量大、需控频）或暂缺。优先级 P1，B 完成后再定。
+统计页 `/pokemon/show` 直接带招式 %，moveStats 在 Task B 内一并产出，无需单独任务。
 
 ## 暂不做
 
@@ -82,6 +89,5 @@ npm run test:visual        # 涉及 UI / 口径页时
 ```
 
 - Task A：编辑页无分析入口/弹层，无悬空引用。
-- Task B：环境榜由当季 trainer/list 聚合，dry-run 通过，部署后 /status 显示 M-2，聚合/赛季探测有单测。
+- Task B：环境榜由 PokeDB 统计页聚合当季，dry-run 通过，部署后 /status 显示 M-2，详情页含招式；list/show 解析、节流、部分失败保旧 KV 有单测。
 - Task C/D：三态正确标注来源与赛季；口径页为图标定义列表、无硬编码 M-1。
-- Task E：详情页招式补全或明确标注暂缺。
