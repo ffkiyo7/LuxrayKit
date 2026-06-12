@@ -1,4 +1,19 @@
-import { ArrowLeft, BarChart3, ExternalLink, Import, Info, List, RefreshCw, Search, Users } from 'lucide-react';
+import {
+  ArrowLeft,
+  BarChart3,
+  Database,
+  ExternalLink,
+  Globe2,
+  Import,
+  Info,
+  List,
+  Newspaper,
+  Percent,
+  RefreshCw,
+  Search,
+  Trophy,
+  Users,
+} from 'lucide-react';
 import { useLayoutEffect, useMemo, useState } from 'react';
 import {
   getEnvironmentItem,
@@ -499,8 +514,36 @@ function EnvironmentMethodologyPage({
   onBattleTypeChange: (battleType: EnvironmentBattleType) => void;
   onBack: () => void;
 }) {
-  const sampleCount = environment.sampleTeamCounts[battleType];
-  const isPokeDb = environment.loadStatus === 'pokedb';
+  const methodologyItems = [
+    {
+      label: '来源',
+      description:
+        environment.sourceKind === 'seed'
+          ? '内置开发样例（不代表真实环境）'
+          : `PokeDB 公开统计页（${environment.seasonLabel} 当季聚合）`,
+      icon: Database,
+    },
+    {
+      label: '范围',
+      description: '不是全服实时统计',
+      icon: Globe2,
+    },
+    {
+      label: '排行',
+      description: 'PokeDB 公布的使用排名（无总使用率 %，只有名次）',
+      icon: Trophy,
+    },
+    {
+      label: '详情',
+      description: '招式、道具 % 是真实占比；队友仅按搭档排名展示',
+      icon: Percent,
+    },
+    {
+      label: '构筑',
+      description: '来自公开队报链接（已结束赛季 / 構築記事）',
+      icon: Newspaper,
+    },
+  ];
 
   return (
     <div className="space-y-3">
@@ -541,48 +584,22 @@ function EnvironmentMethodologyPage({
             </div>
           ))}
         </div>
-        <p className="mt-3 text-xs leading-5 text-textSecondary">
-          {environment.overallUsageBasis === 'rank-relative'
-            ? `当前查看的是${battleTypeLabels[battleType]}环境，宝可梦榜按使用排名排序；${formatSampleCount(sampleCount)} 是榜单结果数，不作为绝对携带率分母。`
-            : `当前查看的是${battleTypeLabels[battleType]}环境，百分比和队伍数都以这 ${formatSampleCount(sampleCount)} 为分母。`}
-        </p>
       </Card>
 
       <Card>
-        <h3 className="text-sm font-semibold">数据来源</h3>
-        <p className="mt-2 text-xs leading-5 text-textSecondary">
-          {isPokeDb
-            ? '来源是 PokeDB 公开的 M-1 上位构筑快照和训练家队报页面。应用在维护时拉取公开数据，整理成离线可读的环境包。'
-            : '当前加载的是开发样例数据，只用于页面结构预览；不能代表真实环境。'}
-        </p>
-        <p className="mt-2 text-xs leading-5 text-textSecondary">
-          这不是全服实时统计，也不是所有玩家队伍全集；它反映的是当前数据包收录到的公开上位样本。
-        </p>
-      </Card>
-
-      <Card>
-        <h3 className="text-sm font-semibold">宝可梦榜</h3>
-        <p className="mt-2 text-xs leading-5 text-textSecondary">
-          {environment.overallUsageBasis === 'rank-relative'
-            ? '宝可梦榜按 PokeDB 公布的使用排名排序。页面展示名次，不把排名派生值解释为队伍携带比例。'
-            : '宝可梦旁边的百分比表示：在当前样本池里，有多少比例的队伍携带了这只宝可梦。比如 54.0% / 285 队，意思是当前样本池中有 285 支队伍带了这只宝可梦，约占全部样本的 54.0%。'}
-        </p>
-      </Card>
-
-      <Card>
-        <h3 className="text-sm font-semibold">详情页统计</h3>
-        <p className="mt-2 text-xs leading-5 text-textSecondary">
-          {environment.overallUsageBasis === 'rank-relative'
-            ? '常用招式、携带道具等百分比沿用 PokeDB 公布的真实占比；常见队友只按搭档排名展示，不解释为绝对携带率。'
-            : '常用招式、携带道具、常见队友的百分比，是在“已经带了这只宝可梦”的队伍里继续统计，不是以全部环境队伍为分母。'}
-        </p>
-      </Card>
-
-      <Card>
-        <h3 className="text-sm font-semibold">上位构筑</h3>
-        <p className="mt-2 text-xs leading-5 text-textSecondary">
-          上位构筑卡片来自公开队报链接，标题里的“最高第 N 名”和分数用于说明该队在上赛季达到过的排名表现。样本只可靠展示宝可梦和道具；性格、SP、配招仍需要打开队报或手动确认。
-        </p>
+        <dl className="divide-y divide-divider">
+          {methodologyItems.map(({ label, description, icon: Icon }) => (
+            <div key={label} className="flex items-start gap-3 py-3 first:pt-0 last:pb-0">
+              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-accent/10 text-accent">
+                <Icon size={16} aria-hidden="true" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <dt className="text-xs font-semibold text-textPrimary">{label}</dt>
+                <dd className="mt-0.5 text-xs leading-5 text-textSecondary">{description}</dd>
+              </div>
+            </div>
+          ))}
+        </dl>
       </Card>
     </div>
   );

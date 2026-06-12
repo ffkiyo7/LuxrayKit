@@ -143,7 +143,18 @@ describe('EnvironmentPage usage basis', () => {
     await user.click(screen.getByRole('button', { name: '返回环境' }));
     await user.click(screen.getByRole('button', { name: '查看数据口径' }));
 
-    expect(screen.getByText(/按 PokeDB 公布的使用排名排序/)).toBeTruthy();
+    expect(screen.getByText('来源')).toBeTruthy();
+    expect(screen.getByText(/PokeDB 公开统计页（M-2 当季聚合）/)).toBeTruthy();
+    expect(screen.getByText('范围')).toBeTruthy();
+    expect(screen.getByText('不是全服实时统计')).toBeTruthy();
+    expect(screen.getByText('排行')).toBeTruthy();
+    expect(screen.getByText(/无总使用率 %，只有名次/)).toBeTruthy();
+    expect(screen.getByText('详情')).toBeTruthy();
+    expect(screen.getByText(/招式、道具 % 是真实占比；队友仅按搭档排名展示/)).toBeTruthy();
+    expect(screen.getByText('构筑')).toBeTruthy();
+    expect(screen.getByText(/公开队报链接/)).toBeTruthy();
+    expect(screen.queryByText(/M-1/)).toBeNull();
+    expect(screen.queryByText(/常见队友的百分比/)).toBeNull();
     expect(screen.queryByText(/54\.0% \/ 285 队/)).toBeNull();
   });
 

@@ -519,9 +519,12 @@ describe('App page flows', () => {
     expect(await screen.findByRole('heading', { name: '数据口径' })).toBeTruthy();
     expect(screen.getByText('528 队')).toBeTruthy();
     expect(screen.getByText('71 队')).toBeTruthy();
-    expect(screen.getByText(/54\.0% \/ 285 队/)).toBeTruthy();
-    expect(screen.getByText(/不是全服实时统计/)).toBeTruthy();
-    expect(screen.getByText(/常用招式、携带道具、常见队友/)).toBeTruthy();
+    expect(screen.getByText(/PokeDB 公开统计页（M-1 当季聚合）/)).toBeTruthy();
+    expect(screen.getByText('不是全服实时统计')).toBeTruthy();
+    expect(screen.getByText(/无总使用率 %，只有名次/)).toBeTruthy();
+    expect(screen.getByText(/招式、道具 % 是真实占比；队友仅按搭档排名展示/)).toBeTruthy();
+    expect(screen.queryByText(/54\.0% \/ 285 队/)).toBeNull();
+    expect(screen.queryByText(/PokeDB 公开的 M-1 上位构筑快照/)).toBeNull();
 
     await user.click(screen.getByRole('button', { name: '返回环境' }));
     expect(await screen.findByRole('heading', { name: '环境' })).toBeTruthy();
