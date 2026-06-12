@@ -44,6 +44,10 @@ export type PokeDbEnvironmentSnapshotPayload = {
 export type EnvironmentState = {
   auditIssues: EnvironmentDatasetAuditIssue[];
   updatedAt: string;
+  sourceUpdatedAt: string;
+  seasonLabel: string;
+  sourceKind: 'worker' | 'static' | 'seed';
+  freshness: 'fresh' | 'stale';
   dataStatusLabel: string;
   overallUsageBasis: EnvironmentUsageBasis;
   pokemonUsage: Record<EnvironmentBattleType, EnvironmentPokemonUsage[]>;
@@ -85,13 +89,17 @@ const estimateSampleTeamCount = (usage: EnvironmentPokemonUsage[]) => {
 
 const toEnvironmentState = (
   dataset: EnvironmentDataset,
-  loadStatus: EnvironmentState['loadStatus'],
+  metadata: Pick<EnvironmentState, 'loadStatus' | 'seasonLabel' | 'sourceKind' | 'freshness'>,
   extraAuditIssues: EnvironmentDatasetAuditIssue[] = [],
 ): EnvironmentState => {
   const audited = auditDataset(dataset);
   return {
     auditIssues: [...audited.issues, ...extraAuditIssues],
-    updatedAt: audited.dataset.updatedAt,
+    updatedAt: audited.dataset.source.retrievedAt ?? audited.dataset.updatedAt,
+    sourceUpdatedAt: audited.dataset.updatedAt,
+    seasonLabel: metadata.seasonLabel,
+    sourceKind: metadata.sourceKind,
+    freshness: metadata.freshness,
     dataStatusLabel: audited.dataset.statusLabel,
     overallUsageBasis: audited.dataset.overallUsageBasis ?? 'absolute',
     pokemonUsage: {
@@ -104,11 +112,16 @@ const toEnvironmentState = (
     },
     teamSamples: [...audited.dataset.battles.singles.teamSamples, ...audited.dataset.battles.doubles.teamSamples],
     sourceLabel: audited.dataset.sourceLabel,
-    loadStatus,
+    loadStatus: metadata.loadStatus,
   };
 };
 
-export const environmentFallbackState = toEnvironmentState(currentEnvironmentDataset, 'fallback');
+export const environmentFallbackState = toEnvironmentState(currentEnvironmentDataset, {
+  loadStatus: 'fallback',
+  seasonLabel: '开发样例',
+  sourceKind: 'seed',
+  freshness: 'stale',
+});
 
 const isTrainerListPayload = (
   payload: PokeDbRankedTeamsPayload | PokeDbTrainerListPayload | PokeDbPokemonStatisticsPayload | undefined,
@@ -155,20 +168,49 @@ export const createPokeDbEnvironmentDatasetFromSnapshot = (snapshot: PokeDbEnvir
   });
 };
 
-export const createEnvironmentStateFromPokeDbSnapshot = (snapshot: PokeDbEnvironmentSnapshotPayload): EnvironmentState => {
+export const createEnvironmentStateFromPokeDbSnapshot = (
+  snapshot: PokeDbEnvironmentSnapshotPayload,
+  metadata: Pick<EnvironmentState, 'sourceKind' | 'freshness'> = {
+    sourceKind: 'static',
+    freshness: 'stale',
+  },
+): EnvironmentState => {
+  const firstPayload = snapshot.battles.singles ?? snapshot.battles.doubles;
   const pokedbDataset = createPokeDbEnvironmentDatasetFromSnapshot(snapshot);
-  const state = toEnvironmentState(pokedbDataset, 'pokedb', currentEnvironmentSeedAudit.issues);
+  const state = toEnvironmentState(
+    pokedbDataset,
+    {
+      loadStatus: 'pokedb',
+      seasonLabel: firstPayload?.season ?? '未知赛季',
+      ...metadata,
+    },
+    currentEnvironmentSeedAudit.issues,
+  );
   const hasUsablePokeDbUsage = state.pokemonUsage.singles.length > 0 && state.pokemonUsage.doubles.length > 0;
   return hasUsablePokeDbUsage ? state : environmentFallbackState;
 };
 
-const fetchEnvironmentSnapshot = async (fetcher: typeof fetch, url: string, cache: RequestCache): Promise<PokeDbEnvironmentSnapshotPayload> => {
+type FetchedEnvironmentSnapshot = {
+  snapshot: PokeDbEnvironmentSnapshotPayload;
+  url: string;
+  cacheState?: string;
+};
+
+const fetchEnvironmentSnapshot = async (
+  fetcher: typeof fetch,
+  url: string,
+  cache: RequestCache,
+): Promise<FetchedEnvironmentSnapshot> => {
   const response = await fetcher(url, {
     cache,
     headers: { Accept: 'application/json' },
   });
   if (!response.ok) throw new Error(`Failed to load environment snapshot: ${response.status}`);
-  return (await response.json()) as PokeDbEnvironmentSnapshotPayload;
+  return {
+    snapshot: (await response.json()) as PokeDbEnvironmentSnapshotPayload,
+    url,
+    cacheState: response.headers.get('x-luxray-cache-state') ?? undefined,
+  };
 };
 
 export const loadEnvironmentState = async (
@@ -177,22 +219,27 @@ export const loadEnvironmentState = async (
   if (!fetcher) return environmentFallbackState;
 
   try {
-    const snapshot = await fetchEnvironmentSnapshot(fetcher, WORKER_ENVIRONMENT_SNAPSHOT_URL, 'no-store');
-    return createEnvironmentStateFromPokeDbSnapshot(snapshot);
+    const result = await fetchEnvironmentSnapshot(fetcher, WORKER_ENVIRONMENT_SNAPSHOT_URL, 'no-store');
+    return createEnvironmentStateFromPokeDbSnapshot(result.snapshot, {
+      sourceKind: result.url === WORKER_ENVIRONMENT_SNAPSHOT_URL ? 'worker' : 'static',
+      freshness: result.cacheState === 'fresh' ? 'fresh' : 'stale',
+    });
   } catch {
     // Static deployments and offline installs can keep using the bundled maintenance snapshot.
   }
 
   try {
-    const snapshot = await fetchEnvironmentSnapshot(fetcher, POKEDB_ENVIRONMENT_SNAPSHOT_URL, 'force-cache');
-    return createEnvironmentStateFromPokeDbSnapshot(snapshot);
+    const result = await fetchEnvironmentSnapshot(fetcher, POKEDB_ENVIRONMENT_SNAPSHOT_URL, 'force-cache');
+    return createEnvironmentStateFromPokeDbSnapshot(result.snapshot, {
+      sourceKind: 'static',
+      freshness: 'stale',
+    });
   } catch {
     return environmentFallbackState;
   }
 };
 
 export const environmentDatasetAuditIssues: EnvironmentDatasetAuditIssue[] = environmentFallbackState.auditIssues;
-export const environmentUpdatedAt = environmentFallbackState.updatedAt;
 export const environmentDataStatusLabel = environmentFallbackState.dataStatusLabel;
 
 export const environmentPokemonUsage: Record<EnvironmentBattleType, EnvironmentPokemonUsage[]> = environmentFallbackState.pokemonUsage;

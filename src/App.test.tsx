@@ -55,7 +55,7 @@ const renderApp = async () => {
 const renderEnvironmentApp = async () => {
   const user = userEvent.setup();
   render(<App />);
-  await screen.findByText(testEnvironmentState.sourceLabel);
+  await screen.findByText(`${testEnvironmentState.seasonLabel} · 单打`);
   return user;
 };
 
@@ -489,14 +489,18 @@ describe('App page flows', () => {
   it('keeps environment sample labeling lightweight without the bulky seed notice', async () => {
     const user = await renderEnvironmentApp();
 
-    expect(screen.getByText(testEnvironmentState.sourceLabel)).toBeTruthy();
+    expect(screen.getByText(`${testEnvironmentState.seasonLabel} · 单打`)).toBeTruthy();
+    expect(screen.getByText('在线数据')).toBeTruthy();
+    expect(screen.getByText('可能过期')).toBeTruthy();
+    expect(screen.queryByText(testEnvironmentState.sourceLabel)).toBeNull();
     expect(screen.queryByText(/本页使用本地 seed 占位数据/)).toBeNull();
     expect(screen.queryByText(/不代表真实使用率/)).toBeNull();
     expect(screen.queryByText('高分样本')).toBeNull();
 
     await user.click(screen.getByRole('button', { name: /查看全部/ }));
     expect(await screen.findByRole('heading', { name: '完整宝可梦榜' })).toBeTruthy();
-    expect(screen.getByText(testEnvironmentState.sourceLabel)).toBeTruthy();
+    expect(screen.getByText(`${testEnvironmentState.seasonLabel} · 单打`)).toBeTruthy();
+    expect(screen.queryByText(testEnvironmentState.sourceLabel)).toBeNull();
     expect(screen.queryByText(/本页使用本地 seed 占位数据/)).toBeNull();
 
     await user.click(screen.getByRole('button', { name: new RegExp(topSinglesPokemon.chineseName) }));

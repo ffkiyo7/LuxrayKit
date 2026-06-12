@@ -41,7 +41,12 @@ describe('environment runtime loading', () => {
   });
 
   it('loads the PokeDB environment from the Worker API when available', async () => {
-    const fetcher = vi.fn(async () => new Response(JSON.stringify(pokedbSnapshot), { status: 200 }));
+    const fetcher = vi.fn(async () =>
+      new Response(JSON.stringify(pokedbSnapshot), {
+        status: 200,
+        headers: { 'x-luxray-cache-state': 'fresh' },
+      }),
+    );
 
     const state = await loadEnvironmentState(fetcher);
 
@@ -49,6 +54,25 @@ describe('environment runtime loading', () => {
     expect(fetcher).toHaveBeenCalledTimes(1);
     expect(state.sourceLabel).toContain('PokeDB');
     expect(state.loadStatus).toBe('pokedb');
+    expect(state.sourceKind).toBe('worker');
+    expect(state.freshness).toBe('fresh');
+    expect(state.seasonLabel).toBe('M-1');
+    expect(state.updatedAt).toBe(pokedbSnapshot.retrievedAt);
+    expect(state.sourceUpdatedAt).toBe('2026-06-04T23:08:02.000+09:00');
+  });
+
+  it('marks a stale Worker response as stale', async () => {
+    const fetcher = vi.fn(async () =>
+      new Response(JSON.stringify(pokedbSnapshot), {
+        status: 200,
+        headers: { 'x-luxray-cache-state': 'stale' },
+      }),
+    );
+
+    const state = await loadEnvironmentState(fetcher);
+
+    expect(state.sourceKind).toBe('worker');
+    expect(state.freshness).toBe('stale');
   });
 
   it('loads the current-season Pokemon statistics snapshot format with move details', () => {
@@ -97,6 +121,9 @@ describe('environment runtime loading', () => {
     expect(state.loadStatus).toBe('pokedb');
     expect(state.overallUsageBasis).toBe('rank-relative');
     expect(state.sourceLabel).toContain('M-2');
+    expect(state.seasonLabel).toBe('M-2');
+    expect(state.sourceUpdatedAt).toBe('2026-06-10T23:58:00.000+09:00');
+    expect(state.updatedAt).toBe('2026-06-11T09:00:00.000Z');
     expect(state.dataStatusLabel).toBe('当季聚合统计');
     expect(state.sampleTeamCounts).toEqual({ singles: 213, doubles: 213 });
     expect(state.pokemonUsage.singles[0]).toMatchObject({
@@ -143,6 +170,9 @@ describe('environment runtime loading', () => {
     expect(fetcher).toHaveBeenNthCalledWith(2, POKEDB_ENVIRONMENT_SNAPSHOT_URL, expect.objectContaining({ cache: 'force-cache' }));
     expect(state.sourceLabel).toContain('PokeDB');
     expect(state.loadStatus).toBe('pokedb');
+    expect(state.sourceKind).toBe('static');
+    expect(state.freshness).toBe('stale');
+    expect(state.seasonLabel).toBe('M-1');
   });
 
   it('falls back to the development environment seed when the snapshot cannot load', async () => {
@@ -155,6 +185,9 @@ describe('environment runtime loading', () => {
     expect(fetcher).toHaveBeenNthCalledWith(1, WORKER_ENVIRONMENT_SNAPSHOT_URL, expect.any(Object));
     expect(fetcher).toHaveBeenNthCalledWith(2, POKEDB_ENVIRONMENT_SNAPSHOT_URL, expect.any(Object));
     expect(state.loadStatus).toBe('fallback');
+    expect(state.sourceKind).toBe('seed');
+    expect(state.freshness).toBe('stale');
+    expect(state.seasonLabel).toBe('开发样例');
     expect(state.overallUsageBasis).toBe('absolute');
     expect(state.sourceLabel).not.toContain('PokeDB');
   });

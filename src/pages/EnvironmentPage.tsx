@@ -29,6 +29,44 @@ const formatUpdatedAt = (value: string) =>
 
 const formatSampleCount = (value: number) => (value > 0 ? `${value} 队` : '暂无样本');
 
+const sourceKindLabels: Record<EnvironmentState['sourceKind'], string> = {
+  worker: '在线数据',
+  static: '静态缓存',
+  seed: '内置样例',
+};
+
+function EnvironmentHeaderMeta({
+  environment,
+  battleType,
+}: {
+  environment: EnvironmentState;
+  battleType: EnvironmentBattleType;
+}) {
+  const freshnessLabel = environment.freshness === 'fresh' ? '最新' : '可能过期';
+
+  return (
+    <div className="mt-1 space-y-0.5 text-xs text-textSecondary">
+      <div className="flex flex-wrap items-center gap-2">
+        <span>{environment.seasonLabel} · {battleTypeLabels[battleType]}</span>
+        <span
+          className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+            environment.freshness === 'fresh'
+              ? 'bg-success/15 text-success'
+              : 'bg-warning/15 text-warning'
+          }`}
+        >
+          {freshnessLabel}
+        </span>
+      </div>
+      <div className="flex flex-wrap gap-x-2 gap-y-0.5">
+        <span>{sourceKindLabels[environment.sourceKind]}</span>
+        <span>源更新 {formatUpdatedAt(environment.sourceUpdatedAt)}</span>
+      </div>
+      <p>抓取 {formatUpdatedAt(environment.updatedAt)}</p>
+    </div>
+  );
+}
+
 function UsageBar({ value }: { value: number }) {
   return (
     <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-elevated">
@@ -339,8 +377,7 @@ function FullRankingPage({
           <div>
             <p className="text-[11px] uppercase tracking-wide text-textMuted">Ranking</p>
             <h2 className="mt-1 text-2xl font-semibold">完整宝可梦榜</h2>
-            <p className="mt-1 text-xs text-textSecondary">{environment.sourceLabel}</p>
-            <p className="mt-0.5 text-xs text-textSecondary">更新于 {formatUpdatedAt(environment.updatedAt)}</p>
+            <EnvironmentHeaderMeta environment={environment} battleType={battleType} />
           </div>
           <div className="grid grid-cols-2 rounded-lg border border-border bg-page p-1 text-sm font-semibold">
             {(Object.keys(battleTypeLabels) as EnvironmentBattleType[]).map((type) => (
@@ -417,8 +454,7 @@ function EnvironmentMethodologyPage({
           <div className="min-w-0">
             <p className="text-[11px] uppercase tracking-wide text-textMuted">Methodology</p>
             <h2 className="mt-1 text-2xl font-semibold">数据口径</h2>
-            <p className="mt-1 text-xs text-textSecondary">{environment.sourceLabel}</p>
-            <p className="mt-0.5 text-xs text-textSecondary">更新于 {formatUpdatedAt(environment.updatedAt)}</p>
+            <EnvironmentHeaderMeta environment={environment} battleType={battleType} />
           </div>
           <div className="grid grid-cols-2 rounded-lg border border-border bg-page p-1 text-sm font-semibold">
             {(Object.keys(battleTypeLabels) as EnvironmentBattleType[]).map((type) => (
@@ -580,8 +616,7 @@ export function EnvironmentPage({
           <div>
             <p className="text-[11px] uppercase tracking-wide text-textMuted">Environment</p>
             <h2 className="mt-1 text-2xl font-semibold">环境</h2>
-            <p className="mt-1 text-xs text-textSecondary">{environment.sourceLabel}</p>
-            <p className="mt-0.5 text-xs text-textSecondary">更新于 {formatUpdatedAt(environment.updatedAt)}</p>
+            <EnvironmentHeaderMeta environment={environment} battleType={battleType} />
           </div>
           <div className="grid grid-cols-2 rounded-lg border border-border bg-page p-1 text-sm font-semibold">
             {(Object.keys(battleTypeLabels) as EnvironmentBattleType[]).map((type) => (

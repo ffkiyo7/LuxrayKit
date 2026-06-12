@@ -46,6 +46,10 @@ const makeEnvironment = (overallUsageBasis: EnvironmentState['overallUsageBasis'
   teamSamples: [],
   sourceLabel: 'PokeDB · M-2 · 宝可梦使用率统计',
   loadStatus: 'pokedb',
+  seasonLabel: 'M-2',
+  sourceKind: 'worker',
+  freshness: 'fresh',
+  sourceUpdatedAt: '2026-06-10T23:58:00.000+09:00',
 });
 
 afterEach(() => {
@@ -54,6 +58,51 @@ afterEach(() => {
 });
 
 describe('EnvironmentPage usage basis', () => {
+  it('shows season, freshness, and timestamps without exposing PokeDB on the home or ranking headers', async () => {
+    const user = userEvent.setup();
+    render(<EnvironmentPage environment={makeEnvironment('rank-relative')} onImportSample={() => undefined} />);
+
+    expect(screen.getByText('M-2 · 单打')).toBeTruthy();
+    expect(screen.getByText('在线数据')).toBeTruthy();
+    expect(screen.getByText('最新')).toBeTruthy();
+    expect(screen.getByText(/源更新/)).toBeTruthy();
+    expect(screen.getByText(/抓取/)).toBeTruthy();
+    expect(screen.queryByText(/PokeDB/)).toBeNull();
+
+    await user.click(screen.getByRole('button', { name: '查看全部' }));
+
+    expect(screen.getByText('M-2 · 单打')).toBeTruthy();
+    expect(screen.queryByText(/PokeDB/)).toBeNull();
+  });
+
+  it('labels static and seed data sources as stale', () => {
+    const staticEnvironment = {
+      ...makeEnvironment('rank-relative'),
+      sourceKind: 'static' as const,
+      freshness: 'stale' as const,
+    };
+    const { rerender } = render(
+      <EnvironmentPage environment={staticEnvironment} onImportSample={() => undefined} />,
+    );
+
+    expect(screen.getByText('静态缓存')).toBeTruthy();
+    expect(screen.getByText('可能过期')).toBeTruthy();
+
+    rerender(
+      <EnvironmentPage
+        environment={{
+          ...staticEnvironment,
+          seasonLabel: '开发样例',
+          sourceKind: 'seed',
+        }}
+        onImportSample={() => undefined}
+      />,
+    );
+
+    expect(screen.getByText('内置样例')).toBeTruthy();
+    expect(screen.getByText('可能过期')).toBeTruthy();
+  });
+
   it('shows rankings instead of derived percentages while preserving real detail percentages', async () => {
     const user = userEvent.setup();
     render(<EnvironmentPage environment={makeEnvironment('rank-relative')} onImportSample={() => undefined} />);
