@@ -93,16 +93,33 @@
 - **配置漂移已修**：`wrangler.jsonc` `POKEDB_DETAIL_LIMIT=60` + `POKEDB_DETAIL_CHUNK_SIZE=40` + `WORKER_SELF_URL` + `SELF` service binding；dashboard 的 top-20 覆盖已删，线上=仓库=60。
 - **评审修复（Claude，2026-06-12）**：`fetchPreviousSeasonSamples` 原误改为失败 throw → 会让可选样本抓取失败连带卡死整个 FINALIZE 发布（prod 永久 stale）。已改回失败返回 `[]`，并补单测「样本失败时 FINALIZE 仍发布快照」。
 - **线上验收通过**：`/api/environment/status` = `M-2`；`/latest` 单双打各 213 排名、detailCount 60、rank-50（dragapult/lucario）`moveStats`/`itemStats` 非空。`npm test` 222 项、build、`worker:app:check` 全绿。
-- **遗留小项**：线上 audit 报 4 个特性 key 未映射（182/299/45/84），这些特性不渲染——补 `src/data/external/pokedbResourceKeyMap.ts` 即可，归入下次。
+- **遗留小项**：线上 audit 报 4 个特性 key 未映射（182/299/45/84），这些特性不渲染——补 `src/data/external/pokedbResourceKeyMap.ts` 即可。**已并入下方 Task G+F 一起做。**
 
-### Task G — 降低 PokeDB 足迹（礼貌三条 · 下次做 · 本轮未排，用户确认暂缓）
+### Task G+F — 降低 PokeDB 足迹收尾 + 特性映射补全（就绪 · worker 侧 · 一次做完）
 
-> 源 `更新日` ~日更，我们目前仍 6h 一刷（4×/天），3/4 在抓没变的数据。Task F 的分批结构已让详情天然串行，下面三条进一步把足迹压到与源更新频率相称。**非紧急，robots 合规、源站裸 nginx 无 bot 质询（见上「部署实情」），当前不会触发风控。**
+> 源 `更新日` ~日更，cron 已改每日一次（`"17 18 * * *"`）。本任务做完 G 剩余两条（节流、更新日短路）+ F 遗留（4 个特性 key）。**与前端栈文件不相交（只动 `cloudflare/environment-worker/src/index.ts` + `src/data/external/pokedbResourceKeyMap.ts`），可继续在 `codex/task-c-environment-source-transparency` 分支上做。**
 
-- ~~**cron 6h → 每天 1 次**~~（✅ 已单独完成 2026-06-12：`crons` 改为 `"17 18 * * *"`，每天 18:17 UTC ≈ 次日 03:17 JST，落在源傍晚更新后）。
-- **节流 250ms → ~400–600ms**：`PAGE_REQUEST_DELAY_MS`，进一步削平连击。
-- **更新日短路**：START 先读一个 list 页拿 `更新日`，与上次 status 记录的源 `updated_at` 相同则整轮跳过（没变的日子近乎零脚印）；需在 status/游标记一份「上次源 updated_at」。
-- **验收**：`npm test`/`build`/`worker:app:check` 全绿；cron 为每日一次；更新日相同则短路不抓详情有单测。
+**G-1（节流）** — `cloudflare/environment-worker/src/index.ts:108`
+- `PAGE_REQUEST_DELAY_MS` 从 `250` 改为 `450`（落在 400–600 区间，进一步削平详情连击）。
+- 若有单测断言 `wait` 用 250 调用，同步更新。
+
+**G-2（更新日短路）** — 同 `index.ts`，核心在 `startRefreshJob`（:567）与 `publishRefreshJob`（:519）、`CacheStatus`（:50）
+- **存源更新日**：给 `CacheStatus` 加 `sourceUpdatedAt?: string`。在 `publishRefreshJob` 写 status 时填入：取 `job.lists.singles.updatedAt` / `job.lists.doubles.updatedAt` 的较新者（ISO 串可直接比较；源通常两者相同）。`PokeDbPokemonListPayload.updatedAt` 即页面 `更新日`，START 已抓到。
+- **短路判定**：`startRefreshJob` 在已 `fetchPokemonList` 拿到 `singles`/`doubles` 之后、**建 `pending`/`scheduleNext` 之前**插入判定。读已在 :576 取到的 `currentStatusText` → `previousStatus`。若 `previousStatus.ok === true` 且 `previousStatus.selectedSeason === season` 且 `previousStatus.sourceUpdatedAt === <本次源更新日>`：
+  - **不建 refresh job、不 `scheduleNext`、不抓任何详情**；
+  - 仅把 status 的 `refreshedAt` 刷成 `now`（其余字段含 `sourceUpdatedAt` 原样保留）写回 `STATUS_KEY` —— 让 `/latest` 的 `x-luxray-cache-state` 在没变的日子也保持 `fresh`（否则 6h 后会误标 stale）；
+  - 返回一个新状态：给 `RefreshTriggerResult.state` 联合类型加 `'skipped'`，返回 `{ ok:true, state:'skipped', jobId:'', season, pendingCount:0 }`（或类似），并 `console.log` 一条 `environment_refresh_skipped`。
+- **边界**：仅当存在上一份成功快照（`previousStatus.ok && sourceUpdatedAt` 有值）才短路；赛季变化时 `selectedSeason` 不等 → 不短路，正常全量刷。detect 季/抓 list 失败仍走原 `recordRefreshFailure`。
+
+**F（特性映射）** — `src/data/external/pokedbResourceKeyMap.ts` 的 `pokedbAbilityKeyToId`（:544）
+- 补齐缺失的特性 key **45 / 84 / 182 / 299**（当前 ability map 确实没有这四个；注意别和**招式** map 里同号 key 混淆）。
+- **务必核实，不要臆测**：这些 key 沿用规范特性序号（map 里 `1: stench / 2: drizzle / 3: speed-boost …` 即证）。对每个 key 查准对应特性，取**已存在于 regMA `abilities` seed 的 kebab id** 作为值;映射前用本地 `abilities` 目录校验该 id 真实存在。（45 大概率是 `sand-stream`，仍须核对；84/182/299 一并查准。）
+- 补全后线上 audit 不应再报这四个 key。
+
+**验收**：`npm test`、`npm run build`、`npm run worker:app:check`（dry-run）全绿；
+- 节流为 450ms；
+- **新增单测**：源更新日与上次相同 → START 短路（不建 job、不抓详情、bump `refreshedAt`、返回 `skipped`）；不同/赛季变化 → 正常 `started`；
+- 四个特性 key 映射存在且值在 abilities seed 中。
 
 ### Task H — 排名视觉重设（✅ 已完成 · 2026-06-12 · 含队友 % 修复 ca86663 · 前端 · 依赖 C）
 
