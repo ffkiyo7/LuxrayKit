@@ -1,5 +1,5 @@
-import { ArrowLeft, BarChart3, ExternalLink, Import, Info, List, RefreshCw, Users } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { ArrowLeft, BarChart3, ExternalLink, Import, Info, List, RefreshCw, Search, Users } from 'lucide-react';
+import { useLayoutEffect, useMemo, useState } from 'react';
 import {
   getEnvironmentItem,
   getEnvironmentMove,
@@ -310,6 +310,23 @@ function FullRankingPage({
   onBack: () => void;
   onOpenPokemon: (pokemonId: string) => void;
 }) {
+  const [searchQuery, setSearchQuery] = useState('');
+  const normalizedQuery = searchQuery.trim().toLocaleLowerCase();
+  const filteredRankings = useMemo(
+    () =>
+      rankings
+        .map((item, index) => ({ item, rank: index + 1 }))
+        .filter(({ item }) => {
+          if (!normalizedQuery) return true;
+          const entry = getEnvironmentPokemon(item.pokemonId);
+          return entry
+            ? entry.chineseName.toLocaleLowerCase().includes(normalizedQuery)
+              || entry.englishName.toLocaleLowerCase().includes(normalizedQuery)
+            : false;
+        }),
+    [normalizedQuery, rankings],
+  );
+
   return (
     <div className="space-y-3">
       <button className="inline-flex items-center gap-2 text-sm text-textSecondary" type="button" onClick={onBack}>
@@ -341,17 +358,34 @@ function FullRankingPage({
       </section>
 
       <Card>
-        <div>
-          {rankings.map((item, index) => (
-            <RankingRow
-              key={item.pokemonId}
-              rank={index + 1}
-              usageBasis={environment.overallUsageBasis}
-              onOpen={onOpenPokemon}
-              {...item}
-            />
-          ))}
-        </div>
+        <label className="mb-3 flex items-center gap-2 rounded-lg border border-border bg-secondary px-3 py-2 text-textSecondary">
+          <Search size={16} className="shrink-0" />
+          <input
+            aria-label="搜索宝可梦"
+            className="min-w-0 flex-1 bg-transparent text-sm text-textPrimary outline-none placeholder:text-textMuted"
+            type="search"
+            placeholder="搜索中文名或英文名"
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
+          />
+        </label>
+        {filteredRankings.length > 0 ? (
+          <div>
+            {filteredRankings.map(({ item, rank }) => (
+              <RankingRow
+                key={item.pokemonId}
+                rank={rank}
+                usageBasis={environment.overallUsageBasis}
+                onOpen={onOpenPokemon}
+                {...item}
+              />
+            ))}
+          </div>
+        ) : (
+          <p className="py-8 text-center text-sm text-textSecondary">
+            {normalizedQuery ? '没有找到匹配的宝可梦' : '暂无数据'}
+          </p>
+        )}
       </Card>
     </div>
   );
@@ -484,6 +518,19 @@ export function EnvironmentPage({
     setBattleType(nextBattleType);
     setTeamSampleBatchIndex(0);
   };
+
+  // Home / ranking / methodology / detail are swapped inside the same window-level
+  // scroll container, so the browser keeps the previous scroll offset. Reset to the
+  // top whenever the visible screen changes, otherwise opening a Pokemon from far down
+  // the list lands mid-page (e.g. on the items card) instead of the avatar header.
+  // useLayoutEffect runs before paint so the correction is invisible (no flicker of
+  // the old scroll position on slower devices).
+  const detailPokemonId = detailState?.pokemonId ?? null;
+  useLayoutEffect(() => {
+    if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') {
+      window.scrollTo({ top: 0, left: 0 });
+    }
+  }, [view, detailPokemonId]);
 
   if (detailState) {
     return (
