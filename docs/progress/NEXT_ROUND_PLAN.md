@@ -117,21 +117,21 @@
   - **首页 top-4 区不分档**（`EnvironmentPage` 主体 :576 那段保持平铺，只 4 行）。
 - **验收**：列表/详情无重复名次、无假 %；前 3 名牌位化；完整榜有 Tier 1–4 英文分档、首页不分档；`npm test` 通过；`npm run test:visual` 更新快照。
 
-### Task I — 完整榜内宝可梦搜索（前端 · 独立，可并行）
+### Task I — 完整榜内宝可梦搜索（✅ 已完成 · 2026-06-12 · 分支 `feat/env-ranking-search-scroll`）
 
-- **目标**：`FullRankingPage` 顶部加搜索框，在 top-213 完整榜里按名字过滤。
-- **涉及文件**：`src/pages/EnvironmentPage.tsx`（`FullRankingPage`）。
-- **改动要点**：榜单上方加一个受控搜索输入，按**中文名 + 英文名**（`entry.chineseName` / `entry.englishName`，大小写不敏感、去空格）过滤 `rankings`；过滤后名次仍显示该宝可梦的真实榜单名次（不是过滤后重新编号）；空结果给一行占位提示；与 Task H 的梯队分档共存时，过滤态下可隐藏分档头只出平铺结果（实现时定，保持简单）。
-- **验收**：输入可实时过滤、名次正确、空态有提示；`npm test` 通过。
+- **已实现**：`FullRankingPage` 顶部受控搜索框（`type="search"`，`aria-label="搜索宝可梦"`），按**中文名 + 英文名**（`toLocaleLowerCase` + `trim`、子串匹配）过滤；过滤前先 `map` 出 `rank = index+1` 故名次保真；空查询短路不做查找。区分「暂无数据」（该对战类型无榜单）与「没有找到匹配的宝可梦」（搜了但无命中）。
+- **评审修复（Codex review，已收）**：①空数据 vs 无匹配文案区分（原合并为一句）；②可访问性/边界单测补齐。`EnvironmentPage.test.tsx` 含中/英文过滤 + 名次保真 + 空态两种 + 空数据用例，全过。
+- **遗留小项（已让 Codex 顺手处理 / 非阻断）**：搜了再点进详情、返回后搜索词丢失（`FullRankingPage` 在 detail 打开时卸载）；如需保留得把 `searchQuery` 提升到 `EnvironmentPage`。当前记为已知行为。
+- **与 Task H 衔接**：H 加 Tier 分档时，过滤态下隐藏分档头、只出平铺结果。
+- **验收**：✅ `npm test`、`build`、`test:visual`（已更新 02-environment-ranking 快照）通过。
 
-### Task J — 详情/视图切换滚动复位（前端 · 独立，最小改动，可先做）
+### Task J — 详情/视图切换滚动复位（✅ 已完成 · 2026-06-12 · 分支 `feat/env-ranking-search-scroll`）
 
-> **由来**：用户反馈点开靠后的宝可梦（如第 7 名）时，详情页直接停在页面中段（道具卡一带），体验差。
+> **由来**：点开靠后的宝可梦（如第 7 名）时，详情页直接停在页面中段（道具卡一带），体验差。
 
-- **根因（已定位）**：`EnvironmentPage` 的 home/ranking/methodology/detail 是**同一滚动容器内的条件渲染切换**，切到 detail 时全程**没有任何 scroll-to-top**；列表往下滚后点击，外层滚动位置被保留，detail 子树就停在中段。全文件无滚动复位逻辑。
-- **涉及文件**：`src/pages/EnvironmentPage.tsx`。
-- **改动要点**：在 `view` / `detailState` 变化时把滚动复位到顶部（`useEffect` + `window.scrollTo(0,0)`，或对实际滚动容器 ref 复位——先确认 App 外层滚动容器是 window 还是某个 `overflow` 容器，对正确目标复位）。覆盖 home↔ranking↔methodology↔detail 所有切换，返回时也复位。
-- **验收**：从列表中段点任意宝可梦，详情页从顶部（头像卡）开始；各视图切换均落顶；`npm test` 通过。
+- **根因**：`EnvironmentPage` 的 home/ranking/methodology/detail 是**同一 window 级滚动容器内的条件渲染切换**（布局无固定 overflow 容器，`useAutoHideBottomNav` 也监听 window），切换时无任何 scroll-to-top。
+- **已实现**：`useLayoutEffect`（paint 前复位、无闪动）依赖 `[view, detailPokemonId]`，`window.scrollTo({top:0,left:0})`；覆盖 home↔ranking↔methodology↔detail 全部切换与返回。`vitest.setup.ts` 把 jsdom 的 `window.scrollTo` 桩成 no-op（接进 `vite.config.ts` `setupFiles`）消除测试噪音；新增回归测试用 `vi.spyOn` 断言视图切换确实调用 `scrollTo`（逻辑被删即红）。
+- **验收**：✅ `EnvironmentPage.test.tsx` 5/5、`build`、`test:visual` 通过。
 
 ## 暂不做
 
