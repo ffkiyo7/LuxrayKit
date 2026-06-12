@@ -17,6 +17,27 @@ const battleTypeLabels: Record<EnvironmentBattleType, string> = {
 };
 
 const TEAM_SAMPLE_BATCH_SIZE = 4;
+const RANKING_TIERS = [
+  { label: 'Tier 1', minRank: 1, maxRank: 5 },
+  { label: 'Tier 2', minRank: 6, maxRank: 20 },
+  { label: 'Tier 3', minRank: 21, maxRank: 60 },
+  { label: 'Tier 4', minRank: 61, maxRank: Number.POSITIVE_INFINITY },
+] as const;
+
+const medalRankStyles = {
+  1: {
+    label: '金牌',
+    className: 'border-[#d6a936] bg-[#d6a936]/20 text-[#f1c84c]',
+  },
+  2: {
+    label: '银牌',
+    className: 'border-[#aeb7c4] bg-[#aeb7c4]/20 text-[#cbd2dc]',
+  },
+  3: {
+    label: '铜牌',
+    className: 'border-[#b87333] bg-[#b87333]/20 text-[#d99554]',
+  },
+} as const;
 
 const formatUpdatedAt = (value: string) =>
   new Intl.DateTimeFormat('zh-CN', {
@@ -75,19 +96,35 @@ function UsageBar({ value }: { value: number }) {
   );
 }
 
+function RankBadge({ rank }: { rank: number }) {
+  const medal = medalRankStyles[rank as keyof typeof medalRankStyles];
+
+  if (!medal) {
+    return (
+      <span aria-label={`第 ${rank} 名`} className="inline-flex w-7 justify-center text-sm font-semibold text-textSecondary">
+        {rank}
+      </span>
+    );
+  }
+
+  return (
+    <span
+      aria-label={`第 ${rank} 名，${medal.label}`}
+      className={`inline-grid h-7 w-7 place-items-center rounded-full border text-sm font-bold shadow-sm ${medal.className}`}
+      title={`第 ${rank} 名，${medal.label}`}
+    >
+      {rank}
+    </span>
+  );
+}
+
 function RankingRow({
   pokemonId,
-  usageRate,
-  teamCount,
   rank,
-  usageBasis,
   onOpen,
 }: {
   pokemonId: string;
-  usageRate: number;
-  teamCount: number;
   rank: number;
-  usageBasis: EnvironmentState['overallUsageBasis'];
   onOpen: (pokemonId: string) => void;
 }) {
   const entry = getEnvironmentPokemon(pokemonId);
@@ -95,7 +132,9 @@ function RankingRow({
 
   return (
     <button className="flex w-full items-center gap-3 border-t border-divider py-3 text-left first:border-t-0" type="button" onClick={() => onOpen(pokemonId)}>
-      <span className="w-5 shrink-0 text-center text-sm font-semibold text-textSecondary">{rank}</span>
+      <span className="w-7 shrink-0 text-center">
+        <RankBadge rank={rank} />
+      </span>
       <PokemonAvatar iconRef={entry.iconRef} label={entry.chineseName} size="lg" />
       <span className="min-w-0 flex-1">
         <span className="block truncate text-sm font-semibold">{entry.chineseName}</span>
@@ -104,16 +143,6 @@ function RankingRow({
             <TypeBadge key={type} type={type} size="sm" />
           ))}
         </span>
-      </span>
-      <span className="w-[74px] shrink-0 text-right">
-        {usageBasis === 'rank-relative' ? (
-          <span className="block text-sm font-semibold text-accent">排名第 {rank}</span>
-        ) : (
-          <>
-            <span className="block text-lg font-semibold text-accent">{usageRate.toFixed(1)}%</span>
-            <span className="text-[11px] text-textMuted">{teamCount} 队</span>
-          </>
-        )}
       </span>
     </button>
   );
@@ -226,15 +255,8 @@ function PokemonEnvironmentDetail({
             </div>
           </div>
           {usage && (
-            <div className="text-right">
-              {environment.overallUsageBasis === 'rank-relative' ? (
-                <p className="text-base font-semibold text-accent">排名第 {usageRank}</p>
-              ) : (
-                <>
-                  <p className="text-2xl font-semibold text-accent">{usage.usageRate.toFixed(1)}%</p>
-                  <p className="text-[11px] text-textMuted">{usage.teamCount} 队</p>
-                </>
-              )}
+            <div className="shrink-0 text-center">
+              <RankBadge rank={usageRank} />
             </div>
           )}
         </div>
@@ -309,9 +331,7 @@ function PokemonEnvironmentDetail({
               <div key={mate.id} className="rounded-lg border border-border bg-secondary p-2 text-center">
                 <PokemonAvatar iconRef={mate.iconRef} label={mate.chineseName} size="md" />
                 <p className="mt-2 truncate text-[11px] font-semibold">{mate.chineseName}</p>
-                {environment.overallUsageBasis === 'absolute' && (
-                  <p className="mt-0.5 text-[10px] font-semibold text-accent">{stat.usageRate.toFixed(1)}%</p>
-                )}
+                <p className="mt-0.5 text-[10px] font-semibold text-accent">{stat.usageRate.toFixed(1)}%</p>
               </div>
             ))}
           </div>
@@ -407,17 +427,55 @@ function FullRankingPage({
           />
         </label>
         {filteredRankings.length > 0 ? (
-          <div>
-            {filteredRankings.map(({ item, rank }) => (
-              <RankingRow
-                key={item.pokemonId}
-                rank={rank}
-                usageBasis={environment.overallUsageBasis}
-                onOpen={onOpenPokemon}
-                {...item}
-              />
-            ))}
-          </div>
+          normalizedQuery ? (
+            <div>
+              {filteredRankings.map(({ item, rank }) => (
+                <RankingRow
+                  key={item.pokemonId}
+                  pokemonId={item.pokemonId}
+                  rank={rank}
+                  onOpen={onOpenPokemon}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {RANKING_TIERS.map((tier) => {
+                const tierRankings = filteredRankings.filter(
+                  ({ rank }) => rank >= tier.minRank && rank <= tier.maxRank,
+                );
+                if (tierRankings.length === 0) return null;
+
+                return (
+                  <section key={tier.label} aria-labelledby={`ranking-${tier.label.replace(' ', '-').toLowerCase()}`}>
+                    <div className="flex items-center gap-2 border-b border-divider pb-2">
+                      <h3
+                        id={`ranking-${tier.label.replace(' ', '-').toLowerCase()}`}
+                        className="text-xs font-bold uppercase tracking-[0.16em] text-accent"
+                      >
+                        {tier.label}
+                      </h3>
+                      <span className="text-[10px] text-textMuted">
+                        {tier.maxRank === Number.POSITIVE_INFINITY
+                          ? `${tier.minRank}+`
+                          : `${tier.minRank}–${tier.maxRank}`}
+                      </span>
+                    </div>
+                    <div>
+                      {tierRankings.map(({ item, rank }) => (
+                        <RankingRow
+                          key={item.pokemonId}
+                          pokemonId={item.pokemonId}
+                          rank={rank}
+                          onOpen={onOpenPokemon}
+                        />
+                      ))}
+                    </div>
+                  </section>
+                );
+              })}
+            </div>
+          )
         ) : (
           <p className="py-8 text-center text-sm text-textSecondary">
             {normalizedQuery ? '没有找到匹配的宝可梦' : '暂无数据'}
@@ -658,10 +716,9 @@ export function EnvironmentPage({
           {visibleRankings.map((item, index) => (
             <RankingRow
               key={item.pokemonId}
+              pokemonId={item.pokemonId}
               rank={index + 1}
-              usageBasis={environment.overallUsageBasis}
               onOpen={(pokemonId) => setDetailState({ pokemonId, returnView: 'home' })}
-              {...item}
             />
           ))}
         </div>

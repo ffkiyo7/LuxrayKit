@@ -3,6 +3,7 @@ import { cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { EnvironmentState } from '../data/environment';
+import { pokemon } from '../data/seed/regMA/catalog';
 import { EnvironmentPage } from './EnvironmentPage';
 
 const makeEnvironment = (overallUsageBasis: EnvironmentState['overallUsageBasis']): EnvironmentState => ({
@@ -21,7 +22,7 @@ const makeEnvironment = (overallUsageBasis: EnvironmentState['overallUsageBasis'
         teammateIds: ['archaludon'],
         moveStats: [{ id: 'earthquake', usageRate: 99.2, teamCount: 211 }],
         itemStats: [{ id: 'focus-sash', usageRate: 37.7, teamCount: 80 }],
-        teammateStats: [{ id: 'archaludon', usageRate: 100, teamCount: 213 }],
+        teammateStats: [{ id: 'archaludon', usageRate: 42.5, teamCount: 91 }],
       },
       {
         pokemonId: 'archaludon',
@@ -50,6 +51,21 @@ const makeEnvironment = (overallUsageBasis: EnvironmentState['overallUsageBasis'
   sourceKind: 'worker',
   freshness: 'fresh',
   sourceUpdatedAt: '2026-06-10T23:58:00.000+09:00',
+});
+
+const makeTierEnvironment = (): EnvironmentState => ({
+  ...makeEnvironment('rank-relative'),
+  pokemonUsage: {
+    singles: pokemon.slice(0, 61).map((entry, index) => ({
+      pokemonId: entry.id,
+      usageRate: 100 - index,
+      teamCount: 213 - index,
+      moveIds: [],
+      itemIds: [],
+      teammateIds: [],
+    })),
+    doubles: [],
+  },
 });
 
 afterEach(() => {
@@ -103,19 +119,25 @@ describe('EnvironmentPage usage basis', () => {
     expect(screen.getByText('可能过期')).toBeTruthy();
   });
 
-  it('shows rankings instead of derived percentages while preserving real detail percentages', async () => {
+  it('uses medal ranks without repeated or derived ranking values and preserves real detail percentages', async () => {
     const user = userEvent.setup();
     render(<EnvironmentPage environment={makeEnvironment('rank-relative')} onImportSample={() => undefined} />);
 
     const rankingButton = screen.getByRole('button', { name: /烈咬陆鲨/ });
-    expect(within(rankingButton).getByText('排名第 1')).toBeTruthy();
+    expect(within(rankingButton).getByLabelText('第 1 名，金牌')).toBeTruthy();
+    expect(screen.getByLabelText('第 2 名，银牌')).toBeTruthy();
+    expect(screen.getByLabelText('第 3 名，铜牌')).toBeTruthy();
+    expect(within(rankingButton).queryByText('排名第 1')).toBeNull();
     expect(within(rankingButton).queryByText('100.0%')).toBeNull();
+    expect(screen.queryByText('Tier 1')).toBeNull();
 
     await user.click(rankingButton);
 
-    expect(screen.getByText('排名第 1')).toBeTruthy();
+    expect(screen.getByLabelText('第 1 名，金牌')).toBeTruthy();
+    expect(screen.queryByText('排名第 1')).toBeNull();
     expect(screen.getByText('99.2%')).toBeTruthy();
     expect(screen.getByText('37.7%')).toBeTruthy();
+    expect(screen.getByText('42.5%')).toBeTruthy();
     expect(screen.queryByText('100.0%')).toBeNull();
 
     await user.click(screen.getByRole('button', { name: '返回环境' }));
@@ -125,18 +147,39 @@ describe('EnvironmentPage usage basis', () => {
     expect(screen.queryByText(/54\.0% \/ 285 队/)).toBeNull();
   });
 
-  it('keeps absolute usage percentages unchanged', async () => {
+  it('removes overall usage summaries even when the dataset basis is absolute', async () => {
     const user = userEvent.setup();
     render(<EnvironmentPage environment={makeEnvironment('absolute')} onImportSample={() => undefined} />);
 
-    expect(screen.getByText('100.0%')).toBeTruthy();
-    expect(screen.getByText('213 队')).toBeTruthy();
+    expect(screen.queryByText('100.0%')).toBeNull();
+    expect(screen.queryByText('213 队')).toBeNull();
 
     await user.click(screen.getByRole('button', { name: /烈咬陆鲨/ }));
 
-    expect(screen.getAllByText('100.0%')).toHaveLength(2);
+    expect(screen.queryByText('100.0%')).toBeNull();
+    expect(screen.queryByText('213 队')).toBeNull();
     expect(screen.getByText('99.2%')).toBeTruthy();
     expect(screen.getByText('37.7%')).toBeTruthy();
+    expect(screen.getByText('42.5%')).toBeTruthy();
+  });
+
+  it('groups the complete ranking into four tiers but flattens filtered results', async () => {
+    const user = userEvent.setup();
+    render(<EnvironmentPage environment={makeTierEnvironment()} onImportSample={() => undefined} />);
+
+    await user.click(screen.getByRole('button', { name: '查看全部' }));
+
+    expect(screen.getByText('Tier 1')).toBeTruthy();
+    expect(screen.getByText('Tier 2')).toBeTruthy();
+    expect(screen.getByText('Tier 3')).toBeTruthy();
+    expect(screen.getByText('Tier 4')).toBeTruthy();
+
+    await user.type(screen.getByRole('searchbox', { name: '搜索宝可梦' }), pokemon[60].englishName);
+
+    expect(screen.queryByText('Tier 1')).toBeNull();
+    expect(screen.queryByText('Tier 2')).toBeNull();
+    expect(screen.queryByText('Tier 3')).toBeNull();
+    expect(screen.queryByText('Tier 4')).toBeNull();
   });
 
   it('filters the full ranking by Chinese or English name while preserving the original rank', async () => {
@@ -153,8 +196,8 @@ describe('EnvironmentPage usage basis', () => {
     await user.clear(search);
     await user.type(search, '  InCiNeRoAr  ');
     const incineroarRow = screen.getByRole('button', { name: /炽焰咆哮虎/ });
-    expect(within(incineroarRow).getAllByText('3').length).toBeGreaterThan(0);
-    expect(within(incineroarRow).getByText('排名第 3')).toBeTruthy();
+    expect(within(incineroarRow).getByLabelText('第 3 名，铜牌')).toBeTruthy();
+    expect(within(incineroarRow).queryByText('排名第 3')).toBeNull();
 
     await user.clear(search);
     await user.type(search, '不存在的宝可梦');
