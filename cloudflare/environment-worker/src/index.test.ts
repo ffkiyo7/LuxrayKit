@@ -14,16 +14,24 @@ const rankingKeys = regMaPokemonAllowlist.slice(0, 60).map((entry) => {
   return `${dexNo}-${String(Number(formNo)).padStart(2, '0')}`;
 });
 
-const pokemonListHtml = (battleType: 'singles' | 'doubles', count = 60) => `
-  <title>ポケモン使用率ランキング シーズンM-2</title>
-  <select><option value="2" selected>シーズンM-2</option></select>
-  <span>更新日</span><span class="tag is-light">2026/6/10 23:58</span>
+const pokemonListHtml = (
+  battleType: 'singles' | 'doubles',
+  count = 60,
+  options: { season?: number; updatedAt?: string } = {},
+) => {
+  const season = options.season ?? 2;
+  const updatedAt = options.updatedAt ?? '2026/6/10 23:58';
+  return `
+  <title>ポケモン使用率ランキング シーズンM-${season}</title>
+  <select><option value="${season}" selected>シーズンM-${season}</option></select>
+  <span>更新日</span><span class="tag is-light">${updatedAt}</span>
   ${rankingKeys.slice(0, count).map((key, index) => `
-    <a href="/pokemon/show/${key}?season=2&amp;rule=${battleType === 'singles' ? 0 : 1}" class="list-pokemon button">
+    <a href="/pokemon/show/${key}?season=${season}&amp;rule=${battleType === 'singles' ? 0 : 1}" class="list-pokemon button">
       <div class="pokemon-rank">${index + 1}</div><div class="pokemon-name">pokemon-${index + 1}</div>
     </a>
   `).join('')}
 `;
+};
 
 const pokemonDetailHtml = `
   <span data-move-detail="{&quot;move_key&quot;:89,&quot;rate&quot;:99.2}">じしん</span>
@@ -52,15 +60,31 @@ const createKvEnv = (initial: Record<string, string> = {}, overrides: Record<str
   return { env: env as never, values };
 };
 
-const createRefreshFetcher = (options: { failDetailKey?: string } = {}) =>
+const createRefreshFetcher = (
+  options: {
+    failDetailKey?: string;
+    season?: number;
+    updatedAt?: string;
+    updatedAtByBattle?: Partial<Record<'singles' | 'doubles', string>>;
+  } = {},
+) =>
   vi.fn(async (input: string | URL | Request) => {
     const url = new URL(String(input));
+    const season = options.season ?? 2;
     if (url.pathname === '/pokemon/list' && !url.searchParams.has('season')) {
-      return new Response(pokemonListHtml('singles'), { status: 200 });
+      return new Response(pokemonListHtml('singles', 60, {
+        season,
+        updatedAt: options.updatedAt,
+      }), { status: 200 });
     }
     if (url.pathname === '/pokemon/list') {
+      const battleType = url.searchParams.get('rule') === '1' ? 'doubles' : 'singles';
       return new Response(
-        pokemonListHtml(url.searchParams.get('rule') === '1' ? 'doubles' : 'singles'),
+        pokemonListHtml(
+          battleType,
+          60,
+          { season, updatedAt: options.updatedAtByBattle?.[battleType] ?? options.updatedAt },
+        ),
         { status: 200 },
       );
     }
@@ -165,7 +189,7 @@ describe('environment Worker PokeDB ingestion', () => {
     });
 
     expect(fetcher).toHaveBeenCalledTimes(3);
-    expect(waits).toEqual([250]);
+    expect(waits).toEqual([450]);
     expect(fetcher.mock.calls.map(([input]) => String(input))).toEqual([
       'https://example.com/pokemon/list?season=2&rule=0',
       'https://example.com/pokemon/show/0445-00?season=2&rule=0',
@@ -297,6 +321,94 @@ describe('environment Worker PokeDB ingestion', () => {
     expect(values.get('environment:team-index')).toBe('{"index":"old"}');
   });
 
+  it('skips detail refresh when a successful snapshot has the same season and source update time', async () => {
+    const { env, values } = createKvEnv({
+      'environment:latest': '{"snapshot":"current"}',
+      'environment:status': JSON.stringify({
+        ok: true,
+        refreshedAt: '2026-06-11T00:00:00.000Z',
+        selectedSeason: 2,
+        selectedSeasonLabel: 'M-2',
+        sourceUpdatedAt: '2026-06-10 23:58:00',
+        teamCounts: { singles: 60, doubles: 60 },
+      }),
+    });
+    const fetcher = createRefreshFetcher();
+    const scheduled: string[] = [];
+
+    const result = await startRefreshJob(env, (jobId) => scheduled.push(jobId), {
+      fetcher,
+      now: () => new Date('2026-06-12T00:00:00.000Z'),
+      createJobId: () => 'should-not-be-used',
+    });
+
+    expect(result).toEqual({
+      ok: true,
+      state: 'skipped',
+      jobId: '',
+      season: 2,
+      pendingCount: 0,
+    });
+    expect(fetcher).toHaveBeenCalledTimes(3);
+    expect(scheduled).toEqual([]);
+    expect(values.has('environment:refresh-job')).toBe(false);
+    expect(JSON.parse(values.get('environment:status') ?? '{}')).toEqual({
+      ok: true,
+      refreshedAt: '2026-06-12T00:00:00.000Z',
+      selectedSeason: 2,
+      selectedSeasonLabel: 'M-2',
+      sourceUpdatedAt: '2026-06-10 23:58:00',
+      teamCounts: { singles: 60, doubles: 60 },
+    });
+  });
+
+  it.each([
+    {
+      label: 'the source update time changes',
+      previousSeason: 2,
+      previousSourceUpdatedAt: '2026-06-09 23:58:00',
+      currentSeason: 2,
+    },
+    {
+      label: 'the selected season changes',
+      previousSeason: 1,
+      previousSourceUpdatedAt: '2026-06-10 23:58:00',
+      currentSeason: 2,
+    },
+  ])('starts a refresh when $label', async ({
+    previousSeason,
+    previousSourceUpdatedAt,
+    currentSeason,
+  }) => {
+    const { env, values } = createKvEnv({
+      'environment:latest': '{"snapshot":"current"}',
+      'environment:status': JSON.stringify({
+        ok: true,
+        refreshedAt: '2026-06-11T00:00:00.000Z',
+        selectedSeason: previousSeason,
+        selectedSeasonLabel: `M-${previousSeason}`,
+        sourceUpdatedAt: previousSourceUpdatedAt,
+      }),
+    });
+    const fetcher = createRefreshFetcher({ season: currentSeason });
+    const scheduled: string[] = [];
+
+    const result = await startRefreshJob(env, (jobId) => scheduled.push(jobId), {
+      fetcher,
+      now: () => new Date('2026-06-12T00:00:00.000Z'),
+      createJobId: () => 'job-refresh-required',
+    });
+
+    expect(result).toMatchObject({
+      state: 'started',
+      jobId: 'job-refresh-required',
+      season: currentSeason,
+      pendingCount: 120,
+    });
+    expect(values.has('environment:refresh-job')).toBe(true);
+    expect(scheduled).toEqual(['job-refresh-required']);
+  });
+
   it('processes at most 40 details per step, throttles them, and schedules exactly one chained request', async () => {
     const { env, values } = createKvEnv({ 'environment:latest': '{"snapshot":"old"}' });
     const fetcher = createRefreshFetcher();
@@ -326,7 +438,7 @@ describe('environment Worker PokeDB ingestion', () => {
     expect(result).toMatchObject({ state: 'collecting', pendingCount: 80 });
     expect(fetcher).toHaveBeenCalledTimes(40);
     expect(fetcher.mock.calls.length + chainedFetches.length).toBeLessThanOrEqual(41);
-    expect(waits).toEqual(Array.from({ length: 39 }, () => 250));
+    expect(waits).toEqual(Array.from({ length: 39 }, () => 450));
     expect(job.pending).toHaveLength(80);
     expect(Object.keys(job.details.singles)).toHaveLength(40);
     expect(job.stepCount).toBe(1);
@@ -342,7 +454,12 @@ describe('environment Worker PokeDB ingestion', () => {
       },
       { POKEDB_DETAIL_LIMIT: '3', POKEDB_DETAIL_CHUNK_SIZE: '2' },
     );
-    const fetcher = createRefreshFetcher();
+    const fetcher = createRefreshFetcher({
+      updatedAtByBattle: {
+        singles: '2026/6/09 23:58',
+        doubles: '2026/6/10 23:58',
+      },
+    });
     await startRefreshJob(env, () => undefined, {
       fetcher,
       now: () => new Date('2026-06-12T00:00:00.000Z'),
@@ -384,6 +501,7 @@ describe('environment Worker PokeDB ingestion', () => {
       ok: true,
       selectedSeason: 2,
       selectedSeasonLabel: 'M-2',
+      sourceUpdatedAt: '2026-06-10 23:58:00',
       teamCounts: { singles: 60, doubles: 60 },
     });
     expect(snapshot.dataFreshness.detailLimit).toBe(3);
