@@ -22,7 +22,7 @@ const makeEnvironment = (overallUsageBasis: EnvironmentState['overallUsageBasis'
         teammateIds: ['archaludon'],
         moveStats: [{ id: 'earthquake', usageRate: 99.2, teamCount: 211 }],
         itemStats: [{ id: 'focus-sash', usageRate: 37.7, teamCount: 80 }],
-        teammateStats: [{ id: 'archaludon', usageRate: 42.5, teamCount: 91 }],
+        teammateStats: [{ id: 'archaludon', usageRate: 85.7, teamCount: 0 }],
       },
       {
         pokemonId: 'archaludon',
@@ -119,7 +119,7 @@ describe('EnvironmentPage usage basis', () => {
     expect(screen.getByText('可能过期')).toBeTruthy();
   });
 
-  it('uses medal ranks without repeated or derived ranking values and preserves real detail percentages', async () => {
+  it('uses medal ranks without derived ranking values and hides rank-relative teammate percentages', async () => {
     const user = userEvent.setup();
     render(<EnvironmentPage environment={makeEnvironment('rank-relative')} onImportSample={() => undefined} />);
 
@@ -137,7 +137,7 @@ describe('EnvironmentPage usage basis', () => {
     expect(screen.queryByText('排名第 1')).toBeNull();
     expect(screen.getByText('99.2%')).toBeTruthy();
     expect(screen.getByText('37.7%')).toBeTruthy();
-    expect(screen.getByText('42.5%')).toBeTruthy();
+    expect(screen.queryByText('85.7%')).toBeNull();
     expect(screen.queryByText('100.0%')).toBeNull();
 
     await user.click(screen.getByRole('button', { name: '返回环境' }));
@@ -160,7 +160,7 @@ describe('EnvironmentPage usage basis', () => {
     expect(screen.queryByText('213 队')).toBeNull();
     expect(screen.getByText('99.2%')).toBeTruthy();
     expect(screen.getByText('37.7%')).toBeTruthy();
-    expect(screen.getByText('42.5%')).toBeTruthy();
+    expect(screen.getByText('85.7%')).toBeTruthy();
   });
 
   it('groups the complete ranking into four tiers but flattens filtered results', async () => {

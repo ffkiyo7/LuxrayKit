@@ -331,7 +331,9 @@ function PokemonEnvironmentDetail({
               <div key={mate.id} className="rounded-lg border border-border bg-secondary p-2 text-center">
                 <PokemonAvatar iconRef={mate.iconRef} label={mate.chineseName} size="md" />
                 <p className="mt-2 truncate text-[11px] font-semibold">{mate.chineseName}</p>
-                <p className="mt-0.5 text-[10px] font-semibold text-accent">{stat.usageRate.toFixed(1)}%</p>
+                {environment.overallUsageBasis === 'absolute' && (
+                  <p className="mt-0.5 text-[10px] font-semibold text-accent">{stat.usageRate.toFixed(1)}%</p>
+                )}
               </div>
             ))}
           </div>
