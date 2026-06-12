@@ -54,7 +54,7 @@
 - **待确认 → 已确认（2026-06-12）**：总使用率 %（榜单行 54.0% 那个）**统计页拿不到**（已实测，见背景）。排行保持 `rank-relative`，UI 侧由 Task H 去掉假 % / 重设排名呈现。
 - **验收**：`npm run worker:app:check` 通过；新增单测（list 排行解析 / show 详情解析含道具+招式+队友 / 赛季探测 / top-N 节流 / 部分失败保旧 KV）；部署后 `/api/environment/status` 显示当季 M-2，详情页「常用招式」非空。
 
-### Task C — 来源/赛季/新鲜度透明化（前端 · 依赖 B · 门控 D）
+### Task C — 来源/赛季/新鲜度透明化（✅ 已完成 · 2026-06-12 · 4893871 · 门控 D）
 
 - **目标**：前端真实反映「看的是哪份数据、来自哪、多新、是否过期」，去掉硬编码赛季。
 - **涉及文件**：`src/data/environment.ts`、`src/pages/EnvironmentPage.tsx`（头部）。
@@ -104,7 +104,7 @@
 - **更新日短路**：START 先读一个 list 页拿 `更新日`，与上次 status 记录的源 `updated_at` 相同则整轮跳过（没变的日子近乎零脚印）；需在 status/游标记一份「上次源 updated_at」。
 - **验收**：`npm test`/`build`/`worker:app:check` 全绿；cron 为每日一次；更新日相同则短路不抓详情有单测。
 
-### Task H — 排名视觉重设（前端 · 依赖 C，因要去掉 rank-relative 假 %）
+### Task H — 排名视觉重设（✅ 已完成 · 2026-06-12 · 含队友 % 修复 ca86663 · 前端 · 依赖 C）
 
 > **由来**：当前 `rank-relative` 模式下，排名行左侧序号与右侧「排名第 X」字面重复；右侧那个值（含 `usageRate`）是 worker 按名次线性反推的合成数（index.ts:345-351），不是真实使用率。已实测确认 PokeDB 当季拿不到真实总使用率 %（见背景），故不再尝试展示 %，改为重设排名呈现，去单调。**用户已定方案：排名行＝纯宝可梦＋名次，右侧留空。**
 
@@ -112,7 +112,8 @@
 - **涉及文件**：`src/pages/EnvironmentPage.tsx`（`RankingRow` / `FullRankingPage` / `PokemonEnvironmentDetail` 头部 / 首页 top-4 区）。
 - **改动要点**：
   - **`RankingRow`**：删右列 `rank-relative` 的「排名第 X」分支与 `absolute` 的 `usageRate%/teamCount` 分支——**右列整体留空**（仅保留点击进详情；如需可留一个右向箭头/chevron 作可点暗示）。左侧名次：**前 3 名用金/银/铜牌样式**（rank 1/2/3），其余沿用数字。中部头像+名字+属性维持现状。`usageBasis` 参数若不再被任何分支使用则一并清理。
-  - **`PokemonEnvironmentDetail` 头部（:190-201）**：同样删掉「排名第 X」/假 % 展示，详情页头部只留头像+名字+属性+名次（牌位或「第 N」均可，保持与列表一致）。**注意**：详情页里招式 %、道具 %、队友 % 是真实占比，保留不动。
+  - **`PokemonEnvironmentDetail` 头部（:190-201）**：同样删掉「排名第 X」/假 % 展示，详情页头部只留头像+名字+属性+名次（牌位或「第 N」均可，保持与列表一致）。
+  - **⚠️ 数据真伪订正（曾在此踩坑，务必看）**：详情页里**招式 %、道具 % 是 PokeDB 真实 `rate`**（解析自详情页，保留）；**性格 % 同理真实**。但**队友（teammate）没有真实百分比**——PokeDB「同チーム」区只给*有序列表*，`teammateStats.usageRate` 是 `pokedbEnvironment.ts` 里 `rankPercentile(index+1, n)` 按名次**合成**的。因此队友 % **只在 `overallUsageBasis === 'absolute'`（trainer-list 真实共现）时显示，rank-relative（统计页/当季）下必须隐藏、只显示头像+名字**。Task H 收尾的 `ca86663` 已恢复该守卫。**写任何文案/UI 时不要把队友 % 当真实占比。**
   - **梯队分档（仅二级「完整宝可梦榜」`FullRankingPage`）**：按名次区间插入分组小标题，**英文标签 `Tier 1 / Tier 2 / Tier 3 / Tier 4`**（不要中文「第 X 梯队」）。默认边界 `Tier 1: 1–5 / Tier 2: 6–20 / Tier 3: 21–60 / Tier 4: 61+`（可调，写成常量便于改）。
   - **首页 top-4 区不分档**（`EnvironmentPage` 主体 :576 那段保持平铺，只 4 行）。
 - **验收**：列表/详情无重复名次、无假 %；前 3 名牌位化；完整榜有 Tier 1–4 英文分档、首页不分档；`npm test` 通过；`npm run test:visual` 更新快照。
