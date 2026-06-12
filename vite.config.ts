@@ -23,6 +23,7 @@ export default defineConfig({
     },
   },
   test: {
+    setupFiles: ['./vitest.setup.ts'],
     exclude: ['node_modules/**', 'dist/**', 'tests/pwa/**', 'test-results/**'],
   },
 });

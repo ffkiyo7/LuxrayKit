@@ -1,4 +1,4 @@
-// Auto-generated batch 5: 15 Pokemon, 14 abilities
+// Auto-generated batch 5: 15 Pokemon, 15 abilities
 // Generated from PokeAPI on 2026-05-01T14:41:50.971Z
 // Source: https://pokeapi.co/api/v2
 
@@ -9,6 +9,16 @@ const abilityRefs = ['pokemon-zhwiki-ability-text', 'pokeapi-pokemon-data'];
 const artwork = (n: number) => `/assets/pokemon/thumbs/${n}.png`;
 
 export const abilitiesBatch005: Ability[] = [
+  {
+    id: 'minds-eye',
+    chineseName: '心眼',
+    englishName: "Mind's Eye",
+    effectSummary: '无视对手的闪避率变化，且一般属性和格斗属性的招式可以命中幽灵属性宝可梦。',
+    pokemonIds: [],
+    calculationImpact: 'pending',
+    legalInCurrentRule: false,
+    sourceRefs: abilityRefs,
+  },
   {
     id: 'purifying-salt',
     chineseName: '洁净之盐',

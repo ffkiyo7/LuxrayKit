@@ -55,7 +55,7 @@ const renderApp = async () => {
 const renderEnvironmentApp = async () => {
   const user = userEvent.setup();
   render(<App />);
-  await screen.findByText(testEnvironmentState.sourceLabel);
+  await screen.findByText(`${testEnvironmentState.seasonLabel} · 单打`);
   return user;
 };
 
@@ -489,14 +489,18 @@ describe('App page flows', () => {
   it('keeps environment sample labeling lightweight without the bulky seed notice', async () => {
     const user = await renderEnvironmentApp();
 
-    expect(screen.getByText(testEnvironmentState.sourceLabel)).toBeTruthy();
+    expect(screen.getByText(`${testEnvironmentState.seasonLabel} · 单打`)).toBeTruthy();
+    expect(screen.getByText('在线数据')).toBeTruthy();
+    expect(screen.getByText('可能过期')).toBeTruthy();
+    expect(screen.queryByText(testEnvironmentState.sourceLabel)).toBeNull();
     expect(screen.queryByText(/本页使用本地 seed 占位数据/)).toBeNull();
     expect(screen.queryByText(/不代表真实使用率/)).toBeNull();
     expect(screen.queryByText('高分样本')).toBeNull();
 
     await user.click(screen.getByRole('button', { name: /查看全部/ }));
     expect(await screen.findByRole('heading', { name: '完整宝可梦榜' })).toBeTruthy();
-    expect(screen.getByText(testEnvironmentState.sourceLabel)).toBeTruthy();
+    expect(screen.getByText(`${testEnvironmentState.seasonLabel} · 单打`)).toBeTruthy();
+    expect(screen.queryByText(testEnvironmentState.sourceLabel)).toBeNull();
     expect(screen.queryByText(/本页使用本地 seed 占位数据/)).toBeNull();
 
     await user.click(screen.getByRole('button', { name: new RegExp(topSinglesPokemon.chineseName) }));
@@ -515,9 +519,12 @@ describe('App page flows', () => {
     expect(await screen.findByRole('heading', { name: '数据口径' })).toBeTruthy();
     expect(screen.getByText('528 队')).toBeTruthy();
     expect(screen.getByText('71 队')).toBeTruthy();
-    expect(screen.getByText(/54\.0% \/ 285 队/)).toBeTruthy();
-    expect(screen.getByText(/不是全服实时统计/)).toBeTruthy();
-    expect(screen.getByText(/常用招式、携带道具、常见队友/)).toBeTruthy();
+    expect(screen.getByText(/PokeDB 公开统计页（M-1 当季聚合）/)).toBeTruthy();
+    expect(screen.getByText('不是全服实时统计')).toBeTruthy();
+    expect(screen.getByText(/无总使用率 %，只有名次/)).toBeTruthy();
+    expect(screen.getByText(/招式、道具 % 是真实占比；队友仅按搭档排名展示/)).toBeTruthy();
+    expect(screen.queryByText(/54\.0% \/ 285 队/)).toBeNull();
+    expect(screen.queryByText(/PokeDB 公开的 M-1 上位构筑快照/)).toBeNull();
 
     await user.click(screen.getByRole('button', { name: '返回环境' }));
     expect(await screen.findByRole('heading', { name: '环境' })).toBeTruthy();

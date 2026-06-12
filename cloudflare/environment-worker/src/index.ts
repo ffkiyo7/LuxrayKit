@@ -50,6 +50,7 @@ type TeamIndex = Record<BattleType, Record<string, TeamSummary[]>>;
 type CacheStatus = {
   ok: boolean;
   refreshedAt?: string;
+  sourceUpdatedAt?: string;
   failedAt?: string;
   selectedSeason?: number;
   selectedSeasonLabel?: string;
@@ -76,7 +77,7 @@ type RefreshJob = {
 
 type RefreshTriggerResult = {
   ok: true;
-  state: 'started' | 'in-progress' | 'resumed';
+  state: 'started' | 'in-progress' | 'resumed' | 'skipped';
   jobId: string;
   season: number;
   pendingCount: number;
@@ -105,8 +106,13 @@ const DEFAULT_DETAIL_CHUNK_SIZE = 40;
 const MAX_DETAIL_CHUNK_SIZE = 40;
 const REFRESH_JOB_STALE_MS = 10 * 60 * 1000;
 const MAX_REFRESH_JOB_STEPS = 10;
-const PAGE_REQUEST_DELAY_MS = 250;
+const PAGE_REQUEST_DELAY_MS = 450;
 const POKEDB_USER_AGENT = 'LuxrayKitEnvironmentWorker/0.2 (+https://luxraykit.com)';
+
+const latestSourceUpdatedAt = (lists: Record<BattleType, PokeDbPokemonListPayload>) =>
+  lists.singles.updatedAt >= lists.doubles.updatedAt
+    ? lists.singles.updatedAt
+    : lists.doubles.updatedAt;
 
 const normalizeName = (value: string) =>
   value
@@ -537,6 +543,7 @@ async function publishRefreshJob(
   const status: CacheStatus = {
     ok: true,
     refreshedAt,
+    sourceUpdatedAt: latestSourceUpdatedAt(job.lists),
     selectedSeason: job.season,
     selectedSeasonLabel: snapshot.battles.singles?.season ?? snapshot.battles.doubles?.season,
     teamCounts: {
@@ -571,9 +578,10 @@ export async function startRefreshJob(
 ): Promise<RefreshTriggerResult> {
   const now = dependencies.now ?? (() => new Date());
   const currentTime = now();
-  const [currentJobText, currentStatusText] = await Promise.all([
+  const [currentJobText, currentStatusText, currentSnapshotText] = await Promise.all([
     env.ENVIRONMENT_CACHE.get(REFRESH_JOB_KEY),
     env.ENVIRONMENT_CACHE.get(STATUS_KEY),
+    env.ENVIRONMENT_CACHE.get(SNAPSHOT_KEY),
   ]);
   if (currentJobText) {
     const currentJob = JSON.parse(currentJobText) as RefreshJob;
@@ -601,6 +609,33 @@ export async function startRefreshJob(
       fetchPokemonList({ baseUrl, season, battleType: 'singles', fetcher }),
       fetchPokemonList({ baseUrl, season, battleType: 'doubles', fetcher }),
     ]);
+    const previousStatus = currentStatusText ? (JSON.parse(currentStatusText) as CacheStatus) : undefined;
+    const sourceUpdatedAt = latestSourceUpdatedAt({ singles, doubles });
+    if (
+      currentSnapshotText &&
+      previousStatus?.ok === true &&
+      previousStatus.selectedSeason === season &&
+      previousStatus.sourceUpdatedAt === sourceUpdatedAt
+    ) {
+      const status: CacheStatus = {
+        ...previousStatus,
+        refreshedAt: currentTime.toISOString(),
+      };
+      await env.ENVIRONMENT_CACHE.put(STATUS_KEY, JSON.stringify(status));
+      console.log(JSON.stringify({
+        event: 'environment_refresh_skipped',
+        season,
+        sourceUpdatedAt,
+        refreshedAt: status.refreshedAt,
+      }));
+      return {
+        ok: true,
+        state: 'skipped',
+        jobId: '',
+        season,
+        pendingCount: 0,
+      };
+    }
     const detailLimit = configuredInteger(env.POKEDB_DETAIL_LIMIT, DEFAULT_DETAIL_LIMIT, MAX_DETAIL_LIMIT);
     const pending = (['singles', 'doubles'] as const).flatMap((battleType) =>
       ({ singles, doubles })[battleType].rankings.slice(0, detailLimit).map((ranking) => ({

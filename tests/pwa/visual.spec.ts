@@ -36,6 +36,11 @@ test('captures the mobile visual regression smoke set', { timeout: 60_000 }, asy
   await page.getByRole('button', { name: '返回环境' }).click();
   await expect(page.getByRole('heading', { name: '环境' })).toBeVisible();
 
+  await page.getByRole('button', { name: '查看数据口径' }).click();
+  await expect(page.getByRole('heading', { name: '数据口径' })).toBeVisible();
+  await expect(page).toHaveScreenshot('14-environment-methodology.png', screenshotOptions);
+  await page.getByRole('button', { name: '返回环境' }).click();
+
   await page.getByRole('button', { name: '队伍', exact: true }).click();
   await expect(page.getByText('我的队伍')).toBeVisible();
   await expect(page).toHaveScreenshot('04-team-list.png', screenshotOptions);
