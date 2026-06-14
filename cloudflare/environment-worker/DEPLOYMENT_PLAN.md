@@ -44,7 +44,8 @@ Endpoints:
 
 Cron:
 
-- `17 */6 * * *` refreshes every 6 hours.
+- `17 18 * * *` starts the daily refresh at 18:17 UTC.
+- `*/15 * * * *` checks for and resumes stale refresh jobs.
 
 Refresh behavior:
 
@@ -78,31 +79,25 @@ Current deployment:
   - `www.luxraykit.com/*`
 - KV production namespace: `43aafe9bdd2c4d01a980325d75eb9630`
 - KV preview namespace: `880eb89e7fd44e7bbe582b224778b4ed`
-- Cron: `17 */6 * * *`
+- Cron:
+  - Daily refresh: `17 18 * * *`
+  - Stale-job watchdog: `*/15 * * * *`
 - `ADMIN_REFRESH_TOKEN` is set as a Cloudflare Secret and is not stored in this repository.
 - Legacy Pages project: `legacy-pages-pokemon-champions-tool`
   - Git auto deploy disabled.
   - Custom domains removed.
   - Only `pokemon-champions-tool.pages.dev` remains as a legacy fallback.
 
-GitHub Actions deployment:
+Automated deployment:
 
-- Workflow: `.github/workflows/deploy-worker.yml`
-- Trigger: push to `main` or manual `workflow_dispatch`
-- Command path: `npm test` -> `npm run worker:app:deploy`
-- Required GitHub secret: `CLOUDFLARE_API_TOKEN`
-- Set it with GitHub CLI after creating the Cloudflare token:
-  `gh secret set CLOUDFLARE_API_TOKEN --repo ffkiyo7/LuxrayKit`
-- Recommended token permissions:
-  - Account / Workers Scripts: Edit
-  - Account / Workers KV Storage: Edit
-  - Zone / Workers Routes: Edit for `luxraykit.com`
-  - Zone / Zone: Read for `luxraykit.com`
-
-Cloudflare native Workers Builds:
-
-- Also supported by Cloudflare, but initial connection usually requires Dashboard Git authorization or an API token with Workers CI Write.
-- The local Wrangler OAuth token used here does not expose Workers CI Write, so GitHub Actions is the prepared automation path unless the Worker is connected manually in Dashboard > Worker > Settings > Builds.
+- Cloudflare Workers Builds is connected directly to the Git repository.
+- The production branch is `main`.
+- Cloudflare builds and deploys the latest `main` commit automatically.
+- GitHub Actions does not deploy the Worker.
+- `.github/workflows/ci.yml` only runs tests, builds the application, and
+  validates the Worker bundle with a Wrangler dry run.
+- Local Wrangler deployment commands are reserved for explicit maintenance
+  or recovery work.
 
 Install Wrangler and authenticate:
 

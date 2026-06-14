@@ -105,8 +105,10 @@ const MAX_DETAIL_LIMIT = 80;
 const DEFAULT_DETAIL_CHUNK_SIZE = 40;
 const MAX_DETAIL_CHUNK_SIZE = 40;
 const REFRESH_JOB_STALE_MS = 10 * 60 * 1000;
+const REFRESH_JOB_ABANDON_MS = 60 * 60 * 1000;
 const MAX_REFRESH_JOB_STEPS = 10;
 const PAGE_REQUEST_DELAY_MS = 450;
+const REFRESH_WATCHDOG_CRON = '*/15 * * * *';
 const POKEDB_USER_AGENT = 'LuxrayKitEnvironmentWorker/0.2 (+https://luxraykit.com)';
 
 const latestSourceUpdatedAt = (lists: Record<BattleType, PokeDbPokemonListPayload>) =>
@@ -585,20 +587,32 @@ export async function startRefreshJob(
   ]);
   if (currentJobText) {
     const currentJob = JSON.parse(currentJobText) as RefreshJob;
-    const currentStatus = currentStatusText ? (JSON.parse(currentStatusText) as CacheStatus) : undefined;
-    const isStale = currentTime.getTime() - Date.parse(currentJob.updatedAt) > REFRESH_JOB_STALE_MS;
-    const stoppedAfterFailure =
-      currentStatus?.ok === false &&
-      Boolean(currentStatus.failedAt) &&
-      Date.parse(currentStatus.failedAt!) >= Date.parse(currentJob.startedAt);
-    if (isStale || stoppedAfterFailure) scheduleNext(currentJob.jobId);
-    return {
-      ok: true,
-      state: isStale || stoppedAfterFailure ? 'resumed' : 'in-progress',
-      jobId: currentJob.jobId,
-      season: currentJob.season,
-      pendingCount: currentJob.pending.length,
-    };
+    const jobAge = currentTime.getTime() - Date.parse(currentJob.startedAt);
+    if (jobAge > REFRESH_JOB_ABANDON_MS) {
+      await env.ENVIRONMENT_CACHE.delete(REFRESH_JOB_KEY);
+      console.log(JSON.stringify({
+        event: 'environment_refresh_abandoned',
+        jobId: currentJob.jobId,
+        startedAt: currentJob.startedAt,
+        stepCount: currentJob.stepCount,
+        pendingCount: currentJob.pending.length,
+      }));
+    } else {
+      const currentStatus = currentStatusText ? (JSON.parse(currentStatusText) as CacheStatus) : undefined;
+      const isStale = currentTime.getTime() - Date.parse(currentJob.updatedAt) > REFRESH_JOB_STALE_MS;
+      const stoppedAfterFailure =
+        currentStatus?.ok === false &&
+        Boolean(currentStatus.failedAt) &&
+        Date.parse(currentStatus.failedAt!) >= Date.parse(currentJob.startedAt);
+      if (isStale || stoppedAfterFailure) scheduleNext(currentJob.jobId);
+      return {
+        ok: true,
+        state: isStale || stoppedAfterFailure ? 'resumed' : 'in-progress',
+        jobId: currentJob.jobId,
+        season: currentJob.season,
+        pendingCount: currentJob.pending.length,
+      };
+    }
   }
 
   const fetcher = dependencies.fetcher ?? fetch;
@@ -678,6 +692,49 @@ export async function startRefreshJob(
     await recordRefreshFailure(env, error, now);
     throw error;
   }
+}
+
+export async function resumeStaleRefreshJob(
+  env: AppEnv,
+  scheduleNext: ScheduleRefreshStep,
+  now: () => Date = () => new Date(),
+): Promise<boolean> {
+  const [currentJobText, currentStatusText] = await Promise.all([
+    env.ENVIRONMENT_CACHE.get(REFRESH_JOB_KEY),
+    env.ENVIRONMENT_CACHE.get(STATUS_KEY),
+  ]);
+  if (!currentJobText) return false;
+
+  const currentJob = JSON.parse(currentJobText) as RefreshJob;
+  const currentTime = now();
+  if (currentTime.getTime() - Date.parse(currentJob.startedAt) > REFRESH_JOB_ABANDON_MS) {
+    await env.ENVIRONMENT_CACHE.delete(REFRESH_JOB_KEY);
+    console.log(JSON.stringify({
+      event: 'environment_refresh_watchdog_abandoned',
+      jobId: currentJob.jobId,
+      startedAt: currentJob.startedAt,
+      stepCount: currentJob.stepCount,
+      pendingCount: currentJob.pending.length,
+    }));
+    return false;
+  }
+  const currentStatus = currentStatusText ? (JSON.parse(currentStatusText) as CacheStatus) : undefined;
+  const isStale = currentTime.getTime() - Date.parse(currentJob.updatedAt) > REFRESH_JOB_STALE_MS;
+  const stoppedAfterFailure =
+    currentStatus?.ok === false &&
+    Boolean(currentStatus.failedAt) &&
+    Date.parse(currentStatus.failedAt!) >= Date.parse(currentJob.startedAt);
+  if (!isStale && !stoppedAfterFailure) return false;
+
+  scheduleNext(currentJob.jobId);
+  console.log(JSON.stringify({
+    event: 'environment_refresh_watchdog_resumed',
+    jobId: currentJob.jobId,
+    stepCount: currentJob.stepCount,
+    pendingCount: currentJob.pending.length,
+    reason: stoppedAfterFailure ? 'failure' : 'stale',
+  }));
+  return true;
 }
 
 export async function runRefreshJobStep(
@@ -983,10 +1040,10 @@ export default {
               { status: 400, headers: { 'cache-control': 'no-store' } },
             );
           }
-          ctx.waitUntil(runRefreshJobStep(env, jobId, scheduleNext));
+          const result = await runRefreshJobStep(env, jobId, scheduleNext);
           return jsonResponse(
             env,
-            { ok: true, state: 'accepted', jobId },
+            result,
             { status: 202, headers: { 'cache-control': 'no-store' } },
           );
         }
@@ -1008,10 +1065,14 @@ export default {
     return env.ASSETS.fetch(request);
   },
 
-  async scheduled(_event: ScheduledEvent, env: AppEnv, ctx: ExecutionContext): Promise<void> {
+  async scheduled(event: ScheduledEvent, env: AppEnv, ctx: ExecutionContext): Promise<void> {
     const scheduleNext = (jobId: string) => {
       ctx.waitUntil(triggerRefreshStep(env, jobId));
     };
-    ctx.waitUntil(startRefreshJob(env, scheduleNext));
+    if (event.cron === REFRESH_WATCHDOG_CRON) {
+      await resumeStaleRefreshJob(env, scheduleNext);
+      return;
+    }
+    await startRefreshJob(env, scheduleNext);
   },
 };
