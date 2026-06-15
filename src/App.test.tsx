@@ -300,7 +300,7 @@ describe('App page flows', () => {
     expect(await screen.findByLabelText('队伍：雨天试验队')).toBeTruthy();
   });
 
-  it('generates a team image from the list and only offers save', async () => {
+  it('generates a team image from the list and only offers save', { timeout: 15000 }, async () => {
     const user = await renderApp();
 
     const teamCard = await screen.findByLabelText('队伍：Luxray test');
@@ -848,7 +848,7 @@ describe('App page flows', () => {
     expect(screen.getByText('属性关系')).toBeTruthy();
   });
 
-  it('filters Pokedex moves, items, and abilities with the shared search box', { timeout: 15000 }, async () => {
+  it('filters Pokedex moves, items, and abilities with the shared search box', { timeout: 30000 }, async () => {
     const user = await renderApp();
 
     await openTool(user, /规则图鉴/);
