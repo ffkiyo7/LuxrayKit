@@ -1,4 +1,4 @@
-import { Database, Download, Moon, ShieldCheck, Sun, Trash2, Upload } from 'lucide-react';
+import { Compass, Database, Download, Moon, ShieldCheck, Sun, Trash2, Upload } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { currentDataVersion, currentRuleSet } from '../data';
 import { TeamImportError, parseTeamImport } from '../lib/exportImport';
@@ -109,6 +109,19 @@ export function ProfilePage() {
                 <Moon size={16} />
               </span>
             </button>
+          </div>
+          <div className="flex items-center justify-between gap-3 py-3">
+            <span>
+              <span className="block text-sm">新手引导</span>
+              <span className="text-xs text-textSecondary">重新观看首次启动的功能引导。</span>
+            </span>
+            <Button
+              variant="ghost"
+              onClick={() => replacePreferences({ ...preferences, hasCompletedOnboarding: false })}
+            >
+              <Compass size={14} />
+              查看引导
+            </Button>
           </div>
         </div>
       </Card>

@@ -285,6 +285,7 @@ export type UserPreference = {
   cachedRuleSetId: string;
   lastDataRefreshAt: string;
   hasSeenEnvironmentImportNotice: boolean;
+  hasCompletedOnboarding: boolean;
 };
 
 export type AppState = {

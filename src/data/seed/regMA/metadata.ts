@@ -42,6 +42,7 @@ export const defaultPreferences: UserPreference = {
   cachedRuleSetId: currentRuleSet.id,
   lastDataRefreshAt: currentDataVersion.updatedAt,
   hasSeenEnvironmentImportNotice: false,
+  hasCompletedOnboarding: false,
 };
 
 export const dataSourceManifest: DataSourceManifest = {

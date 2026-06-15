@@ -2,6 +2,7 @@ import { ArrowLeft, BarChart3, ExternalLink, ShieldCheck, UserCircle, Users, Wre
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { BottomNav } from './components/BottomNav';
 import { Header } from './components/Header';
+import { Onboarding } from './components/onboarding/Onboarding';
 import { Button } from './components/ui';
 import { productName } from './branding';
 import type { EnvironmentState, EnvironmentTeamSample } from './data/environment';
@@ -161,6 +162,10 @@ function AppShell() {
     setActiveTab('tools');
   }, []);
 
+  const completeOnboarding = useCallback(() => {
+    void replacePreferences({ ...preferences, hasCompletedOnboarding: true });
+  }, [preferences, replacePreferences]);
+
   const performImportSampleTeam = useCallback(
     async (sample: EnvironmentTeamSample) => {
       const { createImportedTeamFromEnvironmentSample } = await import('./lib/environmentImport');
@@ -287,6 +292,7 @@ function AppShell() {
         />
       )}
       {!overlay && <BottomNav activeTab={activeTab} tabs={tabs} onChange={setActiveTab} hidden={bottomNavAutoHide.hidden} />}
+      {!preferences.hasCompletedOnboarding && <Onboarding onComplete={completeOnboarding} />}
     </main>
   );
 }

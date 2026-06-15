@@ -132,3 +132,112 @@ button {
 :root:not([data-theme]) .surface-shadow {
   box-shadow: none;
 }
+
+/* ===========================================================================
+   Onboarding — first-launch flow + "toy diorama" illustrations.
+   The product chrome stays flat; the dioramas get soft toy shadows and a
+   gentle spring so the miniature scenes feel physical. Brighter "toy" colours
+   live only inside the illustrations, never in chrome.
+   =========================================================================== */
+:root {
+  --toy-coral: #ff6f61;
+  --toy-blue: #6c8cff;
+  --toy-yellow: #ffd166;
+  --toy-mint: #4fd1a0;
+  --toy-lilac: #b292ff;
+  --shadow-toy: 0 18px 40px -12px rgb(0 0 0 / 0.6);
+  --shadow-pop: 0 10px 30px rgb(0 0 0 / 0.45), 0 2px 6px rgb(0 0 0 / 0.3);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.5, 1);
+  --dur-slow: 340ms;
+}
+
+/* Slide entrance — a single gentle rise per step. */
+.lk-slide-anim {
+  animation: lkSlideRise var(--dur-slow) var(--ease-spring) both;
+}
+@keyframes lkSlideRise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Progress dot grows into an accent pill when active. */
+.lk-progress-dot {
+  height: 7px;
+  width: 7px;
+  border-radius: 999px;
+  background: rgb(var(--color-elevated));
+  transition:
+    width var(--dur-slow) var(--ease-spring),
+    background 200ms var(--ease-spring);
+}
+.lk-progress-dot[data-active='true'] {
+  width: 22px;
+  background: rgb(var(--color-accent));
+}
+
+/* Diorama idle motion + focus pulse — all reduced-motion gated. */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes lkFigBob {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-5px);
+    }
+  }
+  @keyframes lkFigSway {
+    0%,
+    100% {
+      transform: rotate(-2.5deg);
+    }
+    50% {
+      transform: rotate(2.5deg);
+    }
+  }
+  @keyframes lkFocusPulse {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 transparent, 0 0 14px 2px var(--lk-glow);
+    }
+    50% {
+      box-shadow: 0 0 0 5px transparent, 0 0 26px 6px var(--lk-glow);
+    }
+  }
+  @keyframes lkSpark {
+    0%,
+    100% {
+      opacity: 0.15;
+      transform: scale(0.6);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  .lk-fig-bob {
+    animation: lkFigBob 2.9s ease-in-out infinite;
+  }
+  .lk-fig-sway {
+    animation: lkFigSway 3.5s ease-in-out infinite;
+    transform-origin: 50% 92%;
+  }
+  .lk-focus-pulse {
+    animation: lkFocusPulse 2.2s ease-in-out infinite;
+  }
+  .lk-spark {
+    animation: lkSpark 1.9s ease-in-out infinite;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lk-slide-anim {
+    animation: none;
+  }
+}
