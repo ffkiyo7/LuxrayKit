@@ -35,7 +35,7 @@
   "vars": {
     "POKEDB_BASE_URL": "https://champs.pokedb.tokyo",
     "POKEDB_DETAIL_LIMIT": "60",
-    "POKEDB_DETAIL_CHUNK_SIZE": "40",
+    "POKEDB_DETAIL_CHUNK_SIZE": "20",
     "WORKER_SELF_URL": "https://luxraykit-app.ffkiyo7.workers.dev",
     "MAX_CACHE_AGE_SECONDS": "108000",
     "ALLOWED_ORIGINS": "*"

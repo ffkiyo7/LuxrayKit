@@ -422,7 +422,7 @@ describe('environment Worker PokeDB ingestion', () => {
     expect(scheduled).toEqual(['job-refresh-required']);
   });
 
-  it('processes at most 40 details per step, throttles them, and schedules exactly one chained request', async () => {
+  it('processes at most 20 details per step, throttles them, and schedules exactly one chained request', async () => {
     const { env, values } = createKvEnv({ 'environment:latest': '{"snapshot":"old"}' });
     const fetcher = createRefreshFetcher();
     await startRefreshJob(env, () => undefined, {
@@ -448,12 +448,12 @@ describe('environment Worker PokeDB ingestion', () => {
     );
 
     const job = JSON.parse(values.get('environment:refresh-job') ?? '{}');
-    expect(result).toMatchObject({ state: 'collecting', pendingCount: 80 });
-    expect(fetcher).toHaveBeenCalledTimes(40);
-    expect(fetcher.mock.calls.length + chainedFetches.length).toBeLessThanOrEqual(41);
-    expect(waits).toEqual(Array.from({ length: 39 }, () => 450));
-    expect(job.pending).toHaveLength(80);
-    expect(Object.keys(job.details.singles)).toHaveLength(40);
+    expect(result).toMatchObject({ state: 'collecting', pendingCount: 100 });
+    expect(fetcher).toHaveBeenCalledTimes(20);
+    expect(fetcher.mock.calls.length + chainedFetches.length).toBeLessThanOrEqual(21);
+    expect(waits).toEqual(Array.from({ length: 19 }, () => 450));
+    expect(job.pending).toHaveLength(100);
+    expect(Object.keys(job.details.singles)).toHaveLength(20);
     expect(job.stepCount).toBe(1);
     expect(chainedFetches).toEqual(['job-budget']);
     expect(values.get('environment:latest')).toBe('{"snapshot":"old"}');
