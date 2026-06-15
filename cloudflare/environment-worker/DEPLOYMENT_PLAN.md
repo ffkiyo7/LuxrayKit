@@ -44,8 +44,7 @@ Endpoints:
 
 Cron:
 
-- `17 18 * * *` starts the daily refresh at 18:17 UTC.
-- `*/15 * * * *` checks for and resumes stale refresh jobs.
+- `17 18 * * *` starts the daily refresh at 18:17 UTC (02:17 Asia/Shanghai the next day).
 
 Refresh behavior:
 
@@ -81,7 +80,6 @@ Current deployment:
 - KV preview namespace: `880eb89e7fd44e7bbe582b224778b4ed`
 - Cron:
   - Daily refresh: `17 18 * * *`
-  - Stale-job watchdog: `*/15 * * * *`
 - `ADMIN_REFRESH_TOKEN` is set as a Cloudflare Secret and is not stored in this repository.
 - Legacy Pages project: `legacy-pages-pokemon-champions-tool`
   - Git auto deploy disabled.

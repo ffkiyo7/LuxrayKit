@@ -1,4 +1,4 @@
-const CACHE_NAME = 'champions-tool-v2';
+const CACHE_NAME = 'champions-tool-v3';
 const APP_SHELL = ['/', '/index.html', '/manifest.webmanifest', '/icon.svg', '/data/pokedb/reg-ma-s1-environment.json'];
 
 // Item icons are pre-cached lazily: install won't fail on individual misses
@@ -70,6 +70,11 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+  const url = new URL(event.request.url);
+  if (url.origin === self.location.origin && url.pathname.startsWith('/api/')) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
   event.respondWith(
     caches.match(event.request).then((cached) => {
       const network = fetch(event.request)

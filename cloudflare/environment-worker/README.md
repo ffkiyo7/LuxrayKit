@@ -5,7 +5,7 @@ This Worker is the migration target for running Luxray Kit as one Cloudflare Wor
 - Static assets serve the Vite `dist` frontend.
 - `/api/*` routes run in the Worker.
 - Production routes are `https://luxraykit.com/*` and `https://www.luxraykit.com/*`.
-- Cron refreshes PokeDB Open Data every 6 hours.
+- Cron refreshes PokeDB Open Data once per day.
 - KV stores the latest usable snapshot.
 - The app reads `GET /api/environment/latest`.
 - Pokemon-specific recommendations read `GET /api/pokemon/:pokemonId/teams?battleType=singles`.

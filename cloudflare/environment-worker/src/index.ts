@@ -97,7 +97,7 @@ const TEAM_INDEX_KEY = 'environment:team-index';
 const REFRESH_JOB_KEY = 'environment:refresh-job';
 const DEFAULT_POKEDB_BASE_URL = 'https://champs.pokedb.tokyo';
 const DEFAULT_WORKER_SELF_URL = 'https://luxraykit-app.ffkiyo7.workers.dev';
-const DEFAULT_MAX_CACHE_AGE_SECONDS = 6 * 60 * 60;
+const DEFAULT_MAX_CACHE_AGE_SECONDS = 30 * 60 * 60;
 const DEFAULT_TEAM_LIMIT = 24;
 const MAX_TEAM_LIMIT = 50;
 const DEFAULT_DETAIL_LIMIT = 60;
@@ -108,7 +108,6 @@ const REFRESH_JOB_STALE_MS = 10 * 60 * 1000;
 const REFRESH_JOB_ABANDON_MS = 60 * 60 * 1000;
 const MAX_REFRESH_JOB_STEPS = 10;
 const PAGE_REQUEST_DELAY_MS = 450;
-const REFRESH_WATCHDOG_CRON = '*/15 * * * *';
 const POKEDB_USER_AGENT = 'LuxrayKitEnvironmentWorker/0.2 (+https://luxraykit.com)';
 
 const latestSourceUpdatedAt = (lists: Record<BattleType, PokeDbPokemonListPayload>) =>
@@ -221,8 +220,11 @@ type Fetcher = (input: RequestInfo | URL, init?: RequestInit) => Promise<Respons
 
 const fetchPokeDbHtml = async (url: string, fetcher: Fetcher) => {
   const response = await fetcher(url, {
+    cache: 'no-store',
     headers: {
       accept: 'text/html',
+      'cache-control': 'no-cache',
+      pragma: 'no-cache',
       'user-agent': POKEDB_USER_AGENT,
     },
   });
@@ -631,11 +633,19 @@ export async function startRefreshJob(
       previousStatus.selectedSeason === season &&
       previousStatus.sourceUpdatedAt === sourceUpdatedAt
     ) {
+      const refreshedAt = currentTime.toISOString();
+      const snapshot = JSON.parse(currentSnapshotText) as EnvironmentSnapshot;
       const status: CacheStatus = {
         ...previousStatus,
-        refreshedAt: currentTime.toISOString(),
+        refreshedAt,
       };
-      await env.ENVIRONMENT_CACHE.put(STATUS_KEY, JSON.stringify(status));
+      await Promise.all([
+        env.ENVIRONMENT_CACHE.put(SNAPSHOT_KEY, JSON.stringify({
+          ...snapshot,
+          retrievedAt: refreshedAt,
+        })),
+        env.ENVIRONMENT_CACHE.put(STATUS_KEY, JSON.stringify(status)),
+      ]);
       console.log(JSON.stringify({
         event: 'environment_refresh_skipped',
         season,
@@ -692,49 +702,6 @@ export async function startRefreshJob(
     await recordRefreshFailure(env, error, now);
     throw error;
   }
-}
-
-export async function resumeStaleRefreshJob(
-  env: AppEnv,
-  scheduleNext: ScheduleRefreshStep,
-  now: () => Date = () => new Date(),
-): Promise<boolean> {
-  const [currentJobText, currentStatusText] = await Promise.all([
-    env.ENVIRONMENT_CACHE.get(REFRESH_JOB_KEY),
-    env.ENVIRONMENT_CACHE.get(STATUS_KEY),
-  ]);
-  if (!currentJobText) return false;
-
-  const currentJob = JSON.parse(currentJobText) as RefreshJob;
-  const currentTime = now();
-  if (currentTime.getTime() - Date.parse(currentJob.startedAt) > REFRESH_JOB_ABANDON_MS) {
-    await env.ENVIRONMENT_CACHE.delete(REFRESH_JOB_KEY);
-    console.log(JSON.stringify({
-      event: 'environment_refresh_watchdog_abandoned',
-      jobId: currentJob.jobId,
-      startedAt: currentJob.startedAt,
-      stepCount: currentJob.stepCount,
-      pendingCount: currentJob.pending.length,
-    }));
-    return false;
-  }
-  const currentStatus = currentStatusText ? (JSON.parse(currentStatusText) as CacheStatus) : undefined;
-  const isStale = currentTime.getTime() - Date.parse(currentJob.updatedAt) > REFRESH_JOB_STALE_MS;
-  const stoppedAfterFailure =
-    currentStatus?.ok === false &&
-    Boolean(currentStatus.failedAt) &&
-    Date.parse(currentStatus.failedAt!) >= Date.parse(currentJob.startedAt);
-  if (!isStale && !stoppedAfterFailure) return false;
-
-  scheduleNext(currentJob.jobId);
-  console.log(JSON.stringify({
-    event: 'environment_refresh_watchdog_resumed',
-    jobId: currentJob.jobId,
-    stepCount: currentJob.stepCount,
-    pendingCount: currentJob.pending.length,
-    reason: stoppedAfterFailure ? 'failure' : 'stale',
-  }));
-  return true;
 }
 
 export async function runRefreshJobStep(
@@ -929,9 +896,10 @@ async function handleLatest(request: Request, env: AppEnv) {
     );
   }
 
+  const snapshot = JSON.parse(snapshotText) as EnvironmentSnapshot;
   const maxAgeSeconds = Number(env.MAX_CACHE_AGE_SECONDS ?? DEFAULT_MAX_CACHE_AGE_SECONDS);
   const cacheState = status?.ok && isFresh(
-    status.refreshedAt,
+    snapshot.retrievedAt,
     Number.isFinite(maxAgeSeconds) ? maxAgeSeconds : DEFAULT_MAX_CACHE_AGE_SECONDS,
   )
     ? 'fresh'
@@ -939,7 +907,7 @@ async function handleLatest(request: Request, env: AppEnv) {
 
   return new Response(snapshotText, {
     headers: jsonHeaders(env, {
-      'cache-control': cacheState === 'fresh' ? 'public, max-age=300' : 'public, max-age=60',
+      'cache-control': 'no-store',
       'x-luxray-cache-state': cacheState,
       'x-luxray-worker-status': status?.ok ? 'ok' : 'degraded',
     }),
@@ -1065,14 +1033,10 @@ export default {
     return env.ASSETS.fetch(request);
   },
 
-  async scheduled(event: ScheduledEvent, env: AppEnv, ctx: ExecutionContext): Promise<void> {
+  async scheduled(_event: ScheduledEvent, env: AppEnv, ctx: ExecutionContext): Promise<void> {
     const scheduleNext = (jobId: string) => {
       ctx.waitUntil(triggerRefreshStep(env, jobId));
     };
-    if (event.cron === REFRESH_WATCHDOG_CRON) {
-      await resumeStaleRefreshJob(env, scheduleNext);
-      return;
-    }
     await startRefreshJob(env, scheduleNext);
   },
 };

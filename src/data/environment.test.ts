@@ -50,7 +50,10 @@ describe('environment runtime loading', () => {
 
     const state = await loadEnvironmentState(fetcher);
 
-    expect(fetcher).toHaveBeenCalledWith(WORKER_ENVIRONMENT_SNAPSHOT_URL, expect.objectContaining({ cache: 'no-store' }));
+    expect(fetcher).toHaveBeenCalledWith(
+      expect.stringMatching(new RegExp(`^${WORKER_ENVIRONMENT_SNAPSHOT_URL.replace('/', '\\/')}\\?refresh=\\d+$`)),
+      expect.objectContaining({ cache: 'no-store' }),
+    );
     expect(fetcher).toHaveBeenCalledTimes(1);
     expect(state.sourceLabel).toContain('PokeDB');
     expect(state.loadStatus).toBe('pokedb');
@@ -166,7 +169,11 @@ describe('environment runtime loading', () => {
 
     const state = await loadEnvironmentState(fetcher);
 
-    expect(fetcher).toHaveBeenNthCalledWith(1, WORKER_ENVIRONMENT_SNAPSHOT_URL, expect.objectContaining({ cache: 'no-store' }));
+    expect(fetcher).toHaveBeenNthCalledWith(
+      1,
+      expect.stringMatching(new RegExp(`^${WORKER_ENVIRONMENT_SNAPSHOT_URL.replace('/', '\\/')}\\?refresh=\\d+$`)),
+      expect.objectContaining({ cache: 'no-store' }),
+    );
     expect(fetcher).toHaveBeenNthCalledWith(2, POKEDB_ENVIRONMENT_SNAPSHOT_URL, expect.objectContaining({ cache: 'force-cache' }));
     expect(state.sourceLabel).toContain('PokeDB');
     expect(state.loadStatus).toBe('pokedb');
@@ -182,7 +189,11 @@ describe('environment runtime loading', () => {
 
     const state = await loadEnvironmentState(fetcher);
 
-    expect(fetcher).toHaveBeenNthCalledWith(1, WORKER_ENVIRONMENT_SNAPSHOT_URL, expect.any(Object));
+    expect(fetcher).toHaveBeenNthCalledWith(
+      1,
+      expect.stringMatching(new RegExp(`^${WORKER_ENVIRONMENT_SNAPSHOT_URL.replace('/', '\\/')}\\?refresh=\\d+$`)),
+      expect.any(Object),
+    );
     expect(fetcher).toHaveBeenNthCalledWith(2, POKEDB_ENVIRONMENT_SNAPSHOT_URL, expect.any(Object));
     expect(state.loadStatus).toBe('fallback');
     expect(state.sourceKind).toBe('seed');

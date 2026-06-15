@@ -219,9 +219,10 @@ export const loadEnvironmentState = async (
   if (!fetcher) return environmentFallbackState;
 
   try {
-    const result = await fetchEnvironmentSnapshot(fetcher, WORKER_ENVIRONMENT_SNAPSHOT_URL, 'no-store');
+    const workerUrl = `${WORKER_ENVIRONMENT_SNAPSHOT_URL}?refresh=${Date.now()}`;
+    const result = await fetchEnvironmentSnapshot(fetcher, workerUrl, 'no-store');
     return createEnvironmentStateFromPokeDbSnapshot(result.snapshot, {
-      sourceKind: result.url === WORKER_ENVIRONMENT_SNAPSHOT_URL ? 'worker' : 'static',
+      sourceKind: 'worker',
       freshness: result.cacheState === 'fresh' ? 'fresh' : 'stale',
     });
   } catch {

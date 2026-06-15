@@ -4,7 +4,6 @@ import {
   detectLatestPokeDbSeason,
   fetchPokemonStatisticsBattle,
   fetchTrainerBattlePages,
-  resumeStaleRefreshJob,
   runRefreshJobStep,
   startRefreshJob,
 } from './index';
@@ -324,7 +323,10 @@ describe('environment Worker PokeDB ingestion', () => {
 
   it('skips detail refresh when a successful snapshot has the same season and source update time', async () => {
     const { env, values } = createKvEnv({
-      'environment:latest': '{"snapshot":"current"}',
+      'environment:latest': JSON.stringify({
+        snapshot: 'current',
+        retrievedAt: '2026-06-11T00:00:00.000Z',
+      }),
       'environment:status': JSON.stringify({
         ok: true,
         refreshedAt: '2026-06-11T00:00:00.000Z',
@@ -353,6 +355,10 @@ describe('environment Worker PokeDB ingestion', () => {
     expect(fetcher).toHaveBeenCalledTimes(3);
     expect(scheduled).toEqual([]);
     expect(values.has('environment:refresh-job')).toBe(false);
+    expect(JSON.parse(values.get('environment:latest') ?? '{}')).toEqual({
+      snapshot: 'current',
+      retrievedAt: '2026-06-12T00:00:00.000Z',
+    });
     expect(JSON.parse(values.get('environment:status') ?? '{}')).toEqual({
       ok: true,
       refreshedAt: '2026-06-12T00:00:00.000Z',
@@ -361,6 +367,12 @@ describe('environment Worker PokeDB ingestion', () => {
       sourceUpdatedAt: '2026-06-10 23:58:00',
       teamCounts: { singles: 60, doubles: 60 },
     });
+    expect(fetcher.mock.calls.every(([, init]) => {
+      const headers = new Headers(init?.headers);
+      return init?.cache === 'no-store'
+        && headers.get('cache-control') === 'no-cache'
+        && headers.get('pragma') === 'no-cache';
+    })).toBe(true);
   });
 
   it.each([
@@ -616,68 +628,6 @@ describe('environment Worker PokeDB ingestion', () => {
     expect(scheduled).toEqual(['job-current']);
   });
 
-  it('watchdog only resumes stale or failed jobs and never starts a new refresh', async () => {
-    const staleJob = {
-      jobId: 'job-watchdog',
-      season: 2,
-      detailLimit: 1,
-      startedAt: '2026-06-12T00:00:00.000Z',
-      updatedAt: '2026-06-12T00:00:00.000Z',
-      stepCount: 1,
-      phase: 'collecting',
-      lists: {},
-      pending: [{ battleType: 'singles', pokeDbKey: '0445-00', pokemonId: 'garchomp', rank: 1 }],
-      details: { singles: {}, doubles: {} },
-    };
-    const { env: emptyEnv } = createKvEnv();
-    const emptyScheduled: string[] = [];
-    expect(await resumeStaleRefreshJob(emptyEnv, (jobId) => emptyScheduled.push(jobId))).toBe(false);
-    expect(emptyScheduled).toEqual([]);
-
-    const { env } = createKvEnv({
-      'environment:refresh-job': JSON.stringify(staleJob),
-    });
-    const scheduled: string[] = [];
-    expect(await resumeStaleRefreshJob(
-      env,
-      (jobId) => scheduled.push(jobId),
-      () => new Date('2026-06-12T00:05:00.000Z'),
-    )).toBe(false);
-    expect(await resumeStaleRefreshJob(
-      env,
-      (jobId) => scheduled.push(jobId),
-      () => new Date('2026-06-12T00:10:00.001Z'),
-    )).toBe(true);
-    expect(scheduled).toEqual(['job-watchdog']);
-  });
-
-  it('watchdog discards a cursor older than one hour instead of publishing stale lists', async () => {
-    const oldJob = {
-      jobId: 'job-watchdog-too-old',
-      season: 2,
-      detailLimit: 1,
-      startedAt: '2026-06-11T22:00:00.000Z',
-      updatedAt: '2026-06-11T22:30:00.000Z',
-      stepCount: 1,
-      phase: 'collecting',
-      lists: {},
-      pending: [{ battleType: 'singles', pokeDbKey: '0445-00', pokemonId: 'garchomp', rank: 1 }],
-      details: { singles: {}, doubles: {} },
-    };
-    const { env, values } = createKvEnv({
-      'environment:refresh-job': JSON.stringify(oldJob),
-    });
-    const scheduled: string[] = [];
-
-    expect(await resumeStaleRefreshJob(
-      env,
-      (jobId) => scheduled.push(jobId),
-      () => new Date('2026-06-12T00:00:00.001Z'),
-    )).toBe(false);
-    expect(values.has('environment:refresh-job')).toBe(false);
-    expect(scheduled).toEqual([]);
-  });
-
   it('dispatches chained steps through the SELF service binding with refresh authorization', async () => {
     const { env, values } = createKvEnv();
     const fetcher = createRefreshFetcher();
@@ -807,38 +757,6 @@ describe('environment Worker PokeDB ingestion', () => {
     await Promise.all(pending);
 
     expect(pending).toHaveLength(1);
-    expect(selfFetch).toHaveBeenCalledOnce();
-  });
-
-  it('uses the watchdog cron to resume a stale job without starting a source refresh', async () => {
-    const startedAt = new Date(Date.now() - 11 * 60 * 1000).toISOString();
-    const staleJob = {
-      jobId: 'job-watchdog-scheduled',
-      season: 2,
-      detailLimit: 1,
-      startedAt,
-      updatedAt: startedAt,
-      stepCount: 0,
-      phase: 'collecting',
-      lists: {},
-      pending: [{ battleType: 'singles', pokeDbKey: '0445-00', pokemonId: 'garchomp', rank: 1 }],
-      details: { singles: {}, doubles: {} },
-    };
-    const { env } = createKvEnv({
-      'environment:refresh-job': JSON.stringify(staleJob),
-    });
-    const selfFetch = vi.fn(async () => new Response('{"ok":true}', { status: 202 }));
-    Object.assign(env as object, { SELF: { fetch: selfFetch } });
-    const pending: Promise<unknown>[] = [];
-    const ctx = { waitUntil: (promise: Promise<unknown>) => pending.push(promise) };
-
-    await worker.scheduled(
-      { cron: '*/15 * * * *', scheduledTime: Date.parse('2026-06-14T06:30:00.000Z') } as never,
-      env,
-      ctx as never,
-    );
-    await Promise.all(pending);
-
     expect(selfFetch).toHaveBeenCalledOnce();
   });
 
