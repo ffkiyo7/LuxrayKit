@@ -54,6 +54,8 @@ const statLabels = {
 
 const ABILITY_OWNER_PREVIEW_LIMIT = 5;
 
+const abilityOwnerSearchText = (entry: DexFormEntry) => `${entry.chineseName} ${entry.englishName} ${entry.japaneseName}`;
+
 function moveSearchRank(move: Move, query: string) {
   const normalized = query.trim().toLowerCase();
   if (!normalized) return 0;
@@ -633,6 +635,19 @@ export function DexPage({
       ),
     [],
   );
+  const abilityOwnerIndex = useMemo(() => {
+    const index = new Map<string, { searchText: string; owners: Array<{ entry: DexFormEntry; searchText: string }> }>();
+    dexEntries.forEach((entry) => {
+      const searchText = abilityOwnerSearchText(entry);
+      entry.abilities.forEach((abilityId) => {
+        const current = index.get(abilityId) ?? { searchText: '', owners: [] };
+        current.owners.push({ entry, searchText });
+        current.searchText = current.searchText ? `${current.searchText} ${searchText}` : searchText;
+        index.set(abilityId, current);
+      });
+    });
+    return index;
+  }, [dexEntries]);
 
   const filteredPokemon = useMemo(
     () =>
@@ -669,8 +684,8 @@ export function DexPage({
     [query, selectableItems],
   );
   const filteredAbilities = useMemo(
-    () => abilities.filter((ability) => matchesSearch(ability.chineseName, ability.englishName)),
-    [query],
+    () => abilities.filter((ability) => matchesSearch(ability.chineseName, ability.englishName, abilityOwnerIndex.get(ability.id)?.searchText)),
+    [abilityOwnerIndex, query],
   );
   const sortedFilteredAbilities = useMemo(
     () => [...filteredAbilities].sort((a, b) => a.englishName.localeCompare(b.englishName, 'en-US')),
@@ -862,7 +877,14 @@ export function DexPage({
         <div className="space-y-2">
           {sortedFilteredAbilities.map((ability) => {
             const expanded = expandedAbilityListIds.includes(ability.id);
-            const abilityEntries = dexEntries.filter((entry) => entry.abilities.includes(ability.id));
+            const ownerRows = abilityOwnerIndex.get(ability.id)?.owners ?? [];
+            const matchingOwnerRows = query.trim() ? ownerRows.filter((row) => matchesSearch(row.searchText)) : ownerRows;
+            const abilityEntries = query.trim()
+              ? [
+                  ...matchingOwnerRows,
+                  ...ownerRows.filter((row) => !matchingOwnerRows.includes(row)),
+                ].map((row) => row.entry)
+              : ownerRows.map((row) => row.entry);
             const previewEntries = abilityEntries.slice(0, ABILITY_OWNER_PREVIEW_LIMIT);
             const hiddenEntryCount = Math.max(0, abilityEntries.length - previewEntries.length);
             return (

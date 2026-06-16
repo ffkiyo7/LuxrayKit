@@ -184,25 +184,30 @@ function TeamSampleCard({
 
   return (
     <Card className="bg-secondary">
-      <div className="min-w-0">
-        <h3 className="truncate text-sm font-semibold">{sample.title}</h3>
-        <p className="mt-1 text-xs text-textSecondary">原作者：{sample.author} · {battleTypeLabels[sample.battleType]}</p>
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <h3 className="truncate text-sm font-semibold">{sample.title}</h3>
+          <p className="mt-1 text-xs text-textSecondary">原作者：{sample.author} · {battleTypeLabels[sample.battleType]}</p>
+        </div>
+        <button
+          aria-label="队报链接"
+          title="队报链接"
+          className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-border bg-card text-textSecondary active:scale-[0.96]"
+          type="button"
+          onClick={() => window.open(sample.reportUrl, '_blank', 'noopener,noreferrer')}
+        >
+          <ExternalLink size={15} />
+        </button>
       </div>
       <div className="mt-3 flex gap-2">
         {visibleSlots.map((entry) => (
           <PokemonAvatar key={entry!.id} iconRef={entry!.iconRef} label={entry!.chineseName} size="sm" />
         ))}
       </div>
-      <div className="mt-3 grid grid-cols-2 gap-2">
-        <Button onClick={handleImport} disabled={importing}>
-          <Import size={14} />
-          {importing ? '导入中' : '导入配置'}
-        </Button>
-        <Button variant="ghost" onClick={() => window.open(sample.reportUrl, '_blank', 'noopener,noreferrer')}>
-          <ExternalLink size={14} />
-          队报链接
-        </Button>
-      </div>
+      <Button className="mt-3 w-full" onClick={handleImport} disabled={importing}>
+        <Import size={14} />
+        {importing ? '导入中' : '导入配置'}
+      </Button>
     </Card>
   );
 }
@@ -684,7 +689,7 @@ export function EnvironmentPage({
     );
   }
 
-  const visibleRankings = rankings.slice(0, 4);
+  const visibleRankings = rankings.slice(0, 5);
 
   return (
     <div className="space-y-3">

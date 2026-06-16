@@ -1,178 +1,142 @@
 # 下一轮开发计划 / TASKS
 
-更新日期：2026-06-12
+更新日期：2026-06-16
 
 ## 开发流程
 
 需求 → Claude Code 拆解为本文件任务 → Codex app 领取单个任务、开独立 worktree 实现 → Claude Code 审 diff。每个任务尽量自包含、可独立合并；标注「依赖」的任务按序进行。
 
-## 背景与关键发现（已实测 PokeDB，2026-06-11）
-
-- **环境“数据不更新”不是 cron 问题，也不是解析 bug。** 6h cron 正常。根因有两层：
-  1. `opendata/s2_*_ranked_teams.json` **404**（PokeDB 没公开当季聚合榜 JSON）。
-  2. `trainer/list?season=2` 的**队伍阵容被刻意隐藏**（防抄队）：M-2 进行中，每行只有名字+评分，阵容位是 `none.png` 占位；M-1 已结束才放出完整阵容。所以从 roster 拆队伍这条路**当季拿不到任何数据**。
-- **真正的当季数据源：PokeDB 自己聚合好的「统计页」**（不暴露任何人具体队伍，故不受防抄队隐藏，M-2 完整可用，已逐项实测）：
-  - 排行：`/pokemon/list?season=<S>&rule=<R>` → 213 只按使用率排序（含 rank + key）。单打 `rule=0` / 双打 `rule=1`（2026-06-11 实测；旧参数 `rule=2` 会规范化到单打页）。
-  - 详情：`/pokemon/show/<key>?season=<S>&rule=<R>` → **道具 %、招式 %、队友、特性 %、性格 %** 全部当季填充（实测 Garchomp M-2：气势头带 37.7% / 地震 99.2% / 鲨鱼肌 99.4% / 爽朗 51.4%）。**含招式**，顺带补掉原 moveStats 缺口。
-- **可导入「上位构筑」样本**：统计页只有聚合 %，给不了某支具体可导入队伍。这块继续用 roster 解析（已结束赛季 M-1 的 `trainer/list` 阵容）或 構築記事（`/article/search`，当季目前仅 ~1 篇，后期会变多）。
-- **已有产物**：Codex 已实现并通过审查的 `trainer/list` roster 解析 + 聚合（`parsePokeDbTrainerListPage` 等）**保留**，由「环境榜聚合」降级为「可导入样本来源」。WIP 在分支 `feat/env-trainer-list-aggregation`。
-- **已实测确认（2026-06-12）：当季统计页拿不到总「使用率 %」（54.0% 那种），排行结构性地只有名次。** `/pokemon/list?season=2&rule=0`（243KB）每行只有 `排名+头像+名字+箭头`，全页 `%` 出现 0 次；`/pokemon/show`（778KB）只有「带了这只的人里」的招式/道具/队友/特性/性格/太晶 %（真实、Task B 已用），无「这只总采用率」头条数字（meta 也印证页面定位是构成统计）；「採用率推移」是独立全站图表页 `/pokemon/chart`，非每只可抓单值。那个 54.0% 只在 trainer/list（已结束赛季 M-1）才有。**结论：排行 `overallUsageBasis` 维持 `rank-relative`，UI 不再尝试显示总使用率 %（见 Task H）。**
-
-## 部署实情与新约束（2026-06-12，Task B 已上线）
-
-- **Task B 已合并并部署，线上已从 S1 切到 M-2**（`/api/environment/status` → `selectedSeason:2`）。部署前基线为 `selectedSeason:1 / M-1`。
-- **踩坑：Cloudflare 免费版单次 Worker 调用硬上限 50 个外部子请求**（之前误判为付费版 1000）。top-60 双模式一次刷新 ~125 子请求 → `1101 Too many subrequests`。**自定义域名免费版也能用，不代表付费版。**
-- **临时兜底**：线上 dashboard 把 `POKEDB_DETAIL_LIMIT` 覆盖成 20（单次降到 ~47），刷新才成功 → 当前**只有 top-20 有详情统计，21–213 仅排名**。**仓库 `wrangler.jsonc` 仍是 60**，下次普通 deploy 会回退 60 → cron 静默失败。**这是配置漂移定时炸弹，Task F 必须消除。**
-- **PokeDB 取数合规性已查证**：robots.txt 只对具名 AI 爬虫（GPTBot/ClaudeBot 等）`Disallow: /`，通配 `*` 仅禁 `/error-pages/`，我们抓的 `/pokemon/*`、`/trainer/*` **未被禁，合规**（别碰 `/error-pages/`）。源站是**裸 nginx，前面无 Cloudflare**，无 Bot 质询；限流只会是 nginx/应用层按 IP/UA。我们 UA 具名带联系 URL（`LuxrayKitEnvironmentWorker/0.2 (+https://luxraykit.com)`）= 完全可被识别，有意为之，保留。
-- **足迹过剩**：源 `更新日` ~每天一次，我们 6h 一刷（4×/天）有 3/4 在抓没变的数据，且单双打并发会产生 ~60 连击突发——这是唯一可能踩 nginx 限流的点。Task F 一并降足迹。
-
 ## 任务清单
 
-### Task A — 删除队伍分析功能（就绪 · 独立）
+### Task A — 首页宝可梦榜 top4 → top5（就绪 · 独立 · 前端）
 
-- **目标**：队伍编辑页不再出现「展开队伍分析」入口与弹层，底层代码与测试一并删除。
-- **涉及文件**：`src/pages/TeamPage.tsx`、`src/lib/calculations.ts`、`src/lib/teamAnalysis.test.ts`。
+- **目标**：环境首页「宝可梦榜」从展示 top4 改为 **top5**（4 行偶数看着别扭，top5 更符合直觉）。
+- **涉及文件**：`src/pages/EnvironmentPage.tsx`。
 - **改动要点**：
-  - TeamPage：删 `showAnalysis` state、`AnalysisDetailSheet` 组件、「展开队伍分析」按钮、`{showAnalysis && ...}` 渲染、`openTeamDetail/closeTeamDetail` 的 `setShowAnalysis(false)`、`buildTeamAnalysisDetails` import；若 `BarChart3` 本文件无其它用途则删 import。
-  - calculations.ts：删 `buildTeamAnalysisDetails`、`TeamAnalysisDetails` 类型及仅服务于它的模块级 helper；保留 `memberBattleStats`/`memberLabel`。
-  - 删除 `src/lib/teamAnalysis.test.ts`。
-- **验收**：编辑页无分析入口/弹层；无悬空引用与未用 import；`npm test`、`npm run build` 通过。
+  - `:687` `const visibleRankings = rankings.slice(0, 4);` → `slice(0, 5)`。该段是首页平铺区（Task H 已定首页不分档），只多渲染一行，无其它副作用。
+- **验收**：首页榜展示 5 行；点第 5 行能进详情；`npm test` 通过；`npm run test:visual` 更新首页环境快照（`02-environment` 一带）。
+- **注意**：若 `EnvironmentPage.test.tsx` / `App.test.tsx` 有断言首页榜「4 行」的用例，同步改成 5。
 
-### Task B — 环境数据改用 PokeDB「统计页」当季聚合（✅ 已合并并部署 · 受 Task F 收尾）
+### Task B — 上位构筑卡片：队报链接降级为图标，导入配置独占整行（就绪 · 独立 · 前端）
 
-> **修订说明**：原方案"从 trainer/list 拆队伍聚合"当季拿不到数据（阵容被隐藏）。改为以 PokeDB 自己的聚合统计页为主源，能拿到 M-2 的排行/道具/招式/队友/特性。已写好的 roster 解析保留，退居"可导入样本"来源。在 `feat/env-trainer-list-aggregation` 分支上继续做。
-
-- **目标**：环境榜（排行 + 道具 + 招式 + 队友 + 特性/性格）从 PokeDB 统计页实时聚合当季（M-2）数据；可导入「上位构筑」样本走 roster/構築記事。
-- **涉及文件**：`cloudflare/environment-worker/src/index.ts`（取数/赛季/throttle/KV）、`src/lib/pokedbEnvironment.ts`（新增统计页解析 + 复用 roster 解析）、`src/data/environment.ts`（快照结构判别已支持新格式，按需扩展招式/特性字段）。
+- **目标**：上位构筑样本卡片里「导入配置」与「队报链接」当前是等宽并排的两个按钮，分量不对——导入是主操作，队报链接只是「去外站看原帖」的次操作。把队报链接收成卡片**右上角的小图标链接**，「导入配置」**独占整行**做主操作。
+- **涉及文件**：`src/pages/EnvironmentPage.tsx`（`TeamSampleCard`，:166-208）；测试 `src/App.test.tsx`。
 - **改动要点**：
-  - **排行**：抓 `/pokemon/list?season=<S>&rule=<R>`（单打 `rule=0` / 双打 `rule=1`）→ 解析出有序宝可梦列表（rank + pokeDbKey → 经 allowlist 映射到本地 id）。复用已实现的 `detectLatestPokeDbSeason` 选当季。
-  - **详情**：对榜单 **top-N**（建议 60–80，长尾只留排名）抓 `/pokemon/show/<key>?season=<S>&rule=<R>`，解析道具 %、**招式 %**、队友、特性 %、性格 %（百分比 PokeDB 已算好，直接读）。映射进 `EnvironmentPokemonUsage`（含 `moveStats` / `itemStats` / `teammateStats`）。
-  - **节流**：详情页是 N 次请求（top-N × 单双打）。沿用 250ms 间隔 + 礼貌 UA；给 top-N 和总页数一个硬上限，避免子请求/CPU 超限（Workers scheduled 限额）。
-  - **样本（保留 roster 路径）**：`parsePokeDbTrainerListPage` / `parsePokeDbTrainerSamples` 不动，用来出可导入 `teamSamples`——已结束赛季（M-1 阵容已公开）或 構築記事；当季 roster 为空时样本可空，不影响排行。
-  - **失败与边界（已实现，保持）**：分页/详情失败不覆盖旧 `environment:latest`/`team-index`，仅写 `status.ok=false`+`failedAt`，前端判 stale；未知宝可梦/道具/招式引用走审计；纯服务端只读缓存、不代用户抓取；失败回退静态包。
-  - snapshot 携真实赛季标签、源更新时间、completeness。
-- **待确认 → 已确认（2026-06-12）**：总使用率 %（榜单行 54.0% 那个）**统计页拿不到**（已实测，见背景）。排行保持 `rank-relative`，UI 侧由 Task H 去掉假 % / 重设排名呈现。
-- **验收**：`npm run worker:app:check` 通过；新增单测（list 排行解析 / show 详情解析含道具+招式+队友 / 赛季探测 / top-N 节流 / 部分失败保旧 KV）；部署后 `/api/environment/status` 显示当季 M-2，详情页「常用招式」非空。
+  - `TeamSampleCard` 外层 `Card` 设为可定位容器，在右上角放一个 `ExternalLink` 小图标按钮跳 `sample.reportUrl`（`target=_blank`、`rel=noopener,noreferrer`）；**务必保留无障碍名 `aria-label="队报链接"`**（现有测试按名字查得到，别让它消失）。
+  - 底部 `grid grid-cols-2`（:196-205）改为**单个全宽**「导入配置」按钮，删掉原并排的「队报链接」`Button`。
+  - **不动**导入弹窗 `ImportCoverageNoticeDialog`（`src/App.tsx:52-67`）里的「队报链接」按钮——那是导入流程内的上下文操作，保持现状。
+- **验收**：样本卡片只有一个全宽「导入配置」主按钮 + 右上角队报链接小图标；图标可点开外链且有可访问名；`npm test` 通过；`npm run test:visual` 更新对应快照。
 
-### Task C — 来源/赛季/新鲜度透明化（✅ 已完成 · 2026-06-12 · 4893871 · 门控 D）
+### Task C — 编辑页校验瘦身：只留 SP + 同队道具去重，其余不展示（就绪 · 前端）
 
-- **目标**：前端真实反映「看的是哪份数据、来自哪、多新、是否过期」，去掉硬编码赛季。
-- **涉及文件**：`src/data/environment.ts`、`src/pages/EnvironmentPage.tsx`（头部）。
+> **出发点**：编辑页的招式/特性/道具本就**预过滤**——不能学的招式、不具备的特性、当前赛季外的道具根本不出现在可选项里；Mega 石也按宝可梦门控（只有可 Mega 的宝可梦才出现对应 Mega 石）。所以那张「校验结果」卡片里的招式/特性/道具/Mega 不匹配等提示是重复劳动，对用户是噪音。只保留两条用户真正会踩的规则：**SP 上限** 与 **同队重复携带道具**（对战潜规则）。
+
+- **涉及文件**：`src/pages/TeamPage.tsx`（`MemberEditor` 及队伍卡片详情区）；可能少量触及 `src/lib/legality.ts`（见下，倾向不改签名）。
+- **删除/改动**：
+  - **删「校验结果」卡片**：`MemberEditor` 里的整张校验结果 `Card`（:660-676，含合法/非法/需复核/缺少配置徽章 + issue 文案列表）移除。
+  - **删过期文案**：`:539`「字段级校验会在保存前实时更新」、`:657`「单项最多 32 · 超过 66 会在校验中报错」这类说明按需删除或改写为中性提示。
+  - **删过期注释行**：`:209`「数据版本：{team.dataVersionId}」整行删掉（dv-reg-ma-seed 调试痕迹）。
+  - **保留 SP 计数**：顶部 `已用 {totalStatPoints}/{MAX_TOTAL_STAT_POINTS}`（:188、:638-640）保留；超 66 维持标红（现有 `text-danger` 逻辑）。
+  - **保留并新增拦截**：保存时若 **SP 单项 > 32 或总量 > 66**、**或同队重复携带同一道具**，**禁止保存**（主保存按钮 `disabled`）。
+  - **同队道具去重的提示落点**：不进大卡片，改为在道具选择字段下方一行小红字（如「同队已有成员携带该道具」），仅在命中时出现。
+  - **其余校验全部不展示也不拦截**（招式/特性/道具不在规则、Mega 不匹配、seed 需复核、缺字段等）——由预过滤兜底。
+- **`legalityStatus` 存储字段处理（实现时定，倾向最小改动）**：`onSave` 仍写 `legalityStatus`（`src/types.ts:206` 是存储字段，`DexPage`/`damageAdapter` 等仍引用）。**倾向**：继续用 `evaluateMemberLegality` 算出 status 静默存储、只是不再渲染 issue 列表——这样不动 `legality.ts` 签名、不波及其它消费方；编辑页的「能否保存」用一个独立的轻量判断（SP + 同队道具）。**不要**为了瘦身去改 `legality.ts` 的对外行为。
+- **验收**：编辑页无「校验结果」卡片、无合法性徽章、无「数据版本」行；SP 计数保留、超 66 标红且禁止保存；同队重复道具有内联小红字且禁止保存；其它非法配置不再弹任何提示；`npm test` 通过（更新/删除涉及校验展示的断言）；`npm run test:visual` 更新编辑页快照。
+
+### Task D — 砍掉生成图片 + 队伍卡片去按钮化（就绪 · 前端）
+
+> **出发点**：生成图片是低价值功能，砍掉。砍掉后队伍卡片底部那排「编辑配置 / 生成图片」大按钮就没必要了——卡片本身已经 `onClick={onEdit}`（`TeamPage.tsx:763`），点卡片即进编辑本就成立。改为**卡片点击进编辑 + 右上角小 edit 图标**作显式暗示，列表更聚焦。
+
+- **涉及文件**：`src/pages/TeamPage.tsx`、`src/lib/teamImage.ts`、`src/lib/teamImage.test.ts`、`src/App.test.tsx`、`src/pages/ProfilePage.tsx`。
 - **改动要点**：
-  - `EnvironmentState` 增字段：`seasonLabel`（真实赛季，如 M-2；从 snapshot 每个 battle 的 `season` 字段取，worker 已带）、`sourceKind`（`worker | static | seed`）、`freshness`（`fresh | stale`，来自响应头 `x-luxray-cache-state`）、`sourceUpdatedAt`（源 `updated_at`，snapshot 每个 battle 的 `updatedAt` 已带）。
-  - **`sourceKind` 三态管线（当前缺口，务必补）**：现在 `loadEnvironmentState` 里 worker 的 `/api/environment/latest` 与静态 `/data/pokedb/*.json` **都走同一条 `createEnvironmentStateFromPokeDbSnapshot`、`loadStatus` 都是 `'pokedb'`，两者分不出来**。需让 `fetchEnvironmentSnapshot` 同时回传「命中的是哪条 url」+ 响应头，由调用方据此定 `sourceKind`：worker 命中→`worker`，静态包命中→`static`，两者都失败回退 seed→`seed`。`freshness` 仅 worker 路径有意义（读 `x-luxray-cache-state`）；静态/seed 视为 `stale` 或不展示新鲜度。worker `/latest` 确认已吐 `x-luxray-cache-state`（fresh/stale）与 `x-luxray-worker-status`（index.ts:848-852）。
-  - 头部区分「抓取时间」与「源更新时间」，stale 给标识；worker/static/seed 三态都正确标注。
-  - **第 2 点（首页不露 PokeDB）**：首页与「完整宝可梦榜」头部**不再显示 `sourceLabel`（含 “PokeDB” 字样）**，改为只显示 `seasonLabel`（如「M-2 · 单打」）+ 新鲜度标识。数据来源/依赖（PokeDB）归口径页讲（见 Task D）。`EnvironmentPage.tsx` 首页头部 :536、完整榜头部 :325 处的 `{environment.sourceLabel}` 替换。
-- **验收**：头部展示真实赛季而非硬编码、且**不出现 “PokeDB” 字样**；worker/static/seed 三态标注正确；`npm test` 通过。
+  - **删生成图片**：队伍卡片「生成图片」按钮（:840-848）、`TeamImageResultDialog`（:854-882）、`shareImage` state（:990）、其渲染（:1290）、`onGenerateImage` 链路与 `TeamShareImage`/`teamImage` 相关 import 全部移除。
+  - **删生成图片底层**：`src/lib/teamImage.ts` 与 `src/lib/teamImage.test.ts` 删除；清理任何残留 import。
+  - **去按钮化**：删掉卡片底部 `grid grid-cols-2` 那排按钮（含原「编辑配置」——它和卡片 `onClick` 同为 `onEdit`，冗余）。卡片整体点击继续进编辑（保留 `:763` `onClick={onEdit}` 与键盘可达 `onKeyDown`）。
+  - **加 edit 图标暗示**：在卡片右上角、删除图标（:766-777）旁加一个小 `Edit3`（或 `Pencil`）图标按钮，`aria-label="编辑 {team.name}"`，点击 `stopPropagation` 后 `onEdit()`——作为「这张卡可编辑」的显式入口；样式与删除图标保持一致量级。
+  - **清文案**：`ProfilePage.tsx:131` 那句「队伍详情页生成的是分享图片，和这里的备份文件分开处理」删掉或改写（分享图功能已不存在）。
+  - **改测试**：`App.test.tsx` 中生成图片相关用例（:308-314 队伍分享图弹窗、:327 导入卡含「生成图片」按钮）删除或改为断言不再存在；卡片交互断言对齐新「点卡片即编辑 + edit 图标」。
+- **验收**：队伍卡片无底部按钮排、无「生成图片」；点卡片或点右上角 edit 图标都能进编辑；删除图标仍在且独立；全仓 grep 无 `teamImage`/`生成图片`/`分享图` 悬挂引用；`npm test`、`npm run build` 通过；`npm run test:visual` 更新队伍页快照。
 
-### Task D — 数据口径页改「图标定义列表」（依赖 C）
+### Task E — 图鉴特性搜索支持按宝可梦名反查（就绪 · 独立 · 前端）
 
-- **目标**：`EnvironmentMethodologyPage` 五段大文字 → 图标 + 标签 + 一行短句；去掉硬编码 “M-1”；**承接首页移交过来的「数据来源/依赖（PokeDB）」说明（第 2 点）**。
-- **涉及文件**：`src/pages/EnvironmentPage.tsx`（`EnvironmentMethodologyPage`）。
-- **版式（用户选定，文案按 rank-relative 实情修正）**：
-  - 来源　PokeDB 公开统计页（当季聚合）　← 首页移交来的来源归属落在这里
-  - 范围　不是全服实时统计
-  - 排行　PokeDB 公布的使用排名（**无总使用率 %**，只有名次）
-  - 详情　带了该宝的队中再统计的招式/道具 %（真实占比）
-  - 构筑　来自公开队报链接（已结束赛季 / 構築記事）
+> **出发点**：特性 tab 每条特性已经展示「拥有该特性的宝可梦」（`abilityEntries`，反向关系现成），但搜索只匹配特性自己的名字。希望搜宝可梦名（如「喷火龙」）时直接列出它能有的特性——反查关系已存在，接进搜索即可。
+
+- **涉及文件**：`src/pages/DexPage.tsx`；测试 `src/App.test.tsx`。
 - **改动要点**：
-  - 保留「样本池」分母小卡（数字有价值），其余说明压成图标定义列表。
-  - **删掉「54.0%/285 队」那个示例**——已实测确认当季统计页拿不到总使用率 %（见背景），排行只有名次，再举这个例子会误导。可改为说明「排行＝名次；详情页的招式/道具 % 才是真实占比」。
-  - 赛季文案用 Task C 的真实赛季；来源处明确「依赖 PokeDB 公开统计页」（这是首页不再展示、移交到此处的内容）。
-- **验收**：无大段文字；展示真实赛季；来源/依赖说明在本页且不再误导性地宣称总使用率 %；`npm run test:visual` 更新对应快照。
+  - 一次性 `useMemo` 建 `abilityId → owner 名字串`（owner 的 `chineseName/englishName/japaneseName` 拼接）索引，源用现有 `dexEntries`（已含 mega 形态）。
+  - `filteredAbilities`（:671-674）的 `matchesSearch` 追加该 owner 名字串入参：`matchesSearch(a.chineseName, a.englishName, abilityOwnerNames.get(a.id))`。特性名命中与宝可梦名命中两条路并存。
+  - 不动数据层；空态「没有找到相关特性」保留。
+  - **命中 owner 提前**：有搜索词时，把命中的 owner 分到 `abilityEntries` 最前（`[...命中, ...未命中]` 拼接，稳定保序），让头像预览（`previewEntries`，:866）先展示用户搜的那只、不被折进「+N」；无搜索词时保持原图鉴序。命中判定的名字字段（CN/EN/JP）必须与上面建索引的字段**完全一致**，避免「搜得到特性却没把那只提前」。
+- **验收**：特性 tab 搜宝可梦中/英/日名 → 列出该宝可梦可有的特性，且该宝可梦头像出现在 owner 预览最前；搜特性名行为不变；`npm test`（在 `App.test.tsx:851` 共享搜索用例旁加一条按宝可梦名反查 + 断言命中 owner 排在预览首位）通过；`npm run build` 通过。
 
-### ~~Task E（P1）— 在线详情补齐 moveStats~~（已并入 Task B）
+### Task F — 伤害计算页排版重规划（低优先级 · 前端 · 算法不动）
 
-统计页 `/pokemon/show` 直接带招式 %，moveStats 在 Task B 内一并产出，无需单独任务。
+> **出发点**：伤害计算页算法基本够用、不需大改，但**页面排版不满意**，要重新规划。优先级不高，可后置。
 
-### Task F — 刷新分批化，免费版保 top-60（✅ 已完成并部署 · 2026-06-12）
+- **涉及文件**：`src/pages/CalculatorPage.tsx`（仅展示/排版层）；**不动** `src/lib/damageAdapter.ts` 等计算逻辑。
+- **范围/约束**：
+  - 只重排版式与信息层级（进攻/防守方卡片、招式区、对战条件、伤害结果的布局与视觉），计算结果与口径不变。
+  - 可走 `frontend-design` 技能定方向；保持与全站 `text-xs/text-sm` 设计语言一致。
+  - **与 Task G 有重叠**（溢出/字号），两者若并行需协调：G 先把字号/溢出根因解掉，F 在干净基线上重排，避免互相打架。建议 G 先于 F。
+- **验收**：排版调整后 `npm run build` 通过；`npm run test:visual` 更新计算页快照；计算结果与改前一致（已有计算单测不应回归）。
 
-> **由来**：Task B 上线后撞上免费版 50 子请求/次硬上限，靠线上把 detail 压到 20 救急。本任务在不升级套餐的前提下恢复 top-60。
+### Task G — PWA 表单字号/溢出修复（就绪 · 前端 · 保留移动端 no-zoom）
 
-- **已实现**：KV 游标（`environment:refresh-job`）+ 自链式 STEP。START 探测赛季 + 抓两个 list 建 top-60×2 pending；STEP 每次抓 ≤40 详情（chunk+1≤50 预算）、250ms 节流、`SELF` service binding 自链（public 自调会 522，故用 binding）、内部步 202 + `ctx.waitUntil` 不 await 整链；FINALIZE 才原子写 `environment:latest`/`team-index`/`status`；jobId 守卫、stale/失败续跑、MAX_STEPS 断路、失败保旧 KV。
-- **配置漂移已修**：`wrangler.jsonc` `POKEDB_DETAIL_LIMIT=60` + `POKEDB_DETAIL_CHUNK_SIZE=40` + `WORKER_SELF_URL` + `SELF` service binding；dashboard 的 top-20 覆盖已删，线上=仓库=60。
-- **评审修复（Claude，2026-06-12）**：`fetchPreviousSeasonSamples` 原误改为失败 throw → 会让可选样本抓取失败连带卡死整个 FINALIZE 发布（prod 永久 stale）。已改回失败返回 `[]`，并补单测「样本失败时 FINALIZE 仍发布快照」。
-- **线上验收通过**：`/api/environment/status` = `M-2`；`/latest` 单双打各 213 排名、detailCount 60、rank-50（dragapult/lucario）`moveStats`/`itemStats` 非空。`npm test` 222 项、build、`worker:app:check` 全绿。
-- **遗留小项**：线上 audit 报 4 个特性 key 未映射（182/299/45/84），这些特性不渲染——补 `src/data/external/pokedbResourceKeyMap.ts` 即可。**已并入下方 Task G+F 一起做。**
+> **更正既有认知**：并非「整个 PWA 字号被放大」。`src/styles.css:91-97` 只对触摸设备的 `input/select/textarea` 强制 `font-size:16px !important`（防 iOS 聚焦自动缩放）。副作用有二：①所有表单控件被顶到 16px，比 `text-xs/text-sm` 设计大一截 → 字号不统一；②叠加缺失的 `min-w-0` 造成溢出。
 
-### Task G+F — 降低 PokeDB 足迹收尾 + 特性映射补全（就绪 · worker 侧 · 一次做完）
+- **涉及文件**：`src/styles.css`；`src/pages/CalculatorPage.tsx`（重灾区 `:414-426` 招式 select）；并扫一遍其它含 `select`/紧凑栅格的页面。
+- **复现（确认）**：计算页成员编辑，进攻方选「幽尾玄鱼」、招式选「水流喷射」→ 招式 `<select>`（`CalculatorPage.tsx:414`）的 option 文案长（`水流喷射 / Aqua Jet · 40 · 水`），该 select 是 `flex-1` **但无 `min-w-0`**，固有宽度被最长 option 撑开、再被 16px 放大 → 顶破右边界。
+- **改动要点（方向，实现时按真机验证微调）**：
+  - **收窄 16px 规则**：iOS 聚焦缩放只针对文本输入类（text/search/number/textarea）；原生 `<select>` 弹滚轮选择器、不触发。把 `styles.css` 的 `font-size:16px` 规则**排除 `select`**（让 select 回到设计字号），仅保留在文本输入类上。**真机确认 select 不会重新触发缩放**后定稿。
+  - **修溢出**：给招式 select 补 `min-w-0` + 截断（`truncate`/`text-overflow`），必要时缩短 option 文案；`grid`/`flex` 紧凑单元普遍补 `min-w-0`。
+  - 全站扫一遍其它 `select`/`input` 是否还有同类偏大/溢出。
+- **验收**：移动端聚焦搜索/文本框仍不缩放；表单控件字号回到设计语言、与周围组件一致；计算页成员编辑招式行不再溢出右边界；`npm run build`、`npm test` 通过；`npm run test:visual` 更新受影响快照。
 
-> 源 `更新日` ~日更，cron 已改每日一次（`"17 18 * * *"`）。本任务做完 G 剩余两条（节流、更新日短路）+ F 遗留（4 个特性 key）。**与前端栈文件不相交（只动 `cloudflare/environment-worker/src/index.ts` + `src/data/external/pokedbResourceKeyMap.ts`），可继续在 `codex/task-c-environment-source-transparency` 分支上做。**
+### Task H — 伤害计算「从队伍选择成员」支持选队 + 确认配置代入（就绪 · 前端）
 
-**G-1（节流）** — `cloudflare/environment-worker/src/index.ts:108`
-- `PAGE_REQUEST_DELAY_MS` 从 `250` 改为 `450`（落在 400–600 区间，进一步削平详情连击）。
-- 若有单测断言 `wait` 用 250 调用，同步更新。
+> **更正既有认知**：「从队伍选择」入口**已存在**（`CalculatorPage.tsx:881-911`），且 `buildCalcConfigFromTeamMember`（`damageAdapter.ts:687`）**已把宝可梦/形态/特性/道具/招式/性格/SP 全量代入**，用户无需重配——这条**保持现状别动**。真正缺口是选队体验。
 
-**G-2（更新日短路）** — 同 `index.ts`，核心在 `startRefreshJob`（:567）与 `publishRefreshJob`（:519）、`CacheStatus`（:50）
-- **存源更新日**：给 `CacheStatus` 加 `sourceUpdatedAt?: string`。在 `publishRefreshJob` 写 status 时填入：取 `job.lists.singles.updatedAt` / `job.lists.doubles.updatedAt` 的较新者（ISO 串可直接比较；源通常两者相同）。`PokeDbPokemonListPayload.updatedAt` 即页面 `更新日`，START 已抓到。
-- **短路判定**：`startRefreshJob` 在已 `fetchPokemonList` 拿到 `singles`/`doubles` 之后、**建 `pending`/`scheduleNext` 之前**插入判定。读已在 :576 取到的 `currentStatusText` → `previousStatus`。若 `previousStatus.ok === true` 且 `previousStatus.selectedSeason === season` 且 `previousStatus.sourceUpdatedAt === <本次源更新日>`：
-  - **不建 refresh job、不 `scheduleNext`、不抓任何详情**；
-  - 仅把 status 的 `refreshedAt` 刷成 `now`（其余字段含 `sourceUpdatedAt` 原样保留）写回 `STATUS_KEY` —— 让 `/latest` 的 `x-luxray-cache-state` 在没变的日子也保持 `fresh`（否则 6h 后会误标 stale）；
-  - 返回一个新状态：给 `RefreshTriggerResult.state` 联合类型加 `'skipped'`，返回 `{ ok:true, state:'skipped', jobId:'', season, pendingCount:0 }`（或类似），并 `console.log` 一条 `environment_refresh_skipped`。
-- **边界**：仅当存在上一份成功快照（`previousStatus.ok && sourceUpdatedAt` 有值）才短路；赛季变化时 `selectedSeason` 不等 → 不短路，正常全量刷。detect 季/抓 list 失败仍走原 `recordRefreshFailure`。
-
-**F（特性映射）** — `src/data/external/pokedbResourceKeyMap.ts` 的 `pokedbAbilityKeyToId`（:544）
-- 补齐缺失的特性 key **45 / 84 / 182 / 299**（当前 ability map 确实没有这四个；注意别和**招式** map 里同号 key 混淆）。
-- **务必核实，不要臆测**：这些 key 沿用规范特性序号（map 里 `1: stench / 2: drizzle / 3: speed-boost …` 即证）。对每个 key 查准对应特性，取**已存在于 regMA `abilities` seed 的 kebab id** 作为值;映射前用本地 `abilities` 目录校验该 id 真实存在。（45 大概率是 `sand-stream`，仍须核对；84/182/299 一并查准。）
-- 补全后线上 audit 不应再报这四个 key。
-
-**验收**：`npm test`、`npm run build`、`npm run worker:app:check`（dry-run）全绿；
-- 节流为 450ms；
-- **新增单测**：源更新日与上次相同 → START 短路（不建 job、不抓详情、bump `refreshedAt`、返回 `skipped`）；不同/赛季变化 → 正常 `started`；
-- 四个特性 key 映射存在且值在 abilities seed 中。
-
-### Task H — 排名视觉重设（✅ 已完成 · 2026-06-12 · 含队友 % 修复 ca86663 · 前端 · 依赖 C）
-
-> **由来**：当前 `rank-relative` 模式下，排名行左侧序号与右侧「排名第 X」字面重复；右侧那个值（含 `usageRate`）是 worker 按名次线性反推的合成数（index.ts:345-351），不是真实使用率。已实测确认 PokeDB 当季拿不到真实总使用率 %（见背景），故不再尝试展示 %，改为重设排名呈现，去单调。**用户已定方案：排名行＝纯宝可梦＋名次，右侧留空。**
-
-- **目标**：排名行去掉重复/假数字，前 3 名牌位化；完整榜按梯队分档；首页保持平铺。
-- **涉及文件**：`src/pages/EnvironmentPage.tsx`（`RankingRow` / `FullRankingPage` / `PokemonEnvironmentDetail` 头部 / 首页 top-4 区）。
+- **涉及文件**：`src/pages/CalculatorPage.tsx`。
 - **改动要点**：
-  - **`RankingRow`**：删右列 `rank-relative` 的「排名第 X」分支与 `absolute` 的 `usageRate%/teamCount` 分支——**右列整体留空**（仅保留点击进详情；如需可留一个右向箭头/chevron 作可点暗示）。左侧名次：**前 3 名用金/银/铜牌样式**（rank 1/2/3），其余沿用数字。中部头像+名字+属性维持现状。`usageBasis` 参数若不再被任何分支使用则一并清理。
-  - **`PokemonEnvironmentDetail` 头部（:190-201）**：同样删掉「排名第 X」/假 % 展示，详情页头部只留头像+名字+属性+名次（牌位或「第 N」均可，保持与列表一致）。
-  - **⚠️ 数据真伪订正（曾在此踩坑，务必看）**：详情页里**招式 %、道具 % 是 PokeDB 真实 `rate`**（解析自详情页，保留）；**性格 % 同理真实**。但**队友（teammate）没有真实百分比**——PokeDB「同チーム」区只给*有序列表*，`teammateStats.usageRate` 是 `pokedbEnvironment.ts` 里 `rankPercentile(index+1, n)` 按名次**合成**的。因此队友 % **只在 `overallUsageBasis === 'absolute'`（trainer-list 真实共现）时显示，rank-relative（统计页/当季）下必须隐藏、只显示头像+名字**。Task H 收尾的 `ca86663` 已恢复该守卫。**写任何文案/UI 时不要把队友 % 当真实占比。**
-  - **梯队分档（仅二级「完整宝可梦榜」`FullRankingPage`）**：按名次区间插入分组小标题，**英文标签 `Tier 1 / Tier 2 / Tier 3 / Tier 4`**（不要中文「第 X 梯队」）。默认边界 `Tier 1: 1–5 / Tier 2: 6–20 / Tier 3: 21–60 / Tier 4: 61+`（可调，写成常量便于改）。
-  - **首页 top-4 区不分档**（`EnvironmentPage` 主体 :576 那段保持平铺，只 4 行）。
-- **验收**：列表/详情无重复名次、无假 %；前 3 名牌位化；完整榜有 Tier 1–4 英文分档、首页不分档；`npm test` 通过；`npm run test:visual` 更新快照。
+  - `recommended`（:798-806）当前把**所有队伍成员拍平 + `.slice(0, 8)` 截断**，导致多队时有人被藏、且无法指定队伍。改为**让用户先选队**（队伍下拉/分段），再列该队成员；或**按队伍分组**展示并显示队名。
+  - 渲染按钮现仅显示宝可梦中文名（:905），**已算出的 `teamName` 未展示**；补上队名（尤其同一只宝可梦出现在多队时要能区分）。
+  - **去掉 `.slice(0, 8)` 硬上限**（在选队/分组后单队成员数有限，不再需要全局截断）。
+  - 配置代入逻辑（`pickTeamMember` → `buildCalcConfigFromTeamMember`）不动，仅确认仍正确携带全量配置。
+- **验收**：多队场景下能选择具体队伍并看到队名；从某队成员添加进计算后，特性/道具/招式/性格/SP 与队伍编辑页一致（无需重配）；`npm test`、`npm run build` 通过。
 
-### Task I — 完整榜内宝可梦搜索（✅ 已完成 · 2026-06-12 · 分支 `feat/env-ranking-search-scroll`）
+## 上线前联合核验（Claude + Codex 一起做 · 不拆细 spec · 时间敏感）
 
-- **已实现**：`FullRankingPage` 顶部受控搜索框（`type="search"`，`aria-label="搜索宝可梦"`），按**中文名 + 英文名**（`toLocaleLowerCase` + `trim`、子串匹配）过滤；过滤前先 `map` 出 `rank = index+1` 故名次保真；空查询短路不做查找。区分「暂无数据」（该对战类型无榜单）与「没有找到匹配的宝可梦」（搜了但无命中）。
-- **评审修复（Codex review，已收）**：①空数据 vs 无匹配文案区分（原合并为一句）；②可访问性/边界单测补齐。`EnvironmentPage.test.tsx` 含中/英文过滤 + 名次保真 + 空态两种 + 空数据用例，全过。
-- **遗留小项（已让 Codex 顺手处理 / 非阻断）**：搜了再点进详情、返回后搜索词丢失（`FullRankingPage` 在 detail 打开时卸载）；如需保留得把 `searchQuery` 提升到 `EnvironmentPage`。当前记为已知行为。
-- **与 Task H 衔接**：H 加 Tier 分档时，过滤态下隐藏分档头、只出平铺结果。
-- **验收**：✅ `npm test`、`build`、`test:visual`（已更新 02-environment-ranking 快照）通过。
+> **背景**：明天（2026-06-17）宝可梦冠军移动端上线，项目希望卡这个点在社媒宣传，故需确认已具备上线条件。**本节按用户要求不写细 spec、不单独丢给 codex，由 Claude + Codex 一起过。**
 
-### Task J — 详情/视图切换滚动复位（✅ 已完成 · 2026-06-12 · 分支 `feat/env-ranking-search-scroll`）
+核验维度（高层，不展开成逐条任务）：
 
-> **由来**：点开靠后的宝可梦（如第 7 名）时，详情页直接停在页面中段（道具卡一带），体验差。
+- **数据 0 错误**：全量可浏览内容（宝可梦/招式/道具/特性/环境榜等）数据正确，无错条目、无 audit 报警遗留。
+- **功能无故障**：所有可开放、可点击、可浏览的入口与交互走查一遍，无崩溃/死链/空白。
+- **前端体验**：无遮挡、无溢出、无错位影响体验的地方（与 Task G 联动）。
+- **数据来源口径规范化**：核实当前各类数据**从哪里来**、**还能不能复用**，并统一对外口径表述（沿用环境页已确立的「来源/范围/排行/详情/构筑」口径，扩展到全站）。
 
-- **根因**：`EnvironmentPage` 的 home/ranking/methodology/detail 是**同一 window 级滚动容器内的条件渲染切换**（布局无固定 overflow 容器，`useAutoHideBottomNav` 也监听 window），切换时无任何 scroll-to-top。
-- **已实现**：`useLayoutEffect`（paint 前复位、无闪动）依赖 `[view, detailPokemonId]`，`window.scrollTo({top:0,left:0})`；覆盖 home↔ranking↔methodology↔detail 全部切换与返回。`vitest.setup.ts` 把 jsdom 的 `window.scrollTo` 桩成 no-op（接进 `vite.config.ts` `setupFiles`）消除测试噪音；新增回归测试用 `vi.spyOn` 断言视图切换确实调用 `scrollTo`（逻辑被删即红）。
-- **验收**：✅ `EnvironmentPage.test.tsx` 5/5、`build`、`test:visual` 通过。
+产出：一份联合走查结论（问题清单 + 是否阻断上线 + 处置），不预先细化为子任务，发现问题再就地拆。
 
 ## 暂不做
 
-- 引入 PokeDB 之外的第三方数据源（已评估：同样要 HTML 解析且滞后，无优势）。
-- 完整战斗模拟器、用户账号 / 云同步 / 跨设备队伍、多赛季趋势库。
-- 队伍分析（本轮已下线，暂无需求）。
-- 升级 Workers Paid（$5/mo 解 50 子请求限制）—— 已评估，本轮选 Task F 的免费分批方案，付费暂不需要。
-- 详情上限永久压到 top-20 —— 已评估，覆盖度损失大，由 Task F 恢复 top-60 取代。
+- 引入新数据源 / 完整战斗模拟器 / 用户账号 / 云同步 / 多赛季趋势库（沿用上轮判断）。
+- 升级 Workers Paid（免费分批方案已够用）。
+- 队伍分析（上轮已下线）。
+- 生成/分享图片（本轮砍掉，暂无需求；若日后要回归再重评落点）。
 
 ## 全局验证（每个任务合并前）
 
 ```
 npm test
 npm run build
-npm run worker:app:check   # 涉及 Worker 时
-npm run test:visual        # 涉及 UI / 口径页时
+npm run test:visual        # 涉及 UI 改动
 ```
 
-- Task A：编辑页无分析入口/弹层，无悬空引用。
-- Task B：环境榜由 PokeDB 统计页聚合当季，dry-run 通过，部署后 /status 显示 M-2，详情页含招式；list/show 解析、节流、部分失败保旧 KV 有单测。
-- Task C/D：worker/static/seed 三态正确标注，头部展示真实赛季且不露 “PokeDB”；口径页为图标定义列表、无硬编码 M-1、承接来源说明且不再误宣称总使用率 %。
-- Task F（✅ 已完成）：分批刷新免费版不再 1101、仅 FINALIZE 写完整快照、断链续跑、样本失败不挡发布、`POKEDB_DETAIL_LIMIT` 仓库=线上=60、线上抽查 rank-50 详情非空。
-- Task G（下次）：cron 每日一次、节流 ~500ms、更新日短路（有单测）。
-- Task H：排名行无重复名次/无假 %、前 3 名牌位化、完整榜 Tier 1–4 英文分档、首页平铺；`test:visual` 快照更新。
-- Task I：完整榜搜索按中/英文名过滤、名次正确、空态有提示。
-- Task J：列表中段点击进详情从顶部开始，各视图切换落顶。
+- Task A：首页榜 5 行、点第 5 行可进详情；快照更新。
+- Task B：样本卡片单个全宽「导入配置」+ 右上角队报链接小图标（有可访问名）；导入弹窗内队报链接不变。
+- Task C：编辑页无校验结果卡片/合法性徽章/数据版本行；SP 计数保留、超 66 标红禁存；同队重复道具内联红字禁存；其它非法配置不再提示。
+- Task D：队伍卡片去按钮化、生成图片整链删净、edit 图标可进编辑、点卡片可进编辑；无悬挂引用。
+- Task E：特性 tab 按宝可梦名能搜出其特性、按特性名行为不变；新增反查用例通过。
+- Task F（低优先级）：计算页排版重排、计算结果不变、视觉快照更新；建议在 Task G 之后做。
+- Task G：移动端仍不缩放、表单字号回到设计语言、计算页招式行不溢出；快照更新。
+- Task H：计算页能按队伍选成员并显示队名、去掉 8 个上限、配置全量代入无需重配。

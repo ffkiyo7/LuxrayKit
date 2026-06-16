@@ -128,7 +128,7 @@ export function ProfilePage() {
 
       <Card>
         <p className="mb-2 text-[11px] uppercase tracking-wide text-textMuted">本地备份</p>
-        <p className="text-sm text-textSecondary">JSON 备份包含队伍、收藏、显示偏好和缓存索引。队伍详情页生成的是分享图片，和这里的备份文件分开处理。</p>
+        <p className="text-sm text-textSecondary">JSON 备份包含队伍、收藏、显示偏好和缓存索引。</p>
         <div className="mt-3 grid grid-cols-2 gap-2">
           <Button variant="ghost" onClick={exportBackup}>
             <Download size={14} />

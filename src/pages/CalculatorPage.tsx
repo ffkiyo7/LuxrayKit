@@ -337,7 +337,7 @@ function SideConfigCard({
             <label className="flex items-center gap-2">
               <span className="w-14 shrink-0 text-[11px] text-textMuted">形态</span>
               <select
-                className="flex-1 rounded border border-border bg-card px-2 py-1 text-xs outline-none"
+                className="min-w-0 flex-1 rounded border border-border bg-card px-2 py-1 text-xs outline-none"
                 value={config.formId ?? pokemonEntry.id}
                 onChange={(e) => dirtyMark({ ...config, formId: e.target.value !== pokemonEntry.id ? e.target.value : undefined })}
               >
@@ -352,7 +352,7 @@ function SideConfigCard({
             <span className="w-14 shrink-0 text-[11px] text-textMuted">性格</span>
             <select
               aria-label="性格"
-              className="flex-1 rounded border border-border bg-card px-2 py-1 text-xs outline-none"
+              className="min-w-0 flex-1 rounded border border-border bg-card px-2 py-1 text-xs outline-none"
               value={config.nature}
               onChange={(e) => dirtyMark({ ...config, nature: e.target.value })}
             >
@@ -369,7 +369,7 @@ function SideConfigCard({
             <label className="flex items-center gap-2">
               <span className="w-14 shrink-0 text-[11px] text-textMuted">特性</span>
               <select
-                className="flex-1 rounded border border-border bg-card px-2 py-1 text-xs outline-none"
+                className="min-w-0 flex-1 rounded border border-border bg-card px-2 py-1 text-xs outline-none"
                 value={config.abilityId ?? ''}
                 onChange={(e) => dirtyMark({ ...config, abilityId: e.target.value || undefined })}
               >
@@ -385,7 +385,7 @@ function SideConfigCard({
           <label className="flex items-center gap-2">
             <span className="w-14 shrink-0 text-[11px] text-textMuted">道具</span>
             <select
-              className="flex-1 rounded border border-border bg-card px-2 py-1 text-xs outline-none"
+              className="min-w-0 flex-1 rounded border border-border bg-card px-2 py-1 text-xs outline-none"
               value={config.itemId ?? ''}
               onChange={(e) => dirtyMark({ ...config, itemId: e.target.value || undefined })}
             >
@@ -412,7 +412,7 @@ function SideConfigCard({
               <label className="flex items-center gap-2">
                 <span className="w-14 shrink-0" />
                 <select
-                  className="flex-1 rounded border border-border bg-card px-2 py-1 text-xs outline-none"
+                  className="min-w-0 flex-1 rounded border border-border bg-card px-2 py-1 text-xs outline-none"
                   value={config.selectedMoveId ?? ''}
                   onChange={(e) => {
                     const moveId = e.target.value;
@@ -795,15 +795,20 @@ export function CalculatorPage({
     () => (normalizedQuery ? pokemon.filter((p) => `${p.chineseName} ${p.englishName}`.toLowerCase().includes(normalizedQuery)) : []),
     [normalizedQuery],
   );
-  const recommended = useMemo(() => {
-    return teamMembers
-      .map(({ team, member }) => {
-        const entry = pokemon.find((c) => c.id === member.pokemonId);
-        return entry ? { teamName: team.name, member, entry } : undefined;
-      })
-      .filter(Boolean)
-      .slice(0, 8) as Array<{ teamName: string; member: TeamMember; entry: Pokemon }>;
-  }, [teamMembers]);
+  // Group selectable members by their team so the picker shows which team each
+  // member comes from and lets the user choose any member (no global cap).
+  const teamGroups = useMemo(
+    () =>
+      teams
+        .map((team) => ({
+          team,
+          members: team.members
+            .map((member) => ({ member, entry: pokemon.find((c) => c.id === member.pokemonId) }))
+            .filter((row): row is { member: TeamMember; entry: Pokemon } => Boolean(row.entry)),
+        }))
+        .filter((group) => group.members.length > 0),
+    [teams],
+  );
 
   function pickPokemon(pokemonId: string) {
     const role: 'attacker' | 'defender' = activeSide;
@@ -878,7 +883,7 @@ export function CalculatorPage({
         <input className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-textMuted" placeholder="搜索名称" value={query} onChange={(e) => setQuery(e.target.value)} />
       </label>
 
-      {recommended.length > 0 && (
+      {teamGroups.length > 0 && (
         <div className="mt-2">
           <button
             className="inline-flex min-h-8 items-center gap-2 rounded-lg border border-border bg-card px-3 text-xs font-semibold text-textSecondary"
@@ -889,21 +894,28 @@ export function CalculatorPage({
             从队伍选择
           </button>
           {showTeamPicker && (
-            <div className="mt-2 grid grid-cols-2 gap-2">
-              {recommended.map(({ member, entry }) => (
-                <button
-                  key={member.id}
-                  className={`rounded-lg border bg-card px-3 py-2 text-left text-xs ${
-                    (activeSide === 'attacker' ? attackerConfig.sourceMemberId === member.id : defenderConfig.sourceMemberId === member.id) ? 'border-accent' : 'border-border'
-                  }`}
-                  type="button"
-                  onClick={() => {
-                    pickTeamMember(member);
-                    setShowTeamPicker(false);
-                  }}
-                >
-                  <p className="truncate font-semibold">{entry.chineseName}</p>
-                </button>
+            <div className="mt-2 space-y-3">
+              {teamGroups.map(({ team, members }) => (
+                <div key={team.id}>
+                  <p className="mb-1 truncate text-[11px] font-semibold text-textSecondary">{team.name}</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {members.map(({ member, entry }) => (
+                      <button
+                        key={member.id}
+                        className={`rounded-lg border bg-card px-3 py-2 text-left text-xs ${
+                          (activeSide === 'attacker' ? attackerConfig.sourceMemberId === member.id : defenderConfig.sourceMemberId === member.id) ? 'border-accent' : 'border-border'
+                        }`}
+                        type="button"
+                        onClick={() => {
+                          pickTeamMember(member);
+                          setShowTeamPicker(false);
+                        }}
+                      >
+                        <p className="truncate font-semibold">{entry.chineseName}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
               ))}
             </div>
           )}
