@@ -13,7 +13,9 @@ import {
   getEnvironmentMove,
   getEnvironmentPokemon,
 } from './data/environment';
+import { currentDataVersion, currentRuleSet } from './data';
 import { repository } from './lib/db';
+import type { Team, TeamMember } from './types';
 
 const DB_NAME = 'pokemon-champions-assistant';
 const pokedbSnapshot = {
@@ -34,6 +36,46 @@ const relatedGarchompSample = testEnvironmentState.teamSamples.find(
   (sample) => sample.battleType === 'singles' && sample.slots.some((slot) => slot.pokemonId === 'garchomp'),
 )!;
 const relatedGarchompTeamLabel = `队伍：${relatedGarchompSample.title}`;
+const testTeam = (name: string, members: TeamMember[]): Team => ({
+  id: `team-${name}`,
+  name,
+  ruleSetId: currentRuleSet.id,
+  dataVersionId: currentDataVersion.id,
+  createdAt: '2026-06-16T00:00:00.000Z',
+  updatedAt: '2026-06-16T00:00:00.000Z',
+  notes: '',
+  members,
+});
+
+const garchompMember = (patch: Partial<TeamMember> = {}): TeamMember => ({
+  id: 'member-garchomp-test',
+  pokemonId: 'garchomp',
+  formId: 'garchomp',
+  abilityId: 'rough-skin',
+  itemId: 'magnet',
+  moveIds: ['earthquake', 'protect'],
+  nature: '爽朗',
+  statPoints: { attack: 32, speed: 32, hp: 1 },
+  level: 50,
+  notes: '',
+  legalityStatus: 'legal',
+  ...patch,
+});
+
+const incineroarMember = (patch: Partial<TeamMember> = {}): TeamMember => ({
+  id: 'member-incineroar-test',
+  pokemonId: 'incineroar',
+  formId: 'incineroar',
+  abilityId: 'intimidate',
+  itemId: 'magnet',
+  moveIds: ['flare-blitz', 'protect'],
+  nature: '固执',
+  statPoints: { hp: 1 },
+  level: 50,
+  notes: '',
+  legalityStatus: 'legal',
+  ...patch,
+});
 
 const deleteDb = () =>
   new Promise<void>((resolve, reject) => {
@@ -300,18 +342,73 @@ describe('App page flows', () => {
     expect(await screen.findByLabelText('队伍：雨天试验队')).toBeTruthy();
   });
 
-  it('generates a team image from the list and only offers save', { timeout: 15000 }, async () => {
+  it('opens team detail from the list card or compact edit icon without image actions', async () => {
     const user = await renderApp();
 
     const teamCard = await screen.findByLabelText('队伍：Luxray test');
-    expect(within(teamCard).getByRole('button', { name: '编辑配置' })).toBeTruthy();
-    await user.click(within(teamCard).getByRole('button', { name: '生成图片' }));
+    expect(within(teamCard).getByRole('button', { name: '编辑 Luxray test' })).toBeTruthy();
+    expect(within(teamCard).getByText('Luxray test').parentElement?.parentElement?.classList.contains('pr-14')).toBe(true);
+    expect(within(teamCard).queryByRole('button', { name: '编辑配置' })).toBeNull();
+    expect(within(teamCard).queryByRole('button', { name: '生成图片' })).toBeNull();
+    expect(screen.queryByRole('dialog', { name: '队伍分享图' })).toBeNull();
 
-    const dialog = await screen.findByRole('dialog', { name: '队伍分享图' });
-    const image = within(dialog).getByRole('img', { name: 'Luxray test 队伍分享图' }) as HTMLImageElement;
-    expect(image.src).toContain('data:image/svg+xml');
-    expect(within(dialog).getByRole('button', { name: '保存图片' })).toBeTruthy();
-    expect(within(dialog).queryByRole('button', { name: /分享|取消|关闭/ })).toBeNull();
+    await user.click(within(teamCard).getByRole('button', { name: '编辑 Luxray test' }));
+    expect(await screen.findByRole('heading', { name: 'Luxray test' })).toBeTruthy();
+  });
+
+  it('scopes member editor validation to SP limits and duplicate held items', { timeout: 15000 }, async () => {
+    await repository.replaceTeams([
+      testTeam('重复道具测试队', [garchompMember(), incineroarMember()]),
+    ]);
+    const user = await renderApp();
+
+    await user.click(await screen.findByLabelText('队伍：重复道具测试队'));
+    expect(await screen.findByRole('heading', { name: '重复道具测试队' })).toBeTruthy();
+    await user.click(screen.getByText('烈咬陆鲨'));
+    await user.click(screen.getByTitle('编辑成员'));
+
+    expect(await screen.findByText('编辑成员')).toBeTruthy();
+    expect(screen.queryByText('校验结果')).toBeNull();
+    expect(screen.queryByText('合法')).toBeNull();
+    expect(screen.queryByText(/数据版本/)).toBeNull();
+    expect(screen.queryByText(/当前字段未发现问题|需要完成 Reg M-A 复核/)).toBeNull();
+    expect(screen.getByText('当前规则不允许同队重复携带相同道具。')).toBeTruthy();
+    expect(screen.getByText('已用 65/66')).toBeTruthy();
+    expect((screen.getByRole('button', { name: '保存' }) as HTMLButtonElement).disabled).toBe(true);
+
+    await user.click(screen.getAllByRole('button', { name: /HP\s*1/ }).at(-1)!);
+    fireEvent.change(screen.getByRole('slider', { name: 'HP SP' }), { target: { value: '3' } });
+    await user.click(screen.getByTitle('关闭 SP 调整'));
+
+    expect(screen.getByText('已用 67/66')).toBeTruthy();
+    expect(screen.getByText('单项最多 32，总量最多 66。')).toBeTruthy();
+    expect((screen.getByRole('button', { name: '保存' }) as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  it('saves non-SP non-duplicate legality issues silently while keeping legalityStatus updated', async () => {
+    await repository.replaceTeams([
+      testTeam('静默校验测试队', [
+        garchompMember({
+          abilityId: 'intimidate',
+          itemId: undefined,
+        }),
+      ]),
+    ]);
+    const user = await renderApp();
+
+    await user.click(await screen.findByLabelText('队伍：静默校验测试队'));
+    await user.click(screen.getByText('烈咬陆鲨'));
+    await user.click(screen.getByTitle('编辑成员'));
+
+    expect(await screen.findByText('编辑成员')).toBeTruthy();
+    expect(screen.queryByText('特性与当前 Pokémon 不匹配。')).toBeNull();
+    expect(screen.queryByText('校验结果')).toBeNull();
+    expect((screen.getByRole('button', { name: '保存' }) as HTMLButtonElement).disabled).toBe(false);
+
+    await user.click(screen.getByRole('button', { name: '保存' }));
+    await waitFor(() => expect(screen.queryByText('编辑成员')).toBeNull());
+    const state = await repository.loadState();
+    expect(state.teams[0].members[0].legalityStatus).toBe('illegal');
   });
 
   it('keeps imported environment sample metadata on the list without showing a source card in detail', async () => {
@@ -323,10 +420,11 @@ describe('App page flows', () => {
     expect(importedCard.textContent).not.toContain('上位构筑导入');
     expect(importedCard.textContent).not.toContain('当前');
     expect(importedCard.textContent).toContain(`${firstSinglesSample.slots.length}/6 成员`);
-    expect(within(importedCard).getByRole('button', { name: '编辑配置' })).toBeTruthy();
-    expect(within(importedCard).getByRole('button', { name: '生成图片' })).toBeTruthy();
+    expect(within(importedCard).getByRole('button', { name: `编辑 ${firstSinglesSample.title}` })).toBeTruthy();
+    expect(within(importedCard).queryByRole('button', { name: '编辑配置' })).toBeNull();
+    expect(within(importedCard).queryByRole('button', { name: '生成图片' })).toBeNull();
 
-    await user.click(within(importedCard).getByRole('button', { name: '编辑配置' }));
+    await user.click(importedCard);
     expect(await screen.findByRole('heading', { name: firstSinglesSample.title })).toBeTruthy();
     expect(screen.queryByText('队报链接')).toBeNull();
     expect(screen.queryByText(/来源|原始样本|高分导入|上位构筑导入/)).toBeNull();
@@ -428,7 +526,7 @@ describe('App page flows', () => {
     await continueFirstImportNotice(user);
 
     const importedCard = await screen.findByLabelText(`队伍：${starmieSample.title}`);
-    await user.click(within(importedCard).getByRole('button', { name: '编辑配置' }));
+    await user.click(importedCard);
     expect(await screen.findByRole('heading', { name: starmieSample.title })).toBeTruthy();
 
     await user.click(screen.getByText('宝石海星'));
@@ -919,6 +1017,32 @@ describe('App page flows', () => {
     await user.click(within(thickFatCard).getByRole('button', { name: /超级妙蛙花/ }));
     expect(await screen.findByText(/Mega Venusaur/)).toBeTruthy();
     expect(screen.getByText('种族值')).toBeTruthy();
+  });
+
+  it('finds abilities by owner Pokemon names and prioritizes matching owner avatars', { timeout: 30000 }, async () => {
+    const user = await renderApp();
+    const onboarding = screen.queryByRole('dialog', { name: 'LuxrayKit 引导' });
+    if (onboarding) {
+      await user.click(screen.getByRole('button', { name: '跳过' }));
+      await user.click(screen.getByRole('button', { name: '开始探索' }));
+      await waitFor(() => expect(screen.queryByRole('dialog', { name: 'LuxrayKit 引导' })).toBeNull());
+    }
+
+    await openTool(user, /规则图鉴/);
+    expect(await screen.findByText('规则内图鉴')).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: '特性' }));
+    await user.type(screen.getByPlaceholderText('搜索名称'), 'Luxray');
+
+    const intimidateCard = await screen.findByText(/威吓 Intimidate/);
+    const card = intimidateCard.closest('section')!;
+    const previewImages = within(card).getAllByRole('img');
+    expect(previewImages[0].getAttribute('alt')).toBe('伦琴猫');
+    expect(screen.queryByText(/厚脂肪 Thick Fat/)).toBeNull();
+
+    await user.clear(screen.getByPlaceholderText('搜索名称'));
+    await user.type(screen.getByPlaceholderText('搜索名称'), '烈咬陆鲨');
+    expect(await screen.findByText(/沙隐 Sand Veil/)).toBeTruthy();
+    expect(await screen.findByText(/粗糙皮肤 Rough Skin/)).toBeTruthy();
   });
 
   it('keeps the speed line tool unavailable from the tools page', async () => {

@@ -11,6 +11,17 @@ test.use({ serviceWorkers: 'block' });
 
 const openApp = async (page: Page) => {
   await page.goto('/');
+  // First launch shows the onboarding tour (a z-[60] full-screen overlay).
+  // Dismiss it (跳过 → 开始探索) so screenshots capture the real screens
+  // instead of the tour, and so its overlay never intercepts later clicks.
+  const skip = page.getByRole('button', { name: '跳过' });
+  try {
+    await skip.waitFor({ state: 'visible', timeout: 5_000 });
+    await skip.click();
+    await page.getByRole('button', { name: '开始探索' }).click();
+  } catch {
+    // Onboarding already completed in this context — nothing to dismiss.
+  }
   await expect(page.getByRole('heading', { name: '环境' })).toBeVisible();
 };
 

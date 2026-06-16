@@ -1,4 +1,4 @@
-import { ArrowLeft, ChevronUp, Download, Edit3, GripVertical, Minus, Plus, Save, Search, Trash2, X } from 'lucide-react';
+import { ArrowLeft, ChevronUp, Edit3, GripVertical, Minus, Plus, Save, Search, Trash2, X } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
 import { abilities, currentRuleNatureOptions, items, moves, pokemon } from '../data';
 import { memberBattleStats, memberLabel } from '../lib/calculations';
@@ -7,11 +7,10 @@ import { createId } from '../lib/id';
 import { evaluateMemberLegality } from '../lib/legality';
 import { findBattleForm, getMemberBattleForm } from '../lib/pokemonForms';
 import { MAX_STAT_POINTS_PER_STAT, MAX_TOTAL_STAT_POINTS, statPointTotal } from '../lib/statPoints';
-import { createTeamShareImageWithEmbeddedAssets, type TeamShareImage } from '../lib/teamImage';
 import { useAppStore } from '../state/AppContext';
 import type { Item, Move, Team, TeamMember } from '../types';
 import { PokemonPicker } from '../components/PokemonPicker';
-import { Badge, Button, Card, Chip, EmptyState, PokemonAvatar, TypeBadge } from '../components/ui';
+import { Button, Card, Chip, EmptyState, PokemonAvatar, TypeBadge } from '../components/ui';
 
 const blankMember = (): TeamMember => ({
   id: createId('member'),
@@ -69,14 +68,12 @@ function HeldItemLine({ item, className = '' }: { item?: Item; className?: strin
 }
 
 function MemberCard({
-  team,
   member,
   expanded,
   onToggle,
   onEdit,
   onDelete,
 }: {
-  team: Team;
   member: TeamMember;
   expanded: boolean;
   onToggle: (memberId: string) => void;
@@ -206,7 +203,6 @@ function MemberCard({
               <p className="mt-2 text-[11px] text-textMuted">左侧为当前能力值，右侧为该项 SP；性格修正用箭头标记。</p>
             </>
           )}
-          <p className="mt-2 text-[11px] text-textMuted">数据版本：{team.dataVersionId}</p>
         </>
       )}
     </Card>
@@ -503,6 +499,17 @@ function MemberEditor({
   const legality = useMemo(() => evaluateMemberLegality(draft, team), [draft, team]);
   const totalStatPoints = statPointTotal(draft.statPoints);
   const editingStat = statPointControls.find((control) => control.key === editingStatKey);
+  const overLimitStat = statPointControls.find((control) => Number(draft.statPoints[control.key] ?? 0) > MAX_STAT_POINTS_PER_STAT);
+  const statPointMessage = overLimitStat
+    ? `${overLimitStat.label} SP 不能超过 ${MAX_STAT_POINTS_PER_STAT}。`
+    : totalStatPoints > MAX_TOTAL_STAT_POINTS
+      ? `单项最多 ${MAX_STAT_POINTS_PER_STAT}，总量最多 ${MAX_TOTAL_STAT_POINTS}。`
+      : undefined;
+  const hasDuplicateHeldItem = Boolean(
+    draft.itemId && team.members.some((candidate) => candidate.id !== draft.id && candidate.itemId === draft.itemId),
+  );
+  const duplicateHeldItemMessage = hasDuplicateHeldItem ? '当前规则不允许同队重复携带相同道具。' : undefined;
+  const saveDisabled = Boolean(statPointMessage || duplicateHeldItemMessage);
 
   const updateDraft = (patch: Partial<TeamMember>) => {
     setDraft((current) => ({ ...current, ...patch }));
@@ -526,6 +533,7 @@ function MemberEditor({
   };
 
   const save = async () => {
+    if (saveDisabled) return;
     await onSave({ ...draft, legalityStatus: legality.status });
     onClose();
   };
@@ -536,7 +544,7 @@ function MemberEditor({
       <div className="mb-3 flex items-start justify-between gap-3">
         <div>
           <h3 className="text-base font-semibold">编辑成员</h3>
-          <p className="text-xs text-textSecondary">字段级校验会在保存前实时更新</p>
+          <p className="text-xs text-textSecondary">仅检查 SP 与同队重复道具</p>
         </div>
         <button className="grid h-8 w-8 place-items-center rounded-lg text-textSecondary" title="关闭" onClick={onClose}>
           <X size={18} />
@@ -594,12 +602,15 @@ function MemberEditor({
           </SelectField>
         </div>
 
-        <ItemSearchField
-          value={draft.itemId}
-          options={itemOptions}
-          selectableIds={selectableItemIds}
-          onChange={(itemId) => updateDraft({ itemId: itemId || undefined })}
-        />
+        <div>
+          <ItemSearchField
+            value={draft.itemId}
+            options={itemOptions}
+            selectableIds={selectableItemIds}
+            onChange={(itemId) => updateDraft({ itemId: itemId || undefined })}
+          />
+          {duplicateHeldItemMessage && <p className="mt-1 text-[11px] text-danger">{duplicateHeldItemMessage}</p>}
+        </div>
 
         <SelectField label="性格" value={draft.nature} onChange={(nature) => updateDraft({ nature })}>
           {(() => {
@@ -653,27 +664,9 @@ function MemberEditor({
             ))}
           </div>
         </div>
-        <p className={`text-[11px] ${totalStatPoints > MAX_TOTAL_STAT_POINTS ? 'text-danger' : 'text-textMuted'}`}>
-          单项最多 {MAX_STAT_POINTS_PER_STAT} · 超过 {MAX_TOTAL_STAT_POINTS} 会在校验中报错
+        <p className={`text-[11px] ${statPointMessage ? 'text-danger' : 'text-textMuted'}`}>
+          {statPointMessage ?? `单项最多 ${MAX_STAT_POINTS_PER_STAT} · 总量最多 ${MAX_TOTAL_STAT_POINTS}`}
         </p>
-
-        <Card className="bg-secondary">
-          <div className="mb-2 flex items-center justify-between">
-            <p className="text-sm font-semibold">校验结果</p>
-            <Badge status={legality.status}>{legality.status === 'illegal' ? '非法' : legality.status === 'needs-review' ? '需复核' : legality.status === 'missing-config' ? '缺少配置' : '合法'}</Badge>
-          </div>
-          {legality.issues.length === 0 ? (
-            <p className="text-xs text-success">当前字段未发现问题。</p>
-          ) : (
-            <div className="space-y-1">
-              {legality.issues.map((issue) => (
-                <p key={`${issue.code}-${issue.message}`} className={`text-xs ${issue.severity === 'error' ? 'text-danger' : 'text-warning'}`}>
-                  {issue.message}
-                </p>
-              ))}
-            </div>
-          )}
-        </Card>
       </div>
 
       <div className="mt-3 grid grid-cols-[1fr_1fr_1.4fr] gap-2">
@@ -684,7 +677,7 @@ function MemberEditor({
         <Button variant="ghost" onClick={onClose}>
           取消
         </Button>
-        <Button onClick={save}>
+        <Button onClick={save} disabled={saveDisabled}>
           <Save size={14} />
           保存
         </Button>
@@ -711,7 +704,6 @@ function TeamListCard({
   dropTarget,
   setCardRef,
   onEdit,
-  onGenerateImage,
   onDelete,
   onDragCancel,
   onDragEnd,
@@ -727,7 +719,6 @@ function TeamListCard({
   dropTarget: boolean;
   setCardRef: (element: HTMLElement | null) => void;
   onEdit: () => void;
-  onGenerateImage: () => void;
   onDelete: () => void;
   onDragCancel: () => void;
   onDragEnd: (event: React.PointerEvent<HTMLButtonElement>) => void;
@@ -765,7 +756,7 @@ function TeamListCard({
     >
       <button
         aria-label={`删除 ${team.name}`}
-        className="absolute right-3 top-3 grid h-3.5 w-3.5 place-items-center rounded-[4px] border border-danger/45 bg-black transition active:scale-[0.96]"
+        className="absolute right-3 top-2.5 grid h-5 w-5 place-items-center rounded-md border border-danger/45 bg-black transition active:scale-[0.96]"
         title={`删除 ${team.name}`}
         type="button"
         onClick={(event) => {
@@ -773,9 +764,21 @@ function TeamListCard({
           onDelete();
         }}
       >
-        <span className="h-px w-1.5 rounded-full bg-danger" aria-hidden="true" />
+        <span className="h-px w-2.5 rounded-full bg-danger" aria-hidden="true" />
       </button>
-      <div className="flex items-start justify-between gap-3 pr-5">
+      <button
+        aria-label={`编辑 ${team.name}`}
+        className="absolute right-9 top-2.5 z-10 grid h-5 w-5 place-items-center rounded-md border border-border bg-secondary text-textMuted transition active:scale-[0.96]"
+        title={`编辑 ${team.name}`}
+        type="button"
+        onClick={(event) => {
+          event.stopPropagation();
+          onEdit();
+        }}
+      >
+        <Edit3 size={12} />
+      </button>
+      <div className="flex items-start justify-between gap-3 pr-14">
         <div className="min-w-0 flex-1">
           <span className="block truncate text-sm font-semibold">{team.name}</span>
           <p className="mt-1 text-xs text-textSecondary">{team.members.length}/6 成员</p>
@@ -826,58 +829,7 @@ function TeamListCard({
           <GripVertical size={12} />
         </button>
       </div>
-      <div className="mt-3 grid grid-cols-2 gap-2">
-        <Button
-          variant="ghost"
-          onClick={(event) => {
-            event.stopPropagation();
-            onEdit();
-          }}
-        >
-          <Edit3 size={14} />
-          编辑配置
-        </Button>
-        <Button
-          onClick={(event) => {
-            event.stopPropagation();
-            onGenerateImage();
-          }}
-        >
-          <Download size={14} />
-          生成图片
-        </Button>
-      </div>
     </section>
-  );
-}
-
-function TeamImageResultDialog({
-  teamName,
-  image,
-  onClose,
-}: {
-  teamName: string;
-  image: TeamShareImage;
-  onClose: () => void;
-}) {
-  const saveImage = () => {
-    const anchor = document.createElement('a');
-    anchor.href = image.dataUrl;
-    anchor.download = image.filename;
-    anchor.click();
-  };
-
-  return (
-    <div className="fixed inset-0 z-40 mx-auto max-w-[430px]" role="dialog" aria-label="队伍分享图">
-      <div className="absolute inset-0 bg-overlay/70" onClick={onClose} />
-      <div className="absolute inset-x-4 top-1/2 -translate-y-1/2 rounded-xl border border-border bg-card p-3">
-        <img className="w-full rounded-lg border border-border bg-page" src={image.dataUrl} alt={`${teamName} 队伍分享图`} />
-        <Button className="mt-3 w-full" onClick={saveImage}>
-          <Download size={14} />
-          保存图片
-        </Button>
-      </div>
-    </div>
   );
 }
 
@@ -987,7 +939,6 @@ export function TeamPage({
   const [expandedMemberId, setExpandedMemberId] = useState<string | null>(null);
   const [showPicker, setShowPicker] = useState(false);
   const [showNameModal, setShowNameModal] = useState(false);
-  const [shareImage, setShareImage] = useState<{ teamName: string; image: TeamShareImage } | null>(null);
   const [nameDraft, setNameDraft] = useState('');
   const [renamingTeamId, setRenamingTeamId] = useState<string | null>(null);
   const [inlineNameDraft, setInlineNameDraft] = useState('');
@@ -1021,14 +972,6 @@ export function TeamPage({
     setShowPicker(false);
     setRenamingTeamId(null);
     setShowLuxrayEasterEgg(false);
-  };
-
-  const generateTeamImage = async (team: Team) => {
-    const assetBaseUrl = typeof window === 'undefined' ? undefined : window.location.origin;
-    setShareImage({
-      teamName: team.name,
-      image: await createTeamShareImageWithEmbeddedAssets(team, { assetBaseUrl }),
-    });
   };
 
   const beginInlineRename = (team: Team) => {
@@ -1180,7 +1123,6 @@ export function TeamPage({
                     teamCardRefs.current[team.id] = element;
                   }}
                   onEdit={() => openTeamDetail(team.id)}
-                  onGenerateImage={() => void generateTeamImage(team)}
                   onDelete={() => setPendingDeleteTeam(team)}
                   onDragCancel={() => setDragState(null)}
                   onDragEnd={(event) => void finishTeamDrag(event)}
@@ -1233,7 +1175,6 @@ export function TeamPage({
             {activeTeam.members.map((member) => (
               <MemberCard
                 key={member.id}
-                team={activeTeam}
                 member={member}
                 expanded={expandedMemberId === member.id}
                 onToggle={(memberId) => setExpandedMemberId((current) => (current === memberId ? null : memberId))}
@@ -1287,7 +1228,6 @@ export function TeamPage({
           onConfirm={() => void confirmDeleteTeam()}
         />
       )}
-      {shareImage && <TeamImageResultDialog teamName={shareImage.teamName} image={shareImage.image} onClose={() => setShareImage(null)} />}
       {showLuxrayEasterEgg && <LuxrayEasterEggDialog onClose={() => setShowLuxrayEasterEgg(false)} />}
     </div>
   );

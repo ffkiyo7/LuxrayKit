@@ -82,15 +82,20 @@ textarea {
 }
 
 /*
- * On iOS every browser is WebKit, which auto-zooms the page when focusing an
- * input whose font-size is < 16px and never zooms back out (requires a manual
- * pinch). Force >= 16px on touch devices so focusing search/text fields never
- * triggers that zoom. Gated to coarse pointers so desktop keeps the smaller
- * text-sm design. !important is required to override Tailwind's text-sm class.
+ * On iOS every browser is WebKit, which auto-zooms the page when focusing a
+ * text input whose font-size is < 16px and never zooms back out (requires a
+ * manual pinch). Force >= 16px on touch devices for text-entry fields so
+ * focusing search/text inputs never triggers that zoom.
+ *
+ * <select> is intentionally excluded: it opens a native picker (no keyboard,
+ * no focus-zoom), so bumping it to 16px only made dropdowns oversized and
+ * inconsistent with the text-sm/text-xs design — and widened long options
+ * enough to overflow tight rows. Selects keep the design font-size.
+ * Gated to coarse pointers so desktop keeps the smaller text. !important is
+ * required to override Tailwind's text-sm class.
  */
 @media (pointer: coarse) {
   input:not([type='checkbox']):not([type='radio']),
-  select,
   textarea {
     font-size: 16px !important;
   }
