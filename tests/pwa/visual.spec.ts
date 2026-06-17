@@ -9,10 +9,26 @@ const screenshotOptions = {
 
 test.use({ serviceWorkers: 'block' });
 
+const dismissInstallGuide = async (page: Page) => {
+  const guide = page.getByRole('dialog', { name: '安装与上手指引' });
+  const appeared = await guide.waitFor({ state: 'visible', timeout: 2_000 }).then(() => true).catch(() => false);
+  if (!appeared) return;
+
+  await guide.getByRole('button', { name: /稍后再说/ }).click();
+  await expect(guide).toBeHidden();
+};
+
 const openApp = async (page: Page) => {
   await page.goto('/');
+  await dismissInstallGuide(page);
   await expect(page.getByRole('heading', { name: '环境' })).toBeVisible();
 };
+
+test('captures the first-launch install guide onboarding', { timeout: 30_000 }, async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByRole('dialog', { name: '安装与上手指引' })).toBeVisible();
+  await expect(page).toHaveScreenshot('15-install-guide.png', screenshotOptions);
+});
 
 const scrollTop = async (page: Page) => {
   await page.evaluate(() => window.scrollTo(0, 0));

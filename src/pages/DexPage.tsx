@@ -402,14 +402,13 @@ function PokemonDetail({
       id: createId('member'),
       pokemonId: entry.basePokemon.id,
       formId: entry.id,
-      abilityId: entry.abilities[0],
       itemId: entry.requiredItemId,
-      moveIds: currentRuleMovesForPokemon(entry.basePokemon.id).slice(0, 2).map((move) => move.id),
-      nature: '爽朗',
-      statPoints: { speed: 32 },
+      moveIds: [],
+      nature: '',
+      statPoints: {},
       level: 50,
       notes: '从图鉴加入。',
-      legalityStatus: 'needs-review' as const,
+      legalityStatus: 'missing-config' as const,
     };
     const result = evaluateMemberLegality(member, activeTeam);
     await updateMember(activeTeam.id, { ...member, legalityStatus: result.status });

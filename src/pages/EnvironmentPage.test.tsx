@@ -226,6 +226,28 @@ describe('EnvironmentPage usage basis', () => {
     expect(screen.queryByText('没有找到匹配的宝可梦')).toBeNull();
   });
 
+  it('keeps sample pool cards neutral while the battle type control updates their values', async () => {
+    const user = userEvent.setup();
+    render(<EnvironmentPage environment={makeEnvironment('rank-relative')} onImportSample={() => undefined} />);
+
+    await user.click(screen.getByRole('button', { name: '查看数据口径' }));
+
+    const samplePool = screen.getByRole('heading', { name: '样本池' }).closest('section')!;
+    const singlesCard = within(samplePool).getByText('单打').closest('div');
+    const doublesCard = within(samplePool).getByText('双打').closest('div');
+    expect(singlesCard?.className).toContain('border-border');
+    expect(singlesCard?.className).toContain('bg-secondary');
+    expect(doublesCard?.className).toBe(singlesCard?.className);
+    expect(singlesCard?.className).not.toContain('border-accent');
+    expect(screen.getByText('213 队')).toBeTruthy();
+
+    await user.click(screen.getByRole('button', { name: '双打' }));
+
+    expect(screen.getByText('M-2 · 双打')).toBeTruthy();
+    expect(within(samplePool).getByText('暂无样本')).toBeTruthy();
+    expect(doublesCard?.className).toBe(singlesCard?.className);
+  });
+
   it('resets the scroll position to the top when the visible view changes', async () => {
     const user = userEvent.setup();
     const scrollToSpy = vi.spyOn(window, 'scrollTo').mockImplementation(() => {});

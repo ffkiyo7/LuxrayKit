@@ -54,6 +54,18 @@ export function evaluateMemberLegality(member: TeamMember, team?: Team): Legalit
     };
   }
 
+  const isBlankConfiguration =
+    !member.abilityId &&
+    member.moveIds.length === 0 &&
+    !member.nature &&
+    statPointTotal(member.statPoints) === 0;
+  if (isBlankConfiguration) {
+    return {
+      status: 'missing-config',
+      issues: [],
+    };
+  }
+
   if (!entry.legalInCurrentRule) {
     issues.push(error('当前 Pokémon 不在当前规则可用范围内。', 'pokemon-not-in-rule'));
   }

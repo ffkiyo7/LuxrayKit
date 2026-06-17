@@ -1,0 +1,1 @@
+Generated the PNG and wrote the required `result.json` at the specified paths.

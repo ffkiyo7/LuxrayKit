@@ -1,4 +1,4 @@
-import { Database, Download, Moon, ShieldCheck, Sun, Trash2, Upload } from 'lucide-react';
+import { Database, Download, Moon, ShieldCheck, Smartphone, Sun, Trash2, Upload } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { currentDataVersion, currentRuleSet } from '../data';
 import { TeamImportError, parseTeamImport } from '../lib/exportImport';
@@ -30,7 +30,7 @@ const isBackupPayload = (value: unknown): value is BackupPayload => {
   return candidate.schemaVersion === 'champions-local-backup-v1' && Array.isArray(candidate.teams) && Boolean(candidate.preferences);
 };
 
-export function ProfilePage() {
+export function ProfilePage({ onOpenInstallGuide }: { onOpenInstallGuide?: () => void } = {}) {
   const { teams, preferences, replaceTeams, replacePreferences, clearLocalData, lastRefreshError, updateTheme } = useAppStore();
   const inputRef = useRef<HTMLInputElement>(null);
   const [notice, setNotice] = useState<Notice | null>(null);
@@ -134,6 +134,23 @@ export function ProfilePage() {
           </div>
         )}
       </Card>
+
+      {onOpenInstallGuide && (
+        <Card>
+          <div className="flex items-center justify-between gap-3">
+            <span className="min-w-0">
+              <span className="flex items-center gap-2 text-sm font-semibold">
+                <Smartphone size={16} className="text-accent" />
+                添加到主屏幕
+              </span>
+              <span className="mt-1 block text-xs text-textSecondary">把 LuxrayKit 装到桌面，全屏、离线、像原生 App 一样打开。</span>
+            </span>
+            <Button variant="ghost" className="shrink-0" onClick={onOpenInstallGuide}>
+              安装指引
+            </Button>
+          </div>
+        </Card>
+      )}
 
       <Card>
         <div className="flex items-center gap-2 text-sm font-semibold">

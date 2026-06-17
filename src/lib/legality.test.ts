@@ -32,6 +32,32 @@ describe('legality evaluation', () => {
     expect(result.issues[0].code).toBe('missing-pokemon');
   });
 
+  it('keeps a newly selected Pokemon with blank configuration in the neutral pending state', () => {
+    const result = evaluateMemberLegality({
+      ...baseMember,
+      abilityId: undefined,
+      moveIds: [],
+      nature: '',
+      statPoints: {},
+      legalityStatus: 'missing-config',
+    });
+
+    expect(result).toEqual({ status: 'missing-config', issues: [] });
+  });
+
+  it('reports partially configured members as illegal when required fields are still missing', () => {
+    const result = evaluateMemberLegality({
+      ...baseMember,
+      abilityId: undefined,
+      moveIds: ['earthquake'],
+      nature: '',
+      statPoints: {},
+    });
+
+    expect(result.status).toBe('illegal');
+    expect(result.issues.some((issue) => issue.code === 'missing-required-field')).toBe(true);
+  });
+
   it('detects duplicate held items under Reg M-A team restrictions', () => {
     const team = {
       id: 'dup-team',

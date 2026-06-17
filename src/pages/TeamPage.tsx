@@ -16,8 +16,8 @@ import { Badge, Button, Card, Chip, EmptyState, PokemonAvatar, TypeBadge } from 
 const blankMember = (): TeamMember => ({
   id: createId('member'),
   moveIds: [],
-  nature: '爽朗',
-  statPoints: { speed: 32 },
+  nature: '',
+  statPoints: {},
   level: 50,
   notes: '',
   legalityStatus: 'missing-config',
@@ -128,6 +128,7 @@ function MemberCard({
           <div className="min-w-0 flex-1">
             <div className={`${expanded ? 'mb-1 justify-start' : 'mb-1 justify-center'} flex flex-wrap items-center gap-1.5`}>
               <h3 className="truncate text-sm font-semibold">{battleForm?.chineseName ?? memberLabel(member)}</h3>
+              {member.legalityStatus === 'missing-config' && <Badge status="missing-config">待配置</Badge>}
               {expanded &&
                 battleForm?.types.map((type) => (
                   <TypeBadge key={type} type={type} size="sm" />
@@ -158,7 +159,7 @@ function MemberCard({
             <div className="min-w-0">
               <div className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-2.5 py-1 text-xs text-textSecondary">
                 <span>性格</span>
-                <span className="font-semibold text-textPrimary">{member.nature}</span>
+                <span className="font-semibold text-textPrimary">{member.nature || '未选择'}</span>
               </div>
               <div className="mt-2 flex gap-1 overflow-x-auto pb-1 hide-scrollbar">
                 {(learnedMoves.length ? learnedMoves : ['未配置招式']).map((move) => (
@@ -602,6 +603,7 @@ function MemberEditor({
         />
 
         <SelectField label="性格" value={draft.nature} onChange={(nature) => updateDraft({ nature })}>
+          <option value="">未选择</option>
           {(() => {
             const statPriority = { '攻击': 0, '防御': 1, '特攻': 2, '特防': 3, '速度': 4 };
             const sorted = [...currentRuleNatureOptions].sort((a, b) => {
@@ -660,10 +662,12 @@ function MemberEditor({
         <Card className="bg-secondary">
           <div className="mb-2 flex items-center justify-between">
             <p className="text-sm font-semibold">校验结果</p>
-            <Badge status={legality.status}>{legality.status === 'illegal' ? '非法' : legality.status === 'needs-review' ? '需复核' : legality.status === 'missing-config' ? '缺少配置' : '合法'}</Badge>
+            <Badge status={legality.status}>{legality.status === 'illegal' ? '非法' : legality.status === 'needs-review' ? '需复核' : legality.status === 'missing-config' ? '待配置' : '合法'}</Badge>
           </div>
           {legality.issues.length === 0 ? (
-            <p className="text-xs text-success">当前字段未发现问题。</p>
+            <p className={`text-xs ${legality.status === 'missing-config' ? 'text-textSecondary' : 'text-success'}`}>
+              {legality.status === 'missing-config' ? '尚未填写特性与招式。' : '当前字段未发现问题。'}
+            </p>
           ) : (
             <div className="space-y-1">
               {legality.issues.map((issue) => (
@@ -1137,8 +1141,6 @@ export function TeamPage({
     const member: TeamMember = {
       ...blankMember(),
       pokemonId: entry.id,
-      abilityId: entry.abilities[0],
-      moveIds: currentRuleMovesForPokemon(entry.id).slice(0, 2).map((move) => move.id),
       notes: '快速添加，可继续编辑。',
     };
     const result = evaluateMemberLegality(member, activeTeam);

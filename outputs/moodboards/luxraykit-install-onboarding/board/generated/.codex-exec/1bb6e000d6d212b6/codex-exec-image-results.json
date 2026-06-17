@@ -1,0 +1,135 @@
+{
+  "status": "complete",
+  "total": 18,
+  "complete": 18,
+  "failed": 0,
+  "pending": 0,
+  "results": [
+    {
+      "id": "electric-threshold",
+      "status": "complete",
+      "image_path": "E:\\code\\LuxrayKit\\outputs\\moodboards\\luxraykit-install-onboarding\\board\\generated\\.codex-exec\\1bb6e000d6d212b6\\523df24bba41e9dafe194af0bb10d725.png",
+      "error": null,
+      "caveats": ""
+    },
+    {
+      "id": "charged-glass-core",
+      "status": "complete",
+      "image_path": "E:\\code\\LuxrayKit\\outputs\\moodboards\\luxraykit-install-onboarding\\board\\generated\\.codex-exec\\1bb6e000d6d212b6\\c2d7dec970c6dd744bc6ca5303218889.png",
+      "error": null,
+      "caveats": ""
+    },
+    {
+      "id": "electric-fur-material",
+      "status": "complete",
+      "image_path": "E:\\code\\LuxrayKit\\outputs\\moodboards\\luxraykit-install-onboarding\\board\\generated\\.codex-exec\\1bb6e000d6d212b6\\092e95087febe99bd27298da8e38d734.png",
+      "error": null,
+      "caveats": ""
+    },
+    {
+      "id": "lightning-path",
+      "status": "complete",
+      "image_path": "E:\\code\\LuxrayKit\\outputs\\moodboards\\luxraykit-install-onboarding\\board\\generated\\.codex-exec\\1bb6e000d6d212b6\\1c8a8c278d1f31365549b46720726605.png",
+      "error": null,
+      "caveats": ""
+    },
+    {
+      "id": "tactical-lens",
+      "status": "complete",
+      "image_path": "E:\\code\\LuxrayKit\\outputs\\moodboards\\luxraykit-install-onboarding\\board\\generated\\.codex-exec\\1bb6e000d6d212b6\\f491011b51b5ef2c36fb218c9b96e0f6.png",
+      "error": null,
+      "caveats": ""
+    },
+    {
+      "id": "sample-field",
+      "status": "complete",
+      "image_path": "E:\\code\\LuxrayKit\\outputs\\moodboards\\luxraykit-install-onboarding\\board\\generated\\.codex-exec\\1bb6e000d6d212b6\\6e293d0e9dc4def33c46ef78a0ee735a.png",
+      "error": null,
+      "caveats": ""
+    },
+    {
+      "id": "team-six-objects",
+      "status": "complete",
+      "image_path": "E:\\code\\LuxrayKit\\outputs\\moodboards\\luxraykit-install-onboarding\\board\\generated\\.codex-exec\\1bb6e000d6d212b6\\fe1b7d118185d49dd20f8ccad0c6f07f.png",
+      "error": null,
+      "caveats": ""
+    },
+    {
+      "id": "precision-caliper",
+      "status": "complete",
+      "image_path": "E:\\code\\LuxrayKit\\outputs\\moodboards\\luxraykit-install-onboarding\\board\\generated\\.codex-exec\\1bb6e000d6d212b6\\116b5c6f86f119366f243ae770146141.png",
+      "error": null,
+      "caveats": ""
+    },
+    {
+      "id": "offline-vault",
+      "status": "complete",
+      "image_path": "E:\\code\\LuxrayKit\\outputs\\moodboards\\luxraykit-install-onboarding\\board\\generated\\.codex-exec\\1bb6e000d6d212b6\\c4b8da6b266ca56c960467078cc1fb12.png",
+      "error": null,
+      "caveats": ""
+    },
+    {
+      "id": "thumb-ritual",
+      "status": "complete",
+      "image_path": "E:\\code\\LuxrayKit\\outputs\\moodboards\\luxraykit-install-onboarding\\board\\generated\\.codex-exec\\1bb6e000d6d212b6\\4d85b7b7b95935134259574bd787df79.png",
+      "error": null,
+      "caveats": ""
+    },
+    {
+      "id": "home-screen-place",
+      "status": "complete",
+      "image_path": "E:\\code\\LuxrayKit\\outputs\\moodboards\\luxraykit-install-onboarding\\board\\generated\\.codex-exec\\1bb6e000d6d212b6\\12ba14a97f41b6b53ac53c222198eb8a.png",
+      "error": null,
+      "caveats": ""
+    },
+    {
+      "id": "pocket-companion",
+      "status": "complete",
+      "image_path": "E:\\code\\LuxrayKit\\outputs\\moodboards\\luxraykit-install-onboarding\\board\\generated\\.codex-exec\\1bb6e000d6d212b6\\c791a9f1bf1bc838524739e56e041f2e.png",
+      "error": null,
+      "caveats": ""
+    },
+    {
+      "id": "instant-open-motion",
+      "status": "complete",
+      "image_path": "E:\\code\\LuxrayKit\\outputs\\moodboards\\luxraykit-install-onboarding\\board\\generated\\.codex-exec\\1bb6e000d6d212b6\\14f2bda4484917be94d8a849eef0db68.png",
+      "error": null,
+      "caveats": ""
+    },
+    {
+      "id": "quiet-arena",
+      "status": "complete",
+      "image_path": "E:\\code\\LuxrayKit\\outputs\\moodboards\\luxraykit-install-onboarding\\board\\generated\\.codex-exec\\1bb6e000d6d212b6\\9118b0709ea68d3e7ffbe17daac42e4d.png",
+      "error": null,
+      "caveats": ""
+    },
+    {
+      "id": "strategy-table",
+      "status": "complete",
+      "image_path": "E:\\code\\LuxrayKit\\outputs\\moodboards\\luxraykit-install-onboarding\\board\\generated\\.codex-exec\\1bb6e000d6d212b6\\e2d0ac6b98136d70c725dda9d85cfc2a.png",
+      "error": null,
+      "caveats": ""
+    },
+    {
+      "id": "victory-signal",
+      "status": "complete",
+      "image_path": "E:\\code\\LuxrayKit\\outputs\\moodboards\\luxraykit-install-onboarding\\board\\generated\\.codex-exec\\1bb6e000d6d212b6\\c763f9669a6cf08682c8fb79f7e937c4.png",
+      "error": null,
+      "caveats": ""
+    },
+    {
+      "id": "social-electric-portrait",
+      "status": "complete",
+      "image_path": "E:\\code\\LuxrayKit\\outputs\\moodboards\\luxraykit-install-onboarding\\board\\generated\\.codex-exec\\1bb6e000d6d212b6\\07e23c36b3bcfb09ad9593c319fefb9d.png",
+      "error": null,
+      "caveats": ""
+    },
+    {
+      "id": "brand-afterimage",
+      "status": "complete",
+      "image_path": "E:\\code\\LuxrayKit\\outputs\\moodboards\\luxraykit-install-onboarding\\board\\generated\\.codex-exec\\1bb6e000d6d212b6\\8951f00ae611343ee21e87a539641b80.png",
+      "error": null,
+      "caveats": ""
+    }
+  ]
+}

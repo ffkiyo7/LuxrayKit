@@ -14,6 +14,8 @@ import {
   getEnvironmentPokemon,
 } from './data/environment';
 import { repository } from './lib/db';
+import { defaultTeams } from './data/seed/regMA/defaultTeams';
+import { defaultPreferences } from './data/seed/regMA/metadata';
 
 const DB_NAME = 'pokemon-champions-assistant';
 const pokedbSnapshot = {
@@ -93,11 +95,37 @@ describe('App page flows', () => {
       vi.fn(async () => new Response(JSON.stringify(pokedbSnapshot), { status: 200 })),
     );
     await deleteDb();
+    // Seed local state so flow tests start past the first-launch install guide
+    // overlay. clearAll() marks the store initialized so deleting every team in a
+    // test does not re-trigger the first-run seeding. New-visitor onboarding is
+    // covered separately in InstallGuide.test.
+    await repository.clearAll();
+    await repository.replaceTeams(defaultTeams);
+    await repository.savePreferences({ ...defaultPreferences, hasSeenInstallGuide: true });
   });
 
   afterEach(() => {
     cleanup();
     vi.unstubAllGlobals();
+  });
+
+  it('persists first-launch install guide dismissal and does not show it again', async () => {
+    await deleteDb();
+    const user = userEvent.setup();
+    const firstRender = render(<App />);
+
+    const guide = await screen.findByRole('dialog', { name: '安装与上手指引' });
+    await user.click(within(guide).getByRole('button', { name: '开始使用' }));
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: '安装与上手指引' })).toBeNull());
+    await waitFor(async () => {
+      const state = await repository.loadState();
+      expect(state.preferences.hasSeenInstallGuide).toBe(true);
+    });
+
+    firstRender.unmount();
+    render(<App />);
+    await screen.findByRole('heading', { name: '环境' });
+    expect(screen.queryByRole('dialog', { name: '安装与上手指引' })).toBeNull();
   });
 
   it('labels the loading state as local rule data instead of mock data', async () => {
@@ -210,6 +238,70 @@ describe('App page flows', () => {
 
     await user.click(screen.getByTitle('收起成员'));
     expect(screen.queryByText('能力值 / SP')).toBeNull();
+  });
+
+  it('quick-adds a Pokemon with blank configuration and a neutral pending state', async () => {
+    const user = await renderApp();
+    await openDefaultTeam(user);
+
+    await user.click(screen.getByRole('button', { name: '添加 Pokémon' }));
+    await user.type(screen.getByPlaceholderText('搜索 Pokémon 名称...'), '烈咬陆鲨');
+    await user.click(screen.getByRole('button', { name: /烈咬陆鲨/ }));
+
+    expect(await screen.findByText('待配置')).toBeTruthy();
+    expect(screen.getByText('未选择')).toBeTruthy();
+    expect(screen.getByText('未配置招式')).toBeTruthy();
+
+    let addedMember = undefined as Awaited<ReturnType<typeof repository.loadState>>['teams'][number]['members'][number] | undefined;
+    await waitFor(async () => {
+      const state = await repository.loadState();
+      addedMember = state.teams.find((team) => team.id === 'team-starter')?.members.find((member) => member.notes.startsWith('快速添加'));
+      expect(addedMember).toBeTruthy();
+    });
+
+    expect(addedMember).toMatchObject({
+      pokemonId: 'garchomp',
+      moveIds: [],
+      nature: '',
+      statPoints: {},
+      legalityStatus: 'missing-config',
+    });
+    expect(addedMember?.abilityId).toBeUndefined();
+
+    await user.click(screen.getByTitle('编辑成员'));
+    expect((screen.getByLabelText('特性') as HTMLSelectElement).value).toBe('');
+    const natureSelect = screen.getByLabelText('性格') as HTMLSelectElement;
+    expect(natureSelect.value).toBe('');
+    expect(natureSelect.options[0].textContent).toBe('未选择');
+    expect(screen.getAllByText('待配置').length).toBeGreaterThan(0);
+    expect(screen.getByText('尚未填写特性与招式。')).toBeTruthy();
+  });
+
+  it('adds a Pokedex form to the team without inventing battle configuration', { timeout: 15000 }, async () => {
+    const user = await renderApp();
+
+    await openTool(user, /规则图鉴/);
+    await user.type(screen.getByPlaceholderText('搜索名称'), 'Mega Garchomp');
+    await user.click(await screen.findByRole('button', { name: /超级烈咬陆鲨/ }));
+    await user.click(screen.getByRole('button', { name: /加入队伍/ }));
+
+    let addedMember = undefined as Awaited<ReturnType<typeof repository.loadState>>['teams'][number]['members'][number] | undefined;
+    await waitFor(async () => {
+      const state = await repository.loadState();
+      addedMember = state.teams[0].members.find((member) => member.notes === '从图鉴加入。');
+      expect(addedMember).toBeTruthy();
+    });
+
+    expect(addedMember).toMatchObject({
+      pokemonId: 'garchomp',
+      formId: 'mega-garchomp',
+      itemId: 'garchompite',
+      moveIds: [],
+      nature: '',
+      statPoints: {},
+      legalityStatus: 'missing-config',
+    });
+    expect(addedMember?.abilityId).toBeUndefined();
   });
 
   it('keeps member editing focused on the selected Pokemon, moves, nature, item, ability, and six SP fields', { timeout: 15000 }, async () => {

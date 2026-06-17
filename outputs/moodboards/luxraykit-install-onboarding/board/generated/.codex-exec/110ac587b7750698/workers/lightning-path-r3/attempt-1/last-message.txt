@@ -1,0 +1,1 @@
+Generated `image.png` and wrote the completion `result.json` at the requested paths.

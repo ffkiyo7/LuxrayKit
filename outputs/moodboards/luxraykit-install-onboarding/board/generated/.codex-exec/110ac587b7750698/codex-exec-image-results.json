@@ -1,0 +1,16 @@
+{
+  "status": "complete",
+  "total": 1,
+  "complete": 1,
+  "failed": 0,
+  "pending": 0,
+  "results": [
+    {
+      "id": "lightning-path-r3",
+      "status": "complete",
+      "image_path": "E:\\code\\LuxrayKit\\outputs\\moodboards\\luxraykit-install-onboarding\\board\\generated\\.codex-exec\\110ac587b7750698\\459f066e9119129dccb26321d9165d52.png",
+      "error": null,
+      "caveats": ""
+    }
+  ]
+}

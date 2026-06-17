@@ -65,7 +65,7 @@ export function Badge({ status, children }: { status?: LegalityStatus | 'version
     legal: 'bg-legalBg text-success',
     illegal: 'bg-missingBg text-danger',
     'needs-review': 'bg-reviewBg text-warning',
-    'missing-config': 'bg-missingBg text-danger',
+    'missing-config': 'bg-secondary text-textSecondary',
     version: 'bg-accent/15 text-accent',
     current: 'bg-accent/15 text-accent',
   };

@@ -1,0 +1,51 @@
+{
+  "status": "complete",
+  "total": 6,
+  "complete": 6,
+  "failed": 0,
+  "pending": 0,
+  "results": [
+    {
+      "id": "lightning-path",
+      "status": "complete",
+      "image_path": "E:\\code\\LuxrayKit\\outputs\\moodboards\\luxraykit-install-onboarding\\board\\generated\\.codex-exec\\c699a6cfbaf4927e\\5298dac1bed34994926f7f6ae271a929.png",
+      "error": null,
+      "caveats": ""
+    },
+    {
+      "id": "tactical-lens",
+      "status": "complete",
+      "image_path": "E:\\code\\LuxrayKit\\outputs\\moodboards\\luxraykit-install-onboarding\\board\\generated\\.codex-exec\\c699a6cfbaf4927e\\b5781f91a699d5f74a59c2694916ded9.png",
+      "error": null,
+      "caveats": ""
+    },
+    {
+      "id": "team-six-objects",
+      "status": "complete",
+      "image_path": "E:\\code\\LuxrayKit\\outputs\\moodboards\\luxraykit-install-onboarding\\board\\generated\\.codex-exec\\c699a6cfbaf4927e\\83f426b1ff5d5137d9e7f3feb431d503.png",
+      "error": null,
+      "caveats": ""
+    },
+    {
+      "id": "offline-vault",
+      "status": "complete",
+      "image_path": "E:\\code\\LuxrayKit\\outputs\\moodboards\\luxraykit-install-onboarding\\board\\generated\\.codex-exec\\c699a6cfbaf4927e\\1971aac9f356d10210feef0b0932a99a.png",
+      "error": null,
+      "caveats": ""
+    },
+    {
+      "id": "strategy-table",
+      "status": "complete",
+      "image_path": "E:\\code\\LuxrayKit\\outputs\\moodboards\\luxraykit-install-onboarding\\board\\generated\\.codex-exec\\c699a6cfbaf4927e\\27896110d4dfeaf90cc6e7e906073578.png",
+      "error": null,
+      "caveats": ""
+    },
+    {
+      "id": "victory-signal",
+      "status": "complete",
+      "image_path": "E:\\code\\LuxrayKit\\outputs\\moodboards\\luxraykit-install-onboarding\\board\\generated\\.codex-exec\\c699a6cfbaf4927e\\d8a3b945f58d355bde4bc2ce3f200601.png",
+      "error": null,
+      "caveats": ""
+    }
+  ]
+}

@@ -1,0 +1,228 @@
+{
+  "meta": {
+    "title": "LuxrayKit 首开与安装引导视觉方向",
+    "subtitle": "为中文移动端对战玩家探索更有安装冲动与品牌记忆的视觉世界",
+    "summary": "18 个单一视觉参考，围绕竞技电能、战术仪表、掌机仪式感和冠军舞台展开。避免设置卡片堆叠、官方背书暗示、可读文字、角色与官方标志复刻。",
+    "product": "LuxrayKit",
+    "market": "中文市场",
+    "channels": [
+      "App 内首开引导",
+      "个人页安装再入口",
+      "社媒宣传图"
+    ]
+  },
+  "signals": {
+    "theme": "非官方 Pokémon Champions 对战助手 PWA 的欢迎与安装体验",
+    "goal": "提高添加到主屏幕的意愿，并建立清晰、可拥有的 LuxrayKit 品牌记忆",
+    "audience": "中文移动端 Pokémon Champions 对战玩家，以首次使用的新用户为主",
+    "visualTerritories": [
+      "竞技电能",
+      "战术仪表",
+      "掌机仪式感",
+      "轻量冠军舞台"
+    ],
+    "paletteDirection": [
+      "蓝黑",
+      "电光黄",
+      "冰蓝",
+      "冷白",
+      "少量紫蓝"
+    ],
+    "mustPreserve": [
+      "LuxrayKit 名称",
+      "环境速览、队伍配置、对战工具、本地离线等真实产品功能",
+      "移动端 PWA 安装语境",
+      "非官方工具的诚实边界"
+    ],
+    "avoid": [
+      "普通设置卡片连续堆叠",
+      "官方 Pokémon 角色、Logo、精灵球或赛事标志的直接复刻",
+      "虚构官方背书",
+      "可读文字和 UI 标签",
+      "拼贴、网格、分屏、联系表",
+      "儿童玩具感和廉价电竞霓虹"
+    ]
+  },
+  "items": [
+    {
+      "id": "electric-threshold",
+      "title": "电光入口",
+      "caption": "把首次打开变成跨入战术空间的一步，而不是阅读设置说明。",
+      "source": "LuxrayKit current dark theme, electric accent, mobile first-launch goal.",
+      "tone": "confident, anticipatory, precise",
+      "motif": "a narrow electric threshold opening into a dark tactical space",
+      "palette": ["#0B0D12", "#151A25", "#F4D447", "#7C9FFF", "#F5F7FF"],
+      "prompt": "Single cinematic editorial image, a dark near-black space with one narrow doorway of controlled electric yellow and cool blue light, subtle floor reflections, precise premium atmosphere, the feeling of entering a competitive strategy room, vertical mobile-friendly composition with generous negative space, no people, no readable text, no logos, no branded characters, no UI, no collage, no grid, no split panels."
+    },
+    {
+      "id": "charged-glass-core",
+      "title": "蓄能玻璃核心",
+      "caption": "将品牌记忆压缩成一个可反复出现的电能核心物件。",
+      "source": "LuxrayKit icon geometry and electric brand cue, abstracted without logo reproduction.",
+      "tone": "tactile, premium, energized",
+      "motif": "a compact glass energy core with a circular electric pulse",
+      "palette": ["#111318", "#222A3B", "#FFE052", "#86A5FF", "#DDE7FF"],
+      "prompt": "Single macro product photograph of a small circular glass energy core resting on matte graphite, a restrained electric-yellow pulse traveling through a cool blue inner ring, premium optical detail, shallow depth of field, believable materials, centered object with room around it, no text, no logo, no Pokeball, no copyrighted character, no UI, no collage, no grid."
+    },
+    {
+      "id": "electric-fur-material",
+      "title": "电性绒面材质",
+      "caption": "从名字里的电系联想提取触感，不直接画官方角色。",
+      "source": "Luxray name association translated into an original material study.",
+      "tone": "bold, tactile, mysterious",
+      "motif": "black velvety fibers catching yellow and blue static",
+      "palette": ["#08090B", "#171A20", "#F7D63D", "#527DFF", "#B9C8FF"],
+      "prompt": "Single extreme macro material photograph of dense black velvet-like fibers with a few controlled strands of electric yellow and cobalt-blue static light moving across the surface, luxurious tactile detail, dramatic side lighting, abstract and original, no animal face, no character, no text, no logo, no UI, no collage, no grid."
+    },
+    {
+      "id": "lightning-path",
+      "title": "决策闪电路径",
+      "caption": "用一条明确的路径表现“打开即找到下一步”。",
+      "source": "Competitive decision-making and fast environment scanning.",
+      "tone": "fast, clear, directional",
+      "motif": "one luminous route cutting through a dark field",
+      "palette": ["#0A0C10", "#1D2330", "#EFD447", "#6E91FF", "#FFFFFF"],
+      "prompt": "Single aerial cinematic photograph of an abstract black mineral landscape crossed from lower left to upper right by one narrow angular electric-yellow trail, three distant cool-blue light beacons embedded in the terrain, large-scale environmental perspective, deep shadows and atmospheric haze, absolutely no phone, no handheld device, no desk, no stationery, no interface, no text, no logo, no collage."
+    },
+    {
+      "id": "tactical-lens",
+      "title": "战术观测镜",
+      "caption": "把环境速览表现为清晰看见局势，而不是一堆图表卡。",
+      "source": "Environment overview as the product's proof object.",
+      "tone": "analytical, calm, sharp",
+      "motif": "a precision optical lens revealing layered tactical depth",
+      "palette": ["#101218", "#1A2333", "#7C9FFF", "#F5D74F", "#ECF2FF"],
+      "prompt": "Single museum-like studio photograph of a large freestanding convex optical lens mounted vertically in a thin brushed-metal frame, seen from a low three-quarter angle, the lens refracts several floating translucent planes and tiny light points into sharp depth, icy blue glass with one yellow caustic highlight, physical optical instrument only, absolutely no phone, no desk flat-lay, no UI, no text, no logos, no collage."
+    },
+    {
+      "id": "sample-field",
+      "title": "样本场",
+      "caption": "以聚合后的点阵和密度传达样本占比，避免伪装官方实时数据。",
+      "source": "Product language: sample share and public team snapshot, not official usage rate.",
+      "tone": "evidence-led, transparent, modern",
+      "motif": "many neutral points forming a visible but imperfect competitive pattern",
+      "palette": ["#0F1116", "#262B35", "#AAB7D4", "#7897F6", "#E5CA48"],
+      "prompt": "Single top-down photographic composition of many small translucent dark and blue tokens distributed across a graphite field, naturally clustering into a clear pattern with one restrained yellow cluster, physical depth and honest imperfections, evokes aggregated samples without displaying numbers or charts, no readable text, no logos, no UI, no collage."
+    },
+    {
+      "id": "team-six-objects",
+      "title": "六枚队伍筹码",
+      "caption": "用六个可编辑单元表现队伍骨架与本地维护。",
+      "source": "LuxrayKit team building and local editable roster.",
+      "tone": "organized, satisfying, personal",
+      "motif": "six distinct modular objects arranged as one coherent team",
+      "palette": ["#111318", "#252A34", "#7D9EFF", "#F1D44C", "#D9E2F7"],
+      "prompt": "Single low-angle editorial photograph of exactly six freestanding abstract ceramic sculptures arranged in a forward tactical formation on a dark plinth, each sculpture has a clearly different silhouette, height and small color inlay, dramatic side light and long shadows, gallery installation scale, no phone, no desk accessories, no creature imagery, no text, no logos, no UI, no collage."
+    },
+    {
+      "id": "precision-caliper",
+      "title": "精密计算触感",
+      "caption": "将伤害计算的价值表达为谨慎校准，而不是夸张的战斗爆炸。",
+      "source": "Experimental single-hit damage calculation with explicit inputs.",
+      "tone": "technical, trustworthy, restrained",
+      "motif": "precision instrument measuring a luminous energy fragment",
+      "palette": ["#0B0D11", "#303641", "#F4D64B", "#80A0FF", "#E8EDF7"],
+      "prompt": "Single close-up editorial photograph of a precision caliper measuring a small translucent electric-yellow energy fragment on a dark technical workbench, cool blue edge light, crisp material detail, careful calibration mood, no measurements visible, no text, no logo, no character, no UI, no collage."
+    },
+    {
+      "id": "offline-vault",
+      "title": "离线数据舱",
+      "caption": "把本地存储与离线可靠性表现成私密、稳固、随身。",
+      "source": "Local-only teams, backups and offline cache.",
+      "tone": "secure, private, dependable",
+      "motif": "a compact sealed capsule holding softly lit data-like layers",
+      "palette": ["#111318", "#202733", "#7294F0", "#EFD34D", "#DDE7FA"],
+      "prompt": "Single premium industrial product photograph of a palm-sized sealed graphite data capsule standing upright on a pale neutral pedestal, thick protective shell opened by a narrow seam to reveal stacked translucent blue plates within, one tiny amber status light, three-quarter view with soft shadow, absolutely no phone shape, no screen, no desk flat-lay, no lock icon, no text, no logos, no UI, no collage."
+    },
+    {
+      "id": "thumb-ritual",
+      "title": "拇指安装仪式",
+      "caption": "让添加到主屏幕成为一次明确、轻松、有回报的动作。",
+      "source": "Mobile PWA installation action for Chinese users.",
+      "tone": "human, immediate, rewarding",
+      "motif": "a thumb completing one decisive tap on a luminous physical surface",
+      "palette": ["#0D0F14", "#252A36", "#F5D74D", "#7898F5", "#F4F6FA"],
+      "prompt": "Single close-up lifestyle photograph of a human thumb making one decisive tap on a small luminous glass tile embedded in a dark handheld surface, satisfying soft pulse of yellow and blue light, cropped hand only, modern mobile ritual, no device brand, no screen text, no UI labels, no logo, no collage."
+    },
+    {
+      "id": "home-screen-place",
+      "title": "桌面上的专属位置",
+      "caption": "表现安装后的归属感，但不伪造具体手机系统 UI。",
+      "source": "Add-to-home-screen benefit without copying OS interface.",
+      "tone": "personal, neat, desirable",
+      "motif": "one illuminated object settling into an empty place among everyday essentials",
+      "palette": ["#15171B", "#2A2E36", "#F2D34D", "#7A98EE", "#EFEFEA"],
+      "prompt": "Single overhead lifestyle photograph of a dark bedside or gaming desk with a phone-shaped blank glass object, earbuds and a compact controller, one empty illuminated square on the surface receiving a small blue-and-yellow token, conveys a dedicated home-screen place without showing an operating system, no text, no logos, no readable screen, no collage."
+    },
+    {
+      "id": "pocket-companion",
+      "title": "口袋战术伙伴",
+      "caption": "将 PWA 表现为随时可开的轻量工具，而不是沉重后台。",
+      "source": "Mobile-first utility used between matches and during team planning.",
+      "tone": "portable, familiar, capable",
+      "motif": "a compact dark device beside a notebook and controller at match break",
+      "palette": ["#0F1115", "#272B32", "#708FE5", "#EBD04C", "#DDE3EE"],
+      "prompt": "Single documentary-style photograph of a compact unbranded dark mobile device resting beside a small strategy notebook, pen and game controller during a quiet match break, screen shows only abstract blue and yellow light shapes with no interface details, natural hand nearby, intimate and capable, no text, no logos, no copyrighted characters, no collage."
+    },
+    {
+      "id": "instant-open-motion",
+      "title": "一点即开",
+      "caption": "用瞬时展开的光和结构表达桌面图标的一触即达。",
+      "source": "Standalone PWA launch speed and direct access.",
+      "tone": "fast, frictionless, clean",
+      "motif": "a compact square unfolding into a full luminous space",
+      "palette": ["#090B0F", "#171D28", "#F2D449", "#7398FF", "#F3F6FF"],
+      "prompt": "Single high-speed studio photograph of one small dark square object unfolding into a larger luminous blue-black plane with a sharp electric-yellow edge, controlled motion blur, elegant kinetic transformation, lots of negative space, no text, no app icon, no logo, no UI, no collage, no split panels."
+    },
+    {
+      "id": "quiet-arena",
+      "title": "赛前静默舞台",
+      "caption": "建立竞技期待感，但不把产品伪装成官方赛事。",
+      "source": "Competitive audience emotion without official event branding.",
+      "tone": "focused, cinematic, mature",
+      "motif": "an empty small arena before a decisive match",
+      "palette": ["#07090D", "#171C28", "#567BE0", "#E4C944", "#CBD7F5"],
+      "prompt": "Single cinematic wide photograph of an original small competitive arena moments before a match, empty dark floor, restrained blue perimeter light and one warm yellow spotlight, no spectators visible, no screens with content, no banners, no logos, no official event cues, premium quiet anticipation, no collage."
+    },
+    {
+      "id": "strategy-table",
+      "title": "冠军桌面",
+      "caption": "把产品放在认真准备的桌面语境里，强调玩家自主判断。",
+      "source": "Team preparation, public sample interpretation and local editing.",
+      "tone": "disciplined, intelligent, aspirational",
+      "motif": "a prepared strategy desk with modular pieces and a blank luminous device",
+      "palette": ["#101216", "#2A2D34", "#6E8FEA", "#EFD34B", "#E7E8E3"],
+      "prompt": "Single cinematic three-quarter photograph of a physical tabletop strategy sand table, raised black terrain contours with six colored glass markers and thin illuminated route lines, two human hands adjusting one marker at the edge of frame, shallow depth of field, serious preparation room atmosphere, no phone, no screen, no stationery flat-lay, no readable text, no logos, no characters, no collage."
+    },
+    {
+      "id": "victory-signal",
+      "title": "克制的胜利信号",
+      "caption": "以光的确认感奖励安装，而不是俗套奖杯和烟花。",
+      "source": "Installation completion and confident first-use transition.",
+      "tone": "rewarding, understated, memorable",
+      "motif": "one clean vertical beam resolving into a stable ring",
+      "palette": ["#0A0C10", "#1E2430", "#F7D94B", "#7297FF", "#F9FAFC"],
+      "prompt": "Single monumental cinematic photograph inside a vast dark hall filled with fine haze, one perfectly vertical electric-yellow beam descends from the ceiling and meets a thin cool-blue circle painted in light across the floor, tiny human silhouette far away for scale, wide architectural composition, no glass orb, no product object, no trophy, no fireworks, no text, no logo, no UI, no collage."
+    },
+    {
+      "id": "social-electric-portrait",
+      "title": "社媒电光肖像",
+      "caption": "为社媒延展准备一个有人味、但不依赖角色 IP 的视觉锚点。",
+      "source": "Social promotion for Chinese mobile competitive players.",
+      "tone": "youthful, focused, credible",
+      "motif": "a focused player's side profile lit by blue and yellow device glow",
+      "palette": ["#080A0E", "#1A2030", "#5E85ED", "#F1D24A", "#DDE6FA"],
+      "prompt": "Single editorial portrait photograph of a young adult Chinese competitive game player in side profile, face partly obscured and identity nonspecific, focused on an unbranded handheld device outside frame, controlled blue and electric-yellow light, mature sports-documentary mood, plain dark background with copy space, no team jersey logos, no text, no copyrighted character, no collage."
+    },
+    {
+      "id": "brand-afterimage",
+      "title": "品牌余像",
+      "caption": "用独特的黄蓝环形余像建立 LuxrayKit 的非文字记忆。",
+      "source": "LuxrayKit current circular icon cue abstracted into a distinctive visual signature.",
+      "tone": "iconic, minimal, ownable",
+      "motif": "an incomplete yellow-blue light ring leaving a sharp afterimage",
+      "palette": ["#0A0B0E", "#151922", "#F4D548", "#7799FA", "#EEF3FF"],
+      "prompt": "Single long-exposure studio photograph of one incomplete circular light gesture, electric yellow crossing cool blue over a near-black background, sharp controlled afterimage and a small central glow, minimal and ownable visual signature, not a Pokeball, no logo, no text, no UI, no collage, no grid."
+    }
+  ]
+}

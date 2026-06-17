@@ -2,6 +2,7 @@ import { ArrowLeft, BarChart3, ExternalLink, ShieldCheck, UserCircle, Users, Wre
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { BottomNav } from './components/BottomNav';
 import { Header } from './components/Header';
+import { InstallGuide } from './components/InstallGuide';
 import { Button } from './components/ui';
 import { productName } from './branding';
 import type { EnvironmentState, EnvironmentTeamSample } from './data/environment';
@@ -109,6 +110,7 @@ function AppShell() {
   const [pendingImportSample, setPendingImportSample] = useState<EnvironmentTeamSample | null>(null);
   const [environmentState, setEnvironmentState] = useState<EnvironmentState | null>(null);
   const [environmentLoadFailed, setEnvironmentLoadFailed] = useState(false);
+  const [showInstallGuide, setShowInstallGuide] = useState(false);
   const { loading, teams, preferences, replacePreferences, saveTeam } = useAppStore();
 
   const activeTeam = teams.find((team) => team.id === activeTeamId) ?? teams[0];
@@ -155,6 +157,20 @@ function AppShell() {
       active = false;
     };
   }, []);
+
+  // First-launch onboarding: nudge new visitors to install the PWA. Kept in a
+  // dedicated effect so it fires once preferences finish loading from IndexedDB.
+  useEffect(() => {
+    if (loading) return;
+    if (!preferences.hasSeenInstallGuide) setShowInstallGuide(true);
+  }, [loading, preferences.hasSeenInstallGuide]);
+
+  const dismissInstallGuide = useCallback(async () => {
+    setShowInstallGuide(false);
+    if (!preferences.hasSeenInstallGuide) {
+      await replacePreferences({ ...preferences, hasSeenInstallGuide: true });
+    }
+  }, [preferences, replacePreferences]);
 
   const openTool = useCallback((view: ToolView) => {
     setToolView(view);
@@ -227,7 +243,7 @@ function AppShell() {
           <ToolsPage onOpenTool={openTool} />
         );
       case 'profile':
-        return <ProfilePage />;
+        return <ProfilePage onOpenInstallGuide={() => setShowInstallGuide(true)} />;
     }
   }, [
     activeTab,
@@ -287,6 +303,7 @@ function AppShell() {
         />
       )}
       {!overlay && <BottomNav activeTab={activeTab} tabs={tabs} onChange={setActiveTab} hidden={bottomNavAutoHide.hidden} />}
+      {showInstallGuide && <InstallGuide onDismiss={dismissInstallGuide} />}
     </main>
   );
 }
