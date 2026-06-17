@@ -113,7 +113,7 @@ function cacheKey(url) {
 async function cachedText(url, cacheDir) {
   const path = resolve(cacheDir, `${cacheKey(url)}.html`);
   if (existsSync(path)) return readFile(path, 'utf8');
-  const res = await fetch(url, { headers: { 'User-Agent': UA } });
+  const res = await fetch(url, { signal: AbortSignal.timeout(60000), headers: { 'User-Agent': UA } });
   if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
   const text = await res.text();
   await writeFile(path, text, 'utf8');
@@ -123,7 +123,7 @@ async function cachedText(url, cacheDir) {
 async function cachedJson(url) {
   const path = resolve(POKEAPI_CACHE_DIR, `${cacheKey(url)}.json`);
   if (existsSync(path)) return JSON.parse(await readFile(path, 'utf8'));
-  const res = await fetch(url, { headers: { 'User-Agent': UA } });
+  const res = await fetch(url, { signal: AbortSignal.timeout(20000), headers: { 'User-Agent': UA } });
   if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
   const json = await res.json();
   await writeFile(path, JSON.stringify(json), 'utf8');
@@ -235,7 +235,7 @@ async function loadZhDataset() {
   if (existsSync(cachePath)) {
     json = JSON.parse(await readFile(cachePath, 'utf8'));
   } else {
-    const res = await fetch(ZH_DATASET_URL, { headers: { 'User-Agent': UA } });
+    const res = await fetch(ZH_DATASET_URL, { signal: AbortSignal.timeout(20000), headers: { 'User-Agent': UA } });
     if (!res.ok) throw new Error(`Failed to fetch ${ZH_DATASET_URL}: ${res.status}`);
     json = await res.json();
     await writeFile(cachePath, JSON.stringify(json), 'utf8');

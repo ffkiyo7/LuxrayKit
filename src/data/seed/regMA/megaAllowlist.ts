@@ -1,6 +1,6 @@
 import type { MegaEvolutionEntry } from '../../../types';
 
-const sourceRefs = ['reg-ma-official-mega-list', 'manual-seed-review'];
+const sourceRefs = ['reg-mb-official-mega-list', 'manual-seed-review'];
 
 const knownForms: Record<string, Pick<MegaEvolutionEntry, 'basePokemonId' | 'formId'>> = {
   'Mega Venusaur': { basePokemonId: 'venusaur', formId: 'mega-venusaur' },
@@ -62,6 +62,22 @@ const knownForms: Record<string, Pick<MegaEvolutionEntry, 'basePokemonId' | 'for
   'Mega Dragonite': { basePokemonId: 'dragonite', formId: 'mega-dragonite' },
   'Mega Meganium': { basePokemonId: 'meganium', formId: 'mega-meganium' },
   'Mega Feraligatr': { basePokemonId: 'feraligatr', formId: 'mega-feraligatr' },
+  'Mega Raichu X': { basePokemonId: 'raichu', formId: 'mega-raichu-x' },
+  'Mega Raichu Y': { basePokemonId: 'raichu', formId: 'mega-raichu-y' },
+  'Mega Sceptile': { basePokemonId: 'sceptile', formId: 'mega-sceptile' },
+  'Mega Blaziken': { basePokemonId: 'blaziken', formId: 'mega-blaziken' },
+  'Mega Swampert': { basePokemonId: 'swampert', formId: 'mega-swampert' },
+  'Mega Mawile': { basePokemonId: 'mawile', formId: 'mega-mawile' },
+  'Mega Metagross': { basePokemonId: 'metagross', formId: 'mega-metagross' },
+  'Mega Staraptor': { basePokemonId: 'staraptor', formId: 'mega-staraptor' },
+  'Mega Scolipede': { basePokemonId: 'scolipede', formId: 'mega-scolipede' },
+  'Mega Scrafty': { basePokemonId: 'scrafty', formId: 'mega-scrafty' },
+  'Mega Eelektross': { basePokemonId: 'eelektross', formId: 'mega-eelektross' },
+  'Mega Pyroar': { basePokemonId: 'pyroar', formId: 'mega-pyroar' },
+  'Mega Malamar': { basePokemonId: 'malamar', formId: 'mega-malamar' },
+  'Mega Barbaracle': { basePokemonId: 'barbaracle', formId: 'mega-barbaracle' },
+  'Mega Dragalge': { basePokemonId: 'dragalge', formId: 'mega-dragalge' },
+  'Mega Falinks': { basePokemonId: 'falinks', formId: 'mega-falinks' },
 };
 
 const names = [
@@ -124,9 +140,25 @@ const names = [
   'Mega Drampa',
   'Mega Scovillain',
   'Mega Glimmora',
+  'Mega Raichu X',
+  'Mega Raichu Y',
+  'Mega Sceptile',
+  'Mega Blaziken',
+  'Mega Swampert',
+  'Mega Mawile',
+  'Mega Metagross',
+  'Mega Staraptor',
+  'Mega Scolipede',
+  'Mega Scrafty',
+  'Mega Eelektross',
+  'Mega Pyroar',
+  'Mega Malamar',
+  'Mega Barbaracle',
+  'Mega Dragalge',
+  'Mega Falinks',
 ];
 
-export const regMaMegaAllowlistExpectedCount = 59;
+export const regMaMegaAllowlistExpectedCount = 75;
 
 export const regMaMegaAllowlist: MegaEvolutionEntry[] = names.map((englishName) => ({
   id: englishName.toLowerCase().replaceAll(' ', '-'),
@@ -135,7 +167,7 @@ export const regMaMegaAllowlist: MegaEvolutionEntry[] = names.map((englishName) 
   verificationStatus: 'manual-review',
   sourceRefs,
   reviewNotes: knownForms[englishName]
-    ? 'Official Reg M-A Mega list entry joined to current local catalog form data.'
-    : 'Official Reg M-A Mega list entry. Battle data, sprites, item mapping, and base catalog row still need a follow-up data pass.',
+    ? 'Reg M-B Mega list entry joined to current local catalog form data.'
+    : 'Reg M-B Mega list entry. Battle data, sprites, item mapping, and base catalog row still need a follow-up data pass.',
   ...knownForms[englishName],
 }));

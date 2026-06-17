@@ -1,4 +1,5 @@
 import { existsSync, readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
 import {
   abilities,
@@ -26,6 +27,61 @@ const pngDimensions = (path: string) => {
   };
 };
 
+const fileHash = (path: string) => createHash('sha256').update(readFileSync(path)).digest('hex');
+
+const mbMegaBaseArtworkIds = {
+  'mega-raichu-x': '26',
+  'mega-raichu-y': '26',
+  'mega-sceptile': '254',
+  'mega-blaziken': '257',
+  'mega-swampert': '260',
+  'mega-mawile': '303',
+  'mega-metagross': '376',
+  'mega-staraptor': '398',
+  'mega-scolipede': '545',
+  'mega-scrafty': '560',
+  'mega-eelektross': '604',
+  'mega-pyroar': '668',
+  'mega-malamar': '687',
+  'mega-barbaracle': '689',
+  'mega-dragalge': '691',
+  'mega-falinks': '870',
+} as const;
+
+const mbAssetItemIds = [
+  'big-root',
+  'damp-rock',
+  'expert-belt',
+  'heat-rock',
+  'icy-rock',
+  'iron-ball',
+  'life-orb',
+  'light-clay',
+  'metronome',
+  'muscle-band',
+  'shed-shell',
+  'smooth-rock',
+  'wide-lens',
+  'wise-glasses',
+  'zoom-lens',
+  'barbaracite',
+  'blazikenite',
+  'dragalgite',
+  'eelektrossite',
+  'falinksite',
+  'malamarite',
+  'mawilite',
+  'metagrossite',
+  'pyroarite',
+  'raichunite',
+  'raichunite-x',
+  'scolipite',
+  'scraftinite',
+  'sceptilite',
+  'staraptite',
+  'swampertite',
+] as const;
+
 describe('seed data audit', () => {
   it('keeps current seed data internally consistent', () => {
     expect(auditSeedData()).toEqual([]);
@@ -34,7 +90,10 @@ describe('seed data audit', () => {
   it('keeps every catalog source ref resolvable through the manifest', () => {
     const sourceRefIds = new Set(dataSourceManifest.sources.map((sourceRef) => sourceRef.id));
 
-    expect(sourceRefIds.has('reg-ma-official-rule')).toBe(true);
+    expect(sourceRefIds.has('reg-mb-official-rule')).toBe(true);
+    expect(sourceRefIds.has('reg-mb-official-eligible-pokemon')).toBe(true);
+    expect(sourceRefIds.has('reg-mb-official-mega-list')).toBe(true);
+    expect(sourceRefIds.has('pokebase-champions-pokemon-mb')).toBe(true);
     expect(sourceRefIds.has('reg-ma-official-eligible-pokemon')).toBe(true);
     expect(sourceRefIds.has('reg-ma-official-mega-list')).toBe(true);
     expect(sourceRefIds.has('reg-ma-community-item-snapshot')).toBe(true);
@@ -46,11 +105,11 @@ describe('seed data audit', () => {
     expect(sourceRefIds.has('pokebase-champions-learnsets')).toBe(true);
     expect(sourceRefIds.has('pokeapi-move-data')).toBe(true);
     expect(sourceRefIds.has('pokemon-zh-dataset-move-text')).toBe(true);
-    expect(auditSourceRefs('Test row', ['reg-ma-official-rule'])).toEqual([]);
+    expect(auditSourceRefs('Test row', ['reg-mb-official-rule'])).toEqual([]);
   });
 
-  it('keeps the official Reg M-A allowlist traceable to catalog rows', () => {
-    expect(regMaPokemonAllowlistExpectedCount).toBe(213);
+  it('keeps the current Reg M-B allowlist traceable to catalog rows', () => {
+    expect(regMaPokemonAllowlistExpectedCount).toBe(235);
     expect(regMaPokemonAllowlist).toHaveLength(regMaPokemonAllowlistExpectedCount);
     expect(regMaPokemonAllowlist).toEqual(
       expect.arrayContaining([
@@ -62,14 +121,16 @@ describe('seed data audit', () => {
     expect(regMaPokemonAllowlist.every((entry) => entry.verificationStatus === 'manual-review')).toBe(true);
   });
 
-  it('keeps the official Reg M-A Mega allowlist traceable', () => {
-    expect(regMaMegaAllowlistExpectedCount).toBe(59);
+  it('keeps the current Reg M-B Mega allowlist traceable', () => {
+    expect(regMaMegaAllowlistExpectedCount).toBe(75);
     expect(regMaMegaAllowlist).toHaveLength(regMaMegaAllowlistExpectedCount);
     expect(regMaMegaAllowlist).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ englishName: 'Mega Garchomp', basePokemonId: 'garchomp', formId: 'mega-garchomp' }),
         expect.objectContaining({ englishName: 'Mega Dragonite', basePokemonId: 'dragonite', formId: 'mega-dragonite' }),
         expect.objectContaining({ englishName: 'Mega Starmie', basePokemonId: 'starmie', formId: 'mega-starmie' }),
+        expect.objectContaining({ englishName: 'Mega Raichu X', basePokemonId: 'raichu', formId: 'mega-raichu-x' }),
+        expect.objectContaining({ englishName: 'Mega Falinks', basePokemonId: 'falinks', formId: 'mega-falinks' }),
       ]),
     );
     expect(regMaMegaAllowlist.every((entry) => entry.verificationStatus === 'manual-review')).toBe(true);
@@ -101,6 +162,21 @@ describe('seed data audit', () => {
       ['dragonite', 'mega-dragonite', 'dragoninite'],
       ['meganium', 'mega-meganium', 'meganiumite'],
       ['feraligatr', 'mega-feraligatr', 'feraligite'],
+      ['raichu', 'mega-raichu-x', 'raichunite-x'],
+      ['sceptile', 'mega-sceptile', 'sceptilite'],
+      ['blaziken', 'mega-blaziken', 'blazikenite'],
+      ['swampert', 'mega-swampert', 'swampertite'],
+      ['mawile', 'mega-mawile', 'mawilite'],
+      ['metagross', 'mega-metagross', 'metagrossite'],
+      ['staraptor', 'mega-staraptor', 'staraptite'],
+      ['scolipede', 'mega-scolipede', 'scolipite'],
+      ['scrafty', 'mega-scrafty', 'scraftinite'],
+      ['eelektross', 'mega-eelektross', 'eelektrossite'],
+      ['pyroar', 'mega-pyroar', 'pyroarite'],
+      ['malamar', 'mega-malamar', 'malamarite'],
+      ['barbaracle', 'mega-barbaracle', 'barbaracite'],
+      ['dragalge', 'mega-dragalge', 'dragalgite'],
+      ['falinks', 'mega-falinks', 'falinksite'],
     ] as const;
 
     for (const [pokemonId, formId, itemId] of expectedForms) {
@@ -133,7 +209,7 @@ describe('seed data audit', () => {
   });
 
   it('keeps unverified or out-of-rule items out of the current selector pool', () => {
-    expect(currentRuleSelectableItemIds).toHaveLength(117);
+    expect(currentRuleSelectableItemIds).toHaveLength(148);
     expect(currentRuleSelectableItemIds).toContain('sitrus-berry');
     expect(currentRuleSelectableItemIds).toContain('focus-sash');
     expect(currentRuleSelectableItemIds).toContain('choice-scarf');
@@ -146,9 +222,9 @@ describe('seed data audit', () => {
     expect(items.find((item) => item.id === 'clear-amulet')?.legalInCurrentRule).toBe(false);
   });
 
-  it('keeps all 117 current-rule items with local iconRef snapshots', () => {
+  it('keeps all current-rule items with local iconRef snapshots', () => {
     const selectable = currentRuleSelectableItems();
-    expect(selectable).toHaveLength(117);
+    expect(selectable).toHaveLength(148);
 
     for (const item of selectable) {
       // iconRef must exist
@@ -172,8 +248,29 @@ describe('seed data audit', () => {
     }
   });
 
+  it('keeps M-B asset snapshots from falling back to placeholder duplicates', () => {
+    for (const [megaId, baseArtworkId] of Object.entries(mbMegaBaseArtworkIds)) {
+      const megaArtworkPath = `public/assets/pokemon/artwork/${megaId}.png`;
+      const baseArtworkPath = `public/assets/pokemon/artwork/${baseArtworkId}.png`;
+
+      expect(existsSync(megaArtworkPath), `${megaId} artwork file missing`).toBe(true);
+      expect(fileHash(megaArtworkPath), `${megaId} artwork must not reuse base artwork ${baseArtworkId}`).not.toBe(fileHash(baseArtworkPath));
+    }
+
+    const itemHashes = new Map<string, string[]>();
+    for (const itemId of mbAssetItemIds) {
+      const itemPath = `public/assets/items/${itemId}.png`;
+      expect(existsSync(itemPath), `${itemId} icon file missing`).toBe(true);
+      const hash = fileHash(itemPath);
+      itemHashes.set(hash, [...(itemHashes.get(hash) ?? []), itemId]);
+    }
+
+    const duplicateItemIcons = [...itemHashes.values()].filter((ids) => ids.length > 1);
+    expect(duplicateItemIcons).toEqual([]);
+  });
+
   it('keeps current-rule move catalog generated from Champions available moves', () => {
-    expect(moves).toHaveLength(539);
+    expect(moves).toHaveLength(545);
 
     const garchompMoves = currentRuleMovesForPokemon('garchomp').map((move) => move.id);
     expect(garchompMoves).toEqual(expect.arrayContaining(['protect', 'dragon-claw', 'earthquake']));
@@ -208,7 +305,7 @@ describe('seed data audit', () => {
   it('keeps real catalog rows on local sprite icons', () => {
     const ids = pokemon.map((entry) => entry.id);
     expect(ids).toEqual(expect.arrayContaining(['venusaur', 'charizard', 'politoed', 'torkoal', 'garchomp', 'incineroar']));
-    expect(pokemon.length).toBe(213);
+    expect(pokemon.length).toBe(235);
     // All Pokémon and Mega form icons must be local /assets/pokemon/thumbs/ paths
     expect(pokemon.every((entry) => entry.iconRef.startsWith('/assets/pokemon/thumbs/'))).toBe(true);
     expect(pokemon.flatMap((entry) => entry.megaForms).every((form) => form.iconRef.startsWith('/assets/pokemon/thumbs/'))).toBe(true);
@@ -240,7 +337,7 @@ describe('seed data audit', () => {
   });
 
   it('keeps ability text complete and maps abilities back to current Pokemon', () => {
-    expect(abilities).toHaveLength(189);
+    expect(abilities).toHaveLength(198);
     expect(abilities.every((ability) => ability.effectSummary && !ability.effectSummary.includes('待确认'))).toBe(true);
 
     const expectedPokemonIdsByAbility = new Map<string, string[]>();

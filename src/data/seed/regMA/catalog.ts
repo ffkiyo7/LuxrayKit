@@ -1,25 +1,37 @@
 import type { Ability, Item, Move, Pokemon } from '../../../types';
+import { pokemonBatch006, abilitiesBatch006 } from './catalog-batch-006';
 import { pokemonBatch005, abilitiesBatch005 } from './catalog-batch-005';
 import { pokemonBatch004, abilitiesBatch004 } from './catalog-batch-004';
 import { pokemonBatch003, abilitiesBatch003 } from './catalog-batch-003';
 import { pokemonBatch002, abilitiesBatch002 } from './catalog-batch-002';
 import { pokemonBatch001, abilitiesBatch001 } from './catalog-batch-001';
 import { megaFormsByParentId, megaStoneParentMap, megaCapableBaseIds } from './mega-catalog';
+import { mbMegaFormsByParentId, mbMegaStoneParentMap, mbMegaCapableBaseIds } from './mega-catalog-mb';
 import { itemIconMapping } from './item-icon-mapping';
 import { pokemonForms032 } from './catalog-forms';
 import { championsMoves } from './move-catalog';
 
-const catalogRefs = ['reg-ma-official-eligible-pokemon', 'pokeapi-pokemon-data', 'pokeapi-official-artwork', 'manual-seed-review'];
+const catalogRefs = ['reg-mb-official-eligible-pokemon', 'pokeapi-pokemon-data', 'pokeapi-official-artwork', 'manual-seed-review'];
 const abilityRefs = ['pokemon-zhwiki-ability-text', 'pokeapi-pokemon-data'];
 const championsAbilityRefs = ['pokebase-champions-mega-data', 'manual-seed-review'];
-const megaRefs = ['reg-ma-official-mega-list', 'pokeapi-pokemon-data', 'pokeapi-official-artwork', 'manual-seed-review'];
-const itemCandidateRefs = ['reg-ma-community-item-snapshot', 'manual-seed-review'];
-const megaItemRefs = ['reg-ma-official-mega-list', 'reg-ma-community-item-snapshot', 'manual-seed-review'];
+const megaRefs = ['reg-mb-official-mega-list', 'pokeapi-pokemon-data', 'pokeapi-official-artwork', 'manual-seed-review'];
+const itemCandidateRefs = ['pokebase-champions-item-icons', 'manual-seed-review'];
+const megaItemRefs = ['reg-mb-official-mega-list', 'pokebase-champions-item-icons', 'manual-seed-review'];
+const combinedMegaFormsByParentId = {
+  ...megaFormsByParentId,
+  ...mbMegaFormsByParentId,
+};
+const combinedMegaStoneParentMap = {
+  ...megaStoneParentMap,
+  ...mbMegaStoneParentMap,
+};
+const combinedMegaCapableBaseIds = new Set([...megaCapableBaseIds, ...mbMegaCapableBaseIds]);
 
 const artwork = (nationalDexNo: number) => `/assets/pokemon/thumbs/${nationalDexNo}.png`;
 const formArtwork = (formSpriteId: number) => artwork(formSpriteId);
 
 const abilityRows: Ability[] = [
+  ...abilitiesBatch006,
   ...abilitiesBatch005,
   ...abilitiesBatch004,
   ...abilitiesBatch003,
@@ -331,23 +343,33 @@ const duplicateItemRestriction = '同队不得重复携带同名道具。';
 const megaRestriction = '每场战斗只能 Mega Evolution 一次。';
 
 const heldItemRows = [
+  ['big-root', '大根茎', 'Big Root', '携带后，吸取ＨＰ的招式 可以比平时更多地回复自己的ＨＰ。'],
   ['black-belt', '黑带', 'Black Belt', '提升格斗属性招式威力。'],
   ['black-glasses', '黑色眼镜', 'Black Glasses', '提升恶属性招式威力。'],
   ['bright-powder', '光粉', 'Bright Powder', '降低对手招式命中率。'],
   ['charcoal', '木炭', 'Charcoal', '提升火属性招式威力。'],
   ['choice-scarf', '讲究围巾', 'Choice Scarf', '提升速度，但只能连续使用一个招式。'],
+  ['damp-rock', '潮湿岩石', 'Damp Rock', '携带它的宝可梦使出求雨的话， 下雨的时间就会比平时更长。'],
   ['dragon-fang', '龙之牙', 'Dragon Fang', '提升龙属性招式威力。'],
+  ['expert-belt', '达人带', 'Expert Belt', '用惯了的黑色带子。 携带后，效果绝佳时的 招式威力就会少量提高。'],
   ['fairy-feather', '妖精之羽', 'Fairy Feather', '提升妖精属性招式威力。'],
   ['focus-band', '气势头带', 'Focus Band', '有概率在受到致命伤害时保留 1 HP。'],
   ['focus-sash', '气势披带', 'Focus Sash', '满 HP 时受到致命伤害可保留 1 HP，一次性。'],
   ['hard-stone', '硬石头', 'Hard Stone', '提升岩石属性招式威力。'],
+  ['heat-rock', '炽热岩石', 'Heat Rock', '携带它的宝可梦使出大晴天的话， 晴天的时间就会比平时更长。'],
+  ['icy-rock', '冰冷岩石', 'Icy Rock', '携带它的宝可梦使出冰雹的话， 冰雹的时间就会比平时更长。'],
+  ['iron-ball', '黑色铁球', 'Iron Ball', '携带后，速度会降低。 飞行属性以及飘浮宝可梦 会被地面招式击中。'],
   ['kings-rock', '王者之证', "King's Rock", '攻击造成伤害时可能使目标畏缩。'],
   ['leftovers', '吃剩的东西', 'Leftovers', '每回合结束时少量回复 HP。'],
+  ['life-orb', '生命宝珠', 'Life Orb', '携带后，虽然每次攻击时 ＨＰ少量减少， 但招式的威力会提高。'],
+  ['light-clay', '光之黏土', 'Light Clay', '当携带它的宝可梦 使出光墙或反射壁时， 效果会比平时持续得更长。'],
   ['light-ball', '电气球', 'Light Ball', '皮卡丘携带时提升攻击和特攻。'],
   ['magnet', '磁铁', 'Magnet', '提升电属性招式威力。'],
   ['mental-herb', '心灵香草', 'Mental Herb', '解除部分限制行动的状态，一次性。'],
   ['metal-coat', '金属膜', 'Metal Coat', '提升钢属性招式威力。'],
+  ['metronome', '节拍器', 'Metronome', '携带后，连续使出相同招式时， 威力就会提高。不再使出 相同招式时，威力就会复原。'],
   ['miracle-seed', '奇迹种子', 'Miracle Seed', '提升草属性招式威力。'],
+  ['muscle-band', '力量头带', 'Muscle Band', '力如泉涌的头带。 携带后，物理招式的 威力就会少量提高。'],
   ['mystic-water', '神秘水滴', 'Mystic Water', '提升水属性招式威力。'],
   ['never-melt-ice', '不融冰', 'Never-Melt Ice', '提升冰属性招式威力。'],
   ['poison-barb', '毒针', 'Poison Barb', '提升毒属性招式威力。'],
@@ -355,12 +377,17 @@ const heldItemRows = [
   ['scope-lens', '焦点镜', 'Scope Lens', '提高击中要害率。'],
   ['sharp-beak', '锐利鸟嘴', 'Sharp Beak', '提升飞行属性招式威力。'],
   ['shell-bell', '贝壳之铃', 'Shell Bell', '造成伤害后按伤害量回复少量 HP。'],
+  ['shed-shell', '美丽空壳', 'Shed Shell', '结实坚硬的空壳。 携带它的宝可梦必定可以 和后备的宝可梦进行替换。'],
   ['silk-scarf', '丝绸围巾', 'Silk Scarf', '提升一般属性招式威力。'],
   ['silver-powder', '银粉', 'Silver Powder', '提升虫属性招式威力。'],
+  ['smooth-rock', '沙沙岩石', 'Smooth Rock', '携带它的宝可梦使出沙暴的话， 沙暴的时间就会比平时更长。'],
   ['soft-sand', '柔软沙子', 'Soft Sand', '提升地面属性招式威力。'],
   ['spell-tag', '诅咒之符', 'Spell Tag', '提升幽灵属性招式威力。'],
   ['twisted-spoon', '弯曲的汤匙', 'Twisted Spoon', '提升超能力属性招式威力。'],
+  ['wide-lens', '广角镜', 'Wide Lens', '能放大观看物体的镜片。 携带后，招式的命中率 就会少量提高。'],
   ['white-herb', '白色香草', 'White Herb', '复原被降低的能力变化，一次性。'],
+  ['wise-glasses', '博识眼镜', 'Wise Glasses', '装着很厚镜片的眼镜。 携带后，特殊招式的 威力就会少量提高。'],
+  ['zoom-lens', '对焦镜', 'Zoom Lens', '当携带它的宝可梦比 对手行动迟缓时， 招式会变得容易命中。'],
 ] as const;
 
 const berryRows = [
@@ -405,8 +432,10 @@ const megaStoneRows: ReadonlyArray<MegaStoneRow> = [
   ['altarianite', '七夕青鸟进化石', 'Altarianite'],
   ['ampharosite', '电龙进化石', 'Ampharosite'],
   ['audinite', '差不多娃娃进化石', 'Audinite'],
+  ['barbaracite', '龟足巨铠进化石', 'Barbaracite'],
   ['banettite', '诅咒娃娃进化石', 'Banettite'],
   ['beedrillite', '大针蜂进化石', 'Beedrillite'],
+  ['blazikenite', '火焰鸡进化石', 'Blazikenite'],
   ['blastoisinite', '水箭龟进化石', 'Blastoisinite'],
   ['cameruptite', '喷火驼进化石', 'Cameruptite'],
   ['chandelurite', '水晶灯火灵进化石', 'Chandelurite'],
@@ -417,10 +446,13 @@ const megaStoneRows: ReadonlyArray<MegaStoneRow> = [
   ['clefablite', '皮可西进化石', 'Clefablite'],
   ['crabominite', '好胜毛蟹进化石', 'Crabominite'],
   ['delphoxite', '妖火红狐进化石', 'Delphoxite'],
+  ['dragalgite', '毒藻龙进化石', 'Dragalgite'],
   ['dragoninite', '快龙进化石', 'Dragoninite'],
   ['drampanite', '老翁龙进化石', 'Drampanite'],
+  ['eelektrossite', '麻麻鳗鱼王进化石', 'Eelektrossite'],
   ['emboarite', '炎武王进化石', 'Emboarite'],
   ['excadrite', '龙头地鼠进化石', 'Excadrite'],
+  ['falinksite', '列阵兵进化石', 'Falinksite'],
   ['feraligite', '大力鳄进化石', 'Feraligite'],
   ['floettite', '花叶蒂进化石', 'Floettite'],
   ['froslassite', '雪妖女进化石', 'Froslassite'],
@@ -439,20 +471,31 @@ const megaStoneRows: ReadonlyArray<MegaStoneRow> = [
   ['kangaskhanite', '袋兽进化石', 'Kangaskhanite'],
   ['lopunnite', '长耳兔进化石', 'Lopunnite'],
   ['lucarionite', '路卡利欧进化石', 'Lucarionite'],
+  ['malamarite', '乌贼王进化石', 'Malamarite'],
   ['manectite', '雷电兽进化石', 'Manectite'],
+  ['mawilite', '大嘴娃进化石', 'Mawilite'],
   ['medichamite', '恰雷姆进化石', 'Medichamite'],
   ['meganiumite', '大竺葵进化石', 'Meganiumite'],
   ['meowsticite', '超能妙喵进化石', 'Meowsticite'],
+  ['metagrossite', '巨金怪进化石', 'Metagrossite'],
   ['pidgeotite', '大比鸟进化石', 'Pidgeotite'],
   ['pinsirite', '凯罗斯进化石', 'Pinsirite'],
+  ['pyroarite', '火炎狮进化石', 'Pyroarite'],
+  ['raichunite', '雷丘进化石Y', 'Raichunite Y'],
+  ['raichunite-x', '雷丘进化石X', 'Raichunite X'],
   ['sablenite', '勾魂眼进化石', 'Sablenite'],
   ['scizorite', '巨钳螳螂进化石', 'Scizorite'],
+  ['scolipite', '蜈蚣王进化石', 'Scolipite'],
   ['scovillainite', '狠辣椒进化石', 'Scovillainite'],
+  ['scraftinite', '头巾混混进化石', 'Scraftinite'],
+  ['sceptilite', '蜥蜴王进化石', 'Sceptilite'],
   ['sharpedonite', '巨牙鲨进化石', 'Sharpedonite'],
   ['skarmorite', '盔甲鸟进化石', 'Skarmorite'],
   ['slowbronite', '呆壳兽进化石', 'Slowbronite'],
+  ['staraptite', '姆克鹰进化石', 'Staraptite'],
   ['starminite', '宝石海星进化石', 'Starminite'],
   ['steelixite', '大钢蛇进化石', 'Steelixite'],
+  ['swampertite', '巨沼怪进化石', 'Swampertite'],
   ['tyranitarite', '班基拉斯进化石', 'Tyranitarite'],
   ['venusaurite', '妙蛙花进化石', 'Venusaurite', ['venusaur']],
   ['victreebelite', '大食花进化石', 'Victreebelite'],
@@ -492,7 +535,7 @@ const unavailableItem = (id: string, chineseName: string, englishName: string, e
   legalInCurrentRule: false,
   isMegaStone: false,
   applicablePokemonIds: [],
-  teamRestrictionNotes: '当前 Reg M-A 道具池未确认，暂不进入前端可选池。',
+  teamRestrictionNotes: '当前 Reg M-B 道具池未确认，暂不进入前端可选池。',
   sourceRefs: ['manual-seed-review'],
   iconRef: itemIconMapping[id],
 });
@@ -501,7 +544,7 @@ export const items: Item[] = [
   ...heldItemRows.map(heldItem),
   ...megaStoneRows.map((row) => ({
     ...megaStone(row),
-    applicablePokemonIds: (megaStoneParentMap[row[0]] ? [megaStoneParentMap[row[0]]] : [...(row[3] ?? [])]) as string[],
+    applicablePokemonIds: (combinedMegaStoneParentMap[row[0]] ? [combinedMegaStoneParentMap[row[0]]] : [...(row[3] ?? [])]) as string[],
   })),
   ...berryRows.map(heldItem),
   unavailableItem('clear-amulet', '清净坠饰', 'Clear Amulet', '防止能力被对手降低。'),
@@ -511,6 +554,7 @@ export const items: Item[] = [
 export const moves: Move[] = championsMoves;
 
 export const pokemon: Pokemon[] = [
+  ...pokemonBatch006,
   ...pokemonBatch005,
   ...pokemonBatch004,
   ...pokemonBatch003,
@@ -549,7 +593,7 @@ export const pokemon: Pokemon[] = [
         sourceRefs: megaRefs,
       },
     ],
-    notes: 'Real first-pass catalog row from official Reg M-A allowlist joined with PokeAPI structured data. Manual review still required.',
+    notes: 'Real first-pass catalog row joined with current-rule source refs and PokeAPI structured data. Manual review still required.',
     sourceRefs: catalogRefs,
   },
   {
@@ -600,7 +644,7 @@ export const pokemon: Pokemon[] = [
         sourceRefs: megaRefs,
       },
     ],
-    notes: 'Real first-pass catalog row from official Reg M-A allowlist joined with PokeAPI structured data. Manual review still required.',
+    notes: 'Real first-pass catalog row joined with current-rule source refs and PokeAPI structured data. Manual review still required.',
     sourceRefs: catalogRefs,
   },
   {
@@ -618,7 +662,7 @@ export const pokemon: Pokemon[] = [
     learnableMoves: ['hydro-pump', 'icy-wind', 'protect'],
     canMega: false,
     megaForms: [],
-    notes: 'Real first-pass catalog row from official Reg M-A allowlist joined with PokeAPI structured data. Manual review still required.',
+    notes: 'Real first-pass catalog row joined with current-rule source refs and PokeAPI structured data. Manual review still required.',
     sourceRefs: catalogRefs,
   },
   {
@@ -636,7 +680,7 @@ export const pokemon: Pokemon[] = [
     learnableMoves: ['heat-wave', 'flamethrower', 'protect'],
     canMega: false,
     megaForms: [],
-    notes: 'Real first-pass catalog row from official Reg M-A allowlist joined with PokeAPI structured data. Manual review still required.',
+    notes: 'Real first-pass catalog row joined with current-rule source refs and PokeAPI structured data. Manual review still required.',
     sourceRefs: catalogRefs,
   },
   {
@@ -671,7 +715,7 @@ export const pokemon: Pokemon[] = [
         sourceRefs: megaRefs,
       },
     ],
-    notes: 'Real first-pass catalog row from official Reg M-A allowlist joined with PokeAPI structured data. Manual review still required.',
+    notes: 'Real first-pass catalog row joined with current-rule source refs and PokeAPI structured data. Manual review still required.',
     sourceRefs: catalogRefs,
   },
   {
@@ -689,7 +733,7 @@ export const pokemon: Pokemon[] = [
     learnableMoves: ['flare-blitz', 'darkest-lariat', 'protect'],
     canMega: false,
     megaForms: [],
-    notes: 'Real first-pass catalog row from official Reg M-A allowlist joined with PokeAPI structured data. Manual review still required.',
+    notes: 'Real first-pass catalog row joined with current-rule source refs and PokeAPI structured data. Manual review still required.',
     sourceRefs: catalogRefs,
   },
 ];
@@ -697,11 +741,11 @@ export const pokemon: Pokemon[] = [
 // ── Merge mega forms from mega-catalog into parent Pokemon ──
 for (let i = 0; i < pokemon.length; i++) {
   const entry = pokemon[i];
-  if (megaCapableBaseIds.has(entry.id) && entry.megaForms.length === 0) {
+  if (combinedMegaCapableBaseIds.has(entry.id) && entry.megaForms.length === 0) {
     pokemon[i] = {
       ...entry,
       canMega: true,
-      megaForms: megaFormsByParentId[entry.id] ?? [],
+      megaForms: combinedMegaFormsByParentId[entry.id] ?? [],
     };
   }
 }

@@ -5,6 +5,16 @@ import { Badge, Button, Card, Chip } from '../components/ui';
 
 export function RulePage({ onBack }: { onBack: () => void }) {
   const { lastRefreshError } = useAppStore();
+  const formatUtcDateTime = (value: string) =>
+    new Intl.DateTimeFormat('zh-CN', {
+      timeZone: 'UTC',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    }).format(new Date(value));
 
   return (
     <div className="space-y-3">
@@ -31,8 +41,8 @@ export function RulePage({ onBack }: { onBack: () => void }) {
       <Card>
         <p className="mb-2 text-[11px] uppercase tracking-wide text-textMuted">规则周期</p>
         <div className="space-y-2 text-sm">
-          <p>开始：2026-04-08 02:00 UTC</p>
-          <p>结束：2026-06-17 01:59 UTC</p>
+          <p>开始：{formatUtcDateTime(currentRuleSet.startAt)} UTC</p>
+          <p>结束：{formatUtcDateTime(currentRuleSet.endAt)} UTC</p>
         </div>
       </Card>
 

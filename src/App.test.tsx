@@ -149,7 +149,7 @@ describe('App page flows', () => {
     expect(screen.queryByText(/模拟数据/)).toBeNull();
     expect(await screen.findByRole('heading', { name: '环境' })).toBeTruthy();
     expect(screen.getByText('LuxrayKit')).toBeTruthy();
-    expect(screen.getByText('Season M-2 · Regulation M-A')).toBeTruthy();
+    expect(screen.getByText('Season M-3 · Regulation M-B')).toBeTruthy();
     expect(screen.queryByText(/移动端 PWA/)).toBeNull();
   });
 
@@ -167,7 +167,7 @@ describe('App page flows', () => {
     await user.click(screen.getByRole('button', { name: '队伍' }));
     expect(await screen.findByText('我的队伍')).toBeTruthy();
     expect(screen.queryByText('本地缓存可用')).toBeNull();
-    expect(screen.queryByText('Regulation Set M-A')).toBeNull();
+    expect(screen.queryByText('Regulation Set M-B')).toBeNull();
     expect(screen.queryByText('当前赛季')).toBeNull();
     expect(screen.queryByText('官方数据源状态可追溯')).toBeNull();
   });
@@ -371,7 +371,7 @@ describe('App page flows', () => {
     expect(screen.queryByText('校验结果')).toBeNull();
     expect(screen.queryByText('合法')).toBeNull();
     expect(screen.queryByText(/数据版本/)).toBeNull();
-    expect(screen.queryByText(/当前字段未发现问题|需要完成 Reg M-A 复核/)).toBeNull();
+    expect(screen.queryByText(/当前字段未发现问题|需要完成 Reg M-B 复核/)).toBeNull();
     expect(screen.getByText('当前规则不允许同队重复携带相同道具。')).toBeTruthy();
     expect(screen.getByText('已用 65/66')).toBeTruthy();
     expect((screen.getByRole('button', { name: '保存' }) as HTMLButtonElement).disabled).toBe(true);

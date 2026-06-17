@@ -104,7 +104,7 @@ const trainerListHtml = `
 `;
 
 describe('PokeDB environment ingestion', () => {
-  it('maps PokeDB pokemon keys through the current Reg M-A allowlist', () => {
+  it('maps PokeDB pokemon keys through the current allowlist', () => {
     expect(pokemonKeyToId['0006-00']).toBe('charizard');
     expect(pokemonKeyToId['0445-00']).toBe('garchomp');
     expect(pokemonKeyToId['0902-01']).toBe('basculegion-female');

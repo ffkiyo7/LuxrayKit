@@ -77,7 +77,7 @@ export function auditSeedData(): DataAuditIssue[] {
     issues.push(
       issue(
         'allowlist-count-mismatch',
-        `Reg M-A allowlist has ${regMaPokemonAllowlist.length} rows, expected ${regMaPokemonAllowlistExpectedCount}.`,
+        `Current-rule allowlist has ${regMaPokemonAllowlist.length} rows, expected ${regMaPokemonAllowlistExpectedCount}.`,
       ),
     );
   }
@@ -86,7 +86,7 @@ export function auditSeedData(): DataAuditIssue[] {
     issues.push(
       issue(
         'allowlist-count-mismatch',
-        `Reg M-A Mega allowlist has ${regMaMegaAllowlist.length} rows, expected ${regMaMegaAllowlistExpectedCount}.`,
+        `Current-rule Mega allowlist has ${regMaMegaAllowlist.length} rows, expected ${regMaMegaAllowlistExpectedCount}.`,
       ),
     );
   }
@@ -126,16 +126,16 @@ export function auditSeedData(): DataAuditIssue[] {
       if (!pokemonIds.has(pokemonId)) issues.push(issue('missing-pokemon-ref', `Item ${entry.id} references unknown Pokemon ${pokemonId}.`));
     });
     if (entry.legalInCurrentRule && !selectableItemIds.has(entry.id)) {
-      issues.push(issue('current-rule-item-mismatch', `Item ${entry.id} is legalInCurrentRule but missing from the selectable Reg M-A item pool.`));
+      issues.push(issue('current-rule-item-mismatch', `Item ${entry.id} is legalInCurrentRule but missing from the selectable current-rule item pool.`));
     }
   });
 
   currentRuleSelectableItemIds.forEach((itemId) => {
     const item = items.find((entry) => entry.id === itemId);
     if (!item) {
-      issues.push(issue('missing-item-ref', `Selectable Reg M-A item pool references unknown item ${itemId}.`));
+      issues.push(issue('missing-item-ref', `Selectable current-rule item pool references unknown item ${itemId}.`));
     } else if (!item.legalInCurrentRule) {
-      issues.push(issue('current-rule-item-mismatch', `Selectable Reg M-A item ${itemId} is not marked legalInCurrentRule.`));
+      issues.push(issue('current-rule-item-mismatch', `Selectable current-rule item ${itemId} is not marked legalInCurrentRule.`));
     }
   });
 

@@ -32,7 +32,7 @@ describe('legality evaluation', () => {
     expect(result.issues[0].code).toBe('missing-pokemon');
   });
 
-  it('detects duplicate held items under Reg M-A team restrictions', () => {
+  it('detects duplicate held items under current team restrictions', () => {
     const team = {
       id: 'dup-team',
       name: 'Duplicate item team',

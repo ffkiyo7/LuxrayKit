@@ -113,7 +113,7 @@ export function evaluateMemberLegality(member: TeamMember, team?: Team): Legalit
   }
 
   if (entry.sourceRefs.includes('manual-seed-review')) {
-    issues.push(needsReview('该条目仍是 seed data，需要完成 Reg M-A 复核后才能给出强合法结论。'));
+    issues.push(needsReview('该条目仍是 seed data，需要完成当前规则复核后才能给出强合法结论。'));
   }
 
   const hasError = issues.some((issue) => issue.severity === 'error');

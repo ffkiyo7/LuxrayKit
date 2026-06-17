@@ -31,7 +31,7 @@ export const currentRuleNatureOptions = [
 ] as const;
 
 export const currentRuleCatalogNotes = {
-  items: 'Selectable item pool is generated from the joined Reg M-A item catalog. Rows remain manual-review until cross-checked against a primary source.',
+  items: 'Selectable item pool is generated from the joined Reg M-B item catalog. Rows remain manual-review until cross-checked against a primary source.',
   moves: 'Move choices are generated from PokéBase Champions current-rule Available Moves pages, with PokeAPI used only for Chinese move names and descriptions.',
   natures: 'Full 25 main-series natures ingested from PokeAPI. Champions nature compatibility remains manual-review pending official confirmation.',
 } as const;

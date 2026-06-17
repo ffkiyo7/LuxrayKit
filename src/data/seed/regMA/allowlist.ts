@@ -1,8 +1,8 @@
 import type { EligiblePokemon } from '../../../types';
 
-export const regMaPokemonAllowlistExpectedCount = 213;
+export const regMaPokemonAllowlistExpectedCount = 235;
 
-const officialEligiblePokemonRefs = ['reg-ma-official-eligible-pokemon', 'manual-seed-review'];
+const officialEligiblePokemonRefs = ['reg-mb-official-eligible-pokemon', 'manual-seed-review'];
 
 export const regMaPokemonAllowlist: EligiblePokemon[] = [
   {
@@ -13,7 +13,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Venusaur',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0006-000',
@@ -23,7 +23,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Charizard',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0009-000',
@@ -32,7 +32,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Blastoise',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0015-000',
@@ -41,7 +41,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Beedrill',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0018-000',
@@ -50,7 +50,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Pidgeot',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0024-000',
@@ -59,7 +59,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Arbok',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0025-000',
@@ -68,7 +68,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Pikachu',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0026-000',
@@ -77,7 +77,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Raichu',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0026-001',
@@ -87,7 +87,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     formName: 'Alolan Form',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0036-000',
@@ -96,7 +96,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Clefable',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0038-000',
@@ -105,7 +105,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Ninetales',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0038-001',
@@ -115,7 +115,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     formName: 'Alolan Form',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0059-000',
@@ -124,7 +124,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Arcanine',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0059-001',
@@ -134,7 +134,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     formName: 'Hisuian Form',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0065-000',
@@ -143,7 +143,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Alakazam',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0068-000',
@@ -152,7 +152,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Machamp',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0071-000',
@@ -161,7 +161,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Victreebel',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0080-000',
@@ -170,7 +170,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Slowbro',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0080-002',
@@ -180,7 +180,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     formName: 'Galarian Form',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0094-000',
@@ -189,7 +189,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Gengar',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0115-000',
@@ -198,7 +198,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Kangaskhan',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0121-000',
@@ -207,7 +207,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Starmie',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0127-000',
@@ -216,7 +216,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Pinsir',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0128-000',
@@ -225,7 +225,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Tauros',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0128-001',
@@ -235,7 +235,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     formName: 'Paldean Form (Combat Breed)',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0128-002',
@@ -245,7 +245,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     formName: 'Paldean Form (Blaze Breed)',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0128-003',
@@ -255,7 +255,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     formName: 'Paldean Form (Aqua Breed)',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0130-000',
@@ -264,7 +264,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Gyarados',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0132-000',
@@ -273,7 +273,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Ditto',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0134-000',
@@ -282,7 +282,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Vaporeon',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0135-000',
@@ -291,7 +291,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Jolteon',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0136-000',
@@ -300,7 +300,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Flareon',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0142-000',
@@ -309,7 +309,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Aerodactyl',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0143-000',
@@ -318,7 +318,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Snorlax',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0149-000',
@@ -327,7 +327,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Dragonite',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0154-000',
@@ -336,7 +336,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Meganium',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0157-000',
@@ -345,7 +345,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Typhlosion',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0157-001',
@@ -355,7 +355,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     formName: 'Hisuian Form',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0160-000',
@@ -364,7 +364,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Feraligatr',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0168-000',
@@ -373,7 +373,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Ariados',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0181-000',
@@ -382,7 +382,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Ampharos',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0184-000',
@@ -391,7 +391,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Azumarill',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0186-000',
@@ -401,7 +401,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Politoed',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0196-000',
@@ -410,7 +410,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Espeon',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0197-000',
@@ -419,7 +419,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Umbreon',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0199-000',
@@ -428,7 +428,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Slowking',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0199-001',
@@ -438,7 +438,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     formName: 'Galarian Form',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0205-000',
@@ -447,7 +447,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Forretress',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0208-000',
@@ -456,7 +456,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Steelix',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0212-000',
@@ -465,7 +465,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Scizor',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0214-000',
@@ -474,7 +474,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Heracross',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0227-000',
@@ -483,7 +483,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Skarmory',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0229-000',
@@ -492,7 +492,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Houndoom',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0248-000',
@@ -501,7 +501,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Tyranitar',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0279-000',
@@ -510,7 +510,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Pelipper',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0282-000',
@@ -519,7 +519,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Gardevoir',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0302-000',
@@ -528,7 +528,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Sableye',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0306-000',
@@ -537,7 +537,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Aggron',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0308-000',
@@ -546,7 +546,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Medicham',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0310-000',
@@ -555,7 +555,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Manectric',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0319-000',
@@ -564,7 +564,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Sharpedo',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0323-000',
@@ -573,7 +573,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Camerupt',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0324-000',
@@ -583,7 +583,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Torkoal',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0334-000',
@@ -592,7 +592,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Altaria',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0350-000',
@@ -601,7 +601,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Milotic',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0351-000',
@@ -610,7 +610,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Castform',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0354-000',
@@ -619,7 +619,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Banette',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0358-000',
@@ -628,7 +628,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Chimecho',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0359-000',
@@ -637,7 +637,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Absol',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0362-000',
@@ -646,7 +646,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Glalie',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0389-000',
@@ -655,7 +655,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Torterra',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0392-000',
@@ -664,7 +664,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Infernape',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0395-000',
@@ -673,7 +673,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Empoleon',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0405-000',
@@ -682,7 +682,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Luxray',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0407-000',
@@ -691,7 +691,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Roserade',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0409-000',
@@ -700,7 +700,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Rampardos',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0411-000',
@@ -709,7 +709,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Bastiodon',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0428-000',
@@ -718,7 +718,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Lopunny',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0442-000',
@@ -727,7 +727,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Spiritomb',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0445-000',
@@ -737,7 +737,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Garchomp',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0448-000',
@@ -746,7 +746,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Lucario',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0450-000',
@@ -755,7 +755,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Hippowdon',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0454-000',
@@ -764,7 +764,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Toxicroak',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0460-000',
@@ -773,7 +773,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Abomasnow',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0461-000',
@@ -782,7 +782,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Weavile',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0464-000',
@@ -791,7 +791,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Rhyperior',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0470-000',
@@ -800,7 +800,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Leafeon',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0471-000',
@@ -809,7 +809,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Glaceon',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0472-000',
@@ -818,7 +818,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Gliscor',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0473-000',
@@ -827,7 +827,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Mamoswine',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0475-000',
@@ -836,7 +836,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Gallade',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0478-000',
@@ -845,7 +845,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Froslass',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0479-000',
@@ -855,7 +855,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     formName: 'Rotom',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0479-001',
@@ -865,7 +865,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     formName: 'Heat Rotom',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0479-002',
@@ -875,7 +875,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     formName: 'Wash Rotom',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0479-003',
@@ -885,7 +885,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     formName: 'Frost Rotom',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0479-004',
@@ -895,7 +895,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     formName: 'Fan Rotom',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0479-005',
@@ -905,7 +905,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     formName: 'Mow Rotom',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0497-000',
@@ -914,7 +914,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Serperior',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0500-000',
@@ -923,7 +923,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Emboar',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0503-000',
@@ -932,7 +932,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Samurott',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0503-001',
@@ -942,7 +942,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     formName: 'Hisuian Form',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0505-000',
@@ -951,7 +951,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Watchog',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0510-000',
@@ -960,7 +960,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Liepard',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0512-000',
@@ -969,7 +969,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Simisage',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0514-000',
@@ -978,7 +978,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Simisear',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0516-000',
@@ -987,7 +987,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Simipour',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0530-000',
@@ -996,7 +996,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Excadrill',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0531-000',
@@ -1005,7 +1005,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Audino',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0534-000',
@@ -1014,7 +1014,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Conkeldurr',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0547-000',
@@ -1023,7 +1023,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Whimsicott',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0553-000',
@@ -1032,7 +1032,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Krookodile',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0563-000',
@@ -1041,7 +1041,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Cofagrigus',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0569-000',
@@ -1050,7 +1050,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Garbodor',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0571-000',
@@ -1059,7 +1059,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Zoroark',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0571-001',
@@ -1069,7 +1069,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     formName: 'Hisuian Form',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0579-000',
@@ -1078,7 +1078,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Reuniclus',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0584-000',
@@ -1087,7 +1087,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Vanilluxe',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0587-000',
@@ -1096,7 +1096,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Emolga',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0609-000',
@@ -1105,7 +1105,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Chandelure',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0614-000',
@@ -1114,7 +1114,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Beartic',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0618-000',
@@ -1123,7 +1123,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Stunfisk',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0618-001',
@@ -1133,7 +1133,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     formName: 'Galarian Form',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0623-000',
@@ -1142,7 +1142,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Golurk',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0635-000',
@@ -1151,7 +1151,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Hydreigon',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0637-000',
@@ -1160,7 +1160,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Volcarona',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0652-000',
@@ -1169,7 +1169,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Chesnaught',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0655-000',
@@ -1178,7 +1178,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Delphox',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0658-000',
@@ -1187,7 +1187,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Greninja',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0660-000',
@@ -1196,7 +1196,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Diggersby',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0663-000',
@@ -1205,7 +1205,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Talonflame',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0666-018',
@@ -1214,7 +1214,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Vivillon',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0670-005',
@@ -1223,7 +1223,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Floette',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0671-000',
@@ -1232,7 +1232,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Florges',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0675-000',
@@ -1241,7 +1241,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Pangoro',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0676-000',
@@ -1250,7 +1250,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Furfrou',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0678-000',
@@ -1260,7 +1260,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     formName: 'Male',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0678-001',
@@ -1270,7 +1270,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     formName: 'Female',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0681-000',
@@ -1279,7 +1279,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Aegislash',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0683-000',
@@ -1288,7 +1288,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Aromatisse',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0685-000',
@@ -1297,7 +1297,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Slurpuff',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0693-000',
@@ -1306,7 +1306,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Clawitzer',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0695-000',
@@ -1315,7 +1315,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Heliolisk',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0697-000',
@@ -1324,7 +1324,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Tyrantrum',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0699-000',
@@ -1333,7 +1333,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Aurorus',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0700-000',
@@ -1342,7 +1342,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Sylveon',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0701-000',
@@ -1351,7 +1351,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Hawlucha',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0702-000',
@@ -1360,7 +1360,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Dedenne',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0706-000',
@@ -1369,7 +1369,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Goodra',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0706-001',
@@ -1379,7 +1379,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     formName: 'Hisuian Form',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0707-000',
@@ -1388,7 +1388,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Klefki',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0709-000',
@@ -1397,7 +1397,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Trevenant',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0711-000',
@@ -1407,7 +1407,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     formName: 'Medium Variety',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0711-001',
@@ -1417,7 +1417,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     formName: 'Small Variety',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0711-002',
@@ -1427,7 +1427,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     formName: 'Large Variety',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0711-003',
@@ -1437,7 +1437,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     formName: 'Jumbo Variety',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0713-000',
@@ -1446,7 +1446,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Avalugg',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0713-001',
@@ -1456,7 +1456,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     formName: 'Hisuian Form',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0715-000',
@@ -1465,7 +1465,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Noivern',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0724-000',
@@ -1474,7 +1474,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Decidueye',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0724-001',
@@ -1484,7 +1484,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     formName: 'Hisuian Form',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0727-000',
@@ -1494,7 +1494,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Incineroar',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0730-000',
@@ -1503,7 +1503,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Primarina',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0733-000',
@@ -1512,7 +1512,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Toucannon',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0740-000',
@@ -1521,7 +1521,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Crabominable',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0745-000',
@@ -1531,7 +1531,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     formName: 'Midday Form',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0745-001',
@@ -1541,7 +1541,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     formName: 'Midnight Form',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0745-002',
@@ -1551,7 +1551,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     formName: 'Dusk Form',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0748-000',
@@ -1560,7 +1560,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Toxapex',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0750-000',
@@ -1569,7 +1569,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Mudsdale',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0752-000',
@@ -1578,7 +1578,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Araquanid',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0758-000',
@@ -1587,7 +1587,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Salazzle',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0763-000',
@@ -1596,7 +1596,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Tsareena',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0765-000',
@@ -1605,7 +1605,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Oranguru',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0766-000',
@@ -1614,7 +1614,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Passimian',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0778-000',
@@ -1623,7 +1623,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Mimikyu',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0780-000',
@@ -1632,7 +1632,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Drampa',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0784-000',
@@ -1641,7 +1641,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Kommo-o',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0823-000',
@@ -1650,7 +1650,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Corviknight',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0841-000',
@@ -1659,7 +1659,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Flapple',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0842-000',
@@ -1668,7 +1668,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Appletun',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0844-000',
@@ -1677,7 +1677,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Sandaconda',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0855-000',
@@ -1686,7 +1686,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Polteageist',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0858-000',
@@ -1695,7 +1695,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Hatterene',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0866-000',
@@ -1704,7 +1704,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Mr. Rime',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0867-000',
@@ -1713,7 +1713,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Runerigus',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0869-000',
@@ -1722,7 +1722,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Alcremie',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0877-000',
@@ -1731,7 +1731,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Morpeko',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0887-000',
@@ -1740,7 +1740,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Dragapult',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0899-000',
@@ -1749,7 +1749,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Wyrdeer',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0900-000',
@@ -1758,7 +1758,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Kleavor',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0902-000',
@@ -1768,7 +1768,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     formName: 'Male',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0902-001',
@@ -1778,7 +1778,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     formName: 'Female',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0903-000',
@@ -1787,7 +1787,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Sneasler',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0908-000',
@@ -1796,7 +1796,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Meowscarada',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0911-000',
@@ -1805,7 +1805,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Skeledirge',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0914-000',
@@ -1814,7 +1814,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Quaquaval',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0925-000',
@@ -1823,7 +1823,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Maushold',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0934-000',
@@ -1832,7 +1832,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Garganacl',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0936-000',
@@ -1841,7 +1841,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Armarouge',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0937-000',
@@ -1850,7 +1850,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Ceruledge',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0939-000',
@@ -1859,7 +1859,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Bellibolt',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0952-000',
@@ -1868,7 +1868,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Scovillain',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0956-000',
@@ -1877,7 +1877,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Espathra',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0959-000',
@@ -1886,7 +1886,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Tinkaton',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0964-000',
@@ -1895,7 +1895,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Palafin',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0968-000',
@@ -1904,7 +1904,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Orthworm',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0970-000',
@@ -1913,7 +1913,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Glimmora',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0981-000',
@@ -1922,7 +1922,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Farigiraf',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-0983-000',
@@ -1931,7 +1931,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Kingambit',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-1013-000',
@@ -1940,7 +1940,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Sinistcha',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-1018-000',
@@ -1949,7 +1949,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Archaludon',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
   {
     id: 'reg-ma-1019-000',
@@ -1958,6 +1958,226 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     englishName: 'Hydrapple',
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Imported from the official Eligible Pokemon page. This row remains manual-review until row count and normalization receive a second review.',
+    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
+  },
+  {
+    id: 'reg-mb-0045-000',
+    pokemonId: 'vileplume',
+    championsFormId: '0045-000',
+    nationalDexNo: 45,
+    englishName: 'Vileplume',
+    verificationStatus: 'manual-review',
+    sourceRefs: officialEligiblePokemonRefs,
+    reviewNotes: 'Imported from PokéBase Champions M-B regulation tags while the official M-B eligible page is not yet exposed through the previous web-view URL.',
+  },
+  {
+    id: 'reg-mb-0211-000',
+    pokemonId: 'qwilfish',
+    championsFormId: '0211-000',
+    nationalDexNo: 211,
+    englishName: 'Qwilfish',
+    verificationStatus: 'manual-review',
+    sourceRefs: officialEligiblePokemonRefs,
+    reviewNotes: 'Imported from PokéBase Champions M-B regulation tags while the official M-B eligible page is not yet exposed through the previous web-view URL.',
+  },
+  {
+    id: 'reg-mb-0254-000',
+    pokemonId: 'sceptile',
+    championsFormId: '0254-000',
+    nationalDexNo: 254,
+    englishName: 'Sceptile',
+    verificationStatus: 'manual-review',
+    sourceRefs: officialEligiblePokemonRefs,
+    reviewNotes: 'Imported from PokéBase Champions M-B regulation tags while the official M-B eligible page is not yet exposed through the previous web-view URL.',
+  },
+  {
+    id: 'reg-mb-0257-000',
+    pokemonId: 'blaziken',
+    championsFormId: '0257-000',
+    nationalDexNo: 257,
+    englishName: 'Blaziken',
+    verificationStatus: 'manual-review',
+    sourceRefs: officialEligiblePokemonRefs,
+    reviewNotes: 'Imported from PokéBase Champions M-B regulation tags while the official M-B eligible page is not yet exposed through the previous web-view URL.',
+  },
+  {
+    id: 'reg-mb-0260-000',
+    pokemonId: 'swampert',
+    championsFormId: '0260-000',
+    nationalDexNo: 260,
+    englishName: 'Swampert',
+    verificationStatus: 'manual-review',
+    sourceRefs: officialEligiblePokemonRefs,
+    reviewNotes: 'Imported from PokéBase Champions M-B regulation tags while the official M-B eligible page is not yet exposed through the previous web-view URL.',
+  },
+  {
+    id: 'reg-mb-0303-000',
+    pokemonId: 'mawile',
+    championsFormId: '0303-000',
+    nationalDexNo: 303,
+    englishName: 'Mawile',
+    verificationStatus: 'manual-review',
+    sourceRefs: officialEligiblePokemonRefs,
+    reviewNotes: 'Imported from PokéBase Champions M-B regulation tags while the official M-B eligible page is not yet exposed through the previous web-view URL.',
+  },
+  {
+    id: 'reg-mb-0376-000',
+    pokemonId: 'metagross',
+    championsFormId: '0376-000',
+    nationalDexNo: 376,
+    englishName: 'Metagross',
+    verificationStatus: 'manual-review',
+    sourceRefs: officialEligiblePokemonRefs,
+    reviewNotes: 'Imported from PokéBase Champions M-B regulation tags while the official M-B eligible page is not yet exposed through the previous web-view URL.',
+  },
+  {
+    id: 'reg-mb-0398-000',
+    pokemonId: 'staraptor',
+    championsFormId: '0398-000',
+    nationalDexNo: 398,
+    englishName: 'Staraptor',
+    verificationStatus: 'manual-review',
+    sourceRefs: officialEligiblePokemonRefs,
+    reviewNotes: 'Imported from PokéBase Champions M-B regulation tags while the official M-B eligible page is not yet exposed through the previous web-view URL.',
+  },
+  {
+    id: 'reg-mb-0518-000',
+    pokemonId: 'musharna',
+    championsFormId: '0518-000',
+    nationalDexNo: 518,
+    englishName: 'Musharna',
+    verificationStatus: 'manual-review',
+    sourceRefs: officialEligiblePokemonRefs,
+    reviewNotes: 'Imported from PokéBase Champions M-B regulation tags while the official M-B eligible page is not yet exposed through the previous web-view URL.',
+  },
+  {
+    id: 'reg-mb-0545-000',
+    pokemonId: 'scolipede',
+    championsFormId: '0545-000',
+    nationalDexNo: 545,
+    englishName: 'Scolipede',
+    verificationStatus: 'manual-review',
+    sourceRefs: officialEligiblePokemonRefs,
+    reviewNotes: 'Imported from PokéBase Champions M-B regulation tags while the official M-B eligible page is not yet exposed through the previous web-view URL.',
+  },
+  {
+    id: 'reg-mb-0560-000',
+    pokemonId: 'scrafty',
+    championsFormId: '0560-000',
+    nationalDexNo: 560,
+    englishName: 'Scrafty',
+    verificationStatus: 'manual-review',
+    sourceRefs: officialEligiblePokemonRefs,
+    reviewNotes: 'Imported from PokéBase Champions M-B regulation tags while the official M-B eligible page is not yet exposed through the previous web-view URL.',
+  },
+  {
+    id: 'reg-mb-0604-000',
+    pokemonId: 'eelektross',
+    championsFormId: '0604-000',
+    nationalDexNo: 604,
+    englishName: 'Eelektross',
+    verificationStatus: 'manual-review',
+    sourceRefs: officialEligiblePokemonRefs,
+    reviewNotes: 'Imported from PokéBase Champions M-B regulation tags while the official M-B eligible page is not yet exposed through the previous web-view URL.',
+  },
+  {
+    id: 'reg-mb-0668-000',
+    pokemonId: 'pyroar',
+    championsFormId: '0668-000',
+    nationalDexNo: 668,
+    englishName: 'Pyroar',
+    verificationStatus: 'manual-review',
+    sourceRefs: officialEligiblePokemonRefs,
+    reviewNotes: 'Imported from PokéBase Champions M-B regulation tags while the official M-B eligible page is not yet exposed through the previous web-view URL.',
+  },
+  {
+    id: 'reg-mb-0687-000',
+    pokemonId: 'malamar',
+    championsFormId: '0687-000',
+    nationalDexNo: 687,
+    englishName: 'Malamar',
+    verificationStatus: 'manual-review',
+    sourceRefs: officialEligiblePokemonRefs,
+    reviewNotes: 'Imported from PokéBase Champions M-B regulation tags while the official M-B eligible page is not yet exposed through the previous web-view URL.',
+  },
+  {
+    id: 'reg-mb-0689-000',
+    pokemonId: 'barbaracle',
+    championsFormId: '0689-000',
+    nationalDexNo: 689,
+    englishName: 'Barbaracle',
+    verificationStatus: 'manual-review',
+    sourceRefs: officialEligiblePokemonRefs,
+    reviewNotes: 'Imported from PokéBase Champions M-B regulation tags while the official M-B eligible page is not yet exposed through the previous web-view URL.',
+  },
+  {
+    id: 'reg-mb-0691-000',
+    pokemonId: 'dragalge',
+    championsFormId: '0691-000',
+    nationalDexNo: 691,
+    englishName: 'Dragalge',
+    verificationStatus: 'manual-review',
+    sourceRefs: officialEligiblePokemonRefs,
+    reviewNotes: 'Imported from PokéBase Champions M-B regulation tags while the official M-B eligible page is not yet exposed through the previous web-view URL.',
+  },
+  {
+    id: 'reg-mb-0861-000',
+    pokemonId: 'grimmsnarl',
+    championsFormId: '0861-000',
+    nationalDexNo: 861,
+    englishName: 'Grimmsnarl',
+    verificationStatus: 'manual-review',
+    sourceRefs: officialEligiblePokemonRefs,
+    reviewNotes: 'Imported from PokéBase Champions M-B regulation tags while the official M-B eligible page is not yet exposed through the previous web-view URL.',
+  },
+  {
+    id: 'reg-mb-0870-000',
+    pokemonId: 'falinks',
+    championsFormId: '0870-000',
+    nationalDexNo: 870,
+    englishName: 'Falinks',
+    verificationStatus: 'manual-review',
+    sourceRefs: officialEligiblePokemonRefs,
+    reviewNotes: 'Imported from PokéBase Champions M-B regulation tags while the official M-B eligible page is not yet exposed through the previous web-view URL.',
+  },
+  {
+    id: 'reg-mb-0904-000',
+    pokemonId: 'overqwil',
+    championsFormId: '0904-000',
+    nationalDexNo: 904,
+    englishName: 'Overqwil',
+    verificationStatus: 'manual-review',
+    sourceRefs: officialEligiblePokemonRefs,
+    reviewNotes: 'Imported from PokéBase Champions M-B regulation tags while the official M-B eligible page is not yet exposed through the previous web-view URL.',
+  },
+  {
+    id: 'reg-mb-0972-000',
+    pokemonId: 'houndstone',
+    championsFormId: '0972-000',
+    nationalDexNo: 972,
+    englishName: 'Houndstone',
+    verificationStatus: 'manual-review',
+    sourceRefs: officialEligiblePokemonRefs,
+    reviewNotes: 'Imported from PokéBase Champions M-B regulation tags while the official M-B eligible page is not yet exposed through the previous web-view URL.',
+  },
+  {
+    id: 'reg-mb-0979-000',
+    pokemonId: 'annihilape',
+    championsFormId: '0979-000',
+    nationalDexNo: 979,
+    englishName: 'Annihilape',
+    verificationStatus: 'manual-review',
+    sourceRefs: officialEligiblePokemonRefs,
+    reviewNotes: 'Imported from PokéBase Champions M-B regulation tags while the official M-B eligible page is not yet exposed through the previous web-view URL.',
+  },
+  {
+    id: 'reg-mb-1000-000',
+    pokemonId: 'gholdengo',
+    championsFormId: '1000-000',
+    nationalDexNo: 1000,
+    englishName: 'Gholdengo',
+    verificationStatus: 'manual-review',
+    sourceRefs: officialEligiblePokemonRefs,
+    reviewNotes: 'Imported from PokéBase Champions M-B regulation tags while the official M-B eligible page is not yet exposed through the previous web-view URL.',
   },
 ];
