@@ -33,7 +33,8 @@
   - **解析 PokePaste**：逐条拉 `pokepast.es/<id>/json`（或 `/raw`）→ 解出 6 只的 物种/道具/特性/性格/**配招/努力值**。
   - **名称映射**：英文 Showdown 名 → app id（物种/道具/特性/招式），复用数据集现有 `englishName`；**未映射条目进 audit/跳过**，不污染数据。
   - **EV→SP 换算**：PokePaste 为 EV/IV 体系，Champions 为 **SP、无 IV**。按 app 现有口径（`damageAdapter` 的 `statPointsToEvs` 是 `SP*8` 截 252）反推 `SP≈round(EV/8)`，校验 **单项≤32、总量≤66**，**丢弃 IV**。**实现前再核** Champions 官方 SP/EV 换算口径。
-  - **产出**：`EnvironmentTeamSample` 带来源标签（如 `vgcpastes-champions-ma`）、赛季 `reg-ma`（与项目现有数据集一致）、完整度标记 `hasMoves`/`hasSpread`（本源恒为 true）、`reportUrl` 取 `Link to Source`/`Report / Video`（无则回退 pokepaste 链接）、可带 `Rank`/`Tournament` 元数据。写入数据集，**与 PokeDB 样本并存且来源可区分**（沿用环境页「来源/范围/排行/详情/构筑」口径，对外表述为「社区策展赛事队，含完整配招+SP」）。
+  - **捕获队伍码**：解析 `Replica Code (Click text for image)` 列，提取实际码值（~10 位字母数字，剥掉「Click text for image」之类壳文案）写入 `EnvironmentTeamSample.replicaCode?`（无码的队伍留空）。**供 Task 5 在前端展示用**。
+  - **产出**：`EnvironmentTeamSample` 带来源标签（如 `vgcpastes-champions-ma`）、赛季 `reg-ma`（与项目现有数据集一致）、完整度标记 `hasMoves`/`hasSpread`（本源恒为 true）、`reportUrl` 取 `Link to Source`/`Report / Video`（无则回退 pokepaste 链接）、`replicaCode?`（如上）、可带 `Rank`/`Tournament` 元数据。写入数据集，**与 PokeDB 样本并存且来源可区分**（沿用环境页「来源/范围/排行/详情/构筑」口径，对外表述为「社区策展赛事队，含完整配招+SP」）。
 - **实现前必须确认（写死在任务里）**：
   - **EV→SP 换算口径**：确认官方 SP 与 PokePaste EV 的换算（按上口径实现，发现偏差再调）。
   - **不支持字段**：PokePaste 里 Champions 不支持的机制（太晶/不在名单的宝可梦/形态等）需 audit/剥离。
@@ -63,6 +64,19 @@
   - 不动导入/详情逻辑；卡片 `key` 仍用 `sample.id`。
 - **验收**：上位构筑首屏即为乱序、非严格排名序；`换一批` 给出乱序后的不同批次（非顺位下翻）；切换单打/双打重置；样本不丢不重（单页内）；`npm test` 通过；`npm run test:visual` 更新环境页快照。
 
+### Task 5 — 队伍码：写入 → 导入带入 → 队伍详情页展示与复制（前端 + 数据 · 依赖 Task 2）
+
+> **出发点**：VGCPastes 部分队伍带**游戏内队伍码**（`Replica Code` 列）。要把它打通到前端，让用户能直接看到并复制这串码（拿去游戏内一键导入整队）。**不加新入口**，直接展示在「导入配置后」的队伍详情（成员 2×3）页面。
+
+- **链路**：`Replica Code` 列 → Task 2 写入 `EnvironmentTeamSample.replicaCode?` → 导入时带入本地队伍 → 队伍详情页展示。
+- **涉及文件**：`src/types.ts`（`Team` 加 `replicaCode?: string`；`EnvironmentTeamSample.replicaCode?` 由 Task 2 加，本任务消费）；样本→本地队伍的导入转换处（`src/App.tsx` 导入链路 / 相关 helper，把 `replicaCode` 带进新建 `Team`）；`src/pages/TeamPage.tsx`（`:1170` 那行 + 复制交互）；toast 复用 `src/App.tsx:275-283` 既有小长条；测试 `src/App.test.tsx`。
+- **改动要点（UI）**：
+  - **改 `TeamPage.tsx:1170` 那句**：`{activeTeam.members.length}/6 成员 · 本地队伍 · 可自由编辑` → **只保留成员计数** `{activeTeam.members.length}/6 成员`（去掉「· 本地队伍 · 可自由编辑」）。
+  - **有队伍码时**：在成员计数后用分隔符（`·`）接上**队伍码文本**，码后跟一个**复制图标按钮**（lucide `Copy`，`aria-label="复制队伍码"`）。无码的队伍只显示成员计数。
+  - **点复制**：`navigator.clipboard.writeText(replicaCode)` → 触发小长条 toast（**复用 `importToast` 同款机制与样式**）：文案「**队伍码已复制**」+ 一句简短说明「**分享可能已过期**」（作次要小字或第二行）。toast 自动消失沿用现有 setTimeout。
+  - toast 触发需让 `TeamPage` 能调到 App 的 toast（prop/context 暴露 `showToast`，或在 TeamPage 内复用同款组件——实现时择简）。
+- **验收**：导入带队伍码的 VGCPastes 队后，队伍详情页那行只剩「X/6 成员」并在其后展示队伍码 + 复制图标；无码队伍只显示成员计数；点复制写入剪贴板并弹出「队伍码已复制 / 分享可能已过期」小长条；`npm test` 通过；`npm run test:visual` 更新队伍页快照。
+
 ## 暂不做
 
 - 完整战斗模拟器 / 用户账号 / 云同步 / 多赛季趋势库（沿用上轮判断）。
@@ -86,3 +100,4 @@ npm run test:visual        # 涉及 UI 改动
 - Task 2：脚本一次性产出 reg-ma 的 VGCPastes「Champions M-A」样本（Date Shared ≥ 2026-05-01、含配招+SP），与 PokeDB 并存、来源可区分；未映射/失败进 audit；解析/映射/换算有单测；记录入库队数。
 - Task 3：含完整配置的样本显示「可导入：[SP分配][配招]」胶囊+注释、仅基础信息的不显示；快照更新。
 - Task 4：上位构筑首屏乱序、非排名序；换一批给出乱序不同批次；切换单/双打重置；样本不丢不重；快照更新。
+- Task 5：带码队伍详情页显示「X/6 成员 · {队伍码} [复制]」、无码只显示成员计数；复制写入剪贴板并弹「队伍码已复制 / 分享可能已过期」小长条；快照更新。
