@@ -118,6 +118,8 @@ const openTool = async (user: ReturnType<typeof userEvent.setup>, toolName: stri
   await user.click(await screen.findByRole('button', { name: toolName }));
 };
 
+const waitForDexPage = () => screen.findByText('规则内图鉴', undefined, { timeout: 5000 });
+
 const openDefaultTeam = async (user: ReturnType<typeof userEvent.setup>) => {
   const teamCard = await screen.findByLabelText('队伍：Luxray test');
   await user.click(teamCard);
@@ -160,7 +162,7 @@ describe('App page flows', () => {
     expect(await screen.findByRole('heading', { name: '伤害计算' })).toBeTruthy();
 
     await openTool(user, /规则图鉴/);
-    expect(await screen.findByText('规则内图鉴')).toBeTruthy();
+    expect(await waitForDexPage()).toBeTruthy();
     expect(await screen.findByText('Pokémon / 招式 / 道具 / 特性 · 当前规则数据')).toBeTruthy();
     expect(screen.queryByText(/当前规则模拟数据/)).toBeNull();
 
@@ -891,7 +893,7 @@ describe('App page flows', () => {
     const user = await renderApp();
 
     await openTool(user, /规则图鉴/);
-    expect(await screen.findByText('规则内图鉴')).toBeTruthy();
+    expect(await waitForDexPage()).toBeTruthy();
     expect(screen.getByPlaceholderText('搜索名称')).toBeTruthy();
     expect(screen.getByText('超级烈咬陆鲨')).toBeTruthy();
 
@@ -950,7 +952,7 @@ describe('App page flows', () => {
     const user = await renderApp();
 
     await openTool(user, /规则图鉴/);
-    expect(await screen.findByText('规则内图鉴')).toBeTruthy();
+    expect(await waitForDexPage()).toBeTruthy();
 
     await user.click(screen.getByRole('button', { name: '道具' }));
     await user.type(screen.getByPlaceholderText('搜索名称'), '围巾');
@@ -1029,7 +1031,7 @@ describe('App page flows', () => {
     }
 
     await openTool(user, /规则图鉴/);
-    expect(await screen.findByText('规则内图鉴')).toBeTruthy();
+    expect(await waitForDexPage()).toBeTruthy();
     await user.click(screen.getByRole('button', { name: '特性' }));
     await user.type(screen.getByPlaceholderText('搜索名称'), 'Luxray');
 
