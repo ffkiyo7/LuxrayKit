@@ -9,7 +9,7 @@
 
 Luxray Kit 是一个面向 Pokémon Champions 玩家的非官方对战辅助工具。它以移动端 PWA 形态设计，优先服务 Regulation Set M-A 的环境理解、上位构筑参考和本地队伍管理；伤害计算、速度线和规则图鉴收束为工具页里的辅助查询能力。
 
-项目仍在持续开发中。当前版本已经接入 PokeDB Open Data 上位构筑样本作为环境页数据来源；所有统计都按“上位构筑快照 / 样本占比”表达，不包装成官方完整使用率。伤害计算仍属于实验性近似结果，不应视为官方结论或赛事依据。
+项目仍在持续开发中。当前版本已经接入 PokeDB 当季环境统计与上位构筑样本作为环境页数据来源；环境统计会标注来源与口径，不包装成官方完整使用率。伤害计算仍属于实验性近似结果，不应视为官方结论或赛事依据。
 
 > 正式访问地址：[luxraykit.com](https://luxraykit.com)
 
@@ -21,7 +21,7 @@ Luxray Kit 是一个面向 Pokémon Champions 玩家的非官方对战辅助工�
 - 宝可梦榜、完整榜单和环境详情页
 - 携带道具占比、常见队友占比和常用招式统计
 - 相关上位构筑样本，支持导入为本地队伍
-- 基于 PokeDB Season 1 Open Data 的缓存快照：单打 528 队，双打 71 队
+- 基于 PokeDB 最新赛季 HTML 统计的缓存快照，并补充上一完整赛季的公开队报样本
 
 ### 队伍管理
 
@@ -67,14 +67,14 @@ Luxray Kit 是一个面向 Pokémon Champions 玩家的非官方对战辅助工�
 | 数据类别 | 当前状态 | 说明 |
 | --- | --- | --- |
 | 主数据 | `v0.2.0-seed` | 版本化 Regulation Set M-A seed，来源包括官方规则 / allowlist、PokeAPI、PokéBase Champions、社区中文资料和本地人工复核标记 |
-| 环境快照 | 已接入 | `public/data/pokedb/reg-ma-s1-environment.json` 缓存 PokeDB Season 1 上位构筑样本；该数据不包装成官方完整使用率 |
-| 环境样例队伍 | 已接入 | 维护脚本从 PokeDB trainer/list 解析真实队报链接，当前单打 / 双打各保留 8 条完整样本 |
-| 常用招式 | 已接入 | 维护脚本解析前 50 Pokémon 详情页的 `data-move-detail` 生成 `moveStats` |
+| 环境快照 | 已接入 | `public/data/pokedb/reg-ma-environment.json` 缓存 PokeDB 最新赛季 Pokémon 统计；该数据不包装成官方完整使用率 |
+| 环境样例队伍 | 已接入 | 维护脚本从 PokeDB trainer/list 解析真实队报链接，当前单打 / 双打各保留最多 24 条完整样本 |
+| 常用招式 | 已接入 | 维护脚本复用 Worker 解析器抓取 Pokémon 详情页的 `data-move-detail` 生成 `moveStats` |
 | 速度线 | 已接入 | 基于 Champions SP v1 口径计算最终速度 |
 | 伤害计算 | 实验性近似 | 使用 `@smogon/calc` Gen9 主线公式近似，并代入项目采集的 Champions 招式参数与 SP 能力值；天气、场地、能力阶级等以用户手动选择为准，不做完整战斗流程模拟 |
 | 合法性与机制 | 非权威 | 伤害、合法性和未确认机制不应被视为官方 Champions 正式结论 |
 
-环境数据会先通过 `src/lib/environmentDataset.ts` 审计。未知 Pokémon / 招式 / 道具引用会被报告并从 UI 数据中剔除。`scripts/update-pokedb-environment.mjs` 会在写入前检查未知 Pokémon、未映射日文道具名、失效 item id 和未映射 move key，并同步写入源码审计快照与 public 运行时 JSON。
+环境数据会先通过 `src/lib/environmentDataset.ts` 审计。未知 Pokémon / 招式 / 道具引用会被报告并从 UI 数据中剔除。`scripts/update-pokedb-environment.mjs` 会动态探测 PokeDB 最新赛季，复用 Worker 的 HTML 解析入口，并同步写入源码审计快照与 public 运行时 JSON。
 
 ## 本地运行
 

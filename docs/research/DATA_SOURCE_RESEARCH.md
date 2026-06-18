@@ -1,6 +1,6 @@
 # 数据来源策略
 
-更新日期：2026-06-11
+更新日期：2026-06-18
 
 ## 当前数据层
 
@@ -16,25 +16,25 @@
 
 Cloudflare Worker：
 
-- 每 6 小时尝试 PokeDB Season 2，再回退 Season 1。
-- 只有单打和双打 ranked-team payload 都有效时才采用该赛季。
-- 解析 trainer/list 中可用的公开队报样本。
+- 每 6 小时动态探测 PokeDB 最新赛季。
+- 抓取单打和双打 Pokemon ranking/detail statistics，并补充公开队报样本。
+- 当前 Worker / 静态维护脚本共用 PokeDB HTML 解析入口。
 - 在 KV 保存完整 snapshot、刷新状态和宝可梦队伍索引。
 - 公共用户只读取缓存，不直接触发 PokeDB 抓取。
 
 ### 环境静态数据
 
-`public/data/pokedb/reg-ma-s1-environment.json` 是离线和 API 故障回退：
+`public/data/pokedb/reg-ma-environment.json` 是离线和 API 故障回退：
 
-- Season 1 单打 528 队、双打 71 队。
-- 宝可梦样本占比、道具和队友统计。
-- 本地维护脚本解析的前 50 宝可梦招式统计。
-- 公开队报链接样本。
+- 最新赛季 Pokemon ranking/detail statistics。
+- 当前默认抓取单打 / 双打各前 60 个宝可梦详情页。
+- 包含招式、道具、队友、特性、性格统计。
+- 补充上一完整赛季公开队报链接样本。
 
 ## 运行时优先级
 
 1. `/api/environment/latest`
-2. `/data/pokedb/reg-ma-s1-environment.json`
+2. `/data/pokedb/reg-ma-environment.json`
 3. `environmentDatasetSeed`
 
 所有数据在进入 UI 前都通过 `auditEnvironmentDataset`。未知宝可梦、招式和道具引用会被报告并从可用数据中剔除。
@@ -58,7 +58,5 @@ npm run data:pokedb:environment
 
 ## 当前缺口
 
-- Worker 尚未生成静态维护包的完整 `moveStats`。
 - UI 没有展示 Worker fresh / stale。
-- Worker 选择 Season 2 时，数据口径页仍存在 M-1 硬编码。
 - 多赛季历史、趋势和复杂检索尚未启用 D1。

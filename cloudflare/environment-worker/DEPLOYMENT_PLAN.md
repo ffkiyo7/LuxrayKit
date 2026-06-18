@@ -56,8 +56,8 @@ Refresh behavior:
 
 Important limitation:
 
-- This first Worker caches ranked-team Open Data only.
-- It does not yet reproduce the richer local script that adds move stats and report-linked team samples.
+- The Worker now caches PokeDB Pokemon statistics with top-N detail pages and report-linked team samples.
+- `/api/environment/status` exposes audit counts and degrades when unknown references exceed the configured threshold.
 - KV team lookup is a good MVP path. D1 with indexes is better if the API becomes a high-traffic public query surface.
 
 Static asset behavior:
@@ -166,14 +166,14 @@ curl "https://luxraykit.com/api/pokemon/garchomp/teams?battleType=singles"
 
 Recommended product behavior:
 
-1. Keep bundled `public/data/pokedb/reg-ma-s1-environment.json` as first-paint and offline fallback.
+1. Keep bundled `public/data/pokedb/reg-ma-environment.json` as first-paint and offline fallback.
 2. On environment page mount, fetch same-origin `/api/environment/latest`.
 3. Audit the Worker snapshot with existing `createEnvironmentStateFromPokeDbSnapshot`.
 4. If usable and newer, replace in-memory environment state.
 5. Add a "检查更新" button that re-reads Worker cache.
 6. Show data status clearly:
    - `M-2 ranked teams`
-   - `M-1 fallback`
+   - `latest static fallback`
    - `stale cache`
    - `offline bundled snapshot`
 

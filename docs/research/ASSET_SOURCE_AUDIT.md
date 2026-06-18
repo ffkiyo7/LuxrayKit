@@ -21,7 +21,7 @@
 | Mega 形态数据 | 硬编码旧世代竞技数据（`mega-catalog.ts`）+ PokéBase（`mega-catalog-mb.ts`） | `scripts/generate-mega-forms.mjs` + 人工 | 两份 mega 目录合并 |
 | 规则元数据 | champions.pokemon.com + 历史 web-view.app.pokemonchampions.jp | `src/data/seed/regMA/metadata.ts` | seed |
 | 道具合法性快照 | rotompicks.com | `src/data/seed/regMA/metadata.ts` | seed |
-| 环境数据（静态回退） | champs.pokedb.tokyo `/opendata/*.json`（写死 S1）+ PokeAPI + trainer/pokemon HTML 页 | `scripts/update-pokedb-environment.mjs` | `public/data/pokedb/reg-ma-s1-environment.json` |
+| 环境数据（静态回退） | champs.pokedb.tokyo HTML 页（`/pokemon/list`、`/pokemon/show`、`/trainer/list`，动态探测最新赛季） | `scripts/update-pokedb-environment.mjs` 复用 Worker 解析器 | `public/data/pokedb/reg-ma-environment.json` |
 | 环境数据（线上主源） | champs.pokedb.tokyo HTML 页（`/pokemon/list`、`/pokemon/show`、`/trainer/list`，动态探测最新赛季） | `cloudflare/environment-worker/src/index.ts` + `src/lib/pokedbEnvironment.ts` | Cloudflare KV |
 | 上位队伍 | 同上（PokeDB trainer/list 真实队报链接） | Worker / 维护脚本 | KV / seed JSON |
 
@@ -45,14 +45,15 @@
 
 ## 三、多交叉数据源问题（重点）
 
-1. **PokeDB 存在两条并行、互不复用的解析管线** —— 风险最高
-   - 静态维护脚本走 `/opendata/*.json`，且赛季写死为 S1（`scripts/update-pokedb-environment.mjs`）；
-   - 线上 Worker 走 HTML 页面解析（`src/lib/pokedbEnvironment.ts`），动态探测最新赛季；
-   - 两套解析逻辑各自维护，容易漂移；静态被钉死在 S1，Worker 已跑到 S3。
+1. **PokeDB 解析管线已统一（2026-06-18 已处理）**
+   - 静态维护脚本已改为动态探测 PokeDB 最新赛季；
+   - 维护脚本通过 esbuild 临时打包并复用线上 Worker 的 HTML 抓取/解析入口；
+   - 旧 S1 `/opendata` JSON 仅作为测试夹具/历史快照保留，不再作为运行时静态回退来源。
 
-2. **环境数据三层回退存在严重赛季错位**
-   - 优先级链（`src/data/environment.ts:216`）：`Worker(M-3 实时)` → `静态 JSON(M-1, 2026-06-06)` → `seed(更早, 2026-05-27)`；
-   - 当前规则集已是 M-B。一旦 Worker 不可达，用户立刻从 M-3 跌回 M-1 环境，与界面显示的 M-B 规则严重不符。
+2. **环境数据回退赛季错位已修复（2026-06-18 已处理）**
+   - 优先级链调整为：`Worker(实时)` → `静态 JSON(维护脚本生成的最新赛季)` → `seed(开发样例)`；
+   - public 回退文件改为规则集级别的 `/data/pokedb/reg-ma-environment.json`，避免文件名继续表达 S1；
+   - Service Worker 预缓存同步更新到新文件，并 bump cache name 防止旧缓存沿用 S1。
 
 3. **图片/道具图标来源碎片化**：立绘分散在 PokeAPI sprites + i.pokebase CDN；道具图标分散在 4 个来源（PokéBase 抓取页、i.pokebase 硬编码 URL、PokeAPI、Serebii）。新增项时来源判断逻辑散落在多个脚本里。
 
@@ -72,10 +73,10 @@
 
 ### 高优先级
 
-1. **统一 PokeDB 解析逻辑**：让静态维护脚本复用 Worker 的 `src/lib/pokedbEnvironment.ts` 解析器，并取消 S1 硬编码、改为动态探测赛季，消除双管线漂移。
-2. **修复回退赛季错位**：静态回退 JSON 应跟随当前规则集滚动重生成（M-B/最新赛季），或在 UI 明确标注“回退数据为历史赛季 M-1”，避免规则与环境口径不一致。
+1. **统一 PokeDB 解析逻辑**（✅ 已完成）：静态维护脚本已复用 Worker 的 PokeDB HTML 抓取/解析入口，并取消 S1 硬编码、改为动态探测赛季。
+2. **修复回退赛季错位**（✅ 已完成）：静态回退 JSON 已切到 `/data/pokedb/reg-ma-environment.json`，并已刷新到 M-3；Service Worker 也同步预缓存新地址。
 3. **补齐映射缺口并对齐解析口径**（✅ 代码已落地，待部署生效）：在 `pokedbItemNameMap.ts` 补 Raichu Mega Stone X/Y 的日文名映射；将 Worker 解析与静态脚本的 `ignoredItemNames` 对齐，过滤掉 `持ち物なし` 这类“无持物”哨兵；并将当前 main 分支 bundle 重新部署到 Worker，使本地已齐的 M-B allowlist/catalog 映射在线上生效。
-4. **给 Worker 审计加告警**：`dataFreshness.notes` 里的 unknown keys/items 目前只是日志，建议在 `/status` 暴露未知项计数并设阈值告警，而不是静默剔除。
+4. **给 Worker 审计加告警**（✅ 已完成）：`/api/environment/status` 已暴露 snapshot audit 计数、明细和阈值告警；`/api/environment/latest` 也通过响应头标出 audit alert 与 unknown 总数，避免 unknown keys/items 只停留在 `dataFreshness.notes`。
 
 ### 中优先级
 
@@ -90,5 +91,7 @@
 
 ## 六、处理进度
 
-- 2026-06-18：完成高优先级 #3。`src/data/external/pokedbItemNameMap.ts` 补入 `ライチュウナイトＸ→raichunite-x`、`ライチュウナイトＹ→raichunite`；`src/lib/pokedbEnvironment.ts` 抽出共享 `IGNORED_ITEM_NAMES`/`isIgnoredItemName`，在 `normalizeItemId`、详情统计 `itemStats`、trainer 列表三处复用，详情统计不再把 `持ち物なし` 计入 unknown。`tsc -b` 通过、相关单测全过。改动需随 main bundle 重新部署到 Worker 后线上 notes 的 3 个 unknown item 才会消失。
-- 待办：#1 统一 PokeDB 解析、#2 回退赛季错位、#4 Worker 审计告警。
+- 2026-06-18：完成高优先级 #3。`src/data/external/pokedbItemNameMap.ts` 补入 `ライチュウナイトＸ→raichunite-x`、`ライチュウナイトＹ→raichunite`；`src/lib/pokedbEnvironment.ts` 抽出共享 `IGNORED_ITEM_NAMES`/`isIgnoredItemName`，在 `normalizeItemId`、详情统计 `itemStats`、trainer 列表三处复用，详情统计不再把 `持ち物なし` 计入 unknown。后续 M-3 快照刷新时又补齐 `いのちのたま`、`たつじんのおび`、天气岩石/镜片/头带类道具、M-B 新 Mega 石日文别名，以及 PokeDB move key `789/874/889` 和 ability key `283`。
+- 2026-06-18：完成高优先级 #1/#2。`scripts/update-pokedb-environment.mjs` 改为动态探测最新 PokeDB 赛季，复用 Worker HTML 抓取/解析入口生成 statistics snapshot；运行时静态回退从 `/data/pokedb/reg-ma-s1-environment.json` 切到 `/data/pokedb/reg-ma-environment.json`，`public/sw.js` 同步预缓存新快照并 bump cache。已生成 M-3 静态回退快照：单打 228 个排名 / 前 60 详情页，双打 211 个排名 / 前 60 详情页，单/双 unknown Pokemon、item、move、ability、nature 均为 0。旧 S1 opendata JSON 继续作为测试夹具/历史快照保留。
+- 2026-06-18：完成高优先级 #4。Worker 新增 `EnvironmentAuditStatus` 汇总：默认阈值为 0，可用 `ENVIRONMENT_AUDIT_UNKNOWN_THRESHOLD` 覆盖；发布 refresh job、跳过 refresh、`/api/environment/status` 都会汇总当前 snapshot 的 unknown Pokemon/item/move/ability/nature 与 failed detail keys；`/api/environment/latest` 新增 `x-luxray-audit-alert`、`x-luxray-audit-unknown-count`，并在超阈值时将 `x-luxray-worker-status` 标为 `degraded`。定向 Worker 单测覆盖 status 输出和 latest header。
+- 待办：无。

@@ -35,10 +35,10 @@
 ### 数据加载
 
 1. 请求 `/api/environment/latest`，使用 `cache: no-store`。
-2. 请求失败时读取 `/data/pokedb/reg-ma-s1-environment.json`，使用 `force-cache`。
+2. 请求失败时读取 `/data/pokedb/reg-ma-environment.json`，使用 `force-cache`。
 3. 两者都失败时回退到 `environmentDatasetSeed`。
 
-Worker 使用 KV 保存最新 snapshot、状态和宝可梦队伍索引，Cron 为 `17 */6 * * *`。它按 `SEASON_CANDIDATES=2,1` 依次尝试赛季，只有单打和双打都可用时才采用该赛季。
+Worker 使用 KV 保存最新 snapshot、状态和宝可梦队伍索引，Cron 为 `17 */6 * * *`。它动态探测 PokeDB 最新赛季，并生成单打 / 双打 Pokemon statistics snapshot。
 
 ## 队伍页
 
@@ -74,7 +74,5 @@ Worker 使用 KV 保存最新 snapshot、状态和宝可梦队伍索引，Cron �
 
 ## 后续仍需处理
 
-- 去除数据口径页对 `M-1` 的硬编码，改为展示实际 Worker 赛季。
 - 在 UI 中区分 Worker fresh / stale、Worker snapshot 与静态回退。
-- 决定如何让 Worker 产物补齐静态维护脚本中的招式统计。
 - 增加环境加载重试与更明确的降级状态。

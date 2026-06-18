@@ -30,6 +30,22 @@ type EnvironmentSnapshot = {
   };
 };
 
+type AuditIssueKind =
+  | 'unknownPokemonKeys'
+  | 'unknownItemNames'
+  | 'unknownMoveKeys'
+  | 'unknownAbilityKeys'
+  | 'unknownNatureNames'
+  | 'failedDetailKeys';
+
+type EnvironmentAuditStatus = {
+  threshold: number;
+  totalUnknownCount: number;
+  alert: boolean;
+  counts: Record<AuditIssueKind, number>;
+  values: Record<AuditIssueKind, Array<string | number>>;
+};
+
 type TeamSummarySlot = {
   pokeDbKey: string;
   pokemonId?: string;
@@ -55,6 +71,7 @@ type CacheStatus = {
   selectedSeason?: number;
   selectedSeasonLabel?: string;
   teamCounts?: Partial<Record<BattleType, number>>;
+  audit?: EnvironmentAuditStatus;
   error?: string;
 };
 
@@ -87,6 +104,7 @@ type AppEnv = Env & {
   ADMIN_REFRESH_TOKEN?: string;
   POKEDB_DETAIL_LIMIT?: string;
   POKEDB_DETAIL_CHUNK_SIZE?: string;
+  ENVIRONMENT_AUDIT_UNKNOWN_THRESHOLD?: string;
   WORKER_SELF_URL?: string;
   SELF?: Fetcher;
 };
@@ -109,6 +127,7 @@ const REFRESH_JOB_ABANDON_MS = 60 * 60 * 1000;
 const MAX_REFRESH_JOB_STEPS = 10;
 const PAGE_REQUEST_DELAY_MS = 450;
 const POKEDB_USER_AGENT = 'LuxrayKitEnvironmentWorker/0.2 (+https://luxraykit.com)';
+const DEFAULT_AUDIT_UNKNOWN_THRESHOLD = 0;
 
 const latestSourceUpdatedAt = (lists: Record<BattleType, PokeDbPokemonListPayload>) =>
   lists.singles.updatedAt >= lists.doubles.updatedAt
@@ -312,6 +331,45 @@ export async function fetchTrainerBattlePages(options: {
 }
 
 const mergeUnique = <T extends string | number>(values: T[][]) => [...new Set(values.flat())].sort();
+
+const auditIssueKinds = [
+  'unknownPokemonKeys',
+  'unknownItemNames',
+  'unknownMoveKeys',
+  'unknownAbilityKeys',
+  'unknownNatureNames',
+  'failedDetailKeys',
+] as const satisfies AuditIssueKind[];
+
+const auditThreshold = (env: AppEnv) => {
+  const parsed = Number(env.ENVIRONMENT_AUDIT_UNKNOWN_THRESHOLD ?? DEFAULT_AUDIT_UNKNOWN_THRESHOLD);
+  return Number.isInteger(parsed) && parsed >= 0 ? parsed : DEFAULT_AUDIT_UNKNOWN_THRESHOLD;
+};
+
+function buildEnvironmentAuditStatus(snapshot: EnvironmentSnapshot, threshold: number): EnvironmentAuditStatus {
+  const battles = snapshot.battles ?? {};
+  const payloads = (['singles', 'doubles'] as const)
+    .map((battleType) => battles[battleType])
+    .filter((payload): payload is PokeDbPokemonStatisticsPayload => Boolean(payload));
+  const values = Object.fromEntries(
+    auditIssueKinds.map((kind) => [
+      kind,
+      mergeUnique(payloads.map((payload) => payload.audit?.[kind] ?? [])),
+    ]),
+  ) as EnvironmentAuditStatus['values'];
+  const counts = Object.fromEntries(
+    auditIssueKinds.map((kind) => [kind, values[kind].length]),
+  ) as EnvironmentAuditStatus['counts'];
+  const totalUnknownCount = Object.values(counts).reduce((sum, count) => sum + count, 0);
+
+  return {
+    threshold,
+    totalUnknownCount,
+    alert: totalUnknownCount > threshold,
+    counts,
+    values,
+  };
+}
 
 async function fetchPokemonList(options: {
   baseUrl: string;
@@ -544,6 +602,7 @@ async function publishRefreshJob(
     refreshedAt,
   );
   const teamIndex = buildTeamIndex(snapshot);
+  const audit = buildEnvironmentAuditStatus(snapshot, auditThreshold(env));
   const status: CacheStatus = {
     ok: true,
     refreshedAt,
@@ -554,6 +613,7 @@ async function publishRefreshJob(
       singles: snapshot.battles.singles?.resultCount,
       doubles: snapshot.battles.doubles?.resultCount,
     },
+    audit,
   };
 
   await Promise.all([
@@ -562,7 +622,7 @@ async function publishRefreshJob(
     env.ENVIRONMENT_CACHE.put(TEAM_INDEX_KEY, JSON.stringify(teamIndex)),
   ]);
   await env.ENVIRONMENT_CACHE.delete(REFRESH_JOB_KEY);
-  console.log(JSON.stringify({ event: 'environment_refresh_success', jobId: job.jobId, ...status }));
+  console.log(JSON.stringify({ event: audit.alert ? 'environment_refresh_audit_alert' : 'environment_refresh_success', jobId: job.jobId, ...status }));
   return status;
 }
 
@@ -638,6 +698,7 @@ export async function startRefreshJob(
       const status: CacheStatus = {
         ...previousStatus,
         refreshedAt,
+        audit: buildEnvironmentAuditStatus(snapshot, auditThreshold(env)),
       };
       await Promise.all([
         env.ENVIRONMENT_CACHE.put(SNAPSHOT_KEY, JSON.stringify({
@@ -897,6 +958,8 @@ async function handleLatest(request: Request, env: AppEnv) {
   }
 
   const snapshot = JSON.parse(snapshotText) as EnvironmentSnapshot;
+  const audit = buildEnvironmentAuditStatus(snapshot, auditThreshold(env));
+  const workerStatus = status?.ok && !audit.alert ? 'ok' : 'degraded';
   const maxAgeSeconds = Number(env.MAX_CACHE_AGE_SECONDS ?? DEFAULT_MAX_CACHE_AGE_SECONDS);
   const cacheState = status?.ok && isFresh(
     snapshot.retrievedAt,
@@ -909,17 +972,36 @@ async function handleLatest(request: Request, env: AppEnv) {
     headers: jsonHeaders(env, {
       'cache-control': 'no-store',
       'x-luxray-cache-state': cacheState,
-      'x-luxray-worker-status': status?.ok ? 'ok' : 'degraded',
+      'x-luxray-worker-status': workerStatus,
+      'x-luxray-audit-alert': audit.alert ? '1' : '0',
+      'x-luxray-audit-unknown-count': String(audit.totalUnknownCount),
     }),
   });
 }
 
 async function handleStatus(env: AppEnv) {
-  const statusText = await env.ENVIRONMENT_CACHE.get(STATUS_KEY);
+  const [statusText, snapshotText] = await Promise.all([
+    env.ENVIRONMENT_CACHE.get(STATUS_KEY),
+    env.ENVIRONMENT_CACHE.get(SNAPSHOT_KEY),
+  ]);
+  if (statusText) {
+    const status = JSON.parse(statusText) as CacheStatus;
+    const audit = snapshotText
+      ? buildEnvironmentAuditStatus(JSON.parse(snapshotText) as EnvironmentSnapshot, auditThreshold(env))
+      : status.audit;
+    return jsonResponse(
+      env,
+      {
+        ...status,
+        ...(audit ? { audit, alert: audit.alert, workerStatus: status.ok && !audit.alert ? 'ok' : 'degraded' } : {}),
+      },
+      { status: 200, headers: { 'cache-control': 'no-store' } },
+    );
+  }
   return jsonResponse(
     env,
-    statusText ? JSON.parse(statusText) : { ok: false, error: 'environment_status_not_ready' },
-    { status: statusText ? 200 : 503, headers: { 'cache-control': 'no-store' } },
+    { ok: false, error: 'environment_status_not_ready' },
+    { status: 503, headers: { 'cache-control': 'no-store' } },
   );
 }
 

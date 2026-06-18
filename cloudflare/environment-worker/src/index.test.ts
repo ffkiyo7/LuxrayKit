@@ -366,6 +366,27 @@ describe('environment Worker PokeDB ingestion', () => {
       selectedSeasonLabel: 'M-2',
       sourceUpdatedAt: '2026-06-10 23:58:00',
       teamCounts: { singles: 60, doubles: 60 },
+      audit: {
+        threshold: 0,
+        totalUnknownCount: 0,
+        alert: false,
+        counts: {
+          unknownPokemonKeys: 0,
+          unknownItemNames: 0,
+          unknownMoveKeys: 0,
+          unknownAbilityKeys: 0,
+          unknownNatureNames: 0,
+          failedDetailKeys: 0,
+        },
+        values: {
+          unknownPokemonKeys: [],
+          unknownItemNames: [],
+          unknownMoveKeys: [],
+          unknownAbilityKeys: [],
+          unknownNatureNames: [],
+          failedDetailKeys: [],
+        },
+      },
     });
     expect(fetcher.mock.calls.every(([, init]) => {
       const headers = new Headers(init?.headers);
@@ -563,6 +584,101 @@ describe('environment Worker PokeDB ingestion', () => {
     expect(snapshot.battles.singles.detailCount).toBe(3);
     expect(snapshot.teamSamples).toEqual({ singles: [], doubles: [] });
     expect(values.has('environment:refresh-job')).toBe(false);
+  });
+
+  it('exposes snapshot audit counts on status and marks latest as degraded when unknowns exceed the threshold', async () => {
+    const snapshot = {
+      retrievedAt: '2026-06-12T00:00:00.000Z',
+      battles: {
+        singles: {
+          season: 'M-2',
+          seasonNumber: 2,
+          rule: 'singles',
+          updatedAt: '2026-06-10 23:58:00',
+          sourceUrl: 'https://example.com/pokemon/list?season=2&rule=0',
+          resultCount: 1,
+          detailCount: 1,
+          pokemonUsage: [],
+          audit: {
+            unknownPokemonKeys: ['9999-00'],
+            unknownItemNames: ['なぞのどうぐ'],
+            unknownMoveKeys: [999],
+            unknownAbilityKeys: [],
+            unknownNatureNames: [],
+            failedDetailKeys: [],
+          },
+        },
+        doubles: {
+          season: 'M-2',
+          seasonNumber: 2,
+          rule: 'doubles',
+          updatedAt: '2026-06-10 23:58:00',
+          sourceUrl: 'https://example.com/pokemon/list?season=2&rule=1',
+          resultCount: 1,
+          detailCount: 1,
+          pokemonUsage: [],
+          audit: {
+            unknownPokemonKeys: ['9999-00'],
+            unknownItemNames: ['べつのどうぐ'],
+            unknownMoveKeys: [],
+            unknownAbilityKeys: [123],
+            unknownNatureNames: ['まぼろし'],
+            failedDetailKeys: ['0000-00'],
+          },
+        },
+      },
+    };
+    const { env } = createKvEnv({
+      'environment:latest': JSON.stringify(snapshot),
+      'environment:status': JSON.stringify({
+        ok: true,
+        refreshedAt: snapshot.retrievedAt,
+        selectedSeason: 2,
+        selectedSeasonLabel: 'M-2',
+      }),
+    });
+
+    const statusResponse = await worker.fetch(
+      new Request('https://luxraykit.com/api/environment/status'),
+      env,
+      {} as never,
+    );
+    const latestResponse = await worker.fetch(
+      new Request('https://luxraykit.com/api/environment/latest'),
+      env,
+      {} as never,
+    );
+
+    expect(statusResponse.status).toBe(200);
+    await expect(statusResponse.json()).resolves.toMatchObject({
+      ok: true,
+      alert: true,
+      workerStatus: 'degraded',
+      audit: {
+        threshold: 0,
+        totalUnknownCount: 7,
+        alert: true,
+        counts: {
+          unknownPokemonKeys: 1,
+          unknownItemNames: 2,
+          unknownMoveKeys: 1,
+          unknownAbilityKeys: 1,
+          unknownNatureNames: 1,
+          failedDetailKeys: 1,
+        },
+        values: {
+          unknownPokemonKeys: ['9999-00'],
+          unknownItemNames: ['なぞのどうぐ', 'べつのどうぐ'],
+          unknownMoveKeys: [999],
+          unknownAbilityKeys: [123],
+          unknownNatureNames: ['まぼろし'],
+          failedDetailKeys: ['0000-00'],
+        },
+      },
+    });
+    expect(latestResponse.headers.get('x-luxray-worker-status')).toBe('degraded');
+    expect(latestResponse.headers.get('x-luxray-audit-alert')).toBe('1');
+    expect(latestResponse.headers.get('x-luxray-audit-unknown-count')).toBe('7');
   });
 
   it('does not create an overlapping job while the current cursor is active and resumes it when stale', async () => {

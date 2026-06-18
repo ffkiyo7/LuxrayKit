@@ -1,10 +1,10 @@
 # Luxray Kit 开发进度
 
-更新日期：2026-06-11
+更新日期：2026-06-18
 
 ## 当前阶段
 
-环境优先重构、Luxray Kit 品牌更新和 Cloudflare Worker 统一部署已进入 `main`。生产站点由 `luxraykit-app` Worker 提供静态资源与 API，环境页在线优先读取 KV 中的 PokeDB snapshot，并保留静态 S1 快照和开发 seed 两级回退。
+环境优先重构、Luxray Kit 品牌更新和 Cloudflare Worker 统一部署已进入 `main`。生产站点由 `luxraykit-app` Worker 提供静态资源与 API，环境页在线优先读取 KV 中的 PokeDB snapshot，并保留最新赛季静态快照和开发 seed 两级回退。
 
 ## 已完成
 
@@ -22,8 +22,8 @@
 
 - Regulation Set M-A allowlist 213 条。
 - 当前 seed 包含本地宝可梦、形态、招式、learnset、道具、特性、Mega 和来源 manifest。
-- 静态环境快照包含 PokeDB S1 单打 528 队、双打 71 队，以及本地维护生成的招式统计和队报样本。
-- Worker 按 Season 2、Season 1 顺序拉取 ranked-team Open Data，并解析 trainer/list 队报样本。
+- 静态环境快照已刷新为 PokeDB M-3：单打 228 个排名、双打 211 个排名，各含前 60 个宝可梦详情统计和队报样本。
+- Worker 和静态维护脚本均动态探测最新赛季，并复用 PokeDB HTML 解析入口。
 - 数据进入 UI 前经过 `EnvironmentDataset` 审计，未知引用会被报告并过滤。
 
 ### Cloudflare
@@ -42,8 +42,6 @@
 
 ## 当前边界与已知问题
 
-- Worker snapshot 暂未生成静态维护包中的完整 `moveStats`。
-- 数据口径页仍硬编码“M-1”，与 Worker 可选择 Season 2 的能力不完全一致。
 - UI 尚未显示 Worker fresh / stale 响应头或手动“检查更新”。
 - API 和静态快照都失败时使用开发 seed，加载失败页没有重试按钮。
 - 速度计算底层仍存在，但产品入口关闭。

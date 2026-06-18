@@ -1,5 +1,5 @@
-const CACHE_NAME = 'champions-tool-v3';
-const APP_SHELL = ['/', '/index.html', '/manifest.webmanifest', '/icon.svg', '/data/pokedb/reg-ma-s1-environment.json'];
+const CACHE_NAME = 'champions-tool-v4';
+const APP_SHELL = ['/', '/index.html', '/manifest.webmanifest', '/icon.svg', '/data/pokedb/reg-ma-environment.json'];
 
 // Item icons are pre-cached lazily: install won't fail on individual misses
 const ITEM_ICONS = [

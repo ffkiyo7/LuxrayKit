@@ -32,7 +32,7 @@ export type {
 };
 
 export const WORKER_ENVIRONMENT_SNAPSHOT_URL = '/api/environment/latest';
-export const POKEDB_ENVIRONMENT_SNAPSHOT_URL = '/data/pokedb/reg-ma-s1-environment.json';
+export const POKEDB_ENVIRONMENT_SNAPSHOT_URL = '/data/pokedb/reg-ma-environment.json';
 
 export type PokeDbEnvironmentSnapshotPayload = {
   retrievedAt: string;

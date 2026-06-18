@@ -21,7 +21,7 @@ Luxray Kit 是面向 Pokémon Champions 玩家的移动端优先 PWA。产品主
 ### 环境
 
 - Worker API `/api/environment/latest` 为在线首选数据源。
-- API 不可用时回退到 `public/data/pokedb/reg-ma-s1-environment.json`，再失败时使用开发 seed。
+- API 不可用时回退到 `public/data/pokedb/reg-ma-environment.json`，再失败时使用开发 seed。
 - 展示样本占比、队伍数、常用招式、携带道具、常见队友和公开队报样本。
 - 提供独立“数据口径”页，说明样本池与百分比分母。
 - Worker 每 6 小时尝试刷新 PokeDB Season 2，失败时回退 Season 1，并把结果写入 Cloudflare KV。

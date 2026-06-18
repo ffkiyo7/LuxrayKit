@@ -5,13 +5,13 @@ This Worker is the migration target for running Luxray Kit as one Cloudflare Wor
 - Static assets serve the Vite `dist` frontend.
 - `/api/*` routes run in the Worker.
 - Production routes are `https://luxraykit.com/*` and `https://www.luxraykit.com/*`.
-- Cron refreshes PokeDB Open Data once per day.
+- Cron refreshes the latest PokeDB environment snapshot once per day.
 - KV stores the latest usable snapshot.
 - The app reads `GET /api/environment/latest`.
 - Pokemon-specific recommendations read `GET /api/pokemon/:pokemonId/teams?battleType=singles`.
 - Optional admin refresh uses `POST /api/environment/refresh` with `Authorization: Bearer <token>`.
 
-The first implementation caches ranked-team Open Data only. It intentionally does not yet reproduce the richer local maintenance parser that adds move stats and report-linked team samples.
+The Worker dynamically detects the latest PokeDB season, caches Pokemon ranking/detail statistics, adds report-linked team samples from the previous season, and exposes audit health in `/api/environment/status`.
 
 ## Files
 
@@ -69,6 +69,14 @@ Read the latest snapshot:
 curl "https://luxraykit.com/api/environment/latest"
 ```
 
+Read refresh status and audit health:
+
+```bash
+curl "https://luxraykit.com/api/environment/status"
+```
+
+`ENVIRONMENT_AUDIT_UNKNOWN_THRESHOLD` defaults to `0`, so any unknown Pokemon, item, move, ability, nature, or failed detail key marks status as degraded.
+
 Read teams related to a Pokemon:
 
 ```bash
@@ -96,6 +104,6 @@ Then visit:
 4. If the Worker snapshot audits cleanly and is newer, replace the in-memory environment state.
 5. Add a small "检查更新" button that re-reads Worker cache. Do not let public users trigger PokeDB fetches directly.
 6. For Pokemon detail pages, prefer `/api/pokemon/:pokemonId/teams` over downloading the full snapshot repeatedly.
-7. Later, port the richer parser for move stats and report-linked team samples into a server-side maintenance path, or move structured team lookup to D1 with indexes.
+7. Later, move structured team lookup to D1 with indexes if the KV team index becomes too limited.
 
 D1 is deliberately not configured for the first deployment. The API shape is stable enough to add D1 later behind the same endpoints.
