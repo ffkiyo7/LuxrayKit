@@ -6,40 +6,13 @@
 
 需求 → Claude Code 拆解为本文件任务 → Codex app 领取单个任务、开独立 worktree 实现 → Claude Code 审 diff。每个任务尽量自包含、可独立合并；标注「依赖」的任务按序进行。
 
-> 上一轮 Task A–E、G、H 及「上线前联合核验」已全部完成并验证（2026-06-18 核对，`npm test` 239 passed）。Task 1（伤害计算补全新赛季 Mega 物种映射）已完成并验证（2026-06-18 核对，`npm test` 240 passed，`npm run build` passed）。Task F（伤害计算页排版重规划）经确认**保留、暂不做**，见文末。
+> 上一轮 Task A–E、G、H 及「上线前联合核验」已全部完成并验证（2026-06-18 核对，`npm test` 239 passed）。Task 1（伤害计算补全新赛季 Mega 物种映射）已完成并验证（2026-06-18 核对，`npm test` 240 passed，`npm run build` passed）。Task 2（一次性脚本摄入 VGCPastes「Champions M-A」构筑）已完成并验证（2026-06-19 核对并经 Claude review 修订：**按赛事含金量清洗**——仅保留官方线下锦标赛 + 近 30 天窗口，PJCS 取 Top14，最终入库 **99 队**；42 队带游戏内队伍码、63 队含完整 SP；修正了 EV→SP 误除以 8 的 bug（paste 里的 `EVs:` 本就是 Champions SP）；数据改为**运行时 fetch（不再打包进 JS）** + SW 预缓存，267KB。`npm test` 246 passed，`npm run build` passed）。Task F（伤害计算页排版重规划）经确认**保留、暂不做**，见文末。
 
 ## 任务清单
 
 ### Task F — 伤害计算页排版重规划（保留 · 暂不做 · 低优先级 · 前端 · 算法不动）
 
 > 上一轮遗留。经确认本轮**保留但暂不做**，待后续排期。算法/计算口径不动，仅重排展示层与信息层级（进攻/防守方卡片、招式区、对战条件、伤害结果的布局与视觉）。可走 `frontend-design` 技能定方向，保持与全站 `text-xs/text-sm` 设计语言一致。
-
-### Task 2 — 一次性脚本摄入 VGCPastes「Champions M-A」构筑（就绪 · 脚本/数据层 · 一次性）
-
-> **背景 / 痛点**：当前上位构筑全部来自 PokeDB（Reg M-A），且 PokeDB 解析只能稳定拿到**宝可梦 + 携带物**，**配招与 SP 分配抓不到**（队报多指向队主发在 X 的截图，本人常没公开 SP/配招）。配招与 SP 对「借鉴队伍」价值极高。本任务从 VGCPastes 引入**带完整配招 + SP**的 M-A 构筑，充实项目内队伍数据。
->
-> **方向调整声明**：本轮**推翻上一轮「暂不做：引入新数据源」**的判断。
->
-> **调研结论（已验证）**：游戏内「复制码」是 ~10 位字母数字的**服务器端租赁 ID，无法在游戏外解码**（信息量装不下整队；社区工具只能生成码/送进游戏，无反解；Victory Road 把「Code」与「Paste」分两列即为证）。**唯一可解析、带全配置的格式是 PokePaste 文本**，策展源已为每队配好 PokePaste 链接。
->
-> **形态决策（已定）**：**只做一次性脚本摄入**——`Cron 先不做`（数据源更新频率与累积量级未知，待量起来再评估自动化）；**不做终端用户粘贴框**（形态 A，价值有限，见「暂不做」）。
->
-> **源 / 范围（按实际表格定）**：主源 = VGCPastes 母表（`docs.google.com/spreadsheets/d/1axlwmzPA49rYkqXh7zHvAtSP-TKbM0ijGYBPRflLSWw`）**仅「Champions M-A」子表**（`gid=791705272`）。**忽略**：朱紫(SV) 子表、`Reg featured teams` 子表；`Champions M-A Featured Teams` 子表与「Champions M-A」基本无差异，**只按后者(「Champions M-A」)解析**。**过滤**：只取 `Date Shared ≥ 2026-05-01` 的队（更早的时效价值低；总体原则：仅近 ~1 个月的队较有价值）。
-
-- **涉及文件**：新增一次性脚本（如 `scripts/ingest-vgcpastes-champions-ma.mjs`，与 `scripts/update-pokedb-environment.mjs` 同级）；可抽出 PokePaste 解析模块（如 `src/lib/pokepasteSource.ts`，与 `pokedbEnvironment.ts` 同级，便于单测）；英文名→app id 映射（复用数据集现有 `englishName` 查表，必要时新增 `src/data/external/showdownNameMap.ts`）；产出数据文件（沿用 `public/data/` 既有布局）+ `src/data/environment.ts`（样本来源标签/合并）。**不动 Cloudflare worker / wrangler.jsonc**。
-- **改动要点**：
-  - **抓取表**：拉「Champions M-A」子表的 **CSV 导出**（`…/export?format=csv&gid=791705272`，无需登录）。实测列含：`Team ID`、`Team Description`（队名）、`Full Name`/`Owner`（作者）、`1`–`6`（六只）、`Pokepaste`（pokepast.es 链接）、`EVs`、`Replica Code`、`Date Shared`（`"12 Jun 2026"` 格式）、`Tournament / Event`、`Rank`（如 `Top 500`）、`Link to Source`、`Report / Video`。**防御式解析 + audit**（列布局变更不致静默错）。
-  - **过滤**：解析 `Date Shared`（`DD Mon YYYY`）→ 只保留 `≥ 2026-05-01`。
-  - **解析 PokePaste**：逐条拉 `pokepast.es/<id>/json`（或 `/raw`）→ 解出 6 只的 物种/道具/特性/性格/**配招/努力值**。
-  - **名称映射**：英文 Showdown 名 → app id（物种/道具/特性/招式），复用数据集现有 `englishName`；**未映射条目进 audit/跳过**，不污染数据。
-  - **EV→SP 换算**：PokePaste 为 EV/IV 体系，Champions 为 **SP、无 IV**。按 app 现有口径（`damageAdapter` 的 `statPointsToEvs` 是 `SP*8` 截 252）反推 `SP≈round(EV/8)`，校验 **单项≤32、总量≤66**，**丢弃 IV**。**实现前再核** Champions 官方 SP/EV 换算口径。
-  - **捕获队伍码**：解析 `Replica Code (Click text for image)` 列，提取实际码值（~10 位字母数字，剥掉「Click text for image」之类壳文案）写入 `EnvironmentTeamSample.replicaCode?`（无码的队伍留空）。**供 Task 5 在前端展示用**。
-  - **产出**：`EnvironmentTeamSample` 带来源标签（如 `vgcpastes-champions-ma`）、赛季 `reg-ma`（与项目现有数据集一致）、完整度标记 `hasMoves`/`hasSpread`（本源恒为 true）、`reportUrl` 取 `Link to Source`/`Report / Video`（无则回退 pokepaste 链接）、`replicaCode?`（如上）、可带 `Rank`/`Tournament` 元数据。写入数据集，**与 PokeDB 样本并存且来源可区分**（沿用环境页「来源/范围/排行/详情/构筑」口径，对外表述为「社区策展赛事队，含完整配招+SP」）。
-- **实现前必须确认（写死在任务里）**：
-  - **EV→SP 换算口径**：确认官方 SP 与 PokePaste EV 的换算（按上口径实现，发现偏差再调）。
-  - **不支持字段**：PokePaste 里 Champions 不支持的机制（太晶/不在名单的宝可梦/形态等）需 audit/剥离。
-  - **量级观察**：记录本次过滤后实际入库队数，作为「日后是否值得上 cron 自动化」的判断依据。
-- **验收**：脚本一次性产出 `reg-ma` 的 VGCPastes 来源样本（仅 `Date Shared ≥ 2026-05-01`、带配招+SP），与 PokeDB 样本并存、来源可区分；解析失败/未映射进 audit 并在脚本输出可见；PokePaste 解析/名称映射/EV→SP 换算有单测；`npm test`、`npm run build` 通过。
 
 ### Task 3 — 队伍卡片「可导入配置」能力标识（前端 · 依赖 Task 2 数据模型）
 
@@ -97,7 +70,6 @@ npm run build
 npm run test:visual        # 涉及 UI 改动
 ```
 
-- Task 2：脚本一次性产出 reg-ma 的 VGCPastes「Champions M-A」样本（Date Shared ≥ 2026-05-01、含配招+SP），与 PokeDB 并存、来源可区分；未映射/失败进 audit；解析/映射/换算有单测；记录入库队数。
 - Task 3：含完整配置的样本显示「可导入：[SP分配][配招]」胶囊+注释、仅基础信息的不显示；快照更新。
 - Task 4：上位构筑首屏乱序、非排名序；换一批给出乱序不同批次；切换单/双打重置；样本不丢不重；快照更新。
 - Task 5：带码队伍详情页显示「X/6 成员 · {队伍码} [复制]」、无码只显示成员计数；复制写入剪贴板并弹「队伍码已复制 / 分享可能已过期」小长条；快照更新。

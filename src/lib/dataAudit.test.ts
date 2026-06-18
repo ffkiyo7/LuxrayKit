@@ -269,6 +269,12 @@ describe('seed data audit', () => {
     expect(duplicateItemIcons).toEqual([]);
   });
 
+  it('uses Eternal Flower Floette art for the Champions Floette entry', () => {
+    expect(fileHash('public/assets/pokemon/artwork/670.png')).toBe(fileHash('public/assets/pokemon/artwork/10061.png'));
+    expect(fileHash('public/assets/pokemon/thumbs/670.png')).toBe(fileHash('public/assets/pokemon/thumbs/10061.png'));
+    expect(fileHash('public/assets/pokemon/icons/670.png')).toBe(fileHash('public/assets/pokemon/icons/10061.png'));
+  });
+
   it('keeps legacy Mega sprite ids aligned to their PokeAPI forms', () => {
     const expectedSpriteIds = [
       ['venusaur', 'mega-venusaur', '10033'],

@@ -13,6 +13,10 @@ const CATALOG_DIR = resolve(ROOT, 'src/data/seed/regMA');
 const ARTWORK_BASE = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork';
 const THUMB_SIZE = 192;
 const UA = 'PokemonChampionsTool/1.0';
+const SPRITE_SOURCE_ALIASES = new Map([
+  // Pokemon Champions only permits Eternal Flower Floette while keeping the base Floette display name.
+  [670, 10061],
+]);
 
 await mkdir(ARTWORK_DIR, { recursive: true });
 await mkdir(THUMBS_DIR, { recursive: true });
@@ -54,7 +58,8 @@ for (const id of ids) {
     continue;
   }
 
-  const url = `${ARTWORK_BASE}/${id}.png`;
+  const sourceId = SPRITE_SOURCE_ALIASES.get(id) ?? id;
+  const url = `${ARTWORK_BASE}/${sourceId}.png`;
   try {
     let buf;
     if (artExists) {

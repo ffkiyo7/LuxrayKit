@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { Generations } from '@smogon/calc';
 import {
   abilities,
   currentDataVersion,
@@ -6,10 +7,12 @@ import {
   pokemon,
 } from '../data';
 import { championsOnlyMegaNames, megaFormsByParentId } from '../data/seed/regMA/mega-catalog';
+import { regMaMegaAllowlist } from '../data/seed/regMA/megaAllowlist';
 import { currentRuleMovesForPokemon } from './currentRuleCatalog';
 import {
   buildCalcConfigFromTeamMember,
   buildTemporaryCalcConfig,
+  calcSpeciesId,
   computeDamage,
   totalStatPoints,
   validateStatPoints,
@@ -255,6 +258,18 @@ const manualReviewFixtures: ManualReviewFixture[] = [
 ];
 
 describe('damageAdapter', () => {
+  it('maps every Reg M-A Mega allowlist form to a Gen9 calc species', () => {
+    const gen = Generations.get(9);
+    const unresolved = regMaMegaAllowlist.flatMap((entry) => {
+      if (!entry.formId) return [`${entry.englishName}: missing formId`];
+      const calcId = calcSpeciesId(entry.formId);
+      return gen.species.get(calcId) ? [] : [`${entry.formId} -> ${calcId}`];
+    });
+
+    expect(regMaMegaAllowlist).toHaveLength(75);
+    expect(unresolved).toEqual([]);
+  });
+
   it('classifies every Champions-added Mega ability for damage verification', () => {
     const championsMegaForms = Object.values(megaFormsByParentId)
       .flat()

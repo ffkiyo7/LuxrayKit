@@ -17,14 +17,16 @@ const createImportedMember = (slot: EnvironmentTeamSample['slots'][number]): Tea
   return {
     id: createId('member'),
     pokemonId: entry.id,
-    formId: entry.id,
-    abilityId: inferredAbilityIds.length === 1 ? inferredAbilityIds[0] : undefined,
+    formId: slot.formId ?? entry.id,
+    abilityId: slot.abilityId ?? (inferredAbilityIds.length === 1 ? inferredAbilityIds[0] : undefined),
     itemId: slot.itemId,
     moveIds,
-    nature: neutralImportNature(),
-    statPoints: {},
+    nature: slot.nature ?? neutralImportNature(),
+    statPoints: slot.statPoints ?? {},
     level: 50,
-    notes: '从环境上位构筑导入；PokeDB 快照仅包含宝可梦与道具，性格 / SP / 配招需手动确认。',
+    notes: slot.nature || Object.keys(slot.statPoints ?? {}).length > 0 || slot.moveIds.length > 0
+      ? '从环境上位构筑导入；已带入公开的性格 / SP / 配招配置。'
+      : '从环境上位构筑导入；PokeDB 快照仅包含宝可梦与道具，性格 / SP / 配招需手动确认。',
     legalityStatus: 'needs-review',
   };
 };

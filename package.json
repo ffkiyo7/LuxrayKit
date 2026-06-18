@@ -16,6 +16,8 @@
     "data:regma:moves": "node scripts/generate-champions-moves.mjs",
     "data:pokedb:environment": "node scripts/update-pokedb-environment.mjs",
     "data:pokedb:environment:check": "node scripts/update-pokedb-environment.mjs --check",
+    "data:vgcpastes:champions-ma": "node scripts/ingest-vgcpastes-champions-ma.mjs",
+    "data:vgcpastes:champions-ma:check": "node scripts/ingest-vgcpastes-champions-ma.mjs --check",
     "worker:environment:dev": "wrangler dev --config cloudflare/environment-worker/wrangler.jsonc --test-scheduled",
     "worker:environment:check": "wrangler deploy --config cloudflare/environment-worker/wrangler.jsonc --dry-run",
     "worker:environment:deploy": "wrangler deploy --config cloudflare/environment-worker/wrangler.jsonc",

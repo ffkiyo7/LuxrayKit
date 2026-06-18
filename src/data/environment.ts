@@ -33,6 +33,10 @@ export type {
 
 export const WORKER_ENVIRONMENT_SNAPSHOT_URL = '/api/environment/latest';
 export const POKEDB_ENVIRONMENT_SNAPSHOT_URL = '/data/pokedb/reg-ma-environment.json';
+// Curated VGCPastes Champions M-A team samples are fetched at runtime (and
+// precached by the service worker) rather than bundled into the JS, to keep the
+// app payload small. See scripts/ingest-vgcpastes-champions-ma.mjs.
+export const VGCPASTES_CHAMPIONS_MA_SAMPLES_URL = '/data/vgcpastes/reg-ma-champions-ma-team-samples.json';
 
 export type PokeDbEnvironmentSnapshotPayload = {
   retrievedAt: string;
@@ -131,16 +135,27 @@ const isStatisticsPayload = (
   payload: PokeDbRankedTeamsPayload | PokeDbTrainerListPayload | PokeDbPokemonStatisticsPayload | undefined,
 ): payload is PokeDbPokemonStatisticsPayload => Boolean(payload && 'pokemonUsage' in payload && 'detailCount' in payload);
 
-export const createPokeDbEnvironmentDatasetFromSnapshot = (snapshot: PokeDbEnvironmentSnapshotPayload): EnvironmentDataset => {
-  const firstPayload = snapshot.battles.singles ?? snapshot.battles.doubles;
+export const createPokeDbEnvironmentDatasetFromSnapshot = (
+  snapshot: PokeDbEnvironmentSnapshotPayload,
+  extraTeamSamples: EnvironmentTeamSample[] = [],
+): EnvironmentDataset => {
+  const mergedSnapshot = {
+    ...snapshot,
+    teamSamples: {
+      ...snapshot.teamSamples,
+      singles: [...(snapshot.teamSamples?.singles ?? []), ...extraTeamSamples.filter((sample) => sample.battleType === 'singles')],
+      doubles: [...(snapshot.teamSamples?.doubles ?? []), ...extraTeamSamples.filter((sample) => sample.battleType === 'doubles')],
+    },
+  };
+  const firstPayload = mergedSnapshot.battles.singles ?? mergedSnapshot.battles.doubles;
   if (isStatisticsPayload(firstPayload)) {
     return buildEnvironmentDatasetFromPokeDbStatistics({
       id: `pokedb-reg-ma-${firstPayload.season.toLowerCase()}-pokemon-statistics`,
       ruleSetId: currentRuleSet.id,
       dataVersionId: currentDataVersion.id,
-      retrievedAt: snapshot.retrievedAt,
-      battles: snapshot.battles as Partial<Record<EnvironmentBattleType, PokeDbPokemonStatisticsPayload>>,
-      teamSamples: snapshot.teamSamples,
+      retrievedAt: mergedSnapshot.retrievedAt,
+      battles: mergedSnapshot.battles as Partial<Record<EnvironmentBattleType, PokeDbPokemonStatisticsPayload>>,
+      teamSamples: mergedSnapshot.teamSamples,
     });
   }
   if (isTrainerListPayload(firstPayload)) {
@@ -148,9 +163,9 @@ export const createPokeDbEnvironmentDatasetFromSnapshot = (snapshot: PokeDbEnvir
       id: `pokedb-reg-ma-${firstPayload.season.toLowerCase()}-trainer-list`,
       ruleSetId: currentRuleSet.id,
       dataVersionId: currentDataVersion.id,
-      retrievedAt: snapshot.retrievedAt,
-      battles: snapshot.battles as Partial<Record<EnvironmentBattleType, PokeDbTrainerListPayload>>,
-      moveStats: snapshot.moveStats,
+      retrievedAt: mergedSnapshot.retrievedAt,
+      battles: mergedSnapshot.battles as Partial<Record<EnvironmentBattleType, PokeDbTrainerListPayload>>,
+      moveStats: mergedSnapshot.moveStats,
     });
   }
 
@@ -158,13 +173,13 @@ export const createPokeDbEnvironmentDatasetFromSnapshot = (snapshot: PokeDbEnvir
     id: 'pokedb-reg-ma-s1-ranked-teams',
     ruleSetId: currentRuleSet.id,
     dataVersionId: currentDataVersion.id,
-    retrievedAt: snapshot.retrievedAt,
+    retrievedAt: mergedSnapshot.retrievedAt,
     pokemonKeyToId,
     itemNameToId: pokedbItemNameToId,
     itemIds: items.map((item) => item.id),
-    battles: snapshot.battles as Partial<Record<EnvironmentBattleType, PokeDbRankedTeamsPayload>>,
-    moveStats: snapshot.moveStats,
-    teamSamples: snapshot.teamSamples,
+    battles: mergedSnapshot.battles as Partial<Record<EnvironmentBattleType, PokeDbRankedTeamsPayload>>,
+    moveStats: mergedSnapshot.moveStats,
+    teamSamples: mergedSnapshot.teamSamples,
   });
 };
 
@@ -174,9 +189,10 @@ export const createEnvironmentStateFromPokeDbSnapshot = (
     sourceKind: 'static',
     freshness: 'stale',
   },
+  extraTeamSamples: EnvironmentTeamSample[] = [],
 ): EnvironmentState => {
   const firstPayload = snapshot.battles.singles ?? snapshot.battles.doubles;
-  const pokedbDataset = createPokeDbEnvironmentDatasetFromSnapshot(snapshot);
+  const pokedbDataset = createPokeDbEnvironmentDatasetFromSnapshot(snapshot, extraTeamSamples);
   const state = toEnvironmentState(
     pokedbDataset,
     {
@@ -213,28 +229,48 @@ const fetchEnvironmentSnapshot = async (
   };
 };
 
+const fetchVgcPastesTeamSamples = async (fetcher: typeof fetch): Promise<EnvironmentTeamSample[]> => {
+  try {
+    const response = await fetcher(VGCPASTES_CHAMPIONS_MA_SAMPLES_URL, {
+      cache: 'force-cache',
+      headers: { Accept: 'application/json' },
+    });
+    if (!response.ok) return [];
+    const payload = await response.json();
+    return Array.isArray(payload) ? (payload as EnvironmentTeamSample[]) : [];
+  } catch {
+    // Curated samples are an enrichment layer; their absence must not block the
+    // environment from loading, so fall back to PokeDB-only data.
+    return [];
+  }
+};
+
 export const loadEnvironmentState = async (
   fetcher: typeof fetch | undefined = typeof fetch === 'function' ? fetch : undefined,
 ): Promise<EnvironmentState> => {
   if (!fetcher) return environmentFallbackState;
 
+  // The curated VGCPastes samples are fetched only after a base snapshot loads, so
+  // the worker/static snapshot remains the primary (first) request.
   try {
     const workerUrl = `${WORKER_ENVIRONMENT_SNAPSHOT_URL}?refresh=${Date.now()}`;
     const result = await fetchEnvironmentSnapshot(fetcher, workerUrl, 'no-store');
+    const vgcPastesTeamSamples = await fetchVgcPastesTeamSamples(fetcher);
     return createEnvironmentStateFromPokeDbSnapshot(result.snapshot, {
       sourceKind: 'worker',
       freshness: result.cacheState === 'fresh' ? 'fresh' : 'stale',
-    });
+    }, vgcPastesTeamSamples);
   } catch {
     // Static deployments and offline installs can keep using the bundled maintenance snapshot.
   }
 
   try {
     const result = await fetchEnvironmentSnapshot(fetcher, POKEDB_ENVIRONMENT_SNAPSHOT_URL, 'force-cache');
+    const vgcPastesTeamSamples = await fetchVgcPastesTeamSamples(fetcher);
     return createEnvironmentStateFromPokeDbSnapshot(result.snapshot, {
       sourceKind: 'static',
       freshness: 'stale',
-    });
+    }, vgcPastesTeamSamples);
   } catch {
     return environmentFallbackState;
   }

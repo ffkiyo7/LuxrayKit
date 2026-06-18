@@ -201,9 +201,17 @@ const SPECIES_ID_MAP: Record<string, string> = {
   'mega-clefable': 'clefable', 'mega-victreebel': 'victreebel',
   'mega-starmie': 'starmie', 'mega-dragonite': 'dragonite',
   'mega-meganium': 'meganium', 'mega-feraligatr': 'feraligatr',
+  'mega-raichu-x': 'raichu', 'mega-raichu-y': 'raichu',
+  'mega-sceptile': 'sceptilemega', 'mega-blaziken': 'blazikenmega',
+  'mega-swampert': 'swampertmega', 'mega-mawile': 'mawilemega',
+  'mega-metagross': 'metagrossmega', 'mega-staraptor': 'staraptor',
+  'mega-scolipede': 'scolipede', 'mega-scrafty': 'scrafty',
+  'mega-eelektross': 'eelektross', 'mega-pyroar': 'pyroar',
+  'mega-malamar': 'malamar', 'mega-barbaracle': 'barbaracle',
+  'mega-dragalge': 'dragalge', 'mega-falinks': 'falinks',
 };
 
-function calcSpeciesId(projectId: string): ReturnType<typeof toID> {
+export function calcSpeciesId(projectId: string): ReturnType<typeof toID> {
   return toID(SPECIES_ID_MAP[projectId] ?? projectId);
 }
 function calcMoveId(id: string): ReturnType<typeof toID> { return toID(id); }

@@ -9,7 +9,7 @@
 
 | 资产类别 | 数据源 | 接入位置 | 落地形式 |
 | --- | --- | --- | --- |
-| 宝可梦图片（立绘/缩略图） | PokeAPI sprites `raw.githubusercontent.com/PokeAPI/sprites` | `scripts/generate-pokemon-icons.mjs` / `scripts/update-mb-assets.mjs` | 本地 `public/assets/pokemon/{artwork,thumbs}` |
+| 宝可梦图片（立绘/缩略图） | PokeAPI sprites `raw.githubusercontent.com/PokeAPI/sprites` | `scripts/generate-pokemon-icons.mjs` / `scripts/update-mb-assets.mjs` | 本地 `public/assets/pokemon/{artwork,thumbs}`；`670` 花叶蒂按 Champions 规则使用 PokeAPI `10061` 永恒之花形态 |
 | M-B 新 Mega 立绘 | i.pokebase.app CDN | `scripts/update-mb-assets.mjs`（从 `/pokemon` 页抽 CDN URL） | 本地 PNG |
 | 道具图标 | PokéBase `/items` + i.pokebase CDN 硬编码 URL + PokeAPI sprites/items + Serebii ZA | `scripts/generate-item-icons.mjs` / `scripts/update-mb-assets.mjs` | 本地 `public/assets/items` |
 | 属性 icon | 无外部依赖 —— `ui.tsx` 内联 `typeColors` 十六进制色板 + 中文名映射 | `src/components/ui.tsx:75` | 纯代码，零资产风险 |
@@ -57,9 +57,11 @@
 
 3. **图片/道具图标来源碎片化**：立绘分散在 PokeAPI sprites + i.pokebase CDN；道具图标分散在 4 个来源（PokéBase 抓取页、i.pokebase 硬编码 URL、PokeAPI、Serebii）。新增项时来源判断逻辑散落在多个脚本里。
 
-4. **Mega 数据双目录**：`mega-catalog.ts`（硬编码旧世代竞技数值）+ `mega-catalog-mb.ts`（PokéBase），在 `catalog.ts` 合并。
+4. **花叶蒂图片需使用永恒之花形态**：Pokemon Champions 过签证的是 Eternal Flower Floette，但产品侧仍显示“花叶蒂”。本地 `670` 图像资产必须从 PokeAPI official-artwork `10061` 生成，避免回退到普通红花花叶蒂；`scripts/generate-pokemon-icons.mjs` 已配置 `670 -> 10061` 来源别名，`src/lib/dataAudit.test.ts` 会校验 `670` 与 `10061` 资产一致。
 
-5. **eligible 宝可梦双来源且已分歧**：官方 web-view 仍是 M-A 的 213 行，PokéBase 已是 M-B 的 235 行，`metadata.ts` 已记录此分歧并标 `manual-review`。
+5. **Mega 数据双目录**：`mega-catalog.ts`（硬编码旧世代竞技数值）+ `mega-catalog-mb.ts`（PokéBase），在 `catalog.ts` 合并。
+
+6. **eligible 宝可梦双来源且已分歧**：官方 web-view 仍是 M-A 的 213 行，PokéBase 已是 M-B 的 235 行，`metadata.ts` 已记录此分歧并标 `manual-review`。
 
 ## 四、实测发现的当前数据完整性缺口
 
@@ -94,4 +96,5 @@
 - 2026-06-18：完成高优先级 #3。`src/data/external/pokedbItemNameMap.ts` 补入 `ライチュウナイトＸ→raichunite-x`、`ライチュウナイトＹ→raichunite`；`src/lib/pokedbEnvironment.ts` 抽出共享 `IGNORED_ITEM_NAMES`/`isIgnoredItemName`，在 `normalizeItemId`、详情统计 `itemStats`、trainer 列表三处复用，详情统计不再把 `持ち物なし` 计入 unknown。后续 M-3 快照刷新时又补齐 `いのちのたま`、`たつじんのおび`、天气岩石/镜片/头带类道具、M-B 新 Mega 石日文别名，以及 PokeDB move key `789/874/889` 和 ability key `283`。
 - 2026-06-18：完成高优先级 #1/#2。`scripts/update-pokedb-environment.mjs` 改为动态探测最新 PokeDB 赛季，复用 Worker HTML 抓取/解析入口生成 statistics snapshot；运行时静态回退从 `/data/pokedb/reg-ma-s1-environment.json` 切到 `/data/pokedb/reg-ma-environment.json`，`public/sw.js` 同步预缓存新快照并 bump cache。已生成 M-3 静态回退快照：单打 228 个排名 / 前 60 详情页，双打 211 个排名 / 前 60 详情页，单/双 unknown Pokemon、item、move、ability、nature 均为 0。旧 S1 opendata JSON 继续作为测试夹具/历史快照保留。
 - 2026-06-18：完成高优先级 #4。Worker 新增 `EnvironmentAuditStatus` 汇总：默认阈值为 0，可用 `ENVIRONMENT_AUDIT_UNKNOWN_THRESHOLD` 覆盖；发布 refresh job、跳过 refresh、`/api/environment/status` 都会汇总当前 snapshot 的 unknown Pokemon/item/move/ability/nature 与 failed detail keys；`/api/environment/latest` 新增 `x-luxray-audit-alert`、`x-luxray-audit-unknown-count`，并在超阈值时将 `x-luxray-worker-status` 标为 `degraded`。定向 Worker 单测覆盖 status 输出和 latest header。
+- 2026-06-19：花叶蒂图片资产按 Champions 规则统一到 Eternal Flower Floette。`public/assets/pokemon/{artwork,thumbs,icons}/670.png` 由本地 PokeAPI `10061` 永恒之花形态资产同步生成；`scripts/generate-pokemon-icons.mjs` 记录 `670 -> 10061` 来源别名，`dataAudit` 增加哈希一致性测试，防止后续维护回退到普通花叶蒂。
 - 待办：无。

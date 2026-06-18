@@ -5,6 +5,7 @@ import moveStats from './external/pokedb/s1_move_stats.json';
 import teamSamples from './external/pokedb/s1_team_samples.json';
 import {
   POKEDB_ENVIRONMENT_SNAPSHOT_URL,
+  VGCPASTES_CHAMPIONS_MA_SAMPLES_URL,
   WORKER_ENVIRONMENT_SNAPSHOT_URL,
   createEnvironmentStateFromPokeDbSnapshot,
   loadEnvironmentState,
@@ -54,7 +55,12 @@ describe('environment runtime loading', () => {
       expect.stringMatching(new RegExp(`^${WORKER_ENVIRONMENT_SNAPSHOT_URL.replace('/', '\\/')}\\?refresh=\\d+$`)),
       expect.objectContaining({ cache: 'no-store' }),
     );
-    expect(fetcher).toHaveBeenCalledTimes(1);
+    expect(fetcher).toHaveBeenNthCalledWith(
+      2,
+      VGCPASTES_CHAMPIONS_MA_SAMPLES_URL,
+      expect.objectContaining({ cache: 'force-cache' }),
+    );
+    expect(fetcher).toHaveBeenCalledTimes(2);
     expect(state.sourceLabel).toContain('PokeDB');
     expect(state.loadStatus).toBe('pokedb');
     expect(state.sourceKind).toBe('worker');

@@ -33,13 +33,26 @@ export type EnvironmentPokemonUsage = {
 
 export type EnvironmentTeamSlot = {
   pokemonId: string;
+  formId?: string;
+  abilityId?: string;
   itemId?: string;
+  nature?: string;
+  statPoints?: {
+    hp?: number;
+    attack?: number;
+    defense?: number;
+    specialAttack?: number;
+    specialDefense?: number;
+    speed?: number;
+  };
   moveIds: string[];
 };
 
 export type EnvironmentTeamSample = {
   id: string;
   dataKind: 'development-sample' | 'external-snapshot';
+  sourceId?: string;
+  sourceLabel?: string;
   author: string;
   season?: string;
   score: number;
@@ -47,6 +60,12 @@ export type EnvironmentTeamSample = {
   title: string;
   battleType: EnvironmentBattleType;
   reportUrl: string;
+  tournament?: string;
+  eventRank?: string;
+  dateShared?: string;
+  replicaCode?: string;
+  hasMoves?: boolean;
+  hasSpread?: boolean;
   slots: EnvironmentTeamSlot[];
 };
 
@@ -216,18 +235,35 @@ const normalizeSlot = (
   }
 
   const moveIds = filterKnownIds(slot.moveIds, ids.moves, 'missing-move-ref', `${path}.moveIds`, issues);
+  const formId = slot.formId?.trim() || undefined;
+  const abilityId = slot.abilityId && ids.abilities.has(slot.abilityId) ? slot.abilityId : undefined;
+  if (slot.abilityId && !abilityId) {
+    issues.push(issue('missing-ability-ref', `${path}.abilityId`, `${path} references unknown ability ${slot.abilityId}.`));
+  }
+  const nature = slot.nature && ids.natures.has(slot.nature) ? slot.nature : undefined;
+  if (slot.nature && !nature) {
+    issues.push(issue('missing-nature-ref', `${path}.nature`, `${path} references unknown nature ${slot.nature}.`));
+  }
 
   if (slot.itemId && !ids.items.has(slot.itemId)) {
     issues.push(issue('missing-item-ref', `${path}.itemId`, `${path} references unknown item ${slot.itemId}.`));
     return {
       pokemonId: slot.pokemonId,
+      ...(formId ? { formId } : {}),
+      ...(abilityId ? { abilityId } : {}),
+      ...(nature ? { nature } : {}),
+      ...(slot.statPoints ? { statPoints: slot.statPoints } : {}),
       moveIds,
     };
   }
 
   return {
     pokemonId: slot.pokemonId,
+    ...(formId ? { formId } : {}),
+    ...(abilityId ? { abilityId } : {}),
     ...(slot.itemId ? { itemId: slot.itemId } : {}),
+    ...(nature ? { nature } : {}),
+    ...(slot.statPoints ? { statPoints: slot.statPoints } : {}),
     moveIds,
   };
 };
