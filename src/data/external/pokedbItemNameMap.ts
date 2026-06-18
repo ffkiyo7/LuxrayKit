@@ -105,6 +105,8 @@ export const pokedbItemNameToId: Record<string, string> = {
   ニャオニクスナイト: 'meowsticite',
   ピジョットナイト: 'pidgeotite',
   カイロスナイト: 'pinsirite',
+  ライチュウナイトＸ: 'raichunite-x',
+  ライチュウナイトＹ: 'raichunite',
   ヤミラミナイト: 'sablenite',
   ハッサムナイト: 'scizorite',
   スコヴィラナイト: 'scovillainite',

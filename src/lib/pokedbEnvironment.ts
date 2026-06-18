@@ -179,9 +179,14 @@ const latestTimestamp = (values: string[]) =>
 
 const emptyBattleDataset = (): EnvironmentBattleDataset => ({ pokemonUsage: [], teamSamples: [] });
 
+// PokeDB's "no held item" / "unknown held item" sentinels are not real items and
+// must never be counted as unmapped items in any parsing path.
+const IGNORED_ITEM_NAMES = new Set(['持ち物なし', '持ち物不明']);
+const isIgnoredItemName = (itemName: string) => !itemName || IGNORED_ITEM_NAMES.has(itemName);
+
 const normalizeItemId = (itemName: string, itemNameToId: Record<string, string>, itemIds?: Set<string>) => {
   const cleaned = decodeHtml(itemName);
-  if (!cleaned || cleaned === '持ち物なし' || cleaned === '持ち物不明') return undefined;
+  if (isIgnoredItemName(cleaned)) return undefined;
   const itemId = itemNameToId[cleaned];
   if (!itemId || (itemIds && !itemIds.has(itemId))) return undefined;
   return itemId;
@@ -660,7 +665,7 @@ export function parsePokeDbPokemonDetailPage(
     const id = options.itemNameToId[name];
     const usageRate = Number(row.rate);
     if (!id) {
-      if (name) unknownItemNames.add(name);
+      if (name && !isIgnoredItemName(decodeHtml(name))) unknownItemNames.add(name);
       return [];
     }
     if (!Number.isFinite(usageRate) || usageRate < 0 || usageRate > 100) return [];
@@ -753,7 +758,7 @@ export function parsePokeDbTrainerListPage(
           }
           const itemName = decodeHtml(block.match(/trainer-card-team__pokemon-item">([^<]*)/)?.[1] ?? '');
           const itemId = normalizeItemId(itemName, options.itemNameToId);
-          if (itemName && itemName !== '持ち物なし' && itemName !== '持ち物不明' && !itemId) {
+          if (!isIgnoredItemName(itemName) && !itemId) {
             unknownItemNames.add(itemName);
           }
           return {
