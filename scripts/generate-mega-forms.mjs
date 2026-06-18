@@ -42,14 +42,14 @@ const OLD_GEN_MEGAS = [
   ['Mega Manectric', 310, 'manectric', ['Electric'], { hp: 70, attack: 75, defense: 80, specialAttack: 135, specialDefense: 80, speed: 135 }, 'Intimidate', 'manectite', 10055],
   ['Mega Sharpedo', 319, 'sharpedo', ['Water', 'Dark'], { hp: 70, attack: 140, defense: 70, specialAttack: 110, specialDefense: 65, speed: 105 }, 'Strong Jaw', 'sharpedonite', 10070],
   ['Mega Camerupt', 323, 'camerupt', ['Fire', 'Ground'], { hp: 70, attack: 120, defense: 100, specialAttack: 145, specialDefense: 105, speed: 20 }, 'Sheer Force', 'cameruptite', 10087],
-  ['Mega Altaria', 334, 'altaria', ['Dragon', 'Fairy'], { hp: 75, attack: 110, defense: 110, specialAttack: 110, specialDefense: 105, speed: 80 }, 'Pixilate', 'altarianite', 10074],
+  ['Mega Altaria', 334, 'altaria', ['Dragon', 'Fairy'], { hp: 75, attack: 110, defense: 110, specialAttack: 110, specialDefense: 105, speed: 80 }, 'Pixilate', 'altarianite', 10067],
   ['Mega Banette', 354, 'banette', ['Ghost'], { hp: 64, attack: 165, defense: 75, specialAttack: 93, specialDefense: 83, speed: 75 }, 'Prankster', 'banettite', 10056],
   ['Mega Absol', 359, 'absol', ['Dark'], { hp: 65, attack: 150, defense: 60, specialAttack: 115, specialDefense: 60, speed: 115 }, 'Magic Bounce', 'absolite', 10057],
-  ['Mega Glalie', 362, 'glalie', ['Ice'], { hp: 80, attack: 120, defense: 80, specialAttack: 120, specialDefense: 80, speed: 100 }, 'Refrigerate', 'glalitite', 10060],
+  ['Mega Glalie', 362, 'glalie', ['Ice'], { hp: 80, attack: 120, defense: 80, specialAttack: 120, specialDefense: 80, speed: 100 }, 'Refrigerate', 'glalitite', 10074],
   ['Mega Lopunny', 428, 'lopunny', ['Normal', 'Fighting'], { hp: 65, attack: 136, defense: 94, specialAttack: 54, specialDefense: 96, speed: 135 }, 'Scrappy', 'lopunnite', 10088],
   ['Mega Garchomp', 445, 'garchomp', ['Dragon', 'Ground'], { hp: 108, attack: 170, defense: 115, specialAttack: 120, specialDefense: 95, speed: 92 }, 'Sand Force', 'garchompite', 10058],
   ['Mega Lucario', 448, 'lucario', ['Fighting', 'Steel'], { hp: 70, attack: 145, defense: 88, specialAttack: 140, specialDefense: 70, speed: 112 }, 'Adaptability', 'lucarionite', 10059],
-  ['Mega Abomasnow', 460, 'abomasnow', ['Grass', 'Ice'], { hp: 90, attack: 132, defense: 105, specialAttack: 132, specialDefense: 105, speed: 30 }, 'Snow Warning', 'abomasite', 10061],
+  ['Mega Abomasnow', 460, 'abomasnow', ['Grass', 'Ice'], { hp: 90, attack: 132, defense: 105, specialAttack: 132, specialDefense: 105, speed: 30 }, 'Snow Warning', 'abomasite', 10060],
   ['Mega Gallade', 475, 'gallade', ['Psychic', 'Fighting'], { hp: 68, attack: 165, defense: 95, specialAttack: 65, specialDefense: 115, speed: 110 }, 'Inner Focus', 'galladite', 10068],
 ];
 

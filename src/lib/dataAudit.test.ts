@@ -269,6 +269,61 @@ describe('seed data audit', () => {
     expect(duplicateItemIcons).toEqual([]);
   });
 
+  it('keeps legacy Mega sprite ids aligned to their PokeAPI forms', () => {
+    const expectedSpriteIds = [
+      ['venusaur', 'mega-venusaur', '10033'],
+      ['charizard', 'mega-charizard-x', '10034'],
+      ['charizard', 'mega-charizard-y', '10035'],
+      ['blastoise', 'mega-blastoise', '10036'],
+      ['beedrill', 'mega-beedrill', '10090'],
+      ['pidgeot', 'mega-pidgeot', '10073'],
+      ['alakazam', 'mega-alakazam', '10037'],
+      ['slowbro', 'mega-slowbro', '10071'],
+      ['gengar', 'mega-gengar', '10038'],
+      ['kangaskhan', 'mega-kangaskhan', '10039'],
+      ['pinsir', 'mega-pinsir', '10040'],
+      ['gyarados', 'mega-gyarados', '10041'],
+      ['aerodactyl', 'mega-aerodactyl', '10042'],
+      ['ampharos', 'mega-ampharos', '10045'],
+      ['steelix', 'mega-steelix', '10072'],
+      ['scizor', 'mega-scizor', '10046'],
+      ['heracross', 'mega-heracross', '10047'],
+      ['houndoom', 'mega-houndoom', '10048'],
+      ['tyranitar', 'mega-tyranitar', '10049'],
+      ['gardevoir', 'mega-gardevoir', '10051'],
+      ['sableye', 'mega-sableye', '10066'],
+      ['aggron', 'mega-aggron', '10053'],
+      ['medicham', 'mega-medicham', '10054'],
+      ['manectric', 'mega-manectric', '10055'],
+      ['sharpedo', 'mega-sharpedo', '10070'],
+      ['camerupt', 'mega-camerupt', '10087'],
+      ['altaria', 'mega-altaria', '10067'],
+      ['banette', 'mega-banette', '10056'],
+      ['absol', 'mega-absol', '10057'],
+      ['glalie', 'mega-glalie', '10074'],
+      ['lopunny', 'mega-lopunny', '10088'],
+      ['garchomp', 'mega-garchomp', '10058'],
+      ['lucario', 'mega-lucario', '10059'],
+      ['abomasnow', 'mega-abomasnow', '10060'],
+      ['gallade', 'mega-gallade', '10068'],
+    ] as const;
+
+    for (const [pokemonId, formId, spriteId] of expectedSpriteIds) {
+      const entry = pokemon.find((candidate) => candidate.id === pokemonId);
+      const form = entry?.megaForms.find((candidate) => candidate.id === formId);
+      const expectedIconRef = `/assets/pokemon/thumbs/${spriteId}.png`;
+      const expectedArtworkRef = `/assets/pokemon/artwork/${spriteId}.png`;
+
+      expect(form?.iconRef, `${formId} icon`).toBe(expectedIconRef);
+      expect(form?.artworkRef, `${formId} artwork`).toBe(expectedArtworkRef);
+      expect(existsSync(`public${expectedIconRef}`), `${formId} icon file missing`).toBe(true);
+      expect(existsSync(`public${expectedArtworkRef}`), `${formId} artwork file missing`).toBe(true);
+      expect(fileHash(`public${expectedArtworkRef}`), `${formId} must not reuse ${pokemonId} artwork`).not.toBe(
+        fileHash(`public/assets/pokemon/artwork/${entry?.nationalDexNo}.png`),
+      );
+    }
+  });
+
   it('keeps current-rule move catalog generated from Champions available moves', () => {
     expect(moves).toHaveLength(545);
 
