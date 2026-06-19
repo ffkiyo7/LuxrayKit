@@ -8,7 +8,7 @@
 
 > 上一轮 Task A–E、G、H 及「上线前联合核验」已全部完成并验证（2026-06-18 核对，`npm test` 239 passed）。Task 1（伤害计算补全新赛季 Mega 物种映射）已完成并验证（2026-06-18 核对，`npm test` 240 passed，`npm run build` passed）。Task 2（一次性脚本摄入 VGCPastes「Champions M-A」构筑）已完成并验证（2026-06-19 核对并经 Claude review 修订：**按赛事含金量清洗**——仅保留官方线下锦标赛 + 近 30 天窗口，PJCS 取 Top14，最终入库 **99 队**；42 队带游戏内队伍码、63 队含完整 SP；修正了 EV→SP 误除以 8 的 bug；数据改为**运行时 fetch（不再打包进 JS）** + SW 预缓存，267KB。`npm test` 246 passed，`npm run build` passed）。Task F（伤害计算页排版重规划）经确认**保留、暂不做**，见文末。
 
-> **本轮（2026-06-19）新增**：将一批零散需求整理为 Task 6–16。其中**原 Task 12（队伍卡片字段适配）经复核与 Task 3/5 重合，已撤销**——「SP/配招」即 Task 3 的可导入胶囊、「队伍码」属 Task 5、唯一新增的「来源标识」并入 Task 3。挂起的 **Task 3/4/5 现追加依赖 Task 8**：VGCPastes 批不稳定渲染时，卡片字段、乱序、队伍码都无从验证（队伍都没展示，就谈不上数据细粒度胶囊）。另对 Task 3 补入「导入提醒重写」、Task 5 已含「TeamPage 文案去 AI 味」。Task 3/4/5 仍**待实现**（昨天只写入计划、代码未落）。优先级：先修 bug（Task 6–10，其中 **Task 8 因严重性置顶**）→ 挂起的 Task 3/4/5 → 功能（Task 11/13）→ 速度线重做（Task 14）→ 浅色主题（Task 15）→ 探针（Task 16）。Task 8/13/14/16 标注 **spike/调试先行**：先调研或复现并汇报，再写实现代码。
+> **本轮（2026-06-19）新增**：将一批零散需求整理为 Task 6–16。其中**原 Task 12（队伍卡片字段适配）经复核与 Task 3/5 重合，已撤销**——「SP/配招」即 Task 3 的可导入胶囊、「队伍码」属 Task 5、唯一新增的「来源标识」并入 Task 3。挂起的 **Task 3/4/5 现追加依赖 Task 8**：VGCPastes 批不稳定渲染时，卡片字段、乱序、队伍码都无从验证（队伍都没展示，就谈不上数据细粒度胶囊）。Task 8 已完成并验证（2026-06-19：改为 Vite 动态 import 的构建期受管样本 chunk，移除运行时 fetch 与 SW 裸 JSON 预缓存；`npm test` 247 passed，`npm run build` passed，`npm run test:visual` passed，`npm run test:pwa` passed）。另对 Task 3 补入「导入提醒重写」、Task 5 已含「TeamPage 文案去 AI 味」。Task 3/4/5 仍**待实现**（昨天只写入计划、代码未落）。优先级：先修剩余 bug（Task 6/7/9/10）→ 挂起的 Task 3/4/5 → 功能（Task 11/13）→ 速度线重做（Task 14）→ 浅色主题（Task 15）→ 探针（Task 16）。Task 13/14/16 标注 **spike/调试先行**：先调研或复现并汇报，再写实现代码。
 
 ## 任务清单
 
@@ -56,7 +56,9 @@
 
 ---
 
-### Task 8 — VGCPastes 批次导入后消失 + 配置映射核验（Bug · **最高优先** · 调试先行 · 允许换数据加载方案）
+### Task 8 — VGCPastes 批次导入后消失 + 配置映射核验（已完成 · 2026-06-19）
+
+> 完成记录：根因是 VGCPastes 作为 `public/data` 裸 JSON 运行时 fetch；任何 404、离线缓存未命中或 SW 错版都会被 `catch` 静默吞成空数组，表现为「PokeDB 正常但 VGCPastes 整批消失」。已改为 `src/data/external/vgcpastes/reg_ma_champions_ma_team_samples.json` 的 Vite 动态 import，生成 hash chunk；摄入脚本同步写入该受管位置；SW 移除 `/data/vgcpastes/*` 预缓存并 bump cache。验证：`npm run data:vgcpastes:champions-ma:check`、`npm test`、`npm run build`、`npm run test:visual`、`npm run test:pwa` 均通过。
 
 > **现象（严重）**：昨天部署后，VGCPastes 来源的一批构筑曾在页面出现过一次，之后**再也没刷出来**——明明导入了等于没导入。这批样本本应带详细配置（SP/配招/队伍码）。
 >

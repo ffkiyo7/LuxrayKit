@@ -1,11 +1,11 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import singleRankedTeams from './external/pokedb/s1_single_ranked_teams.json';
 import doubleRankedTeams from './external/pokedb/s1_double_ranked_teams.json';
 import moveStats from './external/pokedb/s1_move_stats.json';
 import teamSamples from './external/pokedb/s1_team_samples.json';
+import vgcPastesTeamSamples from './external/vgcpastes/reg_ma_champions_ma_team_samples.json';
 import {
   POKEDB_ENVIRONMENT_SNAPSHOT_URL,
-  VGCPASTES_CHAMPIONS_MA_SAMPLES_URL,
   WORKER_ENVIRONMENT_SNAPSHOT_URL,
   createEnvironmentStateFromPokeDbSnapshot,
   loadEnvironmentState,
@@ -22,6 +22,11 @@ const pokedbSnapshot = {
 };
 
 describe('environment runtime loading', () => {
+  afterEach(() => {
+    vi.doUnmock('./external/vgcpastes/reg_ma_champions_ma_team_samples.json');
+    vi.restoreAllMocks();
+  });
+
   it('builds the PokeDB environment state from an external snapshot payload', () => {
     const state = createEnvironmentStateFromPokeDbSnapshot(pokedbSnapshot);
 
@@ -55,12 +60,7 @@ describe('environment runtime loading', () => {
       expect.stringMatching(new RegExp(`^${WORKER_ENVIRONMENT_SNAPSHOT_URL.replace('/', '\\/')}\\?refresh=\\d+$`)),
       expect.objectContaining({ cache: 'no-store' }),
     );
-    expect(fetcher).toHaveBeenNthCalledWith(
-      2,
-      VGCPASTES_CHAMPIONS_MA_SAMPLES_URL,
-      expect.objectContaining({ cache: 'force-cache' }),
-    );
-    expect(fetcher).toHaveBeenCalledTimes(2);
+    expect(fetcher).toHaveBeenCalledTimes(1);
     expect(state.sourceLabel).toContain('PokeDB');
     expect(state.loadStatus).toBe('pokedb');
     expect(state.sourceKind).toBe('worker');
@@ -68,7 +68,42 @@ describe('environment runtime loading', () => {
     expect(state.seasonLabel).toBe('M-1');
     expect(state.updatedAt).toBe(pokedbSnapshot.retrievedAt);
     expect(state.sourceUpdatedAt).toBe('2026-06-04T23:08:02.000+09:00');
+    const vgcPastesSamples = state.teamSamples.filter((sample) => sample.sourceId === 'vgcpastes-champions-ma');
+    expect(vgcPastesSamples).toHaveLength(vgcPastesTeamSamples.length);
+    expect(vgcPastesSamples).toHaveLength(99);
+    expect(vgcPastesSamples.find((sample) => sample.replicaCode)).toMatchObject({
+      hasMoves: true,
+      hasSpread: true,
+      replicaCode: expect.any(String),
+    });
   });
+
+  it('keeps PokeDB environment data when the VGCPastes enrichment chunk cannot load', async () => {
+    vi.resetModules();
+    vi.doMock('./external/vgcpastes/reg_ma_champions_ma_team_samples.json', () => {
+      throw new Error('chunk missing');
+    });
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const { loadEnvironmentState: loadIsolatedEnvironmentState } = await import('./environment');
+    const fetcher = vi.fn(async () =>
+      new Response(JSON.stringify(pokedbSnapshot), {
+        status: 200,
+        headers: { 'x-luxray-cache-state': 'fresh' },
+      }),
+    );
+
+    const state = await loadIsolatedEnvironmentState(fetcher);
+
+    expect(state.loadStatus).toBe('pokedb');
+    expect(state.sourceKind).toBe('worker');
+    expect(state.teamSamples.filter((sample) => sample.sourceId === 'vgcpastes-champions-ma')).toHaveLength(0);
+    expect(state.teamSamples.filter((sample) => sample.battleType === 'singles').length).toBeGreaterThan(0);
+    expect(errorSpy).toHaveBeenCalledWith(
+      'Failed to load VGCPastes team samples; continuing with PokeDB-only environment data.',
+      expect.any(Error),
+    );
+  });
+
 
   it('marks a stale Worker response as stale', async () => {
     const fetcher = vi.fn(async () =>
@@ -181,11 +216,13 @@ describe('environment runtime loading', () => {
       expect.objectContaining({ cache: 'no-store' }),
     );
     expect(fetcher).toHaveBeenNthCalledWith(2, POKEDB_ENVIRONMENT_SNAPSHOT_URL, expect.objectContaining({ cache: 'force-cache' }));
+    expect(fetcher).toHaveBeenCalledTimes(2);
     expect(state.sourceLabel).toContain('PokeDB');
     expect(state.loadStatus).toBe('pokedb');
     expect(state.sourceKind).toBe('static');
     expect(state.freshness).toBe('stale');
     expect(state.seasonLabel).toBe('M-1');
+    expect(state.teamSamples.filter((sample) => sample.sourceId === 'vgcpastes-champions-ma')).toHaveLength(99);
   });
 
   it('falls back to the development environment seed when the snapshot cannot load', async () => {

@@ -31,7 +31,7 @@ const CAPPED_EVENTS = { 'PJCS 2026': 14 };
 // Recency window for the curation (30 days before the 2026-06-19 curation date).
 // Fixed for deterministic output; raise when refreshing the curated set.
 const MIN_SHARED_DATE = new Date('2026-05-20T00:00:00Z');
-const publicOutputPath = resolve(ROOT, 'public/data/vgcpastes/reg-ma-champions-ma-team-samples.json');
+const sampleOutputPath = resolve(ROOT, 'src/data/external/vgcpastes/reg_ma_champions_ma_team_samples.json');
 const auditOutputPath = resolve(ROOT, 'src/data/external/vgcpastes/reg_ma_champions_ma_audit.json');
 const bundledToolsPath = resolve(ROOT, '.npm-cache/vgcpastes-tools.mjs');
 const execFileAsync = promisify(execFile);
@@ -412,7 +412,7 @@ if (
 const nextSamplesText = stableJson(result.samples);
 const nextAuditText = stableJson(result.audit);
 const outputs = [
-  { label: 'public VGCPastes team samples', outputPath: publicOutputPath, nextText: nextSamplesText },
+  { label: 'VGCPastes team samples', outputPath: sampleOutputPath, nextText: nextSamplesText },
   { label: 'VGCPastes audit', outputPath: auditOutputPath, nextText: nextAuditText },
 ];
 

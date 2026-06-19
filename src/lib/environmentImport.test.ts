@@ -14,6 +14,7 @@ describe('environmentImport', () => {
       title: 'Complete paste team',
       battleType: 'doubles',
       reportUrl: 'https://pokepast.es/example',
+      replicaCode: 'BVUSEPP67B',
       hasMoves: true,
       hasSpread: true,
       slots: [
