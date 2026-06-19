@@ -71,6 +71,8 @@ describe('environment runtime loading', () => {
     const vgcPastesSamples = state.teamSamples.filter((sample) => sample.sourceId === 'vgcpastes-champions-ma');
     expect(vgcPastesSamples).toHaveLength(vgcPastesTeamSamples.length);
     expect(vgcPastesSamples).toHaveLength(99);
+    expect(vgcPastesSamples[0].title).toBe((vgcPastesTeamSamples as typeof vgcPastesSamples)[0].title);
+    expect(vgcPastesSamples[0].title).not.toContain('分');
     expect(vgcPastesSamples.find((sample) => sample.replicaCode)).toMatchObject({
       hasMoves: true,
       hasSpread: true,

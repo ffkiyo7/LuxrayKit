@@ -54,6 +54,7 @@ describe('team schema migration', () => {
       teams: [
         {
           ...defaultTeams[0],
+          replicaCode: 'BVUSEPP67B',
           source: {
             kind: 'environment-sample-import',
             sampleId: 'sample-sun-charizard',
@@ -67,6 +68,7 @@ describe('team schema migration', () => {
       ],
     });
 
+    expect(migrated[0].replicaCode).toBe('BVUSEPP67B');
     expect(migrated[0].source).toEqual({
       kind: 'environment-sample-import',
       sampleId: 'sample-sun-charizard',

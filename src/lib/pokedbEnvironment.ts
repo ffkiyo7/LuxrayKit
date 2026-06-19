@@ -263,6 +263,13 @@ const normalizeTeamSampleTitle = (
   sample: EnvironmentTeamSample,
   season?: string,
 ): EnvironmentTeamSample => {
+  if (sample.sourceId && !sample.sourceId.startsWith('pokedb')) {
+    return {
+      ...sample,
+      score: Math.floor(sample.score),
+    };
+  }
+
   const rank = sample.rank ?? getRankFromSampleId(sample.id);
   const normalizedSeason = sample.season ?? season;
   return {

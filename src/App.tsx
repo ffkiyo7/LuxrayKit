@@ -31,6 +31,26 @@ const tabs = [
 
 const IMPORT_FEEDBACK_DURATION_MS = 2500;
 
+type AppToast = {
+  title: string;
+  description?: string;
+  tone?: 'success' | 'warning';
+};
+
+const importCoverageItems = (sample: EnvironmentTeamSample) => [
+  'Pokémon',
+  '道具',
+  sample.hasSpread ? 'SP分配' : undefined,
+  sample.hasMoves ? '配招' : undefined,
+  sample.replicaCode ? '队伍码' : undefined,
+].filter((item): item is string => Boolean(item));
+
+const missingImportCoverageItems = (sample: EnvironmentTeamSample) => [
+  sample.hasSpread ? undefined : 'SP分配',
+  sample.hasMoves ? undefined : '配招',
+  sample.replicaCode ? undefined : '队伍码',
+].filter((item): item is string => Boolean(item));
+
 function PageLoading({ label = '正在载入页面...' }: { label?: string }) {
   return (
     <div className="rounded-lg border border-border bg-card px-4 py-8 text-center text-sm text-textSecondary">
@@ -48,13 +68,16 @@ function ImportCoverageNoticeDialog({
   onCancel: () => void;
   onContinue: () => void;
 }) {
+  const coverageItems = importCoverageItems(sample);
+  const missingItems = missingImportCoverageItems(sample);
+
   return (
     <div className="fixed inset-0 z-50 mx-auto max-w-[430px]" role="dialog" aria-label="导入配置提示" aria-modal="true" data-bottom-nav-lock="true">
       <button className="absolute inset-0 h-full w-full bg-black/70" type="button" aria-label="关闭导入配置提示" onClick={onCancel} />
       <section className="surface-shadow absolute inset-x-4 top-1/2 -translate-y-1/2 rounded-xl border border-border bg-card p-4">
         <h2 className="text-base font-semibold">导入配置提示</h2>
         <p className="mt-2 text-sm leading-6 text-textSecondary">
-          目前可稳定带入 Pokémon 和道具；性格、SP、完整配招等信息可能缺失。需要原作者详细配置时，可以打开队报链接查看。
+          这份样本可带入{coverageItems.join('、')}。{missingItems.length > 0 ? `未公开的${missingItems.join('、')}需要手动确认。` : '公开配置已随队伍带入。'}
         </p>
         <div className="mt-4 grid grid-cols-2 gap-2">
           <Button variant="ghost" type="button" onClick={() => window.open(sample.reportUrl, '_blank', 'noopener,noreferrer')}>
@@ -105,7 +128,7 @@ function AppShell() {
   const [toolView, setToolView] = useState<ToolView | null>(null);
   const [calculatorMemberId, setCalculatorMemberId] = useState<string | undefined>();
   const [activeTeamId, setActiveTeamId] = useState<string | undefined>();
-  const [importToast, setImportToast] = useState<string | null>(null);
+  const [importToast, setImportToast] = useState<AppToast | null>(null);
   const [highlightedImportTeamId, setHighlightedImportTeamId] = useState<string | undefined>();
   const [pendingImportSample, setPendingImportSample] = useState<EnvironmentTeamSample | null>(null);
   const [environmentState, setEnvironmentState] = useState<EnvironmentState | null>(null);
@@ -173,7 +196,7 @@ function AppShell() {
       await saveTeam(importedTeam);
       setActiveTeamId(importedTeam.id);
       setHighlightedImportTeamId(importedTeam.id);
-      setImportToast('已导入配置');
+      setImportToast({ title: '已导入配置' });
       setActiveTab('teams');
     },
     [environmentState?.dataStatusLabel, saveTeam],
@@ -198,6 +221,15 @@ function AppShell() {
     await performImportSampleTeam(sample);
   }, [pendingImportSample, performImportSampleTeam, preferences, replacePreferences]);
 
+  const copyReplicaCode = useCallback(async (replicaCode: string) => {
+    try {
+      await navigator.clipboard.writeText(replicaCode);
+      setImportToast({ title: '队伍码已复制', description: '分享可能已过期' });
+    } catch {
+      setImportToast({ title: '队伍码复制失败', description: '请手动选择队伍码复制', tone: 'warning' });
+    }
+  }, []);
+
   const page = useMemo(() => {
     if (overlay === 'rule') return <RulePage onBack={() => setOverlay(null)} />;
 
@@ -214,6 +246,7 @@ function AppShell() {
             activeTeamId={activeTeam?.id}
             highlightedTeamId={highlightedImportTeamId}
             onActiveTeamChange={setActiveTeamId}
+            onCopyReplicaCode={copyReplicaCode}
           />
         );
       case 'tools':
@@ -242,6 +275,7 @@ function AppShell() {
     environmentState,
     highlightedImportTeamId,
     importSampleTeam,
+    copyReplicaCode,
     openTool,
     overlay,
     toolView,
@@ -276,10 +310,15 @@ function AppShell() {
         <div
           role="status"
           aria-live="polite"
-          className="fixed inset-x-4 top-4 z-50 mx-auto flex max-w-[360px] items-center rounded-lg border border-success/40 bg-card px-3 py-2 text-sm font-semibold text-textPrimary shadow-[0_10px_32px_rgb(0_0_0/0.28)]"
+          className={`fixed inset-x-4 top-4 z-50 mx-auto flex max-w-[360px] items-start rounded-lg border bg-card px-3 py-2 text-sm font-semibold text-textPrimary shadow-[0_10px_32px_rgb(0_0_0/0.28)] ${
+            importToast.tone === 'warning' ? 'border-warning/45' : 'border-success/40'
+          }`}
         >
-          <span className="mr-2 inline-block h-2 w-2 rounded-full bg-success" />
-          {importToast}
+          <span className={`mr-2 mt-1.5 inline-block h-2 w-2 shrink-0 rounded-full ${importToast.tone === 'warning' ? 'bg-warning' : 'bg-success'}`} />
+          <span className="min-w-0">
+            <span className="block">{importToast.title}</span>
+            {importToast.description && <span className="mt-0.5 block text-xs font-medium text-textSecondary">{importToast.description}</span>}
+          </span>
         </div>
       )}
       {pendingImportSample && (

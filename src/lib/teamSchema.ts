@@ -90,6 +90,7 @@ const normalizeTeam = (team: RawTeam, index: number, migrateLegacyStats = false)
     createdAt: team.createdAt || now(),
     updatedAt: team.updatedAt || now(),
     ...(typeof team.sortOrder === 'number' && Number.isFinite(team.sortOrder) ? { sortOrder: team.sortOrder } : {}),
+    ...(team.replicaCode ? { replicaCode: String(team.replicaCode) } : {}),
     notes: team.notes || '',
     ...(normalizedSource ? { source: normalizedSource } : {}),
   };

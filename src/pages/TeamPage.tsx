@@ -1,4 +1,4 @@
-import { ArrowLeft, ChevronUp, Edit3, GripVertical, Minus, Plus, Save, Search, Trash2, X } from 'lucide-react';
+import { ArrowLeft, ChevronUp, Copy, Edit3, GripVertical, Minus, Plus, Save, Search, Trash2, X } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
 import { abilities, currentRuleNatureOptions, items, moves, pokemon } from '../data';
 import { memberBattleStats, memberLabel } from '../lib/calculations';
@@ -928,10 +928,12 @@ export function TeamPage({
   activeTeamId,
   highlightedTeamId,
   onActiveTeamChange,
+  onCopyReplicaCode,
 }: {
   activeTeamId?: string;
   highlightedTeamId?: string;
   onActiveTeamChange: (teamId: string | undefined) => void;
+  onCopyReplicaCode: (replicaCode: string) => Promise<void> | void;
 }) {
   const { teams, addTeam, deleteTeam, replaceTeams, saveTeam, updateMember } = useAppStore();
   const [detailTeamId, setDetailTeamId] = useState<string | null>(null);
@@ -1167,7 +1169,24 @@ export function TeamPage({
                   </button>
                 </h2>
               )}
-              <p className="mt-1 text-xs text-textSecondary">{activeTeam.members.length}/6 成员 · 本地队伍 · 可自由编辑</p>
+              <p className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-textSecondary">
+                <span>{activeTeam.members.length}/6 成员</span>
+                {activeTeam.replicaCode && (
+                  <>
+                    <span aria-hidden="true">·</span>
+                    <span className="font-semibold text-textPrimary">{activeTeam.replicaCode}</span>
+                    <button
+                      aria-label="复制队伍码"
+                      className="grid h-6 w-6 place-items-center rounded-md border border-border bg-card text-textSecondary active:scale-[0.96]"
+                      title="复制队伍码"
+                      type="button"
+                      onClick={() => void onCopyReplicaCode(activeTeam.replicaCode!)}
+                    >
+                      <Copy size={13} />
+                    </button>
+                  </>
+                )}
+              </p>
             </div>
           </div>
 

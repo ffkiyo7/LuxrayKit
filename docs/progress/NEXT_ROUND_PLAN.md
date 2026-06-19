@@ -8,7 +8,7 @@
 
 > 上一轮 Task A–E、G、H 及「上线前联合核验」已全部完成并验证（2026-06-18 核对，`npm test` 239 passed）。Task 1（伤害计算补全新赛季 Mega 物种映射）已完成并验证（2026-06-18 核对，`npm test` 240 passed，`npm run build` passed）。Task 2（一次性脚本摄入 VGCPastes「Champions M-A」构筑）已完成并验证（2026-06-19 核对并经 Claude review 修订：**按赛事含金量清洗**——仅保留官方线下锦标赛 + 近 30 天窗口，PJCS 取 Top14，最终入库 **99 队**；42 队带游戏内队伍码、63 队含完整 SP；修正了 EV→SP 误除以 8 的 bug；数据改为**运行时 fetch（不再打包进 JS）** + SW 预缓存，267KB。`npm test` 246 passed，`npm run build` passed）。Task F（伤害计算页排版重规划）经确认**保留、暂不做**，见文末。
 
-> **本轮（2026-06-19）新增**：将一批零散需求整理为 Task 6–16。其中**原 Task 12（队伍卡片字段适配）经复核与 Task 3/5 重合，已撤销**——「SP/配招」即 Task 3 的可导入胶囊、「队伍码」属 Task 5、唯一新增的「来源标识」并入 Task 3。挂起的 **Task 3/4/5 现追加依赖 Task 8**：VGCPastes 批不稳定渲染时，卡片字段、乱序、队伍码都无从验证（队伍都没展示，就谈不上数据细粒度胶囊）。Task 8 已完成并验证（2026-06-19：改为 Vite 动态 import 的构建期受管样本 chunk，移除运行时 fetch 与 SW 裸 JSON 预缓存；`npm test` 247 passed，`npm run build` passed，`npm run test:visual` passed，`npm run test:pwa` passed）。另对 Task 3 补入「导入提醒重写」、Task 5 已含「TeamPage 文案去 AI 味」。Task 3/4/5 仍**待实现**（昨天只写入计划、代码未落）。优先级：先修剩余 bug（Task 6/7/9/10）→ 挂起的 Task 3/4/5 → 功能（Task 11/13）→ 速度线重做（Task 14）→ 浅色主题（Task 15）→ 探针（Task 16）。Task 13/14/16 标注 **spike/调试先行**：先调研或复现并汇报，再写实现代码。
+> **本轮（2026-06-19）新增**：将一批零散需求整理为 Task 6–16。其中**原 Task 12（队伍卡片字段适配）经复核与 Task 3/5 重合，已撤销**——「SP/配招」即 Task 3 的可导入胶囊、「队伍码」属 Task 5、唯一新增的「来源标识」并入 Task 3。挂起的 **Task 3/4/5 现追加依赖 Task 8**：VGCPastes 批不稳定渲染时，卡片字段、乱序、队伍码都无从验证（队伍都没展示，就谈不上数据细粒度胶囊）。Task 8 已完成并验证（2026-06-19：改为 Vite 动态 import 的构建期受管样本 chunk，移除运行时 fetch 与 SW 裸 JSON 预缓存；`npm test` 247 passed，`npm run build` passed，`npm run test:visual` passed，`npm run test:pwa` passed）。Task 3/4/5 已完成并验证（2026-06-19：卡片来源标签 + 可导入粒度行、动态导入提醒、VGCPastes 赛事标题保留、样本池种子乱序 + 换批重洗、队伍码导入/详情展示/复制 toast、TeamPage 去掉「本地队伍 · 可自由编辑」；`npm test` 250 passed，`npm run build` passed，`npm run test:visual` passed）。优先级：先修剩余 bug（Task 6/7/9/10）→ 功能（Task 11/13）→ 速度线重做（Task 14）→ 浅色主题（Task 15）→ 探针（Task 16）。Task 13/14/16 标注 **spike/调试先行**：先调研或复现并汇报，再写实现代码。
 
 ## 任务清单
 
@@ -16,9 +16,11 @@
 
 > 上一轮遗留。经确认本轮**保留但暂不做**，待后续排期。算法/计算口径不动，仅重排展示层与信息层级（进攻/防守方卡片、招式区、对战条件、伤害结果的布局与视觉）。可走 `frontend-design` 技能定方向，保持与全站 `text-xs/text-sm` 设计语言一致。
 
-### Task 3 — 构筑样本卡片字段适配：可导入粒度胶囊 + 来源标识 + 导入提醒重写（前端 · 依赖 Task 2 数据 + Task 8 渲染稳定）
+### Task 3 — 构筑样本卡片字段适配：可导入粒度胶囊 + 来源标识 + 导入提醒重写（已完成 · 2026-06-19）
 
 > **依赖 Task 2**（用其 `hasMoves`/`hasSpread` 完整度标记、来源信息）**+ Task 8**（VGCPastes 批先稳定渲染，否则卡片字段无从验证）。**并入需求 #12（导入提醒重写）与撤销的原 Task 12（队伍卡片字段适配）**——经核：原 Task 12 的「SP/配招」即本任务胶囊、「队伍码」属 Task 5、唯一新增「来源标识」并入本任务，故 Task 12 不再单列。
+
+> 完成记录：卡片已显示 PokeDB 环境榜 / VGCPastes 锦标赛来源标签，并按 `hasSpread`/`hasMoves`/`replicaCode` 渲染「可导入：[SP分配][配招][队伍码]」粒度行；导入提示改为按当前样本动态说明可带入项与缺失项。额外修正 VGCPastes 样本被旧 PokeDB「赛季 · 名次 · 分数」标题归一化覆盖的问题：赛事样本保留原始标题，并展示赛事、名次/组别与分享日期。复核后去掉重复的「可导入」标签，仅保留粒度行。
 
 - **目标**：每个构筑样本按公开配置完整度，在卡片上用**胶囊 icon** + 「**可导入：[SP分配][配招]**」注释行标明能导入到什么粒度（仅命中项出现）。PokeDB 旧源样本通常只有宝可梦+道具（两标记皆 false），PokePaste 新源样本两者皆有。
 - **涉及文件**：`src/pages/EnvironmentPage.tsx`（`TeamSampleCard`）；`src/types.ts`（`EnvironmentTeamSample` 补 `hasMoves`/`hasSpread`，若 Task 2 未加）；导入提醒文案 `src/App.tsx:52-68`（`ImportConfigPrompt`）；测试 `src/App.test.tsx`。
@@ -29,9 +31,11 @@
   - **导入提醒重写（#12）**：现 `src/App.tsx:57` 文案为旧 PokeDB-only 世界写死（「目前可稳定带入 Pokémon 和道具；性格、SP、完整配招等信息可能缺失…」）。改为**随当前样本的粒度动态生成**——样本有 SP/配招就如实说明能带入什么，缺什么才提示缺什么；遵循记忆「不暴露存储/实现细节，突出范本能提供的信息价值」。与 Task 13 的「队报链接」按钮在同一弹框，注意协调。
 - **验收**：含完整配置的样本显示对应胶囊与注释行、仅基础信息的样本不显示；导入提醒文案随样本粒度变化、不再写死；`npm test` 通过；`npm run test:visual` 更新环境页快照。
 
-### Task 4 — 上位构筑列表乱序展示 +「换一批」随机（前端 · 建议在 Task 2 之后 · 依赖 Task 8 渲染稳定）
+### Task 4 — 上位构筑列表乱序展示 +「换一批」随机（已完成 · 2026-06-19）
 
 > **出发点**：现在「上位构筑」按来源排名顺序排列，`换一批`（`EnvironmentPage.tsx:761`）只是 `teamSampleBatchIndex` 顺着 +1 取模、按原序往下切片（`:631` `teamSamples.slice(...)`）——用户点「换一批」只是顺位下翻。接入 Task 2 后样本来自 **PokeDB + VGCPastes 多来源**，严格按排名排序已无意义，应**乱序**让「换一批」真正给出多样化的不同构筑（并自然混合两个来源）。
+
+> 完成记录：按当前 battleType 样本池生成带种子的乱序列表，当前浏览内按乱序顺位分批展示；翻到末页后换新种子重洗，切换单打/双打时重置批次和种子。测试覆盖首屏乱序批次、换批不重复以及目标样本翻页可达。
 
 - **涉及文件**：`src/pages/EnvironmentPage.tsx`（`teamSamples`/`visibleTeamSamples`/`换一批` 一带，`:625-634`、`:757-766`）；测试 `src/App.test.tsx`。
 - **改动要点**：
@@ -41,9 +45,11 @@
   - 不动导入/详情逻辑；卡片 `key` 仍用 `sample.id`。
 - **验收**：上位构筑首屏即为乱序、非严格排名序；`换一批` 给出乱序后的不同批次（非顺位下翻）；切换单打/双打重置；样本不丢不重（单页内）；`npm test` 通过；`npm run test:visual` 更新环境页快照。
 
-### Task 5 — 队伍码：写入 → 导入带入 → 队伍详情页展示与复制（前端 + 数据 · 依赖 Task 2 + Task 8）
+### Task 5 — 队伍码：写入 → 导入带入 → 队伍详情页展示与复制（已完成 · 2026-06-19）
 
 > **出发点**：VGCPastes 部分队伍带**游戏内队伍码**（`Replica Code` 列）。要把它打通到前端，让用户能直接看到并复制这串码（拿去游戏内一键导入整队）。**不加新入口**，直接展示在「导入配置后」的队伍详情（成员 2×3）页面。**本任务同时落地需求 #1**：去掉 `TeamPage.tsx:1170` 那句 AI 味注释里的「本地队伍」框定（无账号，所有队伍都是本地，「本地」是冗余且暗示了不存在的「云端」区分）。
+
+> 完成记录：`Team.replicaCode` 已接入环境样本导入链路并保留在队伍 schema 归一化中；队伍详情页成员计数后展示队伍码和复制按钮，无码队伍仅显示成员计数；复制调用 `navigator.clipboard.writeText` 并复用顶部 toast，文案为「队伍码已复制 / 分享可能已过期」。原「本地队伍 · 可自由编辑」说明已移除。
 
 - **链路**：`Replica Code` 列 → Task 2 写入 `EnvironmentTeamSample.replicaCode?` → 导入时带入本地队伍 → 队伍详情页展示。
 - **涉及文件**：`src/types.ts`（`Team` 加 `replicaCode?: string`；`EnvironmentTeamSample.replicaCode?` 由 Task 2 加，本任务消费）；样本→本地队伍的导入转换处（`src/App.tsx` 导入链路 / 相关 helper，把 `replicaCode` 带进新建 `Team`）；`src/pages/TeamPage.tsx`（`:1170` 那行 + 复制交互）；toast 复用 `src/App.tsx:275-283` 既有小长条；测试 `src/App.test.tsx`。
