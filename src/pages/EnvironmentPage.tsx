@@ -650,7 +650,10 @@ function EnvironmentMethodologyPage({
         <h3 className="text-sm font-semibold">样本池</h3>
         <div className="mt-3 grid grid-cols-2 gap-2">
           {(Object.keys(battleTypeLabels) as EnvironmentBattleType[]).map((type) => (
-            <div key={type} className={`rounded-lg border p-3 ${type === battleType ? 'border-accent bg-accent/10' : 'border-border bg-secondary'}`}>
+            <div
+              key={type}
+              className={`cursor-default select-none rounded-lg border p-3 ${type === battleType ? 'border-accent bg-accent/10' : 'border-border bg-secondary'}`}
+            >
               <p className="text-xs text-textSecondary">{battleTypeLabels[type]}</p>
               <p className="mt-1 text-lg font-semibold">{formatSampleCount(environment.sampleTeamCounts[type])}</p>
             </div>

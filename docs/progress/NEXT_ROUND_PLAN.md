@@ -81,25 +81,31 @@
 - **涉及文件**：`src/lib/environmentDataset.ts`、Task 2 的运行时 fetch 入口、`public/data/vgcpastes/*`、SW（`src/sw.*` / 预缓存清单）、`src/lib/dataAudit.ts`、`src/lib/environmentImport.ts`。
 - **验收**：反复刷新 / 重新部署 / 离线重载后 VGCPastes 批**稳定出现**；带详细配置的样本字段完整；`npm test` + `npm run test:visual` + `npm run test:pwa` 通过。
 
-### Task 6 — 底部导航栏滚到底部上浮遮挡内容（Bug · 前端）
+### Task 6 — 底部导航栏滚到底部上浮遮挡内容（已完成 · 2026-06-19）
 
 > **现象**：滑动页面到底部时，底部导航栏会上浮到页面下半部分并遮挡内容。
+
+> 完成记录：`useAutoHideBottomNav.ts` 新增 `isNearScrollEnd`（`scrollTop + 视口高 >= 内容高 - 2`）并接入 `handleScroll`——触底时强制显示底栏并清掉 idle timer，避免停在隐藏/半隐藏状态遮挡内容；window 路径用 `visualViewport?.height ?? innerHeight`。新增 `useAutoHideBottomNav.test.tsx` 覆盖「向下滚到底仍 shown」。
 
 - **涉及文件**：`src/hooks/useAutoHideBottomNav.ts`、`src/components/BottomNav.tsx`、可能 `src/App.tsx` 底部布局/`padding-bottom`。
 - **改动要点**：走 `systematic-debugging` 复现。怀疑点：触底回弹时 `translate-y` 隐藏/显示与 `idleShow` 定时器、scroll delta 阈值交互异常；或 `fixed bottom-0` 在触底橡皮筋时视觉上浮；或内容区底部留白不足被固定栏遮挡。确认是 hook 逻辑还是 CSS（safe-area / position fixed）。确保触底时底部栏正常停靠不遮挡，内容区有足够 `padding-bottom`。
 - **验收**：各页滑到底部底部栏不遮挡内容；手测覆盖触底场景；`npm test` 通过；如涉及视觉，`npm run test:visual` 更新。
 
-### Task 7 — 花叶蒂改永恒花形态种族值（Bug · 数据）
+### Task 7 — 花叶蒂改永恒花形态种族值（已完成 · 2026-06-19）
 
 > **现象**：目录里 `floette` 是普通花叶蒂 `54/45/47/75/98/52`，但它只会「破灭之光」（永恒花专属招）且有 Mega——应为**永恒花形态** `74/65/67/125/128/92`。
+
+> 完成记录：`catalog-batch-003.ts` 的 `floette.baseStats` 改为 `74/65/67/125/128/92`，`dataAudit.test.ts` 加防回退断言。复核确认无需改动他处：`mega-floette` 的 HP 已是 74 且为基础值 +100 BST 干净分配（74/85/87/155/148/102），当初即按永恒花基准录入；`pokepasteSource.ts:67` 已映射 `floette → Floette-Eternal`；全站无硬编码基础种族值（速度线/伤害计算均经目录单一数据源查表），故无 speedBenchmarks 需同步。
 
 - **涉及文件**：`src/data/seed/regMA/catalog-batch-003.ts`（`floette.baseStats`）；核对 `src/data/seed/regMA/mega-catalog.ts` 的 `mega-floette` 派生（HP 74 已一致，确认其余合理）；速度线/速度基准若硬编码了花叶蒂速度需一并核（`speedBenchmarks`）；相关测试/快照。
 - **改动要点**：改 `baseStats` 为 `{ hp: 74, attack: 65, defense: 67, specialAttack: 125, specialDefense: 128, speed: 92 }`；确认 `notes`/形态描述无矛盾；确认图鉴、速度线、伤害计算引用基础数值处随之正确。
 - **验收**：图鉴/速度线/伤害计算显示永恒花种族值；`npm test` 通过；如涉及视觉，更新快照。
 
-### Task 9 — 数据口径页「样本量」方框光标/误点（Bug/UX · 前端）
+### Task 9 — 数据口径页「样本量」方框光标/误点（已完成 · 2026-06-19）
 
 > **现象**：数据口径页**上方单/双打切换按钮和首屏一致，无需处理**；问题在「样本量 xx 只队伍」那个**方框**——切换单/双打时会出现光标，容易诱导用户聚焦、误点（实际该框不可点击）。
+
+> 完成记录：样本池卡片加 `cursor-default select-none`，去掉误导光标/选中态（该框本就是纯 `<div>`、无 `role`/`onClick`/`tabindex`，问题仅在视觉光标）；`EnvironmentPage.test.tsx` 断言无 `role`/`tabindex`、非 button、className 含 `cursor-default`。
 
 - **涉及文件**：数据口径视图对应组件（`src/pages/EnvironmentPage.tsx` 内的数据口径区）。
 - **改动要点**：去掉该框的 `tabIndex`/`role="button"`/可聚焦属性与 `cursor`；确保切换单/双打时焦点不落到该框；保持纯展示、不可交互。

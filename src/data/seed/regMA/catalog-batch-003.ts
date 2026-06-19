@@ -832,7 +832,7 @@ export const pokemonBatch003: Pokemon[] = [
     japaneseName: 'フラエッテ',
     iconRef: artwork(670),
     types: ['Fairy'],
-    baseStats: { hp: 54, attack: 45, defense: 47, specialAttack: 75, specialDefense: 98, speed: 52 },
+    baseStats: { hp: 74, attack: 65, defense: 67, specialAttack: 125, specialDefense: 128, speed: 92 },
     legalInCurrentRule: true,
     forms: [],
     abilities: ['flower-veil', 'symbiosis'],

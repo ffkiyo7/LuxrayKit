@@ -270,6 +270,9 @@ describe('seed data audit', () => {
   });
 
   it('uses Eternal Flower Floette art for the Champions Floette entry', () => {
+    const floette = pokemon.find((entry) => entry.id === 'floette');
+
+    expect(floette?.baseStats).toEqual({ hp: 74, attack: 65, defense: 67, specialAttack: 125, specialDefense: 128, speed: 92 });
     expect(fileHash('public/assets/pokemon/artwork/670.png')).toBe(fileHash('public/assets/pokemon/artwork/10061.png'));
     expect(fileHash('public/assets/pokemon/thumbs/670.png')).toBe(fileHash('public/assets/pokemon/thumbs/10061.png'));
     expect(fileHash('public/assets/pokemon/icons/670.png')).toBe(fileHash('public/assets/pokemon/icons/10061.png'));

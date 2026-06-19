@@ -267,6 +267,12 @@ describe('EnvironmentPage usage basis', () => {
     expect(screen.queryByText(/M-1/)).toBeNull();
     expect(screen.queryByText(/常见队友的百分比/)).toBeNull();
     expect(screen.queryByText(/54\.0% \/ 285 队/)).toBeNull();
+
+    const singlesSampleCount = screen.getByText('213 队').closest('div');
+    expect(singlesSampleCount?.getAttribute('role')).toBeNull();
+    expect(singlesSampleCount?.getAttribute('tabindex')).toBeNull();
+    expect(singlesSampleCount?.className).toContain('cursor-default');
+    expect(screen.queryByRole('button', { name: /213 队/ })).toBeNull();
   });
 
   it('removes overall usage summaries even when the dataset basis is absolute', async () => {
