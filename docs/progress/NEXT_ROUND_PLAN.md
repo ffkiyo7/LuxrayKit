@@ -8,7 +8,7 @@
 
 > 上一轮 Task A–E、G、H 及「上线前联合核验」已全部完成并验证（2026-06-18 核对，`npm test` 239 passed）。Task 1（伤害计算补全新赛季 Mega 物种映射）已完成并验证（2026-06-18 核对，`npm test` 240 passed，`npm run build` passed）。Task 2（一次性脚本摄入 VGCPastes「Champions M-A」构筑）已完成并验证（2026-06-19 核对并经 Claude review 修订：**按赛事含金量清洗**——仅保留官方线下锦标赛 + 近 30 天窗口，PJCS 取 Top14，最终入库 **99 队**；42 队带游戏内队伍码、63 队含完整 SP；修正了 EV→SP 误除以 8 的 bug；数据改为**运行时 fetch（不再打包进 JS）** + SW 预缓存，267KB。`npm test` 246 passed，`npm run build` passed）。Task F（伤害计算页排版重规划）经确认**保留、暂不做**，见文末。
 
-> **本轮（2026-06-19）新增**：将一批零散需求整理为 Task 6–16。其中**原 Task 12（队伍卡片字段适配）经复核与 Task 3/5 重合，已撤销**——「SP/配招」即 Task 3 的可导入胶囊、「队伍码」属 Task 5、唯一新增的「来源标识」并入 Task 3。挂起的 **Task 3/4/5 现追加依赖 Task 8**：VGCPastes 批不稳定渲染时，卡片字段、乱序、队伍码都无从验证（队伍都没展示，就谈不上数据细粒度胶囊）。Task 8 已完成并验证（2026-06-19：改为 Vite 动态 import 的构建期受管样本 chunk，移除运行时 fetch 与 SW 裸 JSON 预缓存；`npm test` 247 passed，`npm run build` passed，`npm run test:visual` passed，`npm run test:pwa` passed）。Task 3/4/5 已完成并验证（2026-06-19：卡片来源标签 + 可导入粒度行、动态导入提醒、VGCPastes 赛事标题保留、样本池种子乱序 + 换批重洗、队伍码导入/详情展示/复制 toast、TeamPage 去掉「本地队伍 · 可自由编辑」；`npm test` 250 passed，`npm run build` passed，`npm run test:visual` passed）。Task 6/7/9 已完成并验证（2026-06-19：底栏触底守卫不再遮挡内容；花叶蒂改永恒花形态种族值；数据口径样本量框去误导光标；`npm test` 252 passed，`npm run build` passed，`npm run test:visual` passed）。Task 10/11 已完成并验证（2026-06-19：伤害计算页普通进入与离开后重进均为空白态，显式从队伍/图鉴带入仍保留；手动新增队员与图鉴加入统一默认成员初始化，原始形态/首个合法特性/中性性格/0 SP/空招式/无道具；`npm test` 254 passed，`npm run build` passed，`npm run test:visual` passed）。另：修复 Task 4 乱序导致的「导入提醒」用例偶发 flake（环境页 remount 重新随机播种 → 同一样本被导入两次 → 同名队伍卡冲突；改为测试内固定乱序种子，非产品 bug；隔离连跑 8/8、全量 254 passed）。基础设施：`cloudflare/environment-worker/wrangler.jsonc` 的自定义域名 `routes` 已注释保留（合并部署后停用对外 `luxraykit.com`，Worker 仍经 `*.workers.dev` 提供；详见 `DEVELOPMENT_PROGRESS.md`）。**剩余**：功能（Task 13）→ 速度线重做（Task 14）→ 浅色主题（Task 15）→ 探针（Task 16）。Task 13/14/16 标注 **spike/调试先行**：先调研或复现并汇报，再写实现代码。
+> **本轮（2026-06-19）新增**：将一批零散需求整理为 Task 6–16。其中**原 Task 12（队伍卡片字段适配）经复核与 Task 3/5 重合，已撤销**——「SP/配招」即 Task 3 的可导入胶囊、「队伍码」属 Task 5、唯一新增的「来源标识」并入 Task 3。挂起的 **Task 3/4/5 现追加依赖 Task 8**：VGCPastes 批不稳定渲染时，卡片字段、乱序、队伍码都无从验证（队伍都没展示，就谈不上数据细粒度胶囊）。Task 8 已完成并验证（2026-06-19：改为 Vite 动态 import 的构建期受管样本 chunk，移除运行时 fetch 与 SW 裸 JSON 预缓存；`npm test` 247 passed，`npm run build` passed，`npm run test:visual` passed，`npm run test:pwa` passed）。Task 3/4/5 已完成并验证（2026-06-19：卡片来源标签 + 可导入粒度行、动态导入提醒、VGCPastes 赛事标题保留、样本池种子乱序 + 换批重洗、队伍码导入/详情展示/复制 toast、TeamPage 去掉「本地队伍 · 可自由编辑」；`npm test` 250 passed，`npm run build` passed，`npm run test:visual` passed）。Task 6/7/9 已完成并验证（2026-06-19：底栏触底守卫不再遮挡内容；花叶蒂改永恒花形态种族值；数据口径样本量框去误导光标；`npm test` 252 passed，`npm run build` passed，`npm run test:visual` passed）。Task 10/11 已完成并验证（2026-06-19：伤害计算页普通进入与离开后重进均为空白态，显式从队伍/图鉴带入仍保留；手动新增队员与图鉴加入统一默认成员初始化，原始形态/首个合法特性/中性性格/0 SP/空招式/无道具；`npm test` 254 passed，`npm run build` passed，`npm run test:visual` passed）。另：修复 Task 4 乱序导致的「导入提醒」用例偶发 flake（环境页 remount 重新随机播种 → 同一样本被导入两次 → 同名队伍卡冲突；改为测试内固定乱序种子，非产品 bug；隔离连跑 8/8、全量 254 passed）。基础设施：`cloudflare/environment-worker/wrangler.jsonc` 的自定义域名 `routes` 已注释保留（合并部署后停用对外 `luxraykit.com`，Worker 仍经 `*.workers.dev` 提供；详见 `DEVELOPMENT_PROGRESS.md`）。**剩余**：功能（Task 13）→ 速度线重做（Task 14）→ 浅色主题（Task 15）→ 探针（Task 16）。Task 13/14/16 标注 **spike/调试先行**：先调研或复现并汇报，再写实现代码。**2026-06-19 晚追加 Task 17–19**（基于 3/4/5/6 上线后的反馈）：Task 17 底栏自动隐藏流畅度 + 中途停留遮挡（接续 Task 6，**调试先行**）；Task 18 可导入粒度胶囊改 icon 样式（接续 Task 3）；Task 19 队伍一览页 + 「试试灵感」弹窗（**替代 Task 4「换一批」与主页乱序**；导航走 EnvironmentPage 内 `'teams'` view + 独立子组件；筛选=含队伍码/类别(赛事·排位高分)、排序=时间最新→最旧、搜索=宝可梦·队伍名；主页保留固定 4 张最新卡片）。建议先做 Task 17（bug）→ 18（小改）→ 19（功能）。
 
 ## 任务清单
 
@@ -179,6 +179,46 @@
 - **涉及文件**：`cloudflare/environment-worker/wrangler.jsonc`（`crons`）、`cloudflare/environment-worker/src/index.ts`（`scheduled` 分支 + 探针 + KV 签名）。
 - **验收**：数据未变的小时不触发重活；数据变更后及时刷新；不触发对方限流；`npm run worker:app:check` 通过。
 
+### Task 17 — 底部 Tab 自动隐藏流畅度 + 中途停留定位遮挡（Bug · 前端 · 接续 Task 6）
+
+> **现象**：Task 6 修了「触底强制显示」，但仍有两个问题：①下滑-自动隐藏**没有以前流畅**（动画/响应迟滞）；②长页面（如图鉴）往下滑到**中途某位置停止操作**后，Tab 重新出现却**上移了一小段、没贴在页面底部**，依旧遮挡内容。
+>
+> **期望行为**：长页面往下滑 → 自动隐藏；停止操作后 → 重新出现并**稳稳钉在视口/页面底部不动**（不上浮、不遮挡）。
+
+- **涉及文件**：`src/hooks/useAutoHideBottomNav.ts`、`src/components/BottomNav.tsx`、`src/App.tsx`（底部布局 / `padding-bottom` / safe-area）。
+- **改动要点**：走 `systematic-debugging` 先复现两现象再动手。
+  - **定位遮挡**：中途 idle 重新出现「上移一小段」强烈指向**定位/transform 残留**——Tab 可能不是稳定 `fixed bottom-0`，而受 `translateY` 中间态或滚动位置影响；也可能是移动端地址栏伸缩导致 `innerHeight` vs `visualViewport` 偏差（Task 6 已引入 `visualViewport`，需复核）。确保「显示」态始终贴底固定、无残留偏移；内容区 `padding-bottom` 足够不被固定栏盖住。
+  - **流畅度**：核查 Task 6 是否在每个 scroll 事件多做了 `setState`/`clearIdleTimer` 触发额外重渲染、或过渡时长/缓动变化导致迟滞；必要时节流滚动处理、用 transform 过渡、避免布局抖动。
+- **验收**：长页面下滑顺滑自动隐藏；停止后出现且稳定贴底、不上浮不遮挡；各页（尤其图鉴长页）手测覆盖中途停留场景；`npm test` 通过；涉及视觉则 `npm run test:visual` 更新。
+
+### Task 18 — 可导入粒度胶囊改 icon 样式（UI polish · 前端 · 接续 Task 3）
+
+> **现象**：Task 3 落地的可导入粒度行目前是**纯文本 + 方括号**「可导入：[SP分配][配招][队伍码]」——当时定需求用 `[]` 只是方便打字，实际应做成**带 icon 的胶囊**样式，当前太简陋。
+
+- **涉及文件**：`src/pages/EnvironmentPage.tsx`（`TeamSampleCard`，`importChips` 渲染，约 `:273`）；测试 `src/App.test.tsx` / `src/pages/EnvironmentPage.test.tsx`（依赖 `可导入：[...]` 文本的断言需随之改）。
+- **改动要点**：把 `[SP分配][配招][队伍码]` 文本行改为**胶囊标签组**——每项一个小 pill（圆角 + 轻底色/描边 + 对应 lucide icon），与卡片「来源标签」「可导入」pill 视觉语言一致；仅命中项出现。注意把测试里 `可导入：[...]` 文本定位改为按 pill 文案 / `aria-label`。
+- **验收**：粒度以 icon 胶囊呈现、与卡片其余标签风格统一；命中项才显示；`npm test` 通过；`npm run test:visual` 更新环境页 / 队伍一览快照。
+
+### Task 19 — 队伍一览页 + 「试试灵感」随机弹窗（Feature · 前端 · 替代 Task 4「换一批」）
+
+> **出发点**：当前没有队伍一览页，用户找特定队伍只能走 环境页 → 选宝可梦 → 详细数据页 → 下拉「相关上位构筑」，太繁琐。
+
+- **目标**：
+  - **保留**现有「相关上位构筑」这条路径不动。
+  - **新增「队伍一览」页**：入口放在原**「换一批」按钮位置**，按钮样式同「宝可梦榜 · 查看全部」（`EnvironmentPage.tsx:824-827`）。**移除原「换一批」**。
+  - **主页「上位构筑」区**：去掉乱序，改为**固定展示 4 张「更新日期最新」的队伍卡片**（按日期降序取前 4）+「查看全部」入口。
+  - **队伍一览页能力**：
+    - **区分单/双打**（沿用 `battleType`）。
+    - **筛选**：① 是否**含队伍码**；② **队伍类别 = 赛事 / 排位高分**（映射来源：VGCPastes 锦标赛 → 赛事，PokeDB 环境榜 → 排位高分）。**不做「含特定宝可梦」筛选**——靠搜索覆盖。
+    - **排序**：**时间由最新到最旧**（独立排序选项）。
+    - **搜索**：按**宝可梦名或队伍名**命中队伍。
+  - **「试试灵感」按钮**（位于队伍一览页内）：点击 → 弹出**居中的队伍卡片弹窗**（随机抽一支，**复用 Task 4 的 seeded shuffle**），弹窗卡片样式与列表 `TeamSampleCard` **统一**；可点「导入配置」（带关闭），也可点卡片下方「导入配置」按钮**直接跳队伍页面**。
+- **导航方案（已定：EnvironmentPage 内 view 切换 + 抽独立子组件）**：作为 `EnvironmentPage` 的第 4 个 `view`（`'home' | 'ranking' | 'methodology'` → 加 `'teams'`），与「完整宝可梦榜」（`view:'ranking'`）**对称**——入口、返回、`battleType`/environment 数据/导入链路天然共享，零额外接线，符合本 app「tab + view state」既有范式（**无 react-router**，新顶层路由需自建路由层且割裂，队伍一览属环境语境不该占 4-tab 名额）。为避免 `EnvironmentPage.tsx` 膨胀，把队伍一览**抽成独立子组件文件**（如 `TeamBrowseView`），`view==='teams'` 时渲染——兼顾关注点分离与状态共享。
+- **涉及文件**：`src/pages/EnvironmentPage.tsx`（移除换一批、主页改 top-4 最新、加查看全部入口、加 `'teams'` view）；新建 `TeamBrowseView` 子组件；`TeamSampleCard` 复用（列表 + 弹窗）；导入跳转复用 `App.tsx` 的 `onImportSample`；测试。
+- **关系 / 复用**：**替代 Task 4** 的「换一批」与主页乱序（seeded shuffle 仅保留给「试试灵感」）；卡片粒度胶囊用 **Task 18** 的 icon 样式；队报入口受 **Task 13** 影响。
+- **实现细节待核**：主页「最新 4 张」的日期字段——VGCPastes 有 `dateShared`，PokeDB 样本可能无日期，需定降级排序键（如无日期者按 rank 视为较旧）。
+- **验收**：环境页「换一批」改为「查看全部」入口、原换一批移除、主页固定 4 张最新卡片；队伍一览区分单/双打、可按「含队伍码」「赛事/排位高分」筛选、可按时间最新→最旧排序、可搜索宝可梦/队伍名；「试试灵感」弹居中卡片弹窗、可关闭/可导入/可跳队伍页；`npm test` 通过；`npm run test:visual` 更新。
+
 ## 暂不做
 
 - 完整战斗模拟器 / 用户账号 / 云同步 / 多赛季趋势库（沿用上轮判断）。
@@ -214,3 +254,6 @@ npm run worker:app:check   # 涉及 Worker（Task 16）
 - Task 14：速度线轴上展示参照线+用户宝可梦、调配置实时更新、「超速他」给出合理建议（spike 后定）。
 - Task 15：浅色主题对齐品牌色、对比度达标；浅色态快照更新。
 - Task 16：未变更的小时不触发重活、变更后及时刷新、不触发限流。
+- Task 17：长页面下滑顺滑自动隐藏；停止操作后底栏稳定贴底、不上浮不遮挡（图鉴长页中途停留场景）。
+- Task 18：可导入粒度以 icon 胶囊呈现、与卡片其余标签风格统一、仅命中项显示。
+- Task 19：环境页「换一批」改为「查看全部」入口、原换一批移除、主页固定 4 张最新卡片；队伍一览区分单/双打、可按「含队伍码」「赛事/排位高分」筛选、按时间最新→最旧排序、可搜索宝可梦/队伍名；「试试灵感」居中队伍卡片弹窗可关闭/可导入/可跳队伍页。
