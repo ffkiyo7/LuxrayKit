@@ -197,12 +197,21 @@ describe('App page flows', () => {
       'fetch',
       vi.fn(async () => new Response(JSON.stringify(pokedbSnapshot), { status: 200 })),
     );
+    // Pin the team-sample shuffle seed (Task 4) so re-entering the环境 page does not
+    // re-randomize order between renders. Without this, the import-coverage flow could
+    // import the same sample twice across remounts and collide on `队伍：<title>` labels.
+    // Only getRandomValues is stubbed; createId relies on randomUUID and stays unique.
+    vi.spyOn(globalThis.crypto, 'getRandomValues').mockImplementation((array) => {
+      if (array) new Uint32Array(array.buffer, array.byteOffset, 1)[0] = 0x1234abcd;
+      return array;
+    });
     await deleteDb();
   });
 
   afterEach(() => {
     cleanup();
     vi.unstubAllGlobals();
+    vi.restoreAllMocks();
   });
 
   it('labels the loading state as local rule data instead of mock data', async () => {
