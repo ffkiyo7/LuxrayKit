@@ -64,11 +64,19 @@ export function useAutoHideBottomNav({
   const [inputLocked, setInputLocked] = useState(false);
   const [keyboardLocked, setKeyboardLocked] = useState(false);
   const lastScrollTopRef = useRef(0);
+  const hiddenRef = useRef(false);
   const idleTimerRef = useRef<number | null>(null);
+  const scrollFrameRef = useRef<number | null>(null);
+
+  const setHiddenIfChanged = useCallback((nextHidden: boolean) => {
+    if (hiddenRef.current === nextHidden) return;
+    hiddenRef.current = nextHidden;
+    setHidden(nextHidden);
+  }, []);
 
   const show = useCallback(() => {
-    setHidden(false);
-  }, []);
+    setHiddenIfChanged(false);
+  }, [setHiddenIfChanged]);
 
   const clearIdleTimer = useCallback(() => {
     if (idleTimerRef.current === null) return;
@@ -83,10 +91,10 @@ export function useAutoHideBottomNav({
 
   useEffect(() => {
     if (!enabled || lock || domLocked || inputLocked || keyboardLocked) {
-      setHidden(false);
+      setHiddenIfChanged(false);
       clearIdleTimer();
     }
-  }, [clearIdleTimer, domLocked, enabled, inputLocked, keyboardLocked, lock]);
+  }, [clearIdleTimer, domLocked, enabled, inputLocked, keyboardLocked, lock, setHiddenIfChanged]);
 
   useEffect(() => {
     if (!enabled) return;
@@ -141,7 +149,7 @@ export function useAutoHideBottomNav({
 
   useEffect(() => {
     if (!enabled) {
-      setHidden(false);
+      setHiddenIfChanged(false);
       return;
     }
 
@@ -151,27 +159,33 @@ export function useAutoHideBottomNav({
 
     lastScrollTopRef.current = scrollTopOf(container);
 
-    const handleScroll = () => {
+    const updateFromScroll = () => {
+      scrollFrameRef.current = null;
       const currentScrollTop = scrollTopOf(container);
 
       if (currentScrollTop <= topOffset || isNearScrollEnd(container, currentScrollTop) || isLocked()) {
         lastScrollTopRef.current = currentScrollTop;
-        setHidden(false);
+        setHiddenIfChanged(false);
         clearIdleTimer();
         return;
       }
 
       const delta = currentScrollTop - lastScrollTopRef.current;
       if (Math.abs(delta) >= threshold) {
-        setHidden(delta > 0);
+        setHiddenIfChanged(delta > 0);
         lastScrollTopRef.current = currentScrollTop;
       }
 
       scheduleIdleShow();
     };
 
+    const handleScroll = () => {
+      if (scrollFrameRef.current !== null) return;
+      scrollFrameRef.current = window.requestAnimationFrame(updateFromScroll);
+    };
+
     const handlePointerDown = () => {
-      setHidden(false);
+      setHiddenIfChanged(false);
     };
 
     eventTarget.addEventListener('scroll', handleScroll, { passive: true });
@@ -180,6 +194,10 @@ export function useAutoHideBottomNav({
     return () => {
       eventTarget.removeEventListener('scroll', handleScroll);
       document.removeEventListener('pointerdown', handlePointerDown);
+      if (scrollFrameRef.current !== null) {
+        window.cancelAnimationFrame(scrollFrameRef.current);
+        scrollFrameRef.current = null;
+      }
       clearIdleTimer();
     };
   }, [
@@ -191,6 +209,7 @@ export function useAutoHideBottomNav({
     lock,
     scheduleIdleShow,
     scrollContainer,
+    setHiddenIfChanged,
     threshold,
     topOffset,
   ]);
