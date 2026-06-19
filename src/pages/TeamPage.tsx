@@ -1,26 +1,16 @@
-import { ArrowLeft, ChevronUp, Edit3, GripVertical, Minus, Plus, Save, Search, Trash2, X } from 'lucide-react';
+import { ArrowLeft, ChevronUp, Copy, Edit3, GripVertical, Minus, Plus, Save, Search, Trash2, X } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
 import { abilities, currentRuleNatureOptions, items, moves, pokemon } from '../data';
 import { memberBattleStats, memberLabel } from '../lib/calculations';
 import { currentRuleMovesForPokemon, currentRuleNatures, currentRuleSelectableItemsForPokemon, natureOptionLabel } from '../lib/currentRuleCatalog';
-import { createId } from '../lib/id';
 import { evaluateMemberLegality } from '../lib/legality';
 import { findBattleForm, getMemberBattleForm } from '../lib/pokemonForms';
 import { MAX_STAT_POINTS_PER_STAT, MAX_TOTAL_STAT_POINTS, statPointTotal } from '../lib/statPoints';
+import { createDefaultTeamMember } from '../lib/teamMemberDefaults';
 import { useAppStore } from '../state/AppContext';
 import type { Item, Move, Team, TeamMember } from '../types';
 import { PokemonPicker } from '../components/PokemonPicker';
 import { Button, Card, Chip, EmptyState, PokemonAvatar, TypeBadge } from '../components/ui';
-
-const blankMember = (): TeamMember => ({
-  id: createId('member'),
-  moveIds: [],
-  nature: '爽朗',
-  statPoints: { speed: 32 },
-  level: 50,
-  notes: '',
-  legalityStatus: 'missing-config',
-});
 
 const DRAG_REORDER_FALLBACK_ROW_HEIGHT = 72;
 const LUXRAY_EASTER_TEAM_ID = 'team-starter';
@@ -928,10 +918,12 @@ export function TeamPage({
   activeTeamId,
   highlightedTeamId,
   onActiveTeamChange,
+  onCopyReplicaCode,
 }: {
   activeTeamId?: string;
   highlightedTeamId?: string;
   onActiveTeamChange: (teamId: string | undefined) => void;
+  onCopyReplicaCode: (replicaCode: string) => Promise<void> | void;
 }) {
   const { teams, addTeam, deleteTeam, replaceTeams, saveTeam, updateMember } = useAppStore();
   const [detailTeamId, setDetailTeamId] = useState<string | null>(null);
@@ -1077,13 +1069,10 @@ export function TeamPage({
 
   const handlePickPokemon = async (entry: typeof pokemon[number]) => {
     if (!activeTeam || activeTeam.members.length >= 6) return;
-    const member: TeamMember = {
-      ...blankMember(),
+    const member = createDefaultTeamMember({
       pokemonId: entry.id,
-      abilityId: entry.abilities[0],
-      moveIds: currentRuleMovesForPokemon(entry.id).slice(0, 2).map((move) => move.id),
       notes: '快速添加，可继续编辑。',
-    };
+    });
     const result = evaluateMemberLegality(member, activeTeam);
     await updateMember(activeTeam.id, { ...member, legalityStatus: result.status });
     setExpandedMemberId(member.id);
@@ -1167,7 +1156,24 @@ export function TeamPage({
                   </button>
                 </h2>
               )}
-              <p className="mt-1 text-xs text-textSecondary">{activeTeam.members.length}/6 成员 · 本地队伍 · 可自由编辑</p>
+              <p className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-textSecondary">
+                <span>{activeTeam.members.length}/6 成员</span>
+                {activeTeam.replicaCode && (
+                  <>
+                    <span aria-hidden="true">·</span>
+                    <span className="font-semibold text-textPrimary">{activeTeam.replicaCode}</span>
+                    <button
+                      aria-label="复制队伍码"
+                      className="grid h-6 w-6 place-items-center rounded-md border border-border bg-card text-textSecondary active:scale-[0.96]"
+                      title="复制队伍码"
+                      type="button"
+                      onClick={() => void onCopyReplicaCode(activeTeam.replicaCode!)}
+                    >
+                      <Copy size={13} />
+                    </button>
+                  </>
+                )}
+              </p>
             </div>
           </div>
 

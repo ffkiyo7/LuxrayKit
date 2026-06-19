@@ -33,6 +33,17 @@ const resolveScrollContainer = (container?: HTMLElement | ScrollContainerRef | n
 const scrollTopOf = (container: ScrollContainer) =>
   Math.max(0, isWindow(container) ? window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0 : container.scrollTop);
 
+const viewportHeightOf = (container: ScrollContainer) =>
+  isWindow(container) ? window.visualViewport?.height ?? window.innerHeight : container.clientHeight;
+
+const scrollHeightOf = (container: ScrollContainer) =>
+  isWindow(container)
+    ? Math.max(document.documentElement.scrollHeight, document.body.scrollHeight)
+    : container.scrollHeight;
+
+const isNearScrollEnd = (container: ScrollContainer, scrollTop: number) =>
+  scrollTop + viewportHeightOf(container) >= scrollHeightOf(container) - 2;
+
 const isEditableElement = (element: Element | null) => {
   if (!element) return false;
   if (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement || element instanceof HTMLSelectElement) return true;
@@ -143,7 +154,7 @@ export function useAutoHideBottomNav({
     const handleScroll = () => {
       const currentScrollTop = scrollTopOf(container);
 
-      if (currentScrollTop <= topOffset || isLocked()) {
+      if (currentScrollTop <= topOffset || isNearScrollEnd(container, currentScrollTop) || isLocked()) {
         lastScrollTopRef.current = currentScrollTop;
         setHidden(false);
         clearIdleTimer();

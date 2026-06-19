@@ -1,9 +1,21 @@
-import { expect, test } from '@playwright/test';
+import { expect, type Page, test } from '@playwright/test';
+
+const dismissOnboarding = async (page: Page) => {
+  const skip = page.getByRole('button', { name: '跳过' });
+  try {
+    await skip.waitFor({ state: 'visible', timeout: 5_000 });
+    await skip.click();
+    await page.getByRole('button', { name: '开始探索' }).click();
+  } catch {
+    // The tour was already completed in this browser context.
+  }
+};
 
 test('keeps app shell, teams, and unavailable tools available offline', async ({ page, context }) => {
   await context.clearCookies();
   await page.goto('/');
-  await expect(page.getByRole('heading', { name: '环境' })).toBeVisible();
+  await dismissOnboarding(page);
+  await expect(page.getByRole('heading', { name: '环境', exact: true })).toBeVisible();
 
   const serviceWorkerReady = await page.evaluate(async () => {
     if (!('serviceWorker' in navigator)) return false;
@@ -13,7 +25,7 @@ test('keeps app shell, teams, and unavailable tools available offline', async ({
   expect(serviceWorkerReady).toBe(true);
 
   await page.reload({ waitUntil: 'networkidle' });
-  await expect(page.getByRole('heading', { name: '环境' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '环境', exact: true })).toBeVisible();
 
   await page.getByRole('button', { name: '队伍' }).click();
   await expect(page.getByText('我的队伍')).toBeVisible();
@@ -32,7 +44,7 @@ test('keeps app shell, teams, and unavailable tools available offline', async ({
 
   await context.setOffline(true);
   await page.reload({ waitUntil: 'domcontentloaded' });
-  await expect(page.getByRole('heading', { name: '环境' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '环境', exact: true })).toBeVisible();
 
   await page.getByRole('button', { name: '队伍' }).click();
   await expect(page.getByText('离线测试队')).toBeVisible();

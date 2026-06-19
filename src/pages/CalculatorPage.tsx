@@ -44,6 +44,9 @@ const sortedNatureOptions = () => {
 const sourceLabel = (config: CalcSideConfig): string =>
   config.source === 'team-member' ? '来自队伍配置' : '手动临时配置';
 
+const buildBlankCalcConfig = (role: CalcSide): CalcSideConfig =>
+  buildTemporaryCalcConfig({ pokemonId: '', role });
+
 const statPointSummary = (statPoints: StatPoints) =>
   `HP ${clampStatPointValue(statPoints.hp ?? 0)} · 攻 ${clampStatPointValue(statPoints.attack ?? 0)} · 防 ${clampStatPointValue(statPoints.defense ?? 0)} · 特攻 ${clampStatPointValue(statPoints.specialAttack ?? 0)} · 特防 ${clampStatPointValue(statPoints.specialDefense ?? 0)} · 速 ${clampStatPointValue(statPoints.speed ?? 0)}`;
 
@@ -496,11 +499,13 @@ function SideConfigCard({
 function DamageResultCard({
   result,
   moveCategory,
+  hasSelectedSides,
   hasSelectedMove,
   spIssues,
 }: {
   result: ReturnType<typeof computeDamage> | null;
   moveCategory?: string;
+  hasSelectedSides: boolean;
   hasSelectedMove: boolean;
   spIssues: string[];
 }) {
@@ -522,14 +527,14 @@ function DamageResultCard({
     );
   }
 
-  if (!hasSelectedMove) {
+  if (!hasSelectedSides || !hasSelectedMove) {
     return (
       <Card>
         <div className="mb-4 flex items-center justify-between">
           <p className="text-[11px] uppercase tracking-wide text-textSecondary">伤害计算</p>
           <Calculator size={18} className="text-accent" />
         </div>
-        <p className="py-8 text-center text-sm text-textSecondary">请先选择招式</p>
+        <p className="py-8 text-center text-sm text-textSecondary">请先选择进攻方、防守方和招式</p>
       </Card>
     );
   }
@@ -742,14 +747,12 @@ export function CalculatorPage({
     [teams],
   );
 
-  const firstPokemonId = pokemon[0]?.id ?? '';
-
   const [activeSide, setActiveSide] = useState<CalcSide>('attacker');
   const [attackerConfig, setAttackerConfig] = useState<CalcSideConfig>(() =>
-    buildTemporaryCalcConfig({ pokemonId: firstPokemonId, role: 'attacker' }),
+    buildBlankCalcConfig('attacker'),
   );
   const [defenderConfig, setDefenderConfig] = useState<CalcSideConfig>(() =>
-    buildTemporaryCalcConfig({ pokemonId: pokemon[1]?.id ?? firstPokemonId, role: 'defender' }),
+    buildBlankCalcConfig('defender'),
   );
   const [attackerDirty, setAttackerDirty] = useState(false);
   const [defenderDirty, setDefenderDirty] = useState(false);
@@ -764,7 +767,10 @@ export function CalculatorPage({
   const lastAppliedMemberIdRef = useRef<string | undefined>(undefined);
 
   useEffect(() => {
-    if (!selectedMemberId) return;
+    if (!selectedMemberId) {
+      lastAppliedMemberIdRef.current = undefined;
+      return;
+    }
     if (lastAppliedMemberIdRef.current === selectedMemberId) return;
     lastAppliedMemberIdRef.current = selectedMemberId;
 
@@ -777,18 +783,14 @@ export function CalculatorPage({
 
     const pokeId = pokemon.find((p) => p.id === selectedMemberId)?.id;
     if (pokeId) {
-      setAttackerConfig(buildTemporaryCalcConfig({ pokemonId: pokeId, role: 'attacker' }));
+      const firstMove = currentRuleMovesForPokemon(pokeId).find((move) => move.category !== 'Status');
+      const cfg = buildTemporaryCalcConfig({ pokemonId: pokeId, role: 'attacker', moveCategory: firstMove?.category ?? 'unknown' });
+      setAttackerConfig(firstMove ? { ...cfg, selectedMoveId: firstMove.id, moveIds: [firstMove.id] } : cfg);
       setAttackerDirty(false);
     }
   }, [selectedMemberId, teamMembers]);
 
-  const attackerEntry = pokemon.find((p) => p.id === attackerConfig.pokemonId) ?? pokemon[0];
-  const defenderEntry = pokemon.find((p) => p.id === defenderConfig.pokemonId) ?? pokemon[1] ?? pokemon[0];
-  const attackerBattleForm = findBattleForm(attackerEntry.id, attackerConfig.formId) ?? findBattleForm(attackerEntry.id, attackerEntry.id);
-  const defenderBattleForm = findBattleForm(defenderEntry.id, defenderConfig.formId) ?? findBattleForm(defenderEntry.id, defenderEntry.id);
-
-  const availableMoves = currentRuleMovesForPokemon(attackerEntry.id).filter((move) => move.category !== 'Status');
-  const currentMove = moves.find((m) => m.id === attackerConfig.selectedMoveId) ?? availableMoves[0];
+  const currentMove = attackerConfig.selectedMoveId ? moves.find((m) => m.id === attackerConfig.selectedMoveId) : undefined;
 
   const normalizedQuery = query.trim().toLowerCase();
   const filteredPokemon = useMemo(
@@ -1022,6 +1024,7 @@ export function CalculatorPage({
       <DamageResultCard
         result={damageResult}
         moveCategory={currentMove?.category}
+        hasSelectedSides={Boolean(attackerConfig.pokemonId && defenderConfig.pokemonId)}
         hasSelectedMove={Boolean(attackerConfig.selectedMoveId)}
         spIssues={allSpIssues}
       />

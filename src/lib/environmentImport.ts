@@ -43,6 +43,7 @@ export const createImportedTeamFromEnvironmentSample = (sample: EnvironmentTeamS
     members,
     createdAt: timestamp,
     updatedAt: timestamp,
+    replicaCode: sample.replicaCode,
     notes: '',
     source: {
       kind: 'environment-sample-import',

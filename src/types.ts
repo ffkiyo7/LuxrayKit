@@ -242,6 +242,7 @@ export type Team = {
   createdAt: string;
   updatedAt: string;
   sortOrder?: number;
+  replicaCode?: string;
   notes: string;
   source?: TeamSource;
 };

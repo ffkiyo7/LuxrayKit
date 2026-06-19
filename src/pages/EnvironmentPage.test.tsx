@@ -2,7 +2,7 @@
 import { cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { EnvironmentState } from '../data/environment';
+import type { EnvironmentState, EnvironmentTeamSample } from '../data/environment';
 import { pokemon } from '../data/seed/regMA/catalog';
 import { EnvironmentPage } from './EnvironmentPage';
 
@@ -68,12 +68,123 @@ const makeTierEnvironment = (): EnvironmentState => ({
   },
 });
 
+const makeTeamSampleEnvironment = (teamSamples: EnvironmentTeamSample[]): EnvironmentState => ({
+  ...makeEnvironment('rank-relative'),
+  teamSamples,
+});
+
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
 });
 
 describe('EnvironmentPage usage basis', () => {
+  it('uses source-aware sample card labels without forcing VGCPastes into season/rank/score text', () => {
+    const samples: EnvironmentTeamSample[] = [
+      {
+        id: 'pokedb-singles-rank-1',
+        dataKind: 'external-snapshot',
+        author: 'PokeDB author',
+        season: 'M-3',
+        score: 2815,
+        rank: 1,
+        title: 'M-3 · 最高第 1 名 · 2815 分',
+        battleType: 'singles',
+        reportUrl: 'https://example.com/pokedb',
+        slots: [{ pokemonId: 'garchomp', itemId: 'focus-sash', moveIds: [] }],
+      },
+      {
+        id: 'vgcpastes-champions-ma-example',
+        dataKind: 'external-snapshot',
+        sourceId: 'vgcpastes-champions-ma',
+        author: 'VGC author',
+        season: 'reg-ma',
+        score: 0,
+        title: 'PJCS 2026 public team',
+        battleType: 'singles',
+        reportUrl: 'https://example.com/vgc',
+        tournament: 'PJCS 2026',
+        eventRank: 'Top 4 (Seniors)',
+        dateShared: '2026-06-07',
+        replicaCode: 'ABC123DEFG',
+        hasMoves: true,
+        hasSpread: true,
+        slots: [{ pokemonId: 'garchomp', itemId: 'focus-sash', moveIds: ['earthquake'] }],
+      },
+    ];
+
+    render(<EnvironmentPage environment={makeTeamSampleEnvironment(samples)} onImportSample={() => undefined} />);
+
+    expect(screen.getByText('M-3 · 最高第 1 名 · 2815 分')).toBeTruthy();
+    expect(screen.getByText('PokeDB 环境榜')).toBeTruthy();
+    expect(screen.getByText('PJCS 2026 public team')).toBeTruthy();
+    expect(screen.getByText('VGCPastes 锦标赛')).toBeTruthy();
+    expect(screen.getByText(/原作者：VGC author · PJCS 2026 · Top 4 \(Seniors\) · 分享 2026-06-07/)).toBeTruthy();
+    expect(screen.getByText('可导入：[SP分配][配招][队伍码]')).toBeTruthy();
+    expect(screen.queryByText(/0 分/)).toBeNull();
+  });
+
+  it('maps pokemon detail related teams across PokeDB and VGCPastes sample sources', async () => {
+    const user = userEvent.setup();
+    const samples: EnvironmentTeamSample[] = [
+      {
+        id: 'pokedb-singles-rank-1',
+        dataKind: 'external-snapshot',
+        author: 'PokeDB author',
+        season: 'M-3',
+        score: 2815,
+        rank: 1,
+        title: 'M-3 · 最高第 1 名 · 2815 分',
+        battleType: 'singles',
+        reportUrl: 'https://example.com/pokedb',
+        slots: [{ pokemonId: 'garchomp', itemId: 'focus-sash', moveIds: [] }],
+      },
+      {
+        id: 'vgcpastes-champions-ma-garchomp',
+        dataKind: 'external-snapshot',
+        sourceId: 'vgcpastes-champions-ma',
+        author: 'VGC author',
+        season: 'reg-ma',
+        score: 0,
+        title: 'PJCS 2026 Garchomp Team',
+        battleType: 'singles',
+        reportUrl: 'https://example.com/vgc',
+        tournament: 'PJCS 2026',
+        eventRank: 'Top 4',
+        hasMoves: true,
+        hasSpread: true,
+        slots: [{ pokemonId: 'garchomp', itemId: 'focus-sash', moveIds: ['earthquake'] }],
+      },
+      {
+        id: 'vgcpastes-champions-ma-other',
+        dataKind: 'external-snapshot',
+        sourceId: 'vgcpastes-champions-ma',
+        author: 'Other author',
+        season: 'reg-ma',
+        score: 0,
+        title: 'Unrelated VGCPastes Team',
+        battleType: 'singles',
+        reportUrl: 'https://example.com/other',
+        tournament: 'PJCS 2026',
+        eventRank: 'Top 8',
+        hasMoves: true,
+        hasSpread: true,
+        slots: [{ pokemonId: 'archaludon', itemId: 'leftovers', moveIds: ['draco-meteor'] }],
+      },
+    ];
+
+    render(<EnvironmentPage environment={makeTeamSampleEnvironment(samples)} onImportSample={() => undefined} />);
+
+    await user.click(screen.getByRole('button', { name: /烈咬陆鲨/ }));
+
+    const relatedSection = screen.getByText('相关上位构筑').closest('section');
+    expect(relatedSection).toBeTruthy();
+    expect(within(relatedSection as HTMLElement).getByText('M-3 · 最高第 1 名 · 2815 分')).toBeTruthy();
+    expect(within(relatedSection as HTMLElement).getByText('PJCS 2026 Garchomp Team')).toBeTruthy();
+    expect(within(relatedSection as HTMLElement).getByText('VGCPastes 锦标赛')).toBeTruthy();
+    expect(within(relatedSection as HTMLElement).queryByText('Unrelated VGCPastes Team')).toBeNull();
+  });
+
   it('shows season, freshness, and timestamps without exposing PokeDB on the home or ranking headers', async () => {
     const user = userEvent.setup();
     render(<EnvironmentPage environment={makeEnvironment('rank-relative')} onImportSample={() => undefined} />);
@@ -156,6 +267,12 @@ describe('EnvironmentPage usage basis', () => {
     expect(screen.queryByText(/M-1/)).toBeNull();
     expect(screen.queryByText(/常见队友的百分比/)).toBeNull();
     expect(screen.queryByText(/54\.0% \/ 285 队/)).toBeNull();
+
+    const singlesSampleCount = screen.getByText('213 队').closest('div');
+    expect(singlesSampleCount?.getAttribute('role')).toBeNull();
+    expect(singlesSampleCount?.getAttribute('tabindex')).toBeNull();
+    expect(singlesSampleCount?.className).toContain('cursor-default');
+    expect(screen.queryByRole('button', { name: /213 队/ })).toBeNull();
   });
 
   it('removes overall usage summaries even when the dataset basis is absolute', async () => {

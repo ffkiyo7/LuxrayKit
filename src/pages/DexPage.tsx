@@ -4,9 +4,9 @@ import { abilities, moves } from '../data';
 import { pokemonPhysicalMetricsByDexNo } from '../data/seed/regMA/physicalMetrics';
 import { attackingTypes, defensiveMatchupMultiplier, statRows } from '../lib/calculations';
 import { currentRuleMovesForPokemon, currentRuleSelectableItems } from '../lib/currentRuleCatalog';
-import { createId } from '../lib/id';
 import { evaluateMemberLegality } from '../lib/legality';
 import { getDexFormEntries, type DexFormEntry } from '../lib/pokemonForms';
+import { createDefaultTeamMember } from '../lib/teamMemberDefaults';
 import { useAppStore } from '../state/AppContext';
 import type { Move, PokemonType } from '../types';
 import { Button, Card, EmptyState, PokemonAvatar, TypeBadge } from '../components/ui';
@@ -400,19 +400,13 @@ function PokemonDetail({
 
   const addToTeam = async () => {
     if (!activeTeam || activeTeam.members.length >= 6) return;
-    const member = {
-      id: createId('member'),
+    const member = createDefaultTeamMember({
       pokemonId: entry.basePokemon.id,
       formId: entry.id,
       abilityId: entry.abilities[0],
       itemId: entry.requiredItemId,
-      moveIds: currentRuleMovesForPokemon(entry.basePokemon.id).slice(0, 2).map((move) => move.id),
-      nature: '爽朗',
-      statPoints: { speed: 32 },
-      level: 50,
       notes: '从图鉴加入。',
-      legalityStatus: 'needs-review' as const,
-    };
+    });
     const result = evaluateMemberLegality(member, activeTeam);
     await updateMember(activeTeam.id, { ...member, legalityStatus: result.status });
   };
