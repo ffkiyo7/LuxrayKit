@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { currentDataVersion, currentRuleSet, defaultTeams } from '../data';
+import { currentDataVersion, currentRuleNatureOptions, currentRuleSet, defaultTeams } from '../data';
 import { CURRENT_TEAM_EXPORT_SCHEMA_VERSION, migrateTeamExportPayload } from './teamSchema';
 
 describe('team schema migration', () => {
@@ -98,7 +98,15 @@ describe('team schema migration', () => {
       id: 'imported-member-1',
       pokemonId: 'garchomp',
       moveIds: [],
-      nature: '爽朗',
+      nature: currentRuleNatureOptions.find((option) => option.neutral)?.id ?? '认真',
+      statPoints: {
+        hp: 0,
+        attack: 0,
+        defense: 0,
+        specialAttack: 0,
+        specialDefense: 0,
+        speed: 0,
+      },
       level: 50,
       legalityStatus: 'needs-review',
     });

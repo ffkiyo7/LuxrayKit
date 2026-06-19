@@ -1,5 +1,6 @@
 import type { BattleType, Team, TeamMember, TeamSource } from '../types';
 import { migrateLegacyEvStatPoints } from './statPoints';
+import { defaultTeamMemberNature, emptyStatPoints } from './teamMemberDefaults';
 
 export const CURRENT_TEAM_EXPORT_SCHEMA_VERSION = 2;
 
@@ -26,8 +27,8 @@ const migrateMember = (member: RawTeamMember, index: number, migrateLegacyStats 
   abilityId: member.abilityId,
   itemId: member.itemId,
   moveIds: Array.isArray(member.moveIds) ? member.moveIds.filter(Boolean) : [],
-  nature: member.nature || '爽朗',
-  statPoints: migrateLegacyStats ? migrateLegacyEvStatPoints(member.statPoints ?? {}) : member.statPoints ?? {},
+  nature: member.nature || defaultTeamMemberNature(),
+  statPoints: migrateLegacyStats ? migrateLegacyEvStatPoints(member.statPoints ?? emptyStatPoints()) : member.statPoints ?? emptyStatPoints(),
   level: Number.isFinite(member.level) && member.level ? Number(member.level) : 50,
   notes: member.notes || '',
   legalityStatus: member.legalityStatus || 'needs-review',

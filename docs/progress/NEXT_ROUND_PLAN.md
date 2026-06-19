@@ -8,7 +8,7 @@
 
 > 上一轮 Task A–E、G、H 及「上线前联合核验」已全部完成并验证（2026-06-18 核对，`npm test` 239 passed）。Task 1（伤害计算补全新赛季 Mega 物种映射）已完成并验证（2026-06-18 核对，`npm test` 240 passed，`npm run build` passed）。Task 2（一次性脚本摄入 VGCPastes「Champions M-A」构筑）已完成并验证（2026-06-19 核对并经 Claude review 修订：**按赛事含金量清洗**——仅保留官方线下锦标赛 + 近 30 天窗口，PJCS 取 Top14，最终入库 **99 队**；42 队带游戏内队伍码、63 队含完整 SP；修正了 EV→SP 误除以 8 的 bug；数据改为**运行时 fetch（不再打包进 JS）** + SW 预缓存，267KB。`npm test` 246 passed，`npm run build` passed）。Task F（伤害计算页排版重规划）经确认**保留、暂不做**，见文末。
 
-> **本轮（2026-06-19）新增**：将一批零散需求整理为 Task 6–16。其中**原 Task 12（队伍卡片字段适配）经复核与 Task 3/5 重合，已撤销**——「SP/配招」即 Task 3 的可导入胶囊、「队伍码」属 Task 5、唯一新增的「来源标识」并入 Task 3。挂起的 **Task 3/4/5 现追加依赖 Task 8**：VGCPastes 批不稳定渲染时，卡片字段、乱序、队伍码都无从验证（队伍都没展示，就谈不上数据细粒度胶囊）。Task 8 已完成并验证（2026-06-19：改为 Vite 动态 import 的构建期受管样本 chunk，移除运行时 fetch 与 SW 裸 JSON 预缓存；`npm test` 247 passed，`npm run build` passed，`npm run test:visual` passed，`npm run test:pwa` passed）。Task 3/4/5 已完成并验证（2026-06-19：卡片来源标签 + 可导入粒度行、动态导入提醒、VGCPastes 赛事标题保留、样本池种子乱序 + 换批重洗、队伍码导入/详情展示/复制 toast、TeamPage 去掉「本地队伍 · 可自由编辑」；`npm test` 250 passed，`npm run build` passed，`npm run test:visual` passed）。优先级：先修剩余 bug（Task 6/7/9/10）→ 功能（Task 11/13）→ 速度线重做（Task 14）→ 浅色主题（Task 15）→ 探针（Task 16）。Task 13/14/16 标注 **spike/调试先行**：先调研或复现并汇报，再写实现代码。
+> **本轮（2026-06-19）新增**：将一批零散需求整理为 Task 6–16。其中**原 Task 12（队伍卡片字段适配）经复核与 Task 3/5 重合，已撤销**——「SP/配招」即 Task 3 的可导入胶囊、「队伍码」属 Task 5、唯一新增的「来源标识」并入 Task 3。挂起的 **Task 3/4/5 现追加依赖 Task 8**：VGCPastes 批不稳定渲染时，卡片字段、乱序、队伍码都无从验证（队伍都没展示，就谈不上数据细粒度胶囊）。Task 8 已完成并验证（2026-06-19：改为 Vite 动态 import 的构建期受管样本 chunk，移除运行时 fetch 与 SW 裸 JSON 预缓存；`npm test` 247 passed，`npm run build` passed，`npm run test:visual` passed，`npm run test:pwa` passed）。Task 3/4/5 已完成并验证（2026-06-19：卡片来源标签 + 可导入粒度行、动态导入提醒、VGCPastes 赛事标题保留、样本池种子乱序 + 换批重洗、队伍码导入/详情展示/复制 toast、TeamPage 去掉「本地队伍 · 可自由编辑」；`npm test` 250 passed，`npm run build` passed，`npm run test:visual` passed）。Task 10/11 已完成并验证（2026-06-19：伤害计算页普通进入与离开后重进均为空白态，显式从队伍/图鉴带入仍保留；手动新增队员与图鉴加入统一默认成员初始化，原始形态/首个合法特性/中性性格/0 SP/空招式/无道具；`npm test` 254 passed，`npm run build` passed，`npm run test:visual` passed）。优先级：先修剩余 bug（Task 6/7/9）→ 功能（Task 13）→ 速度线重做（Task 14）→ 浅色主题（Task 15）→ 探针（Task 16）。Task 13/14/16 标注 **spike/调试先行**：先调研或复现并汇报，再写实现代码。
 
 ## 任务清单
 
@@ -111,17 +111,21 @@
 - **改动要点**：去掉该框的 `tabIndex`/`role="button"`/可聚焦属性与 `cursor`；确保切换单/双打时焦点不落到该框；保持纯展示、不可交互。
 - **验收**：切换单/双打该框无光标、不可聚焦/点击；其余交互不受影响；`npm test` 通过；快照更新。
 
-### Task 10 — 伤害计算页进入即重置为空（UX · 前端）
+### Task 10 — 伤害计算页进入即重置为空（已完成 · 2026-06-19）
 
 > **现象**：每次进入伤害计算页都残留上次状态或带写死的自带默认配置，用户得先清掉才好操作。
+
+> 完成记录：计算器初始攻防双方改为空白态，不再预填首只/第二只宝可梦与首招；普通从工具页进入会清掉上次 `calculatorMemberId`，离开再重进仍为空。图鉴/队伍的显式带入路径保留：显式选择宝可梦或队伍成员后才生成临时配置并计算。视觉快照更新为新的空白起点。
 
 - **涉及文件**：`src/pages/CalculatorPage.tsx`（初始 state / 进入时重置）；可能 `src/lib/damageAdapter.ts` 的 `buildTemporaryCalcConfig` 默认值。
 - **改动要点**：进入页面（mount / tab 激活）时初始化为**空白态**——攻防双方的已选宝可梦、配置、招式全部为空，不携带上次残留、不预填写死默认；用户主动选择后才有内容。若存在「从队伍/速度线显式带入」入口则保留（那是显式动作，不算残留）。
 - **验收**：反复进出计算页均为空白起点、无残留无写死默认；显式带入路径仍可用；`npm test` 通过；快照更新。
 
-### Task 11 — 自己添加队伍的成员配置初始化（Feature · 前端）
+### Task 11 — 自己添加队伍的成员配置初始化（已完成 · 2026-06-19）
 
 > **现象**：用户手动新建队伍并添加成员时，成员配置（性格/特性/道具/招式/SP/形态）未正确初始化。
+
+> 完成记录：新增 `createDefaultTeamMember` 统一手动成员默认值：原始形态、首个合法特性、无道具、空招式待选、当前规则中性性格、六项 SP 显式为 0、等级 50。TeamPage 手动添加与 DexPage 加入队伍均改走该 helper；schema 迁移缺省成员也复用中性性格与 0 SP 默认，避免旧的「爽朗 + 速度 32」残留。
 
 - **涉及文件**：`src/pages/TeamPage.tsx` 成员添加链路；`src/lib/teamSchema.ts` / 相关 helper；`src/types.ts`。
 - **改动要点**：确定并落地合理默认（如 SP 全 0 或合理基线、性格给默认、特性取第一个合法项、道具空、招式空待选、形态取原始形态）；与「导入来的成员」初始化保持一致，避免两条路径产出结构不一的成员。

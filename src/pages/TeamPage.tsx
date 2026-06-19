@@ -3,24 +3,14 @@ import { useMemo, useRef, useState } from 'react';
 import { abilities, currentRuleNatureOptions, items, moves, pokemon } from '../data';
 import { memberBattleStats, memberLabel } from '../lib/calculations';
 import { currentRuleMovesForPokemon, currentRuleNatures, currentRuleSelectableItemsForPokemon, natureOptionLabel } from '../lib/currentRuleCatalog';
-import { createId } from '../lib/id';
 import { evaluateMemberLegality } from '../lib/legality';
 import { findBattleForm, getMemberBattleForm } from '../lib/pokemonForms';
 import { MAX_STAT_POINTS_PER_STAT, MAX_TOTAL_STAT_POINTS, statPointTotal } from '../lib/statPoints';
+import { createDefaultTeamMember } from '../lib/teamMemberDefaults';
 import { useAppStore } from '../state/AppContext';
 import type { Item, Move, Team, TeamMember } from '../types';
 import { PokemonPicker } from '../components/PokemonPicker';
 import { Button, Card, Chip, EmptyState, PokemonAvatar, TypeBadge } from '../components/ui';
-
-const blankMember = (): TeamMember => ({
-  id: createId('member'),
-  moveIds: [],
-  nature: '爽朗',
-  statPoints: { speed: 32 },
-  level: 50,
-  notes: '',
-  legalityStatus: 'missing-config',
-});
 
 const DRAG_REORDER_FALLBACK_ROW_HEIGHT = 72;
 const LUXRAY_EASTER_TEAM_ID = 'team-starter';
@@ -1079,13 +1069,10 @@ export function TeamPage({
 
   const handlePickPokemon = async (entry: typeof pokemon[number]) => {
     if (!activeTeam || activeTeam.members.length >= 6) return;
-    const member: TeamMember = {
-      ...blankMember(),
+    const member = createDefaultTeamMember({
       pokemonId: entry.id,
-      abilityId: entry.abilities[0],
-      moveIds: currentRuleMovesForPokemon(entry.id).slice(0, 2).map((move) => move.id),
       notes: '快速添加，可继续编辑。',
-    };
+    });
     const result = evaluateMemberLegality(member, activeTeam);
     await updateMember(activeTeam.id, { ...member, legalityStatus: result.status });
     setExpandedMemberId(member.id);

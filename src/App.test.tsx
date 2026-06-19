@@ -14,7 +14,7 @@ import {
   getEnvironmentMove,
   getEnvironmentPokemon,
 } from './data/environment';
-import { currentDataVersion, currentRuleSet } from './data';
+import { currentDataVersion, currentRuleNatureOptions, currentRuleSet, pokemon } from './data';
 import { repository } from './lib/db';
 import type { Team, TeamMember } from './types';
 
@@ -159,6 +159,26 @@ const openTool = async (user: ReturnType<typeof userEvent.setup>, toolName: stri
   await user.click(await screen.findByRole('button', { name: toolName }));
 };
 
+const pickCalculatorPokemon = async (
+  user: ReturnType<typeof userEvent.setup>,
+  side: 'attacker' | 'defender',
+  query: string,
+  label: string,
+) => {
+  await user.click(screen.getByRole('button', { name: side === 'attacker' ? /选择进攻方/ : /选择防守方/ }));
+  const search = screen.getByPlaceholderText('搜索名称');
+  await user.clear(search);
+  await user.type(search, query);
+  const option = (await screen.findAllByText(label)).map((element) => element.closest('button')).find(Boolean);
+  if (!option) throw new Error(`Unable to find calculator Pokemon option: ${label}`);
+  await user.click(option);
+};
+
+const selectCalculatorPair = async (user: ReturnType<typeof userEvent.setup>) => {
+  await pickCalculatorPokemon(user, 'attacker', 'Garchomp', '烈咬陆鲨');
+  await pickCalculatorPokemon(user, 'defender', 'Torkoal', '煤炭龟');
+};
+
 const waitForDexPage = () => screen.findByText('规则内图鉴', undefined, { timeout: 5000 });
 
 const openDefaultTeam = async (user: ReturnType<typeof userEvent.setup>) => {
@@ -295,6 +315,43 @@ describe('App page flows', () => {
 
     await user.click(screen.getByTitle('收起成员'));
     expect(screen.queryByText('能力值 / SP')).toBeNull();
+  });
+
+  it('initializes manually added team members with editable blank defaults', async () => {
+    const user = await renderApp();
+    await openDefaultTeam(user);
+
+    await user.click(screen.getByRole('button', { name: /添加 Pokémon/ }));
+    await user.type(await screen.findByPlaceholderText('搜索 Pokémon 名称...'), 'Garchomp');
+    await user.click(await screen.findByText('烈咬陆鲨'));
+
+    await waitFor(async () => {
+      const state = await repository.loadState();
+      const team = state.teams.find((candidate) => candidate.name === 'Luxray test');
+      expect(team?.members.some((member) => member.pokemonId === 'garchomp')).toBe(true);
+    });
+
+    const state = await repository.loadState();
+    const team = state.teams.find((candidate) => candidate.name === 'Luxray test')!;
+    const added = team.members.find((member) => member.pokemonId === 'garchomp')!;
+    const garchomp = pokemon.find((entry) => entry.id === 'garchomp')!;
+    const neutralNature = currentRuleNatureOptions.find((option) => option.neutral)?.id ?? '认真';
+
+    expect(added.formId).toBe('garchomp');
+    expect(added.abilityId).toBe(garchomp.abilities[0]);
+    expect(added.itemId).toBeUndefined();
+    expect(added.moveIds).toEqual([]);
+    expect(added.nature).toBe(neutralNature);
+    expect(added.statPoints).toEqual({
+      hp: 0,
+      attack: 0,
+      defense: 0,
+      specialAttack: 0,
+      specialDefense: 0,
+      speed: 0,
+    });
+
+    expect(screen.getByText(/2\/6 成员/)).toBeTruthy();
   });
 
   it('keeps member editing focused on the selected Pokemon, moves, nature, item, ability, and six SP fields', { timeout: 15000 }, async () => {
@@ -738,11 +795,32 @@ describe('App page flows', () => {
     expect(await screen.findByLabelText(relatedGarchompTeamLabel)).toBeTruthy();
   });
 
+  it('opens the damage calculator on a blank state and resets it after leaving', async () => {
+    const user = await renderApp();
+
+    await openTool(user, /伤害计算/);
+    expect(await screen.findByText('选择进攻方')).toBeTruthy();
+    expect(screen.getAllByText('未配置 Pokemon').length).toBeGreaterThanOrEqual(2);
+    expect(screen.queryByText(/% -/)).toBeNull();
+    expect(screen.getByText('请先选择进攻方、防守方和招式')).toBeTruthy();
+
+    await selectCalculatorPair(user);
+    expect(await screen.findByText(/% -/)).toBeTruthy();
+
+    await user.click(screen.getByRole('button', { name: '返回工具' }));
+    await screen.findByRole('button', { name: /伤害计算/ });
+    await openTool(user, /伤害计算/);
+    expect(await screen.findByText('选择进攻方')).toBeTruthy();
+    expect(screen.getAllByText('未配置 Pokemon').length).toBeGreaterThanOrEqual(2);
+    expect(screen.queryByText(/% -/)).toBeNull();
+  });
+
   it('allows real editing of temporary config: SP, nature, item, and move changes persist', async () => {
     const user = await renderApp();
 
     await openTool(user, /伤害计算/);
     expect(await screen.findByText('选择进攻方')).toBeTruthy();
+    await selectCalculatorPair(user);
 
     // Verify mandatory UI labels
     expect(screen.queryByText(/Champions SP/)).toBeNull();
@@ -764,6 +842,7 @@ describe('App page flows', () => {
     expect(screen.getByLabelText('会心一击')).toBeTruthy();
 
     // Expand attacker config
+    await user.click(screen.getByRole('button', { name: /选择进攻方/ }));
     const editBtns = screen.getAllByTitle('编辑 SP/能力配置');
     await user.click(editBtns[0]);
     expect(await screen.findByText(/HP SP、攻防 SP 可编辑/)).toBeTruthy();
@@ -845,6 +924,7 @@ describe('App page flows', () => {
 
     await openTool(user, /伤害计算/);
     expect(await screen.findByText('选择进攻方')).toBeTruthy();
+    await selectCalculatorPair(user);
 
     const initialHpText = screen.getByText(/对方 HP:/).textContent ?? '';
     const initialHp = Number(initialHpText.match(/对方 HP: (\d+)/)?.[1]);
@@ -963,6 +1043,7 @@ describe('App page flows', () => {
     expect(await screen.findByText('选择进攻方')).toBeTruthy();
     expect(screen.getByRole('button', { name: /从队伍选择/ })).toBeTruthy();
     expect(screen.queryByText('小顿熊')).toBeNull();
+    await pickCalculatorPokemon(user, 'attacker', 'Garchomp', '烈咬陆鲨');
 
     // Switch to defender and pick from search
     await user.click(screen.getByRole('button', { name: /防守方/ }));

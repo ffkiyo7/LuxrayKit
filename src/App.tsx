@@ -181,9 +181,16 @@ function AppShell() {
   }, []);
 
   const openTool = useCallback((view: ToolView) => {
+    if (view === 'calculator') setCalculatorMemberId(undefined);
     setToolView(view);
     setActiveTab('tools');
   }, []);
+
+  useEffect(() => {
+    if (activeTab !== 'tools' || toolView !== 'calculator') {
+      setCalculatorMemberId(undefined);
+    }
+  }, [activeTab, toolView]);
 
   const completeOnboarding = useCallback(() => {
     void replacePreferences({ ...preferences, hasCompletedOnboarding: true });
