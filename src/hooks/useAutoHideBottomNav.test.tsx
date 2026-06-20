@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { useAutoHideBottomNav } from './useAutoHideBottomNav';
 
@@ -21,6 +21,12 @@ const defineScrollMetric = (element: HTMLElement, name: 'clientHeight' | 'scroll
   });
 };
 
+const flushScrollFrame = () => {
+  act(() => {
+    vi.advanceTimersByTime(16);
+  });
+};
+
 describe('useAutoHideBottomNav', () => {
   afterEach(() => {
     cleanup();
@@ -39,10 +45,32 @@ describe('useAutoHideBottomNav', () => {
 
     scrollContainer.scrollTop = 100;
     fireEvent.scroll(scrollContainer);
+    flushScrollFrame();
     expect(screen.getByTestId('nav-state').textContent).toBe('hidden');
 
     scrollContainer.scrollTop = 800;
     fireEvent.scroll(scrollContainer);
+    flushScrollFrame();
+    expect(screen.getByTestId('nav-state').textContent).toBe('shown');
+  });
+
+  it('shows the nav again after a middle-page scroll comes to rest', () => {
+    vi.useFakeTimers();
+    const scrollContainer = document.createElement('div');
+    defineScrollMetric(scrollContainer, 'clientHeight', 400);
+    defineScrollMetric(scrollContainer, 'scrollHeight', 2000);
+    document.body.appendChild(scrollContainer);
+
+    render(<HookHarness scrollContainer={scrollContainer} />);
+
+    scrollContainer.scrollTop = 240;
+    fireEvent.scroll(scrollContainer);
+    flushScrollFrame();
+    expect(screen.getByTestId('nav-state').textContent).toBe('hidden');
+
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
     expect(screen.getByTestId('nav-state').textContent).toBe('shown');
   });
 });

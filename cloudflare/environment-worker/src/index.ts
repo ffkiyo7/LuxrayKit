@@ -100,6 +100,27 @@ type RefreshTriggerResult = {
   pendingCount: number;
 };
 
+type ScheduledRefreshResult =
+  | RefreshTriggerResult
+  | {
+      ok: true;
+      state: 'unchanged';
+      jobId: '';
+      season: number;
+      pendingCount: 0;
+      sourceUpdatedAt: string;
+    };
+
+type PokeDbFreshnessProbe = {
+  checkedAt: string;
+  signature: string;
+  season: number;
+  sourceUpdatedAt: string;
+  sourceUrl: string;
+  etag?: string;
+  lastModified?: string;
+};
+
 type AppEnv = Env & {
   ADMIN_REFRESH_TOKEN?: string;
   POKEDB_DETAIL_LIMIT?: string;
@@ -113,6 +134,7 @@ const SNAPSHOT_KEY = 'environment:latest';
 const STATUS_KEY = 'environment:status';
 const TEAM_INDEX_KEY = 'environment:team-index';
 const REFRESH_JOB_KEY = 'environment:refresh-job';
+const POKEDB_FRESHNESS_PROBE_KEY = 'environment:pokedb-freshness-probe';
 const DEFAULT_POKEDB_BASE_URL = 'https://champs.pokedb.tokyo';
 const DEFAULT_WORKER_SELF_URL = 'https://luxraykit-app.ffkiyo7.workers.dev';
 const DEFAULT_MAX_CACHE_AGE_SECONDS = 30 * 60 * 60;
@@ -184,6 +206,52 @@ const pokeDbRuleParamByBattleType = {
   singles: 0,
 } satisfies Record<BattleType, number>;
 
+const decodeHtml = (value: string) =>
+  value
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#039;/g, "'")
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .trim();
+
+const normalizePokeDbTimestampText = (value: string) => {
+  const updatedParts = value.trim().match(/^(\d{4})[/-](\d{1,2})[/-](\d{1,2})\s+(\d{2}:\d{2})(?::(\d{2}))?$/);
+  if (!updatedParts) return value.trim().replace(/\//g, '-');
+  return `${updatedParts[1]}-${updatedParts[2].padStart(2, '0')}-${updatedParts[3].padStart(2, '0')} ${updatedParts[4]}:${updatedParts[5] ?? '00'}`;
+};
+
+const parsePokeDbFreshnessMetadata = (html: string, sourceUrl: string) => {
+  const seasons = [...html.matchAll(/<option\s+value="(\d+)"/g)]
+    .map((match) => Number(match[1]))
+    .filter((season) => Number.isInteger(season) && season > 0);
+  const seasonFromUrl = Number(new URL(sourceUrl).searchParams.get('season') ?? 0);
+  const season = seasons.length > 0 ? Math.max(...seasons) : seasonFromUrl;
+  if (!Number.isInteger(season) || season <= 0) {
+    throw new Error('PokeDB freshness probe did not expose any season options');
+  }
+
+  const rawUpdatedText = decodeHtml(
+    html.match(/更新日<\/span>\s*<span class="tag is-light">([^<]+)</)?.[1] ?? '',
+  );
+  if (!rawUpdatedText) {
+    throw new Error('PokeDB freshness probe did not expose an update timestamp');
+  }
+
+  return {
+    season,
+    sourceUpdatedAt: normalizePokeDbTimestampText(rawUpdatedText),
+  };
+};
+
+const sha256Hex = async (value: string) => {
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
+  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
+};
+
+const buildPokeDbFreshnessSignature = (metadata: Pick<PokeDbFreshnessProbe, 'season' | 'sourceUpdatedAt'>) =>
+  sha256Hex(`season=${metadata.season};updatedAt=${metadata.sourceUpdatedAt}`);
+
 const pokeDbNatureNameToId: Record<string, string> = {
   さみしがり: '怕寂寞',
   いじっぱり: '固执',
@@ -228,6 +296,12 @@ const pokemonListUrl = (baseUrl: string, season: number, battleType: BattleType)
   return url.toString();
 };
 
+const pokemonFreshnessProbeUrl = (baseUrl: string) => {
+  const url = new URL('/pokemon/list', `${baseUrl.replace(/\/$/, '')}/`);
+  url.searchParams.set('rule', String(pokeDbRuleParamByBattleType.singles));
+  return url.toString();
+};
+
 const pokemonDetailUrl = (baseUrl: string, season: number, battleType: BattleType, pokeDbKey: string) => {
   const url = new URL(`/pokemon/show/${pokeDbKey}`, `${baseUrl.replace(/\/$/, '')}/`);
   url.searchParams.set('season', String(season));
@@ -265,6 +339,59 @@ export async function detectLatestPokeDbSeason(baseUrl: string, fetcher: Fetcher
     throw new Error('PokeDB Pokemon list did not expose any season options');
   }
   return Math.max(...seasons);
+}
+
+export async function probePokeDbFreshness(
+  baseUrl: string,
+  previousProbe?: PokeDbFreshnessProbe,
+  fetcher: Fetcher = fetch,
+): Promise<Omit<PokeDbFreshnessProbe, 'checkedAt'>> {
+  const sourceUrl = pokemonFreshnessProbeUrl(baseUrl);
+  const headers = new Headers({
+    accept: 'text/html',
+    'cache-control': 'no-cache',
+    pragma: 'no-cache',
+    'user-agent': POKEDB_USER_AGENT,
+  });
+  if (previousProbe?.etag) headers.set('if-none-match', previousProbe.etag);
+  if (previousProbe?.lastModified) headers.set('if-modified-since', previousProbe.lastModified);
+
+  const response = await fetcher(sourceUrl, {
+    cache: 'no-store',
+    headers,
+  });
+
+  if (response.status === 304 && previousProbe) {
+    return {
+      signature: previousProbe.signature,
+      season: previousProbe.season,
+      sourceUpdatedAt: previousProbe.sourceUpdatedAt,
+      sourceUrl,
+      ...(previousProbe.etag ? { etag: previousProbe.etag } : {}),
+      ...(previousProbe.lastModified ? { lastModified: previousProbe.lastModified } : {}),
+    };
+  }
+
+  if (response.status === 429) {
+    throw new Error('PokeDB freshness probe was rate limited with 429');
+  }
+  if (!response.ok) {
+    throw new Error(`PokeDB freshness probe returned ${response.status}`);
+  }
+
+  const html = await response.text();
+  const metadata = parsePokeDbFreshnessMetadata(html, sourceUrl);
+  const signature = await buildPokeDbFreshnessSignature(metadata);
+  const etag = response.headers.get('etag') ?? undefined;
+  const lastModified = response.headers.get('last-modified') ?? undefined;
+
+  return {
+    signature,
+    ...metadata,
+    sourceUrl,
+    ...(etag ? { etag } : {}),
+    ...(lastModified ? { lastModified } : {}),
+  };
 }
 
 const mergeAuditValues = (payloads: PokeDbTrainerListPayload[], key: keyof PokeDbTrainerListPayload['audit']) =>
@@ -765,6 +892,80 @@ export async function startRefreshJob(
   }
 }
 
+export async function startScheduledRefresh(
+  env: AppEnv,
+  scheduleNext: ScheduleRefreshStep,
+  dependencies: RefreshJobDependencies = {},
+): Promise<ScheduledRefreshResult> {
+  const now = dependencies.now ?? (() => new Date());
+  const currentTime = now();
+  const [currentJobText, currentStatusText, currentSnapshotText, previousProbeText] = await Promise.all([
+    env.ENVIRONMENT_CACHE.get(REFRESH_JOB_KEY),
+    env.ENVIRONMENT_CACHE.get(STATUS_KEY),
+    env.ENVIRONMENT_CACHE.get(SNAPSHOT_KEY),
+    env.ENVIRONMENT_CACHE.get(POKEDB_FRESHNESS_PROBE_KEY),
+  ]);
+
+  if (currentJobText) {
+    return startRefreshJob(env, scheduleNext, dependencies);
+  }
+
+  const fetcher = dependencies.fetcher ?? fetch;
+  const baseUrl = env.POKEDB_BASE_URL || DEFAULT_POKEDB_BASE_URL;
+  const previousProbe = previousProbeText ? (JSON.parse(previousProbeText) as PokeDbFreshnessProbe) : undefined;
+
+  try {
+    const probe = await probePokeDbFreshness(baseUrl, previousProbe, fetcher);
+    const checkedProbe: PokeDbFreshnessProbe = {
+      ...probe,
+      checkedAt: currentTime.toISOString(),
+    };
+    const previousStatus = currentStatusText ? (JSON.parse(currentStatusText) as CacheStatus) : undefined;
+    const statusSignature =
+      previousStatus?.ok === true &&
+      previousStatus.selectedSeason &&
+      previousStatus.sourceUpdatedAt
+        ? await buildPokeDbFreshnessSignature({
+          season: previousStatus.selectedSeason,
+          sourceUpdatedAt: previousStatus.sourceUpdatedAt,
+        })
+        : undefined;
+    const knownSignature = previousProbe?.signature ?? statusSignature;
+
+    await env.ENVIRONMENT_CACHE.put(POKEDB_FRESHNESS_PROBE_KEY, JSON.stringify(checkedProbe));
+
+    if (currentSnapshotText && previousStatus?.ok === true && knownSignature === probe.signature) {
+      console.log(JSON.stringify({
+        event: 'environment_refresh_probe_unchanged',
+        season: probe.season,
+        sourceUpdatedAt: probe.sourceUpdatedAt,
+        checkedAt: checkedProbe.checkedAt,
+      }));
+      return {
+        ok: true,
+        state: 'unchanged',
+        jobId: '',
+        season: probe.season,
+        pendingCount: 0,
+        sourceUpdatedAt: probe.sourceUpdatedAt,
+      };
+    }
+
+    console.log(JSON.stringify({
+      event: 'environment_refresh_probe_changed',
+      season: probe.season,
+      sourceUpdatedAt: probe.sourceUpdatedAt,
+      previousSignature: knownSignature ?? null,
+      currentSignature: probe.signature,
+    }));
+  } catch (error) {
+    await recordRefreshFailure(env, error, now);
+    throw error;
+  }
+
+  return startRefreshJob(env, scheduleNext, dependencies);
+}
+
 export async function runRefreshJobStep(
   env: AppEnv,
   jobId: string,
@@ -1119,6 +1320,6 @@ export default {
     const scheduleNext = (jobId: string) => {
       ctx.waitUntil(triggerRefreshStep(env, jobId));
     };
-    await startRefreshJob(env, scheduleNext);
+    await startScheduledRefresh(env, scheduleNext);
   },
 };

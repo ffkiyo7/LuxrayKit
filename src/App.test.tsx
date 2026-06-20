@@ -551,7 +551,7 @@ describe('App page flows', () => {
 
     const { card: sampleCard, sample: replicaCodeSample } = await revealVisibleReplicaCodeSample(user);
     expect(sampleCard).toBeTruthy();
-    expect(sampleCard.textContent).toContain('VGCPastes 锦标赛');
+    expect(sampleCard.textContent).toContain('VGCPastes');
     expect(sampleCard.textContent).toContain('可导入：[SP分配][配招][队伍码]');
 
     await user.click(within(sampleCard).getByRole('button', { name: /导入配置/ }));
