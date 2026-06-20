@@ -163,10 +163,12 @@ function SummaryPokemonAvatar({
   iconRef,
   label,
   active,
+  hasSelection,
 }: {
   iconRef?: string;
   label: string;
   active: boolean;
+  hasSelection: boolean;
 }) {
   const isImage = Boolean(
     iconRef?.startsWith('http://') ||
@@ -185,11 +187,11 @@ function SummaryPokemonAvatar({
     >
       {isImage ? (
         <img src={iconRef} alt={label} className="h-14 w-14 object-contain" loading="lazy" decoding="async" />
-      ) : (
+      ) : hasSelection ? (
         <span className="grid h-12 w-12 place-items-center rounded-full bg-secondary text-sm font-bold text-accent">
           {iconRef ?? label.charAt(0)}
         </span>
-      )}
+      ) : null}
     </div>
   );
 }
@@ -274,9 +276,10 @@ function SideConfigCard({
           className="grid h-16 w-16 shrink-0 place-items-center rounded-full bg-transparent"
           type="button"
           title={`选择${sideLabel}`}
+          aria-label={battleForm?.chineseName ?? pokemonEntry?.chineseName ?? '未选择宝可梦'}
           onClick={onSelect}
         >
-          <SummaryPokemonAvatar iconRef={battleForm?.iconRef ?? pokemonEntry?.iconRef} label={battleForm?.chineseName ?? pokemonEntry?.chineseName ?? '未配置'} active={active} />
+          <SummaryPokemonAvatar iconRef={battleForm?.iconRef ?? pokemonEntry?.iconRef} label={battleForm?.chineseName ?? pokemonEntry?.chineseName ?? '未配置'} active={active} hasSelection={Boolean(battleForm ?? pokemonEntry)} />
         </button>
         <button
           aria-label={`选择${sideLabel} ${battleForm?.chineseName ?? pokemonEntry?.chineseName ?? '未配置 Pokemon'}`}

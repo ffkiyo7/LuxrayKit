@@ -95,7 +95,7 @@ const nextTeamSampleShuffleSeed = () => {
 };
 
 const sampleSourceLabel = (sample: EnvironmentTeamSample) => {
-  if (sample.sourceId?.includes('vgcpastes') || sample.id.startsWith('vgcpastes-')) return 'VGCPastes 锦标赛';
+  if (sample.sourceId?.includes('vgcpastes') || sample.id.startsWith('vgcpastes-')) return 'VGCPastes';
   return 'PokeDB 环境榜';
 };
 

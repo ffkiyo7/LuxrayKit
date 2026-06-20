@@ -118,7 +118,7 @@ describe('EnvironmentPage usage basis', () => {
     expect(screen.getByText('M-3 · 最高第 1 名 · 2815 分')).toBeTruthy();
     expect(screen.getByText('PokeDB 环境榜')).toBeTruthy();
     expect(screen.getByText('PJCS 2026 public team')).toBeTruthy();
-    expect(screen.getByText('VGCPastes 锦标赛')).toBeTruthy();
+    expect(screen.getByText('VGCPastes')).toBeTruthy();
     expect(screen.getByText(/原作者：VGC author · PJCS 2026 · Top 4 \(Seniors\) · 分享 2026-06-07/)).toBeTruthy();
     expect(screen.getByText('可导入：[SP分配][配招][队伍码]')).toBeTruthy();
     expect(screen.queryByText(/0 分/)).toBeNull();
@@ -181,7 +181,7 @@ describe('EnvironmentPage usage basis', () => {
     expect(relatedSection).toBeTruthy();
     expect(within(relatedSection as HTMLElement).getByText('M-3 · 最高第 1 名 · 2815 分')).toBeTruthy();
     expect(within(relatedSection as HTMLElement).getByText('PJCS 2026 Garchomp Team')).toBeTruthy();
-    expect(within(relatedSection as HTMLElement).getByText('VGCPastes 锦标赛')).toBeTruthy();
+    expect(within(relatedSection as HTMLElement).getByText('VGCPastes')).toBeTruthy();
     expect(within(relatedSection as HTMLElement).queryByText('Unrelated VGCPastes Team')).toBeNull();
   });
 
