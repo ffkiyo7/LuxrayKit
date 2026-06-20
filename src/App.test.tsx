@@ -17,6 +17,7 @@ import {
 import { currentDataVersion, currentRuleNatureOptions, currentRuleSet, pokemon } from './data';
 import { repository } from './lib/db';
 import type { Team, TeamMember } from './types';
+import { sortTeamSamplesByDate } from './pages/environmentTeamSamples';
 
 const DB_NAME = 'pokemon-champions-assistant';
 const pokedbSnapshot = {
@@ -118,32 +119,27 @@ const findSampleForImportButton = (button: HTMLElement) => {
 };
 
 const revealEnvironmentSample = async (user: ReturnType<typeof userEvent.setup>, sample: typeof testEnvironmentState.teamSamples[number]) => {
+  await user.click(await screen.findByRole('button', { name: '查看全部队伍' }));
   if (sample.battleType === 'doubles') {
     await user.click(screen.getByRole('button', { name: '双打' }));
   } else {
     await user.click(screen.getByRole('button', { name: '单打' }));
   }
-
-  for (let attempt = 0; attempt < 30; attempt += 1) {
-    const title = screen.queryByText(sample.title);
-    if (title) return title.closest('section') as HTMLElement;
-    await user.click(await screen.findByRole('button', { name: '换一批' }));
-  }
-
-  throw new Error(`Unable to reveal environment sample: ${sample.title}`);
+  await user.type(screen.getByRole('searchbox', { name: '搜索队伍或宝可梦' }), sample.title);
+  const title = await screen.findByText(sample.title);
+  return title.closest('section') as HTMLElement;
 };
 
 const revealVisibleReplicaCodeSample = async (user: ReturnType<typeof userEvent.setup>) => {
+  await user.click(await screen.findByRole('button', { name: '查看全部队伍' }));
   await user.click(screen.getByRole('button', { name: '双打' }));
+  await user.click(screen.getByRole('checkbox', { name: '含队伍码' }));
 
-  for (let attempt = 0; attempt < 30; attempt += 1) {
-    const chips = screen.queryAllByText('可导入：[SP分配][配招][队伍码]');
-    for (const chip of chips) {
-      const card = chip.closest('section') as HTMLElement | null;
-      const sample = card ? vgcPastesTeamSamples.find((candidate) => within(card).queryByText(candidate.title)) : undefined;
-      if (card && sample?.replicaCode) return { card, sample };
-    }
-    await user.click(await screen.findByRole('button', { name: '换一批' }));
+  const chips = await screen.findAllByLabelText('可导入 队伍码');
+  for (const chip of chips) {
+    const card = chip.closest('section') as HTMLElement | null;
+    const sample = card ? vgcPastesTeamSamples.find((candidate) => within(card).queryByText(candidate.title)) : undefined;
+    if (card && sample?.replicaCode) return { card, sample };
   }
 
   throw new Error('Unable to reveal a VGCPastes sample with replica code.');
@@ -552,7 +548,9 @@ describe('App page flows', () => {
     const { card: sampleCard, sample: replicaCodeSample } = await revealVisibleReplicaCodeSample(user);
     expect(sampleCard).toBeTruthy();
     expect(sampleCard.textContent).toContain('VGCPastes');
-    expect(sampleCard.textContent).toContain('可导入：[SP分配][配招][队伍码]');
+    expect(within(sampleCard).getByLabelText('可导入 SP分配')).toBeTruthy();
+    expect(within(sampleCard).getByLabelText('可导入 配招')).toBeTruthy();
+    expect(within(sampleCard).getByLabelText('可导入 队伍码')).toBeTruthy();
 
     await user.click(within(sampleCard).getByRole('button', { name: /导入配置/ }));
     const dialog = await screen.findByRole('dialog', { name: '导入配置提示' });
@@ -714,7 +712,7 @@ describe('App page flows', () => {
   it('opens a dedicated full environment ranking before pokemon environment detail', async () => {
     const user = await renderEnvironmentApp();
 
-    await user.click(screen.getByRole('button', { name: /查看全部/ }));
+    await user.click(screen.getByRole('button', { name: '查看全部宝可梦' }));
     expect(await screen.findByRole('heading', { name: '完整宝可梦榜' })).toBeTruthy();
     expect(screen.getByRole('button', { name: '单打' })).toBeTruthy();
     expect(screen.getByRole('button', { name: '双打' })).toBeTruthy();
@@ -728,22 +726,24 @@ describe('App page flows', () => {
     expect(screen.getByText('常见队友')).toBeTruthy();
   });
 
-  it('shows upper-build samples in small batches and cycles them', async () => {
+  it('shows the latest four upper-build samples and opens the full team library', async () => {
     const user = await renderEnvironmentApp();
     const singlesSamples = testEnvironmentState.teamSamples.filter((sample) => sample.battleType === 'singles');
-    const visibleSampleTitles = () => singlesSamples.filter((sample) => screen.queryByText(sample.title)).map((sample) => sample.title);
+    const expectedLatestTitles = sortTeamSamplesByDate(singlesSamples).slice(0, 4).map((sample) => sample.title);
 
     expect(screen.getByText('上位构筑')).toBeTruthy();
-    const firstBatchTitles = visibleSampleTitles();
-    expect(firstBatchTitles).toHaveLength(4);
-    expect(new Set(firstBatchTitles).size).toBe(4);
+    const upperBuildSection = screen.getByText('上位构筑').closest('section');
+    const visibleSampleTitles = within(upperBuildSection as HTMLElement)
+      .getAllByRole('heading', { level: 3 })
+      .map((heading) => heading.textContent)
+      .slice(1);
+    expect(visibleSampleTitles).toEqual(expectedLatestTitles);
+    expect(screen.queryByRole('button', { name: '换一批' })).toBeNull();
 
-    await user.click(screen.getByRole('button', { name: '换一批' }));
-
-    const secondBatchTitles = visibleSampleTitles();
-    expect(secondBatchTitles).toHaveLength(4);
-    expect(new Set(secondBatchTitles).size).toBe(4);
-    expect(secondBatchTitles).not.toEqual(firstBatchTitles);
+    await user.click(screen.getByRole('button', { name: '查看全部队伍' }));
+    expect(await screen.findByRole('heading', { name: '队伍一览' })).toBeTruthy();
+    expect(screen.getByRole('searchbox', { name: '搜索队伍或宝可梦' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: '试试灵感' })).toBeTruthy();
   });
 
   it('keeps environment sample labeling lightweight without the bulky seed notice', async () => {
@@ -757,7 +757,7 @@ describe('App page flows', () => {
     expect(screen.queryByText(/不代表真实使用率/)).toBeNull();
     expect(screen.queryByText('高分样本')).toBeNull();
 
-    await user.click(screen.getByRole('button', { name: /查看全部/ }));
+    await user.click(screen.getByRole('button', { name: '查看全部宝可梦' }));
     expect(await screen.findByRole('heading', { name: '完整宝可梦榜' })).toBeTruthy();
     expect(screen.getByText(`${testEnvironmentState.seasonLabel} · 单打`)).toBeTruthy();
     expect(screen.queryByText(testEnvironmentState.sourceLabel)).toBeNull();

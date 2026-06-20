@@ -34,7 +34,7 @@ test('captures the mobile visual regression smoke set', { timeout: 60_000 }, asy
 
   await expect(page).toHaveScreenshot('01-environment-home.png', screenshotOptions);
 
-  await page.getByRole('button', { name: /查看全部/ }).click();
+  await page.getByRole('button', { name: '查看全部宝可梦' }).click();
   await expect(page.getByRole('heading', { name: '完整宝可梦榜' })).toBeVisible();
   await expect(page).toHaveScreenshot('02-environment-ranking.png', screenshotOptions);
 
@@ -50,6 +50,18 @@ test('captures the mobile visual regression smoke set', { timeout: 60_000 }, asy
   await page.getByRole('button', { name: '查看数据口径' }).click();
   await expect(page.getByRole('heading', { name: '数据口径' })).toBeVisible();
   await expect(page).toHaveScreenshot('14-environment-methodology.png', screenshotOptions);
+  await page.getByRole('button', { name: '返回环境' }).click();
+
+  await page.getByRole('button', { name: '查看全部队伍' }).click();
+  await expect(page.getByRole('heading', { name: '队伍一览' })).toBeVisible();
+  await page.getByRole('button', { name: '双打' }).click();
+  await expect(page).toHaveScreenshot('15-team-browse.png', screenshotOptions);
+
+  await page.getByRole('button', { name: '试试灵感' }).click();
+  const inspirationDialog = page.getByRole('dialog', { name: '队伍灵感' });
+  await expect(inspirationDialog).toBeVisible();
+  await expect(page).toHaveScreenshot('16-team-inspiration.png', screenshotOptions);
+  await inspirationDialog.getByRole('button', { name: '关闭试试灵感' }).last().click();
   await page.getByRole('button', { name: '返回环境' }).click();
 
   await page.getByRole('button', { name: '队伍', exact: true }).click();

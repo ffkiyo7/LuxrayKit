@@ -120,7 +120,13 @@ describe('EnvironmentPage usage basis', () => {
     expect(screen.getByText('PJCS 2026 public team')).toBeTruthy();
     expect(screen.getByText('VGCPastes')).toBeTruthy();
     expect(screen.getByText(/原作者：VGC author · PJCS 2026 · Top 4 \(Seniors\) · 分享 2026-06-07/)).toBeTruthy();
-    expect(screen.getByText('可导入：[SP分配][配招][队伍码]')).toBeTruthy();
+    const vgcCard = screen.getByText('PJCS 2026 public team').closest('section');
+    expect(vgcCard).toBeTruthy();
+    expect(within(vgcCard as HTMLElement).getByLabelText('可导入 SP分配')).toBeTruthy();
+    expect(within(vgcCard as HTMLElement).getByLabelText('可导入 配招')).toBeTruthy();
+    expect(within(vgcCard as HTMLElement).getByLabelText('可导入 队伍码')).toBeTruthy();
+    const pokeDbCard = screen.getByText('M-3 · 最高第 1 名 · 2815 分').closest('section');
+    expect(within(pokeDbCard as HTMLElement).queryByLabelText(/可导入/)).toBeNull();
     expect(screen.queryByText(/0 分/)).toBeNull();
   });
 
@@ -185,6 +191,135 @@ describe('EnvironmentPage usage basis', () => {
     expect(within(relatedSection as HTMLElement).queryByText('Unrelated VGCPastes Team')).toBeNull();
   });
 
+  it('shows the latest four teams and browses, filters, searches, sorts, and inspires from the full library', async () => {
+    const user = userEvent.setup();
+    const onImportSample = vi.fn();
+    const eventSample = (
+      id: string,
+      title: string,
+      dateShared: string,
+      pokemonId: string,
+      replicaCode?: string,
+      battleType: EnvironmentTeamSample['battleType'] = 'singles',
+    ): EnvironmentTeamSample => ({
+      id: `vgcpastes-${id}`,
+      dataKind: 'external-snapshot',
+      sourceId: 'vgcpastes-champions-ma',
+      author: `${title} author`,
+      score: 0,
+      title,
+      battleType,
+      reportUrl: `https://example.com/${id}`,
+      tournament: 'Champions M-A Cup',
+      dateShared,
+      replicaCode,
+      hasMoves: true,
+      hasSpread: Boolean(replicaCode),
+      slots: [{ pokemonId, moveIds: [] }],
+    });
+    const rankedSample: EnvironmentTeamSample = {
+      id: 'pokedb-ranked-garchomp',
+      dataKind: 'external-snapshot',
+      author: 'Ranked author',
+      score: 2900,
+      rank: 1,
+      title: 'Ranked Garchomp',
+      battleType: 'singles',
+      reportUrl: 'https://example.com/ranked',
+      slots: [{ pokemonId: 'garchomp', moveIds: [] }],
+    };
+    const samples = [
+      rankedSample,
+      eventSample('alpha', 'Alpha Team', '2026-06-01', 'garchomp'),
+      eventSample('bravo', 'Bravo Team', '2026-06-02', 'archaludon', 'BRAVO123'),
+      eventSample('charlie', 'Charlie Team', '2026-06-03', 'incineroar'),
+      eventSample('delta', 'Delta Team', '2026-06-04', 'garchomp', 'DELTA123'),
+      eventSample('echo', 'Echo Team', '2026-06-05', 'archaludon'),
+      eventSample('doubles', 'Doubles Team', '2026-06-06', 'garchomp', undefined, 'doubles'),
+    ];
+
+    render(<EnvironmentPage environment={makeTeamSampleEnvironment(samples)} onImportSample={onImportSample} />);
+
+    const upperBuildSection = screen.getByText('上位构筑').closest('section');
+    expect(upperBuildSection).toBeTruthy();
+    expect(
+      within(upperBuildSection as HTMLElement)
+        .getAllByRole('heading', { level: 3 })
+        .map((heading) => heading.textContent)
+        .slice(1),
+    ).toEqual(['Echo Team', 'Delta Team', 'Charlie Team', 'Bravo Team']);
+    expect(within(upperBuildSection as HTMLElement).queryByText('Alpha Team')).toBeNull();
+    expect(screen.queryByRole('button', { name: '换一批' })).toBeNull();
+
+    await user.click(screen.getByRole('button', { name: '查看全部队伍' }));
+    expect(await screen.findByRole('heading', { name: '队伍一览' })).toBeTruthy();
+    const listedTitles = () =>
+      within(screen.getByRole('region', { name: '队伍列表' }))
+        .getAllByRole('heading', { level: 3 })
+        .map((heading) => heading.textContent);
+    expect(listedTitles()).toEqual(['Echo Team', 'Delta Team', 'Charlie Team', 'Bravo Team', 'Alpha Team', 'Ranked Garchomp']);
+
+    await user.click(screen.getByRole('button', { name: '排位高分' }));
+    expect(listedTitles()).toEqual(['Ranked Garchomp']);
+
+    await user.click(screen.getByRole('button', { name: '全部' }));
+    await user.click(screen.getByRole('checkbox', { name: '含队伍码' }));
+    expect(listedTitles()).toEqual(['Delta Team', 'Bravo Team']);
+
+    await user.click(screen.getByRole('button', { name: '清除筛选' }));
+    const search = screen.getByRole('searchbox', { name: '搜索队伍或宝可梦' });
+    await user.type(search, 'archaludon');
+    expect(listedTitles()).toEqual(['Echo Team', 'Bravo Team']);
+
+    await user.clear(search);
+    await user.type(search, 'Delta Team');
+    expect(listedTitles()).toEqual(['Delta Team']);
+    await user.clear(search);
+
+    await user.selectOptions(screen.getByRole('combobox', { name: '时间排序' }), 'oldest');
+    expect(listedTitles()).toEqual(['Alpha Team', 'Bravo Team', 'Charlie Team', 'Delta Team', 'Echo Team', 'Ranked Garchomp']);
+
+    await user.click(screen.getByRole('button', { name: '双打' }));
+    expect(listedTitles()).toEqual(['Doubles Team']);
+    await user.click(screen.getByRole('button', { name: '单打' }));
+
+    await user.click(screen.getByRole('button', { name: '试试灵感' }));
+    const inspirationDialog = await screen.findByRole('dialog', { name: '队伍灵感' });
+    expect(within(inspirationDialog).getByRole('button', { name: '导入配置' })).toBeTruthy();
+    await user.click(within(inspirationDialog).getByRole('button', { name: '导入配置' }));
+    expect(onImportSample).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('dialog', { name: '队伍灵感' })).toBeNull();
+  });
+
+  it('keeps the team library reachable when only the other battle type has samples', async () => {
+    const user = userEvent.setup();
+    const doublesSample: EnvironmentTeamSample = {
+      id: 'pokedb-doubles-only',
+      dataKind: 'external-snapshot',
+      author: 'Doubles author',
+      score: 2800,
+      rank: 1,
+      title: 'Doubles Only Team',
+      battleType: 'doubles',
+      reportUrl: 'https://example.com/doubles-only',
+      slots: [{ pokemonId: 'garchomp', moveIds: [] }],
+    };
+
+    render(
+      <EnvironmentPage
+        environment={makeTeamSampleEnvironment([doublesSample])}
+        onImportSample={() => undefined}
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: '查看全部队伍' }));
+    expect(await screen.findByRole('heading', { name: '队伍一览' })).toBeTruthy();
+    expect(screen.getByText('0 支队伍')).toBeTruthy();
+
+    await user.click(screen.getByRole('button', { name: '双打' }));
+    expect(screen.getByText('Doubles Only Team')).toBeTruthy();
+  });
+
   it('shows season, freshness, and timestamps without exposing PokeDB on the home or ranking headers', async () => {
     const user = userEvent.setup();
     render(<EnvironmentPage environment={makeEnvironment('rank-relative')} onImportSample={() => undefined} />);
@@ -196,7 +331,7 @@ describe('EnvironmentPage usage basis', () => {
     expect(screen.getByText(/抓取/)).toBeTruthy();
     expect(screen.queryByText(/PokeDB/)).toBeNull();
 
-    await user.click(screen.getByRole('button', { name: '查看全部' }));
+    await user.click(screen.getByRole('button', { name: '查看全部宝可梦' }));
 
     expect(screen.getByText('M-2 · 单打')).toBeTruthy();
     expect(screen.queryByText(/PokeDB/)).toBeNull();
@@ -295,7 +430,7 @@ describe('EnvironmentPage usage basis', () => {
     const user = userEvent.setup();
     render(<EnvironmentPage environment={makeTierEnvironment()} onImportSample={() => undefined} />);
 
-    await user.click(screen.getByRole('button', { name: '查看全部' }));
+    await user.click(screen.getByRole('button', { name: '查看全部宝可梦' }));
 
     expect(screen.getByText('Tier 1')).toBeTruthy();
     expect(screen.getByText('Tier 2')).toBeTruthy();
@@ -314,7 +449,7 @@ describe('EnvironmentPage usage basis', () => {
     const user = userEvent.setup();
     render(<EnvironmentPage environment={makeEnvironment('rank-relative')} onImportSample={() => undefined} />);
 
-    await user.click(screen.getByRole('button', { name: '查看全部' }));
+    await user.click(screen.getByRole('button', { name: '查看全部宝可梦' }));
     const search = screen.getByRole('searchbox', { name: '搜索宝可梦' });
 
     await user.type(search, '铝钢桥龙');
@@ -336,7 +471,7 @@ describe('EnvironmentPage usage basis', () => {
     const user = userEvent.setup();
     render(<EnvironmentPage environment={makeEnvironment('rank-relative')} onImportSample={() => undefined} />);
 
-    await user.click(screen.getByRole('button', { name: '查看全部' }));
+    await user.click(screen.getByRole('button', { name: '查看全部宝可梦' }));
     await user.click(screen.getByRole('button', { name: '双打' }));
 
     expect(screen.getByText('暂无数据')).toBeTruthy();
@@ -351,7 +486,7 @@ describe('EnvironmentPage usage basis', () => {
     // Ignore the scroll triggered by the initial mount; assert on view transitions.
     scrollToSpy.mockClear();
 
-    await user.click(screen.getByRole('button', { name: '查看全部' }));
+    await user.click(screen.getByRole('button', { name: '查看全部宝可梦' }));
     expect(scrollToSpy).toHaveBeenCalled();
 
     scrollToSpy.mockClear();

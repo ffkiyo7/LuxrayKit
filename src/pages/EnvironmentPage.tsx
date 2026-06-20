@@ -2,14 +2,11 @@ import {
   ArrowLeft,
   BarChart3,
   Database,
-  ExternalLink,
   Globe2,
-  Import,
   Info,
   List,
   Newspaper,
   Percent,
-  RefreshCw,
   Search,
   Trophy,
   Users,
@@ -25,14 +22,16 @@ import {
   type EnvironmentTeamSample,
 } from '../data/environment';
 import { Button, Card, PokemonAvatar, TypeBadge } from '../components/ui';
+import { TeamBrowseView } from './TeamBrowseView';
+import { TeamSampleCard } from './TeamSampleCard';
+import { sortTeamSamplesByDate } from './environmentTeamSamples';
 
 const battleTypeLabels: Record<EnvironmentBattleType, string> = {
   singles: '单打',
   doubles: '双打',
 };
 
-const TEAM_SAMPLE_BATCH_SIZE = 4;
-const DEFAULT_TEAM_SAMPLE_SHUFFLE_SEED = 0x9e3779b9;
+const LATEST_TEAM_SAMPLE_COUNT = 4;
 const RANKING_TIERS = [
   { label: 'Tier 1', minRank: 1, maxRank: 5 },
   { label: 'Tier 2', minRank: 6, maxRank: 20 },
@@ -65,59 +64,6 @@ const formatUpdatedAt = (value: string) =>
   }).format(new Date(value));
 
 const formatSampleCount = (value: number) => (value > 0 ? `${value} 队` : '暂无样本');
-
-const seededRandom = (seed: number) => {
-  let state = seed >>> 0;
-  return () => {
-    state = (state + 0x6d2b79f5) >>> 0;
-    let value = state;
-    value = Math.imul(value ^ (value >>> 15), value | 1);
-    value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
-    return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
-  };
-};
-
-const shuffleTeamSamples = (samples: EnvironmentTeamSample[], seed: number) => {
-  const nextSamples = [...samples];
-  const random = seededRandom(seed);
-  for (let index = nextSamples.length - 1; index > 0; index -= 1) {
-    const swapIndex = Math.floor(random() * (index + 1));
-    [nextSamples[index], nextSamples[swapIndex]] = [nextSamples[swapIndex], nextSamples[index]];
-  }
-  return nextSamples;
-};
-
-const nextTeamSampleShuffleSeed = () => {
-  if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
-    return crypto.getRandomValues(new Uint32Array(1))[0] || DEFAULT_TEAM_SAMPLE_SHUFFLE_SEED;
-  }
-  return Math.floor(Math.random() * 0xffffffff) || DEFAULT_TEAM_SAMPLE_SHUFFLE_SEED;
-};
-
-const sampleSourceLabel = (sample: EnvironmentTeamSample) => {
-  if (sample.sourceId?.includes('vgcpastes') || sample.id.startsWith('vgcpastes-')) return 'VGCPastes';
-  return 'PokeDB 环境榜';
-};
-
-const isVgcPastesSample = (sample: EnvironmentTeamSample) =>
-  Boolean(sample.sourceId?.includes('vgcpastes') || sample.id.startsWith('vgcpastes-'));
-
-const sampleCardTitle = (sample: EnvironmentTeamSample) => {
-  if (!isVgcPastesSample(sample)) return sample.title;
-  return sample.title || [sample.author, sample.tournament, sample.eventRank].filter(Boolean).join(' · ') || '锦标赛公开构筑';
-};
-
-const sampleCardMeta = (sample: EnvironmentTeamSample) => {
-  if (isVgcPastesSample(sample)) {
-    const eventParts = [sample.tournament, sample.eventRank].filter(Boolean);
-    const dateText = sample.dateShared ? `分享 ${sample.dateShared}` : undefined;
-    return [sample.author ? `原作者：${sample.author}` : undefined, eventParts.join(' · ') || undefined, dateText].filter(
-      (part): part is string => Boolean(part),
-    );
-  }
-
-  return [`原作者：${sample.author}`, battleTypeLabels[sample.battleType]];
-};
 
 const sourceKindLabels: Record<EnvironmentState['sourceKind'], string> = {
   worker: '在线数据',
@@ -214,68 +160,6 @@ function RankingRow({
         </span>
       </span>
     </button>
-  );
-}
-
-function TeamSampleCard({
-  sample,
-  onImport,
-}: {
-  sample: EnvironmentTeamSample;
-  onImport: (sample: EnvironmentTeamSample) => Promise<void> | void;
-}) {
-  const [importing, setImporting] = useState(false);
-  const visibleSlots = sample.slots.map((slot) => getEnvironmentPokemon(slot.pokemonId)).filter(Boolean);
-  const metaParts = sampleCardMeta(sample);
-  const importChips = [
-    sample.hasSpread ? 'SP分配' : undefined,
-    sample.hasMoves ? '配招' : undefined,
-    sample.replicaCode ? '队伍码' : undefined,
-  ].filter((chip): chip is string => Boolean(chip));
-
-  const handleImport = async () => {
-    setImporting(true);
-    try {
-      await onImport(sample);
-    } finally {
-      setImporting(false);
-    }
-  };
-
-  return (
-    <Card className="bg-secondary">
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <h3 className="truncate text-sm font-semibold">{sampleCardTitle(sample)}</h3>
-          <p className="mt-1 text-xs text-textSecondary">{metaParts.join(' · ')}</p>
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            <span className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-2 py-0.5 text-[11px] font-semibold text-textSecondary">
-              <Trophy size={12} />
-              {sampleSourceLabel(sample)}
-            </span>
-          </div>
-        </div>
-        <button
-          aria-label="队报链接"
-          title="队报链接"
-          className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-border bg-card text-textSecondary active:scale-[0.96]"
-          type="button"
-          onClick={() => window.open(sample.reportUrl, '_blank', 'noopener,noreferrer')}
-        >
-          <ExternalLink size={15} />
-        </button>
-      </div>
-      <div className="mt-3 flex gap-2">
-        {visibleSlots.map((entry) => (
-          <PokemonAvatar key={entry!.id} iconRef={entry!.iconRef} label={entry!.chineseName} size="sm" />
-        ))}
-      </div>
-      {importChips.length > 0 && <p className="mt-2 text-xs text-textSecondary">可导入：{importChips.map((chip) => `[${chip}]`).join('')}</p>}
-      <Button className="mt-3 w-full" onClick={handleImport} disabled={importing}>
-        <Import size={14} />
-        {importing ? '导入中' : '导入配置'}
-      </Button>
-    </Card>
   );
 }
 
@@ -688,38 +572,19 @@ export function EnvironmentPage({
   onImportSample: (sample: EnvironmentTeamSample) => Promise<void> | void;
 }) {
   const [battleType, setBattleType] = useState<EnvironmentBattleType>('singles');
-  const [view, setView] = useState<'home' | 'ranking' | 'methodology'>('home');
+  const [view, setView] = useState<'home' | 'ranking' | 'methodology' | 'teams'>('home');
   const [detailState, setDetailState] = useState<{ pokemonId: string; returnView: 'home' | 'ranking' } | null>(null);
-  const [teamSampleBatchIndex, setTeamSampleBatchIndex] = useState(0);
-  const [teamSampleShuffleSeed, setTeamSampleShuffleSeed] = useState(nextTeamSampleShuffleSeed);
   const rankings = useMemo(() => environment.pokemonUsage[battleType], [battleType, environment.pokemonUsage]);
   const teamSamples = useMemo(
     () => environment.teamSamples.filter((sample) => sample.battleType === battleType),
     [battleType, environment.teamSamples],
   );
-  const shuffledTeamSamples = useMemo(
-    () => shuffleTeamSamples(teamSamples, teamSampleShuffleSeed),
-    [teamSampleShuffleSeed, teamSamples],
-  );
-  const teamSamplePageCount = Math.max(1, Math.ceil(teamSamples.length / TEAM_SAMPLE_BATCH_SIZE));
-  const normalizedTeamSampleBatchIndex = teamSampleBatchIndex % teamSamplePageCount;
-  const visibleTeamSamples = shuffledTeamSamples.slice(
-    normalizedTeamSampleBatchIndex * TEAM_SAMPLE_BATCH_SIZE,
-    normalizedTeamSampleBatchIndex * TEAM_SAMPLE_BATCH_SIZE + TEAM_SAMPLE_BATCH_SIZE,
+  const visibleTeamSamples = useMemo(
+    () => sortTeamSamplesByDate(teamSamples, 'newest').slice(0, LATEST_TEAM_SAMPLE_COUNT),
+    [teamSamples],
   );
   const changeBattleType = (nextBattleType: EnvironmentBattleType) => {
     setBattleType(nextBattleType);
-    setTeamSampleBatchIndex(0);
-    setTeamSampleShuffleSeed(nextTeamSampleShuffleSeed());
-  };
-  const showNextTeamSampleBatch = () => {
-    const nextIndex = normalizedTeamSampleBatchIndex + 1;
-    if (nextIndex >= teamSamplePageCount) {
-      setTeamSampleBatchIndex(0);
-      setTeamSampleShuffleSeed(nextTeamSampleShuffleSeed());
-      return;
-    }
-    setTeamSampleBatchIndex(nextIndex);
   };
 
   // Home / ranking / methodology / detail are swapped inside the same window-level
@@ -774,6 +639,18 @@ export function EnvironmentPage({
     );
   }
 
+  if (view === 'teams') {
+    return (
+      <TeamBrowseView
+        battleType={battleType}
+        samples={environment.teamSamples}
+        onBattleTypeChange={changeBattleType}
+        onBack={() => setView('home')}
+        onImportSample={onImportSample}
+      />
+    );
+  }
+
   const visibleRankings = rankings.slice(0, 5);
 
   return (
@@ -816,7 +693,7 @@ export function EnvironmentPage({
             <BarChart3 size={16} className="text-accent" />
             <h3 className="text-sm font-semibold">宝可梦榜</h3>
           </div>
-          <button className="inline-flex items-center gap-1 text-xs text-accent" type="button" onClick={() => setView('ranking')}>
+          <button aria-label="查看全部宝可梦" className="inline-flex items-center gap-1 text-xs text-accent" type="button" onClick={() => setView('ranking')}>
             <List size={14} />
             查看全部
           </button>
@@ -839,14 +716,15 @@ export function EnvironmentPage({
             <Users size={16} className="text-accent" />
             <h3 className="text-sm font-semibold">上位构筑</h3>
           </div>
-          {teamSamples.length > TEAM_SAMPLE_BATCH_SIZE && (
+          {environment.teamSamples.length > 0 && (
             <button
+              aria-label="查看全部队伍"
               className="inline-flex items-center gap-1 text-xs text-accent"
               type="button"
-              onClick={showNextTeamSampleBatch}
+              onClick={() => setView('teams')}
             >
-              <RefreshCw size={14} />
-              换一批
+              <List size={14} />
+              查看全部
             </button>
           )}
         </div>
