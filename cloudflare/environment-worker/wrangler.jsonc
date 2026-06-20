@@ -4,16 +4,21 @@
   "main": "src/index.ts",
   "compatibility_date": "2026-06-06",
   "workers_dev": true,
-  "routes": [
-    {
-      "pattern": "luxraykit.com/*",
-      "zone_name": "luxraykit.com"
-    },
-    {
-      "pattern": "www.luxraykit.com/*",
-      "zone_name": "luxraykit.com"
-    }
-  ],
+  // 自定义域名暂不启用：保留配置以便后续恢复。
+  // 之前每次 push 自动部署都会用下面的 routes 重新把 luxraykit.com 挂回 Worker，
+  // 即使在 Dashboard 手动删除也会被下一次 deploy 还原。注释后 deploy 不再触发自定义域名，
+  // Worker 仍可通过 *.workers.dev 访问。需要恢复对外域名时取消注释即可。
+  // 注意：注释 routes 不会自动删除 Cloudflare 上已存在的路由，需要时仍要在 Dashboard 删一次。
+  // "routes": [
+  //   {
+  //     "pattern": "luxraykit.com/*",
+  //     "zone_name": "luxraykit.com"
+  //   },
+  //   {
+  //     "pattern": "www.luxraykit.com/*",
+  //     "zone_name": "luxraykit.com"
+  //   }
+  // ],
   "assets": {
     "directory": "../../dist",
     "binding": "ASSETS",
@@ -29,7 +34,7 @@
   },
   "triggers": {
     "crons": [
-      "17 18 * * *"
+      "17 * * * *"
     ]
   },
   "vars": {

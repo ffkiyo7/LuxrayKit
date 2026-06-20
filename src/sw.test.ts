@@ -2,6 +2,13 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it, vi } from 'vitest';
 
 describe('service worker request strategy', () => {
+  it('does not precache the retired runtime VGCPastes JSON endpoint', () => {
+    const source = readFileSync(new URL('../public/sw.js', import.meta.url), 'utf8');
+
+    expect(source).not.toContain('/data/vgcpastes/');
+    expect(source).toContain('/data/pokedb/reg-ma-environment.json');
+  });
+
   it('always fetches API requests from the network without reading or writing the offline cache', async () => {
     const source = readFileSync(new URL('../public/sw.js', import.meta.url), 'utf8');
     let fetchHandler: ((event: {

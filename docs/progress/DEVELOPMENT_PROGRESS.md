@@ -1,6 +1,6 @@
 # Luxray Kit 开发进度
 
-更新日期：2026-06-18
+更新日期：2026-06-19
 
 ## 当前阶段
 
@@ -29,10 +29,11 @@
 ### Cloudflare
 
 - Worker 路由：`/health`、`/api/environment/status`、`/api/environment/latest`、`/api/pokemon/:pokemonId/teams`、受保护的 `/api/environment/refresh`。
-- KV key：`environment:latest`、`environment:status`、`environment:team-index`。
-- 每 6 小时 Cron 刷新。
+- KV key：`environment:latest`、`environment:status`、`environment:team-index`、`environment:refresh-job`、`environment:pokedb-freshness-probe`。
+- 每小时 Cron（`17 * * * *`）跑 PokeDB 更新探针：先发一个廉价 list 页请求，按「season + 更新日」内容签名（PokeDB 当前无 ETag/Last-Modified，保留条件请求作前瞻兼容）；签名未变即廉价退出，不触发分批重拉；有变化才进入既有 cursor 分批刷新。
 - Worker 同时托管 Vite `dist`，支持 SPA fallback。
-- `main` 推送由 GitHub Actions 执行 `npm test` 后部署。
+- GitHub Actions（`.github/workflows/ci.yml`）只跑 `npm test` / `npm run build` / Worker 校验，**不负责部署**；`main` 的实际部署由 Cloudflare Workers Builds（Git 集成）以 `cloudflare/environment-worker/wrangler.jsonc` 执行 `wrangler deploy`。
+- **自定义域名（`luxraykit.com` / `www.luxraykit.com`）：wrangler.jsonc 的 `routes` 已注释保留，合并到 `main` 并部署后对外域名即停用**。此前每次部署都会用该 `routes` 把域名挂回 Worker，即使在 Dashboard 手动删除也会被下一次 deploy 还原；注释后部署不再触发自定义域名，Worker 仍经 `*.workers.dev` 提供。恢复时取消注释即可（注意 deploy 不会自动删除已存在路由，需要时仍在 Dashboard 删一次）。
 
 ### 测试
 

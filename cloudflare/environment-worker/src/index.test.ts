@@ -4,8 +4,10 @@ import {
   detectLatestPokeDbSeason,
   fetchPokemonStatisticsBattle,
   fetchTrainerBattlePages,
+  probePokeDbFreshness,
   runRefreshJobStep,
   startRefreshJob,
+  startScheduledRefresh,
 } from './index';
 import worker from './index';
 
@@ -151,6 +153,47 @@ describe('environment Worker PokeDB ingestion', () => {
     await expect(detectLatestPokeDbSeason('https://example.com', fetcher)).resolves.toBe(2);
     expect(fetcher).toHaveBeenCalledOnce();
     expect(String(fetcher.mock.calls[0][0])).toBe('https://example.com/pokemon/list?rule=0');
+  });
+
+  it('probes PokeDB freshness from one list page and reuses upstream validators when present', async () => {
+    const fetcher = vi.fn(async (_input: string | URL | Request) =>
+      new Response(pokemonListHtml('singles', 60, { season: 3, updatedAt: '2026/6/19 00:54' }), {
+        status: 200,
+        headers: {
+          etag: '"fresh"',
+          'last-modified': 'Fri, 19 Jun 2026 00:54:00 GMT',
+        },
+      }),
+    );
+
+    const probe = await probePokeDbFreshness('https://example.com', undefined, fetcher);
+
+    expect(fetcher).toHaveBeenCalledOnce();
+    expect(String(fetcher.mock.calls[0][0])).toBe('https://example.com/pokemon/list?rule=0');
+    expect(probe).toMatchObject({
+      season: 3,
+      sourceUpdatedAt: '2026-06-19 00:54:00',
+      sourceUrl: 'https://example.com/pokemon/list?rule=0',
+      etag: '"fresh"',
+      lastModified: 'Fri, 19 Jun 2026 00:54:00 GMT',
+    });
+    expect(probe.signature).toMatch(/^[a-f0-9]{64}$/);
+
+    const conditionalFetcher = vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
+      expect(String(input)).toBe('https://example.com/pokemon/list?rule=0');
+      const headers = new Headers(init?.headers);
+      expect(headers.get('if-none-match')).toBe('"fresh"');
+      expect(headers.get('if-modified-since')).toBe('Fri, 19 Jun 2026 00:54:00 GMT');
+      return new Response(null, { status: 304 });
+    });
+
+    await expect(
+      probePokeDbFreshness(
+        'https://example.com',
+        { ...probe, checkedAt: '2026-06-19T00:55:00.000Z' },
+        conditionalFetcher,
+      ),
+    ).resolves.toEqual(probe);
   });
 
   it('fetches only top-N detail pages and throttles each request after the first', async () => {
@@ -394,6 +437,92 @@ describe('environment Worker PokeDB ingestion', () => {
         && headers.get('cache-control') === 'no-cache'
         && headers.get('pragma') === 'no-cache';
     })).toBe(true);
+  });
+
+  it('uses the scheduled freshness probe to skip unchanged hourly refreshes after one cheap request', async () => {
+    const { env, values } = createKvEnv({
+      'environment:latest': JSON.stringify({
+        snapshot: 'current',
+        retrievedAt: '2026-06-11T00:00:00.000Z',
+      }),
+      'environment:status': JSON.stringify({
+        ok: true,
+        refreshedAt: '2026-06-11T00:00:00.000Z',
+        selectedSeason: 2,
+        selectedSeasonLabel: 'M-2',
+        sourceUpdatedAt: '2026-06-10 23:58:00',
+        teamCounts: { singles: 60, doubles: 60 },
+      }),
+    });
+    const fetcher = createRefreshFetcher();
+    const scheduled: string[] = [];
+
+    const result = await startScheduledRefresh(env, (jobId) => scheduled.push(jobId), {
+      fetcher,
+      now: () => new Date('2026-06-12T00:00:00.000Z'),
+      createJobId: () => 'should-not-be-used',
+    });
+
+    expect(result).toEqual({
+      ok: true,
+      state: 'unchanged',
+      jobId: '',
+      season: 2,
+      pendingCount: 0,
+      sourceUpdatedAt: '2026-06-10 23:58:00',
+    });
+    expect(fetcher).toHaveBeenCalledOnce();
+    expect(String(fetcher.mock.calls[0][0])).toBe('https://example.com/pokemon/list?rule=0');
+    expect(scheduled).toEqual([]);
+    expect(values.has('environment:refresh-job')).toBe(false);
+    expect(JSON.parse(values.get('environment:latest') ?? '{}')).toEqual({
+      snapshot: 'current',
+      retrievedAt: '2026-06-11T00:00:00.000Z',
+    });
+    expect(JSON.parse(values.get('environment:pokedb-freshness-probe') ?? '{}')).toMatchObject({
+      checkedAt: '2026-06-12T00:00:00.000Z',
+      season: 2,
+      sourceUpdatedAt: '2026-06-10 23:58:00',
+      sourceUrl: 'https://example.com/pokemon/list?rule=0',
+    });
+  });
+
+  it('starts the existing cursor refresh when the scheduled freshness probe changes', async () => {
+    const { env, values } = createKvEnv({
+      'environment:latest': JSON.stringify({
+        snapshot: 'current',
+        retrievedAt: '2026-06-11T00:00:00.000Z',
+      }),
+      'environment:status': JSON.stringify({
+        ok: true,
+        refreshedAt: '2026-06-11T00:00:00.000Z',
+        selectedSeason: 2,
+        selectedSeasonLabel: 'M-2',
+        sourceUpdatedAt: '2026-06-09 23:58:00',
+      }),
+    });
+    const fetcher = createRefreshFetcher();
+    const scheduled: string[] = [];
+
+    const result = await startScheduledRefresh(env, (jobId) => scheduled.push(jobId), {
+      fetcher,
+      now: () => new Date('2026-06-12T00:00:00.000Z'),
+      createJobId: () => 'job-scheduled-changed',
+    });
+
+    expect(result).toMatchObject({
+      state: 'started',
+      jobId: 'job-scheduled-changed',
+      season: 2,
+      pendingCount: 120,
+    });
+    expect(fetcher).toHaveBeenCalledTimes(4);
+    expect(scheduled).toEqual(['job-scheduled-changed']);
+    expect(values.has('environment:refresh-job')).toBe(true);
+    expect(JSON.parse(values.get('environment:pokedb-freshness-probe') ?? '{}')).toMatchObject({
+      season: 2,
+      sourceUpdatedAt: '2026-06-10 23:58:00',
+    });
   });
 
   it.each([

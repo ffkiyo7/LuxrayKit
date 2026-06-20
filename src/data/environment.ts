@@ -33,10 +33,6 @@ export type {
 
 export const WORKER_ENVIRONMENT_SNAPSHOT_URL = '/api/environment/latest';
 export const POKEDB_ENVIRONMENT_SNAPSHOT_URL = '/data/pokedb/reg-ma-environment.json';
-// Curated VGCPastes Champions M-A team samples are fetched at runtime (and
-// precached by the service worker) rather than bundled into the JS, to keep the
-// app payload small. See scripts/ingest-vgcpastes-champions-ma.mjs.
-export const VGCPASTES_CHAMPIONS_MA_SAMPLES_URL = '/data/vgcpastes/reg-ma-champions-ma-team-samples.json';
 
 export type PokeDbEnvironmentSnapshotPayload = {
   retrievedAt: string;
@@ -229,20 +225,21 @@ const fetchEnvironmentSnapshot = async (
   };
 };
 
-const fetchVgcPastesTeamSamples = async (fetcher: typeof fetch): Promise<EnvironmentTeamSample[]> => {
-  try {
-    const response = await fetcher(VGCPASTES_CHAMPIONS_MA_SAMPLES_URL, {
-      cache: 'force-cache',
-      headers: { Accept: 'application/json' },
+let vgcPastesTeamSamplesPromise: Promise<EnvironmentTeamSample[]> | undefined;
+
+const loadVgcPastesTeamSamples = async (): Promise<EnvironmentTeamSample[]> => {
+  vgcPastesTeamSamplesPromise ??= import('./external/vgcpastes/reg_ma_champions_ma_team_samples.json')
+    .then((module) => {
+      const payload = module.default as unknown;
+      if (!Array.isArray(payload)) throw new Error('VGCPastes team sample payload is not an array.');
+      return payload as EnvironmentTeamSample[];
+    })
+    .catch((error) => {
+      vgcPastesTeamSamplesPromise = undefined;
+      console.error('Failed to load VGCPastes team samples; continuing with PokeDB-only environment data.', error);
+      return [];
     });
-    if (!response.ok) return [];
-    const payload = await response.json();
-    return Array.isArray(payload) ? (payload as EnvironmentTeamSample[]) : [];
-  } catch {
-    // Curated samples are an enrichment layer; their absence must not block the
-    // environment from loading, so fall back to PokeDB-only data.
-    return [];
-  }
+  return vgcPastesTeamSamplesPromise;
 };
 
 export const loadEnvironmentState = async (
@@ -255,7 +252,7 @@ export const loadEnvironmentState = async (
   try {
     const workerUrl = `${WORKER_ENVIRONMENT_SNAPSHOT_URL}?refresh=${Date.now()}`;
     const result = await fetchEnvironmentSnapshot(fetcher, workerUrl, 'no-store');
-    const vgcPastesTeamSamples = await fetchVgcPastesTeamSamples(fetcher);
+    const vgcPastesTeamSamples = await loadVgcPastesTeamSamples();
     return createEnvironmentStateFromPokeDbSnapshot(result.snapshot, {
       sourceKind: 'worker',
       freshness: result.cacheState === 'fresh' ? 'fresh' : 'stale',
@@ -266,7 +263,7 @@ export const loadEnvironmentState = async (
 
   try {
     const result = await fetchEnvironmentSnapshot(fetcher, POKEDB_ENVIRONMENT_SNAPSHOT_URL, 'force-cache');
-    const vgcPastesTeamSamples = await fetchVgcPastesTeamSamples(fetcher);
+    const vgcPastesTeamSamples = await loadVgcPastesTeamSamples();
     return createEnvironmentStateFromPokeDbSnapshot(result.snapshot, {
       sourceKind: 'static',
       freshness: 'stale',

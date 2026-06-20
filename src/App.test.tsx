@@ -8,12 +8,13 @@ import singleRankedTeams from './data/external/pokedb/s1_single_ranked_teams.jso
 import doubleRankedTeams from './data/external/pokedb/s1_double_ranked_teams.json';
 import moveStats from './data/external/pokedb/s1_move_stats.json';
 import teamSamples from './data/external/pokedb/s1_team_samples.json';
+import vgcPastesSamples from './data/external/vgcpastes/reg_ma_champions_ma_team_samples.json';
 import {
   createEnvironmentStateFromPokeDbSnapshot,
   getEnvironmentMove,
   getEnvironmentPokemon,
 } from './data/environment';
-import { currentDataVersion, currentRuleSet } from './data';
+import { currentDataVersion, currentRuleNatureOptions, currentRuleSet, pokemon } from './data';
 import { repository } from './lib/db';
 import type { Team, TeamMember } from './types';
 
@@ -28,8 +29,8 @@ const pokedbSnapshot = {
   teamSamples,
 };
 const testEnvironmentState = createEnvironmentStateFromPokeDbSnapshot(pokedbSnapshot);
-const firstSinglesSample = testEnvironmentState.teamSamples.find((sample) => sample.battleType === 'singles')!;
-const firstSinglesSampleTeamLabel = `队伍：${firstSinglesSample.title}`;
+const vgcPastesTeamSamples = vgcPastesSamples as typeof testEnvironmentState.teamSamples;
+const basicPokeDbSample = testEnvironmentState.teamSamples.find((sample) => sample.id === 'pokedb-singles-rank-1')!;
 const topSinglesPokemon = getEnvironmentPokemon(testEnvironmentState.pokemonUsage.singles[0].pokemonId)!;
 const topSinglesMove = getEnvironmentMove(testEnvironmentState.pokemonUsage.singles[0].moveStats?.[0]?.id ?? '')!;
 const relatedGarchompSample = testEnvironmentState.teamSamples.find(
@@ -103,9 +104,49 @@ const renderEnvironmentApp = async () => {
 
 const continueFirstImportNotice = async (user: ReturnType<typeof userEvent.setup>) => {
   const dialog = await screen.findByRole('dialog', { name: '导入配置提示' });
-  expect(dialog.textContent).toContain('目前可稳定带入 Pokémon 和道具');
+  expect(dialog.textContent).toContain('这份样本可带入Pokémon、道具');
+  expect(dialog.textContent).toContain('未公开的SP分配、配招、队伍码需要手动确认');
   expect(dialog.textContent).toContain('队报链接');
   await user.click(within(dialog).getByRole('button', { name: '继续导入' }));
+};
+
+const findSampleForImportButton = (button: HTMLElement) => {
+  const card = button.closest('section') as HTMLElement | null;
+  const sample = card ? testEnvironmentState.teamSamples.find((candidate) => within(card).queryByText(candidate.title)) : undefined;
+  if (!sample) throw new Error('Unable to resolve visible environment sample for import button.');
+  return sample;
+};
+
+const revealEnvironmentSample = async (user: ReturnType<typeof userEvent.setup>, sample: typeof testEnvironmentState.teamSamples[number]) => {
+  if (sample.battleType === 'doubles') {
+    await user.click(screen.getByRole('button', { name: '双打' }));
+  } else {
+    await user.click(screen.getByRole('button', { name: '单打' }));
+  }
+
+  for (let attempt = 0; attempt < 30; attempt += 1) {
+    const title = screen.queryByText(sample.title);
+    if (title) return title.closest('section') as HTMLElement;
+    await user.click(await screen.findByRole('button', { name: '换一批' }));
+  }
+
+  throw new Error(`Unable to reveal environment sample: ${sample.title}`);
+};
+
+const revealVisibleReplicaCodeSample = async (user: ReturnType<typeof userEvent.setup>) => {
+  await user.click(screen.getByRole('button', { name: '双打' }));
+
+  for (let attempt = 0; attempt < 30; attempt += 1) {
+    const chips = screen.queryAllByText('可导入：[SP分配][配招][队伍码]');
+    for (const chip of chips) {
+      const card = chip.closest('section') as HTMLElement | null;
+      const sample = card ? vgcPastesTeamSamples.find((candidate) => within(card).queryByText(candidate.title)) : undefined;
+      if (card && sample?.replicaCode) return { card, sample };
+    }
+    await user.click(await screen.findByRole('button', { name: '换一批' }));
+  }
+
+  throw new Error('Unable to reveal a VGCPastes sample with replica code.');
 };
 
 const openTool = async (user: ReturnType<typeof userEvent.setup>, toolName: string | RegExp) => {
@@ -116,6 +157,26 @@ const openTool = async (user: ReturnType<typeof userEvent.setup>, toolName: stri
     await user.click(screen.getByRole('button', { name: '工具' }));
   }
   await user.click(await screen.findByRole('button', { name: toolName }));
+};
+
+const pickCalculatorPokemon = async (
+  user: ReturnType<typeof userEvent.setup>,
+  side: 'attacker' | 'defender',
+  query: string,
+  label: string,
+) => {
+  await user.click(screen.getByRole('button', { name: side === 'attacker' ? /选择进攻方/ : /选择防守方/ }));
+  const search = screen.getByPlaceholderText('搜索名称');
+  await user.clear(search);
+  await user.type(search, query);
+  const option = (await screen.findAllByText(label)).map((element) => element.closest('button')).find(Boolean);
+  if (!option) throw new Error(`Unable to find calculator Pokemon option: ${label}`);
+  await user.click(option);
+};
+
+const selectCalculatorPair = async (user: ReturnType<typeof userEvent.setup>) => {
+  await pickCalculatorPokemon(user, 'attacker', 'Garchomp', '烈咬陆鲨');
+  await pickCalculatorPokemon(user, 'defender', 'Torkoal', '煤炭龟');
 };
 
 const waitForDexPage = () => screen.findByText('规则内图鉴', undefined, { timeout: 5000 });
@@ -136,12 +197,21 @@ describe('App page flows', () => {
       'fetch',
       vi.fn(async () => new Response(JSON.stringify(pokedbSnapshot), { status: 200 })),
     );
+    // Pin the team-sample shuffle seed (Task 4) so re-entering the环境 page does not
+    // re-randomize order between renders. Without this, the import-coverage flow could
+    // import the same sample twice across remounts and collide on `队伍：<title>` labels.
+    // Only getRandomValues is stubbed; createId relies on randomUUID and stays unique.
+    vi.spyOn(globalThis.crypto, 'getRandomValues').mockImplementation((array) => {
+      if (array) new Uint32Array(array.buffer, array.byteOffset, 1)[0] = 0x1234abcd;
+      return array;
+    });
     await deleteDb();
   });
 
   afterEach(() => {
     cleanup();
     vi.unstubAllGlobals();
+    vi.restoreAllMocks();
   });
 
   it('labels the loading state as local rule data instead of mock data', async () => {
@@ -254,6 +324,43 @@ describe('App page flows', () => {
 
     await user.click(screen.getByTitle('收起成员'));
     expect(screen.queryByText('能力值 / SP')).toBeNull();
+  });
+
+  it('initializes manually added team members with editable blank defaults', async () => {
+    const user = await renderApp();
+    await openDefaultTeam(user);
+
+    await user.click(screen.getByRole('button', { name: /添加 Pokémon/ }));
+    await user.type(await screen.findByPlaceholderText('搜索 Pokémon 名称...'), 'Garchomp');
+    await user.click(await screen.findByText('烈咬陆鲨'));
+
+    await waitFor(async () => {
+      const state = await repository.loadState();
+      const team = state.teams.find((candidate) => candidate.name === 'Luxray test');
+      expect(team?.members.some((member) => member.pokemonId === 'garchomp')).toBe(true);
+    });
+
+    const state = await repository.loadState();
+    const team = state.teams.find((candidate) => candidate.name === 'Luxray test')!;
+    const added = team.members.find((member) => member.pokemonId === 'garchomp')!;
+    const garchomp = pokemon.find((entry) => entry.id === 'garchomp')!;
+    const neutralNature = currentRuleNatureOptions.find((option) => option.neutral)?.id ?? '认真';
+
+    expect(added.formId).toBe('garchomp');
+    expect(added.abilityId).toBe(garchomp.abilities[0]);
+    expect(added.itemId).toBeUndefined();
+    expect(added.moveIds).toEqual([]);
+    expect(added.nature).toBe(neutralNature);
+    expect(added.statPoints).toEqual({
+      hp: 0,
+      attack: 0,
+      defense: 0,
+      specialAttack: 0,
+      specialDefense: 0,
+      speed: 0,
+    });
+
+    expect(screen.getByText(/2\/6 成员/)).toBeTruthy();
   });
 
   it('keeps member editing focused on the selected Pokemon, moves, nature, item, ability, and six SP fields', { timeout: 15000 }, async () => {
@@ -415,37 +522,82 @@ describe('App page flows', () => {
 
   it('keeps imported environment sample metadata on the list without showing a source card in detail', async () => {
     const user = await renderEnvironmentApp();
+    const importButton = screen.getAllByRole('button', { name: /导入配置/ })[0];
+    const importedSample = findSampleForImportButton(importButton);
 
-    await user.click(screen.getAllByRole('button', { name: /导入配置/ })[0]);
+    await user.click(importButton);
     await continueFirstImportNotice(user);
-    const importedCard = await screen.findByLabelText(firstSinglesSampleTeamLabel);
+    const importedCard = await screen.findByLabelText(`队伍：${importedSample.title}`);
     expect(importedCard.textContent).not.toContain('上位构筑导入');
     expect(importedCard.textContent).not.toContain('当前');
-    expect(importedCard.textContent).toContain(`${firstSinglesSample.slots.length}/6 成员`);
-    expect(within(importedCard).getByRole('button', { name: `编辑 ${firstSinglesSample.title}` })).toBeTruthy();
+    expect(importedCard.textContent).toContain(`${importedSample.slots.length}/6 成员`);
+    expect(within(importedCard).getByRole('button', { name: `编辑 ${importedSample.title}` })).toBeTruthy();
     expect(within(importedCard).queryByRole('button', { name: '编辑配置' })).toBeNull();
     expect(within(importedCard).queryByRole('button', { name: '生成图片' })).toBeNull();
 
     await user.click(importedCard);
-    expect(await screen.findByRole('heading', { name: firstSinglesSample.title })).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: importedSample.title })).toBeTruthy();
     expect(screen.queryByText('队报链接')).toBeNull();
     expect(screen.queryByText(/来源|原始样本|高分导入|上位构筑导入/)).toBeNull();
   });
 
+  it('imports, displays, and copies VGCPastes replica codes from team detail', { timeout: 20000 }, async () => {
+    const user = await renderEnvironmentApp();
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText },
+    });
+
+    const { card: sampleCard, sample: replicaCodeSample } = await revealVisibleReplicaCodeSample(user);
+    expect(sampleCard).toBeTruthy();
+    expect(sampleCard.textContent).toContain('VGCPastes');
+    expect(sampleCard.textContent).toContain('可导入：[SP分配][配招][队伍码]');
+
+    await user.click(within(sampleCard).getByRole('button', { name: /导入配置/ }));
+    const dialog = await screen.findByRole('dialog', { name: '导入配置提示' });
+    expect(dialog.textContent).toContain('这份样本可带入Pokémon、道具、SP分配、配招、队伍码');
+    expect(dialog.textContent).toContain('公开配置已随队伍带入');
+    await user.click(within(dialog).getByRole('button', { name: '继续导入' }));
+
+    const importedCard = await screen.findByLabelText(`队伍：${replicaCodeSample.title}`);
+    await user.click(importedCard);
+    expect(await screen.findByRole('heading', { name: replicaCodeSample.title })).toBeTruthy();
+    expect(screen.getByText(replicaCodeSample.replicaCode!)).toBeTruthy();
+    expect(screen.queryByText(/本地队伍|可自由编辑/)).toBeNull();
+
+    await user.click(screen.getByRole('button', { name: '复制队伍码' }));
+    expect(writeText).toHaveBeenCalledWith(replicaCodeSample.replicaCode);
+    const toast = await screen.findByRole('status');
+    expect(toast.textContent).toContain('队伍码已复制');
+    expect(toast.textContent).toContain('分享可能已过期');
+
+    writeText.mockRejectedValueOnce(new Error('clipboard denied'));
+    await user.click(screen.getByRole('button', { name: '复制队伍码' }));
+    await waitFor(() => {
+      const fallbackToast = screen.getByRole('status');
+      expect(fallbackToast.textContent).toContain('队伍码复制失败');
+      expect(fallbackToast.textContent).toContain('请手动选择队伍码复制');
+    });
+  });
+
   it('shows the import coverage notice only before the first upper-build import', async () => {
     const user = await renderEnvironmentApp();
-    const singlesSamples = testEnvironmentState.teamSamples.filter((sample) => sample.battleType === 'singles');
+    const firstImportButton = screen.getAllByRole('button', { name: /导入配置/ })[0];
+    const firstImportedSample = findSampleForImportButton(firstImportButton);
 
-    await user.click(screen.getAllByRole('button', { name: /导入配置/ })[0]);
+    await user.click(firstImportButton);
     const dialog = await screen.findByRole('dialog', { name: '导入配置提示' });
     expect(within(dialog).getByRole('button', { name: '队报链接' })).toBeTruthy();
     await user.click(within(dialog).getByRole('button', { name: '继续导入' }));
-    expect(await screen.findByLabelText(`队伍：${singlesSamples[0].title}`)).toBeTruthy();
+    expect(await screen.findByLabelText(`队伍：${firstImportedSample.title}`)).toBeTruthy();
 
     await user.click(screen.getByRole('button', { name: '环境' }));
-    await user.click(screen.getAllByRole('button', { name: /导入配置/ })[1]);
+    const secondImportButton = screen.getAllByRole('button', { name: /导入配置/ })[1];
+    const secondImportedSample = findSampleForImportButton(secondImportButton);
+    await user.click(secondImportButton);
     expect(screen.queryByRole('dialog', { name: '导入配置提示' })).toBeNull();
-    expect(await screen.findByLabelText(`队伍：${singlesSamples[1].title}`)).toBeTruthy();
+    expect(await screen.findByLabelText(`队伍：${secondImportedSample.title}`)).toBeTruthy();
   });
 
   it('deletes teams directly from the list card', async () => {
@@ -491,24 +643,25 @@ describe('App page flows', () => {
 
   it('imports upper-build teams without inventing missing moves, nature, or SP details', async () => {
     const user = await renderEnvironmentApp();
+    const sampleCard = await revealEnvironmentSample(user, basicPokeDbSample);
 
-    await user.click(screen.getAllByRole('button', { name: /导入配置/ })[0]);
+    await user.click(within(sampleCard).getByRole('button', { name: /导入配置/ }));
     await continueFirstImportNotice(user);
-    await screen.findByLabelText(firstSinglesSampleTeamLabel);
+    await screen.findByLabelText(`队伍：${basicPokeDbSample.title}`);
 
     let imported = undefined as Awaited<ReturnType<typeof repository.loadState>>['teams'][number] | undefined;
     await waitFor(async () => {
       const state = await repository.loadState();
       imported = state.teams.find(
-        (team) => team.source?.kind === 'environment-sample-import' && team.source.sampleId === firstSinglesSample.id,
+        (team) => team.source?.kind === 'environment-sample-import' && team.source.sampleId === basicPokeDbSample.id,
       );
       expect(imported).toBeTruthy();
     });
 
     const firstMember = imported!.members[0];
-    expect(firstMember.pokemonId).toBe(firstSinglesSample.slots[0].pokemonId);
-    expect(firstMember.itemId).toBe(firstSinglesSample.slots[0].itemId);
-    expect(firstMember.formId).toBe(firstSinglesSample.slots[0].pokemonId);
+    expect(firstMember.pokemonId).toBe(basicPokeDbSample.slots[0].pokemonId);
+    expect(firstMember.itemId).toBe(basicPokeDbSample.slots[0].itemId);
+    expect(firstMember.formId).toBe(basicPokeDbSample.slots[0].pokemonId);
     expect(firstMember.abilityId).toBeUndefined();
     expect(firstMember.moveIds).toEqual([]);
     expect(firstMember.statPoints).toEqual({});
@@ -524,7 +677,8 @@ describe('App page flows', () => {
     const starmieSample = singlesSamples[starmieSampleIndex];
 
     expect(starmieSampleIndex).toBeGreaterThanOrEqual(0);
-    await user.click(screen.getAllByRole('button', { name: /导入配置/ })[starmieSampleIndex]);
+    const starmieSampleCard = await revealEnvironmentSample(user, starmieSample);
+    await user.click(within(starmieSampleCard).getByRole('button', { name: /导入配置/ }));
     await continueFirstImportNotice(user);
 
     const importedCard = await screen.findByLabelText(`队伍：${starmieSample.title}`);
@@ -543,12 +697,14 @@ describe('App page flows', () => {
 
   it('shows import success feedback and clears the imported team highlight', async () => {
     const user = await renderEnvironmentApp();
+    const importButton = screen.getAllByRole('button', { name: /导入配置/ })[0];
+    const importedSample = findSampleForImportButton(importButton);
 
-    await user.click(screen.getAllByRole('button', { name: /导入配置/ })[0]);
+    await user.click(importButton);
     await continueFirstImportNotice(user);
     expect((await screen.findByRole('status')).textContent).toContain('已导入配置');
 
-    const importedCard = await screen.findByLabelText(firstSinglesSampleTeamLabel);
+    const importedCard = await screen.findByLabelText(`队伍：${importedSample.title}`);
     expect(importedCard.dataset.importHighlighted).toBe('true');
 
     await waitFor(() => expect(importedCard.dataset.importHighlighted).toBeUndefined(), { timeout: 3500 });
@@ -575,15 +731,19 @@ describe('App page flows', () => {
   it('shows upper-build samples in small batches and cycles them', async () => {
     const user = await renderEnvironmentApp();
     const singlesSamples = testEnvironmentState.teamSamples.filter((sample) => sample.battleType === 'singles');
+    const visibleSampleTitles = () => singlesSamples.filter((sample) => screen.queryByText(sample.title)).map((sample) => sample.title);
 
     expect(screen.getByText('上位构筑')).toBeTruthy();
-    expect(screen.getByText(singlesSamples[0].title)).toBeTruthy();
-    expect(screen.queryByText(singlesSamples[4].title)).toBeNull();
+    const firstBatchTitles = visibleSampleTitles();
+    expect(firstBatchTitles).toHaveLength(4);
+    expect(new Set(firstBatchTitles).size).toBe(4);
 
     await user.click(screen.getByRole('button', { name: '换一批' }));
 
-    expect(screen.getByText(singlesSamples[4].title)).toBeTruthy();
-    expect(screen.queryByText(singlesSamples[0].title)).toBeNull();
+    const secondBatchTitles = visibleSampleTitles();
+    expect(secondBatchTitles).toHaveLength(4);
+    expect(new Set(secondBatchTitles).size).toBe(4);
+    expect(secondBatchTitles).not.toEqual(firstBatchTitles);
   });
 
   it('keeps environment sample labeling lightweight without the bulky seed notice', async () => {
@@ -644,11 +804,32 @@ describe('App page flows', () => {
     expect(await screen.findByLabelText(relatedGarchompTeamLabel)).toBeTruthy();
   });
 
+  it('opens the damage calculator on a blank state and resets it after leaving', async () => {
+    const user = await renderApp();
+
+    await openTool(user, /伤害计算/);
+    expect(await screen.findByText('选择进攻方')).toBeTruthy();
+    expect(screen.getAllByText('未配置 Pokemon').length).toBeGreaterThanOrEqual(2);
+    expect(screen.queryByText(/% -/)).toBeNull();
+    expect(screen.getByText('请先选择进攻方、防守方和招式')).toBeTruthy();
+
+    await selectCalculatorPair(user);
+    expect(await screen.findByText(/% -/)).toBeTruthy();
+
+    await user.click(screen.getByRole('button', { name: '返回工具' }));
+    await screen.findByRole('button', { name: /伤害计算/ });
+    await openTool(user, /伤害计算/);
+    expect(await screen.findByText('选择进攻方')).toBeTruthy();
+    expect(screen.getAllByText('未配置 Pokemon').length).toBeGreaterThanOrEqual(2);
+    expect(screen.queryByText(/% -/)).toBeNull();
+  });
+
   it('allows real editing of temporary config: SP, nature, item, and move changes persist', async () => {
     const user = await renderApp();
 
     await openTool(user, /伤害计算/);
     expect(await screen.findByText('选择进攻方')).toBeTruthy();
+    await selectCalculatorPair(user);
 
     // Verify mandatory UI labels
     expect(screen.queryByText(/Champions SP/)).toBeNull();
@@ -670,6 +851,7 @@ describe('App page flows', () => {
     expect(screen.getByLabelText('会心一击')).toBeTruthy();
 
     // Expand attacker config
+    await user.click(screen.getByRole('button', { name: /选择进攻方/ }));
     const editBtns = screen.getAllByTitle('编辑 SP/能力配置');
     await user.click(editBtns[0]);
     expect(await screen.findByText(/HP SP、攻防 SP 可编辑/)).toBeTruthy();
@@ -751,6 +933,7 @@ describe('App page flows', () => {
 
     await openTool(user, /伤害计算/);
     expect(await screen.findByText('选择进攻方')).toBeTruthy();
+    await selectCalculatorPair(user);
 
     const initialHpText = screen.getByText(/对方 HP:/).textContent ?? '';
     const initialHp = Number(initialHpText.match(/对方 HP: (\d+)/)?.[1]);
@@ -869,6 +1052,7 @@ describe('App page flows', () => {
     expect(await screen.findByText('选择进攻方')).toBeTruthy();
     expect(screen.getByRole('button', { name: /从队伍选择/ })).toBeTruthy();
     expect(screen.queryByText('小顿熊')).toBeNull();
+    await pickCalculatorPokemon(user, 'attacker', 'Garchomp', '烈咬陆鲨');
 
     // Switch to defender and pick from search
     await user.click(screen.getByRole('button', { name: /防守方/ }));

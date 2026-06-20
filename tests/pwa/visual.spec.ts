@@ -80,7 +80,7 @@ test('captures the mobile visual regression smoke set', { timeout: 60_000 }, asy
 
   await page.getByRole('button', { name: /伤害计算/ }).click();
   await scrollTop(page);
-  await expect(page.getByText('选择进攻方')).toBeVisible();
+  await expect(page.getByText('选择进攻方', { exact: true })).toBeVisible();
   await expect(page).toHaveScreenshot('09-calculator-selector.png', screenshotOptions);
 
   await page.getByRole('button', { name: '返回工具' }).click();
