@@ -113,11 +113,11 @@ export function TeamBrowseView({
             <h2 className="mt-1 text-xl font-semibold">队伍一览</h2>
             <p className="mt-1 text-xs text-textSecondary">搜索公开队伍，或随机找一点构筑灵感。</p>
           </div>
-          <div className="grid grid-cols-2 rounded-lg border border-border bg-page p-1 text-sm font-semibold">
+          <div className="grid shrink-0 grid-cols-2 rounded-lg border border-border bg-page p-1 text-sm font-semibold">
             {(Object.keys(battleTypeLabels) as EnvironmentBattleType[]).map((type) => (
               <button
                 key={type}
-                className={`rounded-md px-3 py-2 ${battleType === type ? 'bg-accent text-page' : 'text-textSecondary'}`}
+                className={`whitespace-nowrap rounded-md px-3 py-2 ${battleType === type ? 'bg-accent text-page' : 'text-textSecondary'}`}
                 type="button"
                 onClick={() => changeBattleType(type)}
               >
