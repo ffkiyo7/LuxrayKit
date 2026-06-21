@@ -1,4 +1,4 @@
-import { ArrowLeft, ChevronUp, Copy, Edit3, GripVertical, Minus, Plus, Save, Search, Trash2, X } from 'lucide-react';
+import { ArrowLeft, ChevronUp, Copy, Edit3, Gauge, GripVertical, Info, Minus, Plus, Save, Search, Swords, Trash2, X } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
 import { abilities, currentRuleNatureOptions, items, moves, pokemon } from '../data';
 import { memberBattleStats, memberLabel } from '../lib/calculations';
@@ -63,13 +63,19 @@ function MemberCard({
   onToggle,
   onEdit,
   onDelete,
+  onOpenSpeed,
+  onOpenCalculator,
 }: {
   member: TeamMember;
   expanded: boolean;
   onToggle: (memberId: string) => void;
   onEdit: (member: TeamMember) => void;
   onDelete: (memberId: string) => void | Promise<void>;
+  onOpenSpeed: (memberId: string) => void;
+  onOpenCalculator: (memberId: string, side: 'attacker' | 'defender') => void;
 }) {
+  const [showStatsHint, setShowStatsHint] = useState(false);
+  const [calcSidePrompt, setCalcSidePrompt] = useState(false);
   const entry = pokemon.find((item) => item.id === member.pokemonId);
   const battleForm = getMemberBattleForm(member);
   const item = items.find((candidate) => candidate.id === member.itemId);
@@ -165,15 +171,31 @@ function MemberCard({
 
           {battleForm && (
             <>
+              <div className="mt-3 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5">
+                  <p className="text-[11px] font-semibold text-textSecondary">能力值 / SP</p>
+                  <button
+                    type="button"
+                    aria-label="能力值与 SP 说明"
+                    aria-expanded={showStatsHint}
+                    className="grid h-4 w-4 shrink-0 place-items-center rounded-full border border-border text-textMuted"
+                    onClick={() => setShowStatsHint((value) => !value)}
+                  >
+                    <Info size={10} />
+                  </button>
+                </div>
+                <p className="text-[11px] text-textMuted">Lv.50 · 已用 {statPointTotal(member.statPoints)}/{MAX_TOTAL_STAT_POINTS}</p>
+              </div>
+              {showStatsHint && (
+                <p className="mt-1 rounded-lg bg-elevated p-2 text-[11px] leading-5 text-textMuted">
+                  左侧为当前能力值，右侧为该项 SP；性格修正用箭头标记。
+                </p>
+              )}
               <button
-                className="mt-3 w-full rounded-lg border border-border bg-elevated p-2 text-left active:scale-[0.99]"
+                className="mt-1.5 w-full rounded-lg border border-border bg-elevated p-2 text-left active:scale-[0.99]"
                 type="button"
                 onClick={() => onEdit(member)}
               >
-                <div className="mb-2 flex items-center justify-between gap-2">
-                  <p className="text-[11px] font-semibold text-textSecondary">能力值 / SP</p>
-                  <p className="text-[11px] text-textMuted">Lv.50 · 已用 {statPointTotal(member.statPoints)}/{MAX_TOTAL_STAT_POINTS}</p>
-                </div>
                 <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
                   {statDisplayRows.map((row) => (
                     <div key={row.key} className="grid grid-cols-[34px_1fr_36px_26px] items-center gap-1.5 text-[11px]">
@@ -190,10 +212,50 @@ function MemberCard({
                   ))}
                 </div>
               </button>
-              <p className="mt-2 text-[11px] text-textMuted">左侧为当前能力值，右侧为该项 SP；性格修正用箭头标记。</p>
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  className="inline-flex items-center justify-center gap-1 rounded-lg border border-border bg-card px-2 py-1.5 text-[11px] font-semibold text-textSecondary active:scale-[0.98]"
+                  onClick={() => onOpenSpeed(member.id)}
+                >
+                  <Gauge size={13} className="text-accent" /> 速度线
+                </button>
+                <button
+                  type="button"
+                  className="inline-flex items-center justify-center gap-1 rounded-lg border border-border bg-card px-2 py-1.5 text-[11px] font-semibold text-textSecondary active:scale-[0.98]"
+                  onClick={() => setCalcSidePrompt(true)}
+                >
+                  <Swords size={13} className="text-accent" /> 伤害计算
+                </button>
+              </div>
             </>
           )}
         </>
+      )}
+      {calcSidePrompt && (
+        <div className="fixed inset-0 z-40 mx-auto flex max-w-[430px] items-center justify-center p-6" role="dialog" aria-modal="true" aria-label="选择计算角色">
+          <button className="absolute inset-0 h-full w-full bg-overlay/70" type="button" aria-label="取消" onClick={() => setCalcSidePrompt(false)} />
+          <div className="relative w-full rounded-2xl border border-border bg-card p-4 shadow-xl">
+            <p className="text-sm font-semibold">代入伤害计算</p>
+            <p className="mt-1 text-xs text-textSecondary">{battleForm?.chineseName ?? memberLabel(member)} 作为哪一方？</p>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                className="rounded-lg bg-accent px-3 py-2 text-sm font-semibold text-page active:scale-[0.98]"
+                onClick={() => { setCalcSidePrompt(false); onOpenCalculator(member.id, 'attacker'); }}
+              >
+                进攻方
+              </button>
+              <button
+                type="button"
+                className="rounded-lg border border-border bg-elevated px-3 py-2 text-sm font-semibold text-textPrimary active:scale-[0.98]"
+                onClick={() => { setCalcSidePrompt(false); onOpenCalculator(member.id, 'defender'); }}
+              >
+                防守方
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </Card>
   );
@@ -919,11 +981,15 @@ export function TeamPage({
   highlightedTeamId,
   onActiveTeamChange,
   onCopyReplicaCode,
+  onSendToSpeed,
+  onSendToCalculator,
 }: {
   activeTeamId?: string;
   highlightedTeamId?: string;
   onActiveTeamChange: (teamId: string | undefined) => void;
   onCopyReplicaCode: (replicaCode: string) => Promise<void> | void;
+  onSendToSpeed: (memberId: string) => void;
+  onSendToCalculator: (memberId: string, side: 'attacker' | 'defender') => void;
 }) {
   const { teams, addTeam, deleteTeam, replaceTeams, saveTeam, updateMember } = useAppStore();
   const [detailTeamId, setDetailTeamId] = useState<string | null>(null);
@@ -1189,6 +1255,8 @@ export function TeamPage({
                   await saveTeam({ ...activeTeam, members: activeTeam.members.filter((candidate) => candidate.id !== memberId) });
                   setExpandedMemberId((current) => (current === memberId ? null : current));
                 }}
+                onOpenSpeed={onSendToSpeed}
+                onOpenCalculator={onSendToCalculator}
               />
             ))}
           </div>

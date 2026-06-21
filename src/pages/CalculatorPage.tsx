@@ -17,7 +17,7 @@ import { useAppStore } from '../state/AppContext';
 import type { Move as AppMove, Pokemon, StatPoints, TeamMember } from '../types';
 import { Card, PokemonAvatar, TypeBadge } from '../components/ui';
 
-type CalcSide = 'attacker' | 'defender';
+export type CalcSide = 'attacker' | 'defender';
 
 const weatherOptions = ['无天气', '晴天', '雨天', '沙暴', '雪天'];
 const stageOptions = Array.from({ length: 13 }, (_, index) => String(index - 6));
@@ -738,9 +738,11 @@ function DamageResultCard({
 export function CalculatorPage({
   selectedMemberId,
   onPickMember,
+  presetMember,
 }: {
   selectedMemberId?: string;
   onPickMember: (memberId: string) => void;
+  presetMember?: { memberId: string; side: CalcSide };
 }) {
   const { teams } = useAppStore();
 
@@ -792,6 +794,34 @@ export function CalculatorPage({
       setAttackerDirty(false);
     }
   }, [selectedMemberId, teamMembers]);
+
+  // Jump-in from a team member: carry the saved build into the chosen side, but
+  // reset moves to the current-rule attacking list (the dropdown lets the user pick).
+  const lastPresetRef = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    if (!presetMember) {
+      lastPresetRef.current = undefined;
+      return;
+    }
+    const key = `${presetMember.memberId}:${presetMember.side}`;
+    if (lastPresetRef.current === key) return;
+    lastPresetRef.current = key;
+    const found = teamMembers.find(({ member }) => member.id === presetMember.memberId);
+    if (!found) return;
+    const base = buildCalcConfigFromTeamMember(found.member);
+    const firstMove = found.member.pokemonId
+      ? currentRuleMovesForPokemon(found.member.pokemonId).find((move) => move.category !== 'Status')
+      : undefined;
+    const cfg = { ...base, moveIds: firstMove ? [firstMove.id] : [], selectedMoveId: firstMove?.id };
+    if (presetMember.side === 'attacker') {
+      setAttackerConfig(cfg);
+      setAttackerDirty(false);
+    } else {
+      setDefenderConfig(cfg);
+      setDefenderDirty(false);
+    }
+    setActiveSide(presetMember.side);
+  }, [presetMember, teamMembers]);
 
   const currentMove = attackerConfig.selectedMoveId ? moves.find((m) => m.id === attackerConfig.selectedMoveId) : undefined;
 

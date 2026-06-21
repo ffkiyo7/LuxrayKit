@@ -1,5 +1,5 @@
 import { ArrowDown, ArrowUp, Check, ChevronDown, Search, Wind, X, Zap } from 'lucide-react';
-import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { currentRuleNatureOptions, pokemon } from '../data';
 import type { EnvironmentState } from '../data/environment';
 import { speedTierSeason, speedTierSnapshots } from '../data/speedTiers';
@@ -183,7 +183,7 @@ function OutspeedSheet({
   );
 }
 
-export function SpeedPage({ environment, activeTeam }: { environment: EnvironmentState; activeTeam?: Team }) {
+export function SpeedPage({ environment, activeTeam, presetMember }: { environment: EnvironmentState; activeTeam?: Team; presetMember?: TeamMember }) {
   const defaultMember = activeTeam?.members.find((member) => member.pokemonId);
   const defaultPokemon = pokemon.find((entry) => entry.id === defaultMember?.pokemonId) ?? pokemon.find((entry) => entry.id === 'staraptor') ?? pokemon[0];
   const [battleType, setBattleType] = useState<BattleType>('doubles');
@@ -289,6 +289,21 @@ export function SpeedPage({ environment, activeTeam }: { environment: Environmen
     setSearchOpen(false);
     requestCenter('smooth');
   };
+
+  // Jump-in from a team member: carry the saved pokemon/form/nature/scarf/SP.
+  const presetAppliedRef = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    if (!presetMember || presetAppliedRef.current === presetMember.id) return;
+    const entry = pokemon.find((candidate) => candidate.id === presetMember.pokemonId);
+    if (!entry) return;
+    presetAppliedRef.current = presetMember.id;
+    const form = findBattleForm(entry.id, presetMember.formId);
+    setSelectedPokemonId(entry.id);
+    setSelectedFormId(presetMember.formId);
+    setBuild(createBuild(entry, form, presetMember));
+    requestCenter('smooth');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [presetMember]);
 
   const natureCardLabel = build.nature === 'neutral' ? '无修正' : `${speedNatureLabel[build.nature]}性格`;
   const markerDetails = [
