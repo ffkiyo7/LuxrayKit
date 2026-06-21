@@ -89,6 +89,18 @@ export const resolveTierPokemon = (ref: RawTierPokemon): ResolvedTierPokemon => 
   return { key, displayName: ref.japaneseName, matched: false };
 };
 
+// Collapse chips that resolve to the same catalog entry (e.g. Aegislash shield &
+// blade are both 坚盾剑怪 at the same tier) so a variant never lists one mon twice.
+const dedupeResolved = (list: ResolvedTierPokemon[]) => {
+  const seen = new Set<string>();
+  return list.filter((entry) => {
+    const dedupeKey = entry.id ?? entry.key;
+    if (seen.has(dedupeKey)) return false;
+    seen.add(dedupeKey);
+    return true;
+  });
+};
+
 // Same speed value can hold several base-tier × nature variants (e.g. 178 =
 // 极速110族 and 满速126族). PokeDB shows each variant separately, so we keep them
 // distinct instead of collapsing to one label.
@@ -100,7 +112,7 @@ export const groupTiersBySpeed = (tiers: RawSpeedTier[]): SpeedTierGroup[] => {
       displayLabel: formatTierLabel(tier.label, tier.code),
       code: tier.code,
       color: tier.color,
-      pokemon: tier.pokemon.map(resolveTierPokemon),
+      pokemon: dedupeResolved(tier.pokemon.map(resolveTierPokemon)),
     };
     const existing = groups.get(tier.speed);
     if (existing) {

@@ -196,6 +196,17 @@ describe('speed tier grouping', () => {
     expect(getPokemonUsageRate(environment, 'charizard', 'singles')).toBe(0);
   });
 
+  it('collapses chips that resolve to the same catalog entry (e.g. Aegislash shield/blade)', () => {
+    const groups = groupTiersBySpeed([
+      rawTier(123, '极速60族', '60', '#ff6f61', [
+        { dexNo: 681, form: '00', japaneseName: 'ギルガルド' },
+        { dexNo: 681, form: '01', japaneseName: 'ギルガルド' },
+      ]),
+    ]);
+    expect(groups[0].variants[0].pokemon.map((p) => p.displayName)).toEqual(['坚盾剑怪']);
+    expect(groups[0].pokemonCount).toBe(1);
+  });
+
   it('places the marker slot right below every strictly-faster group', () => {
     const groups = [{ speed: 167 }, { speed: 156 }, { speed: 152 }, { speed: 145 }];
     expect(markerInsertIndex(groups, 154)).toBe(2);
