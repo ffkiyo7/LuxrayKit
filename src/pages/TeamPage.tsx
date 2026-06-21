@@ -991,7 +991,7 @@ export function TeamPage({
   onSendToSpeed: (memberId: string) => void;
   onSendToCalculator: (memberId: string, side: 'attacker' | 'defender') => void;
 }) {
-  const { teams, addTeam, deleteTeam, replaceTeams, saveTeam, updateMember } = useAppStore();
+  const { teams, addTeam, deleteTeam, replaceTeams, saveTeam, updateMember, preferences, replacePreferences } = useAppStore();
   const [detailTeamId, setDetailTeamId] = useState<string | null>(null);
   const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
   const [expandedMemberId, setExpandedMemberId] = useState<string | null>(null);
@@ -1020,7 +1020,11 @@ export function TeamPage({
     setEditingMemberId(null);
     setShowPicker(false);
     setRenamingTeamId(null);
-    setShowLuxrayEasterEgg(teamId === LUXRAY_EASTER_TEAM_ID);
+    // Easter egg only on the first time the user edits the preset Luxray team;
+    // persisted like onboarding so it never auto-pops or repeats.
+    const showEgg = teamId === LUXRAY_EASTER_TEAM_ID && !preferences.hasSeenLuxrayEasterEgg;
+    setShowLuxrayEasterEgg(showEgg);
+    if (showEgg) void replacePreferences({ ...preferences, hasSeenLuxrayEasterEgg: true });
   };
 
   const closeTeamDetail = () => {

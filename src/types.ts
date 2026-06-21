@@ -287,6 +287,7 @@ export type UserPreference = {
   lastDataRefreshAt: string;
   hasSeenEnvironmentImportNotice: boolean;
   hasCompletedOnboarding: boolean;
+  hasSeenLuxrayEasterEgg: boolean;
 };
 
 export type AppState = {
