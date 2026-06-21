@@ -96,7 +96,15 @@ test('captures the mobile visual regression smoke set', { timeout: 60_000 }, asy
   await expect(page).toHaveScreenshot('09-calculator-selector.png', screenshotOptions);
 
   await page.getByRole('button', { name: '返回工具' }).click();
-  await expect(page.getByRole('button', { name: /速度线计算/ })).toBeDisabled();
+  await page.getByRole('button', { name: /速度线计算/ }).click();
+  await expect(page.getByRole('heading', { name: '速度线' })).toBeVisible();
+  const speedMarker = page.locator('[data-speed-marker]');
+  await expect(speedMarker).toBeVisible();
+  await speedMarker.scrollIntoViewIfNeeded();
+  await expect(speedMarker).toBeInViewport();
+  await page.evaluate(() => window.scrollBy(0, 120));
+  await expect(page).toHaveScreenshot('17-speed-tier.png', screenshotOptions);
+  await page.getByRole('button', { name: '返回工具' }).click();
 
   await page.getByRole('button', { name: /规则图鉴/ }).click();
   await scrollTop(page);

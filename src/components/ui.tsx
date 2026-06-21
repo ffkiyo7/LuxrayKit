@@ -181,6 +181,34 @@ export function PokemonAvatar({
   );
 }
 
+export function OverlappingAvatars({
+  items,
+  limit,
+  size = 'xs',
+  className = '',
+}: {
+  items: Array<{ key: string; iconRef?: string; label: string }>;
+  limit: number;
+  size?: 'xs' | 'sm';
+  className?: string;
+}) {
+  const shown = items.slice(0, limit);
+  const hidden = Math.max(0, items.length - shown.length);
+  const chip = size === 'sm' ? 'h-9 w-9 text-[11px]' : 'h-8 w-8 text-[10px]';
+  return (
+    <div className={`-space-x-2 flex shrink-0 ${className}`}>
+      {shown.map((item) => (
+        <PokemonAvatar key={item.key} iconRef={item.iconRef} label={item.label} size={size} />
+      ))}
+      {hidden > 0 && (
+        <span className={`grid shrink-0 place-items-center rounded-full border border-border bg-elevated font-semibold text-textSecondary ${chip}`}>
+          +{hidden}
+        </span>
+      )}
+    </div>
+  );
+}
+
 export function EmptyState({ title, action }: { title: string; action?: React.ReactNode }) {
   return (
     <div className="grid place-items-center rounded-lg border border-dashed border-border bg-secondary px-4 py-8 text-center">

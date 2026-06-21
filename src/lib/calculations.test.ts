@@ -7,6 +7,18 @@ describe('speed calculation', () => {
     expect(calculateSpeed(20, 32, 50, '怕慢(+速)')).toBe(79);
   });
 
+  it('applies scarf, speed ability, and tailwind in chained order', () => {
+    expect(calculateSpeed(77, 0, 50, '无修正', { scarf: true })).toBe(145);
+    expect(calculateSpeed(77, 0, 50, '无修正', { speedAbility: true })).toBe(194);
+    expect(calculateSpeed(77, 0, 50, '无修正', { tailwind: true })).toBe(194);
+    expect(calculateSpeed(77, 0, 50, '无修正', { scarf: true, speedAbility: true, tailwind: true })).toBe(580);
+  });
+
+  it('floors after each modifier while keeping the legacy tailwind flag compatible', () => {
+    expect(calculateSpeed(81, 0, 50, '减速(-速)', { scarf: true, speedAbility: true })).toBe(270);
+    expect(calculateSpeed(81, 0, 50, '减速(-速)', true)).toBe(180);
+  });
+
   it('blocks formal speed conclusions while Champions speed mechanisms are pending', () => {
     const result = calculateSpeedWithMechanismGate({
       baseSpeed: 102,

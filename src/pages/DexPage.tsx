@@ -9,7 +9,7 @@ import { getDexFormEntries, type DexFormEntry } from '../lib/pokemonForms';
 import { createDefaultTeamMember } from '../lib/teamMemberDefaults';
 import { useAppStore } from '../state/AppContext';
 import type { Move, PokemonType } from '../types';
-import { Button, Card, EmptyState, PokemonAvatar, TypeBadge } from '../components/ui';
+import { Button, Card, EmptyState, OverlappingAvatars, PokemonAvatar, TypeBadge } from '../components/ui';
 
 type DexTab = 'pokemon' | 'moves' | 'items' | 'abilities';
 type TypeFilter = { label: string; value: PokemonType };
@@ -879,23 +879,16 @@ export function DexPage({
                   ...ownerRows.filter((row) => !matchingOwnerRows.includes(row)),
                 ].map((row) => row.entry)
               : ownerRows.map((row) => row.entry);
-            const previewEntries = abilityEntries.slice(0, ABILITY_OWNER_PREVIEW_LIMIT);
-            const hiddenEntryCount = Math.max(0, abilityEntries.length - previewEntries.length);
             return (
               <Card key={ability.id} className="flex items-start gap-3">
                 <div className="min-w-0 flex-1">
                   <div className="flex items-start justify-between gap-3">
                     <h3 className="min-w-0 text-sm font-semibold">{ability.chineseName} {ability.englishName}</h3>
-                    <div className="-space-x-2 flex shrink-0 justify-end">
-                      {previewEntries.map((entry) => (
-                        <PokemonAvatar key={entry.id} iconRef={entry.iconRef} label={entry.chineseName} size="xs" />
-                      ))}
-                      {hiddenEntryCount > 0 && (
-                        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-border bg-elevated text-[10px] font-semibold text-textSecondary">
-                          +{hiddenEntryCount}
-                        </span>
-                      )}
-                    </div>
+                    <OverlappingAvatars
+                      className="justify-end"
+                      items={abilityEntries.map((entry) => ({ key: entry.id, iconRef: entry.iconRef, label: entry.chineseName }))}
+                      limit={ABILITY_OWNER_PREVIEW_LIMIT}
+                    />
                   </div>
                   {expanded && (
                     <div className="mt-2 border-t border-divider pt-2">

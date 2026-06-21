@@ -8,14 +8,16 @@ import { productName } from './branding';
 import type { EnvironmentState, EnvironmentTeamSample } from './data/environment';
 import { useAutoHideBottomNav } from './hooks/useAutoHideBottomNav';
 import { AppProvider, useAppStore } from './state/AppContext';
-import type { Team } from './types';
+import type { Team, TeamMember } from './types';
 import type { ToolView } from './pages/ToolsPage';
+import type { CalcSide } from './pages/CalculatorPage';
 
 const CalculatorPage = lazy(() => import('./pages/CalculatorPage').then((module) => ({ default: module.CalculatorPage })));
 const DexPage = lazy(() => import('./pages/DexPage').then((module) => ({ default: module.DexPage })));
 const EnvironmentPage = lazy(() => import('./pages/EnvironmentPage').then((module) => ({ default: module.EnvironmentPage })));
 const ProfilePage = lazy(() => import('./pages/ProfilePage').then((module) => ({ default: module.ProfilePage })));
 const RulePage = lazy(() => import('./pages/RulePage').then((module) => ({ default: module.RulePage })));
+const SpeedPage = lazy(() => import('./pages/SpeedPage').then((module) => ({ default: module.SpeedPage })));
 const TeamPage = lazy(() => import('./pages/TeamPage').then((module) => ({ default: module.TeamPage })));
 const ToolsPage = lazy(() => import('./pages/ToolsPage').then((module) => ({ default: module.ToolsPage })));
 
@@ -99,16 +101,25 @@ function ToolWorkspace({
   selectedMemberId,
   onPickMember,
   onOpenCalculator,
+  environment,
+  activeTeam,
+  speedPresetMember,
+  calcPreset,
 }: {
   view: ToolView;
   onBack: () => void;
   selectedMemberId?: string;
   onPickMember: (memberId: string) => void;
   onOpenCalculator: (pokemonId: string) => void;
+  environment: EnvironmentState | null;
+  activeTeam?: Team;
+  speedPresetMember?: TeamMember;
+  calcPreset?: { memberId: string; side: CalcSide };
 }) {
   const content = {
-    calculator: <CalculatorPage selectedMemberId={selectedMemberId} onPickMember={onPickMember} />,
+    calculator: <CalculatorPage selectedMemberId={selectedMemberId} onPickMember={onPickMember} presetMember={calcPreset} />,
     dex: <DexPage onOpenCalculator={onOpenCalculator} />,
+    speed: environment ? <SpeedPage environment={environment} activeTeam={activeTeam} presetMember={speedPresetMember} /> : <PageLoading label="正在载入速度线环境数据..." />,
   }[view];
 
   return (
@@ -127,6 +138,8 @@ function AppShell() {
   const [overlay, setOverlay] = useState<OverlayPage>(null);
   const [toolView, setToolView] = useState<ToolView | null>(null);
   const [calculatorMemberId, setCalculatorMemberId] = useState<string | undefined>();
+  const [speedPresetMemberId, setSpeedPresetMemberId] = useState<string | undefined>();
+  const [calcPreset, setCalcPreset] = useState<{ memberId: string; side: CalcSide } | undefined>();
   const [activeTeamId, setActiveTeamId] = useState<string | undefined>();
   const [importToast, setImportToast] = useState<AppToast | null>(null);
   const [highlightedImportTeamId, setHighlightedImportTeamId] = useState<string | undefined>();
@@ -136,6 +149,7 @@ function AppShell() {
   const { loading, teams, preferences, replacePreferences, saveTeam } = useAppStore();
 
   const activeTeam = teams.find((team) => team.id === activeTeamId) ?? teams[0];
+  const speedPresetMember = teams.flatMap((team) => team.members).find((member) => member.id === speedPresetMemberId);
   const bottomNavAutoHideEnabled = !overlay && (activeTab === 'environment' || (activeTab === 'tools' && toolView === 'dex'));
   const bottomNavAutoHide = useAutoHideBottomNav({
     enabled: bottomNavAutoHideEnabled,
@@ -182,13 +196,32 @@ function AppShell() {
 
   const openTool = useCallback((view: ToolView) => {
     if (view === 'calculator') setCalculatorMemberId(undefined);
+    setCalcPreset(undefined);
+    setSpeedPresetMemberId(undefined);
     setToolView(view);
+    setActiveTab('tools');
+  }, []);
+
+  const sendMemberToSpeed = useCallback((memberId: string) => {
+    setSpeedPresetMemberId(memberId);
+    setToolView('speed');
+    setActiveTab('tools');
+  }, []);
+
+  const sendMemberToCalculator = useCallback((memberId: string, side: CalcSide) => {
+    setCalculatorMemberId(undefined);
+    setCalcPreset({ memberId, side });
+    setToolView('calculator');
     setActiveTab('tools');
   }, []);
 
   useEffect(() => {
     if (activeTab !== 'tools' || toolView !== 'calculator') {
       setCalculatorMemberId(undefined);
+      setCalcPreset(undefined);
+    }
+    if (activeTab !== 'tools' || toolView !== 'speed') {
+      setSpeedPresetMemberId(undefined);
     }
   }, [activeTab, toolView]);
 
@@ -254,6 +287,8 @@ function AppShell() {
             highlightedTeamId={highlightedImportTeamId}
             onActiveTeamChange={setActiveTeamId}
             onCopyReplicaCode={copyReplicaCode}
+            onSendToSpeed={sendMemberToSpeed}
+            onSendToCalculator={sendMemberToCalculator}
           />
         );
       case 'tools':
@@ -267,6 +302,10 @@ function AppShell() {
               setCalculatorMemberId(pokemonId);
               setToolView('calculator');
             }}
+            environment={environmentState}
+            activeTeam={activeTeam}
+            speedPresetMember={speedPresetMember}
+            calcPreset={calcPreset}
           />
         ) : (
           <ToolsPage onOpenTool={openTool} />
@@ -278,6 +317,10 @@ function AppShell() {
     activeTab,
     activeTeam,
     calculatorMemberId,
+    calcPreset,
+    speedPresetMember,
+    sendMemberToSpeed,
+    sendMemberToCalculator,
     environmentLoadFailed,
     environmentState,
     highlightedImportTeamId,

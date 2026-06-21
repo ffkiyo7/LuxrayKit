@@ -714,7 +714,7 @@ export const megaFormsByParentId: Record<string, PokemonForm[]> = {
     championsMega('mega-floette', 'floette', 'Mega Floette', '超级花叶蒂', 'メガフラエッテ', 'floettite', ['Fairy'], { hp: 74, attack: 85, defense: 87, specialAttack: 155, specialDefense: 148, speed: 102 }, ['fairy-aura']),
   ],
   'meowstic-male': [
-    championsMega('mega-meowstic', 'meowstic-male', 'Mega Meowstic', '超级超能妙喵', 'メガニャオニクス', 'meowsticite', ['Psychic'], { hp: 74, attack: 48, defense: 76, specialAttack: 143, specialDefense: 101, speed: 124 }, ['trace']),
+    championsMega('mega-meowstic', 'meowstic-male', 'Mega Meowstic', '超级超能妙喵', 'メガニャオニクス (オス)', 'meowsticite', ['Psychic'], { hp: 74, attack: 48, defense: 76, specialAttack: 143, specialDefense: 101, speed: 124 }, ['trace']),
   ],
   'hawlucha': [
     championsMega('mega-hawlucha', 'hawlucha', 'Mega Hawlucha', '超级摔角鹰人', 'メガルチャブル', 'hawluchanite', ['Fighting', 'Flying'], { hp: 78, attack: 137, defense: 100, specialAttack: 74, specialDefense: 93, speed: 118 }, ['no-guard']),

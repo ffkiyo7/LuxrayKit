@@ -15,10 +15,27 @@ const natureStatMap: Record<string, keyof BaseStats> = {
   速: 'speed',
 };
 
-export const calculateSpeed = (baseSpeed: number, statPoints = 0, level = 50, nature = '爽朗', tailwind = false) => {
+export type SpeedModifiers = {
+  scarf?: boolean;
+  speedAbility?: boolean;
+  tailwind?: boolean;
+};
+
+export const calculateSpeed = (
+  baseSpeed: number,
+  statPoints = 0,
+  level = 50,
+  nature = '爽朗',
+  modifiers: boolean | SpeedModifiers = false,
+) => {
   const stat = baseSpeed + clampStatPointValue(statPoints) + 20;
   const withNature = Math.floor(stat * natureMultiplier(nature, 'speed'));
-  return tailwind ? withNature * 2 : withNature;
+  const normalizedModifiers = typeof modifiers === 'boolean' ? { tailwind: modifiers } : modifiers;
+  let finalSpeed = withNature;
+  if (normalizedModifiers.scarf) finalSpeed = Math.floor(finalSpeed * 1.5);
+  if (normalizedModifiers.speedAbility) finalSpeed = Math.floor(finalSpeed * 2);
+  if (normalizedModifiers.tailwind) finalSpeed = Math.floor(finalSpeed * 2);
+  return finalSpeed;
 };
 
 export type SpeedMechanismStatus = 'confirmed' | 'pending';
@@ -41,6 +58,8 @@ export const calculateSpeedWithMechanismGate = ({
   level = 50,
   nature = '爽朗',
   tailwind = false,
+  scarf = false,
+  speedAbility = false,
   mechanismStatus,
 }: {
   baseSpeed: number;
@@ -48,6 +67,8 @@ export const calculateSpeedWithMechanismGate = ({
   level?: number;
   nature?: string;
   tailwind?: boolean;
+  scarf?: boolean;
+  speedAbility?: boolean;
   mechanismStatus: SpeedMechanismStatus;
 }): SpeedCalculationResult => {
   if (mechanismStatus !== 'confirmed') {
@@ -59,8 +80,8 @@ export const calculateSpeedWithMechanismGate = ({
 
   return {
     status: 'confirmed',
-    finalSpeed: calculateSpeed(baseSpeed, statPoints, level, nature, tailwind),
-    explanation: 'Computed with confirmed Champions Lv.50 base speed, Stat Points, nature, and tailwind modifiers.',
+    finalSpeed: calculateSpeed(baseSpeed, statPoints, level, nature, { scarf, speedAbility, tailwind }),
+    explanation: 'Computed with confirmed Champions Lv.50 base speed, Stat Points, nature, and chained speed modifiers.',
   };
 };
 
