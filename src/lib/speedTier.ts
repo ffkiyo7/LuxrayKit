@@ -14,6 +14,7 @@ type RawTierPokemon = RawSpeedTier['pokemon'][number];
 export type ResolvedTierPokemon = {
   key: string;
   id?: string;
+  pokemonId?: string;
   displayName: string;
   iconRef?: string;
   matched: boolean;
@@ -54,7 +55,9 @@ export type SpeedTierGroup = {
 // half-width (メガライチュウX); NFKC folds them together so the name keys match.
 const normalizeJapaneseName = (value: string) => value.normalize('NFKC').replace(/\s+/g, '').trim();
 
-type CatalogMatch = { id: string; chineseName: string; iconRef?: string };
+// `pokemonId` is the base species id (forms point at their parent) so environment
+// usage — which is keyed by species — can be looked up for any form.
+type CatalogMatch = { id: string; pokemonId: string; chineseName: string; iconRef?: string };
 
 let nameIndex: Map<string, CatalogMatch> | undefined;
 let dexIndex: Map<number, CatalogMatch> | undefined;
@@ -63,14 +66,14 @@ const buildIndices = () => {
   const byName = new Map<string, CatalogMatch>();
   const byDex = new Map<number, CatalogMatch>();
   for (const entry of pokemon) {
-    const base: CatalogMatch = { id: entry.id, chineseName: entry.chineseName, iconRef: entry.iconRef };
+    const base: CatalogMatch = { id: entry.id, pokemonId: entry.id, chineseName: entry.chineseName, iconRef: entry.iconRef };
     if (!byDex.has(entry.nationalDexNo)) byDex.set(entry.nationalDexNo, base);
     const key = normalizeJapaneseName(entry.japaneseName);
     if (key && !byName.has(key)) byName.set(key, base);
     for (const form of [...entry.forms, ...entry.megaForms]) {
       const formKey = normalizeJapaneseName(form.japaneseName);
       if (formKey && !byName.has(formKey)) {
-        byName.set(formKey, { id: form.id, chineseName: form.chineseName, iconRef: form.iconRef });
+        byName.set(formKey, { id: form.id, pokemonId: entry.id, chineseName: form.chineseName, iconRef: form.iconRef });
       }
     }
   }
@@ -81,10 +84,8 @@ const buildIndices = () => {
 export const resolveTierPokemon = (ref: RawTierPokemon): ResolvedTierPokemon => {
   if (!nameIndex || !dexIndex) buildIndices();
   const key = `${ref.dexNo}-${ref.form}`;
-  const byName = nameIndex?.get(normalizeJapaneseName(ref.japaneseName));
-  if (byName) return { key, id: byName.id, displayName: byName.chineseName, iconRef: byName.iconRef, matched: true };
-  const byDex = dexIndex?.get(ref.dexNo);
-  if (byDex) return { key, id: byDex.id, displayName: byDex.chineseName, iconRef: byDex.iconRef, matched: true };
+  const match = nameIndex?.get(normalizeJapaneseName(ref.japaneseName)) ?? dexIndex?.get(ref.dexNo);
+  if (match) return { key, id: match.id, pokemonId: match.pokemonId, displayName: match.chineseName, iconRef: match.iconRef, matched: true };
   return { key, displayName: ref.japaneseName, matched: false };
 };
 
@@ -110,6 +111,23 @@ export const groupTiersBySpeed = (tiers: RawSpeedTier[]): SpeedTierGroup[] => {
     }
   }
   return [...groups.values()].sort((left, right) => right.speed - left.speed);
+};
+
+// When one speed value holds several variants, surface the variant whose pokemon
+// is most used in the current environment first (axis label/avatars + sheet order).
+// Variants with no usage data score 0, so absent data degrades to original order.
+export const sortVariantsByUsage = (
+  groups: SpeedTierGroup[],
+  usageOf: (pokemonId: string) => number,
+): SpeedTierGroup[] => {
+  const variantScore = (variant: SpeedTierVariant) =>
+    variant.pokemon.reduce((max, entry) => Math.max(max, entry.pokemonId ? usageOf(entry.pokemonId) : 0), 0);
+  return groups.map((group) => {
+    if (group.variants.length < 2) return group;
+    const scored = group.variants.map((variant, index) => ({ variant, index, score: variantScore(variant) }));
+    scored.sort((a, b) => b.score - a.score || a.index - b.index);
+    return { ...group, variants: scored.map((entry) => entry.variant) };
+  });
 };
 
 // Rows are ordered fastest -> slowest; the user marker takes its own slot right
@@ -197,6 +215,12 @@ export const getScarfUsageRate = (
   environment.pokemonUsage[battleType]
     .find((usage) => usage.pokemonId === pokemonId)
     ?.itemStats?.find((item) => item.id === CHOICE_SCARF_ID)?.usageRate ?? 0;
+
+export const getPokemonUsageRate = (
+  environment: EnvironmentState,
+  pokemonId: string,
+  battleType: EnvironmentBattleType,
+) => environment.pokemonUsage[battleType].find((usage) => usage.pokemonId === pokemonId)?.usageRate ?? 0;
 
 const deltasFromCurrent = (
   current: SpeedBuild,

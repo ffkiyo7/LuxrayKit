@@ -9,10 +9,12 @@ import {
   calculateSpeedForBuild,
   CHOICE_SCARF_ID,
   getPokemonSpeedAbility,
+  getPokemonUsageRate,
   getScarfUsageRate,
   getSpeedAbilityProfile,
   groupTiersBySpeed,
   markerInsertIndex,
+  sortVariantsByUsage,
   SCARF_SUGGESTION_USAGE_THRESHOLD,
   speedNatureLabel,
   type OutspeedPlanOption,
@@ -33,8 +35,10 @@ const AXIS_PAD = 64;
 const AXIS_AVATAR_LIMIT = 5;
 const SHEET_AVATAR_LIMIT = 12;
 
+// Axis avatars must match the displayed label = the primary (top) variant only;
+// other same-speed variants live in the tap sheet so the row never misleads.
 const groupAvatarItems = (group: SpeedTierGroup) =>
-  group.variants.flatMap((variant) => variant.pokemon).map((entry) => ({ key: entry.key, iconRef: entry.iconRef, label: entry.displayName }));
+  (group.variants[0]?.pokemon ?? []).map((entry) => ({ key: entry.key, iconRef: entry.iconRef, label: entry.displayName }));
 
 const groupPrimaryLabel = (group: SpeedTierGroup) => group.variants[0].displayLabel;
 
@@ -208,7 +212,10 @@ export function SpeedPage({ environment, activeTeam, presetMember }: { environme
   const finalSpeed = calculateSpeedForBuild(build);
   const scarfUsageRate = getScarfUsageRate(environment, selected.id, battleType);
   const snapshot = speedTierSnapshots.find((entry) => entry.rule === (battleType === 'singles' ? 0 : 1)) ?? speedTierSnapshots[0];
-  const tiers = useMemo(() => groupTiersBySpeed(snapshot.tiers), [snapshot]);
+  const tiers = useMemo(
+    () => sortVariantsByUsage(groupTiersBySpeed(snapshot.tiers), (pid) => getPokemonUsageRate(environment, pid, battleType)),
+    [snapshot, environment, battleType],
+  );
   // Rank-ordered, evenly spaced rows (PokeDB style) instead of value-proportional
   // spacing — keeps the axis short to scroll and gives the marker its own slot.
   const markerIndex = markerInsertIndex(tiers, finalSpeed);

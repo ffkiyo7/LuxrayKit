@@ -5,10 +5,12 @@ import {
   buildOutspeedPlan,
   getScarfUsageRate,
   formatTierLabel,
+  getPokemonUsageRate,
   getSpeedAbilityProfile,
   groupTiersBySpeed,
   markerInsertIndex,
   resolveTierPokemon,
+  sortVariantsByUsage,
   type SpeedBuild,
 } from './speedTier';
 
@@ -166,6 +168,32 @@ describe('speed tier grouping', () => {
     expect(groups.map((group) => group.speed)).toEqual([178, 152]);
     expect(groups[0].variants.map((variant) => variant.label)).toEqual(['极速110族', '满速126族']);
     expect(groups[0].pokemonCount).toBe(2);
+  });
+
+  it('promotes the highest-usage variant first, and keeps order when usage is absent', () => {
+    const groups = groupTiersBySpeed([
+      rawTier(150, '极速85族', '85', '#ff6f61', [{ dexNo: 9, form: '00', japaneseName: 'カメックス' }]),
+      rawTier(150, '满速100族', '100', '#6c8cff', [{ dexNo: 6, form: '00', japaneseName: 'リザードン' }]),
+    ]);
+    const charizardId = groups[0].variants[1].pokemon[0].pokemonId!;
+    expect(charizardId).toBeDefined();
+
+    const promoted = sortVariantsByUsage(groups, (pid) => (pid === charizardId ? 42 : 0));
+    expect(promoted[0].variants.map((v) => v.label)).toEqual(['满速100族', '极速85族']);
+
+    const unchanged = sortVariantsByUsage(groups, () => 0);
+    expect(unchanged[0].variants.map((v) => v.label)).toEqual(['极速85族', '满速100族']);
+  });
+
+  it('reads a pokemon environment usage rate', () => {
+    const environment = {
+      pokemonUsage: {
+        singles: [],
+        doubles: [{ pokemonId: 'charizard', usageRate: 33.3, teamCount: 30, moveIds: [], itemIds: [], teammateIds: [], itemStats: [] }],
+      },
+    } as unknown as Parameters<typeof getPokemonUsageRate>[0];
+    expect(getPokemonUsageRate(environment, 'charizard', 'doubles')).toBe(33.3);
+    expect(getPokemonUsageRate(environment, 'charizard', 'singles')).toBe(0);
   });
 
   it('places the marker slot right below every strictly-faster group', () => {
