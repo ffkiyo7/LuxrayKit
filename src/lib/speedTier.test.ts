@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { EnvironmentState } from '../data/environment';
+import { speedTierSnapshots } from '../data/speedTiers';
 import {
   buildOutspeedPlan,
   getScarfUsageRate,
@@ -110,6 +111,16 @@ describe('speed tier pokemon form resolution', () => {
     expect(wash).toMatchObject({ matched: true, displayName: '清洗洛托姆' });
     expect(heat).toMatchObject({ matched: true, displayName: '加热洛托姆' });
     expect(wash.iconRef).not.toBe(heat.iconRef);
+  });
+
+  it('resolves every pokemon in the speed snapshots to a catalog asset', () => {
+    const unresolved = speedTierSnapshots
+      .flatMap((snapshot) => snapshot.tiers)
+      .flatMap((tier) => tier.pokemon)
+      .map(resolveTierPokemon)
+      .filter((entry) => !entry.matched)
+      .map((entry) => entry.displayName);
+    expect([...new Set(unresolved)]).toEqual([]);
   });
 });
 
