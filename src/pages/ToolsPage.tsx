@@ -1,7 +1,7 @@
 import { Calculator, ChevronRight, Gauge, Search } from 'lucide-react';
 import { Card } from '../components/ui';
 
-export type ToolView = 'calculator' | 'dex';
+export type ToolView = 'calculator' | 'dex' | 'speed';
 
 const toolEntries: Array<{
   id: ToolView | 'speed';
@@ -25,9 +25,8 @@ const toolEntries: Array<{
   {
     id: 'speed',
     title: '速度线计算',
-    description: '敬请期待',
+    description: '对照环境档位，反解超速所需配置。',
     icon: Gauge,
-    disabled: true,
   },
 ];
 

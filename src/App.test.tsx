@@ -258,12 +258,11 @@ describe('App page flows', () => {
     expect(toolButtons.map((button) => button.textContent?.replace(/\s+/g, ''))).toEqual([
       '规则图鉴当前规则内的宝可梦、招式、道具、特性。',
       '伤害计算攻防双方、招式、天气与伤害区间。',
-      '速度线计算敬请期待未开放',
+      '速度线计算对照环境档位，反解超速所需配置。',
     ]);
     expect(await screen.findByRole('button', { name: /伤害计算/ })).toBeTruthy();
     const speedTool = await screen.findByRole('button', { name: /速度线计算/ });
-    expect((speedTool as HTMLButtonElement).disabled).toBe(true);
-    expect(speedTool.textContent).toContain('敬请期待');
+    expect((speedTool as HTMLButtonElement).disabled).toBe(false);
     expect(await screen.findByRole('button', { name: /规则图鉴/ })).toBeTruthy();
     expect(screen.queryByText(/三个入口并列|从本地队伍带入配置|队伍配置带入/)).toBeNull();
     expect(screen.queryByText(/天气、场地/)).toBeNull();
@@ -1231,15 +1230,15 @@ describe('App page flows', () => {
     expect(await screen.findByText(/粗糙皮肤 Rough Skin/)).toBeTruthy();
   });
 
-  it('keeps the speed line tool unavailable from the tools page', async () => {
+  it('opens the speed line tool from the tools page', async () => {
     const user = await renderApp();
 
     await user.click(screen.getByRole('button', { name: '工具' }));
     const speedTool = await screen.findByRole('button', { name: /速度线计算/ });
-    expect((speedTool as HTMLButtonElement).disabled).toBe(true);
+    expect((speedTool as HTMLButtonElement).disabled).toBe(false);
     await user.click(speedTool);
 
-    expect(screen.getByRole('heading', { name: '工具' })).toBeTruthy();
-    expect(screen.queryByText('最终速度')).toBeNull();
+    expect(await screen.findByRole('heading', { name: '速度线' })).toBeTruthy();
+    expect(screen.getByText('最终速度')).toBeTruthy();
   });
 });

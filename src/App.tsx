@@ -16,6 +16,7 @@ const DexPage = lazy(() => import('./pages/DexPage').then((module) => ({ default
 const EnvironmentPage = lazy(() => import('./pages/EnvironmentPage').then((module) => ({ default: module.EnvironmentPage })));
 const ProfilePage = lazy(() => import('./pages/ProfilePage').then((module) => ({ default: module.ProfilePage })));
 const RulePage = lazy(() => import('./pages/RulePage').then((module) => ({ default: module.RulePage })));
+const SpeedPage = lazy(() => import('./pages/SpeedPage').then((module) => ({ default: module.SpeedPage })));
 const TeamPage = lazy(() => import('./pages/TeamPage').then((module) => ({ default: module.TeamPage })));
 const ToolsPage = lazy(() => import('./pages/ToolsPage').then((module) => ({ default: module.ToolsPage })));
 
@@ -99,16 +100,21 @@ function ToolWorkspace({
   selectedMemberId,
   onPickMember,
   onOpenCalculator,
+  environment,
+  activeTeam,
 }: {
   view: ToolView;
   onBack: () => void;
   selectedMemberId?: string;
   onPickMember: (memberId: string) => void;
   onOpenCalculator: (pokemonId: string) => void;
+  environment: EnvironmentState | null;
+  activeTeam?: Team;
 }) {
   const content = {
     calculator: <CalculatorPage selectedMemberId={selectedMemberId} onPickMember={onPickMember} />,
     dex: <DexPage onOpenCalculator={onOpenCalculator} />,
+    speed: environment ? <SpeedPage environment={environment} activeTeam={activeTeam} /> : <PageLoading label="正在载入速度线环境数据..." />,
   }[view];
 
   return (
@@ -267,6 +273,8 @@ function AppShell() {
               setCalculatorMemberId(pokemonId);
               setToolView('calculator');
             }}
+            environment={environmentState}
+            activeTeam={activeTeam}
           />
         ) : (
           <ToolsPage onOpenTool={openTool} />

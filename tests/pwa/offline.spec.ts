@@ -39,8 +39,8 @@ test('keeps app shell, teams, and unavailable tools available offline', async ({
   await expect(page.getByRole('button', { name: /导出备份/ })).toBeVisible();
 
   await page.getByRole('button', { name: '工具' }).click();
-  await expect(page.getByRole('button', { name: /速度线计算/ })).toBeDisabled();
-  await expect(page.getByRole('button', { name: /速度线计算/ })).toContainText('敬请期待');
+  await expect(page.getByRole('button', { name: /速度线计算/ })).toBeEnabled();
+  await expect(page.getByRole('button', { name: /速度线计算/ })).toContainText('对照环境档位');
 
   await context.setOffline(true);
   await page.reload({ waitUntil: 'domcontentloaded' });
@@ -53,8 +53,8 @@ test('keeps app shell, teams, and unavailable tools available offline', async ({
   await expect(page.getByText('离线缓存', { exact: true })).toBeVisible();
 
   await page.getByRole('button', { name: '工具' }).click();
-  await expect(page.getByRole('button', { name: /速度线计算/ })).toBeDisabled();
-  await expect(page.getByRole('button', { name: /速度线计算/ })).toContainText('敬请期待');
+  await expect(page.getByRole('button', { name: /速度线计算/ })).toBeEnabled();
+  await expect(page.getByRole('button', { name: /速度线计算/ })).toContainText('对照环境档位');
 
   await context.setOffline(false);
 });
