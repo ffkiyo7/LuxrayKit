@@ -10,6 +10,16 @@ const screenshotOptions = {
 test.use({ serviceWorkers: 'block' });
 
 const openApp = async (page: Page) => {
+  await page.addInitScript(() => {
+    const originalGetRandomValues = crypto.getRandomValues.bind(crypto);
+    crypto.getRandomValues = ((array: ArrayBufferView | null) => {
+      if (array instanceof Uint32Array && array.length === 1) {
+        array[0] = 0x1234abcd;
+        return array;
+      }
+      return originalGetRandomValues(array as never);
+    }) as typeof crypto.getRandomValues;
+  });
   await page.goto('/');
   // First launch shows the onboarding tour (a z-[60] full-screen overlay).
   // Dismiss it (跳过 → 开始探索) so screenshots capture the real screens
