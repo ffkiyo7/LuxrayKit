@@ -87,6 +87,25 @@ const deleteDb = () =>
     request.onblocked = () => resolve();
   });
 
+const installVisualViewport = (height: number, offsetTop = 0) => {
+  const viewport = {
+    width: 390,
+    height,
+    offsetLeft: 0,
+    offsetTop,
+    pageLeft: 0,
+    pageTop: offsetTop,
+    scale: 1,
+    onresize: null,
+    onscroll: null,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  } as unknown as VisualViewport;
+  vi.stubGlobal('visualViewport', viewport);
+  vi.stubGlobal('innerHeight', 844);
+};
+
 const renderApp = async () => {
   const user = userEvent.setup();
   render(<App />);
@@ -407,6 +426,7 @@ describe('App page flows', () => {
   });
 
   it('creates a team after all teams have been deleted', async () => {
+    installVisualViewport(500, 20);
     const user = await renderApp();
     await openDefaultTeam(user);
 
@@ -416,7 +436,12 @@ describe('App page flows', () => {
     expect(await screen.findByText('还没有队伍')).toBeTruthy();
 
     await user.click(screen.getByRole('button', { name: '新建第一支队伍' }));
-    expect((screen.getByRole('textbox') as HTMLInputElement).value).toBe('队伍1');
+    const nameInput = screen.getByRole('textbox') as HTMLInputElement;
+    expect(nameInput.value).toBe('队伍1');
+    const nameSheet = nameInput.parentElement as HTMLElement;
+    expect(nameSheet.style.bottom).toBe('324px');
+    expect(nameSheet.style.maxHeight).toBe('460px');
+    expect(nameSheet.className).toContain('overflow-y-auto');
     await user.click(screen.getByRole('button', { name: '确认' }));
 
     expect(await screen.findByText('队伍1')).toBeTruthy();

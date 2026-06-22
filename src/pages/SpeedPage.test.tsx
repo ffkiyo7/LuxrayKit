@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { environmentFallbackState, type EnvironmentState } from '../data/environment';
 import { SpeedPage } from './SpeedPage';
 
@@ -24,7 +24,29 @@ const environment: EnvironmentState = {
   },
 };
 
-afterEach(cleanup);
+const installVisualViewport = (height: number, offsetTop = 0) => {
+  const viewport = {
+    width: 390,
+    height,
+    offsetLeft: 0,
+    offsetTop,
+    pageLeft: 0,
+    pageTop: offsetTop,
+    scale: 1,
+    onresize: null,
+    onscroll: null,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  } as unknown as VisualViewport;
+  Object.defineProperty(window, 'visualViewport', { configurable: true, value: viewport });
+  return viewport;
+};
+
+afterEach(() => {
+  cleanup();
+  Object.defineProperty(window, 'visualViewport', { configurable: true, value: undefined });
+});
 
 describe('SpeedPage', () => {
   it('updates the real axis marker from SP and nature controls', async () => {
@@ -70,5 +92,26 @@ describe('SpeedPage', () => {
     await user.click(applyButtons[0]);
     expect(screen.queryByRole('dialog', { name: /^超速 / })).toBeNull();
     expect(screen.getByRole('button', { name: '+ 速度性格' }).getAttribute('aria-pressed')).toBe('true');
+  });
+
+  it('keeps pokemon search results usable inside a reduced visual viewport', async () => {
+    const user = userEvent.setup();
+    installVisualViewport(320);
+    render(<SpeedPage environment={environment} />);
+
+    await user.click(screen.getByRole('button', { name: '搜索宝可梦' }));
+    const results = document.querySelector('[data-speed-search-results]') as HTMLElement | null;
+    expect(results).toBeTruthy();
+    expect(results?.className).toContain('overflow-y-auto');
+    expect(Number.parseFloat(results?.style.maxHeight ?? '')).toBeGreaterThan(0);
+    expect(Number.parseFloat(results?.style.maxHeight ?? '')).toBeLessThanOrEqual(208);
+
+    const search = screen.getByRole('textbox', { name: '搜索宝可梦' });
+    await user.type(search, 'Staraptor');
+    const staraptorResult = screen.getByText('Staraptor').closest('button');
+    expect(staraptorResult).toBeTruthy();
+    await user.click(staraptorResult!);
+
+    expect(screen.queryByRole('textbox', { name: '搜索宝可梦' })).toBeNull();
   });
 });

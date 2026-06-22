@@ -24,6 +24,7 @@ import {
   type SpeedTierGroup,
 } from '../lib/speedTier';
 import { MAX_STAT_POINTS_PER_STAT } from '../lib/statPoints';
+import { useVisualViewportMetrics } from '../hooks/useVisualViewportMetrics';
 import type { Pokemon, Team, TeamMember } from '../types';
 import { Button, Card, OverlappingAvatars, PokemonAvatar } from '../components/ui';
 
@@ -196,11 +197,14 @@ export function SpeedPage({ environment, activeTeam, presetMember }: { environme
   const [build, setBuild] = useState(() => createBuild(defaultPokemon, findBattleForm(defaultPokemon.id, defaultMember?.formId), defaultMember));
   const [query, setQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
+  const [searchResultsMaxHeight, setSearchResultsMaxHeight] = useState(208);
   const [selectedTier, setSelectedTier] = useState<SpeedTierGroup | null>(null);
   const [jumpDirection, setJumpDirection] = useState<ScrollDirection>(null);
   const [centerRequest, setCenterRequest] = useState(0);
   const axisScrollRef = useRef<HTMLDivElement>(null);
+  const searchPanelRef = useRef<HTMLDivElement>(null);
   const nextScrollBehaviorRef = useRef<ScrollBehavior>('auto');
+  const searchViewport = useVisualViewportMetrics(searchOpen);
 
   const selected = pokemon.find((entry) => entry.id === selectedPokemonId) ?? defaultPokemon;
   const selectedForm = findBattleForm(selected.id, selectedFormId) ?? findBattleForm(selected.id, selected.id);
@@ -237,6 +241,16 @@ export function SpeedPage({ environment, activeTeam, presetMember }: { environme
       String(entry.baseStats.speed).includes(needle),
     );
   }, [allForms, query]);
+
+  useLayoutEffect(() => {
+    if (!searchOpen) return;
+    const visibleBottom = searchViewport.offsetTop + searchViewport.height;
+    const panelTop = searchPanelRef.current?.getBoundingClientRect().top ?? 0;
+    const inputAndSpacing = 58;
+    setSearchResultsMaxHeight(
+      Math.max(48, Math.min(208, visibleBottom - panelTop - inputAndSpacing - 12)),
+    );
+  }, [searchOpen, searchViewport.height, searchViewport.offsetTop]);
 
   const updateJumpDirection = useCallback(() => {
     const viewport = axisScrollRef.current;
@@ -371,7 +385,7 @@ export function SpeedPage({ environment, activeTeam, presetMember }: { environme
           <ChevronDown size={16} className="text-textMuted" />
         </button>
         {searchOpen && (
-          <div className="surface-shadow absolute inset-x-0 top-full mt-1 overflow-hidden rounded-lg border border-border bg-card p-2">
+          <div ref={searchPanelRef} className="surface-shadow absolute inset-x-0 top-full mt-1 overflow-hidden rounded-lg border border-border bg-card p-2">
             <input
               autoFocus
               aria-label="搜索宝可梦"
@@ -380,7 +394,11 @@ export function SpeedPage({ environment, activeTeam, presetMember }: { environme
               value={query}
               onChange={(event) => setQuery(event.target.value)}
             />
-            <div className="mt-2 max-h-52 overflow-y-auto">
+            <div
+              className="mt-2 overflow-y-auto"
+              data-speed-search-results
+              style={{ maxHeight: `${searchResultsMaxHeight}px` }}
+            >
               {filteredForms.map((entry) => (
                 <button key={entry.id} className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left hover:bg-secondary" type="button" onClick={() => selectForm(entry)}>
                   <PokemonAvatar iconRef={entry.iconRef} label={entry.chineseName} size="xs" />
