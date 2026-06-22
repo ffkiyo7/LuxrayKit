@@ -120,7 +120,7 @@ button {
 }
 
 .safe-bottom {
-  padding-bottom: calc(84px + env(safe-area-inset-bottom) + var(--lk-bottom-nav-offset, 0px));
+  padding-bottom: calc(84px + env(safe-area-inset-bottom));
 }
 
 .app-shell {
