@@ -73,4 +73,29 @@ describe('useAutoHideBottomNav', () => {
     });
     expect(screen.getByTestId('nav-state').textContent).toBe('shown');
   });
+
+  it('preserves down-hide, up-show, and top-show behavior on long pages', () => {
+    vi.useFakeTimers();
+    const scrollContainer = document.createElement('div');
+    defineScrollMetric(scrollContainer, 'clientHeight', 400);
+    defineScrollMetric(scrollContainer, 'scrollHeight', 2000);
+    document.body.appendChild(scrollContainer);
+
+    render(<HookHarness scrollContainer={scrollContainer} />);
+
+    scrollContainer.scrollTop = 240;
+    fireEvent.scroll(scrollContainer);
+    flushScrollFrame();
+    expect(screen.getByTestId('nav-state').textContent).toBe('hidden');
+
+    scrollContainer.scrollTop = 200;
+    fireEvent.scroll(scrollContainer);
+    flushScrollFrame();
+    expect(screen.getByTestId('nav-state').textContent).toBe('shown');
+
+    scrollContainer.scrollTop = 0;
+    fireEvent.scroll(scrollContainer);
+    flushScrollFrame();
+    expect(screen.getByTestId('nav-state').textContent).toBe('shown');
+  });
 });
