@@ -127,6 +127,7 @@ type AppEnv = Env & {
   POKEDB_DETAIL_CHUNK_SIZE?: string;
   ENVIRONMENT_AUDIT_UNKNOWN_THRESHOLD?: string;
   WORKER_SELF_URL?: string;
+  SCHEDULED_MAX_JITTER_MS?: string;
   SELF?: Fetcher;
 };
 
@@ -146,9 +147,12 @@ const MAX_DETAIL_CHUNK_SIZE = 20;
 const REFRESH_JOB_STALE_MS = 10 * 60 * 1000;
 const REFRESH_JOB_ABANDON_MS = 60 * 60 * 1000;
 const MAX_REFRESH_JOB_STEPS = 10;
-// Spacing between page requests during a full crawl. Kept deliberately unhurried so the
-// daily refresh burst reads less like a scraper hammering the source.
-const PAGE_REQUEST_DELAY_MS = 800;
+// Spacing between page requests during a full crawl. Randomized within a window (600–1800ms)
+// rather than a constant interval — a perfectly flat cadence is the clearest scraper tell.
+const PAGE_REQUEST_DELAY_MS = 600;
+const PAGE_REQUEST_DELAY_JITTER_MS = 1200;
+export const nextPageDelayMs = (random: () => number = Math.random) =>
+  PAGE_REQUEST_DELAY_MS + Math.floor(random() * PAGE_REQUEST_DELAY_JITTER_MS);
 // PokeDB started returning 403 specifically for our identifying bot UA, which froze the
 // whole refresh pipeline at the probe step. We send a browser UA + Accept-Language so the
 // public ranking pages load again.
@@ -419,9 +423,11 @@ export async function fetchTrainerBattlePages(options: {
   battleType: BattleType;
   fetcher?: Fetcher;
   wait?: (milliseconds: number) => Promise<void>;
+  random?: () => number;
 }): Promise<PokeDbTrainerListPayload> {
   const fetcher = options.fetcher ?? fetch;
   const wait = options.wait ?? ((milliseconds: number) => new Promise((resolve) => setTimeout(resolve, milliseconds)));
+  const random = options.random ?? Math.random;
   const firstUrl = trainerListUrl(options.baseUrl, options.season, options.battleType, 1);
   const firstHtml = await fetchPokeDbHtml(firstUrl, fetcher);
   const firstPage = parsePokeDbTrainerListPage(firstHtml, {
@@ -433,7 +439,7 @@ export async function fetchTrainerBattlePages(options: {
   const pages = [firstPage];
 
   for (let page = 2; page <= firstPage.pageCount; page += 1) {
-    await wait(PAGE_REQUEST_DELAY_MS);
+    await wait(nextPageDelayMs(random));
     const pageUrl = trainerListUrl(options.baseUrl, options.season, options.battleType, page);
     const response = await fetcher(pageUrl, {
       headers: {
@@ -601,9 +607,11 @@ export async function fetchPokemonStatisticsBattle(options: {
   detailLimit?: number;
   fetcher?: Fetcher;
   wait?: (milliseconds: number) => Promise<void>;
+  random?: () => number;
 }): Promise<PokeDbPokemonStatisticsPayload> {
   const fetcher = options.fetcher ?? fetch;
   const wait = options.wait ?? ((milliseconds: number) => new Promise((resolve) => setTimeout(resolve, milliseconds)));
+  const random = options.random ?? Math.random;
   const detailLimit = Math.min(Math.max(options.detailLimit ?? DEFAULT_DETAIL_LIMIT, 1), MAX_DETAIL_LIMIT);
   const list = await fetchPokemonList({
     baseUrl: options.baseUrl,
@@ -615,7 +623,7 @@ export async function fetchPokemonStatisticsBattle(options: {
   const detailsByPokemonId: Record<string, PokeDbPokemonDetailPayload> = {};
 
   for (const [index, ranking] of topRankings.entries()) {
-    if (index > 0) await wait(PAGE_REQUEST_DELAY_MS);
+    if (index > 0) await wait(nextPageDelayMs(random));
     detailsByPokemonId[ranking.pokemonId] = await fetchPokemonDetail({
       baseUrl: options.baseUrl,
       season: options.season,
@@ -774,6 +782,7 @@ type RefreshJobDependencies = {
   wait?: (milliseconds: number) => Promise<void>;
   now?: () => Date;
   createJobId?: () => string;
+  random?: () => number;
 };
 
 type ScheduleRefreshStep = (jobId: string) => void;
@@ -991,6 +1000,7 @@ export async function runRefreshJobStep(
   const now = dependencies.now ?? (() => new Date());
   const fetcher = dependencies.fetcher ?? fetch;
   const wait = dependencies.wait ?? ((milliseconds: number) => new Promise((resolve) => setTimeout(resolve, milliseconds)));
+  const random = dependencies.random ?? Math.random;
   const jobText = await env.ENVIRONMENT_CACHE.get(REFRESH_JOB_KEY);
   if (!jobText) throw new Error('Environment refresh job was not found');
   const job = JSON.parse(jobText) as RefreshJob;
@@ -1026,7 +1036,7 @@ export async function runRefreshJobStep(
 
     const chunkDetails: Array<[RefreshPendingDetail, PokeDbPokemonDetailPayload]> = [];
     for (const [index, pending] of chunk.entries()) {
-      if (index > 0) await wait(PAGE_REQUEST_DELAY_MS);
+      if (index > 0) await wait(nextPageDelayMs(random));
       const detail = await fetchPokemonDetail({
         baseUrl: env.POKEDB_BASE_URL || DEFAULT_POKEDB_BASE_URL,
         season: job.season,
@@ -1342,6 +1352,12 @@ export default {
   },
 
   async scheduled(_event: ScheduledEvent, env: AppEnv, ctx: ExecutionContext): Promise<void> {
+    // Spread the probe off the exact cron second so it doesn't fire at a fixed wall-clock
+    // instant every day. Gated by an env var so tests (which omit it) run without delay.
+    const maxJitterMs = Number(env.SCHEDULED_MAX_JITTER_MS ?? 0);
+    if (Number.isFinite(maxJitterMs) && maxJitterMs > 0) {
+      await new Promise((resolve) => setTimeout(resolve, Math.floor(Math.random() * maxJitterMs)));
+    }
     const scheduleNext = (jobId: string) => {
       ctx.waitUntil(triggerRefreshStep(env, jobId));
     };
