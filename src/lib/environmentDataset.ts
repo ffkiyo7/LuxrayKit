@@ -48,9 +48,14 @@ export type EnvironmentTeamSlot = {
   moveIds: string[];
 };
 
+export type RegulationId = 'M-A' | 'M-B';
+
 export type EnvironmentTeamSample = {
   id: string;
   dataKind: 'development-sample' | 'external-snapshot';
+  // Regulation a sample belongs to. Absent on legacy samples, which all predate M-B and
+  // are treated as M-A (see sampleRegulation). Newer ingests stamp this explicitly.
+  regulation?: RegulationId;
   sourceId?: string;
   sourceLabel?: string;
   author: string;

@@ -93,6 +93,14 @@ function EnvironmentHeaderMeta({
         >
           {freshnessLabel}
         </span>
+        {environment.sourceStatus === 'degraded' && (
+          <span
+            className="rounded-full bg-warning/15 px-2 py-0.5 text-[10px] font-semibold text-warning"
+            title="环境数据自动刷新失败，当前展示的可能不是最新数据。"
+          >
+            数据源异常
+          </span>
+        )}
       </div>
       <div className="flex flex-wrap gap-x-2 gap-y-0.5">
         <span>{sourceKindLabels[environment.sourceKind]}</span>
@@ -575,6 +583,9 @@ export function EnvironmentPage({
   const [view, setView] = useState<'home' | 'ranking' | 'methodology' | 'teams'>('home');
   const [detailState, setDetailState] = useState<{ pokemonId: string; returnView: 'home' | 'ranking' } | null>(null);
   const rankings = useMemo(() => environment.pokemonUsage[battleType], [battleType, environment.pokemonUsage]);
+  // The home teaser shows the latest teams by date; since M-B (the live regulation) is the
+  // newest data, it naturally floats to the top without a hard regulation filter. The full
+  // 队伍一览 is where the explicit, M-B-default regulation filter lives.
   const teamSamples = useMemo(
     () => environment.teamSamples.filter((sample) => sample.battleType === battleType),
     [battleType, environment.teamSamples],

@@ -4,6 +4,8 @@ import {
   detectLatestPokeDbSeason,
   fetchPokemonStatisticsBattle,
   fetchTrainerBattlePages,
+  isSnapshotBehindSource,
+  nextPageDelayMs,
   probePokeDbFreshness,
   runRefreshJobStep,
   startRefreshJob,
@@ -146,6 +148,32 @@ const pageHtml = (options: {
   `;
 };
 
+describe('nextPageDelayMs', () => {
+  it('jitters the crawl delay within a 600-1800ms window instead of a constant interval', () => {
+    expect(nextPageDelayMs(() => 0)).toBe(600);
+    expect(nextPageDelayMs(() => 0.5)).toBe(1200);
+    expect(nextPageDelayMs(() => 0.999)).toBe(1798);
+  });
+});
+
+describe('isSnapshotBehindSource', () => {
+  it('flags the snapshot as behind only when the probe found a newer source update', () => {
+    // Source advanced past what we published -> "可能过期".
+    expect(isSnapshotBehindSource('2026-06-23 00:35:00', '2026-06-24 00:29:00')).toBe(true);
+  });
+
+  it('treats an up-to-date or already-pulled snapshot as fresh', () => {
+    expect(isSnapshotBehindSource('2026-06-24 00:29:00', '2026-06-24 00:29:00')).toBe(false);
+    expect(isSnapshotBehindSource('2026-06-24 00:29:00', '2026-06-23 00:35:00')).toBe(false);
+  });
+
+  it('does not claim staleness when either timestamp is unknown', () => {
+    expect(isSnapshotBehindSource(undefined, '2026-06-24 00:29:00')).toBe(false);
+    expect(isSnapshotBehindSource('2026-06-24 00:29:00', undefined)).toBe(false);
+    expect(isSnapshotBehindSource(undefined, undefined)).toBe(false);
+  });
+});
+
 describe('environment Worker PokeDB ingestion', () => {
   it('detects the latest season from the Pokemon-list season selector', async () => {
     const fetcher = vi.fn(async (_input: string | URL | Request) => new Response(pageHtml({ page: 1 }), { status: 200 }));
@@ -229,10 +257,11 @@ describe('environment Worker PokeDB ingestion', () => {
       wait: async (milliseconds) => {
         waits.push(milliseconds);
       },
+      random: () => 0,
     });
 
     expect(fetcher).toHaveBeenCalledTimes(3);
-    expect(waits).toEqual([450]);
+    expect(waits).toEqual([600]);
     expect(fetcher.mock.calls.map(([input]) => String(input))).toEqual([
       'https://example.com/pokemon/list?season=2&rule=0',
       'https://example.com/pokemon/show/0445-00?season=2&rule=0',
@@ -594,6 +623,7 @@ describe('environment Worker PokeDB ingestion', () => {
           waits.push(milliseconds);
         },
         now: () => new Date('2026-06-12T00:01:00.000Z'),
+        random: () => 0,
       },
     );
 
@@ -601,7 +631,7 @@ describe('environment Worker PokeDB ingestion', () => {
     expect(result).toMatchObject({ state: 'collecting', pendingCount: 100 });
     expect(fetcher).toHaveBeenCalledTimes(20);
     expect(fetcher.mock.calls.length + chainedFetches.length).toBeLessThanOrEqual(21);
-    expect(waits).toEqual(Array.from({ length: 19 }, () => 450));
+    expect(waits).toEqual(Array.from({ length: 19 }, () => 600));
     expect(job.pending).toHaveLength(100);
     expect(Object.keys(job.details.singles)).toHaveLength(20);
     expect(job.stepCount).toBe(1);

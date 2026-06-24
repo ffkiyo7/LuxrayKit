@@ -27,7 +27,7 @@ test('keeps app shell, teams, and unavailable tools available offline', async ({
   await page.reload({ waitUntil: 'networkidle' });
   await expect(page.getByRole('heading', { name: '环境', exact: true })).toBeVisible();
 
-  await page.getByRole('button', { name: '队伍' }).click();
+  await page.getByRole('button', { name: '队伍', exact: true }).click();
   await expect(page.getByText('我的队伍')).toBeVisible();
   await page.getByRole('button', { name: /新建/ }).click();
   await page.getByRole('textbox').fill('离线测试队');
@@ -46,7 +46,7 @@ test('keeps app shell, teams, and unavailable tools available offline', async ({
   await page.reload({ waitUntil: 'domcontentloaded' });
   await expect(page.getByRole('heading', { name: '环境', exact: true })).toBeVisible();
 
-  await page.getByRole('button', { name: '队伍' }).click();
+  await page.getByRole('button', { name: '队伍', exact: true }).click();
   await expect(page.getByText('离线测试队')).toBeVisible();
 
   await page.getByRole('button', { name: '我的' }).click();

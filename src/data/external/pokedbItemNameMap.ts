@@ -14,6 +14,7 @@ export const pokedbItemNameToId: Record<string, string> = {
   つめたいいわ: 'icy-rock',
   くろいてっきゅう: 'iron-ball',
   おうじゃのしるし: 'kings-rock',
+  きれいなぬけがら: 'shed-shell',
   たべのこし: 'leftovers',
   でんきだま: 'light-ball',
   ひかりのねんど: 'light-clay',

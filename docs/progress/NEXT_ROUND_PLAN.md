@@ -245,6 +245,50 @@ PokeDB 速度表的修正档用日语原词（最速/準速/無振/最遅），�
 - **实现细节待核**：主页「最新 4 张」的日期字段——VGCPastes 有 `dateShared`，PokeDB 样本可能无日期，需定降级排序键（如无日期者按 rank 视为较旧）。
 - **验收**：环境页「换一批」改为「查看全部」入口、原换一批移除、主页固定 4 张最新卡片；队伍一览区分单/双打、可按「含队伍码」「赛事/排位高分」筛选、可按时间最新→最旧排序、可搜索宝可梦/队伍名；「试试灵感」弹居中卡片弹窗、可关闭/可导入/可跳队伍页；`npm test` 通过；`npm run test:visual` 更新。
 
+### Task 20 — 接入 VGCPastes「Champions M-B」构筑 + 样本按规则（M-A / M-B）筛选（已完成 · 2026-06-24）
+
+> 完成记录：**spike** 扒出 VGCPastes 母表 **Champions M-B tab = gid `1458357160`**（母表 htmlview 的 `items.push` 映射；M-A 为 `791705272`）。M-B 母表 200 队、全 2026-06-17→23（开赛首周、无线下大赛），故 curation 放宽为「保留挂名赛事的队，剔除无赛事 `-` / `Video` / `Team Report` / `Showdown Ladder` 的天梯/内容分享，按赛事封顶 20」→ **入库 30 队、audit issues 0**（全部经 pokepaste 干净映射到当前 M-B catalog）。ingest 脚本参数化（`ingest-vgcpastes-champions.mjs --reg=ma|mb`，M-A 输出逐字节不变、`:check` 仍绿）；`regulation` 仅在非默认（M-B）时落字段，缺省视为 M-A。`EnvironmentTeamSample` 加 `regulation?`，`environment.ts` 并行加载 M-A+M-B 两 chunk（各自兜底）+ 导出 `currentRegulation`，`environmentTeamSamples.ts` 加 `sampleRegulation`。`TeamBrowseView` 加规则筛选胶囊（`M-B / M-A / 全部规则`，默认当前规则 M-B）。**主页 top-4 与详情「相关上位构筑」按用户决策不硬筛规则**——靠时间排序自然让最新的 M-B（双打）浮顶，单打仍显 M-A（唯一的单打数据），避免单打主页空态。另修复 `offline.spec.ts` 既有的 `队伍` 非精确选择器二义（与 Task 19「查看全部队伍」按钮冲突，改 `exact: true`）。`npm test` 289 passed、`tsc`、`build`（M-B 独立 hash chunk 6.8KB gz）、`test:visual`（队伍一览/试试灵感快照更新）、`test:pwa`、`data:vgcpastes:champions-mb:check`、`:champions-ma:check` 全绿。
+
+> **出发点**：本项目 ruleset 已切到 **M-B**（`metadata.ts` `currentRuleSet.id='reg-mb'`、status `current`，mega/item/allowlist 均为 M-B），**但「上位构筑」样本仍是上一规则的 M-A 队伍**——`environment.ts:231` 写死 import `reg_ma_champions_ma_team_samples.json`（Task 2 从 VGCPastes M-A tab 摄入）。VGCPastes 现已发布 **M-B 规则的队伍**，需接入，使站内上位构筑与当前规则一致。
+>
+> **已定决策（2026-06-24）**：① **M-B 与 M-A 并存，按规则筛选**——给样本打 `regulation` 标签（**当前项目内全部样本归 M-A / M-A 的 S2 赛季**，本次导入的归 **M-B**），不引入并行 ruleset 机器。② 主页 top-4 最新 / 试试灵感 / 队伍一览**默认只显 M-B（当前规则）**，提供规则筛选切到 M-A。
+
+- **目标**：接入 VGCPastes M-B 构筑作为新一批 `external-snapshot` 样本，与现有 M-A 样本并存；UI 默认展示当前规则（M-B），可筛选回看 M-A。
+
+- **spike 先行（务必先做，结论回报后再实现 curation）**：
+  1. **定位 M-B tab 的 GID**：VGCPastes 母表 `SHEET_ID=1axlwmzPA49rYkqXh7zHvAtSP-TKbM0ijGYBPRflLSWw`，M-A 用 `gid=791705272`（见 `scripts/ingest-vgcpastes-champions-ma.mjs:13-16`）。M-B 是另一个 tab，需扒出其 `gid`。
+  2. **核 M-B 数据量与赛事**：M-B 2026-06-17 开赛、至今仅约一周，官方线下锦标赛很可能极少。**curation 需放宽**——不照搬 M-A 的 prestige-only + PJCS Top14 + 30 天窗口（`:19-33`），而按 M-B 实际可得调整（可能收「全部官方赛 + 近窗口」甚至先全收，避免样本过少）。结论回报后再定 `FULL_EVENTS` / `CAPPED_EVENTS` / `MIN_SHARED_DATE`。
+
+- **数据层改动（Task 2 的 M-B 镜像）**：
+  - **参数化** `ingest-vgcpastes-champions-ma.mjs`：抽出按规则的 config（`gid` / 赛事白名单 / 上限 / 窗口 / `SOURCE_ID` / 输出路径），用 CLI flag（如 `--reg=mb`）或拆 config map 选择；保留 M-A 既有行为不变（输出与现有 json 逐字一致，避免回归）。
+  - 产出 `src/data/external/vgcpastes/reg_mb_champions_mb_team_samples.json`（**每条样本显式 `regulation:'M-B'`**，`sourceId:'vgcpastes-champions-mb'`）+ 配套 `reg_mb_champions_mb_audit.json`。
+  - 复用 **Task 8** 的构建期受管 chunk 模式（Vite 动态 import、不进 `public/data`、不进 SW 预缓存）。
+  - mapping 走当前 **M-B** catalog（`mapPokepasteSetToEnvironmentSlot`）；跑 `:check` 确认 audit `issues` 为空（M-A 当前为 `[]`），未命中的种/道具/mega 在 spike 阶段补 catalog 或记 warn。
+  - `package.json` 新增 `data:vgcpastes:champions-mb` 与 `:check`。
+
+- **类型 / 规则标签**：
+  - `src/lib/environmentDataset.ts` 的 `EnvironmentTeamSample` 加 `regulation?: 'M-A' | 'M-B'`（`:51-70`）。
+  - `src/pages/environmentTeamSamples.ts` 加 `sampleRegulation(s) => s.regulation ?? 'M-A'`（**缺省=M-A**，故现有 VGCPastes M-A json 与 PokeDB 排位样本无需逐条回填）。
+  - 当前规则映射：`currentRuleSet.id==='reg-mb' → 'M-B'`（供默认筛选用，放在常量或 helper）。
+
+- **装配**：
+  - `environment.ts` 的 `loadVgcPastesTeamSamples`（`:230`）改为并行 import **M-A + M-B 两个 json** 后合并，各自 `.catch` 兜底（任一文件缺失/离线不整批垮）。
+
+- **UI 筛选**：
+  - `src/pages/TeamBrowseView.tsx`：加**规则筛选胶囊**（`M-B / M-A / 全部`），样式同既有 `categoryFilters`（`:31-37,154-166`），**默认 M-B**（当前规则）；与 `category`/`withReplicaCode`/`searchTerm` 一并参与 `filtered`（`:73-81`），并纳入「清除筛选」可见条件（`:205`）。
+  - `src/pages/EnvironmentPage.tsx`：主页 top-4 最新 + 试试灵感取数（`:578-584`，`teamSamples` memo）**默认按当前规则（M-B）过滤**后再 `sortTeamSamplesByDate(...).slice(0, LATEST_TEAM_SAMPLE_COUNT)`。「相关上位构筑」（`:202`）是否也按规则过滤需一并确认（倾向：详细数据页相关构筑跟随当前规则=M-B）。
+
+- **关系 / 复用**：数据侧镜像 **Task 2**；UI 侧复用 **Task 19** 的 `TeamBrowseView` 筛选范式与 `TeamSampleCard`；卡片来源/粒度标签（Task 3/18）对 M-B 样本自动复用。**注意**：M-B 早期样本可能多数无 `replicaCode`/缺配招，卡片粒度胶囊与导入提醒（Task 3）会据 `hasSpread`/`hasMoves`/`replicaCode` 自然降级，无需特判。
+
+- **测试**：
+  - ingest util：M-B curation 解析 / 过滤（参数化后 M-A 路径回归不变）。
+  - `sampleRegulation` 缺省=M-A、显式=M-B。
+  - `TeamBrowseView` 规则筛选：默认 M-B、切 M-A、切全部各自结果正确；与其它筛选叠加。
+  - 主页 top-4 / 试试灵感只取 M-B。
+  - `npm run data:vgcpastes:champions-mb:check`、`npm test`、`npm run build`、`npm run test:visual`（环境页 / 队伍一览快照更新）、`npm run test:pwa`（涉运行时数据加载）全绿。
+
+- **验收**：站内默认展示 M-B 上位构筑（top-4 / 试试灵感 / 队伍一览）；规则筛选可切 M-A / 全部；M-B 样本经 pokepaste 正确 mapping 到 M-B catalog、audit `issues` 空；M-A 样本不受影响仍可见；构建期 chunk 不整批消失；`:check` 与全局验证通过、快照更新。
+
 ## 暂不做
 
 - 完整战斗模拟器 / 用户账号 / 云同步 / 多赛季趋势库（沿用上轮判断）。

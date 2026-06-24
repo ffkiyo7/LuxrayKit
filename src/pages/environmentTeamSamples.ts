@@ -1,6 +1,10 @@
-import type { EnvironmentTeamSample } from '../data/environment';
+import type { EnvironmentTeamSample, RegulationId } from '../data/environment';
 
 export const DEFAULT_TEAM_SAMPLE_SHUFFLE_SEED = 0x9e3779b9;
+
+// Legacy samples predate the M-B regulation and carry no tag, so an absent regulation
+// resolves to M-A. New ingests stamp regulation explicitly.
+export const sampleRegulation = (sample: EnvironmentTeamSample): RegulationId => sample.regulation ?? 'M-A';
 
 export const isVgcPastesSample = (sample: EnvironmentTeamSample) =>
   Boolean(sample.sourceId?.includes('vgcpastes') || sample.id.startsWith('vgcpastes-'));

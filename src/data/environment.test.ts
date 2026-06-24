@@ -100,8 +100,11 @@ describe('environment runtime loading', () => {
     expect(state.sourceKind).toBe('worker');
     expect(state.teamSamples.filter((sample) => sample.sourceId === 'vgcpastes-champions-ma')).toHaveLength(0);
     expect(state.teamSamples.filter((sample) => sample.battleType === 'singles').length).toBeGreaterThan(0);
+    // Each regulation's chunk loads independently, so a failed M-A chunk must not take the
+    // M-B teams (or PokeDB data) down with it.
+    expect(state.teamSamples.filter((sample) => sample.sourceId === 'vgcpastes-champions-mb').length).toBeGreaterThan(0);
     expect(errorSpy).toHaveBeenCalledWith(
-      'Failed to load VGCPastes team samples; continuing with PokeDB-only environment data.',
+      'Failed to load VGCPastes M-A team samples; continuing without them.',
       expect.any(Error),
     );
   });

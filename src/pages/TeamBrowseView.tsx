@@ -11,13 +11,16 @@ import {
 import { useEffect, useMemo, useState } from 'react';
 import { Button, Card, EmptyState } from '../components/ui';
 import {
+  currentRegulation,
   getEnvironmentPokemon,
   type EnvironmentBattleType,
   type EnvironmentTeamSample,
+  type RegulationId,
 } from '../data/environment';
 import { TeamSampleCard } from './TeamSampleCard';
 import {
   nextTeamSampleShuffleSeed,
+  sampleRegulation,
   shuffleTeamSamples,
   sortTeamSamplesByDate,
   teamSampleCategory,
@@ -29,12 +32,19 @@ const battleTypeLabels: Record<EnvironmentBattleType, string> = {
 };
 
 type CategoryFilter = 'all' | 'event' | 'ranked';
+type RegulationFilter = 'all' | RegulationId;
 type DateSort = 'newest' | 'oldest';
 
 const categoryFilters: Array<{ value: CategoryFilter; label: string }> = [
   { value: 'all', label: '全部' },
   { value: 'event', label: '赛事' },
   { value: 'ranked', label: '排位高分' },
+];
+
+const regulationFilters: Array<{ value: RegulationFilter; label: string }> = [
+  { value: 'M-B', label: 'M-B' },
+  { value: 'M-A', label: 'M-A' },
+  { value: 'all', label: '全部规则' },
 ];
 
 const matchesTeamSearch = (sample: EnvironmentTeamSample, searchTerm: string) => {
@@ -64,6 +74,7 @@ export function TeamBrowseView({
   onImportSample: (sample: EnvironmentTeamSample) => Promise<void> | void;
 }) {
   const [searchTerm, setSearchTerm] = useState('');
+  const [regulation, setRegulation] = useState<RegulationFilter>(currentRegulation);
   const [category, setCategory] = useState<CategoryFilter>('all');
   const [withReplicaCode, setWithReplicaCode] = useState(false);
   const [dateSort, setDateSort] = useState<DateSort>('newest');
@@ -73,12 +84,22 @@ export function TeamBrowseView({
     const filtered = samples.filter(
       (sample) =>
         sample.battleType === battleType &&
+        (regulation === 'all' || sampleRegulation(sample) === regulation) &&
         (category === 'all' || teamSampleCategory(sample) === category) &&
         (!withReplicaCode || Boolean(sample.replicaCode)) &&
         matchesTeamSearch(sample, searchTerm),
     );
     return sortTeamSamplesByDate(filtered, dateSort);
-  }, [battleType, category, dateSort, samples, searchTerm, withReplicaCode]);
+  }, [battleType, category, dateSort, regulation, samples, searchTerm, withReplicaCode]);
+
+  const hasActiveFilters =
+    Boolean(searchTerm) || regulation !== currentRegulation || category !== 'all' || withReplicaCode;
+  const resetFilters = () => {
+    setSearchTerm('');
+    setRegulation(currentRegulation);
+    setCategory('all');
+    setWithReplicaCode(false);
+  };
 
   useEffect(() => {
     if (!inspiration) return;
@@ -149,6 +170,26 @@ export function TeamBrowseView({
           />
         </label>
         <div className="mt-3">
+          <p className="text-[11px] font-semibold text-textMuted">规则</p>
+          <div className="mt-1.5 flex flex-wrap gap-2">
+            {regulationFilters.map((filter) => (
+              <button
+                key={filter.value}
+                aria-pressed={regulation === filter.value}
+                className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${
+                  regulation === filter.value
+                    ? 'border-accent bg-accent/15 text-accent'
+                    : 'border-border bg-secondary text-textSecondary'
+                }`}
+                type="button"
+                onClick={() => setRegulation(filter.value)}
+              >
+                {filter.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="mt-3">
           <p className="text-[11px] font-semibold text-textMuted">队伍类别</p>
           <div className="mt-1.5 flex flex-wrap gap-2">
             {categoryFilters.map((filter) => (
@@ -202,16 +243,8 @@ export function TeamBrowseView({
       <section className="space-y-2" aria-label="队伍列表">
         <div className="flex items-center justify-between px-1 text-xs text-textSecondary">
           <span>{visibleSamples.length} 支队伍</span>
-          {(searchTerm || category !== 'all' || withReplicaCode) && (
-            <button
-              className="text-accent"
-              type="button"
-              onClick={() => {
-                setSearchTerm('');
-                setCategory('all');
-                setWithReplicaCode(false);
-              }}
-            >
+          {hasActiveFilters && (
+            <button className="text-accent" type="button" onClick={resetFilters}>
               清除筛选
             </button>
           )}
