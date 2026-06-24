@@ -3,6 +3,8 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { environmentFallbackState, type EnvironmentState } from '../data/environment';
+import { currentDataVersion, currentRuleSet } from '../data';
+import type { Team } from '../types';
 import { SpeedPage } from './SpeedPage';
 
 const environment: EnvironmentState = {
@@ -48,7 +50,41 @@ afterEach(() => {
   Object.defineProperty(window, 'visualViewport', { configurable: true, value: undefined });
 });
 
+const teamWithFastLeadoff = (): Team => ({
+  id: 'team-speed-bug',
+  name: '速度线回归队',
+  ruleSetId: currentRuleSet.id,
+  dataVersionId: currentDataVersion.id,
+  createdAt: '2026-06-24T00:00:00.000Z',
+  updatedAt: '2026-06-24T00:00:00.000Z',
+  notes: '',
+  members: [
+    {
+      id: 'member-garchomp',
+      pokemonId: 'garchomp',
+      formId: 'garchomp',
+      abilityId: 'rough-skin',
+      itemId: 'choice-scarf',
+      moveIds: [],
+      nature: '爽朗',
+      statPoints: { speed: 4 },
+      level: 50,
+      notes: '',
+      legalityStatus: 'legal',
+    },
+  ],
+});
+
 describe('SpeedPage', () => {
+  it('opens on a neutral default instead of inheriting the active team first member', () => {
+    // Regression: opening the tool used to seed SP/nature/scarf from activeTeam.members[0].
+    render(<SpeedPage environment={environment} activeTeam={teamWithFastLeadoff()} />);
+
+    // Neutral default (max SP, no speed nature), not the member's 4 SP / 爽朗 / choice-scarf.
+    expect(screen.getByRole('slider', { name: '速度 SP' }).getAttribute('value')).toBe('32');
+    expect(screen.getByRole('button', { name: '+ 速度性格' }).getAttribute('aria-pressed')).toBe('false');
+  });
+
   it('updates the real axis marker from SP and nature controls', async () => {
     const user = userEvent.setup();
     render(<SpeedPage environment={environment} />);

@@ -189,12 +189,15 @@ function OutspeedSheet({
 }
 
 export function SpeedPage({ environment, activeTeam, presetMember }: { environment: EnvironmentState; activeTeam?: Team; presetMember?: TeamMember }) {
-  const defaultMember = activeTeam?.members.find((member) => member.pokemonId);
-  const defaultPokemon = pokemon.find((entry) => entry.id === defaultMember?.pokemonId) ?? pokemon.find((entry) => entry.id === 'staraptor') ?? pokemon[0];
+  // Open on a neutral default that is independent of any team. Carrying a specific member's
+  // config only happens via an explicit "send to speed" (presetMember, below). Seeding the
+  // default from activeTeam made the tool silently inherit the last-opened team's first
+  // Pokémon and its SP/nature/item — surprising when opening the tool on its own.
+  const defaultPokemon = pokemon.find((entry) => entry.id === 'staraptor') ?? pokemon[0];
   const [battleType, setBattleType] = useState<BattleType>('doubles');
   const [selectedPokemonId, setSelectedPokemonId] = useState(defaultPokemon.id);
-  const [selectedFormId, setSelectedFormId] = useState(defaultMember?.formId);
-  const [build, setBuild] = useState(() => createBuild(defaultPokemon, findBattleForm(defaultPokemon.id, defaultMember?.formId), defaultMember));
+  const [selectedFormId, setSelectedFormId] = useState<string | undefined>(undefined);
+  const [build, setBuild] = useState(() => createBuild(defaultPokemon, findBattleForm(defaultPokemon.id, undefined)));
   const [query, setQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchResultsMaxHeight, setSearchResultsMaxHeight] = useState(208);
