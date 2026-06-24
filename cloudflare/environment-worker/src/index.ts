@@ -329,16 +329,35 @@ const pokemonDetailUrl = (baseUrl: string, season: number, battleType: BattleTyp
 
 type Fetcher = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
 
+// Browser-like request headers so PokeDB sees a coherent Chrome fingerprint rather than just
+// a spoofed User-Agent with nothing else. Referer is derived from the target origin so the
+// requests read like in-site navigation.
+// NOTE: we deliberately omit Accept-Encoding. In the Workers runtime, manually setting it
+// returns the raw compressed body and breaks response.text() parsing; left unset, Cloudflare
+// adds its own and decompresses transparently.
+const buildBrowserHeaders = (url: string, extra: Record<string, string> = {}): Record<string, string> => ({
+  accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+  'accept-language': POKEDB_ACCEPT_LANGUAGE,
+  referer: `${new URL(url).origin}/`,
+  'sec-ch-ua': '"Google Chrome";v="120", "Chromium";v="120", "Not?A_Brand";v="24"',
+  'sec-ch-ua-mobile': '?0',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-fetch-dest': 'document',
+  'sec-fetch-mode': 'navigate',
+  'sec-fetch-site': 'same-origin',
+  'sec-fetch-user': '?1',
+  'upgrade-insecure-requests': '1',
+  'user-agent': POKEDB_USER_AGENT,
+  ...extra,
+});
+
 const fetchPokeDbHtml = async (url: string, fetcher: Fetcher) => {
   const response = await fetcher(url, {
     cache: 'no-store',
-    headers: {
-      accept: 'text/html',
-      'accept-language': POKEDB_ACCEPT_LANGUAGE,
+    headers: buildBrowserHeaders(url, {
       'cache-control': 'no-cache',
       pragma: 'no-cache',
-      'user-agent': POKEDB_USER_AGENT,
-    },
+    }),
   });
 
   if (!response.ok) {
@@ -366,13 +385,10 @@ export async function probePokeDbFreshness(
   fetcher: Fetcher = fetch,
 ): Promise<Omit<PokeDbFreshnessProbe, 'checkedAt'>> {
   const sourceUrl = pokemonFreshnessProbeUrl(baseUrl);
-  const headers = new Headers({
-    accept: 'text/html',
-    'accept-language': POKEDB_ACCEPT_LANGUAGE,
+  const headers = new Headers(buildBrowserHeaders(sourceUrl, {
     'cache-control': 'no-cache',
     pragma: 'no-cache',
-    'user-agent': POKEDB_USER_AGENT,
-  });
+  }));
   if (previousProbe?.etag) headers.set('if-none-match', previousProbe.etag);
   if (previousProbe?.lastModified) headers.set('if-modified-since', previousProbe.lastModified);
 
@@ -442,10 +458,7 @@ export async function fetchTrainerBattlePages(options: {
     await wait(nextPageDelayMs(random));
     const pageUrl = trainerListUrl(options.baseUrl, options.season, options.battleType, page);
     const response = await fetcher(pageUrl, {
-      headers: {
-        accept: 'text/html',
-        'user-agent': POKEDB_USER_AGENT,
-      },
+      headers: buildBrowserHeaders(pageUrl),
     });
     if (!response.ok) {
       throw new Error(`${options.battleType} season ${options.season} page ${page} returned ${response.status}`);
