@@ -1267,7 +1267,9 @@ describe('App page flows', () => {
     expect((speedTool as HTMLButtonElement).disabled).toBe(false);
     await user.click(speedTool);
 
-    expect(await screen.findByRole('heading', { name: '速度线' })).toBeTruthy();
+    // SpeedPage is lazy-loaded and gated on the async environment load, so allow the same
+    // generous window the other lazy-page waits use (waitForDexPage) to avoid a CI flake.
+    expect(await screen.findByRole('heading', { name: '速度线' }, { timeout: 5000 })).toBeTruthy();
     expect(screen.getByText('最终速度')).toBeTruthy();
   });
 });
