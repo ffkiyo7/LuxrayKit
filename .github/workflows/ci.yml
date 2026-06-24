@@ -1,8 +1,12 @@
 name: CI
 
 on:
+  # Run once per change via the PR, and once on main when work actually lands. Avoids the
+  # duplicate run you'd get from push + pull_request firing on the same feature-branch commit.
   push:
+    branches: [main]
   pull_request:
+    branches: [main]
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
