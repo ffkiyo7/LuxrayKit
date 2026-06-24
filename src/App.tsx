@@ -1,6 +1,7 @@
 import { ArrowLeft, BarChart3, ExternalLink, ShieldCheck, UserCircle, Users, Wrench } from 'lucide-react';
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { BottomNav } from './components/BottomNav';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { Header } from './components/Header';
 import { Onboarding } from './components/onboarding/Onboarding';
 import { Button } from './components/ui';
@@ -388,8 +389,10 @@ function AppShell() {
 
 export function App() {
   return (
-    <AppProvider>
-      <AppShell />
-    </AppProvider>
+    <ErrorBoundary>
+      <AppProvider>
+        <AppShell />
+      </AppProvider>
+    </ErrorBoundary>
   );
 }
