@@ -93,6 +93,14 @@ function EnvironmentHeaderMeta({
         >
           {freshnessLabel}
         </span>
+        {environment.sourceStatus === 'degraded' && (
+          <span
+            className="rounded-full bg-warning/15 px-2 py-0.5 text-[10px] font-semibold text-warning"
+            title="环境数据自动刷新失败，当前展示的可能不是最新数据。"
+          >
+            数据源异常
+          </span>
+        )}
       </div>
       <div className="flex flex-wrap gap-x-2 gap-y-0.5">
         <span>{sourceKindLabels[environment.sourceKind]}</span>

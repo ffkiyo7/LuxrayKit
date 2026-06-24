@@ -54,6 +54,9 @@ export type EnvironmentState = {
   seasonLabel: string;
   sourceKind: 'worker' | 'static' | 'seed';
   freshness: 'fresh' | 'stale';
+  // Health of the refresh pipeline itself (distinct from freshness): 'degraded' means the
+  // latest refresh attempt failed, so the data may lag the source even if we can't confirm it.
+  sourceStatus: 'ok' | 'degraded';
   dataStatusLabel: string;
   overallUsageBasis: EnvironmentUsageBasis;
   pokemonUsage: Record<EnvironmentBattleType, EnvironmentPokemonUsage[]>;
@@ -95,7 +98,7 @@ const estimateSampleTeamCount = (usage: EnvironmentPokemonUsage[]) => {
 
 const toEnvironmentState = (
   dataset: EnvironmentDataset,
-  metadata: Pick<EnvironmentState, 'loadStatus' | 'seasonLabel' | 'sourceKind' | 'freshness'>,
+  metadata: Pick<EnvironmentState, 'loadStatus' | 'seasonLabel' | 'sourceKind' | 'freshness' | 'sourceStatus'>,
   extraAuditIssues: EnvironmentDatasetAuditIssue[] = [],
 ): EnvironmentState => {
   const audited = auditDataset(dataset);
@@ -106,6 +109,7 @@ const toEnvironmentState = (
     seasonLabel: metadata.seasonLabel,
     sourceKind: metadata.sourceKind,
     freshness: metadata.freshness,
+    sourceStatus: metadata.sourceStatus,
     dataStatusLabel: audited.dataset.statusLabel,
     overallUsageBasis: audited.dataset.overallUsageBasis ?? 'absolute',
     pokemonUsage: {
@@ -127,6 +131,7 @@ export const environmentFallbackState = toEnvironmentState(currentEnvironmentDat
   seasonLabel: '开发样例',
   sourceKind: 'seed',
   freshness: 'stale',
+  sourceStatus: 'ok',
 });
 
 const isTrainerListPayload = (
@@ -187,7 +192,7 @@ export const createPokeDbEnvironmentDatasetFromSnapshot = (
 
 export const createEnvironmentStateFromPokeDbSnapshot = (
   snapshot: PokeDbEnvironmentSnapshotPayload,
-  metadata: Pick<EnvironmentState, 'sourceKind' | 'freshness'> = {
+  metadata: Pick<EnvironmentState, 'sourceKind' | 'freshness'> & { sourceStatus?: EnvironmentState['sourceStatus'] } = {
     sourceKind: 'static',
     freshness: 'stale',
   },
@@ -201,6 +206,7 @@ export const createEnvironmentStateFromPokeDbSnapshot = (
       loadStatus: 'pokedb',
       seasonLabel: firstPayload?.season ?? '未知赛季',
       ...metadata,
+      sourceStatus: metadata.sourceStatus ?? 'ok',
     },
     currentEnvironmentSeedAudit.issues,
   );
@@ -212,6 +218,7 @@ type FetchedEnvironmentSnapshot = {
   snapshot: PokeDbEnvironmentSnapshotPayload;
   url: string;
   cacheState?: string;
+  sourceStatus?: string;
 };
 
 const fetchEnvironmentSnapshot = async (
@@ -228,6 +235,7 @@ const fetchEnvironmentSnapshot = async (
     snapshot: (await response.json()) as PokeDbEnvironmentSnapshotPayload,
     url,
     cacheState: response.headers.get('x-luxray-cache-state') ?? undefined,
+    sourceStatus: response.headers.get('x-luxray-source-status') ?? undefined,
   };
 };
 
@@ -278,6 +286,7 @@ export const loadEnvironmentState = async (
     return createEnvironmentStateFromPokeDbSnapshot(result.snapshot, {
       sourceKind: 'worker',
       freshness: result.cacheState === 'fresh' ? 'fresh' : 'stale',
+      sourceStatus: result.sourceStatus === 'degraded' ? 'degraded' : 'ok',
     }, vgcPastesTeamSamples);
   } catch {
     // Static deployments and offline installs can keep using the bundled maintenance snapshot.

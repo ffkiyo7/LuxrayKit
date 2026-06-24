@@ -50,6 +50,7 @@ const makeEnvironment = (overallUsageBasis: EnvironmentState['overallUsageBasis'
   seasonLabel: 'M-2',
   sourceKind: 'worker',
   freshness: 'fresh',
+  sourceStatus: 'ok',
   sourceUpdatedAt: '2026-06-10T23:58:00.000+09:00',
 });
 

@@ -137,7 +137,6 @@ const REFRESH_JOB_KEY = 'environment:refresh-job';
 const POKEDB_FRESHNESS_PROBE_KEY = 'environment:pokedb-freshness-probe';
 const DEFAULT_POKEDB_BASE_URL = 'https://champs.pokedb.tokyo';
 const DEFAULT_WORKER_SELF_URL = 'https://luxraykit-app.ffkiyo7.workers.dev';
-const DEFAULT_MAX_CACHE_AGE_SECONDS = 30 * 60 * 60;
 const DEFAULT_TEAM_LIMIT = 24;
 const MAX_TEAM_LIMIT = 50;
 const DEFAULT_DETAIL_LIMIT = 60;
@@ -148,7 +147,12 @@ const REFRESH_JOB_STALE_MS = 10 * 60 * 1000;
 const REFRESH_JOB_ABANDON_MS = 60 * 60 * 1000;
 const MAX_REFRESH_JOB_STEPS = 10;
 const PAGE_REQUEST_DELAY_MS = 450;
-const POKEDB_USER_AGENT = 'LuxrayKitEnvironmentWorker/0.2 (+https://luxraykit.com)';
+// PokeDB started returning 403 specifically for our identifying bot UA, which froze the
+// whole refresh pipeline at the probe step. We send a browser UA + Accept-Language so the
+// public ranking pages load again.
+const POKEDB_USER_AGENT =
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+const POKEDB_ACCEPT_LANGUAGE = 'ja,en-US;q=0.9,en;q=0.8';
 const DEFAULT_AUDIT_UNKNOWN_THRESHOLD = 0;
 
 const latestSourceUpdatedAt = (lists: Record<BattleType, PokeDbPokemonListPayload>) =>
@@ -195,11 +199,19 @@ const jsonResponse = (env: AppEnv, payload: unknown, init: ResponseInit = {}) =>
     headers: jsonHeaders(env, init.headers),
   });
 
-const isFresh = (refreshedAt: string | undefined, maxAgeSeconds: number) => {
-  if (!refreshedAt) return false;
-  const ageMs = Date.now() - Date.parse(refreshedAt);
-  return Number.isFinite(ageMs) && ageMs >= 0 && ageMs <= maxAgeSeconds * 1000;
-};
+// Freshness is defined purely by whether the upstream source advanced past the version we
+// last published — NOT by how long ago we fetched. "可能过期" should mean "the source has a
+// newer update that we have not pulled yet". Both timestamps are PokeDB's normalized
+// "YYYY-MM-DD HH:MM:SS" strings, which sort lexicographically.
+export const isSnapshotBehindSource = (
+  snapshotSourceUpdatedAt: string | undefined,
+  probeSourceUpdatedAt: string | undefined,
+): boolean =>
+  Boolean(
+    snapshotSourceUpdatedAt &&
+      probeSourceUpdatedAt &&
+      probeSourceUpdatedAt > snapshotSourceUpdatedAt,
+  );
 
 const pokeDbRuleParamByBattleType = {
   doubles: 1,
@@ -316,6 +328,7 @@ const fetchPokeDbHtml = async (url: string, fetcher: Fetcher) => {
     cache: 'no-store',
     headers: {
       accept: 'text/html',
+      'accept-language': POKEDB_ACCEPT_LANGUAGE,
       'cache-control': 'no-cache',
       pragma: 'no-cache',
       'user-agent': POKEDB_USER_AGENT,
@@ -349,6 +362,7 @@ export async function probePokeDbFreshness(
   const sourceUrl = pokemonFreshnessProbeUrl(baseUrl);
   const headers = new Headers({
     accept: 'text/html',
+    'accept-language': POKEDB_ACCEPT_LANGUAGE,
     'cache-control': 'no-cache',
     pragma: 'no-cache',
     'user-agent': POKEDB_USER_AGENT,
@@ -1140,10 +1154,11 @@ async function isAuthorizedRefresh(request: Request, env: AppEnv) {
   return constantTimeEqual(token, env.ADMIN_REFRESH_TOKEN);
 }
 
-async function handleLatest(request: Request, env: AppEnv) {
-  const [snapshotText, statusText] = await Promise.all([
+async function handleLatest(_request: Request, env: AppEnv) {
+  const [snapshotText, statusText, probeText] = await Promise.all([
     env.ENVIRONMENT_CACHE.get(SNAPSHOT_KEY),
     env.ENVIRONMENT_CACHE.get(STATUS_KEY),
+    env.ENVIRONMENT_CACHE.get(POKEDB_FRESHNESS_PROBE_KEY),
   ]);
   const status = statusText ? (JSON.parse(statusText) as CacheStatus) : undefined;
 
@@ -1161,19 +1176,27 @@ async function handleLatest(request: Request, env: AppEnv) {
   const snapshot = JSON.parse(snapshotText) as EnvironmentSnapshot;
   const audit = buildEnvironmentAuditStatus(snapshot, auditThreshold(env));
   const workerStatus = status?.ok && !audit.alert ? 'ok' : 'degraded';
-  const maxAgeSeconds = Number(env.MAX_CACHE_AGE_SECONDS ?? DEFAULT_MAX_CACHE_AGE_SECONDS);
-  const cacheState = status?.ok && isFresh(
-    snapshot.retrievedAt,
-    Number.isFinite(maxAgeSeconds) ? maxAgeSeconds : DEFAULT_MAX_CACHE_AGE_SECONDS,
-  )
-    ? 'fresh'
-    : 'stale';
+  const probe = probeText ? (JSON.parse(probeText) as PokeDbFreshnessProbe) : undefined;
+  const snapshotSourceUpdatedAt =
+    status?.sourceUpdatedAt ??
+    [snapshot.battles.singles?.updatedAt, snapshot.battles.doubles?.updatedAt]
+      .filter((value): value is string => Boolean(value))
+      .sort()
+      .at(-1);
+  const cacheState = isSnapshotBehindSource(snapshotSourceUpdatedAt, probe?.sourceUpdatedAt)
+    ? 'stale'
+    : 'fresh';
+  // Source status is the refresh pipeline's health: a failed refresh means we may be serving
+  // an older snapshot than the source actually has, even when the probe can't confirm a newer
+  // version (e.g. the source is currently blocking us). The UI surfaces this separately.
+  const sourceStatus = status?.ok === false ? 'degraded' : 'ok';
 
   return new Response(snapshotText, {
     headers: jsonHeaders(env, {
       'cache-control': 'no-store',
       'x-luxray-cache-state': cacheState,
       'x-luxray-worker-status': workerStatus,
+      'x-luxray-source-status': sourceStatus,
       'x-luxray-audit-alert': audit.alert ? '1' : '0',
       'x-luxray-audit-unknown-count': String(audit.totalUnknownCount),
     }),

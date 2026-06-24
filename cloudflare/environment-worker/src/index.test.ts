@@ -4,6 +4,7 @@ import {
   detectLatestPokeDbSeason,
   fetchPokemonStatisticsBattle,
   fetchTrainerBattlePages,
+  isSnapshotBehindSource,
   probePokeDbFreshness,
   runRefreshJobStep,
   startRefreshJob,
@@ -145,6 +146,24 @@ const pageHtml = (options: {
     </article>
   `;
 };
+
+describe('isSnapshotBehindSource', () => {
+  it('flags the snapshot as behind only when the probe found a newer source update', () => {
+    // Source advanced past what we published -> "可能过期".
+    expect(isSnapshotBehindSource('2026-06-23 00:35:00', '2026-06-24 00:29:00')).toBe(true);
+  });
+
+  it('treats an up-to-date or already-pulled snapshot as fresh', () => {
+    expect(isSnapshotBehindSource('2026-06-24 00:29:00', '2026-06-24 00:29:00')).toBe(false);
+    expect(isSnapshotBehindSource('2026-06-24 00:29:00', '2026-06-23 00:35:00')).toBe(false);
+  });
+
+  it('does not claim staleness when either timestamp is unknown', () => {
+    expect(isSnapshotBehindSource(undefined, '2026-06-24 00:29:00')).toBe(false);
+    expect(isSnapshotBehindSource('2026-06-24 00:29:00', undefined)).toBe(false);
+    expect(isSnapshotBehindSource(undefined, undefined)).toBe(false);
+  });
+});
 
 describe('environment Worker PokeDB ingestion', () => {
   it('detects the latest season from the Pokemon-list season selector', async () => {
