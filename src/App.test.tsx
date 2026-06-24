@@ -139,6 +139,8 @@ const findSampleForImportButton = (button: HTMLElement) => {
 
 const revealEnvironmentSample = async (user: ReturnType<typeof userEvent.setup>, sample: typeof testEnvironmentState.teamSamples[number]) => {
   await user.click(await screen.findByRole('button', { name: '查看全部队伍' }));
+  // The library defaults to the live regulation (M-B); legacy M-A samples need 全部规则.
+  await user.click(screen.getByRole('button', { name: '全部规则' }));
   if (sample.battleType === 'doubles') {
     await user.click(screen.getByRole('button', { name: '双打' }));
   } else {
@@ -151,6 +153,8 @@ const revealEnvironmentSample = async (user: ReturnType<typeof userEvent.setup>,
 
 const revealVisibleReplicaCodeSample = async (user: ReturnType<typeof userEvent.setup>) => {
   await user.click(await screen.findByRole('button', { name: '查看全部队伍' }));
+  // The library defaults to the live regulation (M-B); legacy M-A samples need 全部规则.
+  await user.click(screen.getByRole('button', { name: '全部规则' }));
   await user.click(screen.getByRole('button', { name: '双打' }));
   await user.click(screen.getByRole('checkbox', { name: '含队伍码' }));
 

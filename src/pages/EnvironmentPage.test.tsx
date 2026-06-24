@@ -68,9 +68,12 @@ const makeTierEnvironment = (): EnvironmentState => ({
   },
 });
 
+// 队伍一览 defaults its regulation filter to the live rule (M-B). Fixtures here represent
+// current-rule teams, so untagged samples default to M-B; tests that exercise the
+// regulation filter pass an explicit regulation, which is preserved.
 const makeTeamSampleEnvironment = (teamSamples: EnvironmentTeamSample[]): EnvironmentState => ({
   ...makeEnvironment('rank-relative'),
-  teamSamples,
+  teamSamples: teamSamples.map((sample) => ({ regulation: 'M-B' as const, ...sample })),
 });
 
 afterEach(() => {
@@ -318,6 +321,52 @@ describe('EnvironmentPage usage basis', () => {
 
     await user.click(screen.getByRole('button', { name: '双打' }));
     expect(screen.getByText('Doubles Only Team')).toBeTruthy();
+  });
+
+  it('filters the team library by regulation, defaulting to the current rule (M-B)', async () => {
+    const user = userEvent.setup();
+    const regulationSample = (
+      id: string,
+      title: string,
+      regulation: EnvironmentTeamSample['regulation'],
+      dateShared: string,
+    ): EnvironmentTeamSample => ({
+      id,
+      dataKind: 'external-snapshot',
+      sourceId: 'vgcpastes-champions',
+      author: `${title} author`,
+      score: 0,
+      title,
+      regulation,
+      battleType: 'singles',
+      reportUrl: `https://example.com/${id}`,
+      dateShared,
+      hasMoves: true,
+      hasSpread: true,
+      slots: [{ pokemonId: 'garchomp', moveIds: [] }],
+    });
+    const samples = [
+      regulationSample('mb-1', 'MB Team One', 'M-B', '2026-06-12'),
+      regulationSample('mb-2', 'MB Team Two', 'M-B', '2026-06-11'),
+      regulationSample('ma-1', 'MA Team One', 'M-A', '2026-06-10'),
+    ];
+
+    render(<EnvironmentPage environment={makeTeamSampleEnvironment(samples)} onImportSample={() => undefined} />);
+
+    await user.click(screen.getByRole('button', { name: '查看全部队伍' }));
+    const listedTitles = () =>
+      within(screen.getByRole('region', { name: '队伍列表' }))
+        .getAllByRole('heading', { level: 3 })
+        .map((heading) => heading.textContent);
+
+    // Defaults to the live regulation (M-B): the M-A team is hidden until selected.
+    expect(listedTitles()).toEqual(['MB Team One', 'MB Team Two']);
+
+    await user.click(screen.getByRole('button', { name: 'M-A' }));
+    expect(listedTitles()).toEqual(['MA Team One']);
+
+    await user.click(screen.getByRole('button', { name: '全部规则' }));
+    expect(listedTitles()).toEqual(['MB Team One', 'MB Team Two', 'MA Team One']);
   });
 
   it('shows season, freshness, and timestamps without exposing PokeDB on the home or ranking headers', async () => {

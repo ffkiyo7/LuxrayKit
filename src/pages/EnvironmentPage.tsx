@@ -575,6 +575,9 @@ export function EnvironmentPage({
   const [view, setView] = useState<'home' | 'ranking' | 'methodology' | 'teams'>('home');
   const [detailState, setDetailState] = useState<{ pokemonId: string; returnView: 'home' | 'ranking' } | null>(null);
   const rankings = useMemo(() => environment.pokemonUsage[battleType], [battleType, environment.pokemonUsage]);
+  // The home teaser shows the latest teams by date; since M-B (the live regulation) is the
+  // newest data, it naturally floats to the top without a hard regulation filter. The full
+  // 队伍一览 is where the explicit, M-B-default regulation filter lives.
   const teamSamples = useMemo(
     () => environment.teamSamples.filter((sample) => sample.battleType === battleType),
     [battleType, environment.teamSamples],

@@ -11,6 +11,7 @@ import {
   type EnvironmentTeamSample,
   type EnvironmentTeamSlot,
   type EnvironmentUsageBasis,
+  type RegulationId,
 } from '../lib/environmentDataset';
 import {
   buildEnvironmentDatasetFromPokeDbOpenData,
@@ -29,7 +30,12 @@ export type {
   EnvironmentTeamSample,
   EnvironmentTeamSlot,
   EnvironmentUsageBasis,
+  RegulationId,
 };
+
+// The regulation the app is currently configured for. Surfaces as the default lens for
+// team-sample browsing so users see teams that match the live rule set first.
+export const currentRegulation: RegulationId = currentRuleSet.id === 'reg-mb' ? 'M-B' : 'M-A';
 
 export const WORKER_ENVIRONMENT_SNAPSHOT_URL = '/api/environment/latest';
 export const POKEDB_ENVIRONMENT_SNAPSHOT_URL = '/data/pokedb/reg-ma-environment.json';
@@ -227,13 +233,29 @@ const fetchEnvironmentSnapshot = async (
 
 let vgcPastesTeamSamplesPromise: Promise<EnvironmentTeamSample[]> | undefined;
 
+// Each regulation's curated VGCPastes set is its own build-time chunk. They load
+// independently so a missing/failed file for one regulation never blanks out the other
+// (a regression Task 8 hardened against). M-A is tagged implicitly via sampleRegulation.
+const loadVgcPastesRegulationFile = async (
+  loader: () => Promise<{ default: unknown }>,
+  label: string,
+): Promise<EnvironmentTeamSample[]> => {
+  try {
+    const payload = (await loader()).default;
+    if (!Array.isArray(payload)) throw new Error(`VGCPastes ${label} payload is not an array.`);
+    return payload as EnvironmentTeamSample[];
+  } catch (error) {
+    console.error(`Failed to load VGCPastes ${label} team samples; continuing without them.`, error);
+    return [];
+  }
+};
+
 const loadVgcPastesTeamSamples = async (): Promise<EnvironmentTeamSample[]> => {
-  vgcPastesTeamSamplesPromise ??= import('./external/vgcpastes/reg_ma_champions_ma_team_samples.json')
-    .then((module) => {
-      const payload = module.default as unknown;
-      if (!Array.isArray(payload)) throw new Error('VGCPastes team sample payload is not an array.');
-      return payload as EnvironmentTeamSample[];
-    })
+  vgcPastesTeamSamplesPromise ??= Promise.all([
+    loadVgcPastesRegulationFile(() => import('./external/vgcpastes/reg_ma_champions_ma_team_samples.json'), 'M-A'),
+    loadVgcPastesRegulationFile(() => import('./external/vgcpastes/reg_mb_champions_mb_team_samples.json'), 'M-B'),
+  ])
+    .then((groups) => groups.flat())
     .catch((error) => {
       vgcPastesTeamSamplesPromise = undefined;
       console.error('Failed to load VGCPastes team samples; continuing with PokeDB-only environment data.', error);

@@ -10,29 +10,123 @@ import * as esbuild from 'esbuild';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
 const checkOnly = process.argv.includes('--check');
+const regArg = (process.argv.find((arg) => arg.startsWith('--reg=')) ?? '').split('=')[1] ?? 'ma';
 const SHEET_ID = '1axlwmzPA49rYkqXh7zHvAtSP-TKbM0ijGYBPRflLSWw';
-const SHEET_GID = '791705272';
-const DEFAULT_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${SHEET_GID}`;
-const FALLBACK_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${SHEET_GID}`;
-const CSV_URL = process.env.VGCPASTES_CHAMPIONS_MA_CSV_URL ?? DEFAULT_CSV_URL;
-const SOURCE_ID = 'vgcpastes-champions-ma';
-// Curation: keep only the highest-prestige Regulation M-A events (official live
-// national championships + CP Regionals/Specials). Lower-tier online/community
-// tournaments and ladder shares are dropped. PJCS is the largest field, so it is
-// capped to its top placements to keep the bundled set under ~100 teams.
-const FULL_EVENTS = new Set([
+
+function eventOf(row) {
+  return (row['Tournament / Event'] ?? '').trim();
+}
+
+// --- Regulation M-A curation: prestige allowlist + capped large fields + recency. ---
+// Keep only the highest-prestige Regulation M-A events (official live national
+// championships + CP Regionals/Specials). Lower-tier online/community tournaments and
+// ladder shares are dropped. PJCS is the largest field, so it is capped to its top
+// placements to keep the bundled set under ~100 teams.
+const MA_FULL_EVENTS = new Set([
   'Indianapolis Regional 2026',
   'Turin SPE 2026',
   'Korea PTC 2026',
   'Singapore MBL 2026',
   'Thailand MBL 2026',
 ]);
-const CAPPED_EVENTS = { 'PJCS 2026': 14 };
-// Recency window for the curation (30 days before the 2026-06-19 curation date).
-// Fixed for deterministic output; raise when refreshing the curated set.
-const MIN_SHARED_DATE = new Date('2026-05-20T00:00:00Z');
-const sampleOutputPath = resolve(ROOT, 'src/data/external/vgcpastes/reg_ma_champions_ma_team_samples.json');
-const auditOutputPath = resolve(ROOT, 'src/data/external/vgcpastes/reg_ma_champions_ma_audit.json');
+const MA_CAPPED_EVENTS = { 'PJCS 2026': 14 };
+// Recency window (30 days before the 2026-06-19 curation date). Fixed for deterministic
+// output; raise when refreshing the curated set.
+const MA_MIN_SHARED_DATE = new Date('2026-05-20T00:00:00Z');
+
+function curateChampionsMa(rows) {
+  const candidateRows = rows.filter((row) => {
+    if (!extractPokepasteId(row.Pokepaste ?? '')) return false;
+    if (!MA_FULL_EVENTS.has(eventOf(row)) && !(eventOf(row) in MA_CAPPED_EVENTS)) return false;
+    const sharedAt = parseDateShared(row['Date Shared'] ?? '');
+    return sharedAt && sharedAt >= MA_MIN_SHARED_DATE;
+  });
+  // For capped events keep only the best-placing teams (lowest numeric rank first;
+  // unranked rows sort last and are dropped once the cap is reached).
+  const cappedKeep = new Set();
+  for (const [event, limit] of Object.entries(MA_CAPPED_EVENTS)) {
+    candidateRows
+      .filter((row) => eventOf(row) === event)
+      .map((row) => ({ row, rank: rankNumber(row.Rank ?? '') ?? Number.POSITIVE_INFINITY }))
+      .sort((a, b) => a.rank - b.rank)
+      .slice(0, limit)
+      .forEach(({ row }) => cappedKeep.add(row));
+  }
+  return candidateRows.filter((row) => MA_FULL_EVENTS.has(eventOf(row)) || cappedKeep.has(row));
+}
+
+// --- Regulation M-B curation. M-B opened 2026-06-17 with no offline majors yet, so the
+// M-A prestige allowlist would match nothing. Instead keep every team tied to a named
+// competitive event — dropping eventless ladder/casual shares and pure content rows
+// (video/report/ladder) — capped per event so no single tournament dominates. Loosen or
+// switch to a Featured-only tab once the format matures and offline results appear. ---
+const MB_EXCLUDED_EVENTS = new Set(['', '-', 'Video', 'Team Report', 'Showdown Ladder']);
+const MB_PER_EVENT_CAP = 20;
+const MB_MIN_SHARED_DATE = new Date('2026-06-17T00:00:00Z');
+
+function curateChampionsMb(rows) {
+  const candidateRows = rows.filter((row) => {
+    if (!extractPokepasteId(row.Pokepaste ?? '')) return false;
+    if (MB_EXCLUDED_EVENTS.has(eventOf(row))) return false;
+    const sharedAt = parseDateShared(row['Date Shared'] ?? '');
+    return sharedAt && sharedAt >= MB_MIN_SHARED_DATE;
+  });
+  const eventGroups = new Map();
+  for (const row of candidateRows) {
+    const event = eventOf(row);
+    if (!eventGroups.has(event)) eventGroups.set(event, []);
+    eventGroups.get(event).push(row);
+  }
+  const keep = new Set();
+  for (const group of eventGroups.values()) {
+    group
+      .map((row) => ({ row, rank: rankNumber(row.Rank ?? '') ?? Number.POSITIVE_INFINITY }))
+      .sort((a, b) => a.rank - b.rank)
+      .slice(0, MB_PER_EVENT_CAP)
+      .forEach(({ row }) => keep.add(row));
+  }
+  return candidateRows.filter((row) => keep.has(row));
+}
+
+// Per-regulation ingestion config. The Champions workbook keeps one master tab per
+// regulation, all sharing the same column layout, so only the curation policy, sheet
+// gid, source identity, season tag, and output paths differ between regulations.
+const REGULATIONS = {
+  ma: {
+    regulation: 'M-A',
+    sheetGid: '791705272',
+    sourceId: 'vgcpastes-champions-ma',
+    sourceLabel: 'VGCPastes Champions M-A',
+    season: 'reg-ma',
+    csvEnvVar: 'VGCPASTES_CHAMPIONS_MA_CSV_URL',
+    sampleFile: 'reg_ma_champions_ma_team_samples.json',
+    auditFile: 'reg_ma_champions_ma_audit.json',
+    curate: curateChampionsMa,
+  },
+  mb: {
+    regulation: 'M-B',
+    sheetGid: '1458357160',
+    sourceId: 'vgcpastes-champions-mb',
+    sourceLabel: 'VGCPastes Champions M-B',
+    season: 'reg-mb',
+    csvEnvVar: 'VGCPASTES_CHAMPIONS_MB_CSV_URL',
+    sampleFile: 'reg_mb_champions_mb_team_samples.json',
+    auditFile: 'reg_mb_champions_mb_audit.json',
+    curate: curateChampionsMb,
+  },
+};
+
+const REG = REGULATIONS[regArg];
+if (!REG) {
+  console.error(`Unknown --reg=${regArg}. Use --reg=ma or --reg=mb.`);
+  process.exit(1);
+}
+
+const DEFAULT_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${REG.sheetGid}`;
+const FALLBACK_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${REG.sheetGid}`;
+const CSV_URL = process.env[REG.csvEnvVar] ?? DEFAULT_CSV_URL;
+const sampleOutputPath = resolve(ROOT, `src/data/external/vgcpastes/${REG.sampleFile}`);
+const auditOutputPath = resolve(ROOT, `src/data/external/vgcpastes/${REG.auditFile}`);
 const bundledToolsPath = resolve(ROOT, '.npm-cache/vgcpastes-tools.mjs');
 const execFileAsync = promisify(execFile);
 
@@ -292,25 +386,7 @@ async function buildSamples() {
     throw new Error(`VGCPastes CSV missing required columns: ${missingColumns.join(', ')}`);
   }
 
-  const eventOf = (row) => (row['Tournament / Event'] ?? '').trim();
-  const candidateRows = rows.filter((row) => {
-    if (!extractPokepasteId(row.Pokepaste ?? '')) return false;
-    if (!FULL_EVENTS.has(eventOf(row)) && !(eventOf(row) in CAPPED_EVENTS)) return false;
-    const sharedAt = parseDateShared(row['Date Shared'] ?? '');
-    return sharedAt && sharedAt >= MIN_SHARED_DATE;
-  });
-  // For capped events keep only the best-placing teams (lowest numeric rank first;
-  // unranked rows sort last and are dropped once the cap is reached).
-  const cappedKeep = new Set();
-  for (const [event, limit] of Object.entries(CAPPED_EVENTS)) {
-    candidateRows
-      .filter((row) => eventOf(row) === event)
-      .map((row) => ({ row, rank: rankNumber(row.Rank ?? '') ?? Number.POSITIVE_INFINITY }))
-      .sort((a, b) => a.rank - b.rank)
-      .slice(0, limit)
-      .forEach(({ row }) => cappedKeep.add(row));
-  }
-  const filteredRows = candidateRows.filter((row) => FULL_EVENTS.has(eventOf(row)) || cappedKeep.has(row));
+  const filteredRows = REG.curate(rows);
   const issues = [];
   const samples = [];
 
@@ -347,14 +423,17 @@ async function buildSamples() {
       const reportUrl = firstPresent(extractUrl(row['Link to Source'] ?? ''), extractUrl(row['Report / Video'] ?? ''), extractUrl(row.Pokepaste ?? ''));
       const title = firstPresent(row['Team Description'], row['Tournament / Event'], `VGCPastes ${teamId}`);
       samples.push({
-        id: `${SOURCE_ID}-${slug(teamId || pokepasteId || String(index + 1)) || index + 1}`,
+        id: `${REG.sourceId}-${slug(teamId || pokepasteId || String(index + 1)) || index + 1}`,
         dataKind: 'external-snapshot',
-        sourceId: SOURCE_ID,
-        sourceLabel: 'VGCPastes Champions M-A',
+        sourceId: REG.sourceId,
+        sourceLabel: REG.sourceLabel,
         author: firstPresent(row['Full Name'], row.Owner, 'VGCPastes'),
-        season: 'reg-ma',
+        season: REG.season,
         score: rank ?? 0,
         ...(rank ? { rank } : {}),
+        // M-A is the implicit default (older samples carry no regulation), so only stamp
+        // non-default regulations to keep the existing M-A output byte-identical.
+        ...(REG.regulation !== 'M-A' ? { regulation: REG.regulation } : {}),
         title,
         battleType: 'doubles',
         reportUrl,
@@ -396,9 +475,9 @@ let result;
 try {
   result = await buildSamples();
 } catch (error) {
-  console.error('VGCPastes Champions M-A import failed.');
+  console.error(`VGCPastes Champions ${REG.regulation} import failed.`);
   console.error(error instanceof Error ? error.message : String(error));
-  console.error('If Google Sheets is temporarily unreachable, set VGCPASTES_CHAMPIONS_MA_CSV_URL to a local CSV path or mirror URL and rerun.');
+  console.error(`If Google Sheets is temporarily unreachable, set ${REG.csvEnvVar} to a local CSV path or mirror URL and rerun.`);
   process.exit(1);
 }
 const currentAuditText = await readFile(auditOutputPath, 'utf8').catch(() => '');
@@ -422,7 +501,7 @@ for (const output of outputs) {
   if (normalizeGeneratedText(currentText) !== output.nextText) changedOutputs.push(output);
 }
 
-console.log('VGCPastes Champions M-A import report');
+console.log(`VGCPastes Champions ${REG.regulation} import report`);
 console.log(`- CSV source: ${result.csvUrl}`);
 console.log(`- rows: ${result.inputRows}, filtered: ${result.filteredRows}, imported: ${result.samples.length}`);
 console.log(`- audit issues: ${result.audit.issues.length}`);
