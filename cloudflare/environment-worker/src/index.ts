@@ -146,7 +146,9 @@ const MAX_DETAIL_CHUNK_SIZE = 20;
 const REFRESH_JOB_STALE_MS = 10 * 60 * 1000;
 const REFRESH_JOB_ABANDON_MS = 60 * 60 * 1000;
 const MAX_REFRESH_JOB_STEPS = 10;
-const PAGE_REQUEST_DELAY_MS = 450;
+// Spacing between page requests during a full crawl. Kept deliberately unhurried so the
+// daily refresh burst reads less like a scraper hammering the source.
+const PAGE_REQUEST_DELAY_MS = 800;
 // PokeDB started returning 403 specifically for our identifying bot UA, which froze the
 // whole refresh pipeline at the probe step. We send a browser UA + Accept-Language so the
 // public ranking pages load again.

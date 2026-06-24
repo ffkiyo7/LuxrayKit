@@ -251,7 +251,7 @@ describe('environment Worker PokeDB ingestion', () => {
     });
 
     expect(fetcher).toHaveBeenCalledTimes(3);
-    expect(waits).toEqual([450]);
+    expect(waits).toEqual([800]);
     expect(fetcher.mock.calls.map(([input]) => String(input))).toEqual([
       'https://example.com/pokemon/list?season=2&rule=0',
       'https://example.com/pokemon/show/0445-00?season=2&rule=0',
@@ -620,7 +620,7 @@ describe('environment Worker PokeDB ingestion', () => {
     expect(result).toMatchObject({ state: 'collecting', pendingCount: 100 });
     expect(fetcher).toHaveBeenCalledTimes(20);
     expect(fetcher.mock.calls.length + chainedFetches.length).toBeLessThanOrEqual(21);
-    expect(waits).toEqual(Array.from({ length: 19 }, () => 450));
+    expect(waits).toEqual(Array.from({ length: 19 }, () => 800));
     expect(job.pending).toHaveLength(100);
     expect(Object.keys(job.details.singles)).toHaveLength(20);
     expect(job.stepCount).toBe(1);

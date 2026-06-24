@@ -31,8 +31,13 @@
     "head_sampling_rate": 1
   },
   "triggers": {
+    // PokeDB publishes once a day around 00:30 JST (15:30 UTC). Instead of probing hourly
+    // (24 fixed hits/day, a recognizable bot rhythm), we cluster around that window and keep
+    // a few sparse safety-net checks for drift/off-cycle updates. All times UTC.
     "crons": [
-      "17 * * * *"
+      "35 15 * * *",
+      "5 16 * * *",
+      "35 2,8,20 * * *"
     ]
   },
   "vars": {
