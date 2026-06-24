@@ -11,7 +11,6 @@ import {
 import { useEffect, useMemo, useState } from 'react';
 import { Button, Card, EmptyState } from '../components/ui';
 import {
-  currentRegulation,
   getEnvironmentPokemon,
   type EnvironmentBattleType,
   type EnvironmentTeamSample,
@@ -74,7 +73,9 @@ export function TeamBrowseView({
   onImportSample: (sample: EnvironmentTeamSample) => Promise<void> | void;
 }) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [regulation, setRegulation] = useState<RegulationFilter>(currentRegulation);
+  // Default to "全部规则" so users (especially on the default 单打 view) always land on a
+  // populated list; pre-selecting the live regulation could show an empty page and confuse.
+  const [regulation, setRegulation] = useState<RegulationFilter>('all');
   const [category, setCategory] = useState<CategoryFilter>('all');
   const [withReplicaCode, setWithReplicaCode] = useState(false);
   const [dateSort, setDateSort] = useState<DateSort>('newest');
@@ -93,10 +94,10 @@ export function TeamBrowseView({
   }, [battleType, category, dateSort, regulation, samples, searchTerm, withReplicaCode]);
 
   const hasActiveFilters =
-    Boolean(searchTerm) || regulation !== currentRegulation || category !== 'all' || withReplicaCode;
+    Boolean(searchTerm) || regulation !== 'all' || category !== 'all' || withReplicaCode;
   const resetFilters = () => {
     setSearchTerm('');
-    setRegulation(currentRegulation);
+    setRegulation('all');
     setCategory('all');
     setWithReplicaCode(false);
   };
