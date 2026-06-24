@@ -69,9 +69,9 @@ const makeTierEnvironment = (): EnvironmentState => ({
   },
 });
 
-// 队伍一览 defaults its regulation filter to the live rule (M-B). Fixtures here represent
-// current-rule teams, so untagged samples default to M-B; tests that exercise the
-// regulation filter pass an explicit regulation, which is preserved.
+// 队伍一览 defaults its regulation filter to 全部规则 (all). Fixtures here tag untagged
+// samples as M-B (current rule); tests that exercise the regulation filter pass an explicit
+// regulation, which is preserved.
 const makeTeamSampleEnvironment = (teamSamples: EnvironmentTeamSample[]): EnvironmentState => ({
   ...makeEnvironment('rank-relative'),
   teamSamples: teamSamples.map((sample) => ({ regulation: 'M-B' as const, ...sample })),
@@ -324,7 +324,7 @@ describe('EnvironmentPage usage basis', () => {
     expect(screen.getByText('Doubles Only Team')).toBeTruthy();
   });
 
-  it('filters the team library by regulation, defaulting to the current rule (M-B)', async () => {
+  it('filters the team library by regulation, defaulting to 全部规则 so no view starts empty', async () => {
     const user = userEvent.setup();
     const regulationSample = (
       id: string,
@@ -360,7 +360,10 @@ describe('EnvironmentPage usage basis', () => {
         .getAllByRole('heading', { level: 3 })
         .map((heading) => heading.textContent);
 
-    // Defaults to the live regulation (M-B): the M-A team is hidden until selected.
+    // Defaults to 全部规则: every team is visible on entry, so the page is never empty.
+    expect(listedTitles()).toEqual(['MB Team One', 'MB Team Two', 'MA Team One']);
+
+    await user.click(screen.getByRole('button', { name: 'M-B' }));
     expect(listedTitles()).toEqual(['MB Team One', 'MB Team Two']);
 
     await user.click(screen.getByRole('button', { name: 'M-A' }));
