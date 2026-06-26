@@ -5,13 +5,25 @@ This Worker is the migration target for running Luxray Kit as one Cloudflare Wor
 - Static assets serve the Vite `dist` frontend.
 - `/api/*` routes run in the Worker.
 - Production routes are `https://luxraykit.com/*` and `https://www.luxraykit.com/*`.
-- Cron refreshes the latest PokeDB environment snapshot once per day.
+- Scheduled cron probes PokeDB on a few fixed times per day; when the source changes it creates a refresh job that a Durable Object alarm steps to completion (see "Refresh pipeline" below).
 - KV stores the latest usable snapshot.
 - The app reads `GET /api/environment/latest`.
 - Pokemon-specific recommendations read `GET /api/pokemon/:pokemonId/teams?battleType=singles`.
 - Optional admin refresh uses `POST /api/environment/refresh` with `Authorization: Bearer <token>`.
 
 The Worker dynamically detects the latest PokeDB season, caches Pokemon ranking/detail statistics, adds report-linked team samples from the previous season, and exposes audit health in `/api/environment/status`.
+
+## Refresh pipeline (cron + Durable Object alarm)
+
+Refreshes are driven by cron + a Durable Object alarm, not by `env.SELF.fetch` self-chaining.
+
+1. **Probe (`scheduled` handler):** each cron tick (times in `wrangler.jsonc`, clustered around PokeDB's ~00:30 JST daily publish plus sparse safety-net checks) waits a random jitter (`SCHEDULED_MAX_JITTER_MS`), fetches one cheap list page, and compares a `season + updated-date` content signature. Unchanged ⇒ cheap exit. Changed ⇒ create a refresh job in KV (`environment:refresh-job`).
+2. **Step (`EnvironmentRefreshDurableObject.alarm`):** the alarm runs `runRefreshJobStep` every `REFRESH_ALARM_DELAY_MS` (1s), advancing the cursor-batched detail fetch until the job is `done`, then deletes the job and the alarm.
+3. **Retry:** a failed step increments `failureCount`; at `MAX_REFRESH_JOB_FAILURES` (6) the job is abandoned (logged), otherwise it retries after `REFRESH_ALARM_FAILURE_RETRY_MS` (10min).
+
+Why a DO instead of cron self-chaining: the Workers free plan caps **50 external subrequests per invocation**, so details are fetched in cursor batches (`POKEDB_DETAIL_CHUNK_SIZE`). The old self-chain lost its `waitUntil` subrequests when the cron parent invocation ended, freezing jobs and leaving data stale. The DO alarm owns the stepping instead.
+
+`POST /api/environment/refresh` (admin-only) triggers the same job manually; `?step=1&jobId=<id>` runs a single step. The cron/DO path needs no token.
 
 ## Files
 

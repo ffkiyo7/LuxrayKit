@@ -1,0 +1,290 @@
+# Luxray Kit 开发者文档
+
+面向贡献者的工程说明。内容以仓库 `main` 当前代码为准核对，覆盖架构、数据流、Worker 刷新管线、脚本与部署。
+
+> 注意：仓库根的 `README.md` 偏产品视角，`docs/progress/DEVELOPMENT_PROGRESS.md` 已明显过期（详见文末「已知过期文档」）。本文档以代码为准。
+
+---
+
+## 1. 项目概览
+
+Luxray Kit 是一个移动端优先的 Pokémon Champions 对战辅助 PWA。核心特征：
+
+- **纯前端 SPA**：React 19 + Vite 7 + TypeScript，无后端业务数据库；用户数据只存本地 IndexedDB。
+- **单一 Cloudflare Worker**：`luxraykit-app` 一个 Worker 同时托管 Vite 构建产物（`dist/`）、`/api/*` 环境数据接口，以及定时抓取 PokeDB 的 cron / Durable Object 刷新管线。
+- **环境数据三级回退**：在线读 Worker KV 快照 → 静态 JSON 快照 → 仓库内置 seed。即使断网或 Worker 不可用，应用仍可启动。
+
+> 包名仍是历史名 `pokemon-champions-assistant`（`package.json`、IndexedDB 库名沿用），产品名为 Luxray Kit。改名时注意这两处是同一个历史标识，不要误改 IndexedDB 名导致用户数据丢失。
+
+### 技术栈
+
+| 类别 | 选型 |
+| --- | --- |
+| 框架 | React 19 + Vite 7 + TypeScript 5.8 |
+| 样式 | Tailwind CSS 3（`tailwind.config.js` / `postcss.config.js`） |
+| 图标 | `lucide-react` |
+| 导航 | tab + view 本地 state，**无 react-router** |
+| 本地存储 | IndexedDB（手写 `src/lib/db.ts`，无 ORM） |
+| PWA | 手写 `public/manifest.webmanifest` + `public/sw.js`，`main.tsx` 注册 SW |
+| 伤害计算 | `@smogon/calc` Gen9 公式 + 项目自采 Champions 参数 |
+| 速度计算 | 自有 Champions SP 公式 |
+| 服务端 | Cloudflare Workers（Assets + Functions + Cron + Durable Object + KV） |
+| 测试 | Vitest（单元/组件）+ Playwright（PWA / 视觉回归） |
+| 部署 | Cloudflare Workers Builds（Git 集成，push `main` 自动构建部署） |
+
+---
+
+## 2. 快速开始
+
+### 环境要求
+
+- Node：`.node-version` 锁定 **22.16.0**（建议本地用此版本）。
+  - ⚠️ 不一致点：CI（`.github/workflows/ci.yml`）使用 Node **24**。两处目前不一致，改动 Node 版本时请同步两边，或视作已知偏差。
+- 包管理：npm（仓库提供 `package-lock.json`，CI 用 `npm ci`）。
+
+### 常用命令
+
+```bash
+npm install        # 安装依赖
+npm run dev        # Vite 开发服务器，绑定 127.0.0.1（移动端优先，建议用手机模拟器调试）
+npm run build      # tsc -b 全量类型检查 + vite build → dist/
+npm run preview    # 本地预览构建产物
+npm test           # Vitest 单元/组件测试（CI 必跑）
+npm run test:pwa   # Playwright PWA / 离线测试
+npm run test:visual# Playwright 移动端视觉回归
+```
+
+> PWA 提示：开发期 Service Worker 可能缓存旧资源。改动未生效时，在 DevTools → Application → Service Workers 注销后硬刷新。
+
+---
+
+## 3. 目录结构
+
+```
+src/
+  main.tsx              # 入口：挂载 App + 注册 service worker
+  App.tsx               # AppShell：Tab/overlay/toolView 路由，环境数据加载，导入流程
+  branding.ts           # 产品名等品牌常量
+  types.ts              # 全局领域类型（Pokemon/Move/Item/Team/UserPreference 等）
+  state/AppContext.tsx  # 全局 store（teams + preferences），封装 IndexedDB 持久化
+  lib/                  # 纯逻辑层（无 React 依赖，便于单测）
+    db.ts               # IndexedDB repository + schema 迁移
+    environmentDataset.ts   # 环境数据结构 + 审计（auditEnvironmentDataset）
+    pokedbEnvironment.ts     # PokeDB HTML 解析 + 数据集构建（前端与 Worker 共用）
+    environmentImport.ts     # 环境样本 → 本地队伍导入
+    calculations.ts / damageAdapter.ts  # 速度 / 伤害计算
+    legality.ts / teamSchema.ts / exportImport.ts / statPoints.ts ...
+  data/
+    index.ts            # re-export seed/regMA
+    environment.ts      # 环境数据加载管线（三级回退 + VGCPastes 合并）
+    seed/regMA/         # Regulation Set M-A 版本化 seed（catalog/moves/items/abilities/allowlist/metadata...）
+    external/           # 外部抓取产物（pokedb/ 快照、vgcpastes/ 样本、名称映射）
+  pages/                # 各页面（懒加载）：Environment / Team / Tools / Calculator / Dex / Speed / Profile / Rule
+  components/           # BottomNav / Header / PokemonPicker / onboarding / ui 等
+  hooks/                # useAutoHideBottomNav / useVisualViewportMetrics
+
+cloudflare/environment-worker/   # 生产 Worker（前端 + API + cron + DO）
+scripts/                         # 数据维护脚本（Node ESM .mjs）
+public/                          # 静态资源 + sw.js + manifest + 静态环境快照
+tests/pwa/                       # Playwright 规格 + 视觉快照基线
+docs/                            # 产品/研究/QA/进度文档（部分过期）
+```
+
+---
+
+## 4. 前端架构
+
+### 4.1 组件树与路由
+
+无路由库。`App.tsx` 用本地 state 充当「路由器」：
+
+```
+main.tsx
+ └─ App
+     └─ ErrorBoundary
+         └─ AppProvider (state/AppContext)
+             └─ AppShell
+```
+
+`AppShell` 的关键 state：
+
+- `activeTab: 'environment' | 'teams' | 'tools' | 'profile'` —— 底部 4 Tab。
+- `overlay: 'rule' | null` —— 覆盖层（当前规则图鉴页），打开时隐藏底部导航。
+- `toolView: 'calculator' | 'dex' | 'speed' | null` —— 工具页内的二级视图。
+- 队伍成员「带入」工具的预设：`calcPreset`（攻/防方）、`speedPresetMemberId`、`calculatorMemberId`。
+
+页面全部用 `React.lazy` + `Suspense` 懒加载并经 Vite 分包（见 4.4）。
+
+### 4.2 全局状态：`AppContext`
+
+`state/AppContext.tsx` 暴露 `useAppStore()`，提供 `teams`、`preferences` 及一组异步操作（`saveTeam` / `deleteTeam` / `addTeam` / `updateMember` / `replacePreferences` / `replaceTeams` / `clearLocalData` 等）。
+
+设计要点：
+
+- 每个写操作**先更新内存 state，再异步写 IndexedDB**（乐观更新）。
+- 队伍排序用 `sortOrder`；新建队伍排到最前（`nextTopSortOrder`）。
+- `normalizePreferences` 兜底合并 `defaultPreferences`，保证旧用户缺字段时不崩。
+- `useAppStore` 在 Provider 外调用会抛错。
+
+### 4.3 本地持久化：`lib/db.ts`
+
+- IndexedDB 库名 `pokemon-champions-assistant`，`DB_VERSION = 2`。
+- 两个 object store：`teams`（keyPath `id`）、`meta`（keyPath `key`，存 `preferences` / `initialized` / `schemaVersion`）。
+- 首次启动且未初始化时写入 `defaultTeams` + `defaultPreferences`，并置 `initialized=true`。
+- **Schema 迁移**：`onupgradeneeded` 中按 `oldVersion` 升级。v2 迁移把旧 EV 字段迁到 `statPoints`（`migrateLegacyEvStatPoints`）。
+- **数据迁移**：`migrateLegacyStarterTeam` 把历史「M-A 测试队」starter 替换为当前 `defaultTeams[0]`。
+- 改 schema 时务必递增 `DB_VERSION` 并在 `onupgradeneeded` 补迁移，否则老用户库会报错。
+
+### 4.4 构建分包
+
+`vite.config.ts` 的 `manualChunks` 手动切出大块以优化首屏：
+
+- `calc-engine` ← `@smogon/calc`
+- `regma-moves` ← `move-catalog.ts`
+- `regma-pokemon-catalog` ← `catalog.ts` / `catalog-batch-*` / `catalog-forms.ts` / `mega-catalog.ts`
+
+> 注意 `manualChunks` 对路径做了 `\\`→`/` 归一化（兼容 Windows）。新增大 seed 文件时考虑是否要并入既有 chunk。
+
+---
+
+## 5. 数据层
+
+### 5.1 Seed（`src/data/seed/regMA/`）
+
+Regulation Set M-A 的版本化静态数据：宝可梦 catalog（分 batch）、形态、Mega、招式、learnset、道具、特性、allowlist、性格、默认队伍、来源 manifest 与 `metadata.ts`（`currentRuleSet` / `currentDataVersion` / `defaultPreferences`）。`src/data/index.ts` 统一 re-export。
+
+`currentRegulation`（`data/environment.ts`）由 `currentRuleSet.id` 推导（`reg-mb` → `M-B`，否则 `M-A`），作为队伍样本浏览的默认视角。
+
+### 5.2 环境数据加载管线（`src/data/environment.ts`）
+
+`loadEnvironmentState()` 是前端读取环境数据的唯一入口，三级回退：
+
+1. **Worker 快照**：`GET /api/environment/latest?refresh=<ts>`（`cache: 'no-store'`）。读响应头 `x-luxray-cache-state`（`fresh`/`stale`）与 `x-luxray-source-status`（`ok`/`degraded`）决定 `freshness` / `sourceStatus`。
+2. **静态快照**：`/data/pokedb/reg-ma-environment.json`（`cache: 'force-cache'`）。供纯静态部署 / 离线使用。
+3. **内置 seed**：`environmentFallbackState`（来自 `environmentDatasetSeed.ts`），始终可用的开发样例。
+
+每级成功拿到 base 快照后，再**并行**懒加载 VGCPastes 锦标赛样本（`loadVgcPastesTeamSamples`）合并进去。VGCPastes 按 regulation 拆成独立 build chunk（`reg_ma_*` / `reg_mb_*`），单个文件失败只是少一批样本，不会让整页空白（`loadVgcPastesRegulationFile` 各自 try/catch）。
+
+`PokeDbEnvironmentSnapshotPayload` 支持三种 PokeDB 形态（statistics / trainer-list / open-data ranked-teams），由 `isStatisticsPayload` / `isTrainerListPayload` 分派到对应 builder。
+
+### 5.3 数据审计（`lib/environmentDataset.ts`）
+
+所有进入 UI 的环境数据先经 `auditEnvironmentDataset(dataset, catalog, expectedMetadata)`：未知的 Pokémon / 招式 / 道具 / 特性 / 性格引用会被记录到 `auditIssues` 并从展示数据中剔除。`environmentCatalog` 从 seed 派生（id 列表）。这是「数据来源与口径明确标注、不混入未知项」的保证机制，也是 Worker 端 `ENVIRONMENT_AUDIT_UNKNOWN_THRESHOLD` 校验的同源逻辑。
+
+`pokedbEnvironment.ts` 的 HTML 解析器（`parsePokeDbPokemonListPage` / `parsePokeDbPokemonDetailPage` / `parsePokeDbTrainerListPage`）**前端、Worker、维护脚本三方共用**——改解析逻辑会同时影响在线刷新和离线快照生成。
+
+---
+
+## 6. Cloudflare Worker（`cloudflare/environment-worker/`）
+
+单 Worker `luxraykit-app`（`wrangler.jsonc`）同时负责：静态资源（`assets` → `../../dist`，SPA fallback）、`/api/*` 与 `/health`（`run_worker_first`）、cron 刷新、Durable Object 步进。
+
+### 6.1 路由（`src/index.ts` 的 `fetch`）
+
+| 方法 + 路径 | 说明 |
+| --- | --- |
+| `GET /health` | 健康检查 |
+| `GET /api/environment/latest` | 最新快照 + `x-luxray-cache-state` / `-source-status` / `-worker-status` 头 |
+| `GET /api/environment/status` | 刷新状态与审计健康 |
+| `GET /api/pokemon/:pokemonId/teams?battleType=singles` | 某宝可梦相关队伍（来自 team-index） |
+| `POST /api/environment/refresh` | 受保护，手动触发刷新（`Authorization: Bearer <ADMIN_REFRESH_TOKEN>`）；支持 `?step=1&jobId=` 单步 |
+| 其它 `/api/*` | 404 JSON |
+| 其它 | `env.ASSETS.fetch`（前端） |
+
+### 6.2 KV（namespace `ENVIRONMENT_CACHE`）
+
+| key | 内容 |
+| --- | --- |
+| `environment:latest` | 当前对外快照 |
+| `environment:status` | 刷新状态（`refreshedAt` / `sourceUpdatedAt` / 审计） |
+| `environment:team-index` | 宝可梦 → 队伍倒排索引 |
+| `environment:refresh-job` | 进行中的刷新 job（`stepCount` / `failureCount`） |
+| `environment:pokedb-freshness-probe` | 上游新鲜度探针（season + 更新日签名） |
+
+### 6.3 刷新管线：cron + Durable Object alarm
+
+**这是与旧文档最大的差异点。** 当前刷新由 **cron 触发、Durable Object alarm 步进**，而非自链式 `env.SELF.fetch`。
+
+- **触发**（`scheduled` handler）：cron 触发后加随机抖动（`SCHEDULED_MAX_JITTER_MS`，避开固定整点 bot 节奏），调 `startScheduledRefresh` 先发廉价 list 页探针；按「season + 更新日」内容签名比对，**仅在上游变化时**创建刷新 job。cron 时间见 `wrangler.jsonc`（约 `15:35` / `16:05` UTC 主窗口围绕 PokeDB 每日 00:30 JST 发布，加 `02/08/20:35` 稀疏兜底）。
+- **步进**（`EnvironmentRefreshDurableObject.alarm`）：DO alarm 每约 `REFRESH_ALARM_DELAY_MS = 1000ms` 跑一步 `runRefreshJobStep`，直到 job `done` 后自动清理（删 job + 删 alarm）。
+- **失败重试**：单步异常累加 `failureCount`，达到 `MAX_REFRESH_JOB_FAILURES = 6` 则放弃（记日志）；否则 `REFRESH_ALARM_FAILURE_RETRY_MS = 10min` 后重试。
+- **为何这样设计**：免费计划单次 Worker 调用**最多 50 个外部子请求**，所以宝可梦详情是 cursor 分批抓（`POKEDB_DETAIL_CHUNK_SIZE`）；DO alarm 取代旧的 cron 自链——旧方案里子请求的 `waitUntil` 在 cron 父调用结束时被取消，导致 job 卡住、数据显示「可能过期」。
+
+### 6.4 自定义域名
+
+`wrangler.jsonc` 的 `routes` 现为 **active**：`luxraykit.com` 与 `www.luxraykit.com` 均 `custom_domain: true`，deploy 时 Cloudflare 自动建橙云代理 DNS + 签证书。（旧进度文档称该 routes 已注释/停用，已不符。）
+
+### 6.5 诊断「数据过期」
+
+```bash
+# 看对外新鲜度（fresh = 正常，stale = PWA 显示「可能过期」）
+curl -sD - -o /dev/null https://luxraykit.com/api/environment/latest | grep -i x-luxray
+
+# 读 KV（namespace id 见 wrangler.jsonc：43aafe9bdd2c4d01a980325d75eb9630）
+npx wrangler kv key get "environment:status" --namespace-id <ns> --remote
+npx wrangler kv key get "environment:refresh-job" --namespace-id <ns> --remote
+```
+
+- `refresh-job` 的 `stepCount` 应递增、完成后 key 消失；若卡住（stepCount 不动）可删除该 key 解锁。
+- 手动刷新需 `ADMIN_REFRESH_TOKEN`（Worker secret，**不可读回**，只能 `wrangler secret put` 重设）；cron/DO 路径不需要它。
+
+### 6.6 本地开发 Worker
+
+```bash
+npm run worker:app:dev     # 先 build 再 wrangler dev --test-scheduled
+npm run worker:app:check   # build + dry-run 部署校验（CI 用 worker:environment:check）
+npm run worker:app:types   # 改 binding 后重新生成 worker-configuration.d.ts
+```
+
+`http://localhost:8787/__scheduled` 可本地触发 scheduled handler。
+
+---
+
+## 7. 数据维护脚本（`scripts/`）
+
+Node ESM 脚本，多数支持 `--check`（只校验是否过期、不写文件，用于 CI/巡检）。脚本复用 `lib/pokedbEnvironment.ts` 解析器（通过 esbuild 打包成 `.npm-cache/...tools.mjs`）。
+
+```bash
+npm run data:pokedb:environment        # 抓取/刷新 PokeDB 环境静态快照
+npm run data:pokedb:environment:check  # 仅校验是否需要更新
+npm run data:pokedb:speed              # 重新生成速度线参照档 src/data/speedTiers.ts
+npm run data:pokedb:speed:check
+npm run data:vgcpastes:champions-ma    # 摄入 VGCPastes「Champions M-A」样本
+npm run data:vgcpastes:champions-mb    # M-B 同上（--reg=mb）
+npm run data:regma:allowlist / :abilities / :moves   # 重生成 seed 派生数据
+```
+
+`update-pokedb-environment.mjs` 会同时写源码审计快照（`src/data/external/pokedb/current_environment_snapshot.json`）与 public 运行时 JSON（`public/data/pokedb/reg-ma-environment.json`），后者即前端第二级回退。
+
+---
+
+## 8. 测试
+
+- **单元/组件**：26 个 `*.test.ts(x)`（`src/` 各层 + `cloudflare/environment-worker/src/index.test.ts`），Vitest + jsdom + `@testing-library` + `fake-indexeddb`。`npm test`，CI 必跑。配置见 `vite.config.ts` 的 `test` 段与 `vitest.setup.ts`。
+- **PWA**：`tests/pwa/offline.spec.ts`（离线缓存）+ `tests/pwa/visual.spec.ts`（移动端视觉回归，17 个状态，基线在 `tests/pwa/visual.spec.ts-snapshots/`，命名含 `chrome-mobile-390-win32`）。配置见 `playwright.config.ts`。
+- 更新视觉基线：`npm run test:visual -- --update-snapshots`（注意快照与平台相关，跨 OS 会有像素差）。
+
+---
+
+## 9. 部署与 CI
+
+- **部署**：经 **Cloudflare Workers Builds（Git 集成）**——push 到 `main` 自动构建并 `wrangler deploy`。非生产分支的 Workers Builds preview 会给一个真实 URL 做 UI+API 冒烟；**cron 不在 preview 触发**，但 preview 与生产**共享同一 KV**，对 preview 上的 KV 操作要当作直接影响生产、只读对待。
+- **CI**（`.github/workflows/ci.yml`）：仅 `npm test` + `npm run build` + `npm run worker:environment:check`，**不部署**。另有 `daily-auto-merge.yml`。
+- 仓库 `.github/workflows/` 目前只有上述两个 workflow（无独立 deploy workflow）。不要假设 GitHub Actions 负责部署或自动跑端到端。
+
+---
+
+## 10. 已知过期文档（核对结论）
+
+写本文档时核对了现有文档与代码，以下为已确认的偏差，供清理时参考：
+
+- `docs/progress/DEVELOPMENT_PROGRESS.md`（标注 2026-06-19）多处过期：
+  - 称「速度线入口关闭，保留为未开放卡片」——实际速度线工具已上线且功能完整（`SpeedPage`，`App.tsx` 的 `toolView==='speed'`）。
+  - 称 cron 为每小时 `17 * * * *`——实际为 `wrangler.jsonc` 中 5 个定点时间，且刷新改由 **Durable Object alarm** 步进。
+  - 称自定义域名 routes「已注释/停用」——实际 `routes` 已启用（`custom_domain: true`）。
+- `cloudflare/environment-worker/README.md`：称「Cron refreshes ... once per day」未覆盖 DO + alarm 步进与失败重试机制（见 §6.3）；其余一次性 Cloudflare 配置步骤仍有效。
+- 根 `README.md`：偏产品/功能介绍，技术细节不足以指导开发；`data:vgcpastes` 只列了 M-A，实际还有 M-B（`data:vgcpastes:champions-mb`）。
+
+> 维护约定：改了刷新管线 / 路由 / KV / 分支策略后，请同步更新本文件 §6 与 §9，避免再次出现「文档与代码漂移」。
+</content>
+</invoke>

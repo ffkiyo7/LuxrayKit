@@ -104,7 +104,7 @@ npm run build
 npm run preview
 ```
 
-生产构建输出至 `dist/`，可部署到 Cloudflare Pages、Vercel、GitHub Pages 或任意静态托管平台。
+生产构建输出至 `dist/`。线上由单一 Cloudflare Worker（`luxraykit-app`）托管 `dist/` 静态资源、`/api/*` 接口与 PokeDB 刷新 cron，通过 Cloudflare Workers Builds 在 push `main` 时自动部署（详见 [`docs/DEVELOPER_GUIDE.md`](./docs/DEVELOPER_GUIDE.md)）。得益于环境数据三级回退，`dist/` 也可部署到 Vercel、GitHub Pages 等任意静态托管平台（仅失去在线刷新）。
 
 数据维护脚本：
 
@@ -113,8 +113,11 @@ npm run data:pokedb:environment        # 抓取 / 刷新 PokeDB 环境快照
 npm run data:pokedb:environment:check  # 仅校验是否需要更新
 npm run data:pokedb:speed              # 重新生成速度线参照档静态快照
 npm run data:pokedb:speed:check        # 仅校验速度档快照是否过期
-npm run data:vgcpastes:champions-ma    # 摄入 VGCPastes 锦标赛构筑
+npm run data:vgcpastes:champions-ma    # 摄入 VGCPastes「Champions M-A」构筑
+npm run data:vgcpastes:champions-mb    # 摄入 VGCPastes「Champions M-B」构筑
 ```
+
+> 面向贡献者的架构、Cloudflare Worker 刷新管线与部署说明见 [`docs/DEVELOPER_GUIDE.md`](./docs/DEVELOPER_GUIDE.md)。
 
 ## 测试
 
@@ -144,7 +147,7 @@ npm run test:visual -- --update-snapshots
 | 环境数据 | Cloudflare Worker（每小时探针 + 内容签名门控刷新 PokeDB 统计） |
 | 计算 | 自有 Champions 速度公式 + `@smogon/calc` Gen9 主线伤害近似 |
 | 测试 | Vitest + Playwright |
-| 部署 | 静态部署，当前推荐 Cloudflare Pages |
+| 部署 | 生产为单一 Cloudflare Worker（`luxraykit-app`，托管前端 + API + cron），经 Workers Builds 自动部署；构建产物也可纯静态托管 |
 
 ## 路线图
 
