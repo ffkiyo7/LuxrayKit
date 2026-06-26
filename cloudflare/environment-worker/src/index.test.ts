@@ -7,6 +7,7 @@ import {
   isSnapshotBehindSource,
   nextPageDelayMs,
   probePokeDbFreshness,
+  EnvironmentRefreshDurableObject,
   runRefreshJobStep,
   startRefreshJob,
   startScheduledRefresh,
@@ -48,7 +49,6 @@ const createKvEnv = (initial: Record<string, string> = {}, overrides: Record<str
     POKEDB_BASE_URL: 'https://example.com',
     POKEDB_DETAIL_LIMIT: '60',
     POKEDB_DETAIL_CHUNK_SIZE: '40',
-    WORKER_SELF_URL: 'https://worker.example.com',
     ADMIN_REFRESH_TOKEN: 'secret',
     ...overrides,
     ENVIRONMENT_CACHE: {
@@ -64,6 +64,41 @@ const createKvEnv = (initial: Record<string, string> = {}, overrides: Record<str
   return { env: env as never, values };
 };
 
+const recordSchedule = (scheduled: string[]) => (jobId: string) => {
+  scheduled.push(jobId);
+};
+
+const createDurableObjectNamespace = () => {
+  const stub = {
+    fetch: vi.fn(async (_request: Request) => new Response('{"ok":true}', { status: 202 })),
+  };
+  const namespace = {
+    idFromName: vi.fn((name: string) => ({ name, toString: () => name, equals: () => false })),
+    get: vi.fn(() => stub),
+  };
+  return { namespace, stub };
+};
+
+const createDurableObjectState = () => {
+  const values = new Map<string, unknown>();
+  let alarm: number | null = null;
+  const storage = {
+    get: vi.fn(async (key: string) => values.get(key)),
+    put: vi.fn(async (key: string, value: unknown) => {
+      values.set(key, value);
+    }),
+    delete: vi.fn(async (key: string) => values.delete(key)),
+    getAlarm: vi.fn(async () => alarm),
+    setAlarm: vi.fn(async (scheduledTime: number | Date) => {
+      alarm = scheduledTime instanceof Date ? scheduledTime.getTime() : scheduledTime;
+    }),
+    deleteAlarm: vi.fn(async () => {
+      alarm = null;
+    }),
+  };
+  return { state: { storage } as never, values, storage, get alarm() { return alarm; } };
+};
+
 const createRefreshFetcher = (
   options: {
     failDetailKey?: string;
@@ -72,8 +107,8 @@ const createRefreshFetcher = (
     updatedAtByBattle?: Partial<Record<'singles' | 'doubles', string>>;
   } = {},
 ) =>
-  vi.fn(async (input: string | URL | Request) => {
-    const url = new URL(String(input));
+  vi.fn(async (input: string | URL | Request, _init?: RequestInit) => {
+    const url = new URL(input instanceof Request ? input.url : String(input));
     const season = options.season ?? 2;
     if (url.pathname === '/pokemon/list' && !url.searchParams.has('season')) {
       return new Response(pokemonListHtml('singles', 60, {
@@ -360,7 +395,7 @@ describe('environment Worker PokeDB ingestion', () => {
 
     const result = await startRefreshJob(
       env,
-      (jobId) => scheduled.push(jobId),
+      recordSchedule(scheduled),
       {
         fetcher,
         now: () => new Date('2026-06-12T00:00:00.000Z'),
@@ -411,7 +446,7 @@ describe('environment Worker PokeDB ingestion', () => {
     const fetcher = createRefreshFetcher();
     const scheduled: string[] = [];
 
-    const result = await startRefreshJob(env, (jobId) => scheduled.push(jobId), {
+    const result = await startRefreshJob(env, recordSchedule(scheduled), {
       fetcher,
       now: () => new Date('2026-06-12T00:00:00.000Z'),
       createJobId: () => 'should-not-be-used',
@@ -486,7 +521,7 @@ describe('environment Worker PokeDB ingestion', () => {
     const fetcher = createRefreshFetcher();
     const scheduled: string[] = [];
 
-    const result = await startScheduledRefresh(env, (jobId) => scheduled.push(jobId), {
+    const result = await startScheduledRefresh(env, recordSchedule(scheduled), {
       fetcher,
       now: () => new Date('2026-06-12T00:00:00.000Z'),
       createJobId: () => 'should-not-be-used',
@@ -533,7 +568,7 @@ describe('environment Worker PokeDB ingestion', () => {
     const fetcher = createRefreshFetcher();
     const scheduled: string[] = [];
 
-    const result = await startScheduledRefresh(env, (jobId) => scheduled.push(jobId), {
+    const result = await startScheduledRefresh(env, recordSchedule(scheduled), {
       fetcher,
       now: () => new Date('2026-06-12T00:00:00.000Z'),
       createJobId: () => 'job-scheduled-changed',
@@ -585,7 +620,7 @@ describe('environment Worker PokeDB ingestion', () => {
     const fetcher = createRefreshFetcher({ season: currentSeason });
     const scheduled: string[] = [];
 
-    const result = await startRefreshJob(env, (jobId) => scheduled.push(jobId), {
+    const result = await startRefreshJob(env, recordSchedule(scheduled), {
       fetcher,
       now: () => new Date('2026-06-12T00:00:00.000Z'),
       createJobId: () => 'job-refresh-required',
@@ -616,7 +651,7 @@ describe('environment Worker PokeDB ingestion', () => {
     const result = await runRefreshJobStep(
       env,
       'job-budget',
-      (jobId) => chainedFetches.push(jobId),
+      recordSchedule(chainedFetches),
       {
         fetcher,
         wait: async (milliseconds) => {
@@ -692,6 +727,7 @@ describe('environment Worker PokeDB ingestion', () => {
 
     expect(status).toMatchObject({
       ok: true,
+      done: true,
       selectedSeason: 2,
       selectedSeasonLabel: 'M-2',
       sourceUpdatedAt: '2026-06-10 23:58:00',
@@ -738,7 +774,7 @@ describe('environment Worker PokeDB ingestion', () => {
     }
 
     const snapshot = JSON.parse(values.get('environment:latest') ?? '{}');
-    expect(status).toMatchObject({ ok: true, selectedSeason: 2, selectedSeasonLabel: 'M-2' });
+    expect(status).toMatchObject({ ok: true, done: true, selectedSeason: 2, selectedSeasonLabel: 'M-2' });
     expect(snapshot.snapshot).toBeUndefined(); // old placeholder was replaced
     expect(snapshot.battles.singles.detailCount).toBe(3);
     expect(snapshot.teamSamples).toEqual({ singles: [], doubles: [] });
@@ -844,19 +880,19 @@ describe('environment Worker PokeDB ingestion', () => {
     const { env } = createKvEnv();
     const fetcher = createRefreshFetcher();
     const scheduled: string[] = [];
-    await startRefreshJob(env, (jobId) => scheduled.push(jobId), {
+    await startRefreshJob(env, recordSchedule(scheduled), {
       fetcher,
       now: () => new Date('2026-06-12T00:00:00.000Z'),
       createJobId: () => 'job-guard',
     });
     fetcher.mockClear();
 
-    const activeResult = await startRefreshJob(env, (jobId) => scheduled.push(jobId), {
+    const activeResult = await startRefreshJob(env, recordSchedule(scheduled), {
       fetcher,
       now: () => new Date('2026-06-12T00:05:00.000Z'),
       createJobId: () => 'should-not-be-used',
     });
-    const staleResult = await startRefreshJob(env, (jobId) => scheduled.push(jobId), {
+    const staleResult = await startRefreshJob(env, recordSchedule(scheduled), {
       fetcher,
       now: () => new Date('2026-06-12T00:11:00.001Z'),
       createJobId: () => 'should-not-be-used',
@@ -886,7 +922,7 @@ describe('environment Worker PokeDB ingestion', () => {
     });
     const scheduled: string[] = [];
 
-    const result = await startRefreshJob(env, (jobId) => scheduled.push(jobId), {
+    const result = await startRefreshJob(env, recordSchedule(scheduled), {
       fetcher: createRefreshFetcher({ updatedAt: '2026/6/14 00:20' }),
       now: () => new Date('2026-06-12T00:00:00.001Z'),
       createJobId: () => 'job-current',
@@ -903,7 +939,7 @@ describe('environment Worker PokeDB ingestion', () => {
     expect(scheduled).toEqual(['job-current']);
   });
 
-  it('dispatches chained steps through the SELF service binding with refresh authorization', async () => {
+  it('dispatches stale refreshes through the Durable Object alarm driver', async () => {
     const { env, values } = createKvEnv();
     const fetcher = createRefreshFetcher();
     const startedAt = new Date(Date.now() - 11 * 60 * 1000);
@@ -917,11 +953,10 @@ describe('environment Worker PokeDB ingestion', () => {
       failedAt: new Date(startedAt.getTime() + 60 * 1000).toISOString(),
       error: 'previous chain stopped',
     }));
-    const selfFetch = vi.fn(async () => new Response('{"ok":true}', { status: 200 }));
-    Object.assign(env as object, { SELF: { fetch: selfFetch } });
-    const pending: Promise<unknown>[] = [];
+    const durableObject = createDurableObjectNamespace();
+    Object.assign(env as object, { ENVIRONMENT_REFRESHER: durableObject.namespace });
     const ctx = {
-      waitUntil: (promise: Promise<unknown>) => pending.push(promise),
+      waitUntil: vi.fn(),
     };
 
     const response = await worker.fetch(
@@ -932,19 +967,18 @@ describe('environment Worker PokeDB ingestion', () => {
       env,
       ctx as never,
     );
-    await Promise.all(pending);
 
     expect(response.status).toBe(202);
     expect(await response.json()).toMatchObject({ state: 'resumed', jobId: 'job-self-binding' });
-    expect(selfFetch).toHaveBeenCalledOnce();
-    const chainedRequest = selfFetch.mock.calls[0][0] as Request;
-    expect(chainedRequest.url).toBe(
-      'https://worker.example.com/api/environment/refresh?step=1&jobId=job-self-binding',
-    );
-    expect(chainedRequest.headers.get('authorization')).toBe('Bearer secret');
+    expect(ctx.waitUntil).not.toHaveBeenCalled();
+    expect(durableObject.namespace.idFromName).toHaveBeenCalledWith('environment-refresh');
+    expect(durableObject.stub.fetch).toHaveBeenCalledOnce();
+    const alarmRequest = durableObject.stub.fetch.mock.calls[0][0] as Request;
+    expect(alarmRequest.url).toBe('https://internal.luxraykit/environment-refresh/schedule');
+    expect(await alarmRequest.json()).toEqual({ jobId: 'job-self-binding' });
   });
 
-  it('finishes an internal STEP before responding and schedules the next invocation through waitUntil', async () => {
+  it('finishes an internal STEP before responding and schedules the next chunk through the Durable Object', async () => {
     const { env, values } = createKvEnv({}, {
       POKEDB_DETAIL_LIMIT: '1',
       POKEDB_DETAIL_CHUNK_SIZE: '1',
@@ -955,12 +989,11 @@ describe('environment Worker PokeDB ingestion', () => {
       now: () => new Date('2026-06-12T00:00:00.000Z'),
       createJobId: () => 'job-background-step',
     });
-    const selfFetch = vi.fn(async () => new Response('{"ok":true}', { status: 202 }));
-    Object.assign(env as object, { SELF: { fetch: selfFetch } });
+    const durableObject = createDurableObjectNamespace();
+    Object.assign(env as object, { ENVIRONMENT_REFRESHER: durableObject.namespace });
     vi.stubGlobal('fetch', fetcher);
-    const pending: Promise<unknown>[] = [];
     const ctx = {
-      waitUntil: (promise: Promise<unknown>) => pending.push(promise),
+      waitUntil: vi.fn(),
     };
 
     try {
@@ -982,20 +1015,22 @@ describe('environment Worker PokeDB ingestion', () => {
         jobId: 'job-background-step',
         pendingCount: 1,
       });
-      expect(pending).toHaveLength(1);
-      await Promise.all(pending);
+      expect(ctx.waitUntil).not.toHaveBeenCalled();
       expect(JSON.parse(values.get('environment:refresh-job') ?? '{}')).toMatchObject({
         jobId: 'job-background-step',
         pending: [expect.objectContaining({ battleType: 'doubles' })],
         stepCount: 1,
       });
-      expect(selfFetch).toHaveBeenCalledOnce();
+      expect(durableObject.stub.fetch).toHaveBeenCalledOnce();
+      expect(await (durableObject.stub.fetch.mock.calls[0][0] as Request).json()).toEqual({
+        jobId: 'job-background-step',
+      });
     } finally {
       vi.unstubAllGlobals();
     }
   });
 
-  it('registers the first chained step before the scheduled handler returns', async () => {
+  it('registers the first Durable Object alarm before the scheduled handler returns', async () => {
     const startedAt = new Date(Date.now() - 11 * 60 * 1000).toISOString();
     const staleJob = {
       jobId: 'job-scheduled-resume',
@@ -1012,15 +1047,13 @@ describe('environment Worker PokeDB ingestion', () => {
     const { env } = createKvEnv({
       'environment:refresh-job': JSON.stringify(staleJob),
     });
-    const selfFetch = vi.fn(async () => new Response('{"ok":true}', { status: 202 }));
-    Object.assign(env as object, { SELF: { fetch: selfFetch } });
-    const pending: Promise<unknown>[] = [];
+    const durableObject = createDurableObjectNamespace();
+    Object.assign(env as object, { ENVIRONMENT_REFRESHER: durableObject.namespace });
     let handlerActive = true;
     const ctx = {
-      waitUntil: (promise: Promise<unknown>) => {
+      waitUntil: vi.fn(() => {
         if (!handlerActive) throw new Error('waitUntil called after scheduled handler returned');
-        pending.push(promise);
-      },
+      }),
     };
 
     await worker.scheduled(
@@ -1029,10 +1062,94 @@ describe('environment Worker PokeDB ingestion', () => {
       ctx as never,
     );
     handlerActive = false;
-    await Promise.all(pending);
 
-    expect(pending).toHaveLength(1);
-    expect(selfFetch).toHaveBeenCalledOnce();
+    expect(ctx.waitUntil).not.toHaveBeenCalled();
+    expect(durableObject.stub.fetch).toHaveBeenCalledOnce();
+    expect(await (durableObject.stub.fetch.mock.calls[0][0] as Request).json()).toEqual({
+      jobId: 'job-scheduled-resume',
+    });
+  });
+
+  it('lets the Durable Object alarm advance one chunk and schedule the next alarm', async () => {
+    const { env, values } = createKvEnv({}, {
+      POKEDB_DETAIL_LIMIT: '1',
+      POKEDB_DETAIL_CHUNK_SIZE: '1',
+    });
+    const fetcher = createRefreshFetcher();
+    await startRefreshJob(env, () => undefined, {
+      fetcher,
+      now: () => new Date('2026-06-12T00:00:00.000Z'),
+      createJobId: () => 'job-do-alarm',
+    });
+    vi.stubGlobal('fetch', fetcher);
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-06-12T00:01:00.000Z'));
+    const durableState = createDurableObjectState();
+    const refresher = new EnvironmentRefreshDurableObject(durableState.state, env);
+
+    try {
+      await refresher.fetch(new Request('https://internal.luxraykit/environment-refresh/schedule', {
+        method: 'POST',
+        body: JSON.stringify({ jobId: 'job-do-alarm' }),
+      }));
+      await refresher.alarm();
+
+      expect(JSON.parse(values.get('environment:refresh-job') ?? '{}')).toMatchObject({
+        jobId: 'job-do-alarm',
+        pending: [expect.objectContaining({ battleType: 'doubles' })],
+        stepCount: 1,
+      });
+      expect(durableState.values.get('activeJobId')).toBe('job-do-alarm');
+      expect(durableState.storage.setAlarm).toHaveBeenCalledTimes(2);
+      expect(durableState.alarm).toBeGreaterThan(Date.parse('2026-06-12T00:01:00.000Z'));
+    } finally {
+      vi.useRealTimers();
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it('stops Durable Object alarm retries when a job reaches the failure limit', async () => {
+    const { env, values } = createKvEnv({}, {
+      POKEDB_DETAIL_LIMIT: '1',
+      POKEDB_DETAIL_CHUNK_SIZE: '1',
+    });
+    const fetcher = createRefreshFetcher({ failDetailKey: rankingKeys[0] });
+    await startRefreshJob(env, () => undefined, {
+      fetcher: createRefreshFetcher(),
+      now: () => new Date('2026-06-12T00:00:00.000Z'),
+      createJobId: () => 'job-do-failure-limit',
+    });
+    values.set('environment:refresh-job', JSON.stringify({
+      ...JSON.parse(values.get('environment:refresh-job') ?? '{}'),
+      failureCount: 5,
+    }));
+    vi.stubGlobal('fetch', fetcher);
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-06-12T00:01:00.000Z'));
+    const durableState = createDurableObjectState();
+    const refresher = new EnvironmentRefreshDurableObject(durableState.state, env);
+
+    try {
+      await refresher.fetch(new Request('https://internal.luxraykit/environment-refresh/schedule', {
+        method: 'POST',
+        body: JSON.stringify({ jobId: 'job-do-failure-limit' }),
+      }));
+      await refresher.alarm();
+
+      const job = JSON.parse(values.get('environment:refresh-job') ?? '{}');
+      expect(job.failureCount).toBe(6);
+      expect(job.pending).toHaveLength(2);
+      expect(durableState.values.has('activeJobId')).toBe(false);
+      expect(durableState.alarm).toBeNull();
+      expect(durableState.storage.setAlarm).toHaveBeenCalledTimes(1);
+      expect(JSON.parse(values.get('environment:status') ?? '{}')).toMatchObject({
+        ok: false,
+        error: expect.stringContaining(rankingKeys[0]),
+      });
+    } finally {
+      vi.useRealTimers();
+      vi.unstubAllGlobals();
+    }
   });
 
   it('keeps the live snapshot and cursor when a detail chunk fails', async () => {

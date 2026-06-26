@@ -1,13 +1,22 @@
 {
   "compilerOptions": {
+    "tsBuildInfoFile": "../../node_modules/.tmp/tsconfig.environment-worker.tsbuildinfo",
     "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "lib": ["ES2022", "WebWorker"],
     "strict": true,
+    "composite": true,
     "noEmit": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src"]
+  "include": [
+    "src",
+    "../../src/data/external/**/*.ts",
+    "../../src/data/seed/regMA/**/*.ts",
+    "../../src/lib/environmentDataset.ts",
+    "../../src/lib/pokedbEnvironment.ts",
+    "../../src/types.ts"
+  ]
 }
