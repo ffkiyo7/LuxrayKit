@@ -86,15 +86,20 @@ type RefreshJob = {
   startedAt: string;
   updatedAt: string;
   stepCount: number;
+  failureCount?: number;
   phase: 'collecting' | 'finalizing';
   lists: Record<BattleType, PokeDbPokemonListPayload>;
   pending: RefreshPendingDetail[];
   details: Record<BattleType, Record<string, PokeDbPokemonDetailPayload>>;
 };
 
+type RefreshJobStepResult =
+  | (CacheStatus & { done: true })
+  | { ok: true; done?: false; state: 'collecting' | 'finalizing'; jobId: string; pendingCount: number };
+
 type RefreshTriggerResult = {
   ok: true;
-  state: 'started' | 'in-progress' | 'resumed' | 'skipped';
+  state: 'started' | 'in-progress' | 'resumed' | 'skipped' | 'failed';
   jobId: string;
   season: number;
   pendingCount: number;
@@ -126,9 +131,8 @@ type AppEnv = Env & {
   POKEDB_DETAIL_LIMIT?: string;
   POKEDB_DETAIL_CHUNK_SIZE?: string;
   ENVIRONMENT_AUDIT_UNKNOWN_THRESHOLD?: string;
-  WORKER_SELF_URL?: string;
   SCHEDULED_MAX_JITTER_MS?: string;
-  SELF?: Fetcher;
+  ENVIRONMENT_REFRESHER?: DurableObjectNamespace;
 };
 
 const SNAPSHOT_KEY = 'environment:latest';
@@ -137,7 +141,6 @@ const TEAM_INDEX_KEY = 'environment:team-index';
 const REFRESH_JOB_KEY = 'environment:refresh-job';
 const POKEDB_FRESHNESS_PROBE_KEY = 'environment:pokedb-freshness-probe';
 const DEFAULT_POKEDB_BASE_URL = 'https://champs.pokedb.tokyo';
-const DEFAULT_WORKER_SELF_URL = 'https://luxraykit-app.ffkiyo7.workers.dev';
 const DEFAULT_TEAM_LIMIT = 24;
 const MAX_TEAM_LIMIT = 50;
 const DEFAULT_DETAIL_LIMIT = 60;
@@ -147,6 +150,12 @@ const MAX_DETAIL_CHUNK_SIZE = 20;
 const REFRESH_JOB_STALE_MS = 10 * 60 * 1000;
 const REFRESH_JOB_ABANDON_MS = 60 * 60 * 1000;
 const MAX_REFRESH_JOB_STEPS = 10;
+const MAX_REFRESH_JOB_FAILURES = 6;
+const REFRESH_DURABLE_OBJECT_NAME = 'environment-refresh';
+const REFRESH_DURABLE_OBJECT_SCHEDULE_URL = 'https://internal.luxraykit/environment-refresh/schedule';
+const REFRESH_ALARM_DELAY_MS = 1000;
+const REFRESH_ALARM_FAILURE_RETRY_MS = 10 * 60 * 1000;
+const ACTIVE_REFRESH_JOB_ID_KEY = 'activeJobId';
 // Spacing between page requests during a full crawl. Randomized within a window (600–1800ms)
 // rather than a constant interval — a perfectly flat cadence is the clearest scraper tell.
 const PAGE_REQUEST_DELAY_MS = 600;
@@ -492,7 +501,11 @@ export async function fetchTrainerBattlePages(options: {
   };
 }
 
-const mergeUnique = <T extends string | number>(values: T[][]) => [...new Set(values.flat())].sort();
+function mergeUnique<T extends string | number>(values: Array<ReadonlyArray<T>>): T[];
+function mergeUnique(values: Array<ReadonlyArray<string | number>>): Array<string | number>;
+function mergeUnique(values: Array<ReadonlyArray<string | number>>) {
+  return [...new Set(values.flat())].sort();
+}
 
 const auditIssueKinds = [
   'unknownPokemonKeys',
@@ -798,7 +811,7 @@ type RefreshJobDependencies = {
   random?: () => number;
 };
 
-type ScheduleRefreshStep = (jobId: string) => void;
+type ScheduleRefreshStep = (jobId: string) => void | Promise<void>;
 
 export async function startRefreshJob(
   env: AppEnv,
@@ -822,6 +835,7 @@ export async function startRefreshJob(
         jobId: currentJob.jobId,
         startedAt: currentJob.startedAt,
         stepCount: currentJob.stepCount,
+        failureCount: currentJob.failureCount ?? 0,
         pendingCount: currentJob.pending.length,
       }));
     } else {
@@ -831,10 +845,11 @@ export async function startRefreshJob(
         currentStatus?.ok === false &&
         Boolean(currentStatus.failedAt) &&
         Date.parse(currentStatus.failedAt!) >= Date.parse(currentJob.startedAt);
-      if (isStale || stoppedAfterFailure) scheduleNext(currentJob.jobId);
+      const failureLimitReached = (currentJob.failureCount ?? 0) >= MAX_REFRESH_JOB_FAILURES;
+      if ((isStale || stoppedAfterFailure) && !failureLimitReached) await scheduleNext(currentJob.jobId);
       return {
         ok: true,
-        state: isStale || stoppedAfterFailure ? 'resumed' : 'in-progress',
+        state: failureLimitReached ? 'failed' : isStale || stoppedAfterFailure ? 'resumed' : 'in-progress',
         jobId: currentJob.jobId,
         season: currentJob.season,
         pendingCount: currentJob.pending.length,
@@ -909,7 +924,7 @@ export async function startRefreshJob(
       details: { singles: {}, doubles: {} },
     };
     await env.ENVIRONMENT_CACHE.put(REFRESH_JOB_KEY, JSON.stringify(job));
-    scheduleNext(job.jobId);
+    await scheduleNext(job.jobId);
     console.log(JSON.stringify({
       event: 'environment_refresh_started',
       jobId: job.jobId,
@@ -1009,7 +1024,7 @@ export async function runRefreshJobStep(
   jobId: string,
   scheduleNext: ScheduleRefreshStep,
   dependencies: RefreshJobDependencies = {},
-): Promise<CacheStatus | { ok: true; state: 'collecting' | 'finalizing'; jobId: string; pendingCount: number }> {
+): Promise<RefreshJobStepResult> {
   const now = dependencies.now ?? (() => new Date());
   const fetcher = dependencies.fetcher ?? fetch;
   const wait = dependencies.wait ?? ((milliseconds: number) => new Promise((resolve) => setTimeout(resolve, milliseconds)));
@@ -1026,7 +1041,7 @@ export async function runRefreshJobStep(
 
   try {
     if (job.phase === 'finalizing') {
-      return await publishRefreshJob(env, job, fetcher, now);
+      return { ...(await publishRefreshJob(env, job, fetcher, now)), done: true };
     }
 
     const chunkSize = configuredInteger(
@@ -1043,7 +1058,7 @@ export async function runRefreshJobStep(
         updatedAt: now().toISOString(),
       };
       await env.ENVIRONMENT_CACHE.put(REFRESH_JOB_KEY, JSON.stringify(finalizingJob));
-      scheduleNext(job.jobId);
+      await scheduleNext(job.jobId);
       return { ok: true, state: 'finalizing', jobId: job.jobId, pendingCount: 0 };
     }
 
@@ -1067,9 +1082,10 @@ export async function runRefreshJobStep(
     job.pending = job.pending.slice(chunk.length);
     job.phase = job.pending.length > 0 ? 'collecting' : 'finalizing';
     job.stepCount += 1;
+    delete job.failureCount;
     job.updatedAt = now().toISOString();
     await env.ENVIRONMENT_CACHE.put(REFRESH_JOB_KEY, JSON.stringify(job));
-    scheduleNext(job.jobId);
+    await scheduleNext(job.jobId);
     return {
       ok: true,
       state: job.phase,
@@ -1082,23 +1098,121 @@ export async function runRefreshJobStep(
   }
 }
 
-async function triggerRefreshStep(env: AppEnv, jobId: string, fetcher: Fetcher = fetch) {
-  try {
-    if (!env.ADMIN_REFRESH_TOKEN) throw new Error('ADMIN_REFRESH_TOKEN is required for chained refresh steps');
-    const selfUrl = new URL('/api/environment/refresh', env.WORKER_SELF_URL || DEFAULT_WORKER_SELF_URL);
-    selfUrl.searchParams.set('step', '1');
-    selfUrl.searchParams.set('jobId', jobId);
-    const request = new Request(selfUrl, {
-      method: 'POST',
-      headers: { authorization: `Bearer ${env.ADMIN_REFRESH_TOKEN}` },
-    });
-    const response = env.SELF ? await env.SELF.fetch(request) : await fetcher(request);
-    if (!response.ok) {
-      throw new Error(`Environment refresh self-chain returned ${response.status}: ${await response.text()}`);
+async function scheduleEnvironmentRefreshAlarm(env: AppEnv, jobId: string) {
+  if (!env.ENVIRONMENT_REFRESHER) {
+    throw new Error('ENVIRONMENT_REFRESHER Durable Object binding is required for refresh scheduling');
+  }
+
+  const objectId = env.ENVIRONMENT_REFRESHER.idFromName(REFRESH_DURABLE_OBJECT_NAME);
+  const stub = env.ENVIRONMENT_REFRESHER.get(objectId);
+  const response = await stub.fetch(new Request(REFRESH_DURABLE_OBJECT_SCHEDULE_URL, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json; charset=utf-8' },
+    body: JSON.stringify({ jobId }),
+  }));
+
+  if (!response.ok) {
+    throw new Error(`Environment refresh Durable Object returned ${response.status}: ${await response.text()}`);
+  }
+}
+
+export class EnvironmentRefreshDurableObject implements DurableObject {
+  private readonly state: DurableObjectState;
+  private readonly env: AppEnv;
+
+  constructor(state: DurableObjectState, env: AppEnv) {
+    this.state = state;
+    this.env = env;
+  }
+
+  async fetch(request: Request): Promise<Response> {
+    const url = new URL(request.url);
+    if (request.method === 'POST' && url.pathname === '/environment-refresh/schedule') {
+      const payload = await request.json().catch(() => ({})) as { jobId?: unknown };
+      if (typeof payload.jobId !== 'string' || payload.jobId.length === 0) {
+        return new Response(JSON.stringify({ ok: false, error: 'missing_refresh_job_id' }), {
+          status: 400,
+          headers: { 'content-type': 'application/json; charset=utf-8' },
+        });
+      }
+      await this.schedule(payload.jobId, REFRESH_ALARM_DELAY_MS);
+      return new Response(JSON.stringify({ ok: true, jobId: payload.jobId }), {
+        status: 202,
+        headers: { 'content-type': 'application/json; charset=utf-8' },
+      });
     }
-  } catch (error) {
-    await recordRefreshFailure(env, error, () => new Date());
-    throw error;
+
+    return new Response(JSON.stringify({ ok: false, error: 'not_found' }), {
+      status: 404,
+      headers: { 'content-type': 'application/json; charset=utf-8' },
+    });
+  }
+
+  async alarm(): Promise<void> {
+    const activeJobId = await this.state.storage.get<string>(ACTIVE_REFRESH_JOB_ID_KEY);
+    if (!activeJobId) return;
+
+    const jobText = await this.env.ENVIRONMENT_CACHE.get(REFRESH_JOB_KEY);
+    if (!jobText) {
+      await this.clear();
+      return;
+    }
+
+    const job = JSON.parse(jobText) as RefreshJob;
+    if (job.jobId !== activeJobId) {
+      await this.schedule(job.jobId, REFRESH_ALARM_DELAY_MS);
+      return;
+    }
+
+    try {
+      const result = await runRefreshJobStep(this.env, activeJobId, (jobId) => this.schedule(jobId, REFRESH_ALARM_DELAY_MS));
+      if (result.done) {
+        await this.clear();
+      }
+    } catch (error) {
+      const currentJobText = await this.env.ENVIRONMENT_CACHE.get(REFRESH_JOB_KEY);
+      const currentJob = currentJobText ? (JSON.parse(currentJobText) as RefreshJob) : undefined;
+      if (currentJob?.jobId === activeJobId) {
+        const failureCount = (currentJob.failureCount ?? 0) + 1;
+        await this.env.ENVIRONMENT_CACHE.put(REFRESH_JOB_KEY, JSON.stringify({
+          ...currentJob,
+          failureCount,
+          updatedAt: new Date().toISOString(),
+        }));
+        if (failureCount >= MAX_REFRESH_JOB_FAILURES) {
+          await this.clear();
+          console.log(JSON.stringify({
+            event: 'environment_refresh_alarm_failure_limit_reached',
+            jobId: activeJobId,
+            failureCount,
+            error: error instanceof Error ? error.message : String(error),
+          }));
+          return;
+        }
+        await this.schedule(activeJobId, REFRESH_ALARM_FAILURE_RETRY_MS);
+        console.log(JSON.stringify({
+          event: 'environment_refresh_alarm_retry_scheduled',
+          jobId: activeJobId,
+          failureCount,
+          retryInMs: REFRESH_ALARM_FAILURE_RETRY_MS,
+          error: error instanceof Error ? error.message : String(error),
+        }));
+        return;
+      }
+      await this.clear();
+    }
+  }
+
+  private async schedule(jobId: string, delayMs: number) {
+    await this.state.storage.put(ACTIVE_REFRESH_JOB_ID_KEY, jobId);
+    await this.state.storage.setAlarm(Date.now() + delayMs);
+  }
+
+  private async clear() {
+    await Promise.all([
+      this.state.storage.delete(ACTIVE_REFRESH_JOB_ID_KEY),
+      this.state.storage.deleteAlarm(),
+    ]);
   }
 }
 
@@ -1298,7 +1412,7 @@ async function handlePokemonTeams(url: URL, env: AppEnv, pokemonId: string) {
 }
 
 export default {
-  async fetch(request: Request, env: AppEnv, ctx: ExecutionContext): Promise<Response> {
+  async fetch(request: Request, env: AppEnv, _ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
 
     if (request.method === 'OPTIONS') {
@@ -1326,9 +1440,7 @@ export default {
       if (!(await isAuthorizedRefresh(request, env))) {
         return jsonResponse(env, { error: 'unauthorized' }, { status: 401, headers: { 'cache-control': 'no-store' } });
       }
-      const scheduleNext = (jobId: string) => {
-        ctx.waitUntil(triggerRefreshStep(env, jobId));
-      };
+      const scheduleNext = (jobId: string) => scheduleEnvironmentRefreshAlarm(env, jobId);
       try {
         if (url.searchParams.get('step') === '1') {
           const jobId = url.searchParams.get('jobId');
@@ -1364,16 +1476,14 @@ export default {
     return env.ASSETS.fetch(request);
   },
 
-  async scheduled(_event: ScheduledEvent, env: AppEnv, ctx: ExecutionContext): Promise<void> {
+  async scheduled(_event: ScheduledEvent, env: AppEnv, _ctx: ExecutionContext): Promise<void> {
     // Spread the probe off the exact cron second so it doesn't fire at a fixed wall-clock
     // instant every day. Gated by an env var so tests (which omit it) run without delay.
     const maxJitterMs = Number(env.SCHEDULED_MAX_JITTER_MS ?? 0);
     if (Number.isFinite(maxJitterMs) && maxJitterMs > 0) {
       await new Promise((resolve) => setTimeout(resolve, Math.floor(Math.random() * maxJitterMs)));
     }
-    const scheduleNext = (jobId: string) => {
-      ctx.waitUntil(triggerRefreshStep(env, jobId));
-    };
+    const scheduleNext = (jobId: string) => scheduleEnvironmentRefreshAlarm(env, jobId);
     await startScheduledRefresh(env, scheduleNext);
   },
 };
