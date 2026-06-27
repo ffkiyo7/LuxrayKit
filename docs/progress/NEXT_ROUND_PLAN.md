@@ -289,6 +289,41 @@ PokeDB 速度表的修正档用日语原词（最速/準速/無振/最遅），�
 
 - **验收**：站内默认展示 M-B 上位构筑（top-4 / 试试灵感 / 队伍一览）；规则筛选可切 M-A / 全部；M-B 样本经 pokepaste 正确 mapping 到 M-B catalog、audit `issues` 空；M-A 样本不受影响仍可见；构建期 chunk 不整批消失；`:check` 与全局验证通过、快照更新。
 
+### Task 21 — 速度线纵轴移除「Mega Z 占位」错误映射（已完成 · 2026-06-27）
+
+> **现象**：速度线纵轴在 **151 族** 多个档位（实数 334 / 304 / 223 / 203，含围巾档）出现 **烈咬陆鲨 + 路卡利欧** 的头像。但 151 是这俩 **Mega Z 形态** 的速度种族值，**不是本体**（本体烈咬陆鲨 102 族、路卡利欧 90 族），属明显错误映射。
+>
+> **根因（已定位）**：`src/data/speedTiers.ts` 里这些档的 chip 是 `form:"02"`、`japaneseName:"メガガブリアスＺ"` / `"メガルカリオＺ"`——PokeDB 速度页对尚未实装的 Z 形态用**占位（蛋）头像 + 名称带 Z** 表示。我们 catalog 没有 Z 形态，`speedTier.ts:87` 的 `resolveTierPokemon` 名称索引未命中后**回退到 `dexIndex.get(ref.dexNo)`**（445→烈咬陆鲨本体、448→路卡利欧本体），于是把不存在的 Z 形态错画成了本体头像，且挂在错误的 151 族速度上。
+>
+> **决策（用户已定）**：宝可梦冠军游戏内当前无这两个 Z 形态，**先把这两位从纵轴移除**。**关键**：已核验所有 `code:"151"` 档（实数 334/304/223/203 及围巾档）的 pokemon **只有这两个 Z 占位、无任何真实宝可梦兜底**——故移除后 **151 族整档应从纵轴彻底消失（空档丢弃），而不是保留一个空的 151 行**。两者本体的真实档位（烈咬陆鲨 102 族、路卡利欧 90 族）不受影响。
+
+> **完成记录**：已复看 PokeDB M-3 速度页 HTML，Mega Z 占位 chip 稳定表现为 `form:"02"` 且名称 NFKC 后为 `メガ...Z`；解析器源头过滤该类 chip，重生成 `speedTiers.ts` 后 `code:"151"` 档为 0。运行时 `resolveTierPokemon` 改为仅允许基础形态与显式白名单（花叶蒂永恒花 `670-05`）走 dexNo 兜底，未知非基础形态不再静默画成本体；`groupTiersBySpeed` 丢弃空 variant/group。**Claude review 追加**：未命中现在会被静默丢弃，故在生成脚本 `generate-pokedb-speed-tiers.mjs` 加了**生成期告警**——用 esbuild bundle 复用运行时 `resolveTierPokemon`（同一套匹配规则，避免逻辑漂移），跑完打印任何未映射到 catalog 的 `dexNo-form`，作为「新宝可梦悄悄从轴上消失」的安全网（当前数据 0 未命中）。验证：`data:pokedb:speed:check`、`npm test`、`npm run build`、`npm run test:visual` 通过，速度线快照已更新。
+
+- **目标**：纵轴不再出现 Mega Z 占位 chip 导致的错误本体头像；不破坏正常的「dexNo 基础形态兜底」（合法基础形态仍应命中）。
+- **spike 先行（确认占位特征）**：复看 PokeDB 速度页 HTML，确认 Z 占位 chip 的稳定标识——是 `form` 段为 `02`、名称带全角 `Ｚ` 后缀，还是用了**蛋占位 icon class**（`dex-…` 是否落到蛋图）。结论决定过滤判据。
+- **改动要点（两层，建议都做）**：
+  1. **数据层（源头，推荐）**：在解析器 `scripts/pokedb-speed-tier-utils.mjs` 过滤掉占位 chip（按 spike 确认的判据：名称 NFKC 后以 `Z` 结尾的 mega 占位 / 蛋占位 icon），重跑 `npm run data:pokedb:speed` 重生成 `src/data/speedTiers.ts`；**生成后档位/变体若清空则整档丢弃**。
+  2. **解析守卫（防御性，防回归）**：`src/lib/speedTier.ts` 的 `resolveTierPokemon` ——当 chip 的 `form` 表示一个**我们没有的非基础形态**时**不要静默回退到 `dexIndex` 本体**（避免「不存在的形态画成本体」），未命中则标 `matched:false` 或丢弃；`groupTiersBySpeed` 丢弃 `pokemon` 清空后的 variant、`variants` 清空后的 group。注意保留「合法基础形态走 dexNo 兜底」的既有正确行为（`form:"00"` 等）。
+- **涉及文件**：`scripts/pokedb-speed-tier-utils.mjs`（解析过滤）、`scripts/generate-pokedb-speed-tiers.mjs`、`src/data/speedTiers.ts`（重生成产物）、`src/lib/speedTier.ts`（守卫 + 丢空档）；测试 `scripts/pokedb-speed-tier-utils.test.mjs`、`src/lib/speedTier.test.ts`、`src/pages/SpeedPage.test.tsx`。
+- **测试**：解析器丢弃 Z 占位 chip / 蛋占位；`resolveTierPokemon` 对未知非基础形态不回退本体；`groupTiersBySpeed` 丢空 variant/group；防回退断言（速度线不再出现 151 族烈咬陆鲨/路卡利欧）。
+- **验收**：速度线纵轴 **151 族整档消失**（无任何宝可梦,非显示本体、非空行残留），不再出现烈咬陆鲨/路卡利欧（及任何 Mega Z 占位）；本体（烈咬陆鲨 102 族、路卡利欧 90 族）档位正常；`npm run data:pokedb:speed:check`、`npm test`、`npm run build`、`npm run test:visual`（速度线快照更新）通过。
+
+### Task 22 — 伤害计算器「攻守双方一键转换」按钮（已完成 · 2026-06-27）
+
+> **出发点**：用户配好进攻方/防守方（SP / 特性 / 道具 / 招式 / 性格 / 能力等级等）后，想**一键互换攻守**，免去手动重配两只。这也能模拟两只宝可梦对位时**谁占优 / 谁能后手击杀谁**（换边后看对方一发能否带走自己 / 自己能否反杀）。
+
+> **完成记录**：进攻/防守卡片之间已用 `ArrowUpDown` 图标按钮替换原 `↓`，`aria-label="交换攻守双方"`；点击后纯交换 `attackerConfig`/`defenderConfig` 与 dirty 标志，保留规则、天气、会心和当前编辑侧。新增 `CalculatorPage.test.tsx` 覆盖 Pokémon、SP、性格、特性、道具、能力阶级、dirty 与对战条件的互换/保留；`npm test`、`npm run build`、`npm run test:visual` 通过。
+
+- **目标**：在**进攻方卡片与防守方卡片之间**（当前 `CalculatorPage.tsx:1003` 的 `↓` 分隔处）放一个**转换 button**，点一下**交换 `attackerConfig` ↔ `defenderConfig`**（连带 `attackerDirty` ↔ `defenderDirty`），带着双方已配置的 SP / 特性 / 道具 / 招式 / 性格 / 能力等级一起换。
+- **实现要点**：
+  - `CalcSideConfig`（`src/lib/damageAdapter.ts:29`）**不含 `role` 字段**，故为**纯对象互换**，无需改写内部 role——直接 `setAttackerConfig(defenderConfig)` / `setDefenderConfig(attackerConfig)` + 互换 dirty 标志即可。
+  - **对战条件不变**：`battleType` / `weather` / `isCritical` 保持。`activeSide`（当前编辑/选择哪一侧）保持当前侧即可（不强制切换）。
+  - **招式不对称的处理**：进攻方卡片 `showMoves`、防守方通常无 `selectedMoveId`。换边后**新进攻方可能没有招式** → 伤害结果自然落到「请先选择招式」空态（`DamageResultCard`）。这是合理降级，不特判；新进攻方若此前作为进攻方留有 `moveIds/selectedMoveId` 则自然带回。
+  - **按钮样式**：用 lucide 双向箭头图标（如 `ArrowUpDown` / `Repeat`）的小圆/胶囊按钮，居中替换原 `↓`；`aria-label="交换攻守双方"`。
+- **涉及文件**：`src/pages/CalculatorPage.tsx`（替换 `:1003` 分隔、加 swap handler）；测试 `src/pages/CalculatorPage.test.tsx`；`npm run test:visual` 计算器页快照。
+- **测试**：点转换后进攻↔防守的 pokemon / SP / 特性 / 道具 / 招式 / 性格 / 能力等级全部互换；dirty 标志随之互换；对战条件不变；换边后若新进攻方无招式则出空态、有招式则照常算伤害。
+- **验收**：攻守卡片间出现转换按钮，点一下带配置互换、对战条件不变、伤害结果按新攻守重算；`npm test`、`npm run build`、`npm run test:visual`（计算器快照更新）通过。
+
 ## 暂不做
 
 - 完整战斗模拟器 / 用户账号 / 云同步 / 多赛季趋势库（沿用上轮判断）。
@@ -318,3 +353,5 @@ npm run worker:environment:check  # 涉及 Worker
 - Task 15：浅色主题对齐品牌色、对比度达标；浅色态快照更新。
 - Task 18：可导入粒度以 icon 胶囊呈现、与卡片其余标签风格统一、仅命中项显示。
 - Task 19：环境页「换一批」改为「查看全部」入口、原换一批移除、主页固定 4 张最新卡片；队伍一览区分单/双打、可按「含队伍码」「赛事/排位高分」筛选、按时间最新→最旧排序、可搜索宝可梦/队伍名；「试试灵感」居中队伍卡片弹窗可关闭/可导入/可跳队伍页。
+- Task 21：速度线纵轴 151 族不再出现烈咬陆鲨/路卡利欧（Mega Z 占位），本体档位不受影响；`resolveTierPokemon` 对未知非基础形态不回退本体、空 variant/group 丢弃；`data:pokedb:speed:check` + 速度线快照通过。
+- Task 22：伤害计算器攻守卡片间有转换按钮，点击带 SP/特性/道具/招式/性格/能力等级互换、对战条件不变、伤害按新攻守重算；计算器快照更新。

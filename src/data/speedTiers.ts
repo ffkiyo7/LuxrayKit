@@ -111,20 +111,6 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
         ]
       },
       {
-        "speed": 334,
-        "label": "极速151族 S+1",
-        "count": 1,
-        "code": "151",
-        "color": "#ff6f61",
-        "pokemon": [
-          {
-            "dexNo": 445,
-            "form": "02",
-            "japaneseName": "メガガブリアスＺ"
-          }
-        ]
-      },
-      {
         "speed": 328,
         "label": "满速112族 S+2",
         "count": 1,
@@ -219,34 +205,6 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "dexNo": 257,
             "form": "01",
             "japaneseName": "メガバシャーモ"
-          }
-        ]
-      },
-      {
-        "speed": 304,
-        "label": "满速151族 S+1",
-        "count": 1,
-        "code": "151",
-        "color": "#6c8cff",
-        "pokemon": [
-          {
-            "dexNo": 445,
-            "form": "02",
-            "japaneseName": "メガガブリアスＺ"
-          }
-        ]
-      },
-      {
-        "speed": 300,
-        "label": "极速85族 2倍",
-        "count": 1,
-        "code": "85",
-        "color": "#ff6f61",
-        "pokemon": [
-          {
-            "dexNo": 904,
-            "form": "00",
-            "japaneseName": "ハリーマン"
           }
         ]
       },
@@ -411,20 +369,6 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
       },
       {
         "speed": 274,
-        "label": "满速85族 2倍",
-        "count": 1,
-        "code": "85",
-        "color": "#6c8cff",
-        "pokemon": [
-          {
-            "dexNo": 904,
-            "form": "00",
-            "japaneseName": "ハリーマン"
-          }
-        ]
-      },
-      {
-        "speed": 274,
         "label": "满速85族 S+2",
         "count": 1,
         "code": "85",
@@ -523,20 +467,6 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "dexNo": 668,
             "form": "02",
             "japaneseName": "メガカエンジシ"
-          }
-        ]
-      },
-      {
-        "speed": 265,
-        "label": "极速109族 讲究围巾",
-        "count": 1,
-        "code": "109",
-        "color": "#ff6f61",
-        "pokemon": [
-          {
-            "dexNo": 695,
-            "form": "00",
-            "japaneseName": "エレザード"
           }
         ]
       },
@@ -842,20 +772,6 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
         ]
       },
       {
-        "speed": 241,
-        "label": "满速109族 讲究围巾",
-        "count": 1,
-        "code": "109",
-        "color": "#6c8cff",
-        "pokemon": [
-          {
-            "dexNo": 695,
-            "form": "00",
-            "japaneseName": "エレザード"
-          }
-        ]
-      },
-      {
         "speed": 240,
         "label": "满速68族 S+2",
         "count": 1,
@@ -1093,25 +1009,6 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
       },
       {
         "speed": 223,
-        "label": "极速151族",
-        "count": 2,
-        "code": "151",
-        "color": "#ff6f61",
-        "pokemon": [
-          {
-            "dexNo": 445,
-            "form": "02",
-            "japaneseName": "メガガブリアスＺ"
-          },
-          {
-            "dexNo": 448,
-            "form": "02",
-            "japaneseName": "メガルカリオＺ"
-          }
-        ]
-      },
-      {
-        "speed": 223,
         "label": "极速84族 讲究围巾",
         "count": 1,
         "code": "84",
@@ -1197,6 +1094,20 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "dexNo": 254,
             "form": "01",
             "japaneseName": "メガジュカイン"
+          }
+        ]
+      },
+      {
+        "speed": 216,
+        "label": "极速79族 讲究围巾",
+        "count": 1,
+        "code": "79",
+        "color": "#ff6f61",
+        "pokemon": [
+          {
+            "dexNo": 584,
+            "form": "00",
+            "japaneseName": "バイバニラ"
           }
         ]
       },
@@ -1380,25 +1291,6 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
         ]
       },
       {
-        "speed": 203,
-        "label": "满速151族",
-        "count": 2,
-        "code": "151",
-        "color": "#6c8cff",
-        "pokemon": [
-          {
-            "dexNo": 445,
-            "form": "02",
-            "japaneseName": "メガガブリアスＺ"
-          },
-          {
-            "dexNo": 448,
-            "form": "02",
-            "japaneseName": "メガルカリオＺ"
-          }
-        ]
-      },
-      {
         "speed": 202,
         "label": "极速71族 S+1",
         "count": 1,
@@ -1518,6 +1410,20 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "dexNo": 254,
             "form": "01",
             "japaneseName": "メガジュカイン"
+          }
+        ]
+      },
+      {
+        "speed": 196,
+        "label": "满速79族 讲究围巾",
+        "count": 1,
+        "code": "79",
+        "color": "#6c8cff",
+        "pokemon": [
+          {
+            "dexNo": 584,
+            "form": "00",
+            "japaneseName": "バイバニラ"
           }
         ]
       },
@@ -1830,6 +1736,11 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
         "color": "#ff6f61",
         "pokemon": [
           {
+            "dexNo": 376,
+            "form": "01",
+            "japaneseName": "メガメタグロス"
+          },
+          {
             "dexNo": 26,
             "form": "02",
             "japaneseName": "メガライチュウＸ"
@@ -1843,11 +1754,6 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "dexNo": 398,
             "form": "01",
             "japaneseName": "メガムクホーク"
-          },
-          {
-            "dexNo": 376,
-            "form": "01",
-            "japaneseName": "メガメタグロス"
           },
           {
             "dexNo": 94,
@@ -1865,14 +1771,14 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "japaneseName": "ゾロアーク (ヒスイ)"
           },
           {
-            "dexNo": 475,
-            "form": "01",
-            "japaneseName": "メガエルレイド"
-          },
-          {
             "dexNo": 227,
             "form": "01",
             "japaneseName": "メガエアームド"
+          },
+          {
+            "dexNo": 475,
+            "form": "01",
+            "japaneseName": "メガエルレイド"
           }
         ]
       },
@@ -1893,7 +1799,7 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
       {
         "speed": 177,
         "label": "极速109族",
-        "count": 2,
+        "count": 1,
         "code": "109",
         "color": "#ff6f61",
         "pokemon": [
@@ -1901,11 +1807,6 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "dexNo": 38,
             "form": "01",
             "japaneseName": "キュウコン (アローラ)"
-          },
-          {
-            "dexNo": 695,
-            "form": "00",
-            "japaneseName": "エレザード"
           }
         ]
       },
@@ -2267,6 +2168,11 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
         "color": "#6c8cff",
         "pokemon": [
           {
+            "dexNo": 376,
+            "form": "01",
+            "japaneseName": "メガメタグロス"
+          },
+          {
             "dexNo": 26,
             "form": "02",
             "japaneseName": "メガライチュウＸ"
@@ -2280,11 +2186,6 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "dexNo": 398,
             "form": "01",
             "japaneseName": "メガムクホーク"
-          },
-          {
-            "dexNo": 376,
-            "form": "01",
-            "japaneseName": "メガメタグロス"
           },
           {
             "dexNo": 94,
@@ -2302,21 +2203,35 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "japaneseName": "ゾロアーク (ヒスイ)"
           },
           {
-            "dexNo": 475,
-            "form": "01",
-            "japaneseName": "メガエルレイド"
-          },
-          {
             "dexNo": 227,
             "form": "01",
             "japaneseName": "メガエアームド"
+          },
+          {
+            "dexNo": 475,
+            "form": "01",
+            "japaneseName": "メガエルレイド"
+          }
+        ]
+      },
+      {
+        "speed": 161,
+        "label": "极速95族",
+        "count": 1,
+        "code": "95",
+        "color": "#ff6f61",
+        "pokemon": [
+          {
+            "dexNo": 472,
+            "form": "00",
+            "japaneseName": "グライオン"
           }
         ]
       },
       {
         "speed": 161,
         "label": "满速109族",
-        "count": 2,
+        "count": 1,
         "code": "109",
         "color": "#6c8cff",
         "pokemon": [
@@ -2324,11 +2239,6 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "dexNo": 38,
             "form": "01",
             "japaneseName": "キュウコン (アローラ)"
-          },
-          {
-            "dexNo": 695,
-            "form": "00",
-            "japaneseName": "エレザード"
           }
         ]
       },
@@ -2593,7 +2503,7 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
       {
         "speed": 150,
         "label": "极速85族",
-        "count": 5,
+        "count": 4,
         "code": "85",
         "color": "#ff6f61",
         "pokemon": [
@@ -2603,24 +2513,19 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "japaneseName": "ブリジュラス"
           },
           {
-            "dexNo": 937,
-            "form": "00",
-            "japaneseName": "ソウブレイズ"
-          },
-          {
             "dexNo": 503,
             "form": "01",
             "japaneseName": "ダイケンキ (ヒスイ)"
           },
           {
+            "dexNo": 937,
+            "form": "00",
+            "japaneseName": "ソウブレイズ"
+          },
+          {
             "dexNo": 900,
             "form": "00",
             "japaneseName": "バサギリ"
-          },
-          {
-            "dexNo": 904,
-            "form": "00",
-            "japaneseName": "ハリーマン"
           }
         ]
       },
@@ -2663,6 +2568,20 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "dexNo": 778,
             "form": "00",
             "japaneseName": "ミミッキュ"
+          }
+        ]
+      },
+      {
+        "speed": 147,
+        "label": "满速95族",
+        "count": 1,
+        "code": "95",
+        "color": "#6c8cff",
+        "pokemon": [
+          {
+            "dexNo": 472,
+            "form": "00",
+            "japaneseName": "グライオン"
           }
         ]
       },
@@ -2733,14 +2652,14 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "japaneseName": "マンムー"
           },
           {
-            "dexNo": 604,
-            "form": "01",
-            "japaneseName": "メガシビルドン"
-          },
-          {
             "dexNo": 282,
             "form": "00",
             "japaneseName": "サーナイト"
+          },
+          {
+            "dexNo": 604,
+            "form": "01",
+            "japaneseName": "メガシビルドン"
           },
           {
             "dexNo": 475,
@@ -2944,7 +2863,7 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
       {
         "speed": 137,
         "label": "满速85族",
-        "count": 5,
+        "count": 4,
         "code": "85",
         "color": "#6c8cff",
         "pokemon": [
@@ -2954,24 +2873,19 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "japaneseName": "ブリジュラス"
           },
           {
-            "dexNo": 937,
-            "form": "00",
-            "japaneseName": "ソウブレイズ"
-          },
-          {
             "dexNo": 503,
             "form": "01",
             "japaneseName": "ダイケンキ (ヒスイ)"
           },
           {
+            "dexNo": 937,
+            "form": "00",
+            "japaneseName": "ソウブレイズ"
+          },
+          {
             "dexNo": 900,
             "form": "00",
             "japaneseName": "バサギリ"
-          },
-          {
-            "dexNo": 904,
-            "form": "00",
-            "japaneseName": "ハリーマン"
           }
         ]
       },
@@ -3011,14 +2925,14 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
         "color": "#ff6f61",
         "pokemon": [
           {
-            "dexNo": 260,
-            "form": "01",
-            "japaneseName": "メガラグラージ"
-          },
-          {
             "dexNo": 376,
             "form": "00",
             "japaneseName": "メタグロス"
+          },
+          {
+            "dexNo": 260,
+            "form": "01",
+            "japaneseName": "メガラグラージ"
           },
           {
             "dexNo": 36,
@@ -3074,14 +2988,14 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
         "color": "#ff6f61",
         "pokemon": [
           {
-            "dexNo": 689,
-            "form": "00",
-            "japaneseName": "ガメノデス"
-          },
-          {
             "dexNo": 560,
             "form": "01",
             "japaneseName": "メガズルズキン"
+          },
+          {
+            "dexNo": 689,
+            "form": "00",
+            "japaneseName": "ガメノデス"
           }
         ]
       },
@@ -3128,14 +3042,14 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "japaneseName": "マンムー"
           },
           {
-            "dexNo": 604,
-            "form": "01",
-            "japaneseName": "メガシビルドン"
-          },
-          {
             "dexNo": 282,
             "form": "00",
             "japaneseName": "サーナイト"
+          },
+          {
+            "dexNo": 604,
+            "form": "01",
+            "japaneseName": "メガシビルドン"
           },
           {
             "dexNo": 475,
@@ -3209,7 +3123,7 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
       {
         "speed": 129,
         "label": "0速109族",
-        "count": 2,
+        "count": 1,
         "code": "109",
         "color": "#4fd1a0",
         "pokemon": [
@@ -3217,11 +3131,6 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "dexNo": 38,
             "form": "01",
             "japaneseName": "キュウコン (アローラ)"
-          },
-          {
-            "dexNo": 695,
-            "form": "00",
-            "japaneseName": "エレザード"
           }
         ]
       },
@@ -3242,7 +3151,7 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
       {
         "speed": 128,
         "label": "极速65族",
-        "count": 5,
+        "count": 6,
         "code": "65",
         "color": "#ff6f61",
         "pokemon": [
@@ -3270,6 +3179,11 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "dexNo": 968,
             "form": "00",
             "japaneseName": "ミミズズ"
+          },
+          {
+            "dexNo": 134,
+            "form": "00",
+            "japaneseName": "シャワーズ"
           }
         ]
       },
@@ -3453,24 +3367,24 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "japaneseName": "ピクシー"
           },
           {
-            "dexNo": 460,
-            "form": "00",
-            "japaneseName": "ユキノオー"
-          },
-          {
             "dexNo": 727,
             "form": "00",
             "japaneseName": "ガオガエン"
           },
           {
-            "dexNo": 395,
+            "dexNo": 460,
             "form": "00",
-            "japaneseName": "エンペルト"
+            "japaneseName": "ユキノオー"
           },
           {
             "dexNo": 706,
             "form": "01",
             "japaneseName": "ヌメルゴン (ヒスイ)"
+          },
+          {
+            "dexNo": 395,
+            "form": "00",
+            "japaneseName": "エンペルト"
           },
           {
             "dexNo": 733,
@@ -3520,14 +3434,14 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
         "color": "#6c8cff",
         "pokemon": [
           {
-            "dexNo": 260,
-            "form": "01",
-            "japaneseName": "メガラグラージ"
-          },
-          {
             "dexNo": 376,
             "form": "00",
             "japaneseName": "メタグロス"
+          },
+          {
+            "dexNo": 260,
+            "form": "01",
+            "japaneseName": "メガラグラージ"
           },
           {
             "dexNo": 36,
@@ -3641,14 +3555,14 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
         "color": "#6c8cff",
         "pokemon": [
           {
-            "dexNo": 689,
-            "form": "00",
-            "japaneseName": "ガメノデス"
-          },
-          {
             "dexNo": 560,
             "form": "01",
             "japaneseName": "メガズルズキン"
+          },
+          {
+            "dexNo": 689,
+            "form": "00",
+            "japaneseName": "ガメノデス"
           }
         ]
       },
@@ -3697,7 +3611,7 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
       {
         "speed": 117,
         "label": "满速65族",
-        "count": 5,
+        "count": 6,
         "code": "65",
         "color": "#6c8cff",
         "pokemon": [
@@ -3725,6 +3639,11 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "dexNo": 968,
             "form": "00",
             "japaneseName": "ミミズズ"
+          },
+          {
+            "dexNo": 134,
+            "form": "00",
+            "japaneseName": "シャワーズ"
           }
         ]
       },
@@ -3753,6 +3672,20 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "dexNo": 652,
             "form": "00",
             "japaneseName": "ブリガロン"
+          }
+        ]
+      },
+      {
+        "speed": 115,
+        "label": "0速95族",
+        "count": 1,
+        "code": "95",
+        "color": "#4fd1a0",
+        "pokemon": [
+          {
+            "dexNo": 472,
+            "form": "00",
+            "japaneseName": "グライオン"
           }
         ]
       },
@@ -3885,24 +3818,24 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "japaneseName": "ピクシー"
           },
           {
-            "dexNo": 460,
-            "form": "00",
-            "japaneseName": "ユキノオー"
-          },
-          {
             "dexNo": 727,
             "form": "00",
             "japaneseName": "ガオガエン"
           },
           {
-            "dexNo": 395,
+            "dexNo": 460,
             "form": "00",
-            "japaneseName": "エンペルト"
+            "japaneseName": "ユキノオー"
           },
           {
             "dexNo": 706,
             "form": "01",
             "japaneseName": "ヌメルゴン (ヒスイ)"
+          },
+          {
+            "dexNo": 395,
+            "form": "00",
+            "japaneseName": "エンペルト"
           },
           {
             "dexNo": 733,
@@ -4019,7 +3952,7 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
       {
         "speed": 105,
         "label": "0速85族",
-        "count": 5,
+        "count": 4,
         "code": "85",
         "color": "#4fd1a0",
         "pokemon": [
@@ -4029,24 +3962,19 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "japaneseName": "ブリジュラス"
           },
           {
-            "dexNo": 937,
-            "form": "00",
-            "japaneseName": "ソウブレイズ"
-          },
-          {
             "dexNo": 503,
             "form": "01",
             "japaneseName": "ダイケンキ (ヒスイ)"
           },
           {
+            "dexNo": 937,
+            "form": "00",
+            "japaneseName": "ソウブレイズ"
+          },
+          {
             "dexNo": 900,
             "form": "00",
             "japaneseName": "バサギリ"
-          },
-          {
-            "dexNo": 904,
-            "form": "00",
-            "japaneseName": "ハリーマン"
           }
         ]
       },
@@ -4170,14 +4098,14 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "japaneseName": "マンムー"
           },
           {
-            "dexNo": 604,
-            "form": "01",
-            "japaneseName": "メガシビルドン"
-          },
-          {
             "dexNo": 282,
             "form": "00",
             "japaneseName": "サーナイト"
+          },
+          {
+            "dexNo": 604,
+            "form": "01",
+            "japaneseName": "メガシビルドン"
           },
           {
             "dexNo": 475,
@@ -4290,14 +4218,14 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
         "color": "#4fd1a0",
         "pokemon": [
           {
-            "dexNo": 260,
-            "form": "01",
-            "japaneseName": "メガラグラージ"
-          },
-          {
             "dexNo": 376,
             "form": "00",
             "japaneseName": "メタグロス"
+          },
+          {
+            "dexNo": 260,
+            "form": "01",
+            "japaneseName": "メガラグラージ"
           },
           {
             "dexNo": 36,
@@ -4329,14 +4257,14 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
         "color": "#4fd1a0",
         "pokemon": [
           {
-            "dexNo": 689,
-            "form": "00",
-            "japaneseName": "ガメノデス"
-          },
-          {
             "dexNo": 560,
             "form": "01",
             "japaneseName": "メガズルズキン"
+          },
+          {
+            "dexNo": 689,
+            "form": "00",
+            "japaneseName": "ガメノデス"
           }
         ]
       },
@@ -4371,7 +4299,7 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
       {
         "speed": 85,
         "label": "0速65族",
-        "count": 5,
+        "count": 6,
         "code": "65",
         "color": "#4fd1a0",
         "pokemon": [
@@ -4399,6 +4327,11 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "dexNo": 968,
             "form": "00",
             "japaneseName": "ミミズズ"
+          },
+          {
+            "dexNo": 134,
+            "form": "00",
+            "japaneseName": "シャワーズ"
           }
         ]
       },
@@ -4487,24 +4420,24 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "japaneseName": "ピクシー"
           },
           {
-            "dexNo": 460,
-            "form": "00",
-            "japaneseName": "ユキノオー"
-          },
-          {
             "dexNo": 727,
             "form": "00",
             "japaneseName": "ガオガエン"
           },
           {
-            "dexNo": 395,
+            "dexNo": 460,
             "form": "00",
-            "japaneseName": "エンペルト"
+            "japaneseName": "ユキノオー"
           },
           {
             "dexNo": 706,
             "form": "01",
             "japaneseName": "ヌメルゴン (ヒスイ)"
+          },
+          {
+            "dexNo": 395,
+            "form": "00",
+            "japaneseName": "エンペルト"
           },
           {
             "dexNo": 733,
@@ -4558,7 +4491,7 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
       {
         "speed": 76,
         "label": "极限0速65族",
-        "count": 5,
+        "count": 6,
         "code": "65",
         "color": "#b292ff",
         "pokemon": [
@@ -4586,6 +4519,11 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "dexNo": 968,
             "form": "00",
             "japaneseName": "ミミズズ"
+          },
+          {
+            "dexNo": 134,
+            "form": "00",
+            "japaneseName": "シャワーズ"
           }
         ]
       },
@@ -4660,24 +4598,24 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "japaneseName": "ピクシー"
           },
           {
-            "dexNo": 460,
-            "form": "00",
-            "japaneseName": "ユキノオー"
-          },
-          {
             "dexNo": 727,
             "form": "00",
             "japaneseName": "ガオガエン"
           },
           {
-            "dexNo": 395,
+            "dexNo": 460,
             "form": "00",
-            "japaneseName": "エンペルト"
+            "japaneseName": "ユキノオー"
           },
           {
             "dexNo": 706,
             "form": "01",
             "japaneseName": "ヌメルゴン (ヒスイ)"
+          },
+          {
+            "dexNo": 395,
+            "form": "00",
+            "japaneseName": "エンペルト"
           },
           {
             "dexNo": 733,
@@ -4989,11 +4927,6 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "japaneseName": "カビゴン"
           },
           {
-            "dexNo": 460,
-            "form": "01",
-            "japaneseName": "メガユキノオー"
-          },
-          {
             "dexNo": 80,
             "form": "01",
             "japaneseName": "メガヤドラン"
@@ -5002,6 +4935,11 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "dexNo": 80,
             "form": "00",
             "japaneseName": "ヤドラン"
+          },
+          {
+            "dexNo": 460,
+            "form": "01",
+            "japaneseName": "メガユキノオー"
           },
           {
             "dexNo": 199,
@@ -5051,11 +4989,6 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "japaneseName": "カビゴン"
           },
           {
-            "dexNo": 460,
-            "form": "01",
-            "japaneseName": "メガユキノオー"
-          },
-          {
             "dexNo": 80,
             "form": "01",
             "japaneseName": "メガヤドラン"
@@ -5064,6 +4997,11 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "dexNo": 80,
             "form": "00",
             "japaneseName": "ヤドラン"
+          },
+          {
+            "dexNo": 460,
+            "form": "01",
+            "japaneseName": "メガユキノオー"
           },
           {
             "dexNo": 199,
@@ -5140,20 +5078,6 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
       },
       {
         "speed": 344,
-        "label": "极速105族 S+2",
-        "count": 1,
-        "code": "105",
-        "color": "#ff6f61",
-        "pokemon": [
-          {
-            "dexNo": 956,
-            "form": "00",
-            "japaneseName": "クエスパトラ"
-          }
-        ]
-      },
-      {
-        "speed": 344,
         "label": "满速120族 2倍",
         "count": 2,
         "code": "120",
@@ -5186,39 +5110,6 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
         ]
       },
       {
-        "speed": 334,
-        "label": "极速151族 讲究围巾",
-        "count": 2,
-        "code": "151",
-        "color": "#ff6f61",
-        "pokemon": [
-          {
-            "dexNo": 445,
-            "form": "02",
-            "japaneseName": "メガガブリアスＺ"
-          },
-          {
-            "dexNo": 448,
-            "form": "02",
-            "japaneseName": "メガルカリオＺ"
-          }
-        ]
-      },
-      {
-        "speed": 314,
-        "label": "满速105族 S+2",
-        "count": 1,
-        "code": "105",
-        "color": "#6c8cff",
-        "pokemon": [
-          {
-            "dexNo": 956,
-            "form": "00",
-            "japaneseName": "クエスパトラ"
-          }
-        ]
-      },
-      {
         "speed": 308,
         "label": "极速88族 2倍",
         "count": 1,
@@ -5243,25 +5134,6 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "dexNo": 257,
             "form": "01",
             "japaneseName": "メガバシャーモ"
-          }
-        ]
-      },
-      {
-        "speed": 304,
-        "label": "满速151族 讲究围巾",
-        "count": 2,
-        "code": "151",
-        "color": "#6c8cff",
-        "pokemon": [
-          {
-            "dexNo": 445,
-            "form": "02",
-            "japaneseName": "メガガブリアスＺ"
-          },
-          {
-            "dexNo": 448,
-            "form": "02",
-            "japaneseName": "メガルカリオＺ"
           }
         ]
       },
@@ -5441,10 +5313,15 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
       {
         "speed": 267,
         "label": "极速110族 讲究围巾",
-        "count": 1,
+        "count": 2,
         "code": "110",
         "color": "#ff6f61",
         "pokemon": [
+          {
+            "dexNo": 398,
+            "form": "01",
+            "japaneseName": "メガムクホーク"
+          },
           {
             "dexNo": 571,
             "form": "01",
@@ -5542,20 +5419,6 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
         ]
       },
       {
-        "speed": 258,
-        "label": "极速105族 S+1",
-        "count": 1,
-        "code": "105",
-        "color": "#ff6f61",
-        "pokemon": [
-          {
-            "dexNo": 956,
-            "form": "00",
-            "japaneseName": "クエスパトラ"
-          }
-        ]
-      },
-      {
         "speed": 254,
         "label": "满速75族 2倍",
         "count": 1,
@@ -5600,10 +5463,15 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
       {
         "speed": 250,
         "label": "极速100族 讲究围巾",
-        "count": 1,
+        "count": 2,
         "code": "100",
         "color": "#ff6f61",
         "pokemon": [
+          {
+            "dexNo": 398,
+            "form": "00",
+            "japaneseName": "ムクホーク"
+          },
           {
             "dexNo": 38,
             "form": "00",
@@ -5647,10 +5515,15 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
       {
         "speed": 243,
         "label": "满速110族 讲究围巾",
-        "count": 1,
+        "count": 2,
         "code": "110",
         "color": "#6c8cff",
         "pokemon": [
+          {
+            "dexNo": 398,
+            "form": "01",
+            "japaneseName": "メガムクホーク"
+          },
           {
             "dexNo": 571,
             "form": "01",
@@ -5683,20 +5556,6 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "dexNo": 38,
             "form": "01",
             "japaneseName": "キュウコン (アローラ)"
-          }
-        ]
-      },
-      {
-        "speed": 235,
-        "label": "满速105族 S+1",
-        "count": 1,
-        "code": "105",
-        "color": "#6c8cff",
-        "pokemon": [
-          {
-            "dexNo": 956,
-            "form": "00",
-            "japaneseName": "クエスパトラ"
           }
         ]
       },
@@ -5755,10 +5614,15 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
       {
         "speed": 228,
         "label": "满速100族 讲究围巾",
-        "count": 1,
+        "count": 2,
         "code": "100",
         "color": "#6c8cff",
         "pokemon": [
+          {
+            "dexNo": 398,
+            "form": "00",
+            "japaneseName": "ムクホーク"
+          },
           {
             "dexNo": 38,
             "form": "00",
@@ -5812,14 +5676,14 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
         "color": "#ff6f61",
         "pokemon": [
           {
-            "dexNo": 900,
-            "form": "00",
-            "japaneseName": "バサギリ"
-          },
-          {
             "dexNo": 503,
             "form": "01",
             "japaneseName": "ダイケンキ (ヒスイ)"
+          },
+          {
+            "dexNo": 900,
+            "form": "00",
+            "japaneseName": "バサギリ"
           }
         ]
       },
@@ -5852,21 +5716,16 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
         ]
       },
       {
-        "speed": 223,
-        "label": "极速151族",
-        "count": 2,
-        "code": "151",
+        "speed": 224,
+        "label": "极速50族 2倍",
+        "count": 1,
+        "code": "50",
         "color": "#ff6f61",
         "pokemon": [
           {
-            "dexNo": 445,
-            "form": "02",
-            "japaneseName": "メガガブリアスＺ"
-          },
-          {
-            "dexNo": 448,
-            "form": "02",
-            "japaneseName": "メガルカリオＺ"
+            "dexNo": 45,
+            "form": "00",
+            "japaneseName": "ラフレシア"
           }
         ]
       },
@@ -5928,25 +5787,6 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "dexNo": 130,
             "form": "01",
             "japaneseName": "メガギャラドス"
-          }
-        ]
-      },
-      {
-        "speed": 217,
-        "label": "极速80族 讲究围巾",
-        "count": 2,
-        "code": "80",
-        "color": "#ff6f61",
-        "pokemon": [
-          {
-            "dexNo": 473,
-            "form": "00",
-            "japaneseName": "マンムー"
-          },
-          {
-            "dexNo": 609,
-            "form": "00",
-            "japaneseName": "シャンデラ"
           }
         ]
       },
@@ -6089,34 +5929,20 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
       },
       {
         "speed": 205,
-        "label": "极速135族",
-        "count": 1,
-        "code": "135",
-        "color": "#ff6f61",
-        "pokemon": [
-          {
-            "dexNo": 428,
-            "form": "01",
-            "japaneseName": "メガミミロップ"
-          }
-        ]
-      },
-      {
-        "speed": 205,
         "label": "满速85族 讲究围巾",
         "count": 2,
         "code": "85",
         "color": "#6c8cff",
         "pokemon": [
           {
-            "dexNo": 900,
-            "form": "00",
-            "japaneseName": "バサギリ"
-          },
-          {
             "dexNo": 503,
             "form": "01",
             "japaneseName": "ダイケンキ (ヒスイ)"
+          },
+          {
+            "dexNo": 900,
+            "form": "00",
+            "japaneseName": "バサギリ"
           }
         ]
       },
@@ -6164,6 +5990,20 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
       },
       {
         "speed": 204,
+        "label": "满速50族 2倍",
+        "count": 1,
+        "code": "50",
+        "color": "#6c8cff",
+        "pokemon": [
+          {
+            "dexNo": 45,
+            "form": "00",
+            "japaneseName": "ラフレシア"
+          }
+        ]
+      },
+      {
+        "speed": 204,
         "label": "满速84族 讲究围巾",
         "count": 1,
         "code": "84",
@@ -6173,25 +6013,6 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "dexNo": 1000,
             "form": "00",
             "japaneseName": "サーフゴー"
-          }
-        ]
-      },
-      {
-        "speed": 203,
-        "label": "满速151族",
-        "count": 2,
-        "code": "151",
-        "color": "#6c8cff",
-        "pokemon": [
-          {
-            "dexNo": 445,
-            "form": "02",
-            "japaneseName": "メガガブリアスＺ"
-          },
-          {
-            "dexNo": 448,
-            "form": "02",
-            "japaneseName": "メガルカリオＺ"
           }
         ]
       },
@@ -6263,25 +6084,6 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "dexNo": 130,
             "form": "01",
             "japaneseName": "メガギャラドス"
-          }
-        ]
-      },
-      {
-        "speed": 198,
-        "label": "满速80族 讲究围巾",
-        "count": 2,
-        "code": "80",
-        "color": "#6c8cff",
-        "pokemon": [
-          {
-            "dexNo": 473,
-            "form": "00",
-            "japaneseName": "マンムー"
-          },
-          {
-            "dexNo": 609,
-            "form": "00",
-            "japaneseName": "シャンデラ"
           }
         ]
       },
@@ -6466,20 +6268,6 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "dexNo": 121,
             "form": "01",
             "japaneseName": "メガスターミー"
-          }
-        ]
-      },
-      {
-        "speed": 187,
-        "label": "满速135族",
-        "count": 1,
-        "code": "135",
-        "color": "#6c8cff",
-        "pokemon": [
-          {
-            "dexNo": 428,
-            "form": "01",
-            "japaneseName": "メガミミロップ"
           }
         ]
       },
@@ -6778,25 +6566,6 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
       },
       {
         "speed": 172,
-        "label": "极速105族",
-        "count": 2,
-        "code": "105",
-        "color": "#ff6f61",
-        "pokemon": [
-          {
-            "dexNo": 956,
-            "form": "00",
-            "japaneseName": "クエスパトラ"
-          },
-          {
-            "dexNo": 428,
-            "form": "00",
-            "japaneseName": "ミミロップ"
-          }
-        ]
-      },
-      {
-        "speed": 172,
         "label": "满速120族",
         "count": 4,
         "code": "120",
@@ -6926,11 +6695,6 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
         "color": "#ff6f61",
         "pokemon": [
           {
-            "dexNo": 398,
-            "form": "00",
-            "japaneseName": "ムクホーク"
-          },
-          {
             "dexNo": 6,
             "form": "01",
             "japaneseName": "メガリザードンＸ"
@@ -6946,14 +6710,14 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "japaneseName": "リザードン"
           },
           {
+            "dexNo": 398,
+            "form": "00",
+            "japaneseName": "ムクホーク"
+          },
+          {
             "dexNo": 149,
             "form": "01",
             "japaneseName": "メガカイリュー"
-          },
-          {
-            "dexNo": 282,
-            "form": "01",
-            "japaneseName": "メガサーナイト"
           },
           {
             "dexNo": 115,
@@ -6966,14 +6730,19 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "japaneseName": "メガバシャーモ"
           },
           {
-            "dexNo": 637,
-            "form": "00",
-            "japaneseName": "ウルガモス"
+            "dexNo": 282,
+            "form": "01",
+            "japaneseName": "メガサーナイト"
           },
           {
             "dexNo": 38,
             "form": "00",
             "japaneseName": "キュウコン"
+          },
+          {
+            "dexNo": 637,
+            "form": "00",
+            "japaneseName": "ウルガモス"
           }
         ]
       },
@@ -7182,25 +6951,6 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
         ]
       },
       {
-        "speed": 157,
-        "label": "满速105族",
-        "count": 2,
-        "code": "105",
-        "color": "#6c8cff",
-        "pokemon": [
-          {
-            "dexNo": 956,
-            "form": "00",
-            "japaneseName": "クエスパトラ"
-          },
-          {
-            "dexNo": 428,
-            "form": "00",
-            "japaneseName": "ミミロップ"
-          }
-        ]
-      },
-      {
         "speed": 156,
         "label": "极速90族",
         "count": 5,
@@ -7341,11 +7091,6 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
         "color": "#6c8cff",
         "pokemon": [
           {
-            "dexNo": 398,
-            "form": "00",
-            "japaneseName": "ムクホーク"
-          },
-          {
             "dexNo": 6,
             "form": "01",
             "japaneseName": "メガリザードンＸ"
@@ -7361,14 +7106,14 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "japaneseName": "リザードン"
           },
           {
+            "dexNo": 398,
+            "form": "00",
+            "japaneseName": "ムクホーク"
+          },
+          {
             "dexNo": 149,
             "form": "01",
             "japaneseName": "メガカイリュー"
-          },
-          {
-            "dexNo": 282,
-            "form": "01",
-            "japaneseName": "メガサーナイト"
           },
           {
             "dexNo": 115,
@@ -7381,14 +7126,19 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "japaneseName": "メガバシャーモ"
           },
           {
-            "dexNo": 637,
-            "form": "00",
-            "japaneseName": "ウルガモス"
+            "dexNo": 282,
+            "form": "01",
+            "japaneseName": "メガサーナイト"
           },
           {
             "dexNo": 38,
             "form": "00",
             "japaneseName": "キュウコン"
+          },
+          {
+            "dexNo": 637,
+            "form": "00",
+            "japaneseName": "ウルガモス"
           }
         ]
       },
@@ -7439,6 +7189,11 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "japaneseName": "ジャラランガ"
           },
           {
+            "dexNo": 503,
+            "form": "01",
+            "japaneseName": "ダイケンキ (ヒスイ)"
+          },
+          {
             "dexNo": 904,
             "form": "00",
             "japaneseName": "ハリーマン"
@@ -7447,11 +7202,6 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "dexNo": 900,
             "form": "00",
             "japaneseName": "バサギリ"
-          },
-          {
-            "dexNo": 503,
-            "form": "01",
-            "japaneseName": "ダイケンキ (ヒスイ)"
           }
         ]
       },
@@ -7562,11 +7312,6 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
         "color": "#ff6f61",
         "pokemon": [
           {
-            "dexNo": 149,
-            "form": "00",
-            "japaneseName": "カイリュー"
-          },
-          {
             "dexNo": 3,
             "form": "00",
             "japaneseName": "フシギバナ"
@@ -7577,6 +7322,16 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "japaneseName": "メガフシギバナ"
           },
           {
+            "dexNo": 149,
+            "form": "00",
+            "japaneseName": "カイリュー"
+          },
+          {
+            "dexNo": 257,
+            "form": "00",
+            "japaneseName": "バシャーモ"
+          },
+          {
             "dexNo": 282,
             "form": "00",
             "japaneseName": "サーナイト"
@@ -7585,11 +7340,6 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "dexNo": 604,
             "form": "01",
             "japaneseName": "メガシビルドン"
-          },
-          {
-            "dexNo": 257,
-            "form": "00",
-            "japaneseName": "バシャーモ"
           },
           {
             "dexNo": 475,
@@ -7837,6 +7587,11 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "japaneseName": "ジャラランガ"
           },
           {
+            "dexNo": 503,
+            "form": "01",
+            "japaneseName": "ダイケンキ (ヒスイ)"
+          },
+          {
             "dexNo": 904,
             "form": "00",
             "japaneseName": "ハリーマン"
@@ -7845,11 +7600,6 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "dexNo": 900,
             "form": "00",
             "japaneseName": "バサギリ"
-          },
-          {
-            "dexNo": 503,
-            "form": "01",
-            "japaneseName": "ダイケンキ (ヒスイ)"
           }
         ]
       },
@@ -7908,14 +7658,14 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "japaneseName": "ヤバソチャ"
           },
           {
-            "dexNo": 376,
-            "form": "00",
-            "japaneseName": "メタグロス"
-          },
-          {
             "dexNo": 260,
             "form": "01",
             "japaneseName": "メガラグラージ"
+          },
+          {
+            "dexNo": 376,
+            "form": "00",
+            "japaneseName": "メタグロス"
           },
           {
             "dexNo": 186,
@@ -7975,11 +7725,6 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
         "color": "#6c8cff",
         "pokemon": [
           {
-            "dexNo": 149,
-            "form": "00",
-            "japaneseName": "カイリュー"
-          },
-          {
             "dexNo": 3,
             "form": "00",
             "japaneseName": "フシギバナ"
@@ -7990,6 +7735,16 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "japaneseName": "メガフシギバナ"
           },
           {
+            "dexNo": 149,
+            "form": "00",
+            "japaneseName": "カイリュー"
+          },
+          {
+            "dexNo": 257,
+            "form": "00",
+            "japaneseName": "バシャーモ"
+          },
+          {
             "dexNo": 282,
             "form": "00",
             "japaneseName": "サーナイト"
@@ -7998,11 +7753,6 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "dexNo": 604,
             "form": "01",
             "japaneseName": "メガシビルドン"
-          },
-          {
-            "dexNo": 257,
-            "form": "00",
-            "japaneseName": "バシャーモ"
           },
           {
             "dexNo": 475,
@@ -8103,20 +7853,6 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
         ]
       },
       {
-        "speed": 129,
-        "label": "极速66族",
-        "count": 1,
-        "code": "66",
-        "color": "#ff6f61",
-        "pokemon": [
-          {
-            "dexNo": 911,
-            "form": "00",
-            "japaneseName": "ラウドボーン"
-          }
-        ]
-      },
-      {
         "speed": 128,
         "label": "极速65族",
         "count": 2,
@@ -8175,25 +7911,6 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "dexNo": 668,
             "form": "00",
             "japaneseName": "カエンジシ"
-          }
-        ]
-      },
-      {
-        "speed": 125,
-        "label": "0速105族",
-        "count": 2,
-        "code": "105",
-        "color": "#4fd1a0",
-        "pokemon": [
-          {
-            "dexNo": 956,
-            "form": "00",
-            "japaneseName": "クエスパトラ"
-          },
-          {
-            "dexNo": 428,
-            "form": "00",
-            "japaneseName": "ミミロップ"
           }
         ]
       },
@@ -8275,7 +7992,7 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
       {
         "speed": 123,
         "label": "极速60族",
-        "count": 10,
+        "count": 11,
         "code": "60",
         "color": "#ff6f61",
         "pokemon": [
@@ -8290,9 +8007,9 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "japaneseName": "ニンフィア"
           },
           {
-            "dexNo": 861,
+            "dexNo": 981,
             "form": "00",
-            "japaneseName": "オーロンゲ"
+            "japaneseName": "リキキリン"
           },
           {
             "dexNo": 260,
@@ -8300,9 +8017,9 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "japaneseName": "ラグラージ"
           },
           {
-            "dexNo": 981,
+            "dexNo": 861,
             "form": "00",
-            "japaneseName": "リキキリン"
+            "japaneseName": "オーロンゲ"
           },
           {
             "dexNo": 730,
@@ -8328,6 +8045,11 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "dexNo": 681,
             "form": "01",
             "japaneseName": "ギルガルド"
+          },
+          {
+            "dexNo": 460,
+            "form": "00",
+            "japaneseName": "ユキノオー"
           }
         ]
       },
@@ -8377,14 +8099,14 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "japaneseName": "ヤバソチャ"
           },
           {
-            "dexNo": 376,
-            "form": "00",
-            "japaneseName": "メタグロス"
-          },
-          {
             "dexNo": 260,
             "form": "01",
             "japaneseName": "メガラグラージ"
+          },
+          {
+            "dexNo": 376,
+            "form": "00",
+            "japaneseName": "メタグロス"
           },
           {
             "dexNo": 186,
@@ -8434,11 +8156,6 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
         "color": "#4fd1a0",
         "pokemon": [
           {
-            "dexNo": 398,
-            "form": "00",
-            "japaneseName": "ムクホーク"
-          },
-          {
             "dexNo": 6,
             "form": "01",
             "japaneseName": "メガリザードンＸ"
@@ -8454,14 +8171,14 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "japaneseName": "リザードン"
           },
           {
+            "dexNo": 398,
+            "form": "00",
+            "japaneseName": "ムクホーク"
+          },
+          {
             "dexNo": 149,
             "form": "01",
             "japaneseName": "メガカイリュー"
-          },
-          {
-            "dexNo": 282,
-            "form": "01",
-            "japaneseName": "メガサーナイト"
           },
           {
             "dexNo": 115,
@@ -8474,14 +8191,19 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "japaneseName": "メガバシャーモ"
           },
           {
-            "dexNo": 637,
-            "form": "00",
-            "japaneseName": "ウルガモス"
+            "dexNo": 282,
+            "form": "01",
+            "japaneseName": "メガサーナイト"
           },
           {
             "dexNo": 38,
             "form": "00",
             "japaneseName": "キュウコン"
+          },
+          {
+            "dexNo": 637,
+            "form": "00",
+            "japaneseName": "ウルガモス"
           }
         ]
       },
@@ -8524,20 +8246,6 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "dexNo": 635,
             "form": "00",
             "japaneseName": "サザンドラ"
-          }
-        ]
-      },
-      {
-        "speed": 118,
-        "label": "满速66族",
-        "count": 1,
-        "code": "66",
-        "color": "#6c8cff",
-        "pokemon": [
-          {
-            "dexNo": 911,
-            "form": "00",
-            "japaneseName": "ラウドボーン"
           }
         ]
       },
@@ -8662,7 +8370,7 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
       {
         "speed": 112,
         "label": "极速50族",
-        "count": 6,
+        "count": 9,
         "code": "50",
         "color": "#ff6f61",
         "pokemon": [
@@ -8692,16 +8400,31 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "japaneseName": "シビルドン"
           },
           {
+            "dexNo": 45,
+            "form": "00",
+            "japaneseName": "ラフレシア"
+          },
+          {
             "dexNo": 184,
             "form": "00",
             "japaneseName": "マリルリ"
+          },
+          {
+            "dexNo": 306,
+            "form": "00",
+            "japaneseName": "ボスゴドラ"
+          },
+          {
+            "dexNo": 306,
+            "form": "01",
+            "japaneseName": "メガボスゴドラ"
           }
         ]
       },
       {
         "speed": 112,
         "label": "满速60族",
-        "count": 10,
+        "count": 11,
         "code": "60",
         "color": "#6c8cff",
         "pokemon": [
@@ -8716,9 +8439,9 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "japaneseName": "ニンフィア"
           },
           {
-            "dexNo": 861,
+            "dexNo": 981,
             "form": "00",
-            "japaneseName": "オーロンゲ"
+            "japaneseName": "リキキリン"
           },
           {
             "dexNo": 260,
@@ -8726,9 +8449,9 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "japaneseName": "ラグラージ"
           },
           {
-            "dexNo": 981,
+            "dexNo": 861,
             "form": "00",
-            "japaneseName": "リキキリン"
+            "japaneseName": "オーロンゲ"
           },
           {
             "dexNo": 730,
@@ -8754,6 +8477,11 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "dexNo": 681,
             "form": "01",
             "japaneseName": "ギルガルド"
+          },
+          {
+            "dexNo": 460,
+            "form": "00",
+            "japaneseName": "ユキノオー"
           }
         ]
       },
@@ -8904,6 +8632,11 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "japaneseName": "ジャラランガ"
           },
           {
+            "dexNo": 503,
+            "form": "01",
+            "japaneseName": "ダイケンキ (ヒスイ)"
+          },
+          {
             "dexNo": 904,
             "form": "00",
             "japaneseName": "ハリーマン"
@@ -8912,11 +8645,6 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "dexNo": 900,
             "form": "00",
             "japaneseName": "バサギリ"
-          },
-          {
-            "dexNo": 503,
-            "form": "01",
-            "japaneseName": "ダイケンキ (ヒスイ)"
           }
         ]
       },
@@ -8937,7 +8665,7 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
       {
         "speed": 102,
         "label": "满速50族",
-        "count": 6,
+        "count": 9,
         "code": "50",
         "color": "#6c8cff",
         "pokemon": [
@@ -8967,9 +8695,24 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "japaneseName": "シビルドン"
           },
           {
+            "dexNo": 45,
+            "form": "00",
+            "japaneseName": "ラフレシア"
+          },
+          {
             "dexNo": 184,
             "form": "00",
             "japaneseName": "マリルリ"
+          },
+          {
+            "dexNo": 306,
+            "form": "00",
+            "japaneseName": "ボスゴドラ"
+          },
+          {
+            "dexNo": 306,
+            "form": "01",
+            "japaneseName": "メガボスゴドラ"
           }
         ]
       },
@@ -9005,11 +8748,6 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
         "color": "#4fd1a0",
         "pokemon": [
           {
-            "dexNo": 149,
-            "form": "00",
-            "japaneseName": "カイリュー"
-          },
-          {
             "dexNo": 3,
             "form": "00",
             "japaneseName": "フシギバナ"
@@ -9020,6 +8758,16 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "japaneseName": "メガフシギバナ"
           },
           {
+            "dexNo": 149,
+            "form": "00",
+            "japaneseName": "カイリュー"
+          },
+          {
+            "dexNo": 257,
+            "form": "00",
+            "japaneseName": "バシャーモ"
+          },
+          {
             "dexNo": 282,
             "form": "00",
             "japaneseName": "サーナイト"
@@ -9028,11 +8776,6 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "dexNo": 604,
             "form": "01",
             "japaneseName": "メガシビルドン"
-          },
-          {
-            "dexNo": 257,
-            "form": "00",
-            "japaneseName": "バシャーモ"
           },
           {
             "dexNo": 475,
@@ -9188,14 +8931,14 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "japaneseName": "ヤバソチャ"
           },
           {
-            "dexNo": 376,
-            "form": "00",
-            "japaneseName": "メタグロス"
-          },
-          {
             "dexNo": 260,
             "form": "01",
             "japaneseName": "メガラグラージ"
+          },
+          {
+            "dexNo": 376,
+            "form": "00",
+            "japaneseName": "メタグロス"
           },
           {
             "dexNo": 186,
@@ -9238,20 +8981,6 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
         ]
       },
       {
-        "speed": 86,
-        "label": "0速66族",
-        "count": 1,
-        "code": "66",
-        "color": "#4fd1a0",
-        "pokemon": [
-          {
-            "dexNo": 911,
-            "form": "00",
-            "japaneseName": "ラウドボーン"
-          }
-        ]
-      },
-      {
         "speed": 85,
         "label": "0速65族",
         "count": 2,
@@ -9287,7 +9016,7 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
       {
         "speed": 80,
         "label": "0速60族",
-        "count": 10,
+        "count": 11,
         "code": "60",
         "color": "#4fd1a0",
         "pokemon": [
@@ -9302,9 +9031,9 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "japaneseName": "ニンフィア"
           },
           {
-            "dexNo": 861,
+            "dexNo": 981,
             "form": "00",
-            "japaneseName": "オーロンゲ"
+            "japaneseName": "リキキリン"
           },
           {
             "dexNo": 260,
@@ -9312,9 +9041,9 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "japaneseName": "ラグラージ"
           },
           {
-            "dexNo": 981,
+            "dexNo": 861,
             "form": "00",
-            "japaneseName": "リキキリン"
+            "japaneseName": "オーロンゲ"
           },
           {
             "dexNo": 730,
@@ -9340,6 +9069,11 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "dexNo": 681,
             "form": "01",
             "japaneseName": "ギルガルド"
+          },
+          {
+            "dexNo": 460,
+            "form": "00",
+            "japaneseName": "ユキノオー"
           }
         ]
       },
@@ -9368,20 +9102,6 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "dexNo": 823,
             "form": "00",
             "japaneseName": "アーマーガア"
-          }
-        ]
-      },
-      {
-        "speed": 77,
-        "label": "极限0速66族",
-        "count": 1,
-        "code": "66",
-        "color": "#b292ff",
-        "pokemon": [
-          {
-            "dexNo": 911,
-            "form": "00",
-            "japaneseName": "ラウドボーン"
           }
         ]
       },
@@ -9426,7 +9146,7 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
       {
         "speed": 72,
         "label": "极限0速60族",
-        "count": 10,
+        "count": 11,
         "code": "60",
         "color": "#b292ff",
         "pokemon": [
@@ -9441,9 +9161,9 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "japaneseName": "ニンフィア"
           },
           {
-            "dexNo": 861,
+            "dexNo": 981,
             "form": "00",
-            "japaneseName": "オーロンゲ"
+            "japaneseName": "リキキリン"
           },
           {
             "dexNo": 260,
@@ -9451,9 +9171,9 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "japaneseName": "ラグラージ"
           },
           {
-            "dexNo": 981,
+            "dexNo": 861,
             "form": "00",
-            "japaneseName": "リキキリン"
+            "japaneseName": "オーロンゲ"
           },
           {
             "dexNo": 730,
@@ -9479,6 +9199,11 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "dexNo": 681,
             "form": "01",
             "japaneseName": "ギルガルド"
+          },
+          {
+            "dexNo": 460,
+            "form": "00",
+            "japaneseName": "ユキノオー"
           }
         ]
       },
@@ -9499,7 +9224,7 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
       {
         "speed": 70,
         "label": "0速50族",
-        "count": 6,
+        "count": 9,
         "code": "50",
         "color": "#4fd1a0",
         "pokemon": [
@@ -9529,9 +9254,24 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "japaneseName": "シビルドン"
           },
           {
+            "dexNo": 45,
+            "form": "00",
+            "japaneseName": "ラフレシア"
+          },
+          {
             "dexNo": 184,
             "form": "00",
             "japaneseName": "マリルリ"
+          },
+          {
+            "dexNo": 306,
+            "form": "00",
+            "japaneseName": "ボスゴドラ"
+          },
+          {
+            "dexNo": 306,
+            "form": "01",
+            "japaneseName": "メガボスゴドラ"
           }
         ]
       },
@@ -9604,7 +9344,7 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
       {
         "speed": 63,
         "label": "极限0速50族",
-        "count": 6,
+        "count": 9,
         "code": "50",
         "color": "#b292ff",
         "pokemon": [
@@ -9634,9 +9374,24 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "japaneseName": "シビルドン"
           },
           {
+            "dexNo": 45,
+            "form": "00",
+            "japaneseName": "ラフレシア"
+          },
+          {
             "dexNo": 184,
             "form": "00",
             "japaneseName": "マリルリ"
+          },
+          {
+            "dexNo": 306,
+            "form": "00",
+            "japaneseName": "ボスゴドラ"
+          },
+          {
+            "dexNo": 306,
+            "form": "01",
+            "japaneseName": "メガボスゴドラ"
           }
         ]
       },
@@ -9779,7 +9534,7 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
       {
         "speed": 50,
         "label": "0速30族",
-        "count": 1,
+        "count": 2,
         "code": "30",
         "color": "#4fd1a0",
         "pokemon": [
@@ -9787,6 +9542,11 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "dexNo": 143,
             "form": "00",
             "japaneseName": "カビゴン"
+          },
+          {
+            "dexNo": 460,
+            "form": "01",
+            "japaneseName": "メガユキノオー"
           }
         ]
       },
@@ -9854,7 +9614,7 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
       {
         "speed": 45,
         "label": "极限0速30族",
-        "count": 1,
+        "count": 2,
         "code": "30",
         "color": "#b292ff",
         "pokemon": [
@@ -9862,6 +9622,11 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
             "dexNo": 143,
             "form": "00",
             "japaneseName": "カビゴン"
+          },
+          {
+            "dexNo": 460,
+            "form": "01",
+            "japaneseName": "メガユキノオー"
           }
         ]
       },
@@ -9887,14 +9652,14 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
         "color": "#4fd1a0",
         "pokemon": [
           {
-            "dexNo": 302,
-            "form": "01",
-            "japaneseName": "メガヤミラミ"
-          },
-          {
             "dexNo": 324,
             "form": "00",
             "japaneseName": "コータス"
+          },
+          {
+            "dexNo": 302,
+            "form": "01",
+            "japaneseName": "メガヤミラミ"
           },
           {
             "dexNo": 323,
@@ -9911,14 +9676,14 @@ export const speedTierSnapshots: SpeedTierSnapshot[] = [
         "color": "#b292ff",
         "pokemon": [
           {
-            "dexNo": 302,
-            "form": "01",
-            "japaneseName": "メガヤミラミ"
-          },
-          {
             "dexNo": 324,
             "form": "00",
             "japaneseName": "コータス"
+          },
+          {
+            "dexNo": 302,
+            "form": "01",
+            "japaneseName": "メガヤミラミ"
           },
           {
             "dexNo": 323,

@@ -16,6 +16,13 @@ const decodeHtml = (value) =>
 
 const textContent = (value) => decodeHtml(value.replace(/<[^>]*>/g, ' ')).replace(/\s+/g, ' ').trim();
 
+const normalizeChipName = (value) => value.normalize('NFKC').replace(/\s+/g, '').trim();
+
+export const isPlaceholderSpeedChip = ({ form, japaneseName }) => {
+  const normalizedName = normalizeChipName(japaneseName);
+  return form !== '00' && normalizedName.startsWith('メガ') && normalizedName.endsWith('Z');
+};
+
 // Each chip is <a class="speed-chip" href="/pokemon/show/0903-00?...">
 //   <i class="... dex-0903-00-96"></i>
 //   <div class="speed-chip__name">オオニューラ</div>
@@ -32,6 +39,7 @@ const parseChips = (group) => {
     const dexNo = dexSource ? Number(dexSource[1]) : 0;
     const form = dexSource ? dexSource[2] : '00';
     const japaneseName = textContent(inner.match(/<div class="speed-chip__name">([\s\S]*?)<\/div>/)?.[1] ?? '');
+    if (isPlaceholderSpeedChip({ form, japaneseName })) continue;
     chips.push({ dexNo, form, japaneseName });
   }
   return chips;

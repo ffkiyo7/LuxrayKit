@@ -138,9 +138,16 @@ describe('speed tier pokemon resolution', () => {
     expect(mega.displayName).toContain('雷丘');
   });
 
-  it('falls back to the base dex number, then to the raw name when unmapped', () => {
-    const byDex = resolveTierPokemon({ dexNo: 26, form: '99', japaneseName: '存在しない名前' });
+  it('falls back to the base dex number only for base-form references', () => {
+    const byDex = resolveTierPokemon({ dexNo: 26, form: '00', japaneseName: '存在しない名前' });
     expect(byDex).toMatchObject({ matched: true, displayName: '雷丘' });
+
+    const catalogBackedForm = resolveTierPokemon({ dexNo: 670, form: '05', japaneseName: 'フラエッテ:永遠' });
+    expect(catalogBackedForm).toMatchObject({ matched: true, displayName: '花叶蒂' });
+
+    const unknownForm = resolveTierPokemon({ dexNo: 26, form: '99', japaneseName: '存在しない名前' });
+    expect(unknownForm).toMatchObject({ matched: false, displayName: '存在しない名前' });
+    expect(unknownForm.id).toBeUndefined();
 
     const unmapped = resolveTierPokemon({ dexNo: 999999, form: '00', japaneseName: 'ナゾノモンスター' });
     expect(unmapped).toMatchObject({ matched: false, displayName: 'ナゾノモンスター' });
@@ -205,6 +212,39 @@ describe('speed tier grouping', () => {
     ]);
     expect(groups[0].variants[0].pokemon.map((p) => p.displayName)).toEqual(['坚盾剑怪']);
     expect(groups[0].pokemonCount).toBe(1);
+  });
+
+  it('drops variants and groups whose pokemon do not resolve to catalog entries', () => {
+    const groups = groupTiersBySpeed([
+      rawTier(223, '极速151族', '151', '#ff6f61', [
+        { dexNo: 445, form: '02', japaneseName: 'メガガブリアスＺ' },
+        { dexNo: 448, form: '02', japaneseName: 'メガルカリオＺ' },
+      ]),
+      rawTier(180, '极速112族', '112', '#ff6f61', [
+        { dexNo: 448, form: '01', japaneseName: 'メガルカリオ' },
+        { dexNo: 448, form: '02', japaneseName: 'メガルカリオＺ' },
+      ]),
+    ]);
+
+    expect(groups.map((group) => group.speed)).toEqual([180]);
+    expect(groups[0].variants).toHaveLength(1);
+    expect(groups[0].variants[0].pokemon.map((entry) => entry.displayName)).toEqual(['超级路卡利欧']);
+    expect(groups[0].pokemonCount).toBe(1);
+  });
+
+  it('does not ship Mega Z placeholder references in the generated speed snapshot', () => {
+    const placeholderNames = speedTierSnapshots
+      .flatMap((snapshot) => snapshot.tiers)
+      .flatMap((tier) => tier.pokemon)
+      .map((entry) => entry.japaneseName.normalize('NFKC'))
+      .filter((name) => name.startsWith('メガ') && name.endsWith('Z'));
+
+    expect(placeholderNames).toEqual([]);
+
+    const tier151Labels = groupTiersBySpeed(
+      speedTierSnapshots.flatMap((snapshot) => snapshot.tiers).filter((tier) => tier.code === '151'),
+    ).flatMap((group) => group.variants.map((variant) => variant.displayLabel));
+    expect(tier151Labels).toEqual([]);
   });
 
   it('places the marker slot right below every strictly-faster group', () => {
