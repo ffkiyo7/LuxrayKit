@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parsePokeDbSpeedTable } from './pokedb-speed-tier-utils.mjs';
+import { isPlaceholderSpeedChip, parsePokeDbSpeedTable } from './pokedb-speed-tier-utils.mjs';
 
 const chip = (dex, form, name) =>
   `<a class="speed-chip" href="/pokemon/show/${dex}-${form}?season=3&rule=1" target="_blank">` +
@@ -61,5 +61,36 @@ describe('PokeDB speed tier parser', () => {
         },
       ],
     });
+  });
+
+  it('drops Mega Z placeholder chips and discards empty placeholder tiers', () => {
+    const html = `
+      <div class="speed-table__row">
+        <div class="speed-table__speed"><span class="is-family-monospace">223</span></div>
+        <div class="speed-chips-group">
+          <div class="speed-chips-group__label"><span>最速</span>151族</div>
+          ${chip('0445', '02', 'メガガブリアスＺ')}${chip('0448', '02', 'メガルカリオＺ')}
+        </div>
+      </div>
+      <div class="speed-table__row">
+        <div class="speed-table__speed"><span class="is-family-monospace">180</span></div>
+        <div class="speed-chips-group">
+          <div class="speed-chips-group__label"><span>最速</span>112族</div>
+          ${chip('0448', '01', 'メガルカリオ')}${chip('0448', '02', 'メガルカリオＺ')}
+        </div>
+      </div>`;
+
+    expect(isPlaceholderSpeedChip({ form: '02', japaneseName: 'メガガブリアスＺ' })).toBe(true);
+    expect(isPlaceholderSpeedChip({ form: '01', japaneseName: 'メガガブリアス' })).toBe(false);
+    expect(parsePokeDbSpeedTable(html, 1).tiers).toEqual([
+      {
+        speed: 180,
+        label: '极速112族',
+        count: 1,
+        code: '112',
+        color: '#ff6f61',
+        pokemon: [{ dexNo: 448, form: '01', japaneseName: 'メガルカリオ' }],
+      },
+    ]);
   });
 });

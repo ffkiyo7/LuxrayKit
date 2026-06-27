@@ -1,4 +1,4 @@
-import { Calculator, ChevronDown, ChevronUp, Minus, Plus, Search, Users, X } from 'lucide-react';
+import { ArrowUpDown, Calculator, ChevronDown, ChevronUp, Minus, Plus, Search, Users, X } from 'lucide-react';
 import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { abilities as allAbilities, currentDataVersion, currentRuleNatureOptions, items as allItems, moves, pokemon } from '../data';
 import { currentRuleMovesForPokemon, currentRuleNatures, natureOptionLabel } from '../lib/currentRuleCatalog';
@@ -200,6 +200,7 @@ function SideConfigCard({
   config,
   onChange,
   showMoves,
+  configDirty,
   sideLabel,
   active,
   onSelect,
@@ -270,7 +271,7 @@ function SideConfigCard({
   };
 
   return (
-    <Card className={`${active ? 'border-accent bg-secondary' : 'bg-card'}`}>
+    <Card className={`${active ? 'border-accent bg-secondary' : 'bg-card'}`} data-config-dirty={configDirty ? 'true' : 'false'}>
       <div className="flex items-center gap-3">
         <button
           className="grid h-16 w-16 shrink-0 place-items-center rounded-full bg-transparent"
@@ -879,6 +880,13 @@ export function CalculatorPage({
     }
   }
 
+  function swapSides() {
+    setAttackerConfig(defenderConfig);
+    setDefenderConfig(attackerConfig);
+    setAttackerDirty(defenderDirty);
+    setDefenderDirty(attackerDirty);
+  }
+
   // SP issues for pre-calculation display
   const attackerSpIssues = validateStatPoints(attackerConfig.statPoints);
   const defenderSpIssues = validateStatPoints(defenderConfig.statPoints);
@@ -1000,7 +1008,17 @@ export function CalculatorPage({
         onSelect={() => setActiveSide('attacker')}
         selectorContent={activeSide === 'attacker' ? pokemonSelectorContent : undefined}
       />
-      <div className="flex justify-center text-textMuted">↓</div>
+      <div className="flex justify-center">
+        <button
+          aria-label="交换攻守双方"
+          className="grid h-9 w-9 place-items-center rounded-full border border-border bg-card text-textSecondary transition hover:border-accent/60 hover:text-accent active:scale-[0.98]"
+          title="交换攻守双方"
+          type="button"
+          onClick={swapSides}
+        >
+          <ArrowUpDown size={16} />
+        </button>
+      </div>
       <SideConfigCard
         config={defenderConfig}
         onChange={(next, dirty) => { setDefenderConfig(next); if (dirty) setDefenderDirty(true); }}

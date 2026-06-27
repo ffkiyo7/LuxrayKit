@@ -62,6 +62,11 @@ type CatalogMatch = { id: string; pokemonId: string; chineseName: string; iconRe
 let nameIndex: Map<string, CatalogMatch> | undefined;
 let dexIndex: Map<number, CatalogMatch> | undefined;
 
+// These PokeDB form codes are intentionally represented by the base catalog row
+// in LuxrayKit. Keep the list explicit so unknown future forms never become
+// misleading base-species avatars by accident.
+const CATALOG_BACKED_FORM_FALLBACKS = new Set(['670-05']); // Floette-Eternal
+
 const buildIndices = () => {
   const byName = new Map<string, CatalogMatch>();
   const byDex = new Map<number, CatalogMatch>();
@@ -84,7 +89,9 @@ const buildIndices = () => {
 export const resolveTierPokemon = (ref: RawTierPokemon): ResolvedTierPokemon => {
   if (!nameIndex || !dexIndex) buildIndices();
   const key = `${ref.dexNo}-${ref.form}`;
-  const match = nameIndex?.get(normalizeJapaneseName(ref.japaneseName)) ?? dexIndex?.get(ref.dexNo);
+  const nameMatch = nameIndex?.get(normalizeJapaneseName(ref.japaneseName));
+  const canUseDexFallback = ref.form === '00' || CATALOG_BACKED_FORM_FALLBACKS.has(key);
+  const match = nameMatch ?? (canUseDexFallback ? dexIndex?.get(ref.dexNo) : undefined);
   if (match) return { key, id: match.id, pokemonId: match.pokemonId, displayName: match.chineseName, iconRef: match.iconRef, matched: true };
   return { key, displayName: ref.japaneseName, matched: false };
 };
@@ -107,12 +114,14 @@ const dedupeResolved = (list: ResolvedTierPokemon[]) => {
 export const groupTiersBySpeed = (tiers: RawSpeedTier[]): SpeedTierGroup[] => {
   const groups = new Map<number, SpeedTierGroup>();
   for (const tier of tiers) {
+    const pokemon = dedupeResolved(tier.pokemon.map(resolveTierPokemon).filter((entry) => entry.matched));
+    if (pokemon.length === 0) continue;
     const variant: SpeedTierVariant = {
       label: tier.label,
       displayLabel: formatTierLabel(tier.label, tier.code),
       code: tier.code,
       color: tier.color,
-      pokemon: dedupeResolved(tier.pokemon.map(resolveTierPokemon)),
+      pokemon,
     };
     const existing = groups.get(tier.speed);
     if (existing) {

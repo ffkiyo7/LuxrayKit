@@ -2,8 +2,12 @@ import type { LucideIcon } from 'lucide-react';
 import { useState } from 'react';
 import type { LegalityStatus, PokemonType } from '../types';
 
-export function Card({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-  return <section className={`surface-shadow rounded-lg border border-border bg-card p-3 ${className}`}>{children}</section>;
+export function Card({
+  children,
+  className = '',
+  ...props
+}: React.HTMLAttributes<HTMLElement> & { children: React.ReactNode }) {
+  return <section className={`surface-shadow rounded-lg border border-border bg-card p-3 ${className}`} {...props}>{children}</section>;
 }
 
 export function Button({

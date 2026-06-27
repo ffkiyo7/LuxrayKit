@@ -130,6 +130,16 @@ describe('SpeedPage', () => {
     expect(screen.getByRole('button', { name: '+ 速度性格' }).getAttribute('aria-pressed')).toBe('true');
   });
 
+  it('does not render the Mega Z placeholder 151-family tier on either axis', async () => {
+    const user = userEvent.setup();
+    render(<SpeedPage environment={environment} />);
+
+    expect(screen.queryByRole('button', { name: /种族151/ })).toBeNull();
+
+    await user.click(screen.getByRole('button', { name: '单打' }));
+    expect(screen.queryByRole('button', { name: /种族151/ })).toBeNull();
+  });
+
   it('keeps pokemon search results usable inside a reduced visual viewport', async () => {
     const user = userEvent.setup();
     installVisualViewport(320);
