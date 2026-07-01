@@ -778,8 +778,12 @@ describe('App page flows', () => {
     const user = await renderEnvironmentApp();
 
     expect(screen.getByText(`${testEnvironmentState.seasonLabel} · 单打`)).toBeTruthy();
-    expect(screen.getByText('在线数据')).toBeTruthy();
-    expect(screen.getByText('可能过期')).toBeTruthy();
+    expect(screen.getByText(/源更新/)).toBeTruthy();
+    expect(screen.getByText(/抓取/)).toBeTruthy();
+    expect(screen.queryByText('在线数据')).toBeNull();
+    expect(screen.queryByText('最新')).toBeNull();
+    expect(screen.queryByText('可能过期')).toBeNull();
+    expect(screen.queryByText('数据源异常')).toBeNull();
     expect(screen.queryByText(testEnvironmentState.sourceLabel)).toBeNull();
     expect(screen.queryByText(/本页使用本地 seed 占位数据/)).toBeNull();
     expect(screen.queryByText(/不代表真实使用率/)).toBeNull();

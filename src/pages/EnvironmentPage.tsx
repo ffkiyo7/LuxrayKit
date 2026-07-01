@@ -65,12 +65,6 @@ const formatUpdatedAt = (value: string) =>
 
 const formatSampleCount = (value: number) => (value > 0 ? `${value} 队` : '暂无样本');
 
-const sourceKindLabels: Record<EnvironmentState['sourceKind'], string> = {
-  worker: '在线数据',
-  static: '静态缓存',
-  seed: '内置样例',
-};
-
 function EnvironmentHeaderMeta({
   environment,
   battleType,
@@ -78,35 +72,15 @@ function EnvironmentHeaderMeta({
   environment: EnvironmentState;
   battleType: EnvironmentBattleType;
 }) {
-  const freshnessLabel = environment.freshness === 'fresh' ? '最新' : '可能过期';
-
   return (
     <div className="mt-1 space-y-0.5 text-xs text-textSecondary">
       <div className="flex flex-wrap items-center gap-2">
         <span>{environment.seasonLabel} · {battleTypeLabels[battleType]}</span>
-        <span
-          className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-            environment.freshness === 'fresh'
-              ? 'bg-success/15 text-success'
-              : 'bg-warning/15 text-warning'
-          }`}
-        >
-          {freshnessLabel}
-        </span>
-        {environment.sourceStatus === 'degraded' && (
-          <span
-            className="rounded-full bg-warning/15 px-2 py-0.5 text-[10px] font-semibold text-warning"
-            title="环境数据自动刷新失败，当前展示的可能不是最新数据。"
-          >
-            数据源异常
-          </span>
-        )}
       </div>
       <div className="flex flex-wrap gap-x-2 gap-y-0.5">
-        <span>{sourceKindLabels[environment.sourceKind]}</span>
         <span>源更新 {formatUpdatedAt(environment.sourceUpdatedAt)}</span>
+        <span>抓取 {formatUpdatedAt(environment.updatedAt)}</span>
       </div>
-      <p>抓取 {formatUpdatedAt(environment.updatedAt)}</p>
     </div>
   );
 }
