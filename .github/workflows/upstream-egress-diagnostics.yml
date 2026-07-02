@@ -1,0 +1,203 @@
+name: Upstream Egress Diagnostics
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_url:
+        description: Target URL to probe from a GitHub-hosted runner
+        required: true
+        type: string
+        default: https://champs.pokedb.tokyo/pokemon/list?rule=0
+
+permissions:
+  contents: read
+
+concurrency:
+  group: upstream-egress-diagnostics
+  cancel-in-progress: false
+
+jobs:
+  diagnose:
+    name: Diagnose upstream egress
+    runs-on: ubuntu-latest
+    env:
+      TARGET_URL: ${{ inputs.target_url }}
+    steps:
+      - name: Collect runner egress metadata
+        run: |
+          set -euo pipefail
+
+          echo "Runner OS: $RUNNER_OS"
+          echo "Runner arch: $RUNNER_ARCH"
+          echo "Target URL host: $(python3 - <<'PY'
+          import os
+          from urllib.parse import urlparse
+          print(urlparse(os.environ["TARGET_URL"]).netloc)
+          PY
+          )"
+
+          egress_ip="$(curl -fsS --max-time 15 https://api.ipify.org || true)"
+          echo "Egress IPv4: ${egress_ip:-unknown}"
+
+          echo "::group::ipinfo.io"
+          curl -fsS --max-time 15 "https://ipinfo.io/${egress_ip:-}/json" || true
+          echo
+          echo "::endgroup::"
+
+          echo "::group::ifconfig.co"
+          curl -fsS --max-time 15 https://ifconfig.co/json || true
+          echo
+          echo "::endgroup::"
+
+          if [ -n "$egress_ip" ]; then
+            echo "::group::GitHub Actions CIDR match"
+            EGRESS_IP="$egress_ip" python3 - <<'PY'
+          import ipaddress
+          import json
+          import os
+          import urllib.request
+
+          ip = ipaddress.ip_address(os.environ["EGRESS_IP"])
+          with urllib.request.urlopen("https://api.github.com/meta", timeout=20) as response:
+              meta = json.load(response)
+
+          matches = []
+          for cidr in meta.get("actions", []):
+              try:
+                  network = ipaddress.ip_network(cidr, strict=False)
+              except ValueError:
+                  continue
+              if ip in network:
+                  matches.append(cidr)
+
+          if matches:
+              print(f"{ip} is inside GitHub Actions published ranges: {', '.join(matches[:5])}")
+          else:
+              print(f"{ip} did not match GitHub Actions published ranges from /meta")
+          PY
+            echo "::endgroup::"
+          fi
+
+      - name: Probe target with curl fingerprints
+        run: |
+          set -euo pipefail
+
+          print_headers() {
+            local file="$1"
+            awk 'BEGIN { IGNORECASE=1 } /^(HTTP\/|server:|date:|content-type:|content-length:|location:|cf-ray:|via:|x-|alt-svc:|set-cookie:)/ { print }' "$file" || true
+          }
+
+          probe_curl() {
+            local label="$1"
+            local headers_file="$RUNNER_TEMP/${label}.headers"
+            shift
+
+            echo "::group::curl ${label}"
+            set +e
+            curl "$@" \
+              --max-time 30 \
+              --retry 0 \
+              --silent \
+              --show-error \
+              --location \
+              --output /dev/null \
+              --dump-header "$headers_file" \
+              --write-out 'http_code=%{http_code}\nremote_ip=%{remote_ip}\nssl_verify_result=%{ssl_verify_result}\ntime_connect=%{time_connect}\ntime_total=%{time_total}\nurl_effective=%{url_effective}\n' \
+              "$TARGET_URL"
+            status=$?
+            set -e
+            echo "curl_exit=$status"
+            print_headers "$headers_file"
+            echo "::endgroup::"
+          }
+
+          probe_curl "default"
+
+          probe_curl "browser_headers" \
+            --header 'accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8' \
+            --header 'accept-language: ja,en-US;q=0.9,en;q=0.8' \
+            --header 'cache-control: no-cache' \
+            --header 'pragma: no-cache' \
+            --header 'sec-ch-ua: "Google Chrome";v="120", "Chromium";v="120", "Not?A_Brand";v="24"' \
+            --header 'sec-ch-ua-mobile: ?0' \
+            --header 'sec-ch-ua-platform: "Windows"' \
+            --header 'sec-fetch-dest: document' \
+            --header 'sec-fetch-mode: navigate' \
+            --header 'sec-fetch-site: same-origin' \
+            --header 'sec-fetch-user: ?1' \
+            --header 'upgrade-insecure-requests: 1' \
+            --header 'user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+
+          probe_curl "browser_headers_http1" \
+            --http1.1 \
+            --header 'accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8' \
+            --header 'accept-language: ja,en-US;q=0.9,en;q=0.8' \
+            --header 'cache-control: no-cache' \
+            --header 'pragma: no-cache' \
+            --header 'referer: https://champs.pokedb.tokyo/' \
+            --header 'user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+
+      - name: Probe target with Node fetch fingerprints
+        run: |
+          set -euo pipefail
+
+          node <<'NODE'
+          const targetUrl = process.env.TARGET_URL;
+          const targetOrigin = new URL(targetUrl).origin;
+
+          const selectedHeaderNames = [
+            'server',
+            'date',
+            'content-type',
+            'content-length',
+            'location',
+            'cf-ray',
+            'via',
+            'alt-svc',
+            'set-cookie',
+          ];
+
+          async function probe(label, init = {}) {
+            console.log(`::group::node ${label}`);
+            const start = Date.now();
+            try {
+              const response = await fetch(targetUrl, {
+                redirect: 'manual',
+                signal: AbortSignal.timeout(30000),
+                ...init,
+              });
+              console.log(`status=${response.status}`);
+              console.log(`ok=${response.ok}`);
+              console.log(`elapsed_ms=${Date.now() - start}`);
+              for (const name of selectedHeaderNames) {
+                const value = response.headers.get(name);
+                if (value) console.log(`${name}: ${value}`);
+              }
+            } catch (error) {
+              console.log(`error=${error instanceof Error ? error.stack : String(error)}`);
+            } finally {
+              console.log('::endgroup::');
+            }
+          }
+
+          await probe('default_fetch');
+          await probe('current_refresh_headers', {
+            cache: 'no-store',
+            headers: {
+              accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+              'accept-language': 'ja,en-US;q=0.9,en;q=0.8',
+              referer: `${targetOrigin}/`,
+              'sec-ch-ua': '"Google Chrome";v="120", "Chromium";v="120", "Not?A_Brand";v="24"',
+              'sec-ch-ua-mobile': '?0',
+              'sec-ch-ua-platform': '"Windows"',
+              'sec-fetch-dest': 'document',
+              'sec-fetch-mode': 'navigate',
+              'sec-fetch-site': 'same-origin',
+              'sec-fetch-user': '?1',
+              'upgrade-insecure-requests': '1',
+              'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+              'cache-control': 'no-cache',
+              pragma: 'no-cache',
+            },
+          });
+          NODE
