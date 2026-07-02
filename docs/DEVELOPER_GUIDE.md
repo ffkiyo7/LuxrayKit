@@ -256,14 +256,6 @@ npm run data:regma:allowlist / :abilities / :moves   # 重生成 seed 派生数�
 
 `update-pokedb-environment.mjs` 会同时写源码审计快照（`src/data/external/pokedb/current_environment_snapshot.json`）与 public 运行时 JSON（`public/data/pokedb/reg-ma-environment.json`），后者即前端第二级回退。
 
-生产兜底刷新还有一条 GitHub Actions 管线：`.github/workflows/pokedb-environment-refresh.yml` 每天约 `16:20 UTC`（PokeDB 常规发布窗口之后）或手动触发时，在 GitHub-hosted Linux runner 上运行一次 `npm run data:pokedb:environment`。它不会先跑 `--check`，避免对 PokeDB 抓两轮；脚本写完后由 git diff 判断两个生成 JSON 是否真的变化。
-
-- 若没有 diff，workflow 成功退出，不推分支、不建 PR。
-- 若两个快照有 diff，workflow 只提交 `src/data/external/pokedb/current_environment_snapshot.json` 与 `public/data/pokedb/reg-ma-environment.json` 到 `automation/pokedb-environment-refresh`，再创建或更新面向 `main` 的 PR，由现有 CI 与 `daily-auto-merge.yml` 接住。
-- 若 GitHub runner 也被 PokeDB 返回 403，或解析失败，workflow 直接失败且不推送提交；这就是需要评估其它出口方案的信号。
-
-启用全自动 PR 需要仓库 secret `POKEDB_UPDATE_TOKEN`：使用 fine-grained PAT，授权本仓库 `Contents: Read and write`、`Pull requests: Read and write`、`Metadata: Read-only`。Free plan 下该 workflow 使用标准 Linux runner，按一次 5-15 分钟估算，每日刷新通常约 150-450 Actions 分钟/月；若数据无变化或抓取更快会更低。
-
 ---
 
 ## 8. 测试
@@ -278,8 +270,7 @@ npm run data:regma:allowlist / :abilities / :moves   # 重生成 seed 派生数�
 
 - **部署**：经 **Cloudflare Workers Builds（Git 集成）**——push 到 `main` 自动构建并 `wrangler deploy`。非生产分支的 Workers Builds preview 会给一个真实 URL 做 UI+API 冒烟；**cron 不在 preview 触发**，但 preview 与生产**共享同一 KV**，对 preview 上的 KV 操作要当作直接影响生产、只读对待。
 - **CI**（`.github/workflows/ci.yml`）：仅 `npm test` + `npm run build` + `npm run worker:environment:check`，**不部署**。另有 `daily-auto-merge.yml`。
-- **PokeDB 外部刷新**（`.github/workflows/pokedb-environment-refresh.yml`）：仅更新生成快照并开 PR，作为 Cloudflare 出口被 PokeDB 拒绝时的低成本兜底；不写 Cloudflare KV、不调用 Worker 管理接口、不部署。
-- 仓库没有独立 deploy workflow。不要假设 GitHub Actions 负责部署或自动跑端到端。
+- 仓库 `.github/workflows/` 目前只有上述两个 workflow（无独立 deploy workflow）。不要假设 GitHub Actions 负责部署或自动跑端到端。
 
 ---
 
