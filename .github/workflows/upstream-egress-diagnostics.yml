@@ -201,3 +201,102 @@ jobs:
             },
           });
           NODE
+
+      - name: Check out repository for Playwright
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js for Playwright
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install Playwright dependency
+        run: npm ci
+
+      - name: Probe target with real Chrome via Playwright
+        run: |
+          set -euo pipefail
+
+          google-chrome --version || true
+
+          node --input-type=module <<'NODE'
+          import { chromium } from 'playwright';
+
+          const targetUrl = process.env.TARGET_URL;
+          const targetOrigin = new URL(targetUrl).origin;
+
+          const selectedHeaderNames = [
+            'server',
+            'date',
+            'content-type',
+            'content-length',
+            'location',
+            'cf-ray',
+            'via',
+            'alt-svc',
+            'set-cookie',
+          ];
+
+          console.log('::group::playwright chrome');
+          let browser;
+          try {
+            browser = await chromium.launch({
+              channel: 'chrome',
+              headless: true,
+              args: ['--disable-dev-shm-usage'],
+            });
+
+            const context = await browser.newContext({
+              locale: 'ja-JP',
+              timezoneId: 'Asia/Tokyo',
+              viewport: { width: 1365, height: 768 },
+              userAgent:
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+              extraHTTPHeaders: {
+                accept:
+                  'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+                'accept-language': 'ja,en-US;q=0.9,en;q=0.8',
+                referer: `${targetOrigin}/`,
+              },
+            });
+
+            const page = await context.newPage();
+            page.on('requestfailed', (request) => {
+              if (request.isNavigationRequest()) {
+                console.log(`navigation_request_failed=${request.url()} ${request.failure()?.errorText ?? 'unknown'}`);
+              }
+            });
+
+            const start = Date.now();
+            const response = await page.goto(targetUrl, {
+              waitUntil: 'domcontentloaded',
+              timeout: 30000,
+            });
+
+            console.log(`status=${response?.status() ?? 'no_response'}`);
+            console.log(`ok=${response?.ok() ?? false}`);
+            console.log(`elapsed_ms=${Date.now() - start}`);
+            console.log(`final_url=${page.url()}`);
+            console.log(`title=${await page.title().catch(() => '')}`);
+            console.log(`navigator_webdriver=${await page.evaluate(() => navigator.webdriver).catch(() => 'unknown')}`);
+
+            if (response) {
+              const headers = response.headers();
+              for (const name of selectedHeaderNames) {
+                if (headers[name]) console.log(`${name}: ${headers[name]}`);
+              }
+            }
+
+            const bodyText = await page.locator('body').innerText({ timeout: 5000 }).catch(() => '');
+            console.log(`body_text_length=${bodyText.length}`);
+            console.log(`body_text_preview=${bodyText.slice(0, 160).replace(/\s+/g, ' ')}`);
+
+            await context.close();
+          } catch (error) {
+            console.log(`error=${error instanceof Error ? error.stack : String(error)}`);
+          } finally {
+            await browser?.close().catch(() => {});
+            console.log('::endgroup::');
+          }
+          NODE
