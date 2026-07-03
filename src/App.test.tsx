@@ -782,7 +782,7 @@ describe('App page flows', () => {
     expect(screen.getByText(/抓取/)).toBeTruthy();
     expect(screen.queryByText('在线数据')).toBeNull();
     expect(screen.queryByText('最新')).toBeNull();
-    expect(screen.queryByText('可能过期')).toBeNull();
+    expect(screen.getByText('可能过期')).toBeTruthy();
     expect(screen.queryByText('数据源异常')).toBeNull();
     expect(screen.queryByText(testEnvironmentState.sourceLabel)).toBeNull();
     expect(screen.queryByText(/本页使用本地 seed 占位数据/)).toBeNull();
@@ -792,6 +792,7 @@ describe('App page flows', () => {
     await user.click(screen.getByRole('button', { name: '查看全部宝可梦' }));
     expect(await screen.findByRole('heading', { name: '完整宝可梦榜' })).toBeTruthy();
     expect(screen.getByText(`${testEnvironmentState.seasonLabel} · 单打`)).toBeTruthy();
+    expect(screen.getByText('可能过期')).toBeTruthy();
     expect(screen.queryByText(testEnvironmentState.sourceLabel)).toBeNull();
     expect(screen.queryByText(/本页使用本地 seed 占位数据/)).toBeNull();
 

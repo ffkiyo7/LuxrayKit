@@ -65,6 +65,30 @@ const formatUpdatedAt = (value: string) =>
 
 const formatSampleCount = (value: number) => (value > 0 ? `${value} 队` : '暂无样本');
 
+function EnvironmentStatusBadge({ environment }: { environment: EnvironmentState }) {
+  const status =
+    environment.sourceStatus === 'degraded'
+      ? {
+          label: '数据源异常',
+          className: 'border-warning/40 bg-warning/10 text-warning',
+        }
+      : environment.freshness === 'fresh'
+        ? {
+            label: '最新',
+            className: 'border-success/40 bg-success/10 text-success',
+          }
+        : {
+            label: '可能过期',
+            className: 'border-accent/40 bg-accent/10 text-accent',
+          };
+
+  return (
+    <span className={`inline-flex h-5 items-center rounded-full border px-2 text-[11px] font-semibold ${status.className}`}>
+      {status.label}
+    </span>
+  );
+}
+
 function EnvironmentHeaderMeta({
   environment,
   battleType,
@@ -76,6 +100,7 @@ function EnvironmentHeaderMeta({
     <div className="mt-1 space-y-0.5 text-xs text-textSecondary">
       <div className="flex flex-wrap items-center gap-2">
         <span>{environment.seasonLabel} · {battleTypeLabels[battleType]}</span>
+        <EnvironmentStatusBadge environment={environment} />
       </div>
       <div className="flex flex-wrap gap-x-2 gap-y-0.5">
         <span>源更新 {formatUpdatedAt(environment.sourceUpdatedAt)}</span>

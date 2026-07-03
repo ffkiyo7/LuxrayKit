@@ -373,7 +373,7 @@ describe('EnvironmentPage usage basis', () => {
     expect(listedTitles()).toEqual(['MB Team One', 'MB Team Two', 'MA Team One']);
   });
 
-  it('shows season and timestamps without exposing source status on the home or ranking headers', async () => {
+  it('shows season, timestamps, and freshness on the home and ranking headers', async () => {
     const user = userEvent.setup();
     render(<EnvironmentPage environment={makeEnvironment('rank-relative')} onImportSample={() => undefined} />);
 
@@ -381,7 +381,7 @@ describe('EnvironmentPage usage basis', () => {
     expect(screen.getByText(/源更新/)).toBeTruthy();
     expect(screen.getByText(/抓取/)).toBeTruthy();
     expect(screen.queryByText('在线数据')).toBeNull();
-    expect(screen.queryByText('最新')).toBeNull();
+    expect(screen.getByText('最新')).toBeTruthy();
     expect(screen.queryByText('可能过期')).toBeNull();
     expect(screen.queryByText('数据源异常')).toBeNull();
     expect(screen.queryByText(/PokeDB/)).toBeNull();
@@ -389,12 +389,12 @@ describe('EnvironmentPage usage basis', () => {
     await user.click(screen.getByRole('button', { name: '查看全部宝可梦' }));
 
     expect(screen.getByText('M-2 · 单打')).toBeTruthy();
-    expect(screen.queryByText('最新')).toBeNull();
+    expect(screen.getByText('最新')).toBeTruthy();
     expect(screen.queryByText('数据源异常')).toBeNull();
     expect(screen.queryByText(/PokeDB/)).toBeNull();
   });
 
-  it('hides static and seed freshness labels from environment headers', () => {
+  it('shows stale and degraded environment status without exposing source names', () => {
     const staticEnvironment = {
       ...makeEnvironment('rank-relative'),
       sourceKind: 'static' as const,
@@ -406,7 +406,7 @@ describe('EnvironmentPage usage basis', () => {
 
     expect(screen.getByText('M-2 · 单打')).toBeTruthy();
     expect(screen.queryByText('静态缓存')).toBeNull();
-    expect(screen.queryByText('可能过期')).toBeNull();
+    expect(screen.getByText('可能过期')).toBeTruthy();
 
     rerender(
       <EnvironmentPage
@@ -414,6 +414,7 @@ describe('EnvironmentPage usage basis', () => {
           ...staticEnvironment,
           seasonLabel: '开发样例',
           sourceKind: 'seed',
+          sourceStatus: 'degraded',
         }}
         onImportSample={() => undefined}
       />,
@@ -421,7 +422,7 @@ describe('EnvironmentPage usage basis', () => {
 
     expect(screen.getByText('开发样例 · 单打')).toBeTruthy();
     expect(screen.queryByText('内置样例')).toBeNull();
-    expect(screen.queryByText('可能过期')).toBeNull();
+    expect(screen.getByText('数据源异常')).toBeTruthy();
   });
 
   it('uses medal ranks without derived ranking values and hides rank-relative teammate percentages', async () => {
