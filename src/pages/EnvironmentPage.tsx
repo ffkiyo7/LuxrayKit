@@ -379,11 +379,11 @@ function FullRankingPage({
             <h2 className="mt-1 text-2xl font-semibold">完整宝可梦榜</h2>
             <EnvironmentHeaderMeta environment={environment} battleType={battleType} />
           </div>
-          <div className="grid grid-cols-2 rounded-lg border border-border bg-page p-1 text-sm font-semibold">
+          <div className="grid shrink-0 grid-cols-2 rounded-lg border border-border bg-page p-1 text-sm font-semibold">
             {(Object.keys(battleTypeLabels) as EnvironmentBattleType[]).map((type) => (
               <button
                 key={type}
-                className={`rounded-md px-3 py-2 ${battleType === type ? 'bg-accent text-page' : 'text-textSecondary'}`}
+                className={`whitespace-nowrap rounded-md px-3 py-2 ${battleType === type ? 'bg-accent text-page' : 'text-textSecondary'}`}
                 type="button"
                 onClick={() => onBattleTypeChange(type)}
               >
@@ -522,11 +522,11 @@ function EnvironmentMethodologyPage({
             <h2 className="mt-1 text-2xl font-semibold">数据口径</h2>
             <EnvironmentHeaderMeta environment={environment} battleType={battleType} />
           </div>
-          <div className="grid grid-cols-2 rounded-lg border border-border bg-page p-1 text-sm font-semibold">
+          <div className="grid shrink-0 grid-cols-2 rounded-lg border border-border bg-page p-1 text-sm font-semibold">
             {(Object.keys(battleTypeLabels) as EnvironmentBattleType[]).map((type) => (
               <button
                 key={type}
-                className={`rounded-md px-3 py-2 ${battleType === type ? 'bg-accent text-page' : 'text-textSecondary'}`}
+                className={`whitespace-nowrap rounded-md px-3 py-2 ${battleType === type ? 'bg-accent text-page' : 'text-textSecondary'}`}
                 type="button"
                 onClick={() => onBattleTypeChange(type)}
               >
@@ -672,11 +672,11 @@ export function EnvironmentPage({
             <h2 className="mt-1 text-2xl font-semibold">环境</h2>
             <EnvironmentHeaderMeta environment={environment} battleType={battleType} />
           </div>
-          <div className="grid grid-cols-2 rounded-lg border border-border bg-page p-1 text-sm font-semibold">
+          <div className="grid shrink-0 grid-cols-2 rounded-lg border border-border bg-page p-1 text-sm font-semibold">
             {(Object.keys(battleTypeLabels) as EnvironmentBattleType[]).map((type) => (
               <button
                 key={type}
-                className={`rounded-md px-3 py-2 ${battleType === type ? 'bg-accent text-page' : 'text-textSecondary'}`}
+                className={`whitespace-nowrap rounded-md px-3 py-2 ${battleType === type ? 'bg-accent text-page' : 'text-textSecondary'}`}
                 type="button"
                 onClick={() => changeBattleType(type)}
               >
