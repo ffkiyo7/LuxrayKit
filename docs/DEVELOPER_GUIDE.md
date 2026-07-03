@@ -247,6 +247,7 @@ Node ESM 脚本，多数支持 `--check`（只校验是否过期、不写文件�
 ```bash
 npm run data:pokedb:environment        # 抓取/刷新 PokeDB 环境静态快照
 npm run data:pokedb:environment:check  # 仅校验是否需要更新
+npm run data:pokedb:environment:pr     # VPS 刷新静态快照并创建/更新自动化 PR
 npm run data:pokedb:speed              # 重新生成速度线参照档 src/data/speedTiers.ts
 npm run data:pokedb:speed:check
 npm run data:vgcpastes:champions-ma    # 摄入 VGCPastes「Champions M-A」样本
@@ -255,6 +256,77 @@ npm run data:regma:allowlist / :abilities / :moves   # 重生成 seed 派生数�
 ```
 
 `update-pokedb-environment.mjs` 会同时写源码审计快照（`src/data/external/pokedb/current_environment_snapshot.json`）与 public 运行时 JSON（`public/data/pokedb/reg-ma-environment.json`），后者即前端第二级回退。
+
+### 7.1 VPS 环境快照刷新器
+
+Cloudflare 与 GitHub-hosted runner 出口被上游拒绝后，环境快照可以由一台低配 VPS 做外部刷新器。VPS 不承载线上流量、不写 Cloudflare KV，也不直接改 `main`；它只运行现有维护脚本，推送自动化分支并创建/更新 PR。后续仍由 GitHub CI 与 `daily-auto-merge.yml` 合并进入 `main`，再触发 Cloudflare Workers Builds 部署。
+
+VPS 端一次性准备：
+
+```bash
+sudo apt-get update
+sudo apt-get install -y git gh
+curl -fsSL https://deb.nodesource.com/setup_24.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+# 512MB Lightsail 实例建议加 1GB swap，避免 npm ci 内存吃紧。
+sudo fallocate -l 1G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+```
+
+GitHub 凭据建议使用 fine-grained PAT，仓库访问只选 LuxrayKit。测试 clone 阶段只需要 `Contents: Read-only`；自动 PR 阶段需要 `Contents: Read and write`、`Pull requests: Read and write`、`Metadata: Read`。不要给 `Administration`、`Actions`、`Secrets`、`Workflows` 或全仓库权限。
+
+VPS clone 后安装依赖并做一次冒烟：
+
+```bash
+npm ci --no-audit --no-fund
+npm run data:pokedb:environment:check -- --detail-limit=3 --skip-team-samples
+npm run data:pokedb:environment:check
+```
+
+确认完整 `--check` 能抓完单/双各 60 个详情页和队伍样本后，配置 `gh`：
+
+```bash
+echo "$GITHUB_PAT" | gh auth login --with-token
+gh auth setup-git
+git config user.name "LuxrayKit VPS Refresh Bot"
+git config user.email "luxraykit-vps-refresh-bot@users.noreply.github.com"
+```
+
+手动跑一次自动 PR：
+
+```bash
+npm run data:pokedb:environment:pr
+```
+
+该脚本会从最新 `origin/main` 重建 `automation/pokedb-environment-refresh`，运行 `npm run data:pokedb:environment`，只提交以下两个生成文件，并用 `gh` 创建或更新 PR：
+
+```text
+src/data/external/pokedb/current_environment_snapshot.json
+public/data/pokedb/reg-ma-environment.json
+```
+
+如果远端数据与当前快照一致，脚本成功退出且不推送分支、不更新 PR。如果上游返回 403、连接失败、解析失败或 GitHub 鉴权失败，脚本失败，现有生产 Worker 与静态回退不受影响。
+
+cron 示例（Ubuntu 默认按系统时区；若保持 UTC，请选在上游发布时间后 30-90 分钟）：
+
+```cron
+PATH=/usr/local/bin:/usr/bin:/bin
+30 17 * * * cd /home/ubuntu/LuxrayKit && npm run data:pokedb:environment:pr >> /home/ubuntu/pokedb-environment-refresh.log 2>&1
+```
+
+可选环境变量：
+
+```bash
+export POKEDB_FETCH_ATTEMPTS=5
+export POKEDB_FETCH_TIMEOUT_MS=20000
+export POKEDB_FETCH_RETRY_DELAY_MS=2000
+export POKEDB_PAGE_DELAY_MS=0
+```
+
+`POKEDB_PAGE_DELAY_MS=0` 适合只由固定 VPS 低频刷新时提速；如上游出现 429 或不稳定，再改成 `150` 或移除此变量，恢复脚本默认的人类化页间延迟。
 
 ---
 

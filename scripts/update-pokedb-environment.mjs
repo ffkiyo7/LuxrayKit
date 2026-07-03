@@ -6,6 +6,7 @@ import * as esbuild from 'esbuild';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
 const checkOnly = process.argv.includes('--check');
+const skipTeamSamples = process.argv.includes('--skip-team-samples') || process.env.POKEDB_SKIP_TEAM_SAMPLES === '1';
 const POKEDB_BASE_URL = process.env.POKEDB_BASE_URL ?? 'https://champs.pokedb.tokyo';
 const DEFAULT_DETAIL_LIMIT = 60;
 const TEAM_SAMPLE_LIMIT = 24;
@@ -27,6 +28,65 @@ function configuredDetailLimit() {
   const parsed = Number(fromArg ?? process.env.POKEDB_DETAIL_LIMIT ?? DEFAULT_DETAIL_LIMIT);
   if (!Number.isInteger(parsed) || parsed <= 0) return DEFAULT_DETAIL_LIMIT;
   return Math.min(parsed, 80);
+}
+
+function configuredPositiveInteger(name, fallback) {
+  const parsed = Number(process.env[name] ?? fallback);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+function configuredNonNegativeInteger(name) {
+  if (process.env[name] === undefined) return undefined;
+  const parsed = Number(process.env[name]);
+  return Number.isInteger(parsed) && parsed >= 0 ? parsed : undefined;
+}
+
+const wait = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
+
+function createPageWait() {
+  const overrideDelayMs = configuredNonNegativeInteger('POKEDB_PAGE_DELAY_MS');
+  return (milliseconds) => wait(overrideDelayMs ?? milliseconds);
+}
+
+const fetchInputLabel = (input) => {
+  if (typeof input === 'string') return input;
+  if (input instanceof URL) return input.toString();
+  return input.url;
+};
+
+const shouldRetryResponse = (response) => [429, 500, 502, 503, 504].includes(response.status);
+
+function createRetryingFetcher() {
+  const attempts = configuredPositiveInteger('POKEDB_FETCH_ATTEMPTS', 5);
+  const retryDelayMs = configuredPositiveInteger('POKEDB_FETCH_RETRY_DELAY_MS', 2000);
+  const timeoutMs = configuredPositiveInteger('POKEDB_FETCH_TIMEOUT_MS', 20000);
+
+  return async (input, init) => {
+    const url = fetchInputLabel(input);
+    let lastError;
+
+    for (let attempt = 1; attempt <= attempts; attempt += 1) {
+      try {
+        const timeoutSignal = AbortSignal.timeout(timeoutMs);
+        const signal = init?.signal ? AbortSignal.any([init.signal, timeoutSignal]) : timeoutSignal;
+        const response = await fetch(input, { ...init, signal });
+        if (!shouldRetryResponse(response) || attempt === attempts) return response;
+
+        lastError = new Error(`${url} returned ${response.status}`);
+      } catch (error) {
+        lastError = error;
+        if (attempt === attempts) throw error;
+      }
+
+      const causeCode = lastError?.cause?.code ? ` (${lastError.cause.code})` : '';
+      const message = `${lastError instanceof Error ? lastError.message : String(lastError)}${causeCode}`;
+      const delayMs = retryDelayMs * attempt;
+      console.warn(`Fetch attempt ${attempt}/${attempts} failed for ${url}: ${message}. Retrying in ${delayMs}ms.`);
+      await wait(delayMs);
+    }
+
+    throw lastError;
+  };
 }
 
 async function loadWorkerEnvironmentTools() {
@@ -90,42 +150,49 @@ function buildTeamSamples(payload, battleType) {
     }));
 }
 
-async function buildCurrentSeasonSnapshot(tools, detailLimit) {
-  const selectedSeason = await tools.detectLatestPokeDbSeason(POKEDB_BASE_URL);
+async function buildCurrentSeasonSnapshot(tools, detailLimit, fetcher, pageWait, options = {}) {
+  const selectedSeason = await tools.detectLatestPokeDbSeason(POKEDB_BASE_URL, fetcher);
   console.log(`Detected latest PokeDB season: M-${selectedSeason}`);
   console.log(`Fetching Pokemon statistics with detail limit ${detailLimit}...`);
 
-  const battleEntries = await Promise.all(
-    battleTypes.map(async (battleType) => {
-      const payload = await tools.fetchPokemonStatisticsBattle({
-        baseUrl: POKEDB_BASE_URL,
-        season: selectedSeason,
-        battleType,
-        detailLimit,
-      });
-      console.log(`Fetched ${battleType}: ${payload.resultCount} rankings, ${payload.detailCount} detail pages.`);
-      return [battleType, payload];
-    }),
-  );
+  const battleEntries = [];
+  for (const battleType of battleTypes) {
+    const payload = await tools.fetchPokemonStatisticsBattle({
+      baseUrl: POKEDB_BASE_URL,
+      season: selectedSeason,
+      battleType,
+      detailLimit,
+      fetcher,
+      wait: pageWait,
+    });
+    console.log(`Fetched ${battleType}: ${payload.resultCount} rankings, ${payload.detailCount} detail pages.`);
+    battleEntries.push([battleType, payload]);
+  }
 
   const sampleSeason = Math.max(selectedSeason - 1, 1);
-  const teamSampleEntries = await Promise.all(
-    battleTypes.map(async (battleType) => {
+  const teamSampleEntries = [];
+  if (options.skipTeamSamples) {
+    console.log('Skipping team sample refresh.');
+    battleTypes.forEach((battleType) => teamSampleEntries.push([battleType, []]));
+  } else {
+    for (const battleType of battleTypes) {
       try {
         const payload = await tools.fetchTrainerBattlePages({
           baseUrl: POKEDB_BASE_URL,
           season: sampleSeason,
           battleType,
+          fetcher,
+          wait: pageWait,
         });
         const samples = buildTeamSamples(payload, battleType);
         console.log(`Fetched ${battleType} team samples from ${payload.season}: ${samples.length}.`);
-        return [battleType, samples];
+        teamSampleEntries.push([battleType, samples]);
       } catch (error) {
         console.warn(`Team sample refresh failed for ${battleType}: ${error instanceof Error ? error.message : String(error)}`);
-        return [battleType, []];
+        teamSampleEntries.push([battleType, []]);
       }
-    }),
-  );
+    }
+  }
 
   const snapshot = {
     retrievedAt: new Date().toISOString(),
@@ -156,7 +223,13 @@ function printSnapshotReport(snapshot) {
 
 const tools = await loadWorkerEnvironmentTools();
 const detailLimit = configuredDetailLimit();
-const snapshot = await buildCurrentSeasonSnapshot(tools, detailLimit);
+const snapshot = await buildCurrentSeasonSnapshot(
+  tools,
+  detailLimit,
+  createRetryingFetcher(),
+  createPageWait(),
+  { skipTeamSamples },
+);
 printSnapshotReport(snapshot);
 
 const currentSourceSnapshotText = await readFile(environmentSnapshotOutputPath, 'utf8').catch(() => '');
