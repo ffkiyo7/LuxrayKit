@@ -12,6 +12,8 @@
 
 > **2026-06-21/22 进展**：**Task 18/19 已完成并并入 main**（commit `e465bec`，曾长期只在本地分支、未推送，本轮找回并合并）。**Task 14 + 14.1 已完成并验证**（速度线页面重做、超速反哺、PokeDB 静态档位、参照档真实头像/名单）。Task 14 收尾追加（均已合并 main）：① 队伍成员卡片「速度线 / 伤害计算」跳转入口 + 配置代入 + 进攻/防守选择；② 地区/形态宝可梦日文名修正（速度轴头像精确命中）；③ 伦琴猫调试队彩蛋改为仅首次点编辑弹一次（持久化）；④ 同速多档按环境使用率排主档、轴头像与 label 对齐；⑤ 同档去重映射到同一条目的宝可梦（坚盾剑怪盾/剑）。当前 `main` 测试 **280 passed**、build / test:visual 通过。**剩余**：Task 13（队报链接，spike 先行）、Task 15（浅色主题）。
 
+> **2026-07-09 进展（分支 `feat/doubles-default-and-season-schedule`，待合并 · 两轮 codex review 通过 · 测试全绿）**：新一批需求推进。**已完成**：① 全站单/双打页面统一默认双打（`currentRuleSet.battleType`）；② 赛季/规则文本集中到 `src/data/schedule.ts`——规则按日期窗口解析、赛季取每日快照活值（`EnvironmentState.seasonLabel`），Header 去硬编码、随更替自动更新，导出 `seasonToRegulation`/`isRegulationRolloverDue`；③ champs.pokedb.tokyo 排位高分队按 PokeDB 赛季自动归属规则（`sampleRegulation` 派生：M-3/M-4 → M-B，在「队伍一览」M-B 下可见；M-1/M-2 → M-A；VGCPastes 显式标签优先），消费端单点、对已提交快照即时生效；④ 抓取脚本加 `POKEDB_SAMPLE_SEASON` 覆盖 + M-3→M-B 端到端测试。**M-3 真实数据入库**交 VPS 每日刷新 / automation PR（站点已滚到 M-4，下次刷新自然抓 M-3）。**待做（B 系列前端，下一批）**：轮换趣味知识横幅、属性克制关系图表、速度线「一图流」纵向速度梯队总览（与现「计算模式」切换）、图鉴数据核对（含**树果道具映射/图标资产核实**）+ 展示优化。**最后**：OCR 手动导入（分支 `codex/local-ocr-team-import`，已完成数据模型 + RapidOCR 验证，未接 App）——本轮仅归档进度、暂不实现。
+
 ## 任务清单
 
 ### Task F — 伤害计算页排版重规划（保留 · 暂不做 · 低优先级 · 前端 · 算法不动）
