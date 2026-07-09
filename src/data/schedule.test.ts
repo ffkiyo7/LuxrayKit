@@ -31,6 +31,9 @@ describe('schedule', () => {
   it('derives the current season label from the schedule as an offline fallback', () => {
     expect(currentSeasonLabel(inMB)).toBe('M-4');
     expect(currentSeasonLabel(new Date('2026-06-20T00:00:00.000Z'))).toBe('M-3');
+    // Seasons transition at 02:00 UTC (announced 10:00 in UTC+8). Guard the M-3 -> M-4 boundary.
+    expect(currentSeasonLabel(new Date('2026-07-08T01:30:00.000Z'))).toBe('M-3');
+    expect(currentSeasonLabel(new Date('2026-07-08T02:30:00.000Z'))).toBe('M-4');
   });
 
   it('builds the header context label, preferring the live season', () => {

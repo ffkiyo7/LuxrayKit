@@ -16,7 +16,9 @@ import { currentRuleSet } from './seed/regMA/metadata';
  *    fallback and for the rollover reminder. Update `seasonSchedule` from the official
  *    announcement each season (e.g. M-4: https://news.pokemon-home.com/tc/page/795.html).
  *
- * All timestamps are ISO-8601 UTC. PokeDB/Champions announce times in JST (UTC+9).
+ * All timestamps are ISO-8601 UTC. Official announcements list local times — the Traditional
+ * Chinese (tc) page is UTC+8, so its "10:00"/"9:59" map to 02:00 / 01:59 UTC. Seasons and
+ * regulations both transition on the convention: start 02:00 UTC, end 01:59 UTC.
  */
 
 export type RegulationScheduleEntry = {
@@ -52,16 +54,18 @@ export const regulationSchedule: RegulationScheduleEntry[] = [
 ];
 
 export const seasonSchedule: SeasonScheduleEntry[] = [
-  // M-1/M-2 dates are approximate (M-A era, historical); the regulation mapping is exact.
-  { label: 'M-1', regulation: 'M-A', startAt: '2026-04-08T01:00:00.000Z', endAt: '2026-05-13T00:59:00.000Z' },
-  { label: 'M-2', regulation: 'M-A', startAt: '2026-05-13T01:00:00.000Z', endAt: '2026-06-10T00:59:00.000Z' },
-  { label: 'M-3', regulation: 'M-B', startAt: '2026-06-10T01:00:00.000Z', endAt: '2026-07-08T00:59:00.000Z' },
+  // M-1/M-2 start times are approximate (M-A era, historical); their regulation is exact and
+  // M-2 ends at the M-A->M-B boundary. M-3 (first M-B season) starts with the M-B regulation;
+  // M-4 dates are authoritative (official Ranked Battles Season M-4 announcement, UTC+8).
+  { label: 'M-1', regulation: 'M-A', startAt: '2026-04-08T02:00:00.000Z', endAt: '2026-05-13T01:59:00.000Z' },
+  { label: 'M-2', regulation: 'M-A', startAt: '2026-05-13T02:00:00.000Z', endAt: '2026-06-17T01:59:00.000Z' },
+  { label: 'M-3', regulation: 'M-B', startAt: currentRuleSet.startAt, endAt: '2026-07-08T01:59:00.000Z' },
   {
     label: 'M-4',
     regulation: 'M-B',
-    startAt: '2026-07-08T01:00:00.000Z',
-    endAt: '2026-08-05T00:59:00.000Z',
-    sourceUrl: 'https://news.pokemon-home.com/tc/page/795.html',
+    startAt: '2026-07-08T02:00:00.000Z',
+    endAt: '2026-08-05T01:59:00.000Z',
+    sourceUrl: 'https://champions-news.pokemon-home.com/', // Ranked Battles Season M-4
   },
 ];
 
