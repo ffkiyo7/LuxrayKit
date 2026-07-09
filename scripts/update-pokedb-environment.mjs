@@ -169,7 +169,16 @@ async function buildCurrentSeasonSnapshot(tools, detailLimit, fetcher, pageWait,
     battleEntries.push([battleType, payload]);
   }
 
-  const sampleSeason = Math.max(selectedSeason - 1, 1);
+  // High-score team samples default to the previous (completed) season for stable final
+  // rankings. POKEDB_SAMPLE_SEASON pins a specific season for deterministic backfills
+  // (e.g. force M-3 while the site's latest is M-4).
+  const sampleSeasonOverride = configuredNonNegativeInteger('POKEDB_SAMPLE_SEASON');
+  const sampleSeason = sampleSeasonOverride && sampleSeasonOverride >= 1
+    ? sampleSeasonOverride
+    : Math.max(selectedSeason - 1, 1);
+  if (sampleSeasonOverride && sampleSeasonOverride >= 1) {
+    console.log(`Using POKEDB_SAMPLE_SEASON override: fetching team samples from season M-${sampleSeason}.`);
+  }
   const teamSampleEntries = [];
   if (options.skipTeamSamples) {
     console.log('Skipping team sample refresh.');
