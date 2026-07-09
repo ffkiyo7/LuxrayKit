@@ -1,10 +1,16 @@
 import type { EnvironmentTeamSample, RegulationId } from '../data/environment';
+import { seasonToRegulation } from '../data/schedule';
 
 export const DEFAULT_TEAM_SAMPLE_SHUFFLE_SEED = 0x9e3779b9;
 
-// Legacy samples predate the M-B regulation and carry no tag, so an absent regulation
-// resolves to M-A. New ingests stamp regulation explicitly.
-export const sampleRegulation = (sample: EnvironmentTeamSample): RegulationId => sample.regulation ?? 'M-A';
+// A sample's regulation, in priority order:
+//  1. its explicit tag (VGCPastes champion samples carry `regulation`);
+//  2. otherwise derived from its PokeDB ladder season via the schedule
+//     (M-1/M-2 -> M-A, M-3/M-4 -> M-B), which is how high-score teams get tagged without
+//     baking regulation into the scraped snapshot;
+//  3. otherwise M-A, for legacy samples that predate both tags.
+export const sampleRegulation = (sample: EnvironmentTeamSample): RegulationId =>
+  sample.regulation ?? seasonToRegulation(sample.season ?? '') ?? 'M-A';
 
 export const isVgcPastesSample = (sample: EnvironmentTeamSample) =>
   Boolean(sample.sourceId?.includes('vgcpastes') || sample.id.startsWith('vgcpastes-'));

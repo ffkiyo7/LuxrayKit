@@ -1,6 +1,6 @@
 import { ArrowUpDown, Calculator, ChevronDown, ChevronUp, Minus, Plus, Search, Users, X } from 'lucide-react';
 import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
-import { abilities as allAbilities, currentDataVersion, currentRuleNatureOptions, items as allItems, moves, pokemon } from '../data';
+import { abilities as allAbilities, currentDataVersion, currentRuleNatureOptions, currentRuleSet, items as allItems, moves, pokemon } from '../data';
 import { currentRuleMovesForPokemon, currentRuleNatures, natureOptionLabel } from '../lib/currentRuleCatalog';
 import {
   buildCalcConfigFromTeamMember,
@@ -764,7 +764,7 @@ export function CalculatorPage({
   const [defenderDirty, setDefenderDirty] = useState(false);
 
   const [query, setQuery] = useState('');
-  const [battleType, setBattleType] = useState<BattleTypeOption>('doubles');
+  const [battleType, setBattleType] = useState<BattleTypeOption>(currentRuleSet.battleType);
   const [weather, setWeather] = useState(weatherOptions[0]);
   const [isCritical, setIsCritical] = useState(false);
   const [showTeamPicker, setShowTeamPicker] = useState(false);

@@ -73,8 +73,8 @@ export function TeamBrowseView({
   onImportSample: (sample: EnvironmentTeamSample) => Promise<void> | void;
 }) {
   const [searchTerm, setSearchTerm] = useState('');
-  // Default to "全部规则" so users (especially on the default 单打 view) always land on a
-  // populated list; pre-selecting the live regulation could show an empty page and confuse.
+  // Default to "全部规则" so users always land on a populated list regardless of the active
+  // battle type; pre-selecting the live regulation could show an empty page and confuse.
   const [regulation, setRegulation] = useState<RegulationFilter>('all');
   const [category, setCategory] = useState<CategoryFilter>('all');
   const [withReplicaCode, setWithReplicaCode] = useState(false);

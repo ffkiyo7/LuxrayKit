@@ -1,6 +1,6 @@
 import { ArrowDown, ArrowUp, Check, ChevronDown, Search, Wind, X, Zap } from 'lucide-react';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { currentRuleNatureOptions, pokemon } from '../data';
+import { currentRuleNatureOptions, currentRuleSet, pokemon } from '../data';
 import type { EnvironmentState } from '../data/environment';
 import { speedTierSeason, speedTierSnapshots } from '../data/speedTiers';
 import { findBattleForm, getDexFormEntries, type BattleFormView, type DexFormEntry } from '../lib/pokemonForms';
@@ -194,7 +194,7 @@ export function SpeedPage({ environment, activeTeam, presetMember }: { environme
   // default from activeTeam made the tool silently inherit the last-opened team's first
   // Pokémon and its SP/nature/item — surprising when opening the tool on its own.
   const defaultPokemon = pokemon.find((entry) => entry.id === 'staraptor') ?? pokemon[0];
-  const [battleType, setBattleType] = useState<BattleType>('doubles');
+  const [battleType, setBattleType] = useState<BattleType>(currentRuleSet.battleType);
   const [selectedPokemonId, setSelectedPokemonId] = useState(defaultPokemon.id);
   const [selectedFormId, setSelectedFormId] = useState<string | undefined>(undefined);
   const [build, setBuild] = useState(() => createBuild(defaultPokemon, findBattleForm(defaultPokemon.id, undefined)));

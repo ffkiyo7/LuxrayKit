@@ -10,6 +10,8 @@ import {
   createEnvironmentStateFromPokeDbSnapshot,
   loadEnvironmentState,
 } from './environment';
+import type { EnvironmentTeamSample } from './environment';
+import { sampleRegulation } from '../pages/environmentTeamSamples';
 
 const pokedbSnapshot = {
   retrievedAt: '2026-06-05T06:34:02.661Z',
@@ -181,6 +183,56 @@ describe('environment runtime loading', () => {
       abilityStats: [{ id: 'rough-skin', usageRate: 99.4 }],
       natureStats: [{ id: '爽朗', usageRate: 51.4 }],
     });
+  });
+
+  it('tags a PokeDB high-score sample by its ladder season so M-3 teams read as M-B', () => {
+    const battle = {
+      season: 'M-3',
+      seasonNumber: 3,
+      rule: 'singles' as const,
+      updatedAt: '2026-07-08 23:58:00',
+      sourceUrl: 'https://champs.pokedb.tokyo/pokemon/list?season=3&rule=0',
+      resultCount: 1,
+      detailCount: 0,
+      pokemonUsage: [
+        { pokemonId: 'garchomp', usageRate: 100, teamCount: 1, moveIds: [], itemIds: [], teammateIds: [] },
+      ],
+      audit: {
+        unknownPokemonKeys: [],
+        unknownItemNames: [],
+        unknownMoveKeys: [],
+        unknownAbilityKeys: [],
+        unknownNatureNames: [],
+        failedDetailKeys: [],
+      },
+    };
+    const m3Sample: EnvironmentTeamSample = {
+      id: 'pokedb-singles-rank-1',
+      dataKind: 'external-snapshot',
+      author: 'ウィル',
+      season: 'M-3',
+      score: 2815,
+      rank: 1,
+      title: 'M-3 · 最高第 1 名 · 2815 分',
+      battleType: 'singles',
+      reportUrl: 'https://champs.pokedb.tokyo/trainer/show/example',
+      slots: [{ pokemonId: 'garchomp', itemId: 'focus-sash', moveIds: [] }],
+    };
+
+    const state = createEnvironmentStateFromPokeDbSnapshot({
+      retrievedAt: '2026-07-09T09:00:00.000Z',
+      battles: {
+        singles: battle,
+        doubles: { ...battle, rule: 'doubles', sourceUrl: 'https://champs.pokedb.tokyo/pokemon/list?season=3&rule=1' },
+      },
+      teamSamples: { singles: [m3Sample], doubles: [] },
+    });
+
+    const sample = state.teamSamples.find((entry) => entry.id === 'pokedb-singles-rank-1');
+    expect(sample?.season).toBe('M-3');
+    // End-to-end: an M-3 high-score sample carries no explicit regulation but resolves to M-B,
+    // so it surfaces under the M-B team-library filter.
+    expect(sampleRegulation(sample!)).toBe('M-B');
   });
 
   it('creates visible team samples when the Worker snapshot only has ranked teams', () => {

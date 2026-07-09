@@ -21,6 +21,7 @@ import {
   type EnvironmentState,
   type EnvironmentTeamSample,
 } from '../data/environment';
+import { currentRuleSet } from '../data';
 import { Button, Card, PokemonAvatar, TypeBadge } from '../components/ui';
 import { TeamBrowseView } from './TeamBrowseView';
 import { TeamSampleCard } from './TeamSampleCard';
@@ -578,13 +579,15 @@ export function EnvironmentPage({
   environment: EnvironmentState;
   onImportSample: (sample: EnvironmentTeamSample) => Promise<void> | void;
 }) {
-  const [battleType, setBattleType] = useState<EnvironmentBattleType>('singles');
+  // Default to the current regulation's primary format (M-B → doubles) so every
+  // battle-type toggle across the app lands on the same default. Single source: currentRuleSet.
+  const [battleType, setBattleType] = useState<EnvironmentBattleType>(currentRuleSet.battleType);
   const [view, setView] = useState<'home' | 'ranking' | 'methodology' | 'teams'>('home');
   const [detailState, setDetailState] = useState<{ pokemonId: string; returnView: 'home' | 'ranking' } | null>(null);
   const rankings = useMemo(() => environment.pokemonUsage[battleType], [battleType, environment.pokemonUsage]);
-  // The home teaser shows the latest teams by date; since M-B (the live regulation) is the
-  // newest data, it naturally floats to the top without a hard regulation filter. The full
-  // 队伍一览 is where the explicit, M-B-default regulation filter lives.
+  // The home teaser shows the latest teams by date; the newest data (current regulation)
+  // naturally floats to the top without a hard regulation filter. The full 队伍一览 defaults to
+  // 全部规则 (all) and exposes an M-A/M-B regulation filter (see TeamBrowseView).
   const teamSamples = useMemo(
     () => environment.teamSamples.filter((sample) => sample.battleType === battleType),
     [battleType, environment.teamSamples],

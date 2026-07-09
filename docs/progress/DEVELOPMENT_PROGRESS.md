@@ -1,12 +1,23 @@
 # Luxray Kit 开发进度
 
-更新日期：2026-06-26
+更新日期：2026-07-09
 
 > 工程细节（架构 / Worker 刷新管线 / 部署）以 `docs/DEVELOPER_GUIDE.md` 为准，本文件只记录进度概要。
 
 ## 当前阶段
 
 环境优先重构、Luxray Kit 品牌更新和 Cloudflare Worker 统一部署已进入 `main`。生产站点由 `luxraykit-app` Worker 提供静态资源与 API，环境页在线优先读取 KV 中的 PokeDB snapshot，并保留最新赛季静态快照和开发 seed 两级回退。
+
+## 本轮进展（2026-07-09）：默认双打 · 赛季/规则集中化 · 高分队规则归属
+
+分支 `feat/doubles-default-and-season-schedule`（待合并）：
+
+- **默认双打**：环境 / 速度线 / 计算器三处单双打 toggle 统一默认 `currentRuleSet.battleType`（M-B → 双打），单一来源。
+- **赛季/规则单一来源** `src/data/schedule.ts`：区分两条独立时间轴——**规则**（M-A/M-B，按日期窗口解析）与 **PokeDB 赛季**（M-1…M-4，取自每日快照 `EnvironmentState.seasonLabel`，排期表作离线兜底）。Header 顶部文案改为「活值赛季 · 按日期规则」，不再硬编码 `Season M-3`，赛季更替后自动更新。导出 `seasonToRegulation` 与 `isRegulationRolloverDue`（更替提醒）。
+- **高分队规则归属**：`sampleRegulation` 用 `seasonToRegulation(sample.season)` 派生——M-3/M-4 的 champs.pokedb.tokyo 排位高分队自动归 M-B（在「队伍一览」M-B 筛选下可见），M-1/M-2 归 M-A，VGCPastes 显式标签优先。消费端单点、对已提交快照即时生效、快照 JSON 保持纯数据、无需重抓。
+- **M-3 真实数据**：抓取脚本加 `POKEDB_SAMPLE_SEASON` 覆盖用于定向回填；真实 M-3 高分队进快照仍由 **VPS 每日刷新 / automation PR** 负责（站点已滚到 M-4，下次刷新自然抓 M-3 并由上面的派生逻辑自动标 M-B）。
+
+验证：完整 Vitest 套件通过、`tsc -b` 通过，两轮 codex review 通过。下一轮见 `docs/progress/NEXT_ROUND_PLAN.md`（B 系列前端 + OCR 归档）。
 
 ## 已完成
 

@@ -6,6 +6,7 @@ import { Header } from './components/Header';
 import { Onboarding } from './components/onboarding/Onboarding';
 import { Button } from './components/ui';
 import { productName } from './branding';
+import { productContextLabel } from './data/schedule';
 import type { EnvironmentState, EnvironmentTeamSample } from './data/environment';
 import { useAutoHideBottomNav } from './hooks/useAutoHideBottomNav';
 import { AppProvider, useAppStore } from './state/AppContext';
@@ -354,7 +355,7 @@ function AppShell() {
   return (
     <main className="app-shell mx-auto min-h-screen max-w-[430px] text-textPrimary">
       <div className="safe-bottom min-h-screen px-4 pt-4">
-        <Header />
+        <Header contextLabel={productContextLabel(environmentState?.seasonLabel)} />
         <Suspense fallback={<PageLoading />}>{page}</Suspense>
       </div>
       {importToast && (
