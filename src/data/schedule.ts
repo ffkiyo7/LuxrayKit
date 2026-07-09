@@ -57,6 +57,9 @@ export const seasonSchedule: SeasonScheduleEntry[] = [
   // M-1/M-2 start times are approximate (M-A era, historical); their regulation is exact and
   // M-2 ends at the M-A->M-B boundary. M-3 (first M-B season) starts with the M-B regulation;
   // M-4 dates are authoritative (official Ranked Battles Season M-4 announcement, UTC+8).
+  // MAINTENANCE: append each new season here at rollover (isRegulationRolloverDue signals the
+  // regulation boundary). An "M-n" season missing from this table classifies its high-score
+  // teams as M-A by default (sampleRegulation) — extend the table before a refresh samples it.
   { label: 'M-1', regulation: 'M-A', startAt: '2026-04-08T02:00:00.000Z', endAt: '2026-05-13T01:59:00.000Z' },
   { label: 'M-2', regulation: 'M-A', startAt: '2026-05-13T02:00:00.000Z', endAt: '2026-06-17T01:59:00.000Z' },
   { label: 'M-3', regulation: 'M-B', startAt: currentRuleSet.startAt, endAt: '2026-07-08T01:59:00.000Z' },
@@ -65,7 +68,7 @@ export const seasonSchedule: SeasonScheduleEntry[] = [
     regulation: 'M-B',
     startAt: '2026-07-08T02:00:00.000Z',
     endAt: '2026-08-05T01:59:00.000Z',
-    sourceUrl: 'https://champions-news.pokemon-home.com/', // Ranked Battles Season M-4
+    sourceUrl: 'https://news.pokemon-home.com/tc/page/795.html', // Ranked Battles Season M-4 (UTC+8)
   },
 ];
 
