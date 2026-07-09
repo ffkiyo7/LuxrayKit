@@ -83,7 +83,8 @@ afterEach(() => {
 });
 
 describe('EnvironmentPage usage basis', () => {
-  it('uses source-aware sample card labels without forcing VGCPastes into season/rank/score text', () => {
+  it('uses source-aware sample card labels without forcing VGCPastes into season/rank/score text', async () => {
+    const user = userEvent.setup();
     const samples: EnvironmentTeamSample[] = [
       {
         id: 'pokedb-singles-rank-1',
@@ -119,6 +120,8 @@ describe('EnvironmentPage usage basis', () => {
 
     render(<EnvironmentPage environment={makeTeamSampleEnvironment(samples)} onImportSample={() => undefined} />);
 
+    // Default view is now 双打; these fixtures are singles samples, so switch to see them.
+    await user.click(screen.getByRole('button', { name: '单打' }));
     expect(screen.getByText('M-3 · 最高第 1 名 · 2815 分')).toBeTruthy();
     expect(screen.getByText('PokeDB 环境榜')).toBeTruthy();
     expect(screen.getByText('PJCS 2026 public team')).toBeTruthy();
@@ -185,6 +188,7 @@ describe('EnvironmentPage usage basis', () => {
 
     render(<EnvironmentPage environment={makeTeamSampleEnvironment(samples)} onImportSample={() => undefined} />);
 
+    await user.click(screen.getByRole('button', { name: '单打' }));
     await user.click(screen.getByRole('button', { name: /烈咬陆鲨/ }));
 
     const relatedSection = screen.getByText('相关上位构筑').closest('section');
@@ -244,6 +248,8 @@ describe('EnvironmentPage usage basis', () => {
 
     render(<EnvironmentPage environment={makeTeamSampleEnvironment(samples)} onImportSample={onImportSample} />);
 
+    // Exercise the singles upper-build set explicitly (default view is now 双打).
+    await user.click(screen.getByRole('button', { name: '单打' }));
     const upperBuildSection = screen.getByText('上位构筑').closest('section');
     expect(upperBuildSection).toBeTruthy();
     expect(
@@ -297,21 +303,22 @@ describe('EnvironmentPage usage basis', () => {
 
   it('keeps the team library reachable when only the other battle type has samples', async () => {
     const user = userEvent.setup();
-    const doublesSample: EnvironmentTeamSample = {
-      id: 'pokedb-doubles-only',
+    // Default view is now 双打, so the "other battle type" with samples is singles.
+    const singlesSample: EnvironmentTeamSample = {
+      id: 'pokedb-singles-only',
       dataKind: 'external-snapshot',
-      author: 'Doubles author',
+      author: 'Singles author',
       score: 2800,
       rank: 1,
-      title: 'Doubles Only Team',
-      battleType: 'doubles',
-      reportUrl: 'https://example.com/doubles-only',
+      title: 'Singles Only Team',
+      battleType: 'singles',
+      reportUrl: 'https://example.com/singles-only',
       slots: [{ pokemonId: 'garchomp', moveIds: [] }],
     };
 
     render(
       <EnvironmentPage
-        environment={makeTeamSampleEnvironment([doublesSample])}
+        environment={makeTeamSampleEnvironment([singlesSample])}
         onImportSample={() => undefined}
       />,
     );
@@ -320,8 +327,8 @@ describe('EnvironmentPage usage basis', () => {
     expect(await screen.findByRole('heading', { name: '队伍一览' })).toBeTruthy();
     expect(screen.getByText('0 支队伍')).toBeTruthy();
 
-    await user.click(screen.getByRole('button', { name: '双打' }));
-    expect(screen.getByText('Doubles Only Team')).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: '单打' }));
+    expect(screen.getByText('Singles Only Team')).toBeTruthy();
   });
 
   it('filters the team library by regulation, defaulting to 全部规则 so no view starts empty', async () => {
@@ -354,6 +361,8 @@ describe('EnvironmentPage usage basis', () => {
 
     render(<EnvironmentPage environment={makeTeamSampleEnvironment(samples)} onImportSample={() => undefined} />);
 
+    // Fixtures are singles samples; switch from the 双打 default so the library is populated.
+    await user.click(screen.getByRole('button', { name: '单打' }));
     await user.click(screen.getByRole('button', { name: '查看全部队伍' }));
     const listedTitles = () =>
       within(screen.getByRole('region', { name: '队伍列表' }))
@@ -377,7 +386,7 @@ describe('EnvironmentPage usage basis', () => {
     const user = userEvent.setup();
     render(<EnvironmentPage environment={makeEnvironment('rank-relative')} onImportSample={() => undefined} />);
 
-    expect(screen.getByText('M-2 · 单打')).toBeTruthy();
+    expect(screen.getByText('M-2 · 双打')).toBeTruthy();
     expect(screen.getByText(/源更新/)).toBeTruthy();
     expect(screen.getByText(/抓取/)).toBeTruthy();
     expect(screen.queryByText('在线数据')).toBeNull();
@@ -388,7 +397,7 @@ describe('EnvironmentPage usage basis', () => {
 
     await user.click(screen.getByRole('button', { name: '查看全部宝可梦' }));
 
-    expect(screen.getByText('M-2 · 单打')).toBeTruthy();
+    expect(screen.getByText('M-2 · 双打')).toBeTruthy();
     expect(screen.getByText('最新')).toBeTruthy();
     expect(screen.queryByText('数据源异常')).toBeNull();
     expect(screen.queryByText(/PokeDB/)).toBeNull();
@@ -404,7 +413,7 @@ describe('EnvironmentPage usage basis', () => {
       <EnvironmentPage environment={staticEnvironment} onImportSample={() => undefined} />,
     );
 
-    expect(screen.getByText('M-2 · 单打')).toBeTruthy();
+    expect(screen.getByText('M-2 · 双打')).toBeTruthy();
     expect(screen.queryByText('静态缓存')).toBeNull();
     expect(screen.getByText('可能过期')).toBeTruthy();
 
@@ -420,7 +429,7 @@ describe('EnvironmentPage usage basis', () => {
       />,
     );
 
-    expect(screen.getByText('开发样例 · 单打')).toBeTruthy();
+    expect(screen.getByText('开发样例 · 双打')).toBeTruthy();
     expect(screen.queryByText('内置样例')).toBeNull();
     expect(screen.getByText('数据源异常')).toBeTruthy();
   });
@@ -429,6 +438,7 @@ describe('EnvironmentPage usage basis', () => {
     const user = userEvent.setup();
     render(<EnvironmentPage environment={makeEnvironment('rank-relative')} onImportSample={() => undefined} />);
 
+    await user.click(screen.getByRole('button', { name: '单打' }));
     const rankingButton = screen.getByRole('button', { name: /烈咬陆鲨/ });
     expect(within(rankingButton).getByLabelText('第 1 名，金牌')).toBeTruthy();
     expect(screen.getByLabelText('第 2 名，银牌')).toBeTruthy();
@@ -474,6 +484,7 @@ describe('EnvironmentPage usage basis', () => {
     const user = userEvent.setup();
     render(<EnvironmentPage environment={makeEnvironment('absolute')} onImportSample={() => undefined} />);
 
+    await user.click(screen.getByRole('button', { name: '单打' }));
     expect(screen.queryByText('100.0%')).toBeNull();
     expect(screen.queryByText('213 队')).toBeNull();
 
@@ -490,6 +501,7 @@ describe('EnvironmentPage usage basis', () => {
     const user = userEvent.setup();
     render(<EnvironmentPage environment={makeTierEnvironment()} onImportSample={() => undefined} />);
 
+    await user.click(screen.getByRole('button', { name: '单打' }));
     await user.click(screen.getByRole('button', { name: '查看全部宝可梦' }));
 
     expect(screen.getByText('Tier 1')).toBeTruthy();
@@ -509,6 +521,7 @@ describe('EnvironmentPage usage basis', () => {
     const user = userEvent.setup();
     render(<EnvironmentPage environment={makeEnvironment('rank-relative')} onImportSample={() => undefined} />);
 
+    await user.click(screen.getByRole('button', { name: '单打' }));
     await user.click(screen.getByRole('button', { name: '查看全部宝可梦' }));
     const search = screen.getByRole('searchbox', { name: '搜索宝可梦' });
 
@@ -543,6 +556,7 @@ describe('EnvironmentPage usage basis', () => {
     const scrollToSpy = vi.spyOn(window, 'scrollTo').mockImplementation(() => {});
     render(<EnvironmentPage environment={makeEnvironment('rank-relative')} onImportSample={() => undefined} />);
 
+    await user.click(screen.getByRole('button', { name: '单打' }));
     // Ignore the scroll triggered by the initial mount; assert on view transitions.
     scrollToSpy.mockClear();
 

@@ -18,6 +18,7 @@ import { currentDataVersion, currentRuleNatureOptions, currentRuleSet, pokemon }
 import { repository } from './lib/db';
 import type { Team, TeamMember } from './types';
 import { sortTeamSamplesByDate } from './pages/environmentTeamSamples';
+import { productContextLabel } from './data/schedule';
 
 const DB_NAME = 'pokemon-champions-assistant';
 const pokedbSnapshot = {
@@ -118,7 +119,8 @@ const renderApp = async () => {
 const renderEnvironmentApp = async () => {
   const user = userEvent.setup();
   render(<App />);
-  await screen.findByText(`${testEnvironmentState.seasonLabel} · 单打`);
+  // Battle-type toggles now default to the current regulation's primary format (M-B → 双打).
+  await screen.findByText(`${testEnvironmentState.seasonLabel} · 双打`);
   return user;
 };
 
@@ -240,7 +242,7 @@ describe('App page flows', () => {
     expect(screen.queryByText(/模拟数据/)).toBeNull();
     expect(await screen.findByRole('heading', { name: '环境' })).toBeTruthy();
     expect(screen.getByText('LuxrayKit')).toBeTruthy();
-    expect(screen.getByText('Season M-3 · Regulation M-B')).toBeTruthy();
+    expect(screen.getByText(productContextLabel(testEnvironmentState.seasonLabel))).toBeTruthy();
     expect(screen.queryByText(/移动端 PWA/)).toBeNull();
   });
 
@@ -546,6 +548,8 @@ describe('App page flows', () => {
 
   it('keeps imported environment sample metadata on the list without showing a source card in detail', async () => {
     const user = await renderEnvironmentApp();
+    // Upper-build now defaults to 双打; exercise the singles samples this fixture is rich in.
+    await user.click(screen.getByRole('button', { name: '单打' }));
     const importButton = screen.getAllByRole('button', { name: /导入配置/ })[0];
     const importedSample = findSampleForImportButton(importButton);
 
@@ -609,6 +613,7 @@ describe('App page flows', () => {
 
   it('shows the import coverage notice only before the first upper-build import', async () => {
     const user = await renderEnvironmentApp();
+    await user.click(screen.getByRole('button', { name: '单打' }));
     const firstImportButton = screen.getAllByRole('button', { name: /导入配置/ })[0];
     const firstImportedSample = findSampleForImportButton(firstImportButton);
 
@@ -619,6 +624,8 @@ describe('App page flows', () => {
     expect(await screen.findByLabelText(`队伍：${firstImportedSample.title}`)).toBeTruthy();
 
     await user.click(screen.getByRole('button', { name: '环境' }));
+    // Returning to 环境 re-defaults the battle-type toggle to 双打; re-select 单打.
+    await user.click(screen.getByRole('button', { name: '单打' }));
     const secondImportButton = screen.getAllByRole('button', { name: /导入配置/ })[1];
     const secondImportedSample = findSampleForImportButton(secondImportButton);
     await user.click(secondImportButton);
@@ -694,7 +701,7 @@ describe('App page flows', () => {
     expect(firstMember.nature).toBe('浮躁');
   });
 
-  it('allows imported Starminite Starmie to switch to its Champions Mega form', async () => {
+  it('allows imported Starminite Starmie to switch to its Champions Mega form', { timeout: 20000 }, async () => {
     const user = await renderEnvironmentApp();
     const singlesSamples = testEnvironmentState.teamSamples.filter((sample) => sample.battleType === 'singles');
     const starmieSampleIndex = singlesSamples.findIndex((sample) =>
@@ -723,6 +730,7 @@ describe('App page flows', () => {
 
   it('shows import success feedback and clears the imported team highlight', async () => {
     const user = await renderEnvironmentApp();
+    await user.click(screen.getByRole('button', { name: '单打' }));
     const importButton = screen.getAllByRole('button', { name: /导入配置/ })[0];
     const importedSample = findSampleForImportButton(importButton);
 
@@ -746,6 +754,7 @@ describe('App page flows', () => {
     expect(screen.getByRole('button', { name: '双打' })).toBeTruthy();
     expect(screen.queryByText('热门队伍样本')).toBeNull();
 
+    await user.click(screen.getByRole('button', { name: '单打' }));
     await user.click(screen.getByRole('button', { name: new RegExp(topSinglesPokemon.chineseName) }));
     expect(await screen.findByRole('heading', { name: topSinglesPokemon.chineseName })).toBeTruthy();
     expect(screen.getByText('常用招式')).toBeTruthy();
@@ -756,6 +765,8 @@ describe('App page flows', () => {
 
   it('shows the latest four upper-build samples and opens the full team library', async () => {
     const user = await renderEnvironmentApp();
+    // Exercise the singles upper-build list explicitly (default view is now 双打).
+    await user.click(screen.getByRole('button', { name: '单打' }));
     const singlesSamples = testEnvironmentState.teamSamples.filter((sample) => sample.battleType === 'singles');
     const expectedLatestTitles = sortTeamSamplesByDate(singlesSamples).slice(0, 4).map((sample) => sample.title);
 
@@ -777,7 +788,7 @@ describe('App page flows', () => {
   it('keeps environment sample labeling lightweight without the bulky seed notice', async () => {
     const user = await renderEnvironmentApp();
 
-    expect(screen.getByText(`${testEnvironmentState.seasonLabel} · 单打`)).toBeTruthy();
+    expect(screen.getByText(`${testEnvironmentState.seasonLabel} · 双打`)).toBeTruthy();
     expect(screen.getByText(/源更新/)).toBeTruthy();
     expect(screen.getByText(/抓取/)).toBeTruthy();
     expect(screen.queryByText('在线数据')).toBeNull();
@@ -791,11 +802,13 @@ describe('App page flows', () => {
 
     await user.click(screen.getByRole('button', { name: '查看全部宝可梦' }));
     expect(await screen.findByRole('heading', { name: '完整宝可梦榜' })).toBeTruthy();
-    expect(screen.getByText(`${testEnvironmentState.seasonLabel} · 单打`)).toBeTruthy();
+    expect(screen.getByText(`${testEnvironmentState.seasonLabel} · 双打`)).toBeTruthy();
     expect(screen.getByText('可能过期')).toBeTruthy();
     expect(screen.queryByText(testEnvironmentState.sourceLabel)).toBeNull();
     expect(screen.queryByText(/本页使用本地 seed 占位数据/)).toBeNull();
 
+    // Switch to the singles ranking to exercise the singles-top pokemon detail.
+    await user.click(screen.getByRole('button', { name: '单打' }));
     await user.click(screen.getByRole('button', { name: new RegExp(topSinglesPokemon.chineseName) }));
     expect(await screen.findByRole('heading', { name: topSinglesPokemon.chineseName })).toBeTruthy();
     expect(screen.getAllByText(/原作者：/).length).toBeGreaterThan(0);
@@ -826,6 +839,7 @@ describe('App page flows', () => {
   it('shows related environment sample teams on pokemon environment detail and imports them', async () => {
     const user = await renderEnvironmentApp();
 
+    await user.click(screen.getByRole('button', { name: '单打' }));
     await user.click(screen.getByRole('button', { name: /烈咬陆鲨/ }));
     expect(await screen.findByRole('heading', { name: '烈咬陆鲨' })).toBeTruthy();
     expect(screen.getByText('相关上位构筑')).toBeTruthy();

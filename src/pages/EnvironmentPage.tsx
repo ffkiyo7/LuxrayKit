@@ -21,6 +21,7 @@ import {
   type EnvironmentState,
   type EnvironmentTeamSample,
 } from '../data/environment';
+import { currentRuleSet } from '../data';
 import { Button, Card, PokemonAvatar, TypeBadge } from '../components/ui';
 import { TeamBrowseView } from './TeamBrowseView';
 import { TeamSampleCard } from './TeamSampleCard';
@@ -578,7 +579,9 @@ export function EnvironmentPage({
   environment: EnvironmentState;
   onImportSample: (sample: EnvironmentTeamSample) => Promise<void> | void;
 }) {
-  const [battleType, setBattleType] = useState<EnvironmentBattleType>('singles');
+  // Default to the current regulation's primary format (M-B → doubles) so every
+  // battle-type toggle across the app lands on the same default. Single source: currentRuleSet.
+  const [battleType, setBattleType] = useState<EnvironmentBattleType>(currentRuleSet.battleType);
   const [view, setView] = useState<'home' | 'ranking' | 'methodology' | 'teams'>('home');
   const [detailState, setDetailState] = useState<{ pokemonId: string; returnView: 'home' | 'ranking' } | null>(null);
   const rankings = useMemo(() => environment.pokemonUsage[battleType], [battleType, environment.pokemonUsage]);
