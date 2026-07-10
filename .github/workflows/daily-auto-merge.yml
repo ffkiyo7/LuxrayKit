@@ -2,7 +2,9 @@ name: Daily auto-merge to main
 
 # Once a day, merge the day's accumulated work into main — regardless of which branch
 # it lives on. It scans every OPEN, non-draft PR targeting main and merges the ones whose
-# CI ("Test, build, and validate Worker") is green and that are conflict-free.
+# CI ("Test, build, and validate Worker") is green, that are conflict-free, and whose
+# head contains the current main branch. A stale PR is left open for its automation to
+# rebuild from the latest main and rerun CI.
 #
 # Opt out of a given day's merge by either marking the PR as a draft or adding the "hold"
 # label. Runs 04:00 Asia/Shanghai (20:00 UTC); also runnable manually via "Run workflow".
@@ -25,7 +27,7 @@ jobs:
   auto-merge:
     runs-on: ubuntu-latest
     steps:
-      - name: Merge green, conflict-free PRs into main
+      - name: Merge green, current, conflict-free PRs into main
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
@@ -60,7 +62,27 @@ jobs:
               skipped=$((skipped+1)); echo "::endgroup::"; continue
             fi
 
-            if gh pr merge "$num" --repo "$REPO" --merge; then
+            # CI may have passed before another PR advanced main. Require this head to
+            # contain the current main so the tested branch is not merged from a stale base.
+            main_sha=$(gh api "repos/$REPO/git/ref/heads/main" --jq '.object.sha' 2>/dev/null || true)
+            if [ -z "$main_sha" ]; then
+              echo "SKIP: could not resolve the current main SHA."
+              skipped=$((skipped+1)); echo "::endgroup::"; continue
+            fi
+
+            behind_by=$(gh api "repos/$REPO/compare/$main_sha...$sha" --jq '.behind_by' 2>/dev/null || true)
+            if [ -z "$behind_by" ]; then
+              echo "SKIP: could not compare PR head with the current main branch."
+              skipped=$((skipped+1)); echo "::endgroup::"; continue
+            fi
+
+            if [ "$behind_by" -ne 0 ]; then
+              echo "SKIP: PR head is behind current main by $behind_by commit(s)."
+              echo "Wait for the source branch automation to rebuild from latest main and rerun CI."
+              skipped=$((skipped+1)); echo "::endgroup::"; continue
+            fi
+
+            if gh pr merge "$num" --repo "$REPO" --merge --match-head-commit "$sha"; then
               echo "MERGED PR #$num."
               merged=$((merged+1))
             else
