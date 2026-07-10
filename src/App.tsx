@@ -22,6 +22,7 @@ const RulePage = lazy(() => import('./pages/RulePage').then((module) => ({ defau
 const SpeedPage = lazy(() => import('./pages/SpeedPage').then((module) => ({ default: module.SpeedPage })));
 const TeamPage = lazy(() => import('./pages/TeamPage').then((module) => ({ default: module.TeamPage })));
 const ToolsPage = lazy(() => import('./pages/ToolsPage').then((module) => ({ default: module.ToolsPage })));
+const TypeChartPage = lazy(() => import('./pages/TypeChartPage').then((module) => ({ default: module.TypeChartPage })));
 
 export type TabId = 'environment' | 'teams' | 'tools' | 'profile';
 export type OverlayPage = 'rule' | null;
@@ -122,6 +123,7 @@ function ToolWorkspace({
     calculator: <CalculatorPage selectedMemberId={selectedMemberId} onPickMember={onPickMember} presetMember={calcPreset} />,
     dex: <DexPage onOpenCalculator={onOpenCalculator} />,
     speed: environment ? <SpeedPage environment={environment} activeTeam={activeTeam} presetMember={speedPresetMember} /> : <PageLoading label="正在载入速度线环境数据..." />,
+    typeChart: <TypeChartPage />,
   }[view];
 
   return (

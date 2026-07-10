@@ -193,7 +193,7 @@ export const attackingTypes: PokemonType[] = [
   'Fairy',
 ];
 
-const typeMatchups: Record<PokemonType, { strong?: PokemonType[]; resisted?: PokemonType[]; immune?: PokemonType[] }> = {
+export const typeMatchups: Record<PokemonType, { strong?: PokemonType[]; resisted?: PokemonType[]; immune?: PokemonType[] }> = {
   Normal: { resisted: ['Rock', 'Steel'], immune: ['Ghost'] },
   Fire: { strong: ['Grass', 'Ice', 'Bug', 'Steel'], resisted: ['Fire', 'Water', 'Rock', 'Dragon'] },
   Water: { strong: ['Fire', 'Ground', 'Rock'], resisted: ['Water', 'Grass', 'Dragon'] },
