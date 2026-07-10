@@ -24,6 +24,6 @@ export default defineConfig({
   },
   test: {
     setupFiles: ['./vitest.setup.ts'],
-    exclude: ['node_modules/**', 'dist/**', 'tests/pwa/**', 'test-results/**'],
+    exclude: ['node_modules/**', 'dist/**', 'tmp/**', 'tests/pwa/**', 'test-results/**'],
   },
 });

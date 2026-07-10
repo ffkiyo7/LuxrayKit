@@ -76,7 +76,7 @@ export function Badge({ status, children }: { status?: LegalityStatus | 'version
   return <span className={`inline-flex rounded px-1.5 py-1 text-[11px] font-semibold ${styles[status ?? 'version']}`}>{children}</span>;
 }
 
-const typeColors: Record<PokemonType, string> = {
+export const typeColors: Record<PokemonType, string> = {
   Normal: '#a8a77a',
   Fire: '#ee8130',
   Water: '#6390f0',
@@ -97,7 +97,7 @@ const typeColors: Record<PokemonType, string> = {
   Fairy: '#d685ad',
 };
 
-const typeLabels: Record<PokemonType, string> = {
+export const typeLabels: Record<PokemonType, string> = {
   Normal: '一般',
   Fire: '火',
   Water: '水',

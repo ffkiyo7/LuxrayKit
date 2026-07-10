@@ -1,10 +1,10 @@
-import { Calculator, ChevronRight, Gauge, Search } from 'lucide-react';
+import { Calculator, ChevronRight, Gauge, Search, Swords } from 'lucide-react';
 import { Card } from '../components/ui';
 
-export type ToolView = 'calculator' | 'dex' | 'speed';
+export type ToolView = 'calculator' | 'dex' | 'speed' | 'typeChart';
 
 const toolEntries: Array<{
-  id: ToolView | 'speed';
+  id: ToolView;
   title: string;
   description: string;
   icon: typeof Calculator;
@@ -27,6 +27,12 @@ const toolEntries: Array<{
     title: '速度线计算',
     description: '对照环境档位，反解超速所需配置。',
     icon: Gauge,
+  },
+  {
+    id: 'typeChart',
+    title: '属性速查',
+    description: '18 系攻防克制，一转一查。',
+    icon: Swords,
   },
 ];
 
