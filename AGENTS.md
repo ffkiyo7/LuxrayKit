@@ -2,6 +2,8 @@
 
 适用于在本仓库工作的所有 coding agent（Codex / Claude Code 等）。本文件只收录**仓库特有、无法从代码自然推断**的规则；架构、数据流、Worker、脚本与部署等工程事实以 [docs/DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md) 为权威来源。
 
+> **本文件的维护约定**：本文件（经 CLAUDE.md 的 `@AGENTS.md` 导入）在每次会话启动时全量载入上下文——保持全文 **200 行以内**，只收"无法从代码推断且高风险"的规则，细节一律沉到开发指南按需阅读。**禁止**在本文件或 CLAUDE.md 中用 `@` 语法导入 `docs/DEVELOPER_GUIDE.md` 等大文件：`@path` 导入会把整份文件塞进每个会话的上下文，普通 Markdown 链接或反引号包裹的路径才是正确的引用方式。
+
 ## 1. 文档权威性与阅读策略
 
 - 每次新会话开始时，确认 `docs/DEVELOPER_GUIDE.md` 存在，并将其视为工程事实的权威文档。
