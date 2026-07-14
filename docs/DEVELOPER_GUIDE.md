@@ -201,9 +201,11 @@ Regulation Set M-A 的版本化静态数据：宝可梦 catalog（分 batch）�
 | `environment:refresh-job` | 进行中的刷新 job（`stepCount` / `failureCount`） |
 | `environment:pokedb-freshness-probe` | 上游新鲜度探针（season + 更新日签名） |
 
-### 6.3 刷新管线：cron + Durable Object alarm
+### 6.3 刷新管线：cron + Durable Object alarm（已被 VPS 流程实质取代）
 
-**这是与旧文档最大的差异点。** 当前刷新由 **cron 触发、Durable Object alarm 步进**，而非自链式 `env.SELF.fetch`。
+> ⚠️ **现状（2026-07）**：Cloudflare 出口 IP 已被上游 PokeDB 封禁，Worker 内的 cron + DO 刷新管线实际抓不到数据。生产环境的快照新鲜度现在依赖**东京 VPS（AWS Lightsail）每日 cron** 运行维护脚本、推送 `automation/pokedb-environment-refresh` 分支并提 PR，经 CI + `daily-auto-merge.yml` 合入 `main` 后由 Workers Builds 部署（见 §7.1 与 §9）。本节描述的机制代码仍在仓库中，保留作行为参考。
+
+Worker 内刷新由 **cron 触发、Durable Object alarm 步进**，而非自链式 `env.SELF.fetch`。
 
 - **触发**（`scheduled` handler）：cron 触发后加随机抖动（`SCHEDULED_MAX_JITTER_MS`，避开固定整点 bot 节奏），调 `startScheduledRefresh` 先发廉价 list 页探针；按「season + 更新日」内容签名比对，**仅在上游变化时**创建刷新 job。cron 时间见 `wrangler.jsonc`（约 `15:35` / `16:05` UTC 主窗口围绕 PokeDB 每日 00:30 JST 发布，加 `02/08/20:35` 稀疏兜底）。
 - **步进**（`EnvironmentRefreshDurableObject.alarm`）：DO alarm 每约 `REFRESH_ALARM_DELAY_MS = 1000ms` 跑一步 `runRefreshJobStep`，直到 job `done` 后自动清理（删 job + 删 alarm）。
@@ -341,7 +343,8 @@ export POKEDB_PAGE_DELAY_MS=0
 ## 9. 部署与 CI
 
 - **部署**：经 **Cloudflare Workers Builds（Git 集成）**——push 到 `main` 自动构建并 `wrangler deploy`。非生产分支的 Workers Builds preview 会给一个真实 URL 做 UI+API 冒烟；**cron 不在 preview 触发**，但 preview 与生产**共享同一 KV**，对 preview 上的 KV 操作要当作直接影响生产、只读对待。
-- **CI**（`.github/workflows/ci.yml`）：仅 `npm test` + `npm run build` + `npm run worker:environment:check`，**不部署**。另有 `daily-auto-merge.yml`。
+- **CI**（`.github/workflows/ci.yml`）：`npm test` + `npm run build` + Playwright 离线冒烟（`tests/pwa/offline.spec.ts`）+ `npm run worker:environment:check`，**不部署**。
+- **daily-auto-merge**（`.github/workflows/daily-auto-merge.yml`）：每日 20:00 UTC 只自动合并 head 为 `automation/pokedb-environment-refresh` 的绿色 PR（VPS 快照刷新分支）；功能 / Agent PR 一律人工合并。`main` 无分支保护，合并即触发 Workers Builds 生产部署。
 - 仓库 `.github/workflows/` 目前只有上述两个 workflow（无独立 deploy workflow）。不要假设 GitHub Actions 负责部署或自动跑端到端。
 
 ---
@@ -358,5 +361,3 @@ export POKEDB_PAGE_DELAY_MS=0
 - 根 `README.md`：偏产品/功能介绍，技术细节不足以指导开发；`data:vgcpastes` 只列了 M-A，实际还有 M-B（`data:vgcpastes:champions-mb`）。
 
 > 维护约定：改了刷新管线 / 路由 / KV / 分支策略后，请同步更新本文件 §6 与 §9，避免再次出现「文档与代码漂移」。
-</content>
-</invoke>
