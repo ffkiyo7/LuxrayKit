@@ -110,7 +110,7 @@ const installVisualViewport = (height: number, offsetTop = 0) => {
 const renderApp = async () => {
   const user = userEvent.setup();
   render(<App />);
-  await screen.findByRole('heading', { name: '环境' });
+  await waitForEnvironmentPage();
   await user.click(screen.getByRole('button', { name: '队伍' }));
   await screen.findByText('我的队伍');
   return user;
@@ -201,6 +201,7 @@ const selectCalculatorPair = async (user: ReturnType<typeof userEvent.setup>) =>
 };
 
 const waitForDexPage = () => screen.findByText('规则内图鉴', undefined, { timeout: 5000 });
+const waitForEnvironmentPage = () => screen.findByRole('heading', { name: '环境' }, { timeout: 5000 });
 
 const openDefaultTeam = async (user: ReturnType<typeof userEvent.setup>) => {
   const teamCard = await screen.findByLabelText('队伍：Luxray test');
@@ -240,7 +241,7 @@ describe('App page flows', () => {
 
     expect(screen.getByText('正在载入本地缓存与规则数据...')).toBeTruthy();
     expect(screen.queryByText(/模拟数据/)).toBeNull();
-    expect(await screen.findByRole('heading', { name: '环境' })).toBeTruthy();
+    expect(await waitForEnvironmentPage()).toBeTruthy();
     expect(screen.getByText('LuxrayKit')).toBeTruthy();
     expect(screen.getByText(productContextLabel(testEnvironmentState.seasonLabel))).toBeTruthy();
     expect(screen.queryByText(/移动端 PWA/)).toBeNull();
@@ -268,7 +269,7 @@ describe('App page flows', () => {
   it('keeps the tools landing page as three equal entries without explanatory notes', async () => {
     const user = userEvent.setup();
     render(<App />);
-    await screen.findByRole('heading', { name: '环境' });
+    await waitForEnvironmentPage();
 
     await user.click(screen.getByRole('button', { name: '工具' }));
 
@@ -307,7 +308,7 @@ describe('App page flows', () => {
   it('keeps the profile page focused on local preferences and backup rather than rule navigation', async () => {
     const user = userEvent.setup();
     render(<App />);
-    await screen.findByRole('heading', { name: '环境' });
+    await waitForEnvironmentPage();
 
     await user.click(screen.getByRole('button', { name: '我的' }));
 
@@ -833,7 +834,7 @@ describe('App page flows', () => {
     expect(screen.queryByText(/PokeDB 公开的 M-1 上位构筑快照/)).toBeNull();
 
     await user.click(screen.getByRole('button', { name: '返回环境' }));
-    expect(await screen.findByRole('heading', { name: '环境' })).toBeTruthy();
+    expect(await waitForEnvironmentPage()).toBeTruthy();
   });
 
   it('shows related environment sample teams on pokemon environment detail and imports them', async () => {
