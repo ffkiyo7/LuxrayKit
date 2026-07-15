@@ -15,8 +15,8 @@
 ## 2. 业务规则（已确认的固定机制，勿按主线宝可梦知识"修正"）
 
 - **Champions SP 不是主线 EV**。每项 0–32、总计上限 66（`src/lib/statPoints.ts`）；速度公式为 `floor((种族值 + SP + 20) × 性格修正)`（`src/lib/calculations.ts`）。这是已确认的固定机制，不要向主线 EV / IV / 等级公式"纠偏"。
-- **两条独立时间轴**。规则类型（Regulation，如 M-A / M-B）决定可用宝可梦、道具等池子；赛季（Season，如 S-1…S-4）是规则周期内的 PokeDB 排位赛季。截至 2026-07，当前为 **M-B 规则下的 M-4 赛季**；具体以 `src/data/seed/regMA/metadata.ts` 的 `currentRuleSet`、`src/data/schedule.ts` 和快照 `seasonLabel` 为准，不要硬编码。
-- **`regMA` 是历史目录名，不等于当前规则**。`src/data/seed/regMA/` 与 `public/data/pokedb/reg-ma-environment.json` 的命名是历史遗留，当前承载的是 M-B 数据；当前规则集只看 `currentRuleSet.id`。
+- **两条独立时间轴**。规则类型（Regulation，如 M-A / M-B）决定可用宝可梦、道具等池子；赛季（Season，如 M-1…M-4）是规则周期内的 Pokemon Champion游戏内排位赛季。截至 2026-07，当前为 **M-B 规则下的 M-4 赛季**；具体以 `src/data/seed/regMA/metadata.ts` 的 `currentRuleSet`、`src/data/schedule.ts` 和快照 `seasonLabel` 为准，不要硬编码。
+- **`regMA` 是历史目录名，不等于当前规则**。`src/data/seed/regMA/` 与 `public/data/pokedb/reg-ma-environment.json` 的命名是历史遗留，当前承载的是 M-B 规则数据；当前规则集只看 `currentRuleSet.id`。
 - **机制门控与产品边界是有意设计**。`calculateSpeedWithMechanismGate`（`src/lib/calculations.ts`）对未确认机制返回 blocked 是故意的；伤害计算保持"实验性近似"定位。不要擅自补全被门控的机制，也不要把工具扩展成战斗流程模拟器——产品边界见 `docs/product/PRODUCT_SCOPE_AND_TOOL_BOUNDARIES.md`。
 
 ## 3. 生成文件：改脚本，不手改产物
