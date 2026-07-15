@@ -1,12 +1,17 @@
 name: Daily auto-merge to main
 
-# Once a day, merge the day's accumulated work into main — regardless of which branch
-# it lives on. It scans every OPEN, non-draft PR targeting main and merges the ones whose
-# CI ("Test, build, and validate Worker") is green, that are conflict-free, and whose
-# head contains the current main branch. A stale PR is left open for its automation to
-# rebuild from the latest main and rerun CI.
+# Once a day, merge the VPS PokeDB refresh automation's PR into main. Scope is a
+# whitelist: ONLY open, non-draft PRs whose head branch is
+# "automation/pokedb-environment-refresh" (the branch the Tokyo VPS cron rebuilds
+# daily) are considered. Feature/agent PRs are never auto-merged — merge those
+# manually. Merging into main triggers the Cloudflare Workers Builds production
+# deploy, so anything this workflow merges goes live.
 #
-# Opt out of a given day's merge by either marking the PR as a draft or adding the "hold"
+# A PR is merged only when its CI ("Test, build, and validate Worker") is green,
+# it is conflict-free, and its head contains the current main branch. A stale PR
+# is left open for the automation to rebuild from the latest main and rerun CI.
+#
+# Opt out of a given day's merge by marking the PR as a draft or adding the "hold"
 # label. Runs 04:00 Asia/Shanghai (20:00 UTC); also runnable manually via "Run workflow".
 
 on:
@@ -32,18 +37,19 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
           CHECK_NAME: 'Test, build, and validate Worker'
+          AUTOMATION_BRANCH: 'automation/pokedb-environment-refresh'
         run: |
           set -euo pipefail
 
-          # Open, non-draft PRs to main that are NOT labelled "hold".
+          # Open, non-draft PRs to main from the automation branch only, minus "hold".
           mapfile -t prs < <(
-            gh pr list --repo "$REPO" --base main --state open \
+            gh pr list --repo "$REPO" --base main --head "$AUTOMATION_BRANCH" --state open \
               --json number,isDraft,labels,headRefOid,headRefName \
               --jq '.[] | select(.isDraft==false) | select([.labels[].name] | index("hold") | not) | [.number, .headRefOid, .headRefName] | @tsv'
           )
 
           if [ "${#prs[@]}" -eq 0 ]; then
-            echo "No eligible PRs targeting main. Nothing to merge."
+            echo "No eligible PRs from $AUTOMATION_BRANCH targeting main. Nothing to merge."
             exit 0
           fi
 
