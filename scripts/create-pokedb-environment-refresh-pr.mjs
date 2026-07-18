@@ -3,6 +3,7 @@ import os from 'node:os';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
+import { checkWorkerEnvironmentHealth } from './pokedb-worker-fallback-gate.mjs';
 
 const execFileAsync = promisify(execFile);
 
@@ -87,6 +88,17 @@ async function main() {
 
   await run('git', ['fetch', 'origin', baseBranch]);
   await run('git', ['switch', '-C', refreshBranch, `origin/${baseBranch}`]);
+
+  if (!process.argv.includes('--force')) {
+    const health = await checkWorkerEnvironmentHealth();
+    console.log(`Worker environment gate: ${health.reason} (cache=${health.cacheState ?? 'unknown'}, source=${health.sourceStatus ?? 'unknown'}).`);
+    if (!health.shouldRefresh) {
+      console.log('Worker snapshot is healthy and fresh. Skipping the VPS PokeDB crawl.');
+      return;
+    }
+  } else {
+    console.log('Worker environment gate bypassed by --force.');
+  }
 
   await run('npm', ['run', 'data:pokedb:environment']);
 

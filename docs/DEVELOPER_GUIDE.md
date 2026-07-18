@@ -304,9 +304,10 @@ git config user.email "luxraykit-vps-refresh-bot@users.noreply.github.com"
 
 ```bash
 npm run data:pokedb:environment:pr
+npm run data:pokedb:environment:pr -- --force  # 忽略 Worker 状态，强制应急刷新
 ```
 
-该脚本会从最新 `origin/main` 重建 `automation/pokedb-environment-refresh`，运行 `npm run data:pokedb:environment`，只提交以下两个生成文件，并用 `gh` 创建或更新 PR：
+该脚本会从最新 `origin/main` 重建 `automation/pokedb-environment-refresh`，然后先请求一次 `https://luxraykit.com/api/environment/latest`：仅当 Worker 返回 `stale` / `degraded`、非 2xx 或健康检查不可达时，才运行 `npm run data:pokedb:environment`。Worker 为 `fresh + ok` 时直接成功退出，因此正常日只产生一次轻量同源健康检查，不访问 PokeDB。`--force` 保留人工应急刷新能力。需要刷新时，脚本只提交以下两个生成文件，并用 `gh` 创建或更新 PR：
 
 ```text
 src/data/external/pokedb/current_environment_snapshot.json
@@ -315,7 +316,7 @@ public/data/pokedb/reg-ma-environment.json
 
 如果远端数据与当前快照一致，脚本成功退出且不推送分支、不更新 PR。如果上游返回 403、连接失败、解析失败或 GitHub 鉴权失败，脚本失败，现有生产 Worker 与静态回退不受影响。
 
-cron 示例（Ubuntu 默认按系统时区；若保持 UTC，请选在上游发布时间后 30-90 分钟）：
+cron 示例（Ubuntu 默认按系统时区；若保持 UTC，请安排在 Worker 主刷新窗口之后；cron 每日执行门控检查，但只在 Worker 失败时抓取 PokeDB）：
 
 ```cron
 PATH=/usr/local/bin:/usr/bin:/bin
