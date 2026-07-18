@@ -279,7 +279,19 @@ async function main() {
 
   if (existingPr) {
     if (existingPr.isDraft) await run('gh', ['pr', 'ready', String(existingPr.number)]);
-    await run('gh', ['pr', 'edit', String(existingPr.number), '--title', prTitle, '--body', prBody(reports)]);
+    // Use REST rather than gh pr edit: older distro builds of gh query the
+    // deprecated Projects (classic) GraphQL field and reject fine-grained PATs.
+    await run('gh', [
+      'api',
+      '--method',
+      'PATCH',
+      `repos/{owner}/{repo}/pulls/${existingPr.number}`,
+      '-f',
+      `title=${prTitle}`,
+      '-f',
+      `body=${prBody(reports)}`,
+      '--silent',
+    ]);
     console.log(`Updated ready PR #${existingPr.number}.`);
     return;
   }

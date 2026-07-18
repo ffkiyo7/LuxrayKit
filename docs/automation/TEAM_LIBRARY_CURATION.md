@@ -1,10 +1,10 @@
 # 队伍库策展操作手册
 
-本文面向独立 Hermes 主机上的低频策展 agent。它不负责每周机械刷新，也不是运行该 cron 的外部维护主机；职责是按月或按需调整 VGCPastes 队伍库的筛选策略，并用 draft PR 交给人工审核。
+本文面向低频 Hermes 策展 agent。它不负责每周机械刷新；职责是按月或按需调整 VGCPastes 队伍库的筛选策略，并用 draft PR 交给人工审核。Hermes 服务可以和外部维护任务位于同一台 VM，但必须使用独立 clone 与调度器：策展默认在 `/home/ubuntu/LuxrayKit`，机械刷新默认在 `/home/ubuntu/LuxrayKit-maintenance`。
 
 ## 主机准备与验证边界
 
-Hermes 主机需要独立的 LuxrayKit clone、Node/npm 依赖和 `gh` 认证。GitHub 凭据只需能推送普通分支并创建 draft PR，不需要合并权限。
+Hermes 策展需要独立的 LuxrayKit clone、Node/npm 依赖和 `gh` 认证。GitHub 凭据只需能推送普通分支并创建 draft PR，不需要合并权限。同机部署时不要让 Hermes agent 在 maintenance clone 中运行，也不要让系统 cron 切换策展 clone 的分支。
 
 机器内存有限时，本地至少运行：
 

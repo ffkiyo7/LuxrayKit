@@ -264,7 +264,7 @@ npm run data:regma:allowlist / :abilities / :moves   # 重生成 seed 派生数�
 
 ### 7.1 外部环境快照刷新器（冗余路径）
 
-环境快照可以由一台低配外部主机生成静态回退数据。这是 §6.3 Worker→KV 在线刷新之外的冗余路径，不是唯一生产来源：外部主机不承载线上流量、不写 Cloudflare KV，也不直接改 `main`；它只运行维护脚本，推送自动化分支并创建/更新 PR。后续由 GitHub CI 与 `daily-auto-merge.yml` 合入 `main`，再触发 Cloudflare Workers Builds 部署静态 JSON。当前主机部署在东京 AWS Lightsail，但上游可能按出口 IP 拒绝它；失败时 Worker 在线路径与已有静态回退仍独立可用。
+环境快照可以由一台低配外部主机生成静态回退数据。这是 §6.3 Worker→KV 在线刷新之外的冗余路径，不是唯一生产来源：外部主机不承载线上流量、不写 Cloudflare KV，也不直接改 `main`；它只运行维护脚本，推送自动化分支并创建/更新 PR。后续由 GitHub CI 与 `daily-auto-merge.yml` 合入 `main`，再触发 Cloudflare Workers Builds 部署静态 JSON。截至 2026-07，机械刷新与 Hermes 服务合并在同一台 AWS Lightsail VM，但使用独立的 `/home/ubuntu/LuxrayKit-maintenance` clone 与系统 cron；Hermes 策展 agent 仍使用 `/home/ubuntu/LuxrayKit` 和 Hermes 内置调度器。这是运维合并，不是数据路径合并。上游仍可能按出口 IP 动态拒绝任一主机；失败时 Worker 在线路径与已有静态回退独立可用。
 
 VPS 端一次性准备：
 
@@ -281,7 +281,7 @@ sudo mkswap /swapfile
 sudo swapon /swapfile
 ```
 
-GitHub 凭据建议使用 fine-grained PAT，仓库访问只选 LuxrayKit。测试 clone 阶段只需要 `Contents: Read-only`；自动 PR 阶段需要 `Contents: Read and write`、`Pull requests: Read and write`、`Metadata: Read`。不要给 `Administration`、`Actions`、`Secrets`、`Workflows` 或全仓库权限。
+GitHub 凭据建议使用 fine-grained PAT，仓库访问只选 LuxrayKit。测试 clone 阶段只需要 `Contents: Read-only`；自动 PR 阶段需要 `Contents: Read and write`、`Pull requests: Read and write`、`Metadata: Read`。如果同一凭据还供 Hermes watchdog 读取 CI / auto-merge run，额外给 `Actions: Read-only`。不要给 `Administration`、`Actions: Read and write`、`Secrets`、`Workflows` 或全仓库权限。
 
 VPS clone 后安装依赖并做一次冒烟：
 
@@ -319,7 +319,7 @@ cron 示例（Ubuntu 默认按系统时区；若保持 UTC，请选在上游发�
 
 ```cron
 PATH=/usr/local/bin:/usr/bin:/bin
-30 17 * * * cd /home/ubuntu/LuxrayKit && npm run data:pokedb:environment:pr >> /home/ubuntu/pokedb-environment-refresh.log 2>&1
+30 17 * * * cd /home/ubuntu/LuxrayKit-maintenance && npm run data:pokedb:environment:pr >> /home/ubuntu/pokedb-environment-refresh.log 2>&1
 ```
 
 可选环境变量：
@@ -335,7 +335,7 @@ export POKEDB_PAGE_DELAY_MS=0
 
 ### 7.2 外部主机队伍库刷新器
 
-VGCPastes 队伍库的每周机械刷新复用 §7.1 当前配置的外部维护主机、repo clone、`gh` 认证和 bot git 身份；这是部署选择，不表示 PokeDB 环境快照只来自该主机。队伍库刷新也与独立 Hermes 主机上的低频策展 agent 无关。策展职责与 draft PR 规则见 `docs/automation/TEAM_LIBRARY_CURATION.md`。
+VGCPastes 队伍库的每周机械刷新复用 §7.1 当前配置的外部维护主机、maintenance clone、`gh` 认证和 bot git 身份；这是部署选择，不表示 PokeDB 环境快照只来自该主机。即使机械刷新与 Hermes 服务位于同一台 VM，队伍库刷新也与低频策展 agent 保持独立 clone、调度器和职责。策展职责与 draft PR 规则见 `docs/automation/TEAM_LIBRARY_CURATION.md`。
 
 手动执行：
 
@@ -357,7 +357,7 @@ UTC 时区的每周一 cron 示例（与每日 PokeDB 刷新错开）：
 
 ```cron
 PATH=/usr/local/bin:/usr/bin:/bin
-30 16 * * 1 cd /home/ubuntu/LuxrayKit && npm run data:vgcpastes:pr >> /home/ubuntu/vgcpastes-team-refresh.log 2>&1
+30 16 * * 1 cd /home/ubuntu/LuxrayKit-maintenance && npm run data:vgcpastes:pr >> /home/ubuntu/vgcpastes-team-refresh.log 2>&1
 ```
 
 ---
