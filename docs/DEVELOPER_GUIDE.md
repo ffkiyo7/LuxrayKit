@@ -159,7 +159,7 @@ Regulation Set M-A 的版本化静态数据：宝可梦 catalog（分 batch）�
 
 `loadEnvironmentState()` 是前端读取环境数据的唯一入口，三级回退：
 
-1. **Worker 快照**：`GET /api/environment/latest?refresh=<ts>`（`cache: 'no-store'`）。读响应头 `x-luxray-cache-state`（`fresh`/`stale`）与 `x-luxray-source-status`（`ok`/`degraded`）决定 `freshness` / `sourceStatus`。若 Worker 为 `stale` 或 `degraded`，继续读取静态快照并按源更新时间选择更新的一份，避免健康的冗余快照被旧 Worker 数据遮蔽。
+1. **Worker 快照**：`GET /api/environment/latest?refresh=<ts>`（`cache: 'no-store'`）。读响应头 `x-luxray-cache-state`（`fresh`/`stale`）、`x-luxray-source-status`（`ok`/`degraded`）和 `x-luxray-latest-source-updated-at`（探针已知的上游最新时间）决定 `freshness` / `sourceStatus`。若 Worker 为 `stale` 或 `degraded`，继续读取静态快照并按源更新时间选择更新的一份；静态快照追平探针时间时仍标记为 `fresh`，避免健康的冗余快照被旧 Worker 数据遮蔽或误报为过期。
 2. **静态快照**：`/data/pokedb/reg-ma-environment.json`（`cache: 'force-cache'`）。供 Worker 降级比较、纯静态部署与离线使用。
 3. **内置 seed**：`environmentFallbackState`（来自 `environmentDatasetSeed.ts`），始终可用的开发样例。
 
@@ -184,7 +184,7 @@ Regulation Set M-A 的版本化静态数据：宝可梦 catalog（分 batch）�
 | 方法 + 路径 | 说明 |
 | --- | --- |
 | `GET /health` | 健康检查 |
-| `GET /api/environment/latest` | 最新快照 + `x-luxray-cache-state` / `-source-status` / `-worker-status` 头 |
+| `GET /api/environment/latest` | 最新快照 + `x-luxray-cache-state` / `-source-status` / `-worker-status` / `-latest-source-updated-at` 头 |
 | `GET /api/environment/status` | 刷新状态与审计健康 |
 | `GET /api/pokemon/:pokemonId/teams?battleType=singles` | 某宝可梦相关队伍（来自 team-index） |
 | `POST /api/environment/refresh` | 受保护，手动触发刷新（`Authorization: Bearer <ADMIN_REFRESH_TOKEN>`）；支持 `?step=1&jobId=` 单步 |

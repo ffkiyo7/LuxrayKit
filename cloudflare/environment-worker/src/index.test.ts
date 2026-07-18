@@ -831,6 +831,9 @@ describe('environment Worker PokeDB ingestion', () => {
         selectedSeason: 2,
         selectedSeasonLabel: 'M-2',
       }),
+      'environment:pokedb-freshness-probe': JSON.stringify({
+        sourceUpdatedAt: '2026-06-11 23:58:00',
+      }),
     });
 
     const statusResponse = await worker.fetch(
@@ -872,6 +875,8 @@ describe('environment Worker PokeDB ingestion', () => {
       },
     });
     expect(latestResponse.headers.get('x-luxray-worker-status')).toBe('degraded');
+    expect(latestResponse.headers.get('x-luxray-cache-state')).toBe('stale');
+    expect(latestResponse.headers.get('x-luxray-latest-source-updated-at')).toBe('2026-06-11 23:58:00');
     expect(latestResponse.headers.get('x-luxray-audit-alert')).toBe('1');
     expect(latestResponse.headers.get('x-luxray-audit-unknown-count')).toBe('7');
   });

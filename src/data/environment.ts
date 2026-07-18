@@ -219,6 +219,7 @@ type FetchedEnvironmentSnapshot = {
   url: string;
   cacheState?: string;
   sourceStatus?: string;
+  latestSourceUpdatedAt?: string;
 };
 
 const fetchEnvironmentSnapshot = async (
@@ -236,7 +237,16 @@ const fetchEnvironmentSnapshot = async (
     url,
     cacheState: response.headers.get('x-luxray-cache-state') ?? undefined,
     sourceStatus: response.headers.get('x-luxray-source-status') ?? undefined,
+    latestSourceUpdatedAt: response.headers.get('x-luxray-latest-source-updated-at') ?? undefined,
   };
+};
+
+const parseEnvironmentSourceTime = (value: string | undefined) => {
+  if (!value) return Number.NaN;
+  const normalized = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(value)
+    ? `${value.replace(' ', 'T')}+09:00`
+    : value;
+  return Date.parse(normalized);
 };
 
 let vgcPastesTeamSamplesPromise: Promise<EnvironmentTeamSample[]> | undefined;
@@ -304,10 +314,14 @@ export const loadEnvironmentState = async (
         sourceKind: 'static',
         freshness: 'stale',
       }, vgcPastesTeamSamples);
-      const workerSourceTime = Date.parse(workerState.sourceUpdatedAt);
-      const staticSourceTime = Date.parse(staticState.sourceUpdatedAt);
+      const workerSourceTime = parseEnvironmentSourceTime(workerState.sourceUpdatedAt);
+      const staticSourceTime = parseEnvironmentSourceTime(staticState.sourceUpdatedAt);
+      const latestSourceTime = parseEnvironmentSourceTime(result.latestSourceUpdatedAt);
       if (Number.isFinite(staticSourceTime) && (!Number.isFinite(workerSourceTime) || staticSourceTime > workerSourceTime)) {
-        return staticState;
+        return {
+          ...staticState,
+          freshness: Number.isFinite(latestSourceTime) && staticSourceTime >= latestSourceTime ? 'fresh' : 'stale',
+        };
       }
       return workerState;
     } catch {

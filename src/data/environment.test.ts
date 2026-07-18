@@ -143,6 +143,7 @@ describe('environment runtime loading', () => {
         headers: {
           'x-luxray-cache-state': 'stale',
           'x-luxray-source-status': 'degraded',
+          'x-luxray-latest-source-updated-at': '2026-06-05 23:08:02',
         },
       }))
       .mockResolvedValueOnce(new Response(JSON.stringify(newerStaticSnapshot), { status: 200 }));
@@ -156,7 +157,7 @@ describe('environment runtime loading', () => {
     );
     expect(state.sourceKind).toBe('static');
     expect(state.sourceStatus).toBe('ok');
-    expect(state.freshness).toBe('stale');
+    expect(state.freshness).toBe('fresh');
     expect(state.updatedAt).toBe(newerStaticSnapshot.retrievedAt);
     expect(state.sourceUpdatedAt).toBe('2026-06-05T23:08:02.000+09:00');
   });

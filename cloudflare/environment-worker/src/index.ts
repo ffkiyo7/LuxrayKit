@@ -1325,6 +1325,7 @@ async function handleLatest(_request: Request, env: AppEnv) {
   const cacheState = isSnapshotBehindSource(snapshotSourceUpdatedAt, probe?.sourceUpdatedAt)
     ? 'stale'
     : 'fresh';
+  const latestSourceUpdatedAt = probe?.sourceUpdatedAt ?? snapshotSourceUpdatedAt;
   // Source status is the refresh pipeline's health: a failed refresh means we may be serving
   // an older snapshot than the source actually has, even when the probe can't confirm a newer
   // version (e.g. the source is currently blocking us). The UI surfaces this separately.
@@ -1336,6 +1337,7 @@ async function handleLatest(_request: Request, env: AppEnv) {
       'x-luxray-cache-state': cacheState,
       'x-luxray-worker-status': workerStatus,
       'x-luxray-source-status': sourceStatus,
+      ...(latestSourceUpdatedAt ? { 'x-luxray-latest-source-updated-at': latestSourceUpdatedAt } : {}),
       'x-luxray-audit-alert': audit.alert ? '1' : '0',
       'x-luxray-audit-unknown-count': String(audit.totalUnknownCount),
     }),
