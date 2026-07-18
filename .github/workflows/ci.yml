@@ -37,12 +37,12 @@ jobs:
       - name: Build application
         run: npm run build
 
-      # Minimal end-to-end gate for the daily auto-merge pipeline: boots the built
-      # PWA, verifies service-worker registration, team CRUD, and offline reload.
+      # End-to-end gates for the daily auto-merge pipeline: boot the built PWA,
+      # verify offline behavior, and prove generated team samples render.
       # Uses the runner's preinstalled Google Chrome (playwright.config.ts sets
       # channel: 'chrome'), so no browser download is needed.
-      - name: Run PWA offline smoke test
-        run: npm run test:pwa -- tests/pwa/offline.spec.ts
+      - name: Run PWA smoke tests
+        run: npm run test:pwa -- tests/pwa/offline.spec.ts tests/pwa/team-samples.spec.ts
 
       - name: Upload Playwright traces on failure
         if: failure()
