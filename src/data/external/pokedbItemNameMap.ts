@@ -119,6 +119,7 @@ export const pokedbItemNameToId: Record<string, string> = {
   ガルーラナイト: 'kangaskhanite',
   ミミロップナイト: 'lopunnite',
   ルカリオナイト: 'lucarionite',
+  カラマネナイト: 'malamarite',
   ライボルトナイト: 'manectite',
   クチートナイト: 'mawilite',
   チャーレムナイト: 'medichamite',

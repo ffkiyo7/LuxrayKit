@@ -122,8 +122,43 @@ describe('environment runtime loading', () => {
 
     const state = await loadEnvironmentState(fetcher);
 
+    expect(fetcher).toHaveBeenCalledTimes(2);
     expect(state.sourceKind).toBe('worker');
     expect(state.freshness).toBe('stale');
+  });
+
+  it('prefers a newer static snapshot when the Worker is stale and degraded', async () => {
+    const newerStaticSnapshot = {
+      ...pokedbSnapshot,
+      retrievedAt: '2026-06-06T06:34:02.661Z',
+      battles: {
+        singles: { ...singleRankedTeams, updated_at: '2026-06-05 23:08:02' },
+        doubles: { ...doubleRankedTeams, updated_at: '2026-06-05 23:08:02' },
+      },
+    };
+    const fetcher = vi
+      .fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify(pokedbSnapshot), {
+        status: 200,
+        headers: {
+          'x-luxray-cache-state': 'stale',
+          'x-luxray-source-status': 'degraded',
+        },
+      }))
+      .mockResolvedValueOnce(new Response(JSON.stringify(newerStaticSnapshot), { status: 200 }));
+
+    const state = await loadEnvironmentState(fetcher);
+
+    expect(fetcher).toHaveBeenNthCalledWith(
+      2,
+      POKEDB_ENVIRONMENT_SNAPSHOT_URL,
+      expect.objectContaining({ cache: 'force-cache' }),
+    );
+    expect(state.sourceKind).toBe('static');
+    expect(state.sourceStatus).toBe('ok');
+    expect(state.freshness).toBe('stale');
+    expect(state.updatedAt).toBe(newerStaticSnapshot.retrievedAt);
+    expect(state.sourceUpdatedAt).toBe('2026-06-05T23:08:02.000+09:00');
   });
 
   it('loads the current-season Pokemon statistics snapshot format with move details', () => {

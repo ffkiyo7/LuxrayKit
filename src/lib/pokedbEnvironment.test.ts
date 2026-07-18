@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { abilities, currentDataVersion, currentRuleSet, items, pokemon, regMaPokemonAllowlist } from '../data';
+import { pokedbItemNameToId } from '../data/external/pokedbItemNameMap';
 import { pokedbAbilityKeyToId } from '../data/external/pokedbResourceKeyMap';
 import {
   buildEnvironmentDatasetFromPokeDbOpenData,
@@ -19,11 +20,13 @@ const pokemonKeyToId = createPokeDbPokemonKeyMap(regMaPokemonAllowlist, pokemon)
 
 it('maps audited PokeDB ability keys to abilities in the current catalog', () => {
   expect({
+    21: pokedbAbilityKeyToId[21],
     45: pokedbAbilityKeyToId[45],
     84: pokedbAbilityKeyToId[84],
     182: pokedbAbilityKeyToId[182],
     299: pokedbAbilityKeyToId[299],
   }).toEqual({
+    21: 'suction-cups',
     45: 'sand-stream',
     84: 'unburden',
     182: 'pixilate',
@@ -31,9 +34,14 @@ it('maps audited PokeDB ability keys to abilities in the current catalog', () =>
   });
 
   const abilityIds = new Set(abilities.map((ability) => ability.id));
-  [45, 84, 182, 299].forEach((key) => {
+  [21, 45, 84, 182, 299].forEach((key) => {
     expect(abilityIds.has(pokedbAbilityKeyToId[key]), `ability key ${key} should resolve`).toBe(true);
   });
+});
+
+it('maps the PokeDB Malamarite label to the current item catalog', () => {
+  expect(pokedbItemNameToId['カラマネナイト']).toBe('malamarite');
+  expect(items.some((item) => item.id === pokedbItemNameToId['カラマネナイト'])).toBe(true);
 });
 
 const itemNameToId = {

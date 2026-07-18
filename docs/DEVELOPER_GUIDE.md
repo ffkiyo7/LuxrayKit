@@ -159,8 +159,8 @@ Regulation Set M-A 的版本化静态数据：宝可梦 catalog（分 batch）�
 
 `loadEnvironmentState()` 是前端读取环境数据的唯一入口，三级回退：
 
-1. **Worker 快照**：`GET /api/environment/latest?refresh=<ts>`（`cache: 'no-store'`）。读响应头 `x-luxray-cache-state`（`fresh`/`stale`）与 `x-luxray-source-status`（`ok`/`degraded`）决定 `freshness` / `sourceStatus`。
-2. **静态快照**：`/data/pokedb/reg-ma-environment.json`（`cache: 'force-cache'`）。供纯静态部署 / 离线使用。
+1. **Worker 快照**：`GET /api/environment/latest?refresh=<ts>`（`cache: 'no-store'`）。读响应头 `x-luxray-cache-state`（`fresh`/`stale`）与 `x-luxray-source-status`（`ok`/`degraded`）决定 `freshness` / `sourceStatus`。若 Worker 为 `stale` 或 `degraded`，继续读取静态快照并按源更新时间选择更新的一份，避免健康的冗余快照被旧 Worker 数据遮蔽。
+2. **静态快照**：`/data/pokedb/reg-ma-environment.json`（`cache: 'force-cache'`）。供 Worker 降级比较、纯静态部署与离线使用。
 3. **内置 seed**：`environmentFallbackState`（来自 `environmentDatasetSeed.ts`），始终可用的开发样例。
 
 每级成功拿到 base 快照后，再**并行**懒加载 VGCPastes 锦标赛样本（`loadVgcPastesTeamSamples`）合并进去。VGCPastes 按 regulation 拆成独立 build chunk（`reg_ma_*` / `reg_mb_*`），单个文件失败只是少一批样本，不会让整页空白（`loadVgcPastesRegulationFile` 各自 try/catch）。

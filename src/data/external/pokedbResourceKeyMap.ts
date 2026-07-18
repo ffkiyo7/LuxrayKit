@@ -563,6 +563,7 @@ export const pokedbAbilityKeyToId: Record<number, string> = {
   18: 'flash-fire',
   19: 'shield-dust',
   20: 'own-tempo',
+  21: 'suction-cups',
   22: 'intimidate',
   24: 'rough-skin',
   26: 'levitate',

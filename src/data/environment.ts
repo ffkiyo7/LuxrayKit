@@ -282,12 +282,40 @@ export const loadEnvironmentState = async (
   try {
     const workerUrl = `${WORKER_ENVIRONMENT_SNAPSHOT_URL}?refresh=${Date.now()}`;
     const result = await fetchEnvironmentSnapshot(fetcher, workerUrl, 'no-store');
+    const workerMetadata = {
+      sourceKind: 'worker' as const,
+      freshness: result.cacheState === 'fresh' ? 'fresh' as const : 'stale' as const,
+      sourceStatus: result.sourceStatus === 'degraded' ? 'degraded' as const : 'ok' as const,
+    };
+
+    if (workerMetadata.freshness === 'fresh' && workerMetadata.sourceStatus === 'ok') {
+      const vgcPastesTeamSamples = await loadVgcPastesTeamSamples();
+      return createEnvironmentStateFromPokeDbSnapshot(result.snapshot, workerMetadata, vgcPastesTeamSamples);
+    }
+
+    // A stale or degraded Worker can lag behind the independently maintained static
+    // snapshot. Compare their source timestamps instead of accepting the Worker solely
+    // because it still returned HTTP 200.
+    try {
+      const staticResult = await fetchEnvironmentSnapshot(fetcher, POKEDB_ENVIRONMENT_SNAPSHOT_URL, 'force-cache');
+      const vgcPastesTeamSamples = await loadVgcPastesTeamSamples();
+      const workerState = createEnvironmentStateFromPokeDbSnapshot(result.snapshot, workerMetadata, vgcPastesTeamSamples);
+      const staticState = createEnvironmentStateFromPokeDbSnapshot(staticResult.snapshot, {
+        sourceKind: 'static',
+        freshness: 'stale',
+      }, vgcPastesTeamSamples);
+      const workerSourceTime = Date.parse(workerState.sourceUpdatedAt);
+      const staticSourceTime = Date.parse(staticState.sourceUpdatedAt);
+      if (Number.isFinite(staticSourceTime) && (!Number.isFinite(workerSourceTime) || staticSourceTime > workerSourceTime)) {
+        return staticState;
+      }
+      return workerState;
+    } catch {
+      // Keep serving the usable Worker snapshot when the static fallback is unavailable.
+    }
+
     const vgcPastesTeamSamples = await loadVgcPastesTeamSamples();
-    return createEnvironmentStateFromPokeDbSnapshot(result.snapshot, {
-      sourceKind: 'worker',
-      freshness: result.cacheState === 'fresh' ? 'fresh' : 'stale',
-      sourceStatus: result.sourceStatus === 'degraded' ? 'degraded' : 'ok',
-    }, vgcPastesTeamSamples);
+    return createEnvironmentStateFromPokeDbSnapshot(result.snapshot, workerMetadata, vgcPastesTeamSamples);
   } catch {
     // Static deployments and offline installs can keep using the bundled maintenance snapshot.
   }
