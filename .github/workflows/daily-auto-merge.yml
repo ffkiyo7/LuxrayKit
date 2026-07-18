@@ -1,9 +1,8 @@
 name: Daily auto-merge to main
 
-# Once a day, merge the VPS PokeDB refresh automation's PR into main. Scope is a
-# whitelist: ONLY open, non-draft PRs whose head branch is
-# "automation/pokedb-environment-refresh" (the branch the Tokyo VPS cron rebuilds
-# daily) are considered. Feature/agent PRs are never auto-merged — merge those
+# Once a day, merge eligible VPS-generated data refresh PRs into main. Scope is a
+# strict branch whitelist: the PokeDB environment and VGCPastes team-library
+# automation branches only. Feature/agent PRs are never auto-merged — merge those
 # manually. Merging into main triggers the Cloudflare Workers Builds production
 # deploy, so anything this workflow merges goes live.
 #
@@ -11,8 +10,9 @@ name: Daily auto-merge to main
 # it is conflict-free, and its head contains the current main branch. A stale PR
 # is left open for the automation to rebuild from the latest main and rerun CI.
 #
-# Opt out of a given day's merge by marking the PR as a draft or adding the "hold"
-# label. Runs 04:00 Asia/Shanghai (20:00 UTC); also runnable manually via "Run workflow".
+# Use the "hold" label for a durable manual pause. Draft PRs are skipped by this
+# workflow too, but the refresh script turns an existing automation PR back to ready
+# on its next run. Runs 04:00 Asia/Shanghai (20:00 UTC); also runnable manually.
 
 on:
   schedule:
@@ -37,65 +37,67 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
           CHECK_NAME: 'Test, build, and validate Worker'
-          AUTOMATION_BRANCH: 'automation/pokedb-environment-refresh'
+          AUTOMATION_BRANCHES: 'automation/pokedb-environment-refresh automation/vgcpastes-team-refresh'
         run: |
           set -euo pipefail
 
-          # Open, non-draft PRs to main from the automation branch only, minus "hold".
-          mapfile -t prs < <(
-            gh pr list --repo "$REPO" --base main --head "$AUTOMATION_BRANCH" --state open \
-              --json number,isDraft,labels,headRefOid,headRefName \
-              --jq '.[] | select(.isDraft==false) | select([.labels[].name] | index("hold") | not) | [.number, .headRefOid, .headRefName] | @tsv'
-          )
-
-          if [ "${#prs[@]}" -eq 0 ]; then
-            echo "No eligible PRs from $AUTOMATION_BRANCH targeting main. Nothing to merge."
-            exit 0
-          fi
-
           merged=0 skipped=0
-          for row in "${prs[@]}"; do
-            num=$(printf '%s' "$row" | cut -f1)
-            sha=$(printf '%s' "$row" | cut -f2)
-            head=$(printf '%s' "$row" | cut -f3)
-            echo "::group::PR #$num ($head)"
+          for AUTOMATION_BRANCH in $AUTOMATION_BRANCHES; do
+            # Open, non-draft PRs to main from this whitelisted branch only, minus "hold".
+            mapfile -t prs < <(
+              gh pr list --repo "$REPO" --base main --head "$AUTOMATION_BRANCH" --state open \
+                --json number,isDraft,labels,headRefOid,headRefName \
+                --jq '.[] | select(.isDraft==false) | select([.labels[].name] | index("hold") | not) | [.number, .headRefOid, .headRefName] | @tsv'
+            )
 
-            conclusion=$(gh api "repos/$REPO/commits/$sha/check-runs" \
-              --jq "[.check_runs[] | select(.name==\"$CHECK_NAME\")] | sort_by(.started_at) | last | .conclusion" 2>/dev/null || echo "")
-
-            if [ "$conclusion" != "success" ]; then
-              echo "SKIP: CI for '$CHECK_NAME' is '${conclusion:-missing}' (not success)."
-              skipped=$((skipped+1)); echo "::endgroup::"; continue
+            if [ "${#prs[@]}" -eq 0 ]; then
+              echo "No eligible PRs from $AUTOMATION_BRANCH targeting main."
+              continue
             fi
 
-            # CI may have passed before another PR advanced main. Require this head to
-            # contain the current main so the tested branch is not merged from a stale base.
-            main_sha=$(gh api "repos/$REPO/git/ref/heads/main" --jq '.object.sha' 2>/dev/null || true)
-            if [ -z "$main_sha" ]; then
-              echo "SKIP: could not resolve the current main SHA."
-              skipped=$((skipped+1)); echo "::endgroup::"; continue
-            fi
+            for row in "${prs[@]}"; do
+              num=$(printf '%s' "$row" | cut -f1)
+              sha=$(printf '%s' "$row" | cut -f2)
+              head=$(printf '%s' "$row" | cut -f3)
+              echo "::group::PR #$num ($head)"
 
-            behind_by=$(gh api "repos/$REPO/compare/$main_sha...$sha" --jq '.behind_by' 2>/dev/null || true)
-            if [ -z "$behind_by" ]; then
-              echo "SKIP: could not compare PR head with the current main branch."
-              skipped=$((skipped+1)); echo "::endgroup::"; continue
-            fi
+              conclusion=$(gh api "repos/$REPO/commits/$sha/check-runs" \
+                --jq "[.check_runs[] | select(.name==\"$CHECK_NAME\")] | sort_by(.started_at) | last | .conclusion" 2>/dev/null || echo "")
 
-            if [ "$behind_by" -ne 0 ]; then
-              echo "SKIP: PR head is behind current main by $behind_by commit(s)."
-              echo "Wait for the source branch automation to rebuild from latest main and rerun CI."
-              skipped=$((skipped+1)); echo "::endgroup::"; continue
-            fi
+              if [ "$conclusion" != "success" ]; then
+                echo "SKIP: CI for '$CHECK_NAME' is '${conclusion:-missing}' (not success)."
+                skipped=$((skipped+1)); echo "::endgroup::"; continue
+              fi
 
-            if gh pr merge "$num" --repo "$REPO" --merge --match-head-commit "$sha"; then
-              echo "MERGED PR #$num."
-              merged=$((merged+1))
-            else
-              echo "SKIP: merge failed (conflicts or branch protection)."
-              skipped=$((skipped+1))
-            fi
-            echo "::endgroup::"
+              # CI may have passed before another PR advanced main. Require this head to
+              # contain the current main so the tested branch is not merged from a stale base.
+              main_sha=$(gh api "repos/$REPO/git/ref/heads/main" --jq '.object.sha' 2>/dev/null || true)
+              if [ -z "$main_sha" ]; then
+                echo "SKIP: could not resolve the current main SHA."
+                skipped=$((skipped+1)); echo "::endgroup::"; continue
+              fi
+
+              behind_by=$(gh api "repos/$REPO/compare/$main_sha...$sha" --jq '.behind_by' 2>/dev/null || true)
+              if [ -z "$behind_by" ]; then
+                echo "SKIP: could not compare PR head with the current main branch."
+                skipped=$((skipped+1)); echo "::endgroup::"; continue
+              fi
+
+              if [ "$behind_by" -ne 0 ]; then
+                echo "SKIP: PR head is behind current main by $behind_by commit(s)."
+                echo "Wait for the source branch automation to rebuild from latest main and rerun CI."
+                skipped=$((skipped+1)); echo "::endgroup::"; continue
+              fi
+
+              if gh pr merge "$num" --repo "$REPO" --merge --match-head-commit "$sha"; then
+                echo "MERGED PR #$num."
+                merged=$((merged+1))
+              else
+                echo "SKIP: merge failed (conflicts or branch protection)."
+                skipped=$((skipped+1))
+              fi
+              echo "::endgroup::"
+            done
           done
 
           echo "Done. Merged: $merged, Skipped: $skipped."

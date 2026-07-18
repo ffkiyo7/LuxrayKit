@@ -27,20 +27,22 @@
 | --- | --- |
 | `src/data/seed/regMA/catalog-batch-*.ts` 等带 `Auto-generated` 头的 seed 文件 | 对应 `scripts/generate-*.mjs` |
 | `src/data/speedTiers.ts` | `npm run data:pokedb:speed` |
-| `src/data/external/**`、`public/data/pokedb/*.json` | `npm run data:pokedb:environment`（生产由 VPS 自动 PR 刷新） |
+| `src/data/external/pokedb/**`、`public/data/pokedb/*.json` | `npm run data:pokedb:environment`（可由外部维护主机自动 PR 刷新） |
+| `src/data/external/vgcpastes/*.json` | `npm run data:vgcpastes:champions-ma` 或 `npm run data:vgcpastes:champions-mb` |
 | `cloudflare/environment-worker/src/worker-configuration.d.ts` | `npm run worker:app:types` |
 
 ## 4. 部署与自动化事实（无法从代码推断）
 
 - 部署**只走 Cloudflare Workers Builds**（Git 集成）：push `main` 即自动构建并部署到 luxraykit.com。GitHub Actions 只负责 CI 与 daily auto-merge，**不部署**。
-- **合并进 `main` ≈ 上线**。`main` 无分支保护；`daily-auto-merge.yml` 只自动合并 `automation/pokedb-environment-refresh` 分支的 PR，其余 PR 一律人工合并。
-- 环境快照刷新由**东京 VPS（AWS Lightsail）cron** 运行维护脚本并提 PR（分支即上一条）。Worker 内 cron + Durable Object 刷新管线代码仍在，但已被 VPS 流程实质取代——Cloudflare 出口 IP 已被数据源 PokeDB 封禁。
+- **合并进 `main` ≈ 上线**。`main` 无分支保护；`daily-auto-merge.yml` 只自动合并 `automation/pokedb-environment-refresh` 与 `automation/vgcpastes-team-refresh` 两个白名单分支的 PR，其余 PR 一律人工合并。
+- 环境快照有两条独立刷新路径：Cloudflare Worker cron + Durable Object 可直接刷新 KV（前端第一层），外部维护主机也可运行脚本、通过 `automation/pokedb-environment-refresh` PR 更新仓库静态快照（第二层）。上游可能按出口 IP 动态放行或封禁；截至 2026-07 的实测曾出现 Worker 成功而东京 Lightsail 被拒，**不要把任一固定主机写成唯一来源**，排障时分别核对 Worker status/KV 与仓库快照 PR。
 - Workers Builds 的 preview 部署与生产**共享同一 KV namespace**：在 preview 上一律把 KV 当生产数据对待，只读。
 - IndexedDB 库名 `pokemon-champions-assistant` 是历史标识，**永不可改**（改名即老用户本地数据全丢，见 guide §1 / §4.3）。
 
 ## 5. PR 与验证
 
 - 由 Agent 创建的普通功能 PR **默认 Draft**，除非用户明确要求 ready for review。
+- 两个白名单自动化分支上的纯生成数据 PR 例外：脚本创建 ready PR，交由确定性 CI 与 daily auto-merge 门禁处理。
 - 提交前至少通过 `npm test`；涉及前端行为的改动跑 `npm run build`（含 `tsc -b` 全量类型检查）。
 - 视觉回归基线（`tests/pwa/visual.spec.ts-snapshots/`）为 win32 平台专属，**不要在非 Windows 环境重新生成基线**。
 - 换行统一由 `.gitattributes`（`eol=lf`）治理；不要提交大批量纯换行变更。
