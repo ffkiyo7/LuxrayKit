@@ -132,7 +132,20 @@ async function main() {
   ]);
 
   if (existingPrNumber) {
-    await run('gh', ['pr', 'edit', existingPrNumber, '--title', prTitle, '--body', prBody()]);
+    // gh pr edit still queries the deprecated Projects (classic) GraphQL field on
+    // older distro builds of gh, which fails for a least-privilege fine-grained PAT.
+    // The REST pull-request endpoint needs only Pull requests: write.
+    await run('gh', [
+      'api',
+      '--method',
+      'PATCH',
+      `repos/{owner}/{repo}/pulls/${existingPrNumber}`,
+      '-f',
+      `title=${prTitle}`,
+      '-f',
+      `body=${prBody()}`,
+      '--silent',
+    ]);
     console.log(`Updated PR #${existingPrNumber}.`);
     return;
   }

@@ -570,7 +570,7 @@ describe('App page flows', () => {
     expect(screen.queryByText(/来源|原始样本|高分导入|上位构筑导入/)).toBeNull();
   });
 
-  it('imports, displays, and copies VGCPastes replica codes from team detail', { timeout: 20000 }, async () => {
+  it('imports, displays, and copies VGCPastes replica codes from team detail', { timeout: 30000 }, async () => {
     const user = await renderEnvironmentApp();
     const writeText = vi.fn().mockResolvedValue(undefined);
     Object.defineProperty(navigator, 'clipboard', {
@@ -591,7 +591,13 @@ describe('App page flows', () => {
     expect(dialog.textContent).toContain('公开配置已随队伍带入');
     await user.click(within(dialog).getByRole('button', { name: '继续导入' }));
 
-    const importedCard = await screen.findByLabelText(`队伍：${replicaCodeSample.title}`);
+    // The real VGCPastes fixture is intentionally large after mechanical refreshes;
+    // allow the environment list to unmount before asserting the imported team view.
+    const importedCard = await screen.findByLabelText(
+      `队伍：${replicaCodeSample.title}`,
+      undefined,
+      { timeout: 10000 },
+    );
     await user.click(importedCard);
     expect(await screen.findByRole('heading', { name: replicaCodeSample.title })).toBeTruthy();
     expect(screen.getByText(replicaCodeSample.replicaCode!)).toBeTruthy();
