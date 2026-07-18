@@ -213,6 +213,7 @@ function requestText(url, options = {}, redirectCount = 0) {
 
 async function fetchText(url, options = {}) {
   const attempts = options.attempts ?? 3;
+  const curlCommand = process.platform === 'win32' ? 'curl.exe' : 'curl';
   let lastError;
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
     try {
@@ -220,7 +221,7 @@ async function fetchText(url, options = {}) {
     } catch (error) {
       lastError = error;
       try {
-        const { stdout } = await execFileAsync('curl.exe', [
+        const { stdout } = await execFileAsync(curlCommand, [
           '-L',
           '--silent',
           '--show-error',

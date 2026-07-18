@@ -23,6 +23,7 @@
     "data:vgcpastes:champions-ma:check": "node scripts/ingest-vgcpastes-champions.mjs --reg=ma --check",
     "data:vgcpastes:champions-mb": "node scripts/ingest-vgcpastes-champions.mjs --reg=mb",
     "data:vgcpastes:champions-mb:check": "node scripts/ingest-vgcpastes-champions.mjs --reg=mb --check",
+    "data:vgcpastes:pr": "node scripts/create-vgcpastes-refresh-pr.mjs",
     "worker:environment:dev": "wrangler dev --config cloudflare/environment-worker/wrangler.jsonc --test-scheduled",
     "worker:environment:check": "wrangler deploy --config cloudflare/environment-worker/wrangler.jsonc --dry-run",
     "worker:environment:deploy": "wrangler deploy --config cloudflare/environment-worker/wrangler.jsonc",

@@ -201,9 +201,9 @@ Regulation Set M-A 的版本化静态数据：宝可梦 catalog（分 batch）�
 | `environment:refresh-job` | 进行中的刷新 job（`stepCount` / `failureCount`） |
 | `environment:pokedb-freshness-probe` | 上游新鲜度探针（season + 更新日签名） |
 
-### 6.3 刷新管线：cron + Durable Object alarm（已被 VPS 流程实质取代）
+### 6.3 在线刷新管线：cron + Durable Object alarm
 
-> ⚠️ **现状（2026-07）**：Cloudflare 出口 IP 已被上游 PokeDB 封禁，Worker 内的 cron + DO 刷新管线实际抓不到数据。生产环境的快照新鲜度现在依赖**东京 VPS（AWS Lightsail）每日 cron** 运行维护脚本、推送 `automation/pokedb-environment-refresh` 分支并提 PR，经 CI + `daily-auto-merge.yml` 合入 `main` 后由 Workers Builds 部署（见 §7.1 与 §9）。本节描述的机制代码仍在仓库中，保留作行为参考。
+> **现状（2026-07）**：生产保留两条独立刷新路径。Worker cron + DO 成功时直接更新 KV，供前端第一层读取；外部维护主机可通过 `automation/pokedb-environment-refresh` PR 更新仓库静态 JSON，随 `main` 部署后成为第二层回退（见 §7.1 与 §9）。上游会按出口 IP 动态拒绝请求，最近实测曾出现 Worker 刷新成功而东京 Lightsail 出口被拒，因此两条路径互为冗余，不能把任一固定主机视为唯一来源。诊断时同时检查 `/api/environment/status`、KV 状态和最近的静态快照 PR。
 
 Worker 内刷新由 **cron 触发、Durable Object alarm 步进**，而非自链式 `env.SELF.fetch`。
 
@@ -249,19 +249,22 @@ Node ESM 脚本，多数支持 `--check`（只校验是否过期、不写文件�
 ```bash
 npm run data:pokedb:environment        # 抓取/刷新 PokeDB 环境静态快照
 npm run data:pokedb:environment:check  # 仅校验是否需要更新
-npm run data:pokedb:environment:pr     # VPS 刷新静态快照并创建/更新自动化 PR
+npm run data:pokedb:environment:pr     # 外部主机刷新静态快照并创建/更新自动化 PR
 npm run data:pokedb:speed              # 重新生成速度线参照档 src/data/speedTiers.ts
 npm run data:pokedb:speed:check
 npm run data:vgcpastes:champions-ma    # 摄入 VGCPastes「Champions M-A」样本
 npm run data:vgcpastes:champions-mb    # M-B 同上（--reg=mb）
+npm run data:vgcpastes:champions-ma:check  # 只校验 M-A 产物是否与来源一致
+npm run data:vgcpastes:champions-mb:check  # M-B 同上
+npm run data:vgcpastes:pr              # 外部主机默认刷新 M-B 并创建/更新自动化 PR
 npm run data:regma:allowlist / :abilities / :moves   # 重生成 seed 派生数据
 ```
 
 `update-pokedb-environment.mjs` 会同时写源码审计快照（`src/data/external/pokedb/current_environment_snapshot.json`）与 public 运行时 JSON（`public/data/pokedb/reg-ma-environment.json`），后者即前端第二级回退。
 
-### 7.1 VPS 环境快照刷新器
+### 7.1 外部环境快照刷新器（冗余路径）
 
-Cloudflare 与 GitHub-hosted runner 出口被上游拒绝后，环境快照可以由一台低配 VPS 做外部刷新器。VPS 不承载线上流量、不写 Cloudflare KV，也不直接改 `main`；它只运行现有维护脚本，推送自动化分支并创建/更新 PR。后续仍由 GitHub CI 与 `daily-auto-merge.yml` 合并进入 `main`，再触发 Cloudflare Workers Builds 部署。
+环境快照可以由一台低配外部主机生成静态回退数据。这是 §6.3 Worker→KV 在线刷新之外的冗余路径，不是唯一生产来源：外部主机不承载线上流量、不写 Cloudflare KV，也不直接改 `main`；它只运行维护脚本，推送自动化分支并创建/更新 PR。后续由 GitHub CI 与 `daily-auto-merge.yml` 合入 `main`，再触发 Cloudflare Workers Builds 部署静态 JSON。当前主机部署在东京 AWS Lightsail，但上游可能按出口 IP 拒绝它；失败时 Worker 在线路径与已有静态回退仍独立可用。
 
 VPS 端一次性准备：
 
@@ -330,12 +333,39 @@ export POKEDB_PAGE_DELAY_MS=0
 
 `POKEDB_PAGE_DELAY_MS=0` 适合只由固定 VPS 低频刷新时提速；如上游出现 429 或不稳定，再改成 `150` 或移除此变量，恢复脚本默认的人类化页间延迟。
 
+### 7.2 外部主机队伍库刷新器
+
+VGCPastes 队伍库的每周机械刷新复用 §7.1 当前配置的外部维护主机、repo clone、`gh` 认证和 bot git 身份；这是部署选择，不表示 PokeDB 环境快照只来自该主机。队伍库刷新也与独立 Hermes 主机上的低频策展 agent 无关。策展职责与 draft PR 规则见 `docs/automation/TEAM_LIBRARY_CURATION.md`。
+
+手动执行：
+
+```bash
+npm run data:vgcpastes:pr                 # 默认只刷新活跃增长的 M-B
+npm run data:vgcpastes:pr -- --reg=mb,ma  # 明确需要时同时刷新 M-B、M-A
+npm run data:vgcpastes:pr -- --dry-run    # 分支/index/worktree 不变，不推送、不创建 PR
+```
+
+`scripts/create-vgcpastes-refresh-pr.mjs` 从最新 `origin/main` 重建 `automation/vgcpastes-team-refresh`，运行既有摄入脚本，并只允许提交 `src/data/external/vgcpastes/` 下四个生成 JSON。默认不重跑筛选窗口已冻结的 M-A，以避免约 100 次无效 pokepast.es 请求。
+
+脚本在 push 和创建 ready PR 前读取本轮 audit：任一 regulation 的 issues 超过 10、M-A 少于 90 支或 M-B 少于 20 支都会失败退出且恢复生成文件，不污染后续 cron。通过后，PR 仍须经过契约单测、应用 build、Playwright 队伍库渲染断言和 Worker dry-run；`daily-auto-merge.yml` 只会合并白名单分支上的非 draft、无 `hold` 标签、包含最新 `main` 且指定 CI check 成功的 PR。
+
+需要人工暂停自动合并时，给 PR 添加 `hold` 标签。虽然 workflow 本身也跳过 draft，但刷新脚本下次复用该自动化 PR 时会把它转回 ready，因此 draft 不是持久暂停开关。
+
+两个外部刷新 cron 共用一个 clone：VGCPastes 脚本发现脏工作区会直接拒跑；现有 PokeDB 脚本若半途失败，可能留下脏生成文件，进而让下一次队伍库刷新响亮失败。PokeDB 后续成功运行会从 `origin/main` 重建分支并自愈；若要提前恢复，先核对失败日志和生成文件，不要绕过工作区保护。
+
+UTC 时区的每周一 cron 示例（与每日 PokeDB 刷新错开）：
+
+```cron
+PATH=/usr/local/bin:/usr/bin:/bin
+30 16 * * 1 cd /home/ubuntu/LuxrayKit && npm run data:vgcpastes:pr >> /home/ubuntu/vgcpastes-team-refresh.log 2>&1
+```
+
 ---
 
 ## 8. 测试
 
-- **单元/组件**：26 个 `*.test.ts(x)`（`src/` 各层 + `cloudflare/environment-worker/src/index.test.ts`），Vitest + jsdom + `@testing-library` + `fake-indexeddb`。`npm test`，CI 必跑。配置见 `vite.config.ts` 的 `test` 段与 `vitest.setup.ts`。
-- **PWA**：`tests/pwa/offline.spec.ts`（离线缓存）+ `tests/pwa/visual.spec.ts`（移动端视觉回归，17 个状态，基线在 `tests/pwa/visual.spec.ts-snapshots/`，命名含 `chrome-mobile-390-win32`）。配置见 `playwright.config.ts`。
+- **单元/组件**：Vitest + jsdom + `@testing-library` + `fake-indexeddb`。`npm test`，CI 必跑；其中 `src/data/vgcpastesTeamSamples.contract.test.ts` 对队伍库生成 JSON 做数量、字段、唯一性与 audit 对齐门禁。配置见 `vite.config.ts` 的 `test` 段与 `vitest.setup.ts`。
+- **PWA**：`tests/pwa/offline.spec.ts`（离线缓存）+ `tests/pwa/team-samples.spec.ts`（队伍库生成数据渲染）+ `tests/pwa/visual.spec.ts`（移动端视觉回归，17 个状态，基线在 `tests/pwa/visual.spec.ts-snapshots/`，命名含 `chrome-mobile-390-win32`）。配置见 `playwright.config.ts`。
 - 更新视觉基线：`npm run test:visual -- --update-snapshots`（注意快照与平台相关，跨 OS 会有像素差）。
 
 ---
@@ -343,8 +373,8 @@ export POKEDB_PAGE_DELAY_MS=0
 ## 9. 部署与 CI
 
 - **部署**：经 **Cloudflare Workers Builds（Git 集成）**——push 到 `main` 自动构建并 `wrangler deploy`。非生产分支的 Workers Builds preview 会给一个真实 URL 做 UI+API 冒烟；**cron 不在 preview 触发**，但 preview 与生产**共享同一 KV**，对 preview 上的 KV 操作要当作直接影响生产、只读对待。
-- **CI**（`.github/workflows/ci.yml`）：`npm test` + `npm run build` + Playwright 离线冒烟（`tests/pwa/offline.spec.ts`）+ `npm run worker:environment:check`，**不部署**。
-- **daily-auto-merge**（`.github/workflows/daily-auto-merge.yml`）：每日 20:00 UTC 只自动合并 head 为 `automation/pokedb-environment-refresh` 的绿色 PR（VPS 快照刷新分支）；功能 / Agent PR 一律人工合并。`main` 无分支保护，合并即触发 Workers Builds 生产部署。
+- **CI**（`.github/workflows/ci.yml`）：`npm test` + `npm run build` + Playwright 离线与队伍库渲染冒烟 + `npm run worker:environment:check`，**不部署**。
+- **daily-auto-merge**（`.github/workflows/daily-auto-merge.yml`）：每日 20:00 UTC 只自动合并 head 为 `automation/pokedb-environment-refresh` 或 `automation/vgcpastes-team-refresh` 的绿色非 draft PR；功能 / Agent PR 一律人工合并。`main` 无分支保护，合并即触发 Workers Builds 生产部署。
 - 仓库 `.github/workflows/` 目前只有上述两个 workflow（无独立 deploy workflow）。不要假设 GitHub Actions 负责部署或自动跑端到端。
 
 ---
