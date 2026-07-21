@@ -1,0 +1,44 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  // Preview 影子 Worker:Workers Builds 的非生产分支触发器用本配置做 versions upload,
+  // 产出 per-version preview URL 供 UI/UX 验收(平台限制:实现了 Durable Object 的
+  // Worker 不生成 preview URL,所以生产的 luxraykit-app 无法直接出 preview)。
+  // 刻意不带 DO 绑定 / cron / 自定义域名 / ADMIN_REFRESH_TOKEN:
+  // 刷新调度路径会因缺绑定而失败,从结构上保证 preview 对生产 KV 只读。
+  "name": "luxraykit-app-preview",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-06-06",
+  "workers_dev": true,
+  "assets": {
+    "directory": "../../dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": [
+      "/api/*",
+      "/health"
+    ]
+  },
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  },
+  "triggers": {
+    "crons": []
+  },
+  "vars": {
+    "POKEDB_BASE_URL": "https://champs.pokedb.tokyo",
+    "POKEDB_DETAIL_LIMIT": "60",
+    "POKEDB_DETAIL_CHUNK_SIZE": "20",
+    "ENVIRONMENT_AUDIT_UNKNOWN_THRESHOLD": "0",
+    "MAX_CACHE_AGE_SECONDS": "108000",
+    "ALLOWED_ORIGINS": "*",
+    "SCHEDULED_MAX_JITTER_MS": "90000"
+  },
+  "kv_namespaces": [
+    {
+      "binding": "ENVIRONMENT_CACHE",
+      "id": "43aafe9bdd2c4d01a980325d75eb9630",
+      "preview_id": "880eb89e7fd44e7bbe582b224778b4ed"
+    }
+  ]
+}

@@ -18,3 +18,6 @@ design-qa.md
 # Local-only assets (copyrighted / not for redistribution)
 public/type-icons/
 .claude/settings.local.json
+
+# Local credentials (never commit; Builds API token now lives at ~/.config/cloudflare/)
+cloudflare/api.txt

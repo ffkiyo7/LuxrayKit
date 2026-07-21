@@ -373,7 +373,7 @@ PATH=/usr/local/bin:/usr/bin:/bin
 
 ## 9. 部署与 CI
 
-- **部署**：经 **Cloudflare Workers Builds（Git 集成）**——push 到 `main` 自动构建并 `wrangler deploy`。非生产分支的 Workers Builds preview 会给一个真实 URL 做 UI+API 冒烟；**cron 不在 preview 触发**，但 preview 与生产**共享同一 KV**，对 preview 上的 KV 操作要当作直接影响生产、只读对待。
+- **部署**：经 **Cloudflare Workers Builds（Git 集成）**——push 到 `main` 自动构建并 `wrangler deploy`。非生产分支触发器对**影子 Worker `luxraykit-app-preview`**（`cloudflare/environment-worker/wrangler.preview.jsonc`）执行 `wrangler versions upload`，产出 per-version preview URL 做 UI+API 冒烟——平台限制：带 Durable Object 的 Worker 不生成 preview URL，故生产 Worker 无法直接出 preview；影子 Worker 刻意不带 DO/cron/自定义域名/admin secret，刷新路径天然失效。**cron 不在 preview 触发**，但 preview 与生产**共享同一 KV**，对 preview 上的 KV 操作要当作直接影响生产、只读对待。
 - **CI**（`.github/workflows/ci.yml`）：`npm test` + `npm run build` + Playwright 离线与队伍库渲染冒烟 + `npm run worker:environment:check`，**不部署**。
 - **daily-auto-merge**（`.github/workflows/daily-auto-merge.yml`）：每日 20:00 UTC 只自动合并 head 为 `automation/pokedb-environment-refresh` 或 `automation/vgcpastes-team-refresh` 的绿色非 draft PR；功能 / Agent PR 一律人工合并。`main` 无分支保护，合并即触发 Workers Builds 生产部署。
 - 仓库 `.github/workflows/` 目前只有上述两个 workflow（无独立 deploy workflow）。不要假设 GitHub Actions 负责部署或自动跑端到端。
