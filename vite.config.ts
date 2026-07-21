@@ -24,6 +24,10 @@ export default defineConfig({
   },
   test: {
     setupFiles: ['./vitest.setup.ts'],
+    // CI / Workers Builds runners are several times slower than local, where the
+    // heavy environment-app render tests already sit close to vitest's 5s default.
+    // Per-test `{ timeout }` options still take precedence over this baseline.
+    testTimeout: 20000,
     exclude: ['node_modules/**', 'dist/**', 'tmp/**', 'tests/pwa/**', 'test-results/**'],
   },
 });
