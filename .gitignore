@@ -21,3 +21,7 @@ public/type-icons/
 
 # Local credentials (never commit; Builds API token now lives at ~/.config/cloudflare/)
 cloudflare/api.txt
+
+# Local bytecode from the stdlib-based dev pipeline harness tests
+tools/dev-pipeline-harness/**/__pycache__/
+tools/dev-pipeline-harness/**/*.py[cod]

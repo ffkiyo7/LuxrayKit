@@ -1,299 +1,276 @@
-# Spike：Discord 可视、可恢复的强模型会话 Harness
+# Dev Pipeline Harness 落地规格（v1.0 · 2026-07-23）
 
-> 状态：**✅ owner 已拍板，待实施** · 2026-07-22
-> 关联：[dev-pipeline-workflow.md](dev-pipeline-workflow.md) v0.3。`codex-bot + harness` 已取代“强模型 session 只能走 Hermes 插件”的提案；Discord App 注册与 VPS 部署仍待 owner 的 Discord 登录可用时执行。
+> 状态：**可实施。** 本文取代 2026-07-22 的 spike 结论，作为 TASK-DPH-00 至 TASK-DPH-07 的唯一技术契约。流程级规则见 [dev-pipeline-workflow.md](dev-pipeline-workflow.md)。
 
-## 结论先行
+## 1. 结论与已验证前提
 
-1. **旧 Hermes-only §3.1 做不到目标体验。** 已有 `codex-relay` 是同步的
-   `subprocess.run(..., capture_output=True)` handler：CLI 完成后才返回一条结果，既没有每个
-   session 的 Discord Thread，也没有运行中事件流和可切换的会话注册表。
-2. **能力本身完全可实现。** Codex CLI 的 `codex exec --json` 会发出 JSONL 事件，并在开头给出
-   `thread.started` / `thread_id`；`codex exec resume --json <SESSION_ID> <PROMPT>` 可续同一会话。
-   Claude Code 也支持 stream-json 与指定 session ID 的 `--resume`。
-3. **已拍板：新建 `codex-bot` 和本地 Harness。** 它只做“强模型 session 的可视化、排队和恢复”，不取代
-   Hermes、不参与弱模型决策、不拥有合并权。它可以与 Hermes 使用同一个可信 VPS Unix 用户和
-   现有 CLI 凭据；分开的只是工作目录、进程和工作树，以便会话可恢复而不会互相踩文件。
+目标体验可以在现有 VPS 上落地，但必须采用下列架构，而不是旧的“同步 Hermes 插件 + JSON 状态”方案。
 
-这不是“把强/弱模型当不可信”的隔离方案。这里的边界是**产品交互和可恢复性**：一条 Discord
-Thread 对应一个持久会话，一条 Git worktree 对应一个可能停驻的代码上下文。
-
-## 1. 目标、边界与不变量
-
-| 项目 | 目标 |
+| 已核实事实 | 对设计的约束 |
 | --- | --- |
-| 可视化 | 每个 Codex CLI / Claude Code session 在 `luxraykit-dev` 的一个原生 Discord 公共 Thread 中展示；父频道只放入口和摘要。 |
-| 恢复 | Harness 持久保存 Discord Thread ↔ provider session ID ↔ repo/worktree/branch 的映射；服务重启、Thread 自动归档或换到其他 session 后都能继续。 |
-| 单并发 | 任一时刻只允许一个 CLI turn 实际执行；可同时保留多个 parked session，并对任意一个排队续问。 |
-| 流程边界 | PLAN、TASK、review、Draft PR、CI、preview、`!accept <PR#> <head-SHA>` 规则不变。bot 不 merge、不 push 到 `main`、不替人作验收判断。 |
-| 凭据 | 同一可信 `ubuntu` 用户继续使用既有 Codex/Claude/GitHub 凭据；bot token 与 provider auth 不进入仓库、任务文档、JSONL 转录或 Discord。 |
+| Hermes 0.18.0 的 HTTP runs API 没有 cwd/worktree 字段。 | 需要写代码的弱模型任务必须由本机 runner 在目标 worktree 启动 hermes -z，不能只在 prompt 中要求 cd。 |
+| VPS 有 Python 3.12、venv、SQLite 和可用的 systemd-run --user。 | Harness 用 Python 标准库 + discord.py；每个实际 CLI turn 是 transient user service。 |
+| Codex CLI 0.144.6 和 Claude Code 2.1.216 已登录。 | 两个 adapter 可做真实 start/resume smoke；不需要复制登录凭据。 |
+| Codex exec resume 接受 -m/--model；Claude 的 --resume 与 --model 可并用。 | 模型可以在同 provider session 的后续 turn 更换，必须按 turn 记审计记录。 |
+| 非交互 SSH PATH 没有可直接调用的 codex。 | service 不得调用裸 codex；doctor 必须验证显式 wrapper 或绝对可执行路径。 |
+| 非 main preview 与生产共用 KV。 | Harness v1 只读取 preview/CI 状态；不部署、不写 KV、不改变 Worker binding。 |
 
-非目标：不做多用户 SaaS、不做并发 worker 池、不把模型内部 reasoning 原样转贴到 Discord，也不以
-webhook 伪装成 Hermes 人类入口。Webhook 可以发消息，却不能可靠地接收 session 输入、管理命令或
-维护恢复状态，因此不足以满足本 spike 的需求。
+## 2. 范围
 
-## 2. 建议拓扑
+### 2.1 v1 要交付
 
-```text
-owner ──正常自然语言──► Hermes（普通聊天照旧）
-  │ 长按/右键一条需求或 Hermes 回复 → Apps → 在 Codex/Claude 中继续
-  ▼
-Discord #luxraykit-dev ── 从被选原消息创建 public Thread（一个 Thread = 一个 session）
-  │                         ▲ 事件摘要、命令状态、最终答复、日志附件
-  ▼                         │
-codex-bot（独立 Discord App） ──► dev-pipeline-harness（同一 ubuntu 用户）
-                                       │ SQLite 队列，max_running = 1
-                    ┌──────────────────┴──────────────────┐
-                    ▼                                     ▼
-          Codex CLI adapter                       Claude Code adapter
-          JSONL / session ID                       stream-json / session ID
-                    │                                     │
-                    └────────每个 session 的 worktree──────┘
+- 一个 codex-bot Discord Application，且只接受配置的 owner、guild、父频道和本 bot 创建的 Thread。
+- 从 Discord Message Command 建立 S-#### Harness session、独立 Git worktree 和原生 public Thread。
+- Codex / Claude 的 JSON 流、持久 session ID、单并发队列、停止、服务重启后的恢复。
+- 真实置顶并可编辑的状态卡、脱敏输出、owner 的普通 Thread 文本续问。
+- PLAN/TASK/review、受控 Hermes 弱模型执行、Draft PR、CI/preview/!accept 门禁。
 
-Hermes（现有 bot / API）──普通聊天、弱模型 TASK 下发、cron、项目通知；不被 codex-bot 截获或替代。
-```
+### 2.2 v1 明确不做
 
-`codex-bot` 是**一个** bot 身份，但每个 Thread 的标题、bot 置顶状态卡和每条输出都显式标
-`Codex` 或 `Claude`。标题只放短 model 身份；完整 provider/model 状态放在真实置顶卡。若以后希望
-两种模型显示为两个不同 Discord 身份，才另开两个 bot App；v1 没有这个必要。
+- 不做多用户产品、并发 worker pool、跨 provider 的隐藏 transcript 迁移或自动 merge。
+- 不把 provider hidden reasoning、完整环境变量或原始 stderr 发到 Discord。
+- 不改 Hermes 普通聊天、maintenance cron、Cloudflare Worker 或 main 的部署路径。
+- 不承诺恢复一个已杀死 CLI 进程的内存；恢复是以其已持久化的 provider session 和 context pack 开启新 turn。
 
-这一方案应替换 workflow §8 的决策②为：
+## 3. 源码与运行目录
 
-> Hermes 保留为弱模型/自动化 dispatcher；强模型的可视、可恢复 session 由专用
-> `codex-bot + harness` 承担。它不定义或绕过流水线审批规则，且所有执行仍全局单并发。
+不新建仓库。Python 子项目与运维文件均随 LuxrayKit 版本控制，Node/Workers Builds 不会安装或执行它。
 
-## 3. Discord 交互规格
+~~~text
+LuxrayKit/
+  tools/dev-pipeline-harness/
+    pyproject.toml
+    src/dev_pipeline_harness/
+    tests/
+  ops/systemd/dev-pipeline-harness.service
+  ops/runbooks/dev-pipeline-harness.md
+  docs/tasks/TASK-DPH-00-*.md ... TASK-DPH-07-*.md
 
-### 3.1 建立与显示
-
-**默认入口不是长 slash command。** 人先照常和 Hermes 聊；需要让 Codex/Claude 接手时，长按/右键
-自己的需求或 Hermes 的关键回复，在 Discord **Apps** 菜单选择原生 Message Command：
-
-```text
-在 Codex 中继续
-在 Claude 中继续
-```
-
-interaction 会把目标消息交给 `codex-bot`。bot 直接从该目标消息创建 public Thread，因此 Thread
-天然锚定需求/回复，而不是另发一条假父卡；同一源消息只允许一个 Thread，重复选择必须打开原 session。
-`/c <prompt>`、`/a <prompt>` 只作为无上下文新建 session 的短 slash 备用入口。
-
-Thread 是 Discord 原生“子区”：能看见父频道的人可见，不需要为每个需求创建真正频道。bot 将 Thread
-命名为如 `S-0042 · Codex · GPT-5.6`，并在 Thread 内发出、**实际置顶**、持续编辑的状态卡：
-
-```text
-S-0042 · running
-Provider: Codex
-Model: requested GPT-5.6 / effective GPT-5.6
-Branch: pipeline/S-0042 · Queue: active · Turn: 3
-[中断] [排到下一位] [关闭]
-```
-
-Discord 没有 app 可写的永久悬浮 Thread 顶栏；标题 + 置顶状态卡是原生 UI 的准确边界，状态卡不是 Agent
-进入 session 后才补发的第一句话。普通 Thread 文本续聊需要 Message Content intent；bot 只接受配置的
-owner 在自己管理的 session Thread 内的文字，永远忽略 bot author，避免与 Hermes 互刷。
-
-### 3.2 输出策略
-
-不按 token 高频刷屏，而是将可行动的 CLI 事件直接写在该 Thread：
-
-- 一条可编辑的 live status（`queued` / `running` / `needs_input` / `completed` / `failed` /
-  `interrupted`）每 2–5 秒合并更新一次；
-- agent 面向用户的消息、命令开始/结束、退出码、文件修改摘要和最终答复以普通子消息显示；
-- 大段 stdout/stderr 保存为该 turn 的 JSONL/文本附件，Thread 只放带行数与摘要的链接/附件；
-- 输出先按已知 token 值和常见密钥格式脱敏。理由是 Discord 历史是长期可见记录，而非不信任
-  VPS 上的模型。
-
-这能让人实时看见“它在跑什么”，又避开 Discord 的消息长度和频率限制。模型隐藏 reasoning 不作为
-“session 输出”转发；可审计的动作、工具结果和最终答复才是人需要的部分。
-
-### 3.3 切换、暂停与恢复
-
-- **切换**：给另一条 session Thread 发消息即可入队；当前 turn 结束后，队列按 owner 选择的顺序
-  取下一项。状态卡的“排到下一位”按钮可把已排队的 turn 移到下一位。
-- **暂停活动 turn**：没有安全的“冻结任意 CLI 子进程、以后从进程内存继续”的承诺。状态卡的“中断”按钮
-  只会向当前进程组发送受控中断，记录为 `interrupted`；随后以已保存的 provider session ID 发起新
-  turn 续谈。
-- **恢复 parked/completed session**：该 Thread 内的下一条 owner 消息都会先取消归档（若已归档）、再入队；
-  归档场景可从父频道的短 `/resume <S-id> <prompt>` 备用命令找回。不是“只有一个 current session”的插件状态。
-- **服务崩溃**：启动时检查记录中的 PID/进程组；仍存活则重新接管事件流，否则将该 turn 标为
-  `interrupted` 并提示 owner 选择 resume/retry。已取得的 provider session ID 和最后的 context pack
-  不丢失。
-
-因此，“全局单并发”不等于“只能有一个会话”。它表示一个时刻仅一个正在执行的 turn，多个会话可以
-可见、停驻、排队和恢复。
-
-## 4. Harness 持久状态
-
-Markdown 继续保存人可读的 PLAN/TASK/REVIEW；会话控制改用本机 SQLite，而不是把多 session 的
-队列塞进单个 JSON 文件。它是 Python 标准库可用的本地事务数据库，不引入服务器或权限边界。
-
-建议位置（`0700` 目录、`0600` 文件）：
-
-```text
+~/.config/dev-pipeline-harness/env                 # 0600，所有 secret/部署配置
 ~/.local/share/dev-pipeline-harness/
-  harness.sqlite3                 # sessions / turns / queue / event cursor
-  sessions/S-0042/context.md      # 人可读 fallback context pack
-  sessions/S-0042/turn-0007.jsonl # 原始、脱敏前受限转录；不上传仓库
-  sessions/S-0042/turn-0007.log   # 供 Discord 附件的脱敏副本
-~/.local/state/dev-pipeline-harness/harness.lock
-~/LuxrayKit-dev-worktrees/S-0042/ # 此 session 的 Git worktree
-```
+  harness.sqlite3                                  # 0600，机器状态唯一真相
+  locks/global-runner.lock
+  locks/worktree-<sha256-realpath>.lock
+  sessions/S-0042/context.md
+  sessions/S-0042/turn-0007.raw.jsonl
+  sessions/S-0042/turn-0007.discord.log
+  sessions/S-0042/turn-0007.result.json
+~/LuxrayKit-dev-worktrees/S-0042/                 # Git worktree，pipeline/S-0042
+~~~
 
-最小数据关系：
+服务的源码 checkout 可以是现有 ~/LuxrayKit，但它只提供 Harness 程序，不作为模型写入工作树。所有 implementation、review 和弱模型命令均从 S-#### worktree 的 cwd 执行。现有 ~/LuxrayKit-maintenance 绝不可被 Harness 读取为写入目标、锁定或清理。
 
-| 实体 | 必须字段 |
-| --- | --- |
-| `sessions` | `id`、`source_message_id`、`provider`、`requested_model`、`effective_model`、`provider_session_id`、`repo`、`worktree`、`branch`、`discord_thread_id`、`status_card_message_id`、`status`、`created_at`、`last_context_path` |
-| `turns` | `session_id`、序号、owner Discord message ID、状态、PID/进程组、起止时间、退出码、原始/脱敏转录路径、最终消息摘要 |
-| `queue` | `turn_id`、顺序、`queued_at`、`requested_by`、取消/开始时间 |
+## 4. 配置与 secret 契约
 
-SQLite 写入以短事务完成；实际 runner 另持有一个 `flock`，防止 systemd 重启或手工启动两个
-Harness 而同时执行。**这个锁只锁 Harness 的一个 CLI turn，不锁 Hermes 其他通用工作，也不锁
-maintenance cron。**
+配置文件只在 VPS 私有目录中创建，目录模式 0700、文件模式 0600；不得提交示例中的真实值。
 
-每 turn 完成后更新 `context.md`：需求、关键决定、工作树/HEAD、未解决项、最后的模型答复摘要。
-若 provider 本身的历史因保留策略失效，Harness 不应悄悄另起空会话；应提示 owner，并用该 context
-pack 开一个明确标记为“recovered”的新 session。
-
-## 5. Provider adapter 规格
-
-所有 subprocess 由 Harness 以 `cwd=<session worktree>` 启动，不依赖 SSH 登录 shell 的 `PATH`，也不
-将 prompt 或环境变量拼进 shell 字符串。
-
-### Codex CLI（已本机核对）
-
-- 新 turn：`codex exec --json --sandbox workspace-write <prompt>`；首个 `thread.started` JSONL 事件
-  的 `thread_id` 必须在开始任何长任务前持久写入 `provider_session_id`。
-- 恢复：`codex exec resume --json <thread_id> <prompt>`。本机 CLI 已核对该子命令接受指定 ID、prompt
-  与 `--json`。
-- 禁止 `--ephemeral`，否则没有恢复语义。起始 sandbox/模型配置也记录进 `sessions`，续会不隐式扩大
-  权限。
-
-### Claude Code（以 VPS 实机 smoke 为准）
-
-- 候选新 turn：`claude -p --output-format stream-json --include-partial-messages <prompt>`。
-- 候选恢复：`claude -p --resume <session_id> --output-format stream-json --include-partial-messages <prompt>`。
-- adapter 必须从实际 JSON 事件中保存 Claude session ID；Task 3 会在当前 VPS CLI 版本上验证准确参数顺序、
-  事件字段和 interrupted 后的恢复，不能只依据文档假设。
-
-两个 adapter 对外统一产生：`session_started`、`assistant_message`、`tool_started`、`tool_finished`、
-`turn_finished`、`turn_failed`。Discord 层只认识这些中立事件，避免把 provider 私有 JSON 协议散落在
-bot 代码中。
-
-## 6. VPS 上的具体建议
-
-### 6.1 进程与目录
-
-建议把 Harness 做成单独、受版本控制的小服务仓库 `~/dev-pipeline-harness`，而不是塞入
-LuxrayKit 的 Cloudflare 应用仓库。这是为了不污染产品依赖和 Workers Builds，**不是**另建 Unix 用户、
-容器或权限墙。它仍以现有 `ubuntu` 用户运行，能看到既有 `~/.codex/auth.json` 和 Claude 登录态。
-
-建议 Python + `asyncio` + `discord.py`：当前 Hermes 插件已是 Python，`asyncio.create_subprocess_exec`
-可直接消费两个 CLI 的 JSONL，同时一个长驻 Gateway 连接即可接收 Thread 消息。不要通过同步 Hermes
-plugin handler 承载这个 event loop。
-
-每个 implementation session 使用新 worktree；discussion session 可先使用只读的策展 clone，但一旦
-允许改文件就升级/迁移到独立 worktree。现有 `~/LuxrayKit`（策展）和
-`~/LuxrayKit-maintenance`（cron）永不作为 Harness 的写入工作树。
-
-### 6.2 systemd user unit（示意）
-
-```ini
-[Unit]
-Description=Dev pipeline Discord session harness
-After=network-online.target
-
-[Service]
-WorkingDirectory=%h/dev-pipeline-harness
-EnvironmentFile=%h/.config/dev-pipeline-harness/env
-ExecStartPre=%h/dev-pipeline-harness/.venv/bin/python -m harness.doctor
-ExecStart=%h/dev-pipeline-harness/.venv/bin/python -m harness.bot
-Restart=on-failure
-RestartSec=5
-TimeoutStopSec=30
-UMask=0077
-
-[Install]
-WantedBy=default.target
-```
-
-`env` 仅包含 Discord bot token、允许的 guild/channel/owner ID、绝对 CLI 路径、worktree 根路径和
-`MAX_CONCURRENT_RUNS=1`，例如：
-
-```dotenv
-DISCORD_TOKEN=<new-bot-token>
+~~~dotenv
+DISCORD_TOKEN=<dedicated-codex-bot-token>
 DISCORD_ALLOWED_GUILD_ID=<guild-id>
 DISCORD_PARENT_CHANNEL_ID=1529159963526693025
 DISCORD_OWNER_USER_ID=<owner-id>
-CODEX_BIN=/absolute/path/to/codex
-CLAUDE_BIN=/usr/bin/claude
+
+HARNESS_REPO=/home/ubuntu/LuxrayKit
 WORKTREE_ROOT=/home/ubuntu/LuxrayKit-dev-worktrees
+HARNESS_STATE_DIR=/home/ubuntu/.local/share/dev-pipeline-harness
+CODEX_BIN=/home/ubuntu/.local/bin/dev-pipeline-codex
+CLAUDE_BIN=/usr/bin/claude
 MAX_CONCURRENT_RUNS=1
-```
 
-`harness.doctor` 必须在服务启动前检查：两个二进制的绝对路径及版本、Codex auth 是否可用、Claude
-登录/token 是否可用、state/worktree 目录权限、Discord 配置完整性、Git/`gh` 身份，以及没有第二个
-持锁 runner。先前非交互 SSH 的 `PATH` 未发现 `codex`，所以**不能**把裸 `codex` 当作 systemd 环境
-中的已知路径；先在该 user service 的实际环境中定位并写死绝对路径。
+CODEX_DEFAULT_MODEL=gpt-5.6-terra
+CODEX_ALLOWED_MODELS=gpt-5.6-terra,gpt-5.6-sol,gpt-5.6-luna
+CLAUDE_DEFAULT_MODEL=opus-4.8
+CLAUDE_ALLOWED_MODELS=opus-4.8
+CODEX_DEFAULT_REASONING_EFFORT=medium
+CODEX_ALLOWED_REASONING_EFFORTS=none,minimal,low,medium,high,xhigh
+CLAUDE_DEFAULT_REASONING_EFFORT=medium
+CLAUDE_ALLOWED_REASONING_EFFORTS=low,medium,high,xhigh,max
+~~~
 
-Claude OAuth token 如需注入，应从已有同用户私有 secret 文件以最小范围提供给本服务；不要整份
-source `~/.hermes/.env`，更不要把该文件内容写入 Discord、日志或仓库。Codex 仍读取已有 auth 文件，
-Harness 不复制它。
+doctor 必须拒绝缺字段、相对路径、world-readable secret、空 allowlist、同一 worktree 根指向策展或 maintenance clone、不可执行 CLI、未登录 provider、无 Git/GitHub 身份和第二个 active runner。
 
-### 6.3 Discord App 前提
+Codex wrapper 的目的仅是固定 launcher/Node，而不是复制 auth.json。其最小行为是把参数原样交给经 doctor 验证的 Codex launcher；wrapper 和 systemd service 都不得输出认证文件内容。Claude 继续用该用户既有登录态；不得 source 整个 Hermes env 文件。
 
-owner 登录 Discord Developer Portal 后，由 agent 创建并邀请新的 Discord Application bot：`codex-bot`。
-初始注册两个 guild-scoped Message Commands：`在 Codex 中继续`、`在 Claude 中继续`；它们在消息长按/右键的
-Apps 菜单中出现。给它在 `luxraykit-dev` 的最小功能权限：View Channel、Send Messages、Read Message
-History、Create Public Threads、Send Messages in Threads、Manage Threads、**Pin Messages**、Attach Files。
-普通 Thread 续聊还需在 Developer Portal 启用 Message Content intent；若不启用，就只开放 message-command
-启动、按钮/modal 与短 slash 续问。
+## 5. 核心对象与 SQLite schema
 
-bot 只接受指定 guild、父频道、Thread 和 owner user ID 的输入，且永远忽略 bot author。这样能让
-Hermes 与新 bot 同处一个频道而不会形成互相触发的回路。
+一个 Discord Thread 对应一个 Harness session；一个 Harness session 可包含多个 provider session，以支持显式 provider-switch。SQLite 启用 WAL、foreign_keys、busy_timeout，所有状态转移使用短事务和条件更新。
 
-## 7. 验收与故障恢复准则
-
-- 在一条 owner 需求和一条 Hermes 回复上分别执行 Message Command；各自从原消息创建 Thread，Thread 内能看到启动、工具事件、最终答复与真实置顶状态卡。
-- 对同一源消息重复执行 Message Command，不创建第二个 Thread，而是打开/提示原 session。
-- 同一 Thread 追加第二次需求，确实使用第一次保存的 provider session ID，而非开新会话。
-- 同时向两条 Thread 发续问：只一条处于 `running`，另一条显示准确队列位置；完成后自动切换。
-- 主动重启 Harness、以及中断一个长 turn：service 重启后不会重复执行同一 turn；owner 可从原 Thread
-  resume。
-- 已归档 Thread 可由 `/session resume` 找回；状态数据库而非 Discord 的 active Thread 列表是事实来源。
-- 实现任务一律在独立 worktree 分支；走现有 Draft PR → CI → preview → owner `!accept` 规则。
-
-## 8. 拆成正式 TASK 前的顺序化工作包
-
-本 spike 被 `!approve` 后，再把下列工作包各自写成 `docs/tasks/TASK-...md`。它们必须**串行**执行，
-不以“多个 agent 并发”换速度。
-
-| 顺序 | 工作包 | 产出与 DoD |
+| 表 | 关键字段 | 不变量 |
 | --- | --- | --- |
-| 0 | Discord App 与命令注册 | owner 提供已登录的 Discord Developer Portal；agent 创建 `codex-bot`、设置 guild/channel/owner allowlist、Message Content intent、Thread/Pin 权限，注册 `在 Codex 中继续` 与 `在 Claude 中继续` 两个 Message Commands，并以手机和桌面端实测 Apps 菜单可见。 |
-| 1 | Harness 核心 | SQLite schema/migration、单运行队列、`flock`、session/context pack、受控中断和 restart recovery；单元测试覆盖队列去重、崩溃状态迁移与队列排序。 |
-| 2 | Codex adapter | JSONL parser、`thread.started` 早存储、start/resume、脱敏转录；在一次性 Git worktree 中完成真实 start → resume smoke，证明 ID 未变。 |
-| 3 | Claude adapter | stream-json parser、session ID 抽取、start/resume/interrupt smoke；以当前 VPS 已安装的 CLI 版本写出锁定的适配测试和错误提示。 |
-| 4 | Discord UI | Message Command 从原消息创建公共 Thread、标题 + 真实置顶状态卡、Thread 内 owner 消息续问、队列/status 输出、归档/解归档、附件大小处理；`/c`、`/a` 仅作 fallback，mock Discord API 测试且不监听任何 bot 消息。 |
-| 5 | VPS 服务化 | `doctor`、venv/依赖锁定、systemd --user unit、私有 env 文件、journal/runbook；先不接生产仓库，在 disposable repo 做 service restart 演练。 |
-| 6 | 流水线接线与 dogfood | 更新 workflow §3/§7/§8、写操作 runbook；用一个低风险文档需求从 Discord 完整走一轮，确认 Draft PR、CI、preview 和 `!accept` 没有被 bot 绕过。 |
+| harness_sessions | id（S-####）、source_message_id、discord_thread_id、repo、worktree、branch、status、context_path | source_message_id 和 discord_thread_id 均唯一；worktree 只能由 Harness 创建。 |
+| provider_sessions | id、harness_session_id、provider、provider_session_id、default_model、default_effort、status、switched_from_id | provider_session_id 仅在该 provider 中解释；跨 provider 必须新行。 |
+| turns | id、provider_session_id、owner_message_id、requested_model、configured_model、requested_effort、configured_effort、reported_model、state、attempt、unit_name、started_at、finished_at、exit_code、raw_path、sanitized_path、result_path | 每一条用户输入只创建一个可执行 turn；terminal turn 不可重跑为同一 attempt。 |
+| queue | turn_id、ordinal、queued_at、claimed_at、cancelled_at | 一个 turn 最多一个未取消 queue 行；全局只允许一个 claimed 且 running。 |
+| event_cursors | turn_id、raw_byte_offset、last_event_seq、discord_message_id | 消费可重放；bot 重启不能重复发完整日志。 |
+| pipeline_runs | harness_session_id、plan_path、plan_hash、base_sha、head_sha、review_round、pr_number、ci_state、preview_url、accepted_by、accepted_head_sha | 仅记录机器门禁；PLAN/TASK/REVIEW 正文仍在仓库。 |
 
-Task 2/3/4 的日志脱敏和 Task 6 的真实 PR 规则是不可删的 DoD；否则“看似可视化”会退化成无法恢复的终端转发器。
+模型字段语义固定如下：
 
-## 9. 已拍板与待执行事项
+- requested_model：owner/调度器请求、在入队时快照的 allowlist 名称。
+- configured_model：实际传给 CLI 的 allowlist 名称。
+- reported_model：只有 provider JSON 事件明确报告后才填；空值不等于 configured_model。
+- default_model：下一个新入队 turn 的默认值；换模失败不得修改它。
+- requested_effort/configured_effort：owner 请求和实际传给 CLI 的 provider-specific 强度，在入队时 snapshot；换强度失败不得修改 default_effort。
+- default_effort：下一个新入队 turn 的默认强度，只能从该 provider 的完整 allowlist 选择。
 
-1. ✅ workflow §3.1 采用受限的 `codex-bot + harness` 例外；普通 Hermes 聊天不改变。
-2. ✅ 新 bot 名称为 `codex-bot`；一个 bot 身份可承载 Codex 与 Claude，标题/状态卡必须明确 provider/model。
-3. ✅ owner 在 Thread 内直接发普通文本续问，启用 Message Content intent；Message Command 是默认建 session 入口。
-4. ⬜ Harness 源码单独建私有仓库；同一 VPS 用户、同一凭据，不影响 LuxrayKit 的产品 CI/Workers Builds。
+## 6. 生命周期、锁与 transient runner
 
-## 参考
+~~~text
+Discord interaction / owner Thread message
+        |
+        v
+SQLite transaction: create or enqueue turn
+        |
+        v
+coordinator claims exactly one turn
+        |
+        v
+systemd-run --user: dev-pipeline-turn-S-0042-T-0007
+        |
+        +-- global flock + worktree flock
+        +-- runner starts one provider CLI with cwd=worktree
+        +-- raw JSONL/result file + narrow SQLite event transactions
+        |
+        v
+bot imports cursor delta, edits status card, emits sanitized summary
+~~~
 
-- [Discord Threads](https://docs.discord.com/developers/topics/threads)：公共 Thread、归档/解归档及专用权限。
-- [Discord Application Commands](https://docs.discord.com/developers/interactions/application-commands)：Message Command 的 Apps 菜单与目标消息 interaction。
-- [Discord Channel API](https://docs.discord.com/developers/resources/channel)：从既有消息创建 public Thread；一个源消息仅一个 Thread。
-- [Discord Message API](https://docs.discord.com/developers/resources/message)：置顶消息与 `PIN_MESSAGES` 权限。
-- [Discord Interactions & Components](https://docs.discord.com/developers/platform/interactions)：button/modal 和异步响应模型。
-- [Claude Code CLI reference](https://docs.anthropic.com/en/docs/claude-code/cli-usage)：`stream-json` 与 `--resume`。
-- Codex CLI 本机 `codex exec resume --help`（2026-07-22）：指定 session ID、prompt 与 `--json` 已直接核对。
+Harness 的协调进程不直接把 provider stdout 当作唯一事实。实际 turn 由 transient unit 的 runner 执行：coordinator 在同一事务中把 queued 改为 launching 并生成唯一 unit name；systemd-run --user 启动 runner，设置 WorkingDirectory、KillMode=control-group、UMask=0077、TimeoutStopSec，并只传递运行 provider 所需的最小环境；runner 先取得 global lock 和以 realpath 哈希得到的 worktree lock，再把 turn 改为 running；runner 使用 create_subprocess_exec，不经 shell，写 0600 原始转录、脱敏副本和 result JSON；runner 在 finally 中以幂等条件事务写 terminal state、释放锁并退出；coordinator/Discord bot 只消费转录增量和 result，不拥有 provider 进程。
+
+停止按钮只向该 unit 执行 systemctl --user stop。它必须等待 runner 写完 terminal result；若超时则标记 interrupted，不能假装该 turn 已完成。服务启动的 reconcile 规则是：
+
+| 检查结果 | 动作 |
+| --- | --- |
+| unit active | 不启动新的 provider；恢复读取游标，显示 running。 |
+| unit inactive 且有 terminal result | 幂等导入结果，更新状态卡。 |
+| unit 不存在且没有 terminal result | 标记 interrupted，保留 resume/retry 入口。 |
+| SQLite 显示 running 但 global lock 空闲 | 先做上述核对；绝不直接再次执行同一 attempt。 |
+
+## 7. Worktree 与 Git 规则
+
+新 session 只能从最新 origin/main 创建：
+
+~~~text
+git -C <HARNESS_REPO> fetch origin main
+git -C <HARNESS_REPO> worktree add -b pipeline/S-0042 <WORKTREE> origin/main
+~~~
+
+创建前必须验证目标不存在、实际路径不在禁止 clone 下、基础 SHA 已记录。Harness 可以在 owner 明确命令后 archive worktree，但 v1 不自动删除任何 worktree。所有 provider 和 Hermes runner 的 cwd 都是该绝对 worktree 路径；prompt 中的 cd 不能替代它。
+
+## 8. Provider adapter 契约
+
+adapter 对 coordinator 输出统一事件：
+
+~~~text
+session_started
+assistant_message
+tool_started
+tool_finished
+turn_finished
+turn_failed
+~~~
+
+私有原始事件可保留 provider 字段；Discord 层只能消费统一事件和经过脱敏的正文。
+
+### 8.1 Codex
+
+新 session 的命令形态：
+
+~~~text
+<CODEX_BIN> exec --json --sandbox workspace-write -c 'model_reasoning_effort="<effort>"' -m <model> <prompt>
+~~~
+
+adapter 在第一个 thread.started 事件出现时立即持久化 provider_session_id。恢复形态：
+
+~~~text
+<CODEX_BIN> exec resume --json -c 'model_reasoning_effort="<effort>"' -m <model> <provider-session-id> <prompt>
+~~~
+
+禁止 --ephemeral。每个 command 记录 sandbox、model 和 CLI version；续会不得静默扩大 sandbox 或权限。
+
+### 8.2 Claude Code
+
+新 session 的命令形态：
+
+~~~text
+<CLAUDE_BIN> -p --model <model> --effort <effort> --permission-mode dontAsk --output-format stream-json --verbose --include-partial-messages <prompt>
+~~~
+
+恢复形态：
+
+~~~text
+<CLAUDE_BIN> -p --resume <provider-session-id> --model <model> --effort <effort> --permission-mode dontAsk --output-format stream-json --verbose --include-partial-messages <prompt>
+~~~
+
+当前 CLI 要求 stream-json 的 partial messages 同时具备 print、stream-json 和 verbose；因为 -p 已提供 print 语义，--verbose 不可漏掉。Task DPH-03 必须用当前 VPS 版本确认 session ID 事件字段和 allowlist 工具参数。不得使用 bypassPermissions；dontAsk 配合 TASK 自己的明确工具 allowlist，遇到未允许的工具失败并回报，而不是等待无人值守的交互。
+
+### 8.3 同 provider 换模型与跨 provider
+
+Harness 是一轮一进程的非交互模型，不向活动 CLI stdin 注入 /model。owner 的 !model <allowlisted-name> 和 !effort <level> 只能在该 provider session 没有 running turn 时更新默认值；下一条 turn 通过上述 resume 命令并带 model/effort 执行。
+
+必须在 disposable Git repo 上完成下列真实最小 smoke：
+
+1. 以模型 A 创建 session。
+2. 保存 provider session ID。
+3. 以模型 B resume 同一 ID。
+4. 断言 ID 不变、历史可用、turn 的 requested/configured model 各自可审计。
+5. 以非法模型入队，断言 turn 失败但 session/default_model/队列未损坏。
+6. Codex 切 Claude 或反向切换时，断言新建 provider_sessions 行、生成 context.md 并标为 provider-switch。
+
+Claude 换模型会重新读取完整历史且失去 cache 命中，调度器应在状态卡中提示这可能带来一次性延迟/成本。
+
+## 9. Discord 协议
+
+### 9.1 必需外部配置
+
+owner 在 Discord Developer Portal 创建/授权 codex-bot，启用 Message Content intent，并注册 guild-scoped Message Commands：
+
+~~~text
+在 Codex 中继续
+在 Claude 中继续
+~~~
+
+bot 在 luxraykit-dev 的最小权限为 View Channel、Send Messages、Read Message History、Create Public Threads、Send Messages in Threads、Manage Threads、Pin Messages、Attach Files。Token 仅进入私有 env。
+
+### 9.2 用户交互
+
+- Message Command 从被选原消息创建 public Thread；数据库 unique source_message_id 处理重复和竞态。
+- Thread 命名 S-0042 · Codex · <short-model>；bot 发并实际 pin 一张状态卡。
+- owner 在自己的 Harness Thread 发送非控制文本即入队 resume；非 owner、错误 guild/channel、bot author、父频道普通文本都忽略。
+- 控制命令仅接受 owner：!status、!model、!effort、!provider、!stop、!approve、!accept、!reject、!resume。参数必须结构化解析，不把 Discord 文本插入 shell。
+- 归档的 Thread 收到合法续问时先 unarchive；无法操作时给出父频道 !resume S-#### 的安全 fallback。
+
+状态卡至少显示 provider、requested/configured/reported model、branch、queue position、turn ID、状态、最后错误摘要和可用下一步。2 至 5 秒合并更新，避免 token 级刷屏。大日志只作为经过脱敏的附件；原始 JSONL 不上传。
+
+## 10. PLAN/TASK/review 与 Hermes 接线
+
+Harness 不替代现有工程规则：
+
+- PLAN、TASK、REVIEW 文件仍在当前 session worktree 的 docs/plans、docs/tasks、docs/reviews。
+- 每个 TASK 必须含允许修改文件白名单、禁区、接口、DoD 和验证命令。runner 将这些限制作为弱模型 prompt 的固定上下文。
+- 弱模型实施用 hermes -z 从 worktree cwd 执行；HTTP API 可以保留给 Hermes 自己的 run/status/stop 控制，但不是写代码执行通道。
+- REVIEW 必须在 worktree 实跑 npm test、npm run build 和相关检查；UI 改动仍需 Windows 视觉基线与 owner 真机 preview。
+- Draft PR、CI、preview、!accept 每步都以 GitHub/Cloudflare 的当前事实校验。Harness 永不 push main，永不自行 accept。
+
+## 11. 脱敏、审计与失败策略
+
+- 启动时从私有环境读取已知 secret 值，建立 redact set；同时应用常见 token/key/url 正则。
+- 原始文件、SQLite、context pack 默认 0600；不得记录 Discord token、provider auth、Git credential、API key 或完整 Hermes env。
+- Discord 输出只含已脱敏的 message/tool summary/exit code；模型 hidden reasoning 一律丢弃。
+- 每个外部动作写 actor、时间、session/turn、输入消息 ID、unit 名和不可逆动作的前置检查结果。
+- 弱模型同一 TASK 最多两次 review 打回；默认第三次转 needs_owner。只有 owner 明确配置后，强模型才可在原白名单和 DoD 内直修，范围外操作必须重新批准。
+
+## 12. 实施任务与总验收
+
+严格按以下顺序执行：
+
+1. [TASK-DPH-00](../tasks/TASK-DPH-00-discord-and-private-config.md)
+2. [TASK-DPH-01](../tasks/TASK-DPH-01-harness-state-and-scaffold.md)
+3. [TASK-DPH-02](../tasks/TASK-DPH-02-runner-worktree-and-recovery.md)
+4. [TASK-DPH-03](../tasks/TASK-DPH-03-provider-adapters-and-model-switching.md)
+5. [TASK-DPH-04](../tasks/TASK-DPH-04-discord-thread-ui.md)
+6. [TASK-DPH-05](../tasks/TASK-DPH-05-pipeline-and-hermes-integration.md)
+7. [TASK-DPH-06](../tasks/TASK-DPH-06-vps-service-and-runbook.md)
+8. [TASK-DPH-07](../tasks/TASK-DPH-07-dogfood-and-release-gate.md)
+
+总验收只有在 DPH-07 完成后才算通过：两种 provider 均能在原 Thread 开始、停止、恢复并换模型；两条 Thread 始终单并发；服务重启不重复执行 turn；弱模型永远从独立 worktree 写入；低风险 Draft PR 经 CI 和 preview 到达 owner，但只有 owner 的带 SHA accept 可以合并。

@@ -1,0 +1,19 @@
+[Unit]
+Description=LuxrayKit development pipeline harness
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/LuxrayKit
+EnvironmentFile=%h/.config/dev-pipeline-harness/env
+ExecStartPre=%h/.local/share/dev-pipeline-harness/venv/bin/python -m dev_pipeline_harness doctor --env-file %h/.config/dev-pipeline-harness/env
+ExecStart=%h/.local/share/dev-pipeline-harness/venv/bin/python -m dev_pipeline_harness bot --env-file %h/.config/dev-pipeline-harness/env
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+KillMode=control-group
+UMask=0077
+
+[Install]
+WantedBy=default.target
