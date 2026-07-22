@@ -1,22 +1,25 @@
-# 开发流水线 Workflow(草案 v0.1 · 2026-07-22)
+# 开发流水线 Workflow(草案 v0.2 · 2026-07-22)
 
 > 定位:可复用的「强模型规划 + 弱模型落地 + 确定性验证 + 人验收」开发流水线。
 > 分两层:**骨架**(跨项目不变)与**项目 profile**(每个项目只换这一节)。
 > 本稿已结合 LuxrayKit 实测事实(Hermes 入口、Workers Builds preview、CI 现状)。
+> 运行前提:这是 owner 自己的**可信通用 VPS Agent 主机**；强/弱模型区分的是能力与职责,不是安全信任等级。
 > 标注 ⚠️ 的是待项目 owner 拍板的开放决策。
 
 ## 0. 角色与信任模型(骨架)
 
 | 角色 | 职责 | 信任边界 |
 | --- | --- | --- |
-| 人(owner) | 需求、PLAN 审批、验收放行、合并 | 唯一有合并权的主体 |
+| 人(owner) | 需求、PLAN 审批、验收放行、合并 | 唯一合并**决策者**;VPS 凭据按 owner 的 `!accept` 执行技术合并 |
 | 强模型(Claude Code / Codex CLI,headless) | 维护文档、spike、写 PLAN、拆 TASK、review | 产出必须过确定性防线或人工其一 |
-| 弱模型(Hermes agent + DeepSeek v4 flash) | 按 TASK 填空式落地代码 | 永不做验证判断;打回上限 2 轮 |
-| 确定性 CI(GitHub Actions) | 唯一验证权威(测试/构建/冒烟) | 结果不可被模型覆写 |
-| 纯 cron | 零判断机械活(数据刷新) | 只走白名单分支 + auto-merge |
+| 弱模型(Hermes agent + DeepSeek v4 flash) | 按 TASK 填空式落地代码 | 同属可信 VPS Agent,但永不做最终验证判断;打回上限 2 轮 |
+| 确定性 CI(GitHub Actions) | 最终确定性合并门禁(测试/构建/冒烟) | 结果不可被模型覆写;本地通过不替代 CI |
+| 纯 cron | 确定性机械维护活(数据刷新) | 只走白名单分支 + auto-merge |
 
-铁律:自动合并只给「白名单分支 + 纯生成数据 + 绿 CI」;其余 PR 一律人工合并;
-`main` 无保护 ⇒ 合并即上线 ⇒ 一切防线必须落在合并之前。
+铁律:自动合并只给「白名单分支 + 纯生成数据 + 绿 CI」;其余 PR 一律由 owner 决策合并;
+`main` 无保护 ⇒ 合并即上线 ⇒ 一切防线必须落在合并之前。`!accept <PR#> <head-SHA>`
+只接受 owner 指令;dispatcher 必须确认当前 PR head 仍等于被验收 SHA,并以
+`gh pr merge --match-head-commit` 防止批准后分支移动。
 
 ## 1. 四层防线(骨架)
 
@@ -25,16 +28,28 @@
 - **L3** 端到端冒烟(Playwright 真实渲染断言)
 - **L4** preview 部署上的人工验收(机器不可替的判断)
 
-L1–L3 确定性、跑在 CI;L4 由自动化负责「把待判断的东西端到人面前」(preview URL 发进 Discord)。
+L1–L3 的**最终**证据来自 CI;强模型 review 也可在 VPS 先跑同一批命令,尽早失败,但不以本地绿灯替代 CI。
+L4 由自动化负责「把待判断的东西端到人面前」(preview URL 发进 Discord)。
 
 ## 2. 一次完整循环(骨架)
 
 1. 人在 Discord 用 `/cc` 直连强模型讨论需求(原文直达,弱模型零参与,见 §3.1)→ 强模型 spike + 写 `docs/plans/PLAN-<id>.md`,摘要回频道
-2. 人 `!approve` / 提修改意见
+2. 人 `!approve <PLAN-id>` / 提修改意见
 3. 强模型拆 `docs/tasks/TASK-<id>-<n>.md`:目标、**允许改动文件白名单**、接口签名、禁区、DoD(验证命令)
 4. TASK 逐个经 Hermes HTTP API(`POST /v1/runs`)交给弱模型落地,commit 到分支
-5. 强模型 `/review`:实际跑 build/test + 读 diff → 通过则下一个;不通过写 `docs/reviews/REVIEW-<id>.md` 打回(≤2 轮,超限升级为强模型直修或 ping 人)
-6. 全部通过 → push 分支 → CF 自动构建出 preview URL → bot 发 Discord → 人手机实测 → `!accept` 合并(=生产部署)/ `!reject <反馈>` 打回
+5. 强模型 `/review`:实际跑 `npm test`、`npm run build` 及改动相关的 Worker/PWA 命令 + 读 diff → 通过则下一个;不通过写 `docs/reviews/REVIEW-<id>.md` 打回(≤2 轮,超限升级为强模型直修或 ping 人)
+6. 全部通过 → push 功能分支并开 Draft PR → CI 对该 `head-SHA` 绿、CF 构建出 preview URL → bot 发 Discord → 人手机实测 → `!accept <PR#> <head-SHA>` 合并(=生产部署)/ `!reject <反馈>` 打回
+
+## 2.1 运行状态与崩溃恢复(骨架)
+
+- PLAN/TASK/REVIEW Markdown 仍是给人读的权威产物;dispatcher 另在
+  `~/.hermes/state/dev-pipeline/<repo>/<pipeline-id>.json` 维护机器状态:
+  `planPath`/`planHash`、`baseSha`、`branch`、`currentTask`、`reviewRound`、`headSha`、
+  CI 状态、preview URL、`acceptedBy`/`acceptedHeadSha`、状态与时间戳。
+- 状态只沿 `draft → plan_approved → task_running → pr_open → ci_passed → preview_ready → accepted → merged`
+  前进;`rejected`、`failed`、`cancelled` 为终态。head SHA 变化会使 preview/accept 失效,退回 `pr_open`。
+- dispatcher 的开发工作 clone 与 maintenance clone 分别用自己的 `flock` 锁保护写入任务;不锁 Hermes 的其他通用工作。
+  启动时若发现 state 仍为运行中但锁已释放,先核对 PID、worktree 与 Git 状态,标记 `interrupted` 并通知 owner,不盲目续跑。
 
 ## 3. 机器间通信:走 API,不走 Discord(已查证,2026-07-22)
 
@@ -52,12 +67,13 @@ Discord 侧事实:bot/webhook 消息默认被忽略(`DISCORD_ALLOW_BOTS=none`);
 防 bot 互刷。**因此不需要也不应该用 webhook 冒充人类消息驱动 Hermes。**
 
 VPS 实机核实(2026-07-22,ubuntu@35.74.208.112):hermes-agent **0.18.0**(2026-07-03
-安装,上游已到 0.19.0),经 **user systemd** 常驻(gateway 进程由 `systemd --user` 拉起);
-`DISCORD_ALLOW_BOTS` 等 4 个开关均未设(即默认 none);**API server 未启用**(8642 未监听、
-config 无 api_server 键)——启用时注意只绑 localhost,dispatcher 同机直连即可,勿开公网。
+安装,上游已到 **0.19.0**),经 **user systemd** 常驻(gateway 进程由 `systemd --user` 拉起);
+`DISCORD_ALLOW_BOTS` 等 4 个开关均未设(即默认 none);**API server 已启用**并只监听
+`127.0.0.1:8642`,未带凭据的 `/v1/capabilities` 与 `/v1/models` 均返回 401。dispatcher 同机直连即可,勿开公网。
 
 强模型 headless 凭据:`claude -p` 用 `CLAUDE_CODE_OAUTH_TOKEN`(setup-token 已生成,一年期);
-Codex 拷 `~/.codex/auth.json`。二者与 `ANTHROPIC_API_KEY` 不可同设。
+Codex 拷 `~/.codex/auth.json`。二者与 `ANTHROPIC_API_KEY` 不可同设。这些凭据保留在可信通用 VPS
+Agent 主机上,但绝不写入 repo、PLAN/TASK/REVIEW、日志或 Discord 输出。
 
 ## 3.1 人 ↔ 强模型直连通道:Hermes 插件槽(2026-07-22 拍板)
 
@@ -100,8 +116,9 @@ Hermes HTTP API → 弱模型。**弱模型只负责执行落地,永不经手/�
 
 ## 4. 2c2g 资源纪律(骨架,VPS 通用)
 
-- 加 2–4G swap;全局锁保证同一时刻只跑一个 job(天然限流订阅额度)
-- build/test 卸载:CI 跑在 GitHub Actions,preview 构建跑在 Cloudflare 侧,VPS 只做编排与轻量代码编辑
+- 加 2–4G swap;开发流水线与 maintenance clone 各自串行写入,避免耗尽内存或互相污染
+- build/test **优先**由 CI 跑在 GitHub Actions,preview 构建跑在 Cloudflare 侧;但强模型 review 可在 VPS 先跑
+  `npm test`/`npm run build` 等确定性命令,把失败挡在 push 之前。CI 对最终 head SHA 重跑,才是合并门禁
 - review 只喂 diff + 相关文件;lint/test 由脚本跑、结果文本喂给模型
 
 ## 5. 项目 profile:LuxrayKit(UI/UX 重的纯前端 PWA)
@@ -112,6 +129,7 @@ Hermes HTTP API → 弱模型。**弱模型只负责执行落地,永不经手/�
    - CI 渲染冒烟:`offline.spec.ts` + `team-samples.spec.ts`(已有)
    - 本机 win32 视觉回归 17 态:UI 改动 merge 前手动跑(已有,基线平台锁定,严禁 CI 重生成)
    - **preview URL 真机验收**:手机点开 workers.dev 链接实测(本次打通,见 §6)
+   - UI TASK 的 DoD:强模型先跑 `npm test` + `npm run build`;CI 绿后再完成 Win32 视觉回归与真机验收
 2. **什么改动可以自动合并?** → 仅 `automation/pokedb-environment-refresh`、`automation/vgcpastes-team-refresh` 两个白名单分支的纯生成 JSON
 3. **人只想亲眼看什么?** → PLAN 摘要、preview URL、样本数/audit 摘要
 
@@ -119,17 +137,21 @@ Hermes HTTP API → 弱模型。**弱模型只负责执行落地,永不经手/�
 
 ## 6. Preview 部署事实(2026-07-22 实测)
 
-- ✅ **已落地(2026-07-22 端到端验收)**:push 非 main 分支 → 影子 Worker
+- ✅ **已落地(2026-07-22 端到端验收 + Wrangler 控制面复核)**:push 非 main 分支 → 影子 Worker
   `luxraykit-app-preview` 自己的 Builds 触发器(非 main,`npm ci && npm run build` →
   `versions upload --config …wrangler.preview.jsonc`)→ ~70 秒出 per-version preview URL
-  (`<版本前8位>-luxraykit-app-preview.ffkiyo7.workers.dev`,手机可点)
+  (`<版本前8位>-luxraykit-app-preview.ffkiyo7.workers.dev`,手机可点)。最新 preview version 的
+  `has_preview=true`;从 VPS 请求其 `/health` 已返回 200。生产站点流量仍只走 `main` 所连的
+  `luxraykit-app`,但 owner 的真机验收会显式访问这个 preview URL
 - 踩过的三个坑(细节见 guide §9):带 DO 的 Worker 不生成 preview URL;Workers Builds
   把部署钉死在所连 Worker(preview 触发器必须建在影子 Worker 名下);wrangler 需显式
   `preview_urls: true`
 - ⚠️ 绕法 B(长期干净,可作流水线 dogfood PLAN):把 DO + cron 拆成独立 refresher
   Worker,luxraykit-app 无 DO 后原生获得 preview URL,即可裁撤影子 Worker
-- 纪律(已在 AGENTS.md):preview 与生产共享 KV,一律只读对待;cron 不在 preview 触发;
-  影子 Worker 缺 DO/secret,只读是结构保证
+- 纪律(已在 AGENTS.md):preview 与生产共享同一 KV;Wrangler 实测 preview 没有
+  `ADMIN_REFRESH_TOKEN`、`ENVIRONMENT_REFRESHER` DO binding 或 cron,所以**现有刷新路径**无法写入
+  (刷新请求会 401)。这不是 Cloudflare 的只读权限:任何新增 `ENVIRONMENT_CACHE.put/delete` 或
+  `wrangler.preview.jsonc` 改动都必须在强模型 review 中单列检查;preview 仅供可信 owner 验收
 - 待接线:build 成功后把 preview URL 发 `luxraykit-dev` 频道(Phase 2 的 dispatcher 职责;
   Workers Builds 对 PR 也会自动贴 preview 评论,开 PR 的分支无需额外接线)
 
@@ -138,10 +160,9 @@ Hermes HTTP API → 弱模型。**弱模型只负责执行落地,永不经手/�
 - **Phase 0(半天;✅ = 2026-07-22 实机已确认就位)**:
   ✅ swap 2G 已加(1.9G RAM,负载正常) · ✅ Node v24.18.0(与 CI 一致) · ✅ 双 clone
   (`~/LuxrayKit` 策展 / `~/LuxrayKit-maintenance` cron,两个刷新 cron 在跑) ·
-  ✅ tmux/screen 可用 · ⬜ 开 Hermes API server(`API_SERVER_ENABLED=1`+`API_SERVER_KEY`,
-  写进 user systemd unit,只绑 localhost) · ⬜ 装 Claude Code CLI + 设
+  ✅ tmux/screen 可用 · ✅ Hermes API server 已开(`127.0.0.1:8642`,受 `API_SERVER_KEY` 保护) · ⬜ 装 Claude Code CLI + 设
   `CLAUDE_CODE_OAUTH_TOKEN`(token 已生成) · ⬜(可选)hermes 升级 0.18.0→0.19.0 ·
-  ⬜ docs/{plans,tasks,reviews} 约定就位 · ⬜ Discord webhook 通知打通 · ⬜ SSH 手动跑
+  ⬜ docs/{plans,tasks,reviews,discussions} 约定就位 · ⬜ pipeline state.json + clone 级 `flock` 就位 · ⬜ Discord webhook 通知打通 · ⬜ SSH 手动跑
   一轮完整循环,找卡点
 - **Phase 1**:插件化 dispatcher(见 §3.1)——① codex-relay handler async 化(修事件循环阻塞);② 克隆出 `/cc` claude-relay(resume 续会话 + 讨论记录 md 备份 + 自由通道);③ TASK 下发走 Hermes HTTP API `POST /v1/runs`。dispatcher 本身 = 流水线第一个 dogfood 项目
 - **Phase 2**:preview URL 自动发频道、`/status` 查询、审批类插件命令(`/approve` 等);(可选)绕法 B 重构
