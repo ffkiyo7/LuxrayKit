@@ -70,8 +70,10 @@ class ClaudeAdapter(ProviderAdapter):
                 "stream-json",
                 "--verbose",
                 "--include-partial-messages",
-                "--allowed-tools",
-                ",".join(self.allowed_tools),
+                # Claude 2.1's variadic --allowed-tools option greedily
+                # consumes a following positional prompt.  The equals form
+                # makes its single comma-separated value unambiguous.
+                f"--allowed-tools={','.join(self.allowed_tools)}",
                 prompt,
             ]
         )
