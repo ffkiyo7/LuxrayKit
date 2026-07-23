@@ -15,7 +15,7 @@ from ..adapters.base import AdapterEvent, ProviderAdapter
 from ..config import Config, ConfigError
 from ..filesystem import StateLayout, ensure_private_file
 from ..formatting import StatusCard, build_status_card, status_card_text
-from ..models import Provider, ProviderSession, SessionStatus, Turn, TurnState
+from ..models import Dispatch, DispatchStatus, Provider, ProviderSession, SessionStatus, Turn, TurnState
 from ..redaction import Redactor
 from ..scheduler import Coordinator
 from ..state import NotFoundError, QueueError, StateError, StateStore
@@ -153,6 +153,61 @@ class DiscordHarnessService:
                 self.state.transition_session(session.id, SessionStatus.FAILED)
             except StateError:
                 pass
+            raise
+
+    def create_dispatch(
+        self,
+        *,
+        owner_user_id: str,
+        guild_id: str,
+        channel_id: str,
+        task: str,
+    ) -> Dispatch:
+        """Store a slash-command task without creating a session or worktree."""
+
+        expected = {
+            "owner": self.config.owner_user_id,
+            "guild": self.config.allowed_guild_id,
+            "channel": self.config.parent_channel_id,
+        }
+        actual = {
+            "owner": str(owner_user_id),
+            "guild": str(guild_id),
+            "channel": str(channel_id),
+        }
+        if any(not expected[key] or actual[key] != expected[key] for key in expected):
+            raise StateError("dispatch is limited to the configured owner and parent channel")
+        return self.state.create_dispatch(
+            owner_user_id=owner_user_id,
+            guild_id=guild_id,
+            channel_id=channel_id,
+            task=task,
+        )
+
+    def start_from_dispatch(self, *, dispatch_id: str, provider_name: str) -> SessionStart:
+        """Start exactly one session after the owner chooses a provider button."""
+
+        provider = self._provider(provider_name)
+        dispatch, claimed = self.state.claim_dispatch(dispatch_id, provider)
+        if not claimed:
+            if dispatch.status is DispatchStatus.STARTED and dispatch.harness_session_id:
+                session = self.state.get_session(dispatch.harness_session_id)
+                return SessionStart(session.id, False, session.discord_thread_id, None)
+            existing = self.state.find_session_by_source(f"dispatch:{dispatch.id}")
+            if existing is not None:
+                self.state.complete_dispatch(dispatch.id, existing.id)
+                return SessionStart(existing.id, False, existing.discord_thread_id, None)
+            raise StateError("dispatch is already being created; please wait a moment")
+        try:
+            result = self.start_from_source(
+                source_message_id=f"dispatch:{dispatch.id}",
+                source_content=dispatch.task,
+                provider_name=provider.value,
+            )
+            self.state.complete_dispatch(dispatch.id, result.session_id)
+            return result
+        except Exception:
+            self.state.release_dispatch(dispatch.id, provider)
             raise
 
     def _active_provider(self, session_id: str) -> ProviderSession:
@@ -323,6 +378,72 @@ class DiscordHarnessService:
 
 if commands is not None:
 
+    class DispatchProviderButton(discord.ui.Button):
+        def __init__(self, *, dispatch_id: str, provider: Provider):
+            label = "在 Codex 中继续" if provider is Provider.CODEX else "在 Claude 中继续"
+            style = discord.ButtonStyle.primary if provider is Provider.CODEX else discord.ButtonStyle.secondary
+            super().__init__(
+                label=label,
+                style=style,
+                custom_id=f"dispatch:{dispatch_id}:{provider.value}",
+            )
+            self.dispatch_id = dispatch_id
+            self.provider = provider
+
+        async def callback(self, interaction: discord.Interaction) -> None:
+            assert isinstance(self.view, DispatchConfirmationView)
+            await self.view.choose_provider(interaction, self.provider)
+
+
+    class DispatchEditButton(discord.ui.Button):
+        def __init__(self, *, dispatch_id: str):
+            super().__init__(
+                label="修改任务…",
+                style=discord.ButtonStyle.secondary,
+                custom_id=f"dispatch:{dispatch_id}:edit",
+            )
+            self.dispatch_id = dispatch_id
+
+        async def callback(self, interaction: discord.Interaction) -> None:
+            assert isinstance(self.view, DispatchConfirmationView)
+            await self.view.open_editor(interaction)
+
+
+    class DispatchTaskModal(discord.ui.Modal, title="修改任务"):
+        def __init__(self, *, bot: "DiscordHarnessBot", dispatch_id: str, task: str):
+            super().__init__(custom_id=f"dispatch:{dispatch_id}:modal")
+            self.bot = bot
+            self.dispatch_id = dispatch_id
+            self.task_input = discord.ui.TextInput(
+                label="任务",
+                style=discord.TextStyle.paragraph,
+                default=task,
+                min_length=1,
+                max_length=2000,
+                required=True,
+            )
+            self.add_item(self.task_input)
+
+        async def on_submit(self, interaction: discord.Interaction) -> None:
+            await self.bot.submit_dispatch_edit(interaction, self.dispatch_id, self.task_input.value)
+
+
+    class DispatchConfirmationView(discord.ui.View):
+        def __init__(self, *, bot: "DiscordHarnessBot", dispatch_id: str):
+            super().__init__(timeout=None)
+            self.bot = bot
+            self.dispatch_id = dispatch_id
+            self.add_item(DispatchProviderButton(dispatch_id=dispatch_id, provider=Provider.CODEX))
+            self.add_item(DispatchProviderButton(dispatch_id=dispatch_id, provider=Provider.CLAUDE))
+            self.add_item(DispatchEditButton(dispatch_id=dispatch_id))
+
+        async def choose_provider(self, interaction: discord.Interaction, provider: Provider) -> None:
+            await self.bot.handle_dispatch_choice(interaction, self.dispatch_id, provider)
+
+        async def open_editor(self, interaction: discord.Interaction) -> None:
+            await self.bot.open_dispatch_editor(interaction, self.dispatch_id)
+
+
     class DiscordHarnessBot(commands.Bot):
         def __init__(self, *, service: DiscordHarnessService):
             intents = discord.Intents.none()
@@ -332,29 +453,29 @@ if commands is not None:
             super().__init__(command_prefix="!", intents=intents)
             self.service = service
             self._synced = False
-            self._source_locks: dict[str, asyncio.Lock] = {}
+            self._dispatch_locks: dict[str, asyncio.Lock] = {}
             self._last_status_update: dict[str, float] = {}
             self._scheduler_task: asyncio.Task | None = None
 
         async def setup_hook(self) -> None:
             guild = discord.Object(id=int(self.service.config.allowed_guild_id))
+            self.tree.clear_commands(guild=guild)
             self.tree.add_command(
-                app_commands.ContextMenu(
-                    name="在 Codex 中继续",
-                    callback=self._context_codex,
-                    type=discord.AppCommandType.message,
-                ),
-                guild=guild,
-            )
-            self.tree.add_command(
-                app_commands.ContextMenu(
-                    name="在 Claude 中继续",
-                    callback=self._context_claude,
-                    type=discord.AppCommandType.message,
+                app_commands.Command(
+                    name="dispatch",
+                    description="派发任务并选择 Codex 或 Claude",
+                    callback=self.dispatch_command,
                 ),
                 guild=guild,
             )
             await self.tree.sync(guild=guild)
+            await asyncio.to_thread(self.service.state.reconcile_dispatch_claims)
+            for dispatch in await asyncio.to_thread(self.service.state.list_open_dispatches):
+                if dispatch.confirmation_message_id:
+                    self.add_view(
+                        DispatchConfirmationView(bot=self, dispatch_id=dispatch.id),
+                        message_id=int(dispatch.confirmation_message_id),
+                    )
             self._synced = True
             self._scheduler_task = asyncio.create_task(self._scheduler_loop())
 
@@ -468,41 +589,137 @@ if commands is not None:
                         # durable offset.
                         continue
 
-        async def _context_codex(self, interaction: discord.Interaction, message: discord.Message):
-            await self._handle_context(interaction, message, "codex")
-
-        async def _context_claude(self, interaction: discord.Interaction, message: discord.Message):
-            await self._handle_context(interaction, message, "claude")
-
-        def _interaction_allowed(self, interaction: discord.Interaction, message: discord.Message) -> bool:
+        def _dispatch_interaction_allowed(
+            self, interaction: discord.Interaction, dispatch: Dispatch | None = None
+        ) -> bool:
             return bool(
                 interaction.guild
                 and str(interaction.guild.id) == self.service.config.allowed_guild_id
                 and str(interaction.user.id) == self.service.config.owner_user_id
-                and message.guild
-                and str(message.guild.id) == self.service.config.allowed_guild_id
-                and getattr(message.channel, "id", None) == int(self.service.config.parent_channel_id)
+                and str(interaction.channel_id) == self.service.config.parent_channel_id
+                and (
+                    dispatch is None
+                    or (
+                        dispatch.owner_user_id == str(interaction.user.id)
+                        and dispatch.guild_id == str(interaction.guild.id)
+                        and dispatch.channel_id == str(interaction.channel_id)
+                    )
+                )
             )
 
-        async def _handle_context(self, interaction: discord.Interaction, message: discord.Message, provider: str):
-            if not self._interaction_allowed(interaction, message):
+        @staticmethod
+        def _dispatch_embed(dispatch: Dispatch):
+            if dispatch.status is DispatchStatus.STARTED:
+                provider = dispatch.provider.value if dispatch.provider else "provider"
+                title = f"已在 {provider.title()} 中继续"
+                footer = "Harness Thread 已创建或正在恢复。"
+            else:
+                title = "待派发任务"
+                footer = "选择 provider 后才会创建 Thread、worktree 和模型 turn。"
+            embed = discord.Embed(title=title, description=dispatch.task)
+            embed.set_footer(text=footer)
+            return embed
+
+        async def dispatch_command(self, interaction: discord.Interaction, task: str) -> None:
+            if not self._dispatch_interaction_allowed(interaction):
+                await interaction.response.send_message("此操作仅限配置的 owner 和目标频道。", ephemeral=True)
+                return
+            try:
+                dispatch = await asyncio.to_thread(
+                    self.service.create_dispatch,
+                    owner_user_id=str(interaction.user.id),
+                    guild_id=str(interaction.guild.id),
+                    channel_id=str(interaction.channel_id),
+                    task=task,
+                )
+                await interaction.response.send_message(
+                    embed=self._dispatch_embed(dispatch),
+                    view=DispatchConfirmationView(bot=self, dispatch_id=dispatch.id),
+                )
+                confirmation = await interaction.original_response()
+                await asyncio.to_thread(
+                    self.service.state.set_dispatch_confirmation_message,
+                    dispatch.id,
+                    str(confirmation.id),
+                )
+            except StateError as exc:
+                if interaction.response.is_done():
+                    await interaction.followup.send(str(exc), ephemeral=True)
+                else:
+                    await interaction.response.send_message(str(exc), ephemeral=True)
+
+        async def handle_dispatch_choice(
+            self, interaction: discord.Interaction, dispatch_id: str, provider: Provider
+        ) -> None:
+            try:
+                dispatch = await asyncio.to_thread(self.service.state.get_dispatch, dispatch_id)
+            except StateError:
+                await interaction.response.send_message("该派发卡已不存在。", ephemeral=True)
+                return
+            if not self._dispatch_interaction_allowed(interaction, dispatch):
                 await interaction.response.send_message("此操作仅限配置的 owner 和目标频道。", ephemeral=True)
                 return
             await interaction.response.defer(ephemeral=True)
-            lock = self._source_locks.setdefault(str(message.id), asyncio.Lock())
+            lock = self._dispatch_locks.setdefault(dispatch_id, asyncio.Lock())
             async with lock:
                 try:
                     result = await asyncio.to_thread(
-                        self.service.start_from_source,
-                        source_message_id=str(message.id),
-                        source_content=message.content,
-                        provider_name=provider,
+                        self.service.start_from_dispatch,
+                        dispatch_id=dispatch_id,
+                        provider_name=provider.value,
                     )
-                    thread = await self._get_or_create_thread(message, result, provider)
+                    started = await asyncio.to_thread(self.service.state.get_dispatch, dispatch_id)
+                    if interaction.message is None:
+                        raise StateError("dispatch confirmation message is unavailable")
+                    actual_provider = started.provider or provider
+                    thread = await self._get_or_create_thread(interaction.message, result, actual_provider.value)
                     await self._refresh_status(thread, result.session_id, force=True)
+                    await interaction.message.edit(embed=self._dispatch_embed(started), view=None)
                     await interaction.followup.send(f"已连接到 {result.session_id}：{thread.mention}", ephemeral=True)
-                except Exception:
+                except (StateError, OSError, discord.NotFound, discord.Forbidden, discord.HTTPException):
                     await interaction.followup.send("Harness 无法建立 session；请查看本机 doctor/log 的安全摘要。", ephemeral=True)
+
+        async def open_dispatch_editor(self, interaction: discord.Interaction, dispatch_id: str) -> None:
+            try:
+                dispatch = await asyncio.to_thread(self.service.state.get_dispatch, dispatch_id)
+            except StateError:
+                await interaction.response.send_message("该派发卡已不存在。", ephemeral=True)
+                return
+            if not self._dispatch_interaction_allowed(interaction, dispatch):
+                await interaction.response.send_message("此操作仅限配置的 owner 和目标频道。", ephemeral=True)
+                return
+            if dispatch.status is not DispatchStatus.PENDING:
+                await interaction.response.send_message("任务已派发，不能再修改。", ephemeral=True)
+                return
+            await interaction.response.send_modal(
+                DispatchTaskModal(bot=self, dispatch_id=dispatch.id, task=dispatch.task)
+            )
+
+        async def submit_dispatch_edit(
+            self, interaction: discord.Interaction, dispatch_id: str, task: str
+        ) -> None:
+            try:
+                dispatch = await asyncio.to_thread(self.service.state.get_dispatch, dispatch_id)
+            except StateError:
+                await interaction.response.send_message("该派发卡已不存在。", ephemeral=True)
+                return
+            if not self._dispatch_interaction_allowed(interaction, dispatch):
+                await interaction.response.send_message("此操作仅限配置的 owner 和目标频道。", ephemeral=True)
+                return
+            try:
+                updated = await asyncio.to_thread(self.service.state.update_dispatch_task, dispatch_id, task)
+                await interaction.response.defer(ephemeral=True)
+                channel = interaction.channel
+                if channel is None or not updated.confirmation_message_id:
+                    raise StateError("dispatch confirmation message is unavailable")
+                message = await channel.fetch_message(int(updated.confirmation_message_id))
+                await message.edit(embed=self._dispatch_embed(updated))
+                await interaction.followup.send("已更新待派发任务。", ephemeral=True)
+            except (StateError, discord.NotFound, discord.Forbidden, discord.HTTPException) as exc:
+                if interaction.response.is_done():
+                    await interaction.followup.send(str(exc), ephemeral=True)
+                else:
+                    await interaction.response.send_message(str(exc), ephemeral=True)
 
         async def _get_or_create_thread(self, source_message: discord.Message, result: SessionStart, provider: str):
             session = self.service.state.get_session(result.session_id)

@@ -11,14 +11,14 @@
 ## Dogfood 范围
 
 - 选择不改 Worker、KV、构建脚本、依赖、产品行为的文档澄清。
-- 由 owner 从真实 Discord 原消息用 Message Command 建 session。
+- 由 owner 用 `/dispatch task:<低风险文档任务>` 发确认卡并选择 provider 建 session。
 - 在 S-#### worktree 中创建 PLAN、至少一个 TASK 和 REVIEW。
 - 至少用一个 provider 完成文档改动；若配额/账号允许，分别验证 Codex 和 Claude 的 start/resume/model-switch。
 - 创建 Draft PR，等 CI 与影子 Worker preview；owner 检查后决定 accept 或 reject。
 
 ## 必须验证的链路
 
-1. Message Command 对同一源消息去重，Thread、真实置顶状态卡、owner-only 文本续问均工作。
+1. `/dispatch` 在 provider 选择前不建 session/worktree；确认卡对同一任务的并发点击去重，Thread、真实置顶状态卡、owner-only 文本续问均工作。
 2. 两条 Thread 同时排队时最多一个 transient provider unit 运行；另一条的状态卡显示正确位置。
 3. 中断一个可安全中断的 turn 后，原 Thread 能以相同 provider session 恢复；Harness service restart 后不重复执行已完成 turn。
 4. 同 provider 的模型 A 到模型 B resume 维持 provider session ID；跨 provider 创建新的 provider session 和 context pack。

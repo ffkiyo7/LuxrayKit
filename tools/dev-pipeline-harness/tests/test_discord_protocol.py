@@ -6,11 +6,12 @@ from pathlib import Path
 
 from dev_pipeline_harness.commands import CommandParseError, parse_control
 from dev_pipeline_harness.config import Config
+from dev_pipeline_harness.discord_bot import bot as discord_bot
 from dev_pipeline_harness.discord_bot.bot import DiscordHarnessService
 from dev_pipeline_harness.filesystem import StateLayout
 from dev_pipeline_harness.models import Provider, TurnState
 from dev_pipeline_harness.scheduler import Coordinator
-from dev_pipeline_harness.state import StateStore
+from dev_pipeline_harness.state import StateError, StateStore
 from dev_pipeline_harness.systemd import FakeSystemdUserClient
 from dev_pipeline_harness.worktrees import WorktreeInfo
 
@@ -43,6 +44,13 @@ class CommandTests(unittest.TestCase):
             parse_control("!unknown $(touch /tmp/nope)")
         with self.assertRaises(CommandParseError):
             parse_control("!accept 12 deadbeef")
+
+    @unittest.skipIf(discord_bot.commands is None, "discord.py is not installed")
+    def test_slash_handler_does_not_override_discord_gateway_dispatch(self):
+        self.assertIsNot(
+            discord_bot.DiscordHarnessBot.dispatch,
+            discord_bot.DiscordHarnessBot.dispatch_command,
+        )
 
 
 class DiscordServiceTests(unittest.TestCase):
@@ -108,6 +116,35 @@ class DiscordServiceTests(unittest.TestCase):
         self.assertNotIn("discord-secret", text)
         pipeline = self.state.get_pipeline_run(first.session_id)
         self.assertEqual(pipeline.base_sha, "0" * 40)
+
+    def test_dispatch_waits_for_provider_choice_and_is_idempotent(self):
+        dispatch = self.service.create_dispatch(
+            owner_user_id=self.config.owner_user_id or "",
+            guild_id=self.config.allowed_guild_id or "",
+            channel_id=self.config.parent_channel_id or "",
+            task="Draft the release notes.",
+        )
+        self.assertEqual(dispatch.status.value, "pending")
+        self.assertEqual(self.worktrees.created, [])
+        self.assertEqual(self.state.list_sessions(), [])
+
+        edited = self.state.update_dispatch_task(dispatch.id, "Draft the corrected release notes.")
+        self.assertEqual(edited.task, "Draft the corrected release notes.")
+
+        started = self.service.start_from_dispatch(dispatch_id=dispatch.id, provider_name="codex")
+        self.assertTrue(started.created)
+        self.assertEqual(self.worktrees.created, [started.session_id])
+        completed = self.state.get_dispatch(dispatch.id)
+        self.assertEqual(completed.status.value, "started")
+        self.assertEqual(completed.provider.value if completed.provider else None, "codex")
+        self.assertEqual(completed.harness_session_id, started.session_id)
+
+        duplicate = self.service.start_from_dispatch(dispatch_id=dispatch.id, provider_name="claude")
+        self.assertFalse(duplicate.created)
+        self.assertEqual(duplicate.session_id, started.session_id)
+        self.assertEqual(len(self.state.list_provider_sessions(started.session_id)), 1)
+        with self.assertRaises(StateError):
+            self.state.update_dispatch_task(dispatch.id, "Too late to edit.")
 
     def test_owner_can_register_and_approve_a_plan_from_the_thread(self):
         start = self.service.start_from_source(

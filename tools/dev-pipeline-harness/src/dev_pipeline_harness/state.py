@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import sqlite3
 import threading
+import secrets
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
@@ -11,6 +12,8 @@ from typing import Iterator, Sequence
 
 from .filesystem import ensure_private_dir
 from .models import (
+    Dispatch,
+    DispatchStatus,
     HarnessSession,
     PipelineRun,
     Provider,
@@ -42,7 +45,7 @@ class QueueError(StateError):
     pass
 
 
-SCHEMA_VERSION = 3
+SCHEMA_VERSION = 4
 
 _SESSION_TRANSITIONS: dict[SessionStatus, set[SessionStatus]] = {
     SessionStatus.DRAFT: {SessionStatus.QUEUED, SessionStatus.CANCELLED},
@@ -177,6 +180,27 @@ class StateStore:
                         "ALTER TABLE turns ADD COLUMN configured_effort TEXT NOT NULL DEFAULT 'medium'"
                     )
                     current = 3
+                if current < 4:
+                    self._connection.executescript(
+                        """
+                        CREATE TABLE IF NOT EXISTS dispatches (
+                            id TEXT PRIMARY KEY,
+                            owner_user_id TEXT NOT NULL,
+                            guild_id TEXT NOT NULL,
+                            channel_id TEXT NOT NULL,
+                            task TEXT NOT NULL,
+                            status TEXT NOT NULL,
+                            provider TEXT,
+                            confirmation_message_id TEXT UNIQUE,
+                            harness_session_id TEXT UNIQUE REFERENCES harness_sessions(id),
+                            created_at TEXT NOT NULL,
+                            updated_at TEXT NOT NULL
+                        );
+                        CREATE INDEX IF NOT EXISTS idx_dispatches_status
+                            ON dispatches(status, created_at);
+                        """
+                    )
+                    current = 4
                 self._connection.execute(f"PRAGMA user_version={current}")
                 self._connection.commit()
             except Exception:
@@ -300,6 +324,22 @@ class StateStore:
                 details_json TEXT NOT NULL DEFAULT '{}',
                 created_at TEXT NOT NULL
             );
+
+            CREATE TABLE IF NOT EXISTS dispatches (
+                id TEXT PRIMARY KEY,
+                owner_user_id TEXT NOT NULL,
+                guild_id TEXT NOT NULL,
+                channel_id TEXT NOT NULL,
+                task TEXT NOT NULL,
+                status TEXT NOT NULL,
+                provider TEXT,
+                confirmation_message_id TEXT UNIQUE,
+                harness_session_id TEXT UNIQUE REFERENCES harness_sessions(id),
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            );
+            CREATE INDEX IF NOT EXISTS idx_dispatches_status
+                ON dispatches(status, created_at);
             """
         )
 
@@ -377,6 +417,23 @@ class StateStore:
             result_path=_optional_path(row["result_path"]),
             input_path=_optional_path(row["input_path"]),
             error_summary=row["error_summary"],
+            created_at=row["created_at"],
+            updated_at=row["updated_at"],
+        )
+
+    @staticmethod
+    def _dispatch_from_row(row: sqlite3.Row) -> Dispatch:
+        provider = row["provider"]
+        return Dispatch(
+            id=row["id"],
+            owner_user_id=row["owner_user_id"],
+            guild_id=row["guild_id"],
+            channel_id=row["channel_id"],
+            task=row["task"],
+            status=DispatchStatus(row["status"]),
+            provider=Provider(provider) if provider else None,
+            confirmation_message_id=row["confirmation_message_id"],
+            harness_session_id=row["harness_session_id"],
             created_at=row["created_at"],
             updated_at=row["updated_at"],
         )
@@ -578,6 +635,229 @@ class StateStore:
                 (str(discord_thread_id),),
             ).fetchone()
         return self._session_from_row(row) if row else None
+
+    def create_dispatch(
+        self,
+        *,
+        owner_user_id: str,
+        guild_id: str,
+        channel_id: str,
+        task: str,
+    ) -> Dispatch:
+        """Persist a proposed dispatch before any worktree or provider starts."""
+
+        task = str(task).strip()
+        identifiers = {
+            "owner user id": str(owner_user_id).strip(),
+            "guild id": str(guild_id).strip(),
+            "channel id": str(channel_id).strip(),
+        }
+        if not task:
+            raise StateError("dispatch task is required")
+        if len(task) > 2000:
+            raise StateError("dispatch task exceeds the 2000-character command limit")
+        if any(not value for value in identifiers.values()):
+            raise StateError("dispatch owner, guild, and channel ids are required")
+        with self._transaction(immediate=True) as conn:
+            for _ in range(4):
+                dispatch_id = f"D-{secrets.token_hex(8)}"
+                now = _utc_now()
+                try:
+                    conn.execute(
+                        """
+                        INSERT INTO dispatches
+                        (id, owner_user_id, guild_id, channel_id, task, status, created_at, updated_at)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                        """,
+                        (
+                            dispatch_id,
+                            identifiers["owner user id"],
+                            identifiers["guild id"],
+                            identifiers["channel id"],
+                            task,
+                            DispatchStatus.PENDING.value,
+                            now,
+                            now,
+                        ),
+                    )
+                    row = conn.execute("SELECT * FROM dispatches WHERE id = ?", (dispatch_id,)).fetchone()
+                    assert row is not None
+                    return self._dispatch_from_row(row)
+                except sqlite3.IntegrityError:
+                    continue
+        raise StateError("could not allocate a unique dispatch id")
+
+    def get_dispatch(self, dispatch_id: str) -> Dispatch:
+        with self._lock:
+            row = self._connection.execute(
+                "SELECT * FROM dispatches WHERE id = ?", (str(dispatch_id),)
+            ).fetchone()
+        if row is None:
+            raise NotFoundError("dispatch not found")
+        return self._dispatch_from_row(row)
+
+    def list_open_dispatches(self) -> list[Dispatch]:
+        with self._lock:
+            rows = self._connection.execute(
+                """
+                SELECT * FROM dispatches
+                WHERE status IN (?, ?) AND confirmation_message_id IS NOT NULL
+                ORDER BY created_at
+                """,
+                (DispatchStatus.PENDING.value, DispatchStatus.CLAIMED.value),
+            ).fetchall()
+        return [self._dispatch_from_row(row) for row in rows]
+
+    def set_dispatch_confirmation_message(self, dispatch_id: str, message_id: str) -> Dispatch:
+        message_id = str(message_id).strip()
+        if not message_id:
+            raise StateError("dispatch confirmation message id is required")
+        with self._transaction(immediate=True) as conn:
+            row = conn.execute("SELECT * FROM dispatches WHERE id = ?", (dispatch_id,)).fetchone()
+            if row is None:
+                raise NotFoundError("dispatch not found")
+            try:
+                conn.execute(
+                    """
+                    UPDATE dispatches
+                    SET confirmation_message_id = ?, updated_at = ?
+                    WHERE id = ?
+                    """,
+                    (message_id, _utc_now(), dispatch_id),
+                )
+            except sqlite3.IntegrityError as exc:
+                raise StateError("confirmation message already belongs to a dispatch") from exc
+            result = conn.execute("SELECT * FROM dispatches WHERE id = ?", (dispatch_id,)).fetchone()
+        assert result is not None
+        return self._dispatch_from_row(result)
+
+    def update_dispatch_task(self, dispatch_id: str, task: str) -> Dispatch:
+        task = str(task).strip()
+        if not task:
+            raise StateError("dispatch task is required")
+        if len(task) > 2000:
+            raise StateError("dispatch task exceeds the 2000-character command limit")
+        with self._transaction(immediate=True) as conn:
+            row = conn.execute("SELECT * FROM dispatches WHERE id = ?", (dispatch_id,)).fetchone()
+            if row is None:
+                raise NotFoundError("dispatch not found")
+            if DispatchStatus(row["status"]) is not DispatchStatus.PENDING:
+                raise StateError("a dispatched task can no longer be edited")
+            conn.execute(
+                "UPDATE dispatches SET task = ?, updated_at = ? WHERE id = ?",
+                (task, _utc_now(), dispatch_id),
+            )
+            result = conn.execute("SELECT * FROM dispatches WHERE id = ?", (dispatch_id,)).fetchone()
+        assert result is not None
+        return self._dispatch_from_row(result)
+
+    def claim_dispatch(self, dispatch_id: str, provider: Provider) -> tuple[Dispatch, bool]:
+        """Reserve a pending dispatch so only the first provider choice starts it."""
+
+        with self._transaction(immediate=True) as conn:
+            row = conn.execute("SELECT * FROM dispatches WHERE id = ?", (dispatch_id,)).fetchone()
+            if row is None:
+                raise NotFoundError("dispatch not found")
+            status = DispatchStatus(row["status"])
+            if status is not DispatchStatus.PENDING:
+                return self._dispatch_from_row(row), False
+            conn.execute(
+                """
+                UPDATE dispatches
+                SET status = ?, provider = ?, updated_at = ?
+                WHERE id = ? AND status = ?
+                """,
+                (
+                    DispatchStatus.CLAIMED.value,
+                    provider.value,
+                    _utc_now(),
+                    dispatch_id,
+                    DispatchStatus.PENDING.value,
+                ),
+            )
+            result = conn.execute("SELECT * FROM dispatches WHERE id = ?", (dispatch_id,)).fetchone()
+        assert result is not None
+        return self._dispatch_from_row(result), True
+
+    def complete_dispatch(self, dispatch_id: str, harness_session_id: str) -> Dispatch:
+        with self._transaction(immediate=True) as conn:
+            row = conn.execute("SELECT * FROM dispatches WHERE id = ?", (dispatch_id,)).fetchone()
+            if row is None:
+                raise NotFoundError("dispatch not found")
+            status = DispatchStatus(row["status"])
+            if status is DispatchStatus.STARTED:
+                if row["harness_session_id"] != harness_session_id:
+                    raise StateError("dispatch already belongs to another harness session")
+                return self._dispatch_from_row(row)
+            if status is not DispatchStatus.CLAIMED:
+                raise StateError("dispatch must be claimed before it can start")
+            self._require_session(conn, harness_session_id)
+            conn.execute(
+                """
+                UPDATE dispatches
+                SET status = ?, harness_session_id = ?, updated_at = ?
+                WHERE id = ?
+                """,
+                (DispatchStatus.STARTED.value, harness_session_id, _utc_now(), dispatch_id),
+            )
+            result = conn.execute("SELECT * FROM dispatches WHERE id = ?", (dispatch_id,)).fetchone()
+        assert result is not None
+        return self._dispatch_from_row(result)
+
+    def release_dispatch(self, dispatch_id: str, provider: Provider) -> Dispatch:
+        """Return a failed in-process start to the confirmation card for retry."""
+
+        with self._transaction(immediate=True) as conn:
+            row = conn.execute("SELECT * FROM dispatches WHERE id = ?", (dispatch_id,)).fetchone()
+            if row is None:
+                raise NotFoundError("dispatch not found")
+            if (
+                DispatchStatus(row["status"]) is DispatchStatus.CLAIMED
+                and row["provider"] == provider.value
+                and row["harness_session_id"] is None
+            ):
+                conn.execute(
+                    """
+                    UPDATE dispatches
+                    SET status = ?, provider = NULL, updated_at = ?
+                    WHERE id = ?
+                    """,
+                    (DispatchStatus.PENDING.value, _utc_now(), dispatch_id),
+                )
+            result = conn.execute("SELECT * FROM dispatches WHERE id = ?", (dispatch_id,)).fetchone()
+        assert result is not None
+        return self._dispatch_from_row(result)
+
+    def reconcile_dispatch_claims(self) -> None:
+        """Recover a process crash between claiming a card and recording its session."""
+
+        with self._transaction(immediate=True) as conn:
+            rows = conn.execute(
+                "SELECT * FROM dispatches WHERE status = ?", (DispatchStatus.CLAIMED.value,)
+            ).fetchall()
+            for row in rows:
+                session = conn.execute(
+                    "SELECT id FROM harness_sessions WHERE source_message_id = ?",
+                    (f"dispatch:{row['id']}",),
+                ).fetchone()
+                if session is None:
+                    conn.execute(
+                        """
+                        UPDATE dispatches
+                        SET status = ?, provider = NULL, updated_at = ?
+                        WHERE id = ?
+                        """,
+                        (DispatchStatus.PENDING.value, _utc_now(), row["id"]),
+                    )
+                else:
+                    conn.execute(
+                        """
+                        UPDATE dispatches
+                        SET status = ?, harness_session_id = ?, updated_at = ?
+                        WHERE id = ?
+                        """,
+                        (DispatchStatus.STARTED.value, session["id"], _utc_now(), row["id"]),
+                    )
 
     def set_discord_thread(self, session_id: str, discord_thread_id: str) -> HarnessSession:
         with self._transaction(immediate=True) as conn:

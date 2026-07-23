@@ -58,6 +58,27 @@ class Provider(str, Enum):
     CLAUDE = "claude"
 
 
+class DispatchStatus(str, Enum):
+    PENDING = "pending"
+    CLAIMED = "claimed"
+    STARTED = "started"
+
+
+@dataclass(frozen=True)
+class Dispatch:
+    id: str
+    owner_user_id: str
+    guild_id: str
+    channel_id: str
+    task: str
+    status: DispatchStatus
+    provider: Provider | None
+    confirmation_message_id: str | None
+    harness_session_id: str | None
+    created_at: str
+    updated_at: str
+
+
 @dataclass(frozen=True)
 class HarnessSession:
     id: str

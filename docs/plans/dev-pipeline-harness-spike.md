@@ -20,7 +20,7 @@
 ### 2.1 v1 要交付
 
 - 一个 codex-bot Discord Application，且只接受配置的 owner、guild、父频道和本 bot 创建的 Thread。
-- 从 Discord Message Command 建立 S-#### Harness session、独立 Git worktree 和原生 public Thread。
+- owner 用唯一 `/dispatch task:<任务>` 发起确认卡；点击 provider 按钮后才建立 S-#### Harness session、独立 Git worktree 和原生 public Thread。
 - Codex / Claude 的 JSON 流、持久 session ID、单并发队列、停止、服务重启后的恢复。
 - 真实置顶并可编辑的状态卡、脱敏输出、owner 的普通 Thread 文本续问。
 - PLAN/TASK/review、受控 Hermes 弱模型执行、Draft PR、CI/preview/!accept 门禁。
@@ -103,6 +103,7 @@ Codex wrapper 的目的仅是固定 launcher/Node，而不是复制 auth.json。
 | queue | turn_id、ordinal、queued_at、claimed_at、cancelled_at | 一个 turn 最多一个未取消 queue 行；全局只允许一个 claimed 且 running。 |
 | event_cursors | turn_id、raw_byte_offset、last_event_seq、discord_message_id | 消费可重放；bot 重启不能重复发完整日志。 |
 | pipeline_runs | harness_session_id、plan_path、plan_hash、base_sha、head_sha、review_round、pr_number、ci_state、preview_url、accepted_by、accepted_head_sha | 仅记录机器门禁；PLAN/TASK/REVIEW 正文仍在仓库。 |
+| dispatches | owner/guild/channel、task、confirmation_message_id、provider、harness_session_id、status | `/dispatch` 的 pending/claimed/started 状态；provider 选择前没有 session/worktree，重启后确认卡可恢复。 |
 
 模型字段语义固定如下：
 
@@ -223,18 +224,14 @@ Claude 换模型会重新读取完整历史且失去 cache 命中，调度器应
 
 ### 9.1 必需外部配置
 
-owner 在 Discord Developer Portal 创建/授权 codex-bot，启用 Message Content intent，并注册 guild-scoped Message Commands：
-
-~~~text
-在 Codex 中继续
-在 Claude 中继续
-~~~
+owner 在 Discord Developer Portal 创建/授权 codex-bot，启用 Message Content intent，并只注册一个 guild-scoped Slash Command：`/dispatch task:<任务>`。
 
 bot 在 luxraykit-dev 的最小权限为 View Channel、Send Messages、Read Message History、Create Public Threads、Send Messages in Threads、Manage Threads、Pin Messages、Attach Files。Token 仅进入私有 env。
 
 ### 9.2 用户交互
 
-- Message Command 从被选原消息创建 public Thread；数据库 unique source_message_id 处理重复和竞态。
+- `/dispatch` 先持久化并在父频道原样复述 owner task，显示“在 Codex 中继续”“在 Claude 中继续”“修改任务…”三个原生组件；前两个按钮选择 provider 后才从确认卡创建 public Thread。数据库 dispatch claim 与 source_message_id 双重处理重复和竞态。
+- “修改任务…”打开多行 Discord Modal，提交后更新同一张确认卡；pending dispatch 的 task 和 message ID 进入 0600 SQLite，bot 重启后持续注册 persistent View。
 - Thread 命名 S-0042 · Codex · <short-model>；bot 发并实际 pin 一张状态卡。
 - owner 在自己的 Harness Thread 发送非控制文本即入队 resume；非 owner、错误 guild/channel、bot author、父频道普通文本都忽略。
 - 控制命令仅接受 owner：!status、!model、!effort、!provider、!stop、!approve、!accept、!reject、!resume。参数必须结构化解析，不把 Discord 文本插入 shell。
@@ -256,7 +253,7 @@ Harness 不替代现有工程规则：
 
 - 启动时从私有环境读取已知 secret 值，建立 redact set；同时应用常见 token/key/url 正则。
 - 原始文件、SQLite、context pack 默认 0600；不得记录 Discord token、provider auth、Git credential、API key 或完整 Hermes env。
-- Discord 输出只含已脱敏的 message/tool summary/exit code；模型 hidden reasoning 一律丢弃。
+- `/dispatch` 确认卡按 owner 选择原样复述 task；其余 Discord 输出只含已脱敏的 message/tool summary/exit code，模型 hidden reasoning 一律丢弃。
 - 每个外部动作写 actor、时间、session/turn、输入消息 ID、unit 名和不可逆动作的前置检查结果。
 - 弱模型同一 TASK 最多两次 review 打回；默认第三次转 needs_owner。只有 owner 明确配置后，强模型才可在原白名单和 DoD 内直修，范围外操作必须重新批准。
 
