@@ -1,6 +1,6 @@
 # Dev Pipeline Harness 落地规格（v1.0 · 2026-07-23）
 
-> 状态：**实现已落地；仍待 owner 完成 Discord 客户端验收与 DPH-07 dogfood。** 本文取代 2026-07-22 的 spike 结论，作为 TASK-DPH-00 至 TASK-DPH-07 的唯一技术契约。流程级规则见 [dev-pipeline-workflow.md](dev-pipeline-workflow.md)。
+> 状态：**实现已落地；VPS r7 已注册唯一 `/dispatch task`；仍待 owner 完成 Discord 客户端验收与 DPH-07 dogfood。** 本文取代 2026-07-22 的 spike 结论，作为 TASK-DPH-00 至 TASK-DPH-07 的唯一技术契约。流程级规则见 [dev-pipeline-workflow.md](dev-pipeline-workflow.md)。
 
 ## 1. 结论与已验证前提
 

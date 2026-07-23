@@ -132,12 +132,12 @@ DPH-07 前把 Harness 当作正式合并通道。
 
 ### 当前落地状态（2026-07-23）
 
-- DPH-00 的 Discord API、guild commands、频道权限和 VPS 私有 env 已验证；`/dispatch` 的桌面/手机客户端验收在本次入口替换部署后由 owner 完成。
+- DPH-00 的 Discord API、guild commands、频道权限和 VPS 私有 env 已验证；VPS r7 已实际注册唯一 `/dispatch task`（必填、1–2000 字符），其桌面/手机客户端验收由 owner 完成。
 - DPH-01、DPH-02、DPH-05 的实现和自动化/fake/mock 验收已完成；本地与 VPS Harness 测试均通过。
 - DPH-03 的 disposable repo 真实 smoke 已完成：Codex 双模型 start/resume、Claude start/resume 与 effort 切换、以及 Codex → Claude 的 context pack/provider switch 均通过。VPS 的 Claude.ai Pro 登录态已复核；`opus` / `claude-opus-4-8` 均可用，Harness 默认且唯一 allowlist 模型为 `claude-opus-4-8`。
 - DPH-04 已接通 Thread、状态卡、置顶、owner gate 和脱敏输出；真实 Discord Thread/UI 操作留待 owner。
 - DPH-06 已部署到 VPS r4；doctor、user service、Gateway 与 fake-turn 恢复演练均通过。active transient unit 在 service 冷启动后保持单实例，停止后由 reconcile 标为 `interrupted`。
-- 本轮证据：VPS source 测试为 40/40，源码 `compileall` 与 Git whitespace 检查通过；VPS doctor 通过且 user service 保持 active。真实 provider smoke 已完成；尚未启动 Discord 客户端验收或 DPH-07 dogfood。
+- 本轮证据：VPS source 测试为 42/42，源码 `compileall` 与 Git whitespace 检查通过；VPS doctor 通过且 user service 保持 active。r7 的 Discord API 实测仅含 `/dispatch task`（必填、1–2000 字符）；真实 provider smoke 已完成；尚未启动 Discord 客户端验收或 DPH-07 dogfood。
 
 ## 7. 尚需 owner 决定的事项
 

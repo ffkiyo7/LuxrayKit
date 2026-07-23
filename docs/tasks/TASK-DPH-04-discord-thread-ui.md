@@ -1,6 +1,6 @@
 # TASK-DPH-04：Discord Thread UI 与 owner 命令
 
-状态：**实现与 fake 验收完成；真实 Thread/UI 验收待 owner 操作**
+状态：**`/dispatch` 确认卡/Modal 实现与 Linux 回归（42/42）已完成，VPS r7 已注册命令；真实 Thread/UI 验收待 owner 操作**
 依赖：TASK-DPH-00、TASK-DPH-01、TASK-DPH-02、TASK-DPH-03
 后续：TASK-DPH-05、TASK-DPH-06
 

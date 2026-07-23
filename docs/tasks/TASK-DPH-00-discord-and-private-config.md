@@ -1,6 +1,6 @@
 # TASK-DPH-00：Discord App 与私有配置前置
 
-状态：**外部配置已完成；客户端 Apps 可见性仍需 owner 目视确认**
+状态：**外部配置已完成；VPS r7 已注册唯一 `/dispatch task`；桌面/手机客户端交互仍需 owner 目视确认**
 依赖：无
 后续：TASK-DPH-01 至 TASK-DPH-07
 
