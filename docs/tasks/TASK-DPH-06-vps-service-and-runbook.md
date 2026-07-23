@@ -1,6 +1,6 @@
 # TASK-DPH-06：VPS 服务化、doctor 与运维 runbook
 
-状态：**已部署；doctor、user service、Gateway 连接和基础重启已验证，fake-turn 恢复演练留待 smoke/dogfood**
+状态：**已完成：r4 user service、doctor、Gateway、真实 provider smoke 与 fake-turn 恢复演练均已验证。active transient unit 在 service 冷启动后保持单实例；停止后由 reconcile 标为 `interrupted`。**
 依赖：TASK-DPH-00 至 TASK-DPH-05
 后续：TASK-DPH-07
 

@@ -1,6 +1,6 @@
 # Dev Pipeline Harness 落地规格（v1.0 · 2026-07-23）
 
-> 状态：**可实施。** 本文取代 2026-07-22 的 spike 结论，作为 TASK-DPH-00 至 TASK-DPH-07 的唯一技术契约。流程级规则见 [dev-pipeline-workflow.md](dev-pipeline-workflow.md)。
+> 状态：**实现已落地；仍待 owner 完成 Discord 客户端验收与 DPH-07 dogfood。** 本文取代 2026-07-22 的 spike 结论，作为 TASK-DPH-00 至 TASK-DPH-07 的唯一技术契约。流程级规则见 [dev-pipeline-workflow.md](dev-pipeline-workflow.md)。
 
 ## 1. 结论与已验证前提
 
@@ -79,8 +79,8 @@ MAX_CONCURRENT_RUNS=1
 
 CODEX_DEFAULT_MODEL=gpt-5.6-terra
 CODEX_ALLOWED_MODELS=gpt-5.6-terra,gpt-5.6-sol,gpt-5.6-luna
-CLAUDE_DEFAULT_MODEL=opus-4.8
-CLAUDE_ALLOWED_MODELS=opus-4.8
+CLAUDE_DEFAULT_MODEL=claude-sonnet-5
+CLAUDE_ALLOWED_MODELS=claude-sonnet-5
 CODEX_DEFAULT_REASONING_EFFORT=medium
 CODEX_ALLOWED_REASONING_EFFORTS=none,minimal,low,medium,high,xhigh
 CLAUDE_DEFAULT_REASONING_EFFORT=medium
