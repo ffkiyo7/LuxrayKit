@@ -28,10 +28,10 @@ tools/dev-pipeline-harness/tests/**
 2. 确认卡原样显示 owner 输入的 task；“修改任务”以 Discord Modal 提供多行 Text Input，提交后更新同一张卡。待确认任务及其 confirmation message ID 必须可迁移地持久化，bot 重启后按钮仍可处理。
 3. 同一待确认任务的并发按钮 interaction 只能创建一个 session/worktree；之后的点击返回既有 Thread/session，不创建第二条队列或工作树。
 4. 仅接受配置的 guild、父频道、owner user ID 和由 Harness 记录的 Thread。拒绝其他用户、私信和其他频道的 Slash/Button/Modal interaction；忽略所有 bot author 和普通父频道消息。
-5. `/dispatch` 选择 provider 后，新 Thread 立即发送并置顶配置卡；Codex 选择 allowlisted 模型和推理强度，Claude 固定 `claude-opus-4-8`、只选择强度。owner 点击“固定配置并开始”前不创建或入队 source turn；固定动作必须幂等且在服务重启后保持可交互。
+5. `/dispatch` 选择 provider 后，新 Thread 立即发送并置顶配置卡；Codex 选择 allowlisted 模型和推理强度，Claude 固定 `claude-opus-4-8`、只选择强度。下拉点选只刷新同一张卡，不产生 Thread 消息；owner 点击“固定配置并开始”前不创建或入队 source turn，固定后只发送一条包含 provider/model/effort 的确认。固定动作必须幂等且在服务重启后保持可交互。
 6. 固定后的 session 不接受 !model、!effort 或 !provider；Thread 内非控制文本才创建 provider resume turn。控制命令保留 !status、!stop、!approve、!reject、!resume、!accept。归档 Thread 的合法输入先尝试 unarchive，失败时给出父频道 !resume S-#### fallback。
 7. 状态卡展示 S-id、provider、requested/configured/reported model、branch、queue position、turn、状态、最后安全错误摘要和下一步。更新以 2 至 5 秒节流合并；绝不把每个 token 变为新消息。
-8. `/dispatch` 确认卡可原样复述 owner task；其余发往 Discord 的 assistant/message/tool summary/exit code 仍须脱敏。隐藏 reasoning、raw JSONL、完整 stdout/stderr 一律不发送。大日志以已脱敏附件处理，并遵守 Discord 文件大小限制。
+8. `/dispatch` 确认卡可原样复述 owner task；其余发往 Discord 的 assistant/message/tool summary/exit code 仍须脱敏。隐藏 reasoning、raw JSONL、完整 stdout/stderr 一律不发送；`turn_finished` 仅更新状态卡，不额外发送“provider turn 已完成”。大日志以已脱敏附件处理，并遵守 Discord 文件大小限制。
 
 ## 必测场景
 

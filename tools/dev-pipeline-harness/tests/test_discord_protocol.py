@@ -5,6 +5,7 @@ import unittest
 from pathlib import Path
 from types import SimpleNamespace
 
+from dev_pipeline_harness.adapters.base import AdapterEvent
 from dev_pipeline_harness.commands import CommandParseError, parse_control
 from dev_pipeline_harness.config import Config
 from dev_pipeline_harness.discord_bot import bot as discord_bot
@@ -52,6 +53,11 @@ class CommandTests(unittest.TestCase):
             discord_bot.DiscordHarnessBot.dispatch,
             discord_bot.DiscordHarnessBot.dispatch_command,
         )
+
+    @unittest.skipIf(discord_bot.commands is None, "discord.py is not installed")
+    def test_completed_turn_event_is_not_posted_as_thread_copy(self):
+        event = AdapterEvent(kind="turn_finished", provider=Provider.CODEX, raw_type="result")
+        self.assertIsNone(discord_bot.DiscordHarnessBot._visible_event_text(event))
 
 
 class DiscordServiceTests(unittest.TestCase):

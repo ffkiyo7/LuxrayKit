@@ -693,8 +693,6 @@ if commands is not None:
                 return f"工具开始：{event.tool_name or 'tool'}"
             if event.kind == "tool_finished":
                 return f"工具完成：{event.tool_name or 'tool'}"
-            if event.kind == "turn_finished":
-                return "provider turn 已完成。"
             if event.kind == "turn_failed":
                 return f"provider turn 失败：{event.text or event.summary or '安全摘要不可用'}"
             return None
@@ -802,16 +800,14 @@ if commands is not None:
             try:
                 if not self._session_interaction_allowed(interaction, session_id):
                     raise StateError("此操作仅限配置的 owner 和目标 Harness Thread")
-                updated = await asyncio.to_thread(
+                await asyncio.to_thread(
                     self.service.choose_initial_model, session_id=session_id, model=model
                 )
-                await interaction.response.defer(ephemeral=True)
                 if interaction.message is None:
                     raise StateError("session configuration card is unavailable")
-                await self._refresh_configuration_card(interaction.message, session_id)
-                await interaction.followup.send(
-                    f"已暂选 `{updated.default_model}`；点击“固定配置并开始”后才会执行任务。",
-                    ephemeral=True,
+                card = await asyncio.to_thread(self.service.status_card, session_id)
+                await interaction.response.edit_message(
+                    embed=self._embed(card), view=self._configuration_view(session_id)
                 )
             except StateError as exc:
                 if interaction.response.is_done():
@@ -825,16 +821,14 @@ if commands is not None:
             try:
                 if not self._session_interaction_allowed(interaction, session_id):
                     raise StateError("此操作仅限配置的 owner 和目标 Harness Thread")
-                updated = await asyncio.to_thread(
+                await asyncio.to_thread(
                     self.service.choose_initial_effort, session_id=session_id, effort=effort
                 )
-                await interaction.response.defer(ephemeral=True)
                 if interaction.message is None:
                     raise StateError("session configuration card is unavailable")
-                await self._refresh_configuration_card(interaction.message, session_id)
-                await interaction.followup.send(
-                    f"已暂选推理强度 `{updated.default_effort}`；点击“固定配置并开始”后才会执行任务。",
-                    ephemeral=True,
+                card = await asyncio.to_thread(self.service.status_card, session_id)
+                await interaction.response.edit_message(
+                    embed=self._embed(card), view=self._configuration_view(session_id)
                 )
             except StateError as exc:
                 if interaction.response.is_done():
@@ -862,9 +856,15 @@ if commands is not None:
                     except (discord.Forbidden, discord.HTTPException):
                         pass
                 if created:
-                    text = f"配置已固定；初始任务 `{turn.id}` 已入队。"
+                    text = (
+                        f"配置已固定：{provider.provider.value.title()} · `{provider.default_model}` · "
+                        f"推理强度 `{provider.default_effort}`。初始任务 `{turn.id}` 已入队。"
+                    )
                 else:
-                    text = f"配置已固定；初始任务 `{turn.id}` 已存在。"
+                    text = (
+                        f"配置已固定：{provider.provider.value.title()} · `{provider.default_model}` · "
+                        f"推理强度 `{provider.default_effort}`。初始任务 `{turn.id}` 已存在。"
+                    )
                 await interaction.followup.send(text, ephemeral=True)
             except StateError as exc:
                 if interaction.response.is_done():
