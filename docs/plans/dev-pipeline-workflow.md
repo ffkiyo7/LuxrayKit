@@ -135,7 +135,7 @@ DPH-07 前把 Harness 当作正式合并通道。
 
 - DPH-00 的 Discord API、guild commands、频道权限和 VPS 私有 env 已验证；客户端 Apps 菜单仍由 owner 在桌面/手机目视确认。
 - DPH-01、DPH-02、DPH-05 的实现和自动化/fake/mock 验收已完成；本地与 VPS Harness 测试均通过。
-- DPH-03 的 disposable repo 真实 smoke 已完成：Codex 双模型 start/resume、Claude start/resume 与 effort 切换、以及 Codex → Claude 的 context pack/provider switch 均通过。Claude 当前可用且唯一 allowlist 模型为 `claude-sonnet-5`，不伪造第二个 Claude 模型的换模结果。
+- DPH-03 的 disposable repo 真实 smoke 已完成：Codex 双模型 start/resume、Claude start/resume 与 effort 切换、以及 Codex → Claude 的 context pack/provider switch 均通过。VPS 的 Claude.ai Pro 登录态已复核；`opus` / `claude-opus-4-8` 均可用，Harness 默认且唯一 allowlist 模型为 `claude-opus-4-8`。
 - DPH-04 已接通 Thread、状态卡、置顶、owner gate 和脱敏输出；真实 Discord Thread/UI 操作留待 owner。
 - DPH-06 已部署到 VPS r4；doctor、user service、Gateway 与 fake-turn 恢复演练均通过。active transient unit 在 service 冷启动后保持单实例，停止后由 reconcile 标为 `interrupted`。
 - 本轮证据：VPS source 测试为 40/40，源码 `compileall` 与 Git whitespace 检查通过；VPS doctor 通过且 user service 保持 active。真实 provider smoke 已完成；尚未启动 Discord 客户端验收或 DPH-07 dogfood。

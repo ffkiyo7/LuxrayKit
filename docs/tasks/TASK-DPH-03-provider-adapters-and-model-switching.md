@@ -1,6 +1,6 @@
 # TASK-DPH-03：Codex/Claude adapter 与模型切换
 
-状态：**已完成：disposable repo 中的真实 Codex 双模型 start/resume、Claude start/resume/effort 切换，以及 Codex → Claude context-pack 切换均已通过。Claude 当前仅允许 `claude-sonnet-5`，因此未伪造第二个 Claude 模型的切换结果。**
+状态：**已完成：disposable repo 中的真实 Codex 双模型 start/resume、Claude start/resume/effort 切换，以及 Codex → Claude context-pack 切换均已通过。VPS 上的 Claude.ai Pro 登录态已复核；`opus` / `claude-opus-4-8` 均可调用。Harness 默认且唯一允许模型为 `claude-opus-4-8`。**
 依赖：TASK-DPH-02
 后续：TASK-DPH-04、TASK-DPH-06
 
