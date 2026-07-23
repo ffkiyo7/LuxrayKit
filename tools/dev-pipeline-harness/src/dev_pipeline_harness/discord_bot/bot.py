@@ -620,7 +620,9 @@ if commands is not None:
             embed.set_footer(text=footer)
             return embed
 
-        async def dispatch_command(self, interaction: discord.Interaction, task: str) -> None:
+        async def dispatch_command(
+            self, interaction: discord.Interaction, task: app_commands.Range[str, 1, 2000]
+        ) -> None:
             if not self._dispatch_interaction_allowed(interaction):
                 await interaction.response.send_message("此操作仅限配置的 owner 和目标频道。", ephemeral=True)
                 return
