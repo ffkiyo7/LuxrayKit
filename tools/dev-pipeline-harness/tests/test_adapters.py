@@ -134,6 +134,7 @@ class SessionControllerTests(unittest.TestCase):
             harness_session_id=session.id,
             provider=Provider.CODEX,
             default_model="a",
+            configuration_locked=False,
         )
         self.controller = ProviderSessionController(
             state=self.state,

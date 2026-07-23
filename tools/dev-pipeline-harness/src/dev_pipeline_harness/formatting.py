@@ -26,6 +26,7 @@ def build_status_card(
 ) -> StatusCard:
     redactor = redactor or Redactor()
     provider_name = provider.provider.value if provider else "not-started"
+    configuration = "locked" if provider and provider.configuration_locked else "awaiting selection"
     requested = turn.requested_model if turn else "-"
     configured = turn.configured_model if turn else (provider.default_model if provider else "-")
     requested_effort = turn.requested_effort if turn else "-"
@@ -44,11 +45,14 @@ def build_status_card(
         "failed": "检查安全错误摘要后使用 !resume 或修正配置。",
         "interrupted": "确认 worktree 后使用 !resume。",
     }.get(state, "按状态卡和 owner 门禁继续。")
+    if provider and not provider.configuration_locked and turn is None:
+        next_step = "请使用此置顶卡选择并固定配置；固定前不会创建或运行模型 turn。"
     return StatusCard(
         title=f"{session.id} · {provider_name}",
         description=redactor.redact(next_step)[:1000],
         fields=(
             ("provider", provider_name),
+            ("configuration", configuration),
             ("requested model", redactor.redact(requested)),
             ("configured model", redactor.redact(configured)),
             ("requested effort", redactor.redact(requested_effort)),

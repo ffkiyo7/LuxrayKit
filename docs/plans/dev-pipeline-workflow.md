@@ -89,10 +89,11 @@ stdout pipe。runner 将事件和最终结果写入私有文件，并以短 SQLi
 - Claude 可用 /model；Harness 使用 claude -p --resume 加 --model。当前 VPS Claude Code 2.1.216
   已确认这两个参数，且 Claude 文档说明 --model 会覆盖恢复时的模型选择。
 - 两个 provider 的 reasoning effort 也必须显式 snapshot：Codex 通过
-  `model_reasoning_effort` 配置覆盖，Claude 通过 `--effort`；owner 使用 `!effort <level>`
-  在 session 空闲时修改下一条 turn 的默认值。各 provider 只开放其 CLI 支持的全部强度。
-- 仅允许配置 allowlist 中的模型。改变模型只在 session 空闲时生效，已排队 turn 固定其 enqueue 时的
-  model snapshot；无效模型不得覆盖默认值或损坏 session。
+  `model_reasoning_effort` 配置覆盖，Claude 通过 `--effort`。`/dispatch` 建立的 Thread
+  由一次性配置卡在初始 turn 入队前选择并固定：Codex 同时选择 allowlisted model，Claude
+  固定 `claude-opus-4-8`、仅选择 effort；各 provider 只开放其 CLI 支持的全部强度。
+- 固定配置后，已排队和后续 turn 都使用该 session 的 model/effort snapshot；文本 `!model`、
+  `!effort` 和 `!provider` 不得修改它。无效选择不得固定默认值或损坏 session。
 - 数据库存 requested_model、configured_model、reported_model。reported_model 只有在 provider 明确事件
   报告时才填写，状态卡不能把“请求值”伪称为实际值。
 - 每个 Claude session 必须从原 project/worktree 启动 resume；所有 provider subprocess 均使用

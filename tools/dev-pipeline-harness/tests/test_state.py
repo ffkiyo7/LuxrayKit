@@ -39,12 +39,13 @@ class StateStoreTests(unittest.TestCase):
             branch=f"pipeline/S-{int(source):04d}",
         )
 
-    def _provider(self, source="100", provider=Provider.CODEX):
+    def _provider(self, source="100", provider=Provider.CODEX, *, configuration_locked=True):
         session = self._session(source)
         return self.store.create_provider_session(
             harness_session_id=session.id,
             provider=provider,
             default_model="model-a",
+            configuration_locked=configuration_locked,
         )
 
     def test_migration_is_idempotent_and_private(self):
@@ -170,7 +171,7 @@ class StateStoreTests(unittest.TestCase):
             self.store.enqueue_turn(turn.id)
 
     def test_model_audit_fields_are_distinct(self):
-        provider = self._provider()
+        provider = self._provider(configuration_locked=False)
         turn = self.store.create_turn(
             provider_session_id=provider.id,
             owner_message_id="owner-1",

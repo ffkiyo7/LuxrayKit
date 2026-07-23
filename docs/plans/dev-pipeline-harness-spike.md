@@ -207,7 +207,7 @@ adapter 在第一个 thread.started 事件出现时立即持久化 provider_sess
 
 ### 8.3 同 provider 换模型与跨 provider
 
-Harness 是一轮一进程的非交互模型，不向活动 CLI stdin 注入 /model。owner 的 !model <allowlisted-name> 和 !effort <level> 只能在该 provider session 没有 running turn 时更新默认值；下一条 turn 通过上述 resume 命令并带 model/effort 执行。
+Harness 是一轮一进程的非交互模型，不向活动 CLI stdin 注入 /model。`/dispatch` 选择 provider 后，Harness 在新 Thread 立即发送并置顶一次性配置卡：Codex 可点选 allowlisted model 与 effort，Claude 的 model 固定 `claude-opus-4-8`、仅可点选 effort。owner 点击“固定配置并开始”前不得创建或入队 source turn；该操作以单个 SQLite 事务固定 default model/effort 并创建唯一初始 turn。固定后该 session 不接受 `!model`、`!effort` 或 `!provider` 修改，后续 resume 都使用已审计的固定值。
 
 必须在 disposable Git repo 上完成下列真实最小 smoke：
 
@@ -234,7 +234,7 @@ bot 在 luxraykit-dev 的最小权限为 View Channel、Send Messages、Read Mes
 - “修改任务…”打开多行 Discord Modal，提交后更新同一张确认卡；pending dispatch 的 task 和 message ID 进入 0600 SQLite，bot 重启后持续注册 persistent View。
 - Thread 命名 S-0042 · Codex · <short-model>；bot 发并实际 pin 一张状态卡。
 - owner 在自己的 Harness Thread 发送非控制文本即入队 resume；非 owner、错误 guild/channel、bot author、父频道普通文本都忽略。
-- 控制命令仅接受 owner：!status、!model、!effort、!provider、!stop、!approve、!accept、!reject、!resume。参数必须结构化解析，不把 Discord 文本插入 shell。
+- 控制命令仅接受 owner：!status、!stop、!approve、!accept、!reject、!resume。`!model`、`!effort`、`!provider` 会明确拒绝并指向新 Thread 的一次性配置卡；参数必须结构化解析，不把 Discord 文本插入 shell。
 - 归档的 Thread 收到合法续问时先 unarchive；无法操作时给出父频道 !resume S-#### 的安全 fallback。
 
 状态卡至少显示 provider、requested/configured/reported model、branch、queue position、turn ID、状态、最后错误摘要和可用下一步。2 至 5 秒合并更新，避免 token 级刷屏。大日志只作为经过脱敏的附件；原始 JSONL 不上传。

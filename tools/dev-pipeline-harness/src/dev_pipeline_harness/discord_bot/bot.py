@@ -21,7 +21,12 @@ from ..scheduler import Coordinator
 from ..state import NotFoundError, QueueError, StateError, StateStore
 from ..transcript import read_delta
 from ..worktrees import WorktreeManager
-from ..adapters.sessions import ModelSwitchError, ProviderSessionController
+from ..adapters.sessions import (
+    ModelSwitchError,
+    ProviderSessionController,
+    validate_allowlisted_effort,
+    validate_allowlisted_model,
+)
 from ..github import GhClient, GitHubError
 from ..pipeline.gates import GateError, PipelineController
 
@@ -102,6 +107,7 @@ class DiscordHarnessService:
         source_message_id: str,
         source_content: str,
         provider_name: str,
+        await_configuration: bool = False,
     ) -> SessionStart:
         provider = self._provider(provider_name)
         session, created = self.state.get_or_create_pipeline_session(
@@ -124,6 +130,7 @@ class DiscordHarnessService:
                 provider=provider,
                 default_model=default_model,
                 default_effort=default_effort,
+                configuration_locked=not await_configuration,
             )
             prompt_path = self.layout.session_dir(session.id) / "source-message.md"
             ensure_private_file(prompt_path)
@@ -136,6 +143,8 @@ class DiscordHarnessService:
                 encoding="utf-8",
             )
             prompt_path.chmod(0o600)
+            if await_configuration:
+                return SessionStart(session.id, True, None, None)
             turn = self.state.create_turn(
                 provider_session_id=provider_session.id,
                 owner_message_id=f"source:{source_message_id}",
@@ -203,6 +212,7 @@ class DiscordHarnessService:
                 source_message_id=f"dispatch:{dispatch.id}",
                 source_content=dispatch.task,
                 provider_name=provider.value,
+                await_configuration=True,
             )
             self.state.complete_dispatch(dispatch.id, result.session_id)
             return result
@@ -222,6 +232,8 @@ class DiscordHarnessService:
 
     def enqueue_owner_message(self, *, session_id: str, owner_message_id: str, content: str) -> Turn:
         provider = self._active_provider(session_id)
+        if not provider.configuration_locked:
+            raise StateError("请先在置顶的配置卡中选择并固定模型与推理强度")
         model = provider.default_model
         effort = provider.default_effort
         prompt_path = self.layout.session_dir(session_id) / f"owner-{owner_message_id}.md"
@@ -252,6 +264,49 @@ class DiscordHarnessService:
         self.state.enqueue_turn(turn.id)
         return turn
 
+    def choose_initial_model(self, *, session_id: str, model: str) -> ProviderSession:
+        provider = self._active_provider(session_id)
+        if provider.configuration_locked:
+            raise StateError("本 session 的配置已经固定，不能修改")
+        if provider.provider is not Provider.CODEX:
+            raise StateError("Claude 的模型已固定为 claude-opus-4-8")
+        validated = validate_allowlisted_model(model, self.config.codex_allowed_models)
+        return self.state.set_default_model(provider.id, validated)
+
+    def choose_initial_effort(self, *, session_id: str, effort: str) -> ProviderSession:
+        provider = self._active_provider(session_id)
+        if provider.configuration_locked:
+            raise StateError("本 session 的配置已经固定，不能修改")
+        allowlist = self.config.allowed_efforts(provider.provider.value)
+        validated = validate_allowlisted_effort(effort, allowlist)
+        return self.state.set_default_effort(provider.id, validated)
+
+    def lock_initial_configuration(self, *, session_id: str) -> tuple[ProviderSession, Turn, bool]:
+        provider = self._active_provider(session_id)
+        if provider.provider is Provider.CODEX:
+            model = validate_allowlisted_model(provider.default_model, self.config.codex_allowed_models)
+        else:
+            # The initial Claude choice intentionally exposes effort only.
+            model = self._default_model(Provider.CLAUDE)
+            if model != "claude-opus-4-8":
+                raise StateError("Claude initial model must remain claude-opus-4-8")
+        effort = validate_allowlisted_effort(
+            provider.default_effort,
+            self.config.allowed_efforts(provider.provider.value),
+        )
+        input_path = self.layout.session_dir(session_id) / "source-message.md"
+        if not input_path.is_file():
+            raise StateError("initial dispatch task is unavailable")
+        return self.state.lock_configuration_and_enqueue_initial_turn(
+            provider_session_row_id=provider.id,
+            owner_message_id=f"source:{self.state.get_session(session_id).source_message_id}",
+            requested_model=model,
+            configured_model=model,
+            requested_effort=effort,
+            configured_effort=effort,
+            input_path=input_path,
+        )
+
     def status_card(self, session_id: str) -> StatusCard:
         session = self.state.get_session(session_id)
         providers = self.state.list_provider_sessions(session_id)
@@ -271,6 +326,8 @@ class DiscordHarnessService:
     def handle_control(self, *, session_id: str, command: ControlCommand) -> str:
         if command.name == "status":
             return status_card_text(self.status_card(session_id))
+        if command.name in {"model", "effort", "provider"}:
+            raise StateError("provider、模型和推理强度仅能在新 Thread 的配置卡中一次性固定")
         if command.name == "model":
             provider = self._active_provider(session_id)
             updated = self.provider_controller.change_model(provider.id, command.args[0])
@@ -444,6 +501,103 @@ if commands is not None:
             await self.bot.open_dispatch_editor(interaction, self.dispatch_id)
 
 
+    class SessionModelSelect(discord.ui.Select):
+        def __init__(self, *, session_id: str, provider: ProviderSession, models: tuple[str, ...]):
+            options = [
+                discord.SelectOption(
+                    label=model[:100], value=model, default=model == provider.default_model
+                )
+                for model in models[:25]
+            ]
+            super().__init__(
+                custom_id=f"session-config:{session_id}:model",
+                placeholder="选择 Codex 模型",
+                min_values=1,
+                max_values=1,
+                options=options,
+                row=0,
+            )
+            self.session_id = session_id
+
+        async def callback(self, interaction: discord.Interaction) -> None:
+            assert isinstance(self.view, SessionConfigurationView)
+            await self.view.choose_model(interaction, self.values[0])
+
+
+    class SessionEffortSelect(discord.ui.Select):
+        def __init__(self, *, session_id: str, provider: ProviderSession, efforts: tuple[str, ...], row: int):
+            options = [
+                discord.SelectOption(
+                    label=effort, value=effort, default=effort == provider.default_effort
+                )
+                for effort in efforts[:25]
+            ]
+            super().__init__(
+                custom_id=f"session-config:{session_id}:effort",
+                placeholder="选择推理强度",
+                min_values=1,
+                max_values=1,
+                options=options,
+                row=row,
+            )
+            self.session_id = session_id
+
+        async def callback(self, interaction: discord.Interaction) -> None:
+            assert isinstance(self.view, SessionConfigurationView)
+            await self.view.choose_effort(interaction, self.values[0])
+
+
+    class SessionConfigurationConfirmButton(discord.ui.Button):
+        def __init__(self, *, session_id: str, row: int):
+            super().__init__(
+                label="固定配置并开始",
+                style=discord.ButtonStyle.success,
+                custom_id=f"session-config:{session_id}:confirm",
+                row=row,
+            )
+            self.session_id = session_id
+
+        async def callback(self, interaction: discord.Interaction) -> None:
+            assert isinstance(self.view, SessionConfigurationView)
+            await self.view.lock_configuration(interaction)
+
+
+    class SessionConfigurationView(discord.ui.View):
+        def __init__(self, *, bot: "DiscordHarnessBot", session_id: str, provider: ProviderSession):
+            super().__init__(timeout=None)
+            self.bot = bot
+            self.session_id = session_id
+            if provider.provider is Provider.CODEX:
+                self.add_item(
+                    SessionModelSelect(
+                        session_id=session_id,
+                        provider=provider,
+                        models=bot.service.config.codex_allowed_models,
+                    )
+                )
+                effort_row = 1
+            else:
+                effort_row = 0
+            self.add_item(
+                SessionEffortSelect(
+                    session_id=session_id,
+                    provider=provider,
+                    efforts=bot.service.config.allowed_efforts(provider.provider.value),
+                    row=effort_row,
+                )
+            )
+            self.add_item(SessionConfigurationConfirmButton(session_id=session_id, row=effort_row + 1))
+
+        async def choose_model(self, interaction: discord.Interaction, model: str) -> None:
+            await self.bot.update_initial_model(interaction, self.session_id, model)
+
+        async def choose_effort(self, interaction: discord.Interaction, effort: str) -> None:
+            await self.bot.update_initial_effort(interaction, self.session_id, effort)
+
+        async def lock_configuration(self, interaction: discord.Interaction) -> None:
+            await self.bot.lock_initial_configuration(interaction, self.session_id)
+
+
     class DiscordHarnessBot(commands.Bot):
         def __init__(self, *, service: DiscordHarnessService):
             intents = discord.Intents.none()
@@ -476,6 +630,18 @@ if commands is not None:
                         DispatchConfirmationView(bot=self, dispatch_id=dispatch.id),
                         message_id=int(dispatch.confirmation_message_id),
                     )
+            for session in await asyncio.to_thread(self.service.state.list_sessions):
+                if not session.status_message_id:
+                    continue
+                try:
+                    provider = await asyncio.to_thread(self.service._active_provider, session.id)
+                    if not provider.configuration_locked:
+                        self.add_view(
+                            SessionConfigurationView(bot=self, session_id=session.id, provider=provider),
+                            message_id=int(session.status_message_id),
+                        )
+                except (StateError, ValueError):
+                    continue
             self._synced = True
             self._scheduler_task = asyncio.create_task(self._scheduler_loop())
 
@@ -607,6 +773,105 @@ if commands is not None:
                 )
             )
 
+        def _session_interaction_allowed(self, interaction: discord.Interaction, session_id: str) -> bool:
+            session = self.service.state.get_session(session_id)
+            return bool(
+                interaction.guild
+                and str(interaction.guild.id) == self.service.config.allowed_guild_id
+                and str(interaction.user.id) == self.service.config.owner_user_id
+                and str(interaction.channel_id) == str(session.discord_thread_id)
+                and getattr(interaction.channel, "parent_id", None)
+                == int(self.service.config.parent_channel_id)
+            )
+
+        def _configuration_view(self, session_id: str) -> SessionConfigurationView:
+            provider = self.service._active_provider(session_id)
+            if provider.configuration_locked:
+                raise StateError("session configuration is already locked")
+            return SessionConfigurationView(bot=self, session_id=session_id, provider=provider)
+
+        async def _refresh_configuration_card(self, message: discord.Message, session_id: str) -> None:
+            card = await asyncio.to_thread(self.service.status_card, session_id)
+            provider = await asyncio.to_thread(self.service._active_provider, session_id)
+            view = None if provider.configuration_locked else self._configuration_view(session_id)
+            await message.edit(embed=self._embed(card), view=view)
+
+        async def update_initial_model(
+            self, interaction: discord.Interaction, session_id: str, model: str
+        ) -> None:
+            try:
+                if not self._session_interaction_allowed(interaction, session_id):
+                    raise StateError("此操作仅限配置的 owner 和目标 Harness Thread")
+                updated = await asyncio.to_thread(
+                    self.service.choose_initial_model, session_id=session_id, model=model
+                )
+                await interaction.response.defer(ephemeral=True)
+                if interaction.message is None:
+                    raise StateError("session configuration card is unavailable")
+                await self._refresh_configuration_card(interaction.message, session_id)
+                await interaction.followup.send(
+                    f"已暂选 `{updated.default_model}`；点击“固定配置并开始”后才会执行任务。",
+                    ephemeral=True,
+                )
+            except StateError as exc:
+                if interaction.response.is_done():
+                    await interaction.followup.send(str(exc), ephemeral=True)
+                else:
+                    await interaction.response.send_message(str(exc), ephemeral=True)
+
+        async def update_initial_effort(
+            self, interaction: discord.Interaction, session_id: str, effort: str
+        ) -> None:
+            try:
+                if not self._session_interaction_allowed(interaction, session_id):
+                    raise StateError("此操作仅限配置的 owner 和目标 Harness Thread")
+                updated = await asyncio.to_thread(
+                    self.service.choose_initial_effort, session_id=session_id, effort=effort
+                )
+                await interaction.response.defer(ephemeral=True)
+                if interaction.message is None:
+                    raise StateError("session configuration card is unavailable")
+                await self._refresh_configuration_card(interaction.message, session_id)
+                await interaction.followup.send(
+                    f"已暂选推理强度 `{updated.default_effort}`；点击“固定配置并开始”后才会执行任务。",
+                    ephemeral=True,
+                )
+            except StateError as exc:
+                if interaction.response.is_done():
+                    await interaction.followup.send(str(exc), ephemeral=True)
+                else:
+                    await interaction.response.send_message(str(exc), ephemeral=True)
+
+        async def lock_initial_configuration(self, interaction: discord.Interaction, session_id: str) -> None:
+            try:
+                if not self._session_interaction_allowed(interaction, session_id):
+                    raise StateError("此操作仅限配置的 owner 和目标 Harness Thread")
+                provider, turn, created = await asyncio.to_thread(
+                    self.service.lock_initial_configuration, session_id=session_id
+                )
+                await interaction.response.defer(ephemeral=True)
+                if interaction.message is None:
+                    raise StateError("session configuration card is unavailable")
+                await self._refresh_configuration_card(interaction.message, session_id)
+                thread = interaction.channel
+                if thread is not None and hasattr(thread, "edit"):
+                    try:
+                        await thread.edit(
+                            name=f"{session_id} · {provider.provider.value.title()} · {provider.default_model[:24]}"
+                        )
+                    except (discord.Forbidden, discord.HTTPException):
+                        pass
+                if created:
+                    text = f"配置已固定；初始任务 `{turn.id}` 已入队。"
+                else:
+                    text = f"配置已固定；初始任务 `{turn.id}` 已存在。"
+                await interaction.followup.send(text, ephemeral=True)
+            except StateError as exc:
+                if interaction.response.is_done():
+                    await interaction.followup.send(str(exc), ephemeral=True)
+                else:
+                    await interaction.response.send_message(str(exc), ephemeral=True)
+
         @staticmethod
         def _dispatch_embed(dispatch: Dispatch):
             if dispatch.status is DispatchStatus.STARTED:
@@ -730,10 +995,17 @@ if commands is not None:
                 if channel is None:
                     channel = await self.fetch_channel(int(session.discord_thread_id))
                 return channel
-            model = self.service._default_model(self.service._provider(provider))
-            thread = await source_message.create_thread(name=f"{session.id} · {provider.title()} · {model[:24]}")
+            provider_session = self.service._active_provider(session.id)
+            thread = await source_message.create_thread(
+                name=f"{session.id} · {provider.title()} · {provider_session.default_model[:24]}"
+            )
             self.service.state.set_discord_thread(session.id, str(thread.id))
-            status_message = await thread.send(embed=self._embed(self.service.status_card(session.id)))
+            status_message = await thread.send(
+                embed=self._embed(self.service.status_card(session.id)),
+                view=self._configuration_view(session.id)
+                if not provider_session.configuration_locked
+                else None,
+            )
             self.service.state.set_status_message_id(session.id, str(status_message.id))
             try:
                 await status_message.pin(reason="dev-pipeline-harness status card")

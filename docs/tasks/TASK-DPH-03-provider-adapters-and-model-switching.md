@@ -27,9 +27,9 @@ docs/plans/dev-pipeline-harness-spike.md
 2. Codex 新建使用 exec --json、workspace-write sandbox 和配置模型；从 thread.started 立即保存 ID。恢复使用 exec resume --json、同一 ID 和 -m。禁止 ephemeral。
 3. Claude 新建/恢复使用 -p、--output-format stream-json、--verbose、--include-partial-messages、--model；恢复必须带 --resume。使用 --permission-mode dontAsk 加任务级明确工具 allowlist，禁止 bypassPermissions。
 4. 所有 argv 由 list 构建，不经 shell。每次执行记录 CLI version、cwd、requested/configured model 和 command 类型，但不记录 prompt 中的 secret。
-5. !model 只能在 provider session 空闲时修改 default_model；入队时 snapshot 模型。无效模型在本地 allowlist 阶段拒绝，provider 拒绝也不得修改 default_model。
-6. !provider 切换必须新建 provider_sessions 行、生成 context.md 并标 switched_from_id；严禁复用另一 provider 的 session ID。
-7. reasoning effort 按 provider 独立 allowlist 校验并持久化 default/configured snapshot；`!effort <level>` 仅在 provider session 空闲时修改下一条 turn。Codex 使用 `model_reasoning_effort`，Claude 使用 `--effort`，不得把不受支持的 level 传给另一 provider。
+5. `/dispatch` 建立的初始 provider session 在置顶配置卡中选择 default 值，并在“固定配置并开始”时与 source turn 原子化持久化；入队时 snapshot 模型。无效模型在本地 allowlist 阶段拒绝，provider 拒绝也不得修改 default_model。固定后的 Discord session 不接受 `!model` 修改。
+6. 若内部恢复流程需要 provider 切换，必须新建 provider_sessions 行、生成 context.md 并标 switched_from_id；严禁复用另一 provider 的 session ID。当前 Discord 产品交互不开放 `!provider`，provider 在 `/dispatch` 确认卡中一次性选择。
+7. reasoning effort 按 provider 独立 allowlist 校验并持久化 default/configured snapshot；Codex 使用 `model_reasoning_effort`，Claude 使用 `--effort`，不得把不受支持的 level 传给另一 provider。初始配置卡中 Codex 可选择 model/effort；Claude 固定 `claude-opus-4-8`、仅可选择 effort；固定后不接受 `!effort` 修改。
 
 ## 真实 smoke
 

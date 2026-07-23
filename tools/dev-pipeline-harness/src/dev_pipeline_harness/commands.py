@@ -54,4 +54,4 @@ def parse_control(text: str) -> ControlCommand | None:
 
 
 def command_help() -> str:
-    return "可用命令：!status · !model <name> · !effort <level> · !provider <codex|claude> · !stop · !approve <PLAN-id> · !reject <反馈> · !resume <S-####> · !accept <PR#> <full-head-SHA>"
+    return "可用命令：!status · !stop · !approve <PLAN-id> · !reject <反馈> · !resume <S-####> · !accept <PR#> <full-head-SHA>；模型和推理强度仅在新 Thread 的配置卡中一次性固定。"

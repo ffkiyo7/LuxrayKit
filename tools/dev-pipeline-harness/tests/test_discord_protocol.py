@@ -3,6 +3,7 @@ from __future__ import annotations
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 
 from dev_pipeline_harness.commands import CommandParseError, parse_control
 from dev_pipeline_harness.config import Config
@@ -69,8 +70,8 @@ class DiscordServiceTests(unittest.TestCase):
             "MAX_CONCURRENT_RUNS": "1",
             "CODEX_DEFAULT_MODEL": "codex-a",
             "CODEX_ALLOWED_MODELS": "codex-a,codex-b",
-            "CLAUDE_DEFAULT_MODEL": "claude-a",
-            "CLAUDE_ALLOWED_MODELS": "claude-a,claude-b",
+            "CLAUDE_DEFAULT_MODEL": "claude-opus-4-8",
+            "CLAUDE_ALLOWED_MODELS": "claude-opus-4-8",
         }
         self.config = Config.from_env(env)
         self.layout = StateLayout.from_state_dir(self.config.state_dir).ensure()
@@ -138,6 +139,36 @@ class DiscordServiceTests(unittest.TestCase):
         self.assertEqual(completed.status.value, "started")
         self.assertEqual(completed.provider.value if completed.provider else None, "codex")
         self.assertEqual(completed.harness_session_id, started.session_id)
+        provider = self.state.list_provider_sessions(started.session_id)[0]
+        self.assertFalse(provider.configuration_locked)
+        self.assertEqual(self.state.list_turns(started.session_id), [])
+        with self.assertRaises(StateError):
+            self.service.enqueue_owner_message(
+                session_id=started.session_id,
+                owner_message_id="before-config",
+                content="This must not be queued.",
+            )
+
+        self.service.choose_initial_model(session_id=started.session_id, model="codex-b")
+        self.service.choose_initial_effort(session_id=started.session_id, effort="xhigh")
+        locked, initial_turn, created = self.service.lock_initial_configuration(
+            session_id=started.session_id
+        )
+        self.assertTrue(created)
+        self.assertTrue(locked.configuration_locked)
+        self.assertEqual(locked.default_model, "codex-b")
+        self.assertEqual(locked.default_effort, "xhigh")
+        self.assertEqual(initial_turn.configured_model, "codex-b")
+        self.assertEqual(initial_turn.configured_effort, "xhigh")
+        self.assertEqual(self.state.queue_position(initial_turn.id), 1)
+        locked_again, same_turn, created_again = self.service.lock_initial_configuration(
+            session_id=started.session_id
+        )
+        self.assertFalse(created_again)
+        self.assertEqual(locked_again.id, locked.id)
+        self.assertEqual(same_turn.id, initial_turn.id)
+        with self.assertRaises(StateError):
+            self.service.choose_initial_effort(session_id=started.session_id, effort="high")
 
         duplicate = self.service.start_from_dispatch(dispatch_id=dispatch.id, provider_name="claude")
         self.assertFalse(duplicate.created)
@@ -145,6 +176,48 @@ class DiscordServiceTests(unittest.TestCase):
         self.assertEqual(len(self.state.list_provider_sessions(started.session_id)), 1)
         with self.assertRaises(StateError):
             self.state.update_dispatch_task(dispatch.id, "Too late to edit.")
+
+    @unittest.skipIf(discord_bot.commands is None, "discord.py is not installed")
+    def test_initial_configuration_view_has_no_claude_model_select(self):
+        dispatch = self.service.create_dispatch(
+            owner_user_id=self.config.owner_user_id or "",
+            guild_id=self.config.allowed_guild_id or "",
+            channel_id=self.config.parent_channel_id or "",
+            task="Configure views.",
+        )
+        codex_start = self.service.start_from_dispatch(dispatch_id=dispatch.id, provider_name="codex")
+        codex_provider = self.state.list_provider_sessions(codex_start.session_id)[0]
+        codex_view = discord_bot.SessionConfigurationView(
+            bot=SimpleNamespace(service=self.service),
+            session_id=codex_start.session_id,
+            provider=codex_provider,
+        )
+        self.assertTrue(codex_view.is_persistent())
+        self.assertEqual(
+            [item.custom_id.rsplit(":", 1)[-1] for item in codex_view.children],
+            ["model", "effort", "confirm"],
+        )
+
+        claude_dispatch = self.service.create_dispatch(
+            owner_user_id=self.config.owner_user_id or "",
+            guild_id=self.config.allowed_guild_id or "",
+            channel_id=self.config.parent_channel_id or "",
+            task="Configure Claude view.",
+        )
+        claude_start = self.service.start_from_dispatch(
+            dispatch_id=claude_dispatch.id, provider_name="claude"
+        )
+        claude_provider = self.state.list_provider_sessions(claude_start.session_id)[0]
+        claude_view = discord_bot.SessionConfigurationView(
+            bot=SimpleNamespace(service=self.service),
+            session_id=claude_start.session_id,
+            provider=claude_provider,
+        )
+        self.assertTrue(claude_view.is_persistent())
+        self.assertEqual(
+            [item.custom_id.rsplit(":", 1)[-1] for item in claude_view.children],
+            ["effort", "confirm"],
+        )
 
     def test_owner_can_register_and_approve_a_plan_from_the_thread(self):
         start = self.service.start_from_source(
@@ -165,7 +238,7 @@ class DiscordServiceTests(unittest.TestCase):
         self.assertIn("已批准", response)
         self.assertEqual(self.state.get_session(start.session_id).status.value, "plan_approved")
 
-    def test_owner_message_enqueues_one_turn_and_provider_switch_is_explicit(self):
+    def test_owner_message_enqueues_one_turn_after_configuration_is_fixed(self):
         start = self.service.start_from_source(
             source_message_id="source-1",
             source_content="Start",
@@ -177,31 +250,31 @@ class DiscordServiceTests(unittest.TestCase):
             content="Follow up",
         )
         self.assertEqual(self.state.queue_position(turn.id), 2)
-        response = self.service.handle_control(
-            session_id=start.session_id,
-            command=parse_control("!provider claude"),
-        )
-        self.assertIn("新的 claude provider session", response)
-        self.assertEqual(len(self.state.list_provider_sessions(start.session_id)), 2)
+        with self.assertRaises(StateError):
+            self.service.handle_control(
+                session_id=start.session_id,
+                command=parse_control("!provider claude"),
+            )
+        self.assertEqual(len(self.state.list_provider_sessions(start.session_id)), 1)
 
-    def test_effort_switch_is_allowlisted_and_snapshotted(self):
-        start = self.service.start_from_source(
-            source_message_id="source-1",
-            source_content="Start",
-            provider_name="codex",
+    def test_claude_configuration_exposes_effort_but_keeps_opus_fixed(self):
+        dispatch = self.service.create_dispatch(
+            owner_user_id=self.config.owner_user_id or "",
+            guild_id=self.config.allowed_guild_id or "",
+            channel_id=self.config.parent_channel_id or "",
+            task="Draft the release notes with Claude.",
         )
-        response = self.service.handle_control(
-            session_id=start.session_id,
-            command=parse_control("!effort xhigh"),
-        )
-        self.assertIn("xhigh", response)
-        turn = self.service.enqueue_owner_message(
-            session_id=start.session_id,
-            owner_message_id="owner-effort",
-            content="Follow up",
-        )
-        self.assertEqual(turn.requested_effort, "xhigh")
-        self.assertEqual(turn.configured_effort, "xhigh")
+        start = self.service.start_from_dispatch(dispatch_id=dispatch.id, provider_name="claude")
+        provider = self.state.list_provider_sessions(start.session_id)[0]
+        self.assertEqual(provider.default_model, "claude-opus-4-8")
+        with self.assertRaises(StateError):
+            self.service.choose_initial_model(session_id=start.session_id, model="claude-opus-4-8")
+        self.service.choose_initial_effort(session_id=start.session_id, effort="max")
+        locked, turn, created = self.service.lock_initial_configuration(session_id=start.session_id)
+        self.assertTrue(created)
+        self.assertTrue(locked.configuration_locked)
+        self.assertEqual(turn.configured_model, "claude-opus-4-8")
+        self.assertEqual(turn.configured_effort, "max")
 
     def test_stop_cancels_a_queued_turn_without_starting_a_process(self):
         start = self.service.start_from_source(

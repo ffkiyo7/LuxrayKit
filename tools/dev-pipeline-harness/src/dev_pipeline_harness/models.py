@@ -102,6 +102,7 @@ class ProviderSession:
     provider_session_id: str | None
     default_model: str
     default_effort: str
+    configuration_locked: bool
     status: ProviderSessionStatus
     switched_from_id: int | None
     created_at: str

@@ -45,7 +45,7 @@ class QueueError(StateError):
     pass
 
 
-SCHEMA_VERSION = 4
+SCHEMA_VERSION = 5
 
 _SESSION_TRANSITIONS: dict[SessionStatus, set[SessionStatus]] = {
     SessionStatus.DRAFT: {SessionStatus.QUEUED, SessionStatus.CANCELLED},
@@ -201,6 +201,13 @@ class StateStore:
                         """
                     )
                     current = 4
+                if current < 5:
+                    self._connection.execute(
+                        "ALTER TABLE provider_sessions "
+                        "ADD COLUMN configuration_locked INTEGER NOT NULL DEFAULT 1 "
+                        "CHECK (configuration_locked IN (0, 1))"
+                    )
+                    current = 5
                 self._connection.execute(f"PRAGMA user_version={current}")
                 self._connection.commit()
             except Exception:
@@ -389,6 +396,7 @@ class StateStore:
             provider_session_id=row["provider_session_id"],
             default_model=row["default_model"],
             default_effort=row["default_effort"],
+            configuration_locked=bool(row["configuration_locked"]),
             status=ProviderSessionStatus(row["status"]),
             switched_from_id=row["switched_from_id"],
             created_at=row["created_at"],
@@ -941,6 +949,7 @@ class StateStore:
         provider: Provider,
         default_model: str,
         default_effort: str = "medium",
+        configuration_locked: bool = True,
         provider_session_id: str | None = None,
         switched_from_id: int | None = None,
     ) -> ProviderSession:
@@ -967,8 +976,8 @@ class StateStore:
                     """
                     INSERT INTO provider_sessions
                     (harness_session_id, provider, provider_session_id, default_model,
-                     default_effort, status, switched_from_id, created_at, updated_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                     default_effort, configuration_locked, status, switched_from_id, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         harness_session_id,
@@ -976,6 +985,7 @@ class StateStore:
                         provider_session_id,
                         default_model,
                         default_effort,
+                        int(configuration_locked),
                         ProviderSessionStatus.ACTIVE.value,
                         switched_from_id,
                         now,
@@ -1043,6 +1053,8 @@ class StateStore:
             ).fetchone()
             if row is None:
                 raise NotFoundError("provider session not found")
+            if bool(row["configuration_locked"]):
+                raise StateError("session configuration is locked")
             running = conn.execute(
                 """
                 SELECT 1 FROM turns
@@ -1073,6 +1085,8 @@ class StateStore:
             ).fetchone()
             if row is None:
                 raise NotFoundError("provider session not found")
+            if bool(row["configuration_locked"]):
+                raise StateError("session configuration is locked")
             running = conn.execute(
                 """
                 SELECT 1 FROM turns
@@ -1092,6 +1106,115 @@ class StateStore:
             ).fetchone()
         assert result is not None
         return self._provider_from_row(result)
+
+    def lock_configuration_and_enqueue_initial_turn(
+        self,
+        *,
+        provider_session_row_id: int,
+        owner_message_id: str,
+        requested_model: str,
+        configured_model: str,
+        requested_effort: str,
+        configured_effort: str,
+        input_path: Path,
+    ) -> tuple[ProviderSession, Turn, bool]:
+        """Fix initial settings and enqueue the dispatch task in one transaction.
+
+        The final boolean says whether this interaction performed the transition.
+        A duplicate component interaction returns the already-created initial turn
+        instead of creating a second queue entry.
+        """
+
+        owner_message_id = str(owner_message_id).strip()
+        requested_model = requested_model.strip()
+        configured_model = configured_model.strip()
+        requested_effort = requested_effort.strip().lower()
+        configured_effort = configured_effort.strip().lower()
+        if not owner_message_id:
+            raise StateError("initial owner message id is required")
+        if not requested_model or not configured_model:
+            raise StateError("requested and configured model are required")
+        if not requested_effort or not configured_effort:
+            raise StateError("requested and configured reasoning effort are required")
+        if not Path(input_path).is_absolute():
+            raise StateError("initial turn input path must be absolute")
+
+        with self._transaction(immediate=True) as conn:
+            provider_row = conn.execute(
+                "SELECT * FROM provider_sessions WHERE id = ?", (provider_session_row_id,)
+            ).fetchone()
+            if provider_row is None:
+                raise NotFoundError("provider session not found")
+            existing_turn = conn.execute(
+                "SELECT * FROM turns WHERE owner_message_id = ?", (owner_message_id,)
+            ).fetchone()
+            if bool(provider_row["configuration_locked"]):
+                if existing_turn is None:
+                    raise StateError("session configuration is already locked")
+                return self._provider_from_row(provider_row), self._turn_from_row(existing_turn), False
+            if existing_turn is not None:
+                raise QueueError("initial owner message already has a turn")
+            prior_turn = conn.execute(
+                "SELECT 1 FROM turns WHERE provider_session_id = ? LIMIT 1", (provider_session_row_id,)
+            ).fetchone()
+            if prior_turn is not None:
+                raise StateError("initial configuration requires a provider session without turns")
+
+            now = _utc_now()
+            conn.execute(
+                """
+                UPDATE provider_sessions
+                SET default_model = ?, default_effort = ?, configuration_locked = 1, updated_at = ?
+                WHERE id = ?
+                """,
+                (configured_model, configured_effort, now, provider_session_row_id),
+            )
+            turn_id = f"T-{self._next_sequence(conn, 'turn_sequence'):04d}"
+            conn.execute(
+                """
+                INSERT INTO turns
+                (id, provider_session_id, owner_message_id, requested_model,
+                 configured_model, requested_effort, configured_effort,
+                 reported_model, state, attempt, input_path, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, NULL, ?, 1, ?, ?, ?)
+                """,
+                (
+                    turn_id,
+                    provider_session_row_id,
+                    owner_message_id,
+                    requested_model,
+                    configured_model,
+                    requested_effort,
+                    configured_effort,
+                    TurnState.QUEUED.value,
+                    str(input_path),
+                    now,
+                    now,
+                ),
+            )
+            ordinal = int(conn.execute("SELECT COALESCE(MAX(ordinal), 0) + 1 FROM queue").fetchone()[0])
+            conn.execute(
+                "INSERT INTO queue(turn_id, ordinal, queued_at) VALUES (?, ?, ?)",
+                (turn_id, ordinal, now),
+            )
+            session_id = provider_row["harness_session_id"]
+            session = self._require_session(conn, session_id)
+            if SessionStatus(session["status"]) in {
+                SessionStatus.DRAFT,
+                SessionStatus.WAITING_FOR_OWNER,
+                SessionStatus.FAILED,
+                SessionStatus.INTERRUPTED,
+            }:
+                conn.execute(
+                    "UPDATE harness_sessions SET status = ?, updated_at = ? WHERE id = ?",
+                    (SessionStatus.QUEUED.value, now, session_id),
+                )
+            result_provider = conn.execute(
+                "SELECT * FROM provider_sessions WHERE id = ?", (provider_session_row_id,)
+            ).fetchone()
+            result_turn = conn.execute("SELECT * FROM turns WHERE id = ?", (turn_id,)).fetchone()
+        assert result_provider is not None and result_turn is not None
+        return self._provider_from_row(result_provider), self._turn_from_row(result_turn), True
 
     def create_turn(
         self,
