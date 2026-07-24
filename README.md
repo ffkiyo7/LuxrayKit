@@ -124,15 +124,15 @@ npm run data:vgcpastes:champions-mb    # 摄入 VGCPastes「Champions M-B」构�
 ```bash
 npm test            # Vitest 单元 / 组件测试
 npm run test:pwa    # Playwright PWA / 离线测试
-npm run test:visual # Playwright 移动端视觉回归
+npm run test:visual # Playwright 移动端视觉回归（在 Docker 容器内跑）
 ```
 
 PWA 视觉回归测试基于 Playwright，覆盖 17 个移动端状态，包括环境首页、完整榜单、环境详情、数据口径、队伍一览、试试灵感、队伍列表、队伍详情、成员编辑、SP 选择器、工具页、伤害计算、速度线、规则图鉴、图鉴详情、属性筛选和我的页面。快照位于 `tests/pwa/visual.spec.ts-snapshots/`。
 
-更新视觉快照：
+视觉基线在 Playwright 官方容器内生成（需要本机有 Docker daemon），这样任何平台都能复现同样的像素；宿主机直跑会因字体栈不同产生假阳性 diff。更新视觉快照：
 
 ```bash
-npm run test:visual -- --update-snapshots
+npm run test:visual:update
 ```
 
 ## 技术栈

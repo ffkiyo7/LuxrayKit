@@ -54,3 +54,40 @@ jobs:
 
       - name: Validate Worker bundle
         run: npm run worker:environment:check
+
+  # Blocking UI gate. Runs after `test` so a broken build doesn't also burn the
+  # image pull — Actions minutes are metered on this private repo.
+  visual:
+    name: Mobile visual regression
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Deliberately calls the same wrapper developers run locally instead of a
+      # `container:` block: the image tag is derived from the installed
+      # @playwright/test version, so CI and local machines cannot drift onto
+      # different Chromium builds — which is the entire point of containerizing.
+      - name: Run visual regression in the Playwright image
+        run: npm run test:visual
+
+      # expected/actual/diff PNG triplet for every failed snapshot.
+      - name: Upload visual diffs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-diffs
+          path: test-results/
+          retention-days: 7

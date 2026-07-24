@@ -50,8 +50,9 @@ npm run dev        # Vite 开发服务器，绑定 127.0.0.1（移动端优先�
 npm run build      # tsc -b 全量类型检查 + vite build → dist/
 npm run preview    # 本地预览构建产物
 npm test           # Vitest 单元/组件测试（CI 必跑）
-npm run test:pwa   # Playwright PWA / 离线测试
-npm run test:visual# Playwright 移动端视觉回归
+npm run test:pwa   # Playwright PWA / 离线测试（不含视觉用例）
+npm run test:visual        # 移动端视觉回归，在 Playwright 官方 Docker 容器内跑
+npm run test:visual:update # 重建视觉基线（同样在容器内）
 ```
 
 > PWA 提示：开发期 Service Worker 可能缓存旧资源。改动未生效时，在 DevTools → Application → Service Workers 注销后硬刷新。
@@ -366,15 +367,28 @@ PATH=/usr/local/bin:/usr/bin:/bin
 ## 8. 测试
 
 - **单元/组件**：Vitest + jsdom + `@testing-library` + `fake-indexeddb`。`npm test`，CI 必跑；其中 `src/data/vgcpastesTeamSamples.contract.test.ts` 对队伍库生成 JSON 做数量、字段、唯一性与 audit 对齐门禁。配置见 `vite.config.ts` 的 `test` 段与 `vitest.setup.ts`。
-- **PWA**：`tests/pwa/offline.spec.ts`（离线缓存）+ `tests/pwa/team-samples.spec.ts`（队伍库生成数据渲染）+ `tests/pwa/visual.spec.ts`（移动端视觉回归，17 个状态，基线在 `tests/pwa/visual.spec.ts-snapshots/`，命名含 `chrome-mobile-390-win32`）。配置见 `playwright.config.ts`。
-- 更新视觉基线：`npm run test:visual -- --update-snapshots`（注意快照与平台相关，跨 OS 会有像素差）。
+- **PWA**：`tests/pwa/offline.spec.ts`（离线缓存）+ `tests/pwa/team-samples.spec.ts`（队伍库生成数据渲染）+ `tests/pwa/visual.spec.ts`（移动端视觉回归，17 个状态，基线在 `tests/pwa/visual.spec.ts-snapshots/`，命名含 `visual-mobile-390-linux`）。配置见 `playwright.config.ts`，分成两个 project：
+  - `chrome-mobile-390`（`channel: 'chrome'`，`testIgnore` 掉视觉用例）跑功能类冒烟，用机器上已装的 Google Chrome，CI runner 自带因此无需下载浏览器。`npm run test:pwa` 已固定到这个 project。
+  - `visual-mobile-390` 只跑视觉用例，用 `@playwright/test` 自带、被 `package-lock.json` 锁死的 Chromium——刻意不用 `channel: 'chrome'`，因为 Chrome stable 会自动升级，任何一次字体/光栅化变更都会悄悄让基线腐烂。
+- **视觉基线只在 Playwright 官方容器内生成**，镜像 tag 由 `scripts/visual-docker.sh` 从已安装的 `@playwright/test` 版本推导（当前 `mcr.microsoft.com/playwright:v1.59.1-noble`），保证浏览器与字体只随依赖升级而变：
+  - 校验：`npm run test:visual`
+  - 重建：`npm run test:visual:update`
+  - 前置条件：本机有可用的 Docker daemon。WSL2 下可直接装原生 Docker Engine（`apt` 装 `docker-ce`，由 systemd 托管，不需要 Docker Desktop）；若走代理拉镜像，需给 dockerd 配 `/etc/systemd/system/docker.service.d/http-proxy.conf` 并 `systemctl restart docker`（`enable --now` 对已在运行的服务不会重启，改完 drop-in 必须显式 restart）。
+  - 不要在宿主机直接 `npx playwright test tests/pwa/visual.spec.ts`：宿主字体栈与镜像不同，只会得到整屏假阳性 diff。
+  - 历史背景：2026-07 之前基线是在 Windows 上生成的（`chrome-mobile-390-win32`），只有 Windows 能验证；迁到 WSL2 开发后改为容器生成，任何平台都能复现。
+- **视觉用例刻意与刷新中的数据解耦**，否则它没法当门禁用——环境快照的时间戳和榜单会直接印进截图，每次数据刷新都会让门禁变红、卡住 daily auto-merge：
+  - `tests/pwa/fixtures/environment-snapshot.json` 是 `public/data/pokedb/reg-ma-environment.json` 的冻结副本，用例用 `page.route` 把运行时那次 fetch 拦截掉换成它。要让门禁看到更新后的数据，把线上文件复制过来覆盖 fixture，再重建基线——这是一次有意的动作，不是自动的。
+  - `page.clock.setFixedTime` 把时钟钉在 `2026-07-20T12:00:00Z`：赛季/规则 header 和"可能过期"徽标都由挂钟时间推导，不钉住的话跨过赛季窗口或新鲜度阈值时像素会自己变。
+  - **残留耦合**：VGCPastes 队伍库是 build-time 动态 `import()` 的 bundle 产物，拦不住。`automation/vgcpastes-team-refresh`（周级）如果改到截图里可见的靠前队伍，视觉门禁会红——这时人工确认后重建基线即可。PokeDB 环境刷新（日级，churn 的大头）已经被 fixture 完全隔离。
 
 ---
 
 ## 9. 部署与 CI
 
 - **部署**：经 **Cloudflare Workers Builds（Git 集成）**——push 到 `main` 自动构建并 `wrangler deploy`。preview 走**影子 Worker `luxraykit-app-preview`**：它有自己的 Workers Builds 配置（同一 repo，非 main 分支触发，deploy 为 `wrangler versions upload --config cloudflare/environment-worker/wrangler.preview.jsonc`），产出 per-version preview URL（`<版本前8位>-luxraykit-app-preview.<subdomain>.workers.dev`）做 UI+API 冒烟。三个来之不易的事实：①带 Durable Object 的 Worker 不生成 preview URL（生产 Worker 因此无法直接出 preview）；②Workers Builds 把部署钉死在所连接的 Worker 上，不能在生产 Worker 的 builds 里"上传到别的 worker"，preview 触发器必须建在影子 Worker 自己名下；③wrangler 需配置显式 `preview_urls: true`。影子 Worker 刻意不带 DO/cron/自定义域名/admin secret，刷新路径天然失效。**cron 不在 preview 触发**，但 preview 与生产**共享同一 KV**，对 preview 上的 KV 操作要当作直接影响生产、只读对待。
-- **CI**（`.github/workflows/ci.yml`）：`npm test` + `npm run build` + Playwright 离线与队伍库渲染冒烟 + `npm run worker:environment:check`，**不部署**。
+- **CI**（`.github/workflows/ci.yml`）：两个 job，**不部署**。
+  - `test`：`npm test` + `npm run build` + Playwright 离线与队伍库渲染冒烟 + `npm run worker:environment:check`。
+  - `visual`：`needs: test`，跑 `npm run test:visual`（即容器内的视觉回归），**阻塞门禁**；失败时把 expected/actual/diff 三联图作为 `visual-diffs` artifact 上传。挂在 `test` 后面是为了别在构建已经挂掉时还白拉一次 2GB 镜像——本仓库是 private，Actions 分钟数是计量的（近 30 天约 62 次运行，加上这个 job 后月用量约 500/2000 分钟）。
 - **daily-auto-merge**（`.github/workflows/daily-auto-merge.yml`）：每日 20:00 UTC 只自动合并 head 为 `automation/pokedb-environment-refresh` 或 `automation/vgcpastes-team-refresh` 的绿色非 draft PR；功能 / Agent PR 一律人工合并。`main` 无分支保护，合并即触发 Workers Builds 生产部署。
 - 仓库 `.github/workflows/` 目前只有上述两个 workflow（无独立 deploy workflow）。不要假设 GitHub Actions 负责部署或自动跑端到端。
 
