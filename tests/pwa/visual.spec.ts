@@ -1,4 +1,21 @@
+import { fileURLToPath } from 'node:url';
+
 import { expect, type Page, test } from '@playwright/test';
+
+// Frozen copy of public/data/pokedb/reg-ma-environment.json. The live snapshot is
+// rewritten by the refresh pipeline (daily when it is healthy), and its timestamps and
+// rankings render straight into these screenshots — without pinning it, every data
+// refresh would redden the visual gate and stall the auto-merge pipeline. Refresh the
+// fixture deliberately (copy the live file over it, then rebuild baselines) when you
+// actually want the gate to look at newer data.
+const ENVIRONMENT_SNAPSHOT_FIXTURE = fileURLToPath(
+  new URL('./fixtures/environment-snapshot.json', import.meta.url),
+);
+
+// The season/regulation header and the freshness badge are both derived from the wall
+// clock, so an unpinned clock would silently change pixels as real time passes a season
+// boundary or a staleness threshold.
+const FIXED_TIME = new Date('2026-07-20T12:00:00Z');
 
 const screenshotOptions = {
   animations: 'disabled' as const,
@@ -10,6 +27,10 @@ const screenshotOptions = {
 test.use({ serviceWorkers: 'block' });
 
 const openApp = async (page: Page) => {
+  await page.clock.setFixedTime(FIXED_TIME);
+  await page.route('**/data/pokedb/reg-ma-environment.json', (route) =>
+    route.fulfill({ path: ENVIRONMENT_SNAPSHOT_FIXTURE, contentType: 'application/json' }),
+  );
   await page.addInitScript(() => {
     const originalGetRandomValues = crypto.getRandomValues.bind(crypto);
     crypto.getRandomValues = ((array: ArrayBufferView | null) => {

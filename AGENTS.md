@@ -44,5 +44,6 @@
 - 由 Agent 创建的普通功能 PR **默认 Draft**，除非用户明确要求 ready for review。
 - 两个白名单自动化分支上的纯生成数据 PR 例外：脚本创建 ready PR，交由确定性 CI 与 daily auto-merge 门禁处理。
 - 提交前至少通过 `npm test`；涉及前端行为的改动跑 `npm run build`（含 `tsc -b` 全量类型检查）。
-- 视觉回归基线（`tests/pwa/visual.spec.ts-snapshots/`）为 win32 平台专属，**不要在非 Windows 环境重新生成基线**。
+- 视觉回归基线（`tests/pwa/visual.spec.ts-snapshots/`）**只在 Playwright 官方容器内生成**：校验 `npm run test:visual`，重建 `npm run test:visual:update`（两者都走 `scripts/visual-docker.sh`，需要本机有 Docker）。宿主机字体栈与容器不同，直接 `npx playwright test` 跑视觉用例只会得到假阳性 diff；`npm run test:pwa` 已限定 `--project=chrome-mobile-390`，不含视觉用例。CI 的 `visual` job 是**阻塞门禁**。
+- 视觉用例吃的是冻结数据（`tests/pwa/fixtures/environment-snapshot.json` + `page.clock` 固定时钟），**不要为了"让截图跟上最新数据"去改用例或放宽阈值**——这层解耦是为了让日常数据刷新不会卡住 daily auto-merge。确实要让门禁看新数据时，复制线上快照覆盖 fixture 再重建基线。
 - 换行统一由 `.gitattributes`（`eol=lf`）治理；不要提交大批量纯换行变更。
