@@ -20,5 +20,5 @@ has no public route and no production application bindings.
 Run the dependency-free unit tests with:
 
 ```bash
-node --test cloudflare/build-notifier/worker.test.mjs
+node --test cloudflare/build-notifier/worker.node-test.mjs
 ```
