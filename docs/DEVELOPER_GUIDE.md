@@ -386,6 +386,7 @@ PATH=/usr/local/bin:/usr/bin:/bin
 ## 9. 部署与 CI
 
 - **部署**：经 **Cloudflare Workers Builds（Git 集成）**——push 到 `main` 自动构建并 `wrangler deploy`。preview 走**影子 Worker `luxraykit-app-preview`**：它有自己的 Workers Builds 配置（同一 repo，非 main 分支触发，deploy 为 `wrangler versions upload --config cloudflare/environment-worker/wrangler.preview.jsonc`），产出 per-version preview URL（`<版本前8位>-luxraykit-app-preview.<subdomain>.workers.dev`）做 UI+API 冒烟。三个来之不易的事实：①带 Durable Object 的 Worker 不生成 preview URL（生产 Worker 因此无法直接出 preview）；②Workers Builds 把部署钉死在所连接的 Worker 上，不能在生产 Worker 的 builds 里"上传到别的 worker"，preview 触发器必须建在影子 Worker 自己名下；③wrangler 需配置显式 `preview_urls: true`。影子 Worker 刻意不带 DO/cron/自定义域名/admin secret，刷新路径天然失效。**cron 不在 preview 触发**，但 preview 与生产**共享同一 KV**，对 preview 上的 KV 操作要当作直接影响生产、只读对待。
+- **Preview Discord 通知**：Cloudflare Event Subscription 把 `luxraykit-app-preview` 的成功构建写入 `luxraykit-build-events` Queue，由无公开路由的 `luxraykit-build-notifier` consumer 通过 Discord Webhook 直投 `luxraykit-dev`。consumer 只接受影子 Worker 的成功事件，排除 `main` 与全部 `automation/` 分支；Webhook URL 只存 Cloudflare secret。源码与运维说明见 `cloudflare/build-notifier/`。这条链路不依赖 PR、Cloudflare GitHub bot 评论、Hermes 或 Ariadne。
 - **CI**（`.github/workflows/ci.yml`）：两个 job，**不部署**。
   - `test`：`npm test` + `npm run build` + Playwright 离线与队伍库渲染冒烟 + `npm run worker:environment:check`。
   - `visual`：`needs: test`，跑 `npm run test:visual`（即容器内的视觉回归），**阻塞门禁**；失败时把 expected/actual/diff 三联图作为 `visual-diffs` artifact 上传。挂在 `test` 后面是为了别在构建已经挂掉时还白拉一次 2GB 镜像——本仓库是 private，Actions 分钟数是计量的（近 30 天约 62 次运行，加上这个 job 后月用量约 500/2000 分钟）。
