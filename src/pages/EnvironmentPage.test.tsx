@@ -83,6 +83,21 @@ afterEach(() => {
 });
 
 describe('EnvironmentPage usage basis', () => {
+  it('shows a current-rule Pokemon fact and rotates without repeating immediately', async () => {
+    const user = userEvent.setup();
+    render(<EnvironmentPage environment={makeEnvironment('rank-relative')} onImportSample={() => undefined} />);
+
+    const banner = screen.getByLabelText('宝可梦趣味小知识');
+    expect(within(banner).getByText('你知道吗？')).toBeTruthy();
+    expect(within(banner).queryByText(/冷知识/)).toBeNull();
+    const firstFact = within(banner).getByText((_, element) => element?.tagName === 'P' && element.className.includes('text-sm')).textContent;
+
+    await user.click(within(banner).getByRole('button', { name: '换一条小知识' }));
+
+    const nextFact = within(banner).getByText((_, element) => element?.tagName === 'P' && element.className.includes('text-sm')).textContent;
+    expect(nextFact).not.toBe(firstFact);
+  });
+
   it('uses source-aware sample card labels without forcing VGCPastes into season/rank/score text', async () => {
     const user = userEvent.setup();
     const samples: EnvironmentTeamSample[] = [

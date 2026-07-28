@@ -28,6 +28,7 @@
 | `src/data/seed/regMA/catalog-batch-*.ts` 等带 `Auto-generated` 头的 seed 文件 | 对应 `scripts/generate-*.mjs` |
 | `src/data/speedTiers.ts` | `npm run data:pokedb:speed` |
 | `src/data/external/pokedb/**`、`public/data/pokedb/*.json` | `npm run data:pokedb:environment`（可由外部维护主机自动 PR 刷新） |
+| `src/data/external/pokeapi/pokemon_facts.json` | `npm run data:pokemon-facts` |
 | `src/data/external/vgcpastes/*.json` | `npm run data:vgcpastes:champions-ma` 或 `npm run data:vgcpastes:champions-mb` |
 | `cloudflare/environment-worker/src/worker-configuration.d.ts` | `npm run worker:app:types` |
 

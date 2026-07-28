@@ -22,6 +22,7 @@ import {
   type EnvironmentTeamSample,
 } from '../data/environment';
 import { currentRuleSet } from '../data';
+import { PokemonFactBanner } from '../components/PokemonFactBanner';
 import { Button, Card, PokemonAvatar, TypeBadge } from '../components/ui';
 import { TeamBrowseView } from './TeamBrowseView';
 import { TeamSampleCard } from './TeamSampleCard';
@@ -699,6 +700,8 @@ export function EnvironmentPage({
           数据口径
         </button>
       </section>
+
+      <PokemonFactBanner />
 
       <Card>
         <div className="mb-1 flex items-center justify-between">
