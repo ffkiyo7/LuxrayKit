@@ -156,7 +156,24 @@ Regulation Set M-A 的版本化静态数据：宝可梦 catalog（分 batch）�
 
 `currentRegulation`（`data/environment.ts`）由 `currentRuleSet.id` 推导（`reg-mb` → `M-B`，否则 `M-A`），作为队伍样本浏览的默认视角。
 
-### 5.2 环境数据加载管线（`src/data/environment.ts`）
+### 5.2 首页趣味小知识事实池
+
+`src/data/pokemonFacts.ts` 只从当前 `pokemon.filter(legalInCurrentRule)` 构造首页事实池。事实全部来自有具体游戏版本标注的图鉴轶闻，不生成种族值变化、能力值排名等“当前规则数据推导”文案。
+
+`scripts/generate-pokemon-facts.mjs` 从当前 allowlist 提取唯一全国图鉴编号，低并发请求 PokeAPI `/pokemon-species/{id}/`，只保留 `zh-hans` 且长度适合横幅的图鉴文本，并按数字、生态、行为与传说细节评分；泛化战斗文案会降权。生成产物是 `src/data/external/pokeapi/pokemon_facts.json`，运行时不请求外站，离线 PWA 可直接使用。
+
+```bash
+npm run data:pokemon-facts        # 刷新候选（响应缓存在 gitignored 的 tmp/pokemon-facts-cache/）
+npm run data:pokemon-facts:check  # 只校验现有快照，不访问网络；CI 必跑
+```
+
+校验门禁要求：快照 `ruleSetId` 必须等于 `currentRuleSet.id`；每条全国图鉴编号必须仍在当前 allowlist；文本、编号不得重复；正文 18–48 字且不得包含任何空白字符（PokeAPI 原始换行与断行空格在生成时统一移除）；来源、游戏版本与兴趣评分齐全；有效 PokeAPI 事实不少于 80 条。规则切换后旧快照会在 CI 响亮失败，必须重新生成。
+
+`PokemonFactBanner` 用 `currentRuleSet.id + UTC 日期` 做确定性洗牌：同一天首次打开看到同一条，点击“换一条”在完整序列走完前不会重复。视觉上“你知道吗？”是独立眉题，宝可梦名与图鉴版本下沉为来源元信息。
+
+52Poké 只用于人工交叉核验，不进入自动抓取：其许可要求署名、非商业性使用、相同方式共享，且 robots 对自动抓取有严格限制。
+
+### 5.3 环境数据加载管线（`src/data/environment.ts`）
 
 `loadEnvironmentState()` 是前端读取环境数据的唯一入口，三级回退：
 
@@ -168,7 +185,7 @@ Regulation Set M-A 的版本化静态数据：宝可梦 catalog（分 batch）�
 
 `PokeDbEnvironmentSnapshotPayload` 支持三种 PokeDB 形态（statistics / trainer-list / open-data ranked-teams），由 `isStatisticsPayload` / `isTrainerListPayload` 分派到对应 builder。
 
-### 5.3 数据审计（`lib/environmentDataset.ts`）
+### 5.4 数据审计（`lib/environmentDataset.ts`）
 
 所有进入 UI 的环境数据先经 `auditEnvironmentDataset(dataset, catalog, expectedMetadata)`：未知的 Pokémon / 招式 / 道具 / 特性 / 性格引用会被记录到 `auditIssues` 并从展示数据中剔除。`environmentCatalog` 从 seed 派生（id 列表）。这是「数据来源与口径明确标注、不混入未知项」的保证机制，也是 Worker 端 `ENVIRONMENT_AUDIT_UNKNOWN_THRESHOLD` 校验的同源逻辑。
 
@@ -366,7 +383,7 @@ PATH=/usr/local/bin:/usr/bin:/bin
 
 ## 8. 测试
 
-- **单元/组件**：Vitest + jsdom + `@testing-library` + `fake-indexeddb`。`npm test`，CI 必跑；其中 `src/data/vgcpastesTeamSamples.contract.test.ts` 对队伍库生成 JSON 做数量、字段、唯一性与 audit 对齐门禁。配置见 `vite.config.ts` 的 `test` 段与 `vitest.setup.ts`。
+- **单元/组件**：Vitest + jsdom + `@testing-library` + `fake-indexeddb`。`npm test`，CI 必跑；其中 `src/data/vgcpastesTeamSamples.contract.test.ts` 对队伍库生成 JSON 做数量、字段、唯一性与 audit 对齐门禁，`src/data/pokemonFacts.test.ts` 验证事实池只引用当前规则宝可梦且每日序列稳定不重复。CI 还会在测试前运行不联网的 `npm run data:pokemon-facts:check`。配置见 `vite.config.ts` 的 `test` 段与 `vitest.setup.ts`。
 - **PWA**：`tests/pwa/offline.spec.ts`（离线缓存）+ `tests/pwa/team-samples.spec.ts`（队伍库生成数据渲染）+ `tests/pwa/visual.spec.ts`（移动端视觉回归，17 个状态，基线在 `tests/pwa/visual.spec.ts-snapshots/`，命名含 `visual-mobile-390-linux`）。配置见 `playwright.config.ts`，分成两个 project：
   - `chrome-mobile-390`（`channel: 'chrome'`，`testIgnore` 掉视觉用例）跑功能类冒烟，用机器上已装的 Google Chrome，CI runner 自带因此无需下载浏览器。`npm run test:pwa` 已固定到这个 project。
   - `visual-mobile-390` 只跑视觉用例，用 `@playwright/test` 自带、被 `package-lock.json` 锁死的 Chromium——刻意不用 `channel: 'chrome'`，因为 Chrome stable 会自动升级，任何一次字体/光栅化变更都会悄悄让基线腐烂。
@@ -388,7 +405,7 @@ PATH=/usr/local/bin:/usr/bin:/bin
 - **部署**：经 **Cloudflare Workers Builds（Git 集成）**——push 到 `main` 自动构建并 `wrangler deploy`。preview 走**影子 Worker `luxraykit-app-preview`**：它有自己的 Workers Builds 配置（同一 repo，非 main 分支触发，deploy 为 `wrangler versions upload --config cloudflare/environment-worker/wrangler.preview.jsonc`），产出 per-version preview URL（`<版本前8位>-luxraykit-app-preview.<subdomain>.workers.dev`）做 UI+API 冒烟。三个来之不易的事实：①带 Durable Object 的 Worker 不生成 preview URL（生产 Worker 因此无法直接出 preview）；②Workers Builds 把部署钉死在所连接的 Worker 上，不能在生产 Worker 的 builds 里"上传到别的 worker"，preview 触发器必须建在影子 Worker 自己名下；③wrangler 需配置显式 `preview_urls: true`。影子 Worker 刻意不带 DO/cron/自定义域名/admin secret，刷新路径天然失效。**cron 不在 preview 触发**，但 preview 与生产**共享同一 KV**，对 preview 上的 KV 操作要当作直接影响生产、只读对待。
 - **Preview Discord 通知**：Cloudflare Event Subscription 把 `luxraykit-app-preview` 的成功构建写入 `luxraykit-build-events` Queue，由无公开路由的 `luxraykit-build-notifier` consumer 通过 Discord Webhook 直投 `luxraykit-dev`。consumer 只接受影子 Worker 的成功事件，排除 `main` 与全部 `automation/` 分支；Webhook URL 只存 Cloudflare secret。源码与运维说明见 `cloudflare/build-notifier/`。这条链路不依赖 PR、Cloudflare GitHub bot 评论、Hermes 或 Ariadne。
 - **CI**（`.github/workflows/ci.yml`）：两个 job，**不部署**。
-  - `test`：`npm test` + `npm run build` + Playwright 离线与队伍库渲染冒烟 + `npm run worker:environment:check`。
+  - `test`：`npm run data:pokemon-facts:check` + `npm test` + `npm run build` + Playwright 离线与队伍库渲染冒烟 + `npm run worker:environment:check`。
   - `visual`：`needs: test`，跑 `npm run test:visual`（即容器内的视觉回归），**阻塞门禁**；失败时把 expected/actual/diff 三联图作为 `visual-diffs` artifact 上传。挂在 `test` 后面是为了别在构建已经挂掉时还白拉一次 2GB 镜像——本仓库是 private，Actions 分钟数是计量的（近 30 天约 62 次运行，加上这个 job 后月用量约 500/2000 分钟）。
 - **daily-auto-merge**（`.github/workflows/daily-auto-merge.yml`）：每日 20:00 UTC 只自动合并 head 为 `automation/pokedb-environment-refresh` 或 `automation/vgcpastes-team-refresh` 的绿色非 draft PR；功能 / Agent PR 一律人工合并。`main` 无分支保护，合并即触发 Workers Builds 生产部署。
 - 仓库 `.github/workflows/` 目前只有上述两个 workflow（无独立 deploy workflow）。不要假设 GitHub Actions 负责部署或自动跑端到端。

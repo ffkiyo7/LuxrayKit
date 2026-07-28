@@ -31,6 +31,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Validate generated Pokemon facts
+        run: npm run data:pokemon-facts:check
+
       - name: Run tests
         run: npm test
 

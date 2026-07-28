@@ -1,0 +1,1103 @@
+{
+  "ruleSetId": "reg-mb",
+  "source": "https://pokeapi.co/api/v2/pokemon-species",
+  "selectionPolicy": "zh-hans entries scored for concise numeric, ecological, behavioral, and lore details; generic battle copy is penalized",
+  "facts": [
+    {
+      "nationalDexNo": 3,
+      "text": "它背上开出的大花能够吸收太阳光并将其转换为能量。",
+      "sourceLabel": "《Let’s Go！皮卡丘》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/3/",
+      "sourceVersion": "lets-go-pikachu",
+      "interestScore": 7.18
+    },
+    {
+      "nationalDexNo": 6,
+      "text": "能够喷出猛烈的火焰，仿佛连岩石都能烤焦。有时会引发森林火灾。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/6/",
+      "sourceVersion": "sword",
+      "interestScore": 5.73
+    },
+    {
+      "nationalDexNo": 9,
+      "text": "一旦锁定了目标，它会以超越了消防水枪的力道来喷水。",
+      "sourceLabel": "《Let’s Go！皮卡丘》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/9/",
+      "sourceVersion": "lets-go-pikachu",
+      "interestScore": 7.18
+    },
+    {
+      "nationalDexNo": 15,
+      "text": "它会用双手和尾部的３根毒针反复刺伤敌人。",
+      "sourceLabel": "《Let’s Go！皮卡丘》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/15/",
+      "sourceVersion": "lets-go-pikachu",
+      "interestScore": 4.18
+    },
+    {
+      "nationalDexNo": 18,
+      "text": "以２马赫的飞行速度来觅食。它巨大的爪子是非常令人惧怕的武器。",
+      "sourceLabel": "《Let’s Go！皮卡丘》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/18/",
+      "sourceVersion": "lets-go-pikachu",
+      "interestScore": 5.18
+    },
+    {
+      "nationalDexNo": 24,
+      "text": "根据最新的研究显示，它们腹部的花纹有着２０种以上不同的图案。",
+      "sourceLabel": "《究极之日》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/24/",
+      "sourceVersion": "ultra-sun",
+      "interestScore": 7.55
+    },
+    {
+      "nationalDexNo": 25,
+      "text": "栖息在森林中的宝可梦。由于它脸颊上的袋子中储存了电能，触摸了之后会觉得麻麻的。",
+      "sourceLabel": "《Let’s Go！皮卡丘》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/25/",
+      "sourceVersion": "lets-go-pikachu",
+      "interestScore": 7.18
+    },
+    {
+      "nationalDexNo": 26,
+      "text": "长长的尾巴能够像接地线一样保护自己，因此即使是高压电也不会让它麻痹。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/26/",
+      "sourceVersion": "sword",
+      "interestScore": 7.73
+    },
+    {
+      "nationalDexNo": 36,
+      "text": "连１公里外针落地的声音都能听到，所以它生活在鲜有人或宝可梦出入的深山里。",
+      "sourceLabel": "《究极之日》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/36/",
+      "sourceVersion": "ultra-sun",
+      "interestScore": 9.55
+    },
+    {
+      "nationalDexNo": 38,
+      "text": "每一根尾巴里都蕴含着神通力。据说它的寿命长达１０００年。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/38/",
+      "sourceVersion": "sword",
+      "interestScore": 9.73
+    },
+    {
+      "nationalDexNo": 45,
+      "text": "它有着世界上最大的花瓣。每走一步，花瓣都会跟着摇动，同时撒出大量的毒花粉。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/45/",
+      "sourceVersion": "sword",
+      "interestScore": 5.73
+    },
+    {
+      "nationalDexNo": 59,
+      "text": "只需要一昼夜时间就能跑完１００００公里的身影令许多人为之沉醉。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/59/",
+      "sourceVersion": "sword",
+      "interestScore": 7.73
+    },
+    {
+      "nationalDexNo": 65,
+      "text": "拥有非常高的智力。据说它记得从生到死发生过的所有事情。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/65/",
+      "sourceVersion": "sword",
+      "interestScore": 5.73
+    },
+    {
+      "nationalDexNo": 68,
+      "text": "能够迅速活动４只手臂，从各个角度毫不停歇地使出拳击或手刀。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/68/",
+      "sourceVersion": "sword",
+      "interestScore": 7.73
+    },
+    {
+      "nationalDexNo": 71,
+      "text": "用花蜜的香味引诱猎物。据说被它吞入嘴里的东西，只要1天就会溶解到连骨头都不剩。",
+      "sourceLabel": "《Let’s Go！皮卡丘》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/71/",
+      "sourceVersion": "lets-go-pikachu",
+      "interestScore": 9.18
+    },
+    {
+      "nationalDexNo": 80,
+      "text": "为了能从其尾巴上吸到更多更多的甜味，贪吃的大舌贝把外壳变成了螺旋状的样子。",
+      "sourceLabel": "《究极之月》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/80/",
+      "sourceVersion": "ultra-moon",
+      "interestScore": 7.45
+    },
+    {
+      "nationalDexNo": 94,
+      "text": "即使待在自己家里也很危险。因为它会潜伏在房屋角落里仅有的一点阴暗处伺机捕捉猎物。",
+      "sourceLabel": "《究极之月》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/94/",
+      "sourceVersion": "ultra-moon",
+      "interestScore": 7.45
+    },
+    {
+      "nationalDexNo": 115,
+      "text": "育儿袋中的孩子大约３年后才会离开母亲。只有在那个时候母亲才会大声地鸣叫。",
+      "sourceLabel": "《月亮》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/115/",
+      "sourceVersion": "moon",
+      "interestScore": 9.27
+    },
+    {
+      "nationalDexNo": 121,
+      "text": "会高速旋转着身体一边游泳一边吸收微小的浮游生物。",
+      "sourceLabel": "《盾》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/121/",
+      "sourceVersion": "shield",
+      "interestScore": 7.64
+    },
+    {
+      "nationalDexNo": 127,
+      "text": "同类之间以角的成色划分等级。一只凯罗斯的角越粗越结实，它就越受异性欢迎。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/127/",
+      "sourceVersion": "sword",
+      "interestScore": 5.73
+    },
+    {
+      "nationalDexNo": 128,
+      "text": "在世界各地都有骑着肯泰罗生活的历史，但这一切的开端据说是在阿罗拉。",
+      "sourceLabel": "《太阳》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/128/",
+      "sourceVersion": "sun",
+      "interestScore": 7.36
+    },
+    {
+      "nationalDexNo": 130,
+      "text": "性格非常凶暴。从嘴里发出的破坏光线能够将一切燃烧殆尽。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/130/",
+      "sourceVersion": "sword",
+      "interestScore": 7.73
+    },
+    {
+      "nationalDexNo": 132,
+      "text": "当两只百变怪相遇的时候，为了能变成和对方相同的样子，它们动起来会比平常更加剧烈。",
+      "sourceLabel": "《盾》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/132/",
+      "sourceVersion": "shield",
+      "interestScore": 9.64
+    },
+    {
+      "nationalDexNo": 134,
+      "text": "与水融为一体，隐藏自己的气息，一动不动地埋伏着等待猎物——鱼宝可梦的到来。",
+      "sourceLabel": "《月亮》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/134/",
+      "sourceVersion": "moon",
+      "interestScore": 9.27
+    },
+    {
+      "nationalDexNo": 135,
+      "text": "能够吸入空气中的负离子，有时会吐出大约有１００００伏特的高压电。",
+      "sourceLabel": "《盾》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/135/",
+      "sourceVersion": "shield",
+      "interestScore": 7.64
+    },
+    {
+      "nationalDexNo": 136,
+      "text": "当火焰在体内积蓄时，火伊布的体温也会随之上升到最高９００度。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/136/",
+      "sourceVersion": "sword",
+      "interestScore": 5.73
+    },
+    {
+      "nationalDexNo": 142,
+      "text": "它是一种古代的凶猛宝可梦。据说，就算运用当今最先进的科技，也无法将其完美复原。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/142/",
+      "sourceVersion": "sword",
+      "interestScore": 9.73
+    },
+    {
+      "nationalDexNo": 143,
+      "text": "每天不吃上４００公斤的食物心里就不畅快。吃饱了就会开始睡觉。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/143/",
+      "sourceVersion": "sword",
+      "interestScore": 7.73
+    },
+    {
+      "nationalDexNo": 149,
+      "text": "据说它生活在无垠大海的某个地方，靠飞行来移动。但这也只是一个传言罢了。",
+      "sourceLabel": "《Let’s Go！皮卡丘》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/149/",
+      "sourceVersion": "lets-go-pikachu",
+      "interestScore": 7.18
+    },
+    {
+      "nationalDexNo": 168,
+      "text": "每晚都会为了寻求猎物而四处游走。发现猎物时会吐丝封住对方的行动，然后用牙齿啃食。",
+      "sourceLabel": "《究极之日》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/168/",
+      "sourceVersion": "ultra-sun",
+      "interestScore": 9.55
+    },
+    {
+      "nationalDexNo": 181,
+      "text": "尾巴上的光能传至宇宙，所以身在何处一目了然。因此它平时不会让尾巴发光。",
+      "sourceLabel": "《究极之日》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/181/",
+      "sourceVersion": "ultra-sun",
+      "interestScore": 9.55
+    },
+    {
+      "nationalDexNo": 184,
+      "text": "一天大部分的时间都在水中度过。天晴时会浮到水面上晒太阳。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/184/",
+      "sourceVersion": "sword",
+      "interestScore": 5.73
+    },
+    {
+      "nationalDexNo": 186,
+      "text": "明明叫声有如嚎叫一般，但某位作曲家却受其影响创作了优美的叙事曲。",
+      "sourceLabel": "《究极之日》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/186/",
+      "sourceVersion": "ultra-sun",
+      "interestScore": 5.55
+    },
+    {
+      "nationalDexNo": 196,
+      "text": "本来没有任何能力，但据说为了保护自己从而觉醒了预知能力。",
+      "sourceLabel": "《究极之日》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/196/",
+      "sourceVersion": "ultra-sun",
+      "interestScore": 5.55
+    },
+    {
+      "nationalDexNo": 197,
+      "text": "夜行性宝可梦。大大的瞳孔即便在一片漆黑中也能看清猎物的样子。",
+      "sourceLabel": "《究极之日》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/197/",
+      "sourceVersion": "ultra-sun",
+      "interestScore": 9.55
+    },
+    {
+      "nationalDexNo": 199,
+      "text": "脑海中经常会涌现出一些像是改变世界的想法，但不久后会依次忘记。",
+      "sourceLabel": "《究极之日》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/199/",
+      "sourceVersion": "ultra-sun",
+      "interestScore": 5.55
+    },
+    {
+      "nationalDexNo": 205,
+      "text": "仅在吞下猎物的瞬间，壳里面的身体才会出现，但至今仍未有人或宝可梦见过其真面目。",
+      "sourceLabel": "《究极之月》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/205/",
+      "sourceVersion": "ultra-moon",
+      "interestScore": 7.45
+    },
+    {
+      "nationalDexNo": 208,
+      "text": "据说当大岩蛇活到了１００年以上，身体的成分就会变得如同钻石一般。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/208/",
+      "sourceVersion": "sword",
+      "interestScore": 9.73
+    },
+    {
+      "nationalDexNo": 212,
+      "text": "一旦将对方认定为敌人，就会用钢铁般坚硬的钳子持续殴打对方，直到其粉身碎骨。",
+      "sourceLabel": "《究极之月》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/212/",
+      "sourceVersion": "ultra-moon",
+      "interestScore": 7.45
+    },
+    {
+      "nationalDexNo": 214,
+      "text": "用２只触角来感知气味，以此在整片森林中寻找自己超爱的甘甜树汁。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/214/",
+      "sourceVersion": "sword",
+      "interestScore": 7.73
+    },
+    {
+      "nationalDexNo": 227,
+      "text": "全身披着钢甲。虽然看上去很重，但最快能以每小时３００公里的速度飞行。",
+      "sourceLabel": "《究极之月》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/227/",
+      "sourceVersion": "ultra-moon",
+      "interestScore": 7.45
+    },
+    {
+      "nationalDexNo": 248,
+      "text": "在前进的道路上，它会遇山毁山，遇楼拆楼，是一种会移动的灾害型宝可梦。",
+      "sourceLabel": "《究极之月》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/248/",
+      "sourceVersion": "ultra-moon",
+      "interestScore": 7.45
+    },
+    {
+      "nationalDexNo": 279,
+      "text": "把小型宝可梦和蛋放进嘴里，并运送到安全地方的空中运送员。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/279/",
+      "sourceVersion": "sword",
+      "interestScore": 5.73
+    },
+    {
+      "nationalDexNo": 282,
+      "text": "如果是为了保护训练家，它就会用尽自己的精神力量制造出小型黑洞。",
+      "sourceLabel": "《盾》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/282/",
+      "sourceVersion": "shield",
+      "interestScore": 5.64
+    },
+    {
+      "nationalDexNo": 302,
+      "text": "会去吃宝石的结晶。双眼在漆黑一片的地方会发出宝石的光芒。",
+      "sourceLabel": "《盾》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/302/",
+      "sourceVersion": "shield",
+      "interestScore": 7.64
+    },
+    {
+      "nationalDexNo": 303,
+      "text": "狡黠而又恐怖的宝可梦。用可爱的举止让人麻痹大意，然后出其不意地用大颚一口吞下。",
+      "sourceLabel": "《究极之日》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/303/",
+      "sourceVersion": "ultra-sun",
+      "interestScore": 7.55
+    },
+    {
+      "nationalDexNo": 306,
+      "text": "很久以前，有位国王由于希望像波士可多拉一样强大而戴上了模仿它的头部制成的头盔。",
+      "sourceLabel": "《盾》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/306/",
+      "sourceVersion": "shield",
+      "interestScore": 7.64
+    },
+    {
+      "nationalDexNo": 310,
+      "text": "极少出现在人前。据说它的住所就在雷电落下的地方。",
+      "sourceLabel": "《盾》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/310/",
+      "sourceVersion": "shield",
+      "interestScore": 5.64
+    },
+    {
+      "nationalDexNo": 319,
+      "text": "嗅到猎物的味道后，会从臀部喷射海水，以１２０公里的时速发动袭击。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/319/",
+      "sourceVersion": "sword",
+      "interestScore": 7.73
+    },
+    {
+      "nationalDexNo": 324,
+      "text": "煤炭是其能量的来源。在煤炭龟栖息着的山里，沉睡着大量的煤炭。",
+      "sourceLabel": "《太阳》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/324/",
+      "sourceVersion": "sun",
+      "interestScore": 5.36
+    },
+    {
+      "nationalDexNo": 334,
+      "text": "一边舒适地在天空中飞翔，一边发出优美的哼唱，让听到之人都为之沉醉。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/334/",
+      "sourceVersion": "sword",
+      "interestScore": 5.73
+    },
+    {
+      "nationalDexNo": 350,
+      "text": "据说目睹了美纳斯美丽身姿的人，心中一切的愤恨都能得到抚慰。",
+      "sourceLabel": "《盾》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/350/",
+      "sourceVersion": "shield",
+      "interestScore": 7.64
+    },
+    {
+      "nationalDexNo": 359,
+      "text": "如风一般在山野中奔跑。能用它像弓一样的角来感知自然灾害的预兆。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/359/",
+      "sourceVersion": "sword",
+      "interestScore": 5.73
+    },
+    {
+      "nationalDexNo": 362,
+      "text": "拥有火焰也无法融化的冰之躯体。能让空气中的水分在一瞬间冻结。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/362/",
+      "sourceVersion": "sword",
+      "interestScore": 7.73
+    },
+    {
+      "nationalDexNo": 376,
+      "text": "不只是精神力量，还以怪力而自豪。能用４只脚抓住猎物，用爪子封住对方的行动。",
+      "sourceLabel": "《究极之日》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/376/",
+      "sourceVersion": "ultra-sun",
+      "interestScore": 7.55
+    },
+    {
+      "nationalDexNo": 405,
+      "text": "拥有透视能力的宝可梦。能够立刻发现身处于厚厚墙壁另一侧的猎物。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/405/",
+      "sourceVersion": "sword",
+      "interestScore": 11.73
+    },
+    {
+      "nationalDexNo": 411,
+      "text": "大约１亿年前的宝可梦。极其结实的脸有着超越钢铁的硬度。",
+      "sourceLabel": "《究极之月》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/411/",
+      "sourceVersion": "ultra-moon",
+      "interestScore": 9.45
+    },
+    {
+      "nationalDexNo": 428,
+      "text": "一年会换２次毛。用这个毛制作的围巾和帽子非常温暖。",
+      "sourceLabel": "《究极之日》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/428/",
+      "sourceVersion": "ultra-sun",
+      "interestScore": 7.55
+    },
+    {
+      "nationalDexNo": 442,
+      "text": "由１０８个灵魂聚在一起变成了宝可梦，但似乎有性格恶劣的灵魂混在里面。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/442/",
+      "sourceVersion": "sword",
+      "interestScore": 9.73
+    },
+    {
+      "nationalDexNo": 445,
+      "text": "头上长着的２个突起物是起感应器作用的。前方很远处猎物的样子也能知道。",
+      "sourceLabel": "《月亮》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/445/",
+      "sourceVersion": "moon",
+      "interestScore": 7.27
+    },
+    {
+      "nationalDexNo": 448,
+      "text": "能侦测到１公里开外生物的种类和心情。操纵波导以群体形式狩猎。",
+      "sourceLabel": "《月亮》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/448/",
+      "sourceVersion": "moon",
+      "interestScore": 7.27
+    },
+    {
+      "nationalDexNo": 450,
+      "text": "生气的时候非常凶暴。会喷出储存在体内的沙子来引发沙尘暴。",
+      "sourceLabel": "《盾》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/450/",
+      "sourceVersion": "shield",
+      "interestScore": 5.64
+    },
+    {
+      "nationalDexNo": 454,
+      "text": "制服了猎物之后，便会呱呱地发出胜利的欢呼。与蟾蜍王是相近的物种。",
+      "sourceLabel": "《盾》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/454/",
+      "sourceVersion": "shield",
+      "interestScore": 5.64
+    },
+    {
+      "nationalDexNo": 460,
+      "text": "会引发暴风雪的宝可梦。只要它摇动巨大的身体，周围立刻会变得一片雪白。",
+      "sourceLabel": "《盾》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/460/",
+      "sourceVersion": "shield",
+      "interestScore": 7.64
+    },
+    {
+      "nationalDexNo": 461,
+      "text": "通过用爪子留下记号来与伙伴联络。据说记号的种类有５００种以上。",
+      "sourceLabel": "《盾》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/461/",
+      "sourceVersion": "shield",
+      "interestScore": 9.64
+    },
+    {
+      "nationalDexNo": 464,
+      "text": "会在手掌的洞里塞进岩石和石丸子发射出去，每只手里可以装填３个。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/464/",
+      "sourceVersion": "sword",
+      "interestScore": 7.73
+    },
+    {
+      "nationalDexNo": 470,
+      "text": "本身并不好斗，但如果是为了保护伙伴，就会削尖尾巴上的叶片，变成刀刃来作战。",
+      "sourceLabel": "《究极之日》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/470/",
+      "sourceVersion": "ultra-sun",
+      "interestScore": 9.55
+    },
+    {
+      "nationalDexNo": 471,
+      "text": "能够降下冰晶。被它的美貌迷住的猎物会在不知不觉间被冻住。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/471/",
+      "sourceVersion": "sword",
+      "interestScore": 7.73
+    },
+    {
+      "nationalDexNo": 473,
+      "text": "在1万年前的壁画上也能见到它的身影。曾有一段时期，人们认为它已经灭绝了。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/473/",
+      "sourceVersion": "sword",
+      "interestScore": 7.73
+    },
+    {
+      "nationalDexNo": 475,
+      "text": "被称为武神的宝可梦。只有在为了保护什么的时候才会去使用自己的肘刀。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/475/",
+      "sourceVersion": "sword",
+      "interestScore": 7.73
+    },
+    {
+      "nationalDexNo": 478,
+      "text": "会吐出零下５０度的冷气冻住猎物，并把它们带回自己的巢穴，整齐地摆成一排。",
+      "sourceLabel": "《盾》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/478/",
+      "sourceVersion": "shield",
+      "interestScore": 7.64
+    },
+    {
+      "nationalDexNo": 479,
+      "text": "某位少年的发明促使人们开始制造各种活用洛托姆的机器。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/479/",
+      "sourceVersion": "sword",
+      "interestScore": 5.73
+    },
+    {
+      "nationalDexNo": 510,
+      "text": "虽然人们容易被它美丽的毛发和身姿所迷惑，但它其实是一种善变而凶暴的宝可梦。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/510/",
+      "sourceVersion": "sword",
+      "interestScore": 7.73
+    },
+    {
+      "nationalDexNo": 518,
+      "text": "总是在打瞌睡做梦。刚睡醒的时候会闹脾气，所以最好别去招惹它。",
+      "sourceLabel": "《盾》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/518/",
+      "sourceVersion": "shield",
+      "interestScore": 7.64
+    },
+    {
+      "nationalDexNo": 530,
+      "text": "别名钻头王。在地底下挖掘前进的速度达到了每小时１５０公里。",
+      "sourceLabel": "《盾》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/530/",
+      "sourceVersion": "shield",
+      "interestScore": 7.64
+    },
+    {
+      "nationalDexNo": 531,
+      "text": "拥有敏锐的听觉。连２公里以外小石头滚动的声音都能听到。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/531/",
+      "sourceVersion": "sword",
+      "interestScore": 7.73
+    },
+    {
+      "nationalDexNo": 545,
+      "text": "会和焚焰蚣激烈地争夺领地。输掉的那一方会成为另一方的猎物。",
+      "sourceLabel": "《盾》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/545/",
+      "sourceVersion": "shield",
+      "interestScore": 7.64
+    },
+    {
+      "nationalDexNo": 553,
+      "text": "虽然凶暴，但也有擅长忍耐的一面。为了捕获猎物，可以在沙子里静静等上好几天。",
+      "sourceLabel": "《盾》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/553/",
+      "sourceVersion": "shield",
+      "interestScore": 7.64
+    },
+    {
+      "nationalDexNo": 560,
+      "text": "虽然性格非常粗鲁，但也有重视家族、伙伴和领地的另一面。",
+      "sourceLabel": "《盾》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/560/",
+      "sourceVersion": "shield",
+      "interestScore": 7.64
+    },
+    {
+      "nationalDexNo": 563,
+      "text": "拥有闪亮亮的黄金之躯。据说它已再也无法记起自己曾是人类。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/563/",
+      "sourceVersion": "sword",
+      "interestScore": 5.73
+    },
+    {
+      "nationalDexNo": 569,
+      "text": "从右臂喷出的毒液十分危险，虚弱的生物只要一沾到，立刻就会丢掉性命。",
+      "sourceLabel": "《盾》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/569/",
+      "sourceVersion": "shield",
+      "interestScore": 5.64
+    },
+    {
+      "nationalDexNo": 571,
+      "text": "时刻为伙伴着想的宝可梦。为保护自己的栖息地和族群，会让敌人看到恐怖的幻象。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/571/",
+      "sourceVersion": "sword",
+      "interestScore": 7.73
+    },
+    {
+      "nationalDexNo": 584,
+      "text": "体温在零下６度左右。据说是由２只多多冰贴在一起而诞生的。",
+      "sourceLabel": "《盾》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/584/",
+      "sourceVersion": "shield",
+      "interestScore": 7.64
+    },
+    {
+      "nationalDexNo": 587,
+      "text": "一边到处放电一边飞翔，因此鸟宝可梦们都不会靠近。得益于此，可以独占食物。",
+      "sourceLabel": "《究极之月》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/587/",
+      "sourceVersion": "ultra-moon",
+      "interestScore": 9.45
+    },
+    {
+      "nationalDexNo": 609,
+      "text": "据说在用水晶灯火灵来充当照明设备的房子里，丧事会接连不断。",
+      "sourceLabel": "《盾》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/609/",
+      "sourceVersion": "shield",
+      "interestScore": 5.64
+    },
+    {
+      "nationalDexNo": 614,
+      "text": "吐出的气息冻结而成的冰牙比钢铁还硬。为了寻找食物，会在寒冷的海里游动徘徊。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/614/",
+      "sourceVersion": "sword",
+      "interestScore": 5.73
+    },
+    {
+      "nationalDexNo": 623,
+      "text": "古代人城堡的墙壁里那像炮台一样的底座是为了让泥偶巨人发射光束而建的。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/623/",
+      "sourceVersion": "sword",
+      "interestScore": 7.73
+    },
+    {
+      "nationalDexNo": 635,
+      "text": "会咬住一切会动的物体。有不少传说里都提到了三首恶龙毁灭村庄的故事。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/635/",
+      "sourceVersion": "sword",
+      "interestScore": 7.73
+    },
+    {
+      "nationalDexNo": 637,
+      "text": "据说它会挥撒自己的火焰鳞粉，造成火灾。也有说法说它会拯救遭受寒冷之苦的生灵。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/637/",
+      "sourceVersion": "sword",
+      "interestScore": 5.73
+    },
+    {
+      "nationalDexNo": 660,
+      "text": "力量不亚于挖掘机，连坚硬的岩盘也能挖掘。在隧道建设工程中十分活跃。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/660/",
+      "sourceVersion": "sword",
+      "interestScore": 5.73
+    },
+    {
+      "nationalDexNo": 663,
+      "text": "会以５００公里的时速进行突击。不给猎物留下逃跑的机会，直接以猛烈的踢击将其解决。",
+      "sourceLabel": "《盾》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/663/",
+      "sourceVersion": "shield",
+      "interestScore": 7.64
+    },
+    {
+      "nationalDexNo": 668,
+      "text": "会吐出摄氏６０００度的气息，但不会用于猎物。因为更喜欢吃生的肉。",
+      "sourceLabel": "《究极之月》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/668/",
+      "sourceVersion": "ultra-moon",
+      "interestScore": 7.45
+    },
+    {
+      "nationalDexNo": 671,
+      "text": "拥有几百年的寿命。据说会终其一生不断地守护着庭园。",
+      "sourceLabel": "《究极之月》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/671/",
+      "sourceVersion": "ultra-moon",
+      "interestScore": 9.45
+    },
+    {
+      "nationalDexNo": 675,
+      "text": "通过叶子来洞悉敌人的动向。只要使出一记拳击就能让大型翻斗车变成废铁。",
+      "sourceLabel": "《盾》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/675/",
+      "sourceVersion": "shield",
+      "interestScore": 7.64
+    },
+    {
+      "nationalDexNo": 676,
+      "text": "曾有过一个时代，贵族之间会比赛如何把它的体毛修剪得美丽。",
+      "sourceLabel": "《究极之日》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/676/",
+      "sourceVersion": "ultra-sun",
+      "interestScore": 5.55
+    },
+    {
+      "nationalDexNo": 678,
+      "text": "雄性的防卫本能很强，在保护自己和伙伴时能发挥最大的威力。",
+      "sourceLabel": "《盾》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/678/",
+      "sourceVersion": "shield",
+      "interestScore": 5.64
+    },
+    {
+      "nationalDexNo": 681,
+      "text": "坚盾剑怪曾经用强大的灵力控制人和宝可梦，建立了适合自己生活的国家。",
+      "sourceLabel": "《盾》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/681/",
+      "sourceVersion": "shield",
+      "interestScore": 5.64
+    },
+    {
+      "nationalDexNo": 683,
+      "text": "由于它会不断从体毛里散发出强烈的香气，导致伙伴训练家的嗅觉失灵。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/683/",
+      "sourceVersion": "sword",
+      "interestScore": 5.73
+    },
+    {
+      "nationalDexNo": 685,
+      "text": "能从人们身上的气味里嗅出他们的身心状态。在医疗领域的实际应用备受瞩目。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/685/",
+      "sourceVersion": "sword",
+      "interestScore": 5.73
+    },
+    {
+      "nationalDexNo": 687,
+      "text": "让身体上的花纹发光，操纵猎物，引诱其靠近。鳍的前端非常锋利。",
+      "sourceLabel": "《究极之月》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/687/",
+      "sourceVersion": "ultra-moon",
+      "interestScore": 7.45
+    },
+    {
+      "nationalDexNo": 691,
+      "text": "混在海藻里，等待着猎物，会喷出连金属都能溶解的毒液，给猎物致命一击。",
+      "sourceLabel": "《究极之月》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/691/",
+      "sourceVersion": "ultra-moon",
+      "interestScore": 7.45
+    },
+    {
+      "nationalDexNo": 693,
+      "text": "通过巨大钳子的触角感知猎物的位置，然后对其发射水炮弹。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/693/",
+      "sourceVersion": "sword",
+      "interestScore": 5.73
+    },
+    {
+      "nationalDexNo": 695,
+      "text": "在如今已灭亡的沙漠之国曾经是人们珍视的对象。和财宝一起来到了伽勒尔地区。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/695/",
+      "sourceVersion": "sword",
+      "interestScore": 5.73
+    },
+    {
+      "nationalDexNo": 697,
+      "text": "大约１亿年前的宝可梦。虽然凶暴，堂堂正正的举止却略显王者之风。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/697/",
+      "sourceVersion": "sword",
+      "interestScore": 9.73
+    },
+    {
+      "nationalDexNo": 699,
+      "text": "身体表面的温度是零下１５０度。平常是非常稳重温和的宝可梦。",
+      "sourceLabel": "《究极之月》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/699/",
+      "sourceVersion": "ultra-moon",
+      "interestScore": 9.45
+    },
+    {
+      "nationalDexNo": 700,
+      "text": "发现猎物后，就会摇晃蝴蝶结状的触角让对方大意，一旦出现可趁之机就会猛扑过去。",
+      "sourceLabel": "《月亮》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/700/",
+      "sourceVersion": "moon",
+      "interestScore": 9.27
+    },
+    {
+      "nationalDexNo": 701,
+      "text": "在使出致命的绝招之前一定要先摆出华丽的姿势。有时也会在这一刻遭到反击。",
+      "sourceLabel": "《盾》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/701/",
+      "sourceVersion": "shield",
+      "interestScore": 5.64
+    },
+    {
+      "nationalDexNo": 702,
+      "text": "用胡子来感知伙伴发出的电波。它们通过这种方式告诉彼此哪里有食物和电。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/702/",
+      "sourceVersion": "sword",
+      "interestScore": 5.73
+    },
+    {
+      "nationalDexNo": 706,
+      "text": "和人非常亲近的宝可梦。不管它的话，就会很寂寞，流着黏糊糊的眼泪鸣叫。",
+      "sourceLabel": "《太阳》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/706/",
+      "sourceVersion": "sun",
+      "interestScore": 5.36
+    },
+    {
+      "nationalDexNo": 707,
+      "text": "一直在收集钥匙的宝可梦。如果把重要的钥匙托付给它，无论发生什么它都会全力守护。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/707/",
+      "sourceVersion": "sword",
+      "interestScore": 7.73
+    },
+    {
+      "nationalDexNo": 709,
+      "text": "人们惧怕它，因为它据说会吃掉砍倒森林里树木的人。但它对住在森林里的宝可梦很亲切。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/709/",
+      "sourceVersion": "sword",
+      "interestScore": 7.73
+    },
+    {
+      "nationalDexNo": 711,
+      "text": "深夜时分，它身体里发出的诡异叫声似乎是死者在另一个世界里的痛苦哭声。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/711/",
+      "sourceVersion": "sword",
+      "interestScore": 5.73
+    },
+    {
+      "nationalDexNo": 713,
+      "text": "虽然身体的裂缝会因白天的活动而变大，但只要一晚就能全部长好。",
+      "sourceLabel": "《盾》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/713/",
+      "sourceVersion": "shield",
+      "interestScore": 5.64
+    },
+    {
+      "nationalDexNo": 715,
+      "text": "在黑暗中一边飞行一边发出能粉碎岩石的超音波痛击敌人，然后用利齿给予致命的一击。",
+      "sourceLabel": "《盾》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/715/",
+      "sourceVersion": "shield",
+      "interestScore": 5.64
+    },
+    {
+      "nationalDexNo": 724,
+      "text": "只要０.１秒就可以在翅膀的藤蔓上搭好箭羽、射向敌人，并在敌人发现前贯穿其要害。",
+      "sourceLabel": "《盾》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/724/",
+      "sourceVersion": "shield",
+      "interestScore": 7.64
+    },
+    {
+      "nationalDexNo": 727,
+      "text": "虽然行为举止十分粗野，却也有着会去帮助弱小宝可梦的温柔一面。",
+      "sourceLabel": "《盾》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/727/",
+      "sourceVersion": "shield",
+      "interestScore": 7.64
+    },
+    {
+      "nationalDexNo": 730,
+      "text": "用歌声操纵水做的气球。这个旋律会在伙伴间学习，被一代代地群体传承下去。",
+      "sourceLabel": "《太阳》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/730/",
+      "sourceVersion": "sun",
+      "interestScore": 7.36
+    },
+    {
+      "nationalDexNo": 733,
+      "text": "与伙伴互相敲击鸟嘴进行交流。通过敲击的强度和次数来互相传达心情。",
+      "sourceLabel": "《究极之日》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/733/",
+      "sourceVersion": "ultra-sun",
+      "interestScore": 5.55
+    },
+    {
+      "nationalDexNo": 740,
+      "text": "不管不顾地打架。遇到危机时刻，就会自断钳子，像发射火箭一样砸出去。",
+      "sourceLabel": "《月亮》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/740/",
+      "sourceVersion": "moon",
+      "interestScore": 5.27
+    },
+    {
+      "nationalDexNo": 745,
+      "text": "会用敏捷的动作将猎物一点一点逼入绝境。利齿总是瞄准着对方的要害。",
+      "sourceLabel": "《盾》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/745/",
+      "sourceVersion": "shield",
+      "interestScore": 7.64
+    },
+    {
+      "nationalDexNo": 748,
+      "text": "体内的毒囊中储存着满满的剧毒，毒性强到能让吼鲸王都痛苦三天三夜。",
+      "sourceLabel": "《盾》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/748/",
+      "sourceVersion": "shield",
+      "interestScore": 7.64
+    },
+    {
+      "nationalDexNo": 750,
+      "text": "拥有很强的耐力，可以不眠不休地拉着１０吨重的货物纵贯伽勒尔地区。",
+      "sourceLabel": "《盾》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/750/",
+      "sourceVersion": "shield",
+      "interestScore": 9.64
+    },
+    {
+      "nationalDexNo": 752,
+      "text": "会用脚发射水泡，包住猎物让其溺水，然后花时间慢慢品尝。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/752/",
+      "sourceVersion": "sword",
+      "interestScore": 5.73
+    },
+    {
+      "nationalDexNo": 758,
+      "text": "焰后蜥只有雌性。会释放出费洛蒙气体，让雄性的夜盗火蜥为之着迷。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/758/",
+      "sourceVersion": "sword",
+      "interestScore": 5.73
+    },
+    {
+      "nationalDexNo": 763,
+      "text": "作为腿部优美的宝可梦为人所知，成为了美容沙龙等广告的吉祥物。",
+      "sourceLabel": "《月亮》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/763/",
+      "sourceVersion": "moon",
+      "interestScore": 7.27
+    },
+    {
+      "nationalDexNo": 765,
+      "text": "智挥猩能够通过挥动由树叶和体毛所制成的扇子，随心所欲地指挥宝可梦。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/765/",
+      "sourceVersion": "sword",
+      "interestScore": 7.73
+    },
+    {
+      "nationalDexNo": 766,
+      "text": "会形成２０只左右的团队。这样团结在一起，会非常坚固，绝对不会舍弃伙伴。",
+      "sourceLabel": "《太阳》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/766/",
+      "sourceVersion": "sun",
+      "interestScore": 7.36
+    },
+    {
+      "nationalDexNo": 778,
+      "text": "有一位学者为了研究而看了它的破布里面，结果患上怪病而离开人世。",
+      "sourceLabel": "《盾》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/778/",
+      "sourceVersion": "shield",
+      "interestScore": 9.64
+    },
+    {
+      "nationalDexNo": 780,
+      "text": "心地非常善良。可一旦被激怒，就会用非常猛烈的气息把周围破坏殆尽。",
+      "sourceLabel": "《太阳》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/780/",
+      "sourceVersion": "sun",
+      "interestScore": 7.36
+    },
+    {
+      "nationalDexNo": 784,
+      "text": "一招制住猎物，发出长嚎后，伙伴们祝福的金属音会从各个地方回荡起来。",
+      "sourceLabel": "《究极之日》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/784/",
+      "sourceVersion": "ultra-sun",
+      "interestScore": 7.55
+    },
+    {
+      "nationalDexNo": 841,
+      "text": "会用苹果皮的翅膀飞翔，并吐出强酸性的唾液。可以变成苹果的形状。",
+      "sourceLabel": "《盾》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/841/",
+      "sourceVersion": "shield",
+      "interestScore": 7.64
+    },
+    {
+      "nationalDexNo": 842,
+      "text": "啃果虫吃了甜苹果后进化而成。以虫宝可梦为食，会从体内发出甜甜的香味引诱它们上钩。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/842/",
+      "sourceVersion": "sword",
+      "interestScore": 5.73
+    },
+    {
+      "nationalDexNo": 844,
+      "text": "蜷缩身体后从鼻孔里喷射出１００公斤的沙子。没有了沙子就会变得很懦弱。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/844/",
+      "sourceVersion": "sword",
+      "interestScore": 5.73
+    },
+    {
+      "nationalDexNo": 855,
+      "text": "每当发现喝剩的红茶，它就会把自己的身体倒进去，让那壶红茶变成怖思壶。",
+      "sourceLabel": "《盾》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/855/",
+      "sourceVersion": "shield",
+      "interestScore": 5.64
+    },
+    {
+      "nationalDexNo": 858,
+      "text": "由于会朝四周释放足以引起头痛的精神力量，其他生物都躲得远远的。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/858/",
+      "sourceVersion": "sword",
+      "interestScore": 5.73
+    },
+    {
+      "nationalDexNo": 870,
+      "text": "列阵兵由１个头头和５个跟班组成。头头的命令不可违抗。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/870/",
+      "sourceVersion": "sword",
+      "interestScore": 5.73
+    },
+    {
+      "nationalDexNo": 877,
+      "text": "总是饿着肚子。会吃掉装在像口袋一样的袋子里的种子来发电。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/877/",
+      "sourceVersion": "sword",
+      "interestScore": 5.73
+    }
+  ]
+}
