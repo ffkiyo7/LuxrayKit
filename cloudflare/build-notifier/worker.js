@@ -24,6 +24,17 @@ export function githubCommitUrl(commit) {
   return `https://github.com/${REPOSITORY}/commit/${encodeURIComponent(commit)}`;
 }
 
+export function formatUtc8(value) {
+  const milliseconds = Date.parse(value);
+  if (!Number.isFinite(milliseconds)) {
+    return null;
+  }
+  return `${new Date(milliseconds + 8 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 19)
+    .replace("T", " ")} UTC+8`;
+}
+
 export function previewUrl(branch) {
   const slug = branchPreviewSlug(branch);
   return `https://${slug}-${SOURCE_WORKER}.${PREVIEW_SUBDOMAIN}.workers.dev`;
@@ -50,6 +61,10 @@ export function buildDiscordPayload(event) {
   const commit = metadata.commitHash;
   const shortCommit = commit.slice(0, 8);
   const deploymentUrl = previewUrl(branch);
+  const renderedDeployTime =
+    formatUtc8(event.payload.stoppedAt) ??
+    formatUtc8(event.metadata?.eventTimestamp) ??
+    "unavailable";
 
   return {
     username: "Cloudflare Builds",
@@ -58,6 +73,7 @@ export function buildDiscordPayload(event) {
       "🧪 **LuxrayKit Preview**",
       `**branch:** [${branch}](${githubBranchUrl(branch)})`,
       `**commit:** [${shortCommit}](${githubCommitUrl(commit)})`,
+      `**deploy time:** ${renderedDeployTime}`,
       `**Preview:** [Open deployment](${deploymentUrl})`,
     ].join("\n"),
     allowed_mentions: { parse: [] },
