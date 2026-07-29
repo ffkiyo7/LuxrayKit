@@ -15,6 +15,8 @@
     "data:regma:allowlist": "node scripts/generate-regma-allowlist.mjs",
     "data:regma:abilities": "node scripts/generate-ability-effects.mjs",
     "data:regma:moves": "node scripts/generate-champions-moves.mjs",
+    "data:items:audit": "node scripts/audit-item-catalog.mjs",
+    "data:items:refresh": "node scripts/audit-item-catalog.mjs --write",
     "data:pokemon-facts": "node scripts/generate-pokemon-facts.mjs",
     "data:pokemon-facts:check": "node scripts/generate-pokemon-facts.mjs --check",
     "data:pokedb:environment": "node scripts/update-pokedb-environment.mjs",

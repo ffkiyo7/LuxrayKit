@@ -48,39 +48,44 @@ const mbMegaBaseArtworkIds = {
   'mega-falinks': '870',
 } as const;
 
-const mbAssetItemIds = [
-  'big-root',
-  'damp-rock',
-  'expert-belt',
-  'heat-rock',
-  'icy-rock',
-  'iron-ball',
-  'life-orb',
-  'light-clay',
-  'metronome',
-  'muscle-band',
-  'shed-shell',
-  'smooth-rock',
-  'wide-lens',
-  'wise-glasses',
-  'zoom-lens',
-  'barbaracite',
-  'blazikenite',
-  'dragalgite',
-  'eelektrossite',
-  'falinksite',
-  'malamarite',
-  'mawilite',
-  'metagrossite',
-  'pyroarite',
-  'raichunite',
-  'raichunite-x',
-  'scolipite',
-  'scraftinite',
-  'sceptilite',
-  'staraptite',
-  'swampertite',
-] as const;
+const championsMegaStoneIconHashes = {
+  'blazikenite': 'a23d38288905efa07c745e69f6f4d4b1868c41ea328882c084a61b71cfdd646f',
+  'mawilite': '3898ad6268b67415b4fe27cdf9c6441096f470d653e9a62143f275b60d765b22',
+  'metagrossite': 'fab43b56ff84fa2dfa6ca9ebf6da498561e6963a2e2da2db9cfce7eec14b2021',
+  'sceptilite': '561aab606d7427b1a80c3c2992ea7bad7ad462ab0783c2c5b4a7654e7b1b6ba1',
+  'swampertite': '88e97754c9d55ed4113dcc1d74e8fc9cb3441defec999302c0256bcb28011baa',
+} as const;
+
+const canonicalBerryData = {
+  'aspear-berry': { chineseName: '利木果', effectSummary: '携带者陷入冰冻时解除冰冻，使用后消耗。', iconHash: '162489a00a8cac2545b74fad77dc79632198d3e09e153e688130b4238a563ae7' },
+  'babiri-berry': { chineseName: '霹霹果', effectSummary: '首次受到效果绝佳的钢属性招式攻击时，伤害减半，使用后消耗。', iconHash: '4ccd5cc64b20575bafe64ef861725b964b4f621c038169df30b3cac211b37bd5' },
+  'charti-berry': { chineseName: '草蚕果', effectSummary: '首次受到效果绝佳的岩石属性招式攻击时，伤害减半，使用后消耗。', iconHash: '8675038a42a47bd002532214af1fa94ead6573476fef7eab5ef0c65502d0e16f' },
+  'cheri-berry': { chineseName: '樱子果', effectSummary: '携带者陷入麻痹时解除麻痹，使用后消耗。', iconHash: '949f8cb36532f09ff97ca41f97db3104abc16c209496181fea38839d79c5ce00' },
+  'chesto-berry': { chineseName: '零余果', effectSummary: '携带者陷入睡眠时解除睡眠，使用后消耗。', iconHash: '6620e6507a3bc28c08f5f264e5b461cad0db9dce647d3cab0a4f5421e36abafd' },
+  'chilan-berry': { chineseName: '灯浆果', effectSummary: '首次受到一般属性招式攻击时，伤害减半，使用后消耗。', iconHash: 'f84548b41899db4755f6c07259d9d0750452e8879d9f574101197e1aea3667df' },
+  'chople-berry': { chineseName: '莲蒲果', effectSummary: '首次受到效果绝佳的格斗属性招式攻击时，伤害减半，使用后消耗。', iconHash: '03e499f067f5679b0cec8eb015b90bfa7ae26e0507d1815fdedf48e41190a56e' },
+  'coba-berry': { chineseName: '棱瓜果', effectSummary: '首次受到效果绝佳的飞行属性招式攻击时，伤害减半，使用后消耗。', iconHash: 'db26fb90b9b56dfa8f74f09571f0b591ba55954494de6aba6543afbe79983b08' },
+  'colbur-berry': { chineseName: '刺耳果', effectSummary: '首次受到效果绝佳的恶属性招式攻击时，伤害减半，使用后消耗。', iconHash: '98a92b28058e3059dd139a4a5652bc496c0ad2778ad6a3c5f72491a69a0503e0' },
+  'haban-berry': { chineseName: '莓榴果', effectSummary: '首次受到效果绝佳的龙属性招式攻击时，伤害减半，使用后消耗。', iconHash: '06e19bce4e09c45c180538eb85ea1ce9fb05df2d510f2a79c6cf1c3c35d48759' },
+  'kasib-berry': { chineseName: '佛柑果', effectSummary: '首次受到效果绝佳的幽灵属性招式攻击时，伤害减半，使用后消耗。', iconHash: '8ebdffc2650b06e7a70a066051d04621e23a3ba1f0026219b3ce6bc67e5ae61c' },
+  'kebia-berry': { chineseName: '通通果', effectSummary: '首次受到效果绝佳的毒属性招式攻击时，伤害减半，使用后消耗。', iconHash: 'bca389c73eaa1475e9d3733b409e960763f56963e1c066b5498ab32e15c83243' },
+  'leppa-berry': { chineseName: '苹野果', effectSummary: '招式的 PP 降至 0 时回复该招式 10 PP，使用后消耗。', iconHash: '69db79560fd815477f5a6901ee08c4ebaed368bb420e07547dfea0a79b5bd2f4' },
+  'lum-berry': { chineseName: '木子果', effectSummary: '解除携带者的异常状态或混乱，使用后消耗。', iconHash: 'eab0124365d18b7439b553edd5cf02e17297b72495a79e37114ee5398d0e3996' },
+  'occa-berry': { chineseName: '巧可果', effectSummary: '首次受到效果绝佳的火属性招式攻击时，伤害减半，使用后消耗。', iconHash: 'b4c94b94159227fed46ccad3c063f3a9b418f7ef9eab635ccd17197c1ca814fb' },
+  'oran-berry': { chineseName: '橙橙果', effectSummary: 'HP 降至一半或以下时回复 10 HP，使用后消耗。', iconHash: '4d4d31e7c29a4540d5f438b87bb1762bf3cd7b0920e523fc9020f6c0bace1c1a' },
+  'passho-berry': { chineseName: '千香果', effectSummary: '首次受到效果绝佳的水属性招式攻击时，伤害减半，使用后消耗。', iconHash: '48786c103dcde11eee3b938c360259c687ab44b0d4ea3aae6fcc8099f1b05671' },
+  'payapa-berry': { chineseName: '福禄果', effectSummary: '首次受到效果绝佳的超能力属性招式攻击时，伤害减半，使用后消耗。', iconHash: '95bced7a647a219b7e6ba313a6fb83b0d911dd6428beca1b4f6403d3a3e7457b' },
+  'pecha-berry': { chineseName: '桃桃果', effectSummary: '携带者陷入中毒时解除中毒，使用后消耗。', iconHash: '9efb16dc703ef654ce0532329613d51150dcc3c9a77f0101f33d54b15a00028a' },
+  'persim-berry': { chineseName: '柿仔果', effectSummary: '携带者陷入混乱时解除混乱，使用后消耗。', iconHash: 'e09597ca2770a12a55683e4e631361093491883a111363641a9b46f4b8929b2d' },
+  'rawst-berry': { chineseName: '莓莓果', effectSummary: '携带者陷入灼伤时解除灼伤，使用后消耗。', iconHash: '3c3976d2121647f4c1b19673de8424baa80f59f5d4ea91e447c14fef5da64066' },
+  'rindo-berry': { chineseName: '罗子果', effectSummary: '首次受到效果绝佳的草属性招式攻击时，伤害减半，使用后消耗。', iconHash: '5b00f01a17471cc2f3587b476c9f76900d8049cf2542bcc9efb46431d6255d03' },
+  'roseli-berry': { chineseName: '洛玫果', effectSummary: '首次受到效果绝佳的妖精属性招式攻击时，伤害减半，使用后消耗。', iconHash: 'bc238c15f94a67d8895b1b941c22f43c1f78ec3922719c335db23585d5cf9bc4' },
+  'shuca-berry': { chineseName: '腰木果', effectSummary: '首次受到效果绝佳的地面属性招式攻击时，伤害减半，使用后消耗。', iconHash: '6932f15326f90ea473005d18a7c13b4d50be5247455cf4daecdb7399c00499b8' },
+  'sitrus-berry': { chineseName: '文柚果', effectSummary: 'HP 降至一半或以下时回复最大 HP 的 1/4，使用后消耗。', iconHash: '934d9dcfdc189fd01987f1e0356e079cf32d4d3aafac89ca3e77158c8f44c10e' },
+  'tanga-berry': { chineseName: '扁樱果', effectSummary: '首次受到效果绝佳的虫属性招式攻击时，伤害减半，使用后消耗。', iconHash: 'b3791845d1536fdf02926b447727cfbedadeca89dbcee05af794c1774a801601' },
+  'wacan-berry': { chineseName: '烛木果', effectSummary: '首次受到效果绝佳的电属性招式攻击时，伤害减半，使用后消耗。', iconHash: 'f31ca263b9ccc47d2a743878fc271fadedf36925b7e6bd26d54c29f42f821b19' },
+  'yache-berry': { chineseName: '番荔果', effectSummary: '首次受到效果绝佳的冰属性招式攻击时，伤害减半，使用后消耗。', iconHash: '77e7e38bddcd0ad8368da55b9fc8ee40b3949e7ab53130cbd4b455ba5a272d62' },
+} as const;
 
 describe('seed data audit', () => {
   it('keeps current seed data internally consistent', () => {
@@ -103,6 +108,8 @@ describe('seed data audit', () => {
     expect(sourceRefIds.has('pokemon-zhwiki-ability-text')).toBe(true);
     expect(sourceRefIds.has('pokebase-champions-mega-data')).toBe(true);
     expect(sourceRefIds.has('pokebase-champions-learnsets')).toBe(true);
+    expect(sourceRefIds.has('pokeapi-item-data')).toBe(true);
+    expect(sourceRefIds.has('pokeapi-item-sprites')).toBe(true);
     expect(sourceRefIds.has('pokeapi-move-data')).toBe(true);
     expect(sourceRefIds.has('pokemon-zh-dataset-move-text')).toBe(true);
     expect(auditSourceRefs('Test row', ['reg-mb-official-rule'])).toEqual([]);
@@ -222,9 +229,39 @@ describe('seed data audit', () => {
     expect(items.find((item) => item.id === 'clear-amulet')?.legalInCurrentRule).toBe(false);
   });
 
+  it('keeps Mega Stone owners and current-rule item descriptions aligned', () => {
+    const ownerIdsByStone = new Map<string, Set<string>>();
+    for (const entry of pokemon) {
+      for (const form of entry.megaForms) {
+        const ownerIds = ownerIdsByStone.get(form.requiredItemId) ?? new Set<string>();
+        ownerIds.add(entry.id);
+        ownerIdsByStone.set(form.requiredItemId, ownerIds);
+      }
+    }
+
+    for (const stone of items.filter((item) => item.isMegaStone)) {
+      expect([...(ownerIdsByStone.get(stone.id) ?? [])].sort(), `${stone.id} owner`).toEqual([...stone.applicablePokemonIds].sort());
+      expect(stone.effectSummary).toBe('让对应的宝可梦在战斗中进行 Mega Evolution。');
+    }
+
+    const heldItems = currentRuleSelectableItems().filter((item) => !item.isMegaStone && !item.id.endsWith('-berry'));
+    expect(heldItems).toHaveLength(45);
+    for (const item of heldItems) {
+      expect(item.sourceRefs, `${item.id} localized source`).toContain('pokeapi-item-data');
+      expect(item.effectSummary, `${item.id} must not use vague effect wording`).not.toMatch(/少量|有概率|更长/);
+      expect(item.effectSummary, `${item.id} must not contain copied layout whitespace`).not.toMatch(/ＨＰ|  +/);
+    }
+
+    expect(items.find((item) => item.id === 'icy-rock')?.effectSummary).toBe('携带者召唤的雪天气延长 3 回合（共 8 回合）。');
+    expect(items.find((item) => item.id === 'life-orb')?.effectSummary).toBe('招式威力提高 30%；使出造成伤害的招式后损失最大 HP 的 10%。');
+    expect(items.find((item) => item.id === 'light-clay')?.effectSummary).toBe('光墙、反射壁和极光幕延长 3 回合（共 8 回合）。');
+    expect(items.find((item) => item.id === 'mental-herb')?.effectSummary).toContain('再来一次');
+  });
+
   it('keeps all current-rule items with local iconRef snapshots', () => {
     const selectable = currentRuleSelectableItems();
     expect(selectable).toHaveLength(148);
+    const itemHashes = new Map<string, string[]>();
 
     for (const item of selectable) {
       // iconRef must exist
@@ -232,6 +269,7 @@ describe('seed data audit', () => {
       // Must be local path, not PokeAPI remote
       expect(item.iconRef, `${item.id} iconRef must be local /assets/items/`).toMatch(/^\/assets\/items\//);
       expect(item.iconRef, `${item.id} must not use PokeAPI remote`).not.toContain('raw.githubusercontent.com/PokeAPI');
+      expect(item.iconRef, `${item.id} must map to its own item asset`).toBe(`/assets/items/${item.id}.png`);
 
       // File must exist on disk
       const filePath = `public${item.iconRef}`;
@@ -239,6 +277,26 @@ describe('seed data audit', () => {
       expect(readFileSync(filePath).subarray(0, 8), `${item.id} icon file must be a PNG`).toEqual(
         Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
       );
+      const hash = fileHash(filePath);
+      itemHashes.set(hash, [...(itemHashes.get(hash) ?? []), item.id]);
+    }
+
+    expect([...itemHashes.values()].filter((ids) => ids.length > 1), 'every item must have its own image snapshot').toEqual([]);
+    for (const [itemId, expectedHash] of Object.entries(championsMegaStoneIconHashes)) {
+      expect(fileHash(`public/assets/items/${itemId}.png`), `${itemId} must keep its Champions image snapshot`).toBe(expectedHash);
+    }
+
+    const berries = selectable.filter((item) => item.id.endsWith('-berry'));
+    expect(berries.map((item) => item.id).sort(), 'current-rule berry catalog').toEqual(Object.keys(canonicalBerryData).sort());
+    for (const berry of berries) {
+      expect(berry.sourceRefs, `${berry.id} source`).toContain('pokeapi-item-sprites');
+      expect(berry.sourceRefs, `${berry.id} localized source`).toContain('pokeapi-item-data');
+      const expected = canonicalBerryData[berry.id as keyof typeof canonicalBerryData];
+      expect(berry.chineseName, `${berry.id} Chinese identity`).toBe(expected.chineseName);
+      expect(berry.effectSummary, `${berry.id} effect copy`).toBe(expected.effectSummary);
+    }
+    for (const [itemId, expected] of Object.entries(canonicalBerryData)) {
+      expect(fileHash(`public/assets/items/${itemId}.png`), `${itemId} must keep its canonical berry sprite`).toBe(expected.iconHash);
     }
 
     // Out-of-rule items (Clear Amulet, Assault Vest) are NOT required to have local images
@@ -257,16 +315,6 @@ describe('seed data audit', () => {
       expect(fileHash(megaArtworkPath), `${megaId} artwork must not reuse base artwork ${baseArtworkId}`).not.toBe(fileHash(baseArtworkPath));
     }
 
-    const itemHashes = new Map<string, string[]>();
-    for (const itemId of mbAssetItemIds) {
-      const itemPath = `public/assets/items/${itemId}.png`;
-      expect(existsSync(itemPath), `${itemId} icon file missing`).toBe(true);
-      const hash = fileHash(itemPath);
-      itemHashes.set(hash, [...(itemHashes.get(hash) ?? []), itemId]);
-    }
-
-    const duplicateItemIcons = [...itemHashes.values()].filter((ids) => ids.length > 1);
-    expect(duplicateItemIcons).toEqual([]);
   });
 
   it('uses Eternal Flower Floette art for the Champions Floette entry', () => {

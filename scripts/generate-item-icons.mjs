@@ -10,6 +10,7 @@ const ASSETS_DIR = resolve(ROOT, 'public/assets/items');
 const MAPPING_OUTPUT = resolve(ROOT, 'src/data/seed/regMA/item-icon-mapping.ts');
 
 const POKEBASE = 'https://pokebase.app/pokemon-champions/items';
+const POKEAPI_ITEM_SPRITES = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items';
 const UA = 'PokemonChampionsTool/1.0 (data ingestion script)';
 
 await mkdir(ASSETS_DIR, { recursive: true });
@@ -54,9 +55,13 @@ while ((mm = megaRe.exec(megaSection.slice(0, megaEnd)))) {
 const allItems = [...heldRows, ...megaStoneRows, ...berryRows];
 console.log(`Parsed: ${heldRows.length} held items + ${megaStoneRows.length} mega stones + ${berryRows.length} berries = ${allItems.length} legal items`);
 
-// ── Fetch image from PokéBase ──
+// ── Fetch image from the item-specific source ──
 
 async function fetchItemImage(item) {
+  // PokéBase's current berry artwork is not a reliable identity reference.
+  // Keep berries on the canonical PokeAPI ID → sprite path instead.
+  if (item.type === 'berry') return `${POKEAPI_ITEM_SPRITES}/${item.id}.png`;
+
   const url = `${POKEBASE}/${item.id}`;
   try {
     const r = await fetch(url, { headers: { 'User-Agent': UA } });
@@ -101,7 +106,7 @@ async function downloadImage(url, outPath) {
 
 // ── Main ──
 
-console.log(`\nFetching images from PokéBase...\n`);
+console.log(`\nFetching item images from their configured sources...\n`);
 
 const results = [];
 let idx = 0;
@@ -145,9 +150,9 @@ if (failCount > 0) {
 
 // Generate iconRef mapping for catalog
 const lines = [];
-lines.push('// Auto-generated item icon mapping from PokéBase Champions');
+lines.push('// Auto-generated item icon mapping');
 lines.push(`// Generated: ${new Date().toISOString()}`);
-lines.push(`// Source: ${POKEBASE}`);
+lines.push(`// Sources: ${POKEBASE} (held items and Mega Stones); ${POKEAPI_ITEM_SPRITES} (berries)`);
 lines.push('');
 lines.push('export const itemIconMapping: Record<string, string> = {');
 for (const r of results) {
