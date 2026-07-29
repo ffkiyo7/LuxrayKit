@@ -276,7 +276,11 @@ npm run data:vgcpastes:champions-ma:check  # 只校验 M-A 产物是否与来源
 npm run data:vgcpastes:champions-mb:check  # M-B 同上
 npm run data:vgcpastes:pr              # 外部主机默认刷新 M-B 并创建/更新自动化 PR
 npm run data:regma:allowlist / :abilities / :moves   # 重生成 seed 派生数据
+npm run data:items:audit                # 只读核验 148 条当前规则道具的中英文名称、类别与本地图片
+npm run data:items:refresh              # 仅用来源图刷新不匹配的本地道具图片
 ```
+
+`data:items:audit` 从 PokéBase Champions 当前 M-B 道具列表读取英文名和类别，并用 PokeAPI `zh-hans` 道具名核验普通道具与树果的中文身份（PokeAPI 暂无中文名的妖精之羽按 52Poké 人工核验）；普通道具、进化石图片按 PokéBase 对照，树果图片按 PokeAPI 的 `item id → sprite` 对照，再核验 `catalog.ts` 与 `public/assets/items/`。`--report` 会同时打印本地中文效果摘要与 PokéBase 英文描述，供人工逐项语义校对；跨语言描述不冒充自动判定。网络源不稳定或出现不一致时审计会失败，不作为 CI 门禁。`data:items:refresh` 只替换已确认图片不匹配的本地快照，仍须人工检查 diff 后提交；不要手改 `item-icon-mapping.ts` 或单个图片文件。
 
 `update-pokedb-environment.mjs` 会同时写源码审计快照（`src/data/external/pokedb/current_environment_snapshot.json`）与 public 运行时 JSON（`public/data/pokedb/reg-ma-environment.json`），后者即前端第二级回退。
 

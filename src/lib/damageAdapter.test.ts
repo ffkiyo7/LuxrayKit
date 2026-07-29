@@ -607,7 +607,7 @@ describe('damageAdapter', () => {
         itemId: 'black-belt',
         direction: 'boost',
         label: '进攻道具：黑带',
-        text: '提升格斗属性招式威力。',
+        text: '格斗属性招式的威力提高 20%。',
       }),
     ]);
     expect(withChoiceScarf.itemEffects).toEqual([]);

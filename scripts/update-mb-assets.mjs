@@ -79,6 +79,7 @@ const mbMegaIds = [
 
 const pokebaseItemImageUrls = {
   'big-root': 'https://i.pokebase.app/pokemon-champions/fBfnq_uLOvzwak-LJSeFh.png',
+  'blazikenite': 'https://i.pokebase.app/pokemon-champions/qUqlDuJZbvK4Nh0MVkOOB.png',
   'damp-rock': 'https://i.pokebase.app/pokemon-champions/Cc5ME08Akgglf2Pt-4zpw.png',
   'expert-belt': 'https://i.pokebase.app/pokemon-champions/2RFmJIw985pMZlhzX_z-3.png',
   'heat-rock': 'https://i.pokebase.app/pokemon-champions/uGLul9SSah0LKF2mhIQ0X.png',
@@ -97,20 +98,16 @@ const pokebaseItemImageUrls = {
   'dragalgite': 'https://i.pokebase.app/pokemon-champions/DyEIqa6xU-WPWtkUmGDYn.png',
   'falinksite': 'https://i.pokebase.app/pokemon-champions/4u4k99MbyH5kThVWNSN_B.png',
   'malamarite': 'https://i.pokebase.app/pokemon-champions/50IljnfEAfIFOHzayrd27.png',
+  'mawilite': 'https://i.pokebase.app/pokemon-champions/MJ5sQPwSXKp4PPC9ERWJq.png',
+  'metagrossite': 'https://i.pokebase.app/pokemon-champions/kt0skfl3PoK9SqsjSyH0B.png',
   'raichunite': 'https://i.pokebase.app/pokemon-champions/Jj8sr642siWQNgwUQTilR.png',
   'raichunite-x': 'https://i.pokebase.app/pokemon-champions/9Wa1jATqM367hsgWL0Acx.png',
   'scolipite': 'https://i.pokebase.app/pokemon-champions/5MP374N6pblGrMsdz0hjB.png',
   'scraftinite': 'https://i.pokebase.app/pokemon-champions/XBPoG_u0Nvi2NZkEVz_6N.png',
+  'sceptilite': 'https://i.pokebase.app/pokemon-champions/m6hR-mCW3GcMA1n0d4Kij.png',
   'staraptite': 'https://i.pokebase.app/pokemon-champions/Ot6Pna1hVnVdeRTyiuBQV.png',
+  'swampertite': 'https://i.pokebase.app/pokemon-champions/TMwN7XtR6FQmapI6srxw2.png',
 };
-
-const pokeApiItemIds = new Set([
-  'blazikenite',
-  'mawilite',
-  'metagrossite',
-  'sceptilite',
-  'swampertite',
-]);
 
 const serebiiZaItemUrls = {
   'eelektrossite': 'https://www.serebii.net/itemdex/sprites/za/eelektrossite.png',
@@ -273,7 +270,6 @@ async function writeMegaAssets() {
 
 function itemSourceUrl(id) {
   if (pokebaseItemImageUrls[id]) return pokebaseItemImageUrls[id];
-  if (pokeApiItemIds.has(id)) return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/${id}.png`;
   if (serebiiZaItemUrls[id]) return serebiiZaItemUrls[id];
   throw new Error(`No verified source configured for item ${id}`);
 }
