@@ -507,6 +507,7 @@ const heldItem = ([id, chineseName, englishName, effectSummary]: (typeof heldIte
   chineseName,
   englishName,
   effectSummary,
+  category: 'held-item',
   legalInCurrentRule: true,
   isMegaStone: false,
   applicablePokemonIds: [],
@@ -517,6 +518,7 @@ const heldItem = ([id, chineseName, englishName, effectSummary]: (typeof heldIte
 
 const berryItem = (row: (typeof berryRows)[number]): Item => ({
   ...heldItem(row),
+  category: 'berry',
   sourceRefs: berryItemRefs,
 });
 
@@ -525,6 +527,7 @@ const megaStone = ([id, chineseName, englishName, applicablePokemonIds = []]: Me
   chineseName,
   englishName,
   effectSummary: '让对应的宝可梦在战斗中进行 Mega Evolution。',
+  category: 'mega-evolution',
   legalInCurrentRule: true,
   isMegaStone: true,
   applicablePokemonIds: [...applicablePokemonIds],
@@ -538,6 +541,7 @@ const unavailableItem = (id: string, chineseName: string, englishName: string, e
   chineseName,
   englishName,
   effectSummary,
+  category: 'held-item',
   legalInCurrentRule: false,
   isMegaStone: false,
   applicablePokemonIds: [],

@@ -149,6 +149,11 @@ test('captures the mobile visual regression smoke set', { timeout: 60_000 }, asy
   await expect(page.getByText('最多选择 2 个属性')).toBeVisible();
   await expect(page).toHaveScreenshot('12-dex-type-filter.png', screenshotOptions);
   await page.getByTitle('关闭属性筛选').click();
+  await page.getByRole('button', { name: '道具' }).click();
+  await page.getByRole('button', { name: '打开道具类别筛选' }).click();
+  await expect(page.getByText('道具类别筛选')).toBeVisible();
+  await expect(page).toHaveScreenshot('18-dex-item-filter.png', screenshotOptions);
+  await page.getByTitle('关闭道具类别筛选').click();
 
   await page.getByRole('button', { name: '我的', exact: true }).click();
   await scrollTop(page);

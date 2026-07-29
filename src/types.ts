@@ -164,11 +164,14 @@ export type Move = {
   sourceRefs: string[];
 };
 
+export type ItemCategory = 'held-item' | 'berry' | 'mega-evolution';
+
 export type Item = {
   id: string;
   chineseName: string;
   englishName: string;
   effectSummary: string;
+  category: ItemCategory;
   legalInCurrentRule: boolean;
   isMegaStone: boolean;
   applicablePokemonIds: string[];

@@ -1200,6 +1200,31 @@ describe('App page flows', () => {
     expect(screen.queryByText('文柚果')).toBeNull();
 
     await user.clear(screen.getByPlaceholderText('搜索名称'));
+    await user.click(screen.getByRole('button', { name: '打开道具类别筛选' }));
+    expect(screen.getByText('道具类别筛选')).toBeTruthy();
+    expect(screen.getByText('45 件')).toBeTruthy();
+    expect(screen.getByText('28 件')).toBeTruthy();
+    expect(screen.getByText('75 件')).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: '树果' }));
+    await user.click(screen.getByRole('button', { name: '完成' }));
+    expect(screen.getByText('文柚果')).toBeTruthy();
+    expect(screen.queryByText('讲究围巾')).toBeNull();
+    expect(screen.queryByText('烈咬陆鲨进化石')).toBeNull();
+
+    await user.type(screen.getByPlaceholderText('搜索名称'), 'HP');
+    expect(screen.getByText('文柚果')).toBeTruthy();
+    expect(screen.queryByText('大根茎')).toBeNull();
+    await user.clear(screen.getByPlaceholderText('搜索名称'));
+
+    await user.click(screen.getByRole('button', { name: '打开道具类别筛选' }));
+    await user.click(screen.getByRole('button', { name: '常规道具' }));
+    await user.click(screen.getByRole('button', { name: '完成' }));
+    expect(screen.getByText('讲究围巾')).toBeTruthy();
+    expect(screen.getByText('文柚果')).toBeTruthy();
+    expect(screen.queryByText('烈咬陆鲨进化石')).toBeNull();
+    await user.click(screen.getByRole('button', { name: '清空' }));
+    expect(screen.getByText('烈咬陆鲨进化石')).toBeTruthy();
+
     await user.click(screen.getByRole('button', { name: '招式' }));
     const firstNormalMoveCard = screen.getByText(/百万吨重踢 Mega Kick/).closest('section')!;
     const firstPoisonMoveCard = screen.getByText(/溶化 Acid Armor/).closest('section')!;
