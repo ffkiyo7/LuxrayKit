@@ -8,7 +8,7 @@ import { evaluateMemberLegality } from '../lib/legality';
 import { getDexFormEntries, type DexFormEntry } from '../lib/pokemonForms';
 import { createDefaultTeamMember } from '../lib/teamMemberDefaults';
 import { useAppStore } from '../state/AppContext';
-import type { Move, PokemonType } from '../types';
+import type { ItemCategory, Move, PokemonType } from '../types';
 import { Button, Card, EmptyState, OverlappingAvatars, PokemonAvatar, TypeBadge } from '../components/ui';
 
 type DexTab = 'pokemon' | 'moves' | 'items' | 'abilities';
@@ -16,6 +16,7 @@ type TypeFilter = { label: string; value: PokemonType };
 type MoveSortKey = 'type' | 'power';
 type SortDirection = 'asc' | 'desc';
 type PortraitSize = 'list' | 'detail';
+type ItemCategoryFilter = { label: string; value: ItemCategory };
 
 const typeFilters: TypeFilter[] = [
   { label: '一般', value: 'Normal' },
@@ -42,6 +43,14 @@ const typeLabelByValue = Object.fromEntries(typeFilters.map((filter) => [filter.
 const categoryLabels = { Physical: '物理', Special: '特殊', Status: '变化' };
 const categoryOrder = { Physical: 0, Special: 1, Status: 2 };
 const typeOrder = Object.fromEntries(typeFilters.map((filter, index) => [filter.value, index])) as Record<PokemonType, number>;
+const itemCategoryFilters: ItemCategoryFilter[] = [
+  { label: '常规道具', value: 'held-item' },
+  { label: '树果', value: 'berry' },
+  { label: 'Mega 进化石', value: 'mega-evolution' },
+];
+const itemCategoryLabelByValue = Object.fromEntries(
+  itemCategoryFilters.map((filter) => [filter.value, filter.label]),
+) as Record<ItemCategory, string>;
 
 const statLabels = {
   HP: 'HP',
@@ -364,6 +373,61 @@ function MoveTypeFilterSheet({
   );
 }
 
+function ItemCategoryFilterSheet({
+  selectedCategories,
+  categoryCounts,
+  onToggle,
+  onClear,
+  onClose,
+}: {
+  selectedCategories: ItemCategory[];
+  categoryCounts: Record<ItemCategory, number>;
+  onToggle: (category: ItemCategory) => void;
+  onClear: () => void;
+  onClose: () => void;
+}) {
+  return (
+    <div className="fixed inset-x-0 bottom-0 z-30 mx-auto max-w-[430px] rounded-t-2xl border border-border bg-card p-4 shadow-none" data-bottom-nav-lock="true">
+      <div className="mx-auto mb-3 h-1 w-9 rounded-full bg-disabled" />
+      <div className="mb-3 flex items-start justify-between gap-3">
+        <div>
+          <h3 className="text-base font-semibold">道具类别筛选</h3>
+          <p className="text-xs text-textSecondary">可多选，选中任一类别的道具会显示；不选择时显示全部</p>
+        </div>
+        <button className="grid h-8 w-8 place-items-center rounded-lg text-textSecondary" title="关闭道具类别筛选" onClick={onClose}>
+          <X size={18} />
+        </button>
+      </div>
+      <div className="grid grid-cols-3 gap-2">
+        {itemCategoryFilters.map((filter) => {
+          const active = selectedCategories.includes(filter.value);
+          return (
+            <button
+              key={filter.value}
+              aria-label={filter.label}
+              aria-pressed={active}
+              className={`flex min-h-14 flex-col items-center justify-center rounded-lg border p-2 text-xs font-semibold active:scale-[0.99] ${
+                active ? 'border-accent bg-accent/15 text-accent' : 'border-border bg-secondary text-textSecondary'
+              }`}
+              type="button"
+              onClick={() => onToggle(filter.value)}
+            >
+              <span>{filter.label}</span>
+              <span className="mt-0.5 text-[11px] font-normal opacity-75">{categoryCounts[filter.value]} 件</span>
+            </button>
+          );
+        })}
+      </div>
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        <Button variant="ghost" onClick={onClear} disabled={selectedCategories.length === 0}>
+          清空
+        </Button>
+        <Button onClick={onClose}>完成</Button>
+      </div>
+    </div>
+  );
+}
+
 function PokemonDetail({
   entry,
   onBack,
@@ -619,6 +683,8 @@ export function DexPage({
   const [showMegaOnly, setShowMegaOnly] = useState(false);
   const [selectedCatalogMoveType, setSelectedCatalogMoveType] = useState<PokemonType | null>(null);
   const [showCatalogMoveTypeFilter, setShowCatalogMoveTypeFilter] = useState(false);
+  const [selectedItemCategories, setSelectedItemCategories] = useState<ItemCategory[]>([]);
+  const [showItemCategoryFilter, setShowItemCategoryFilter] = useState(false);
   const [expandedMoveId, setExpandedMoveId] = useState<string | null>(null);
   const [detailPokemonId, setDetailPokemonId] = useState<string | null>(null);
   const [expandedAbilityListIds, setExpandedAbilityListIds] = useState<string[]>([]);
@@ -673,9 +739,24 @@ export function DexPage({
   );
   const sortedFilteredMoves = useMemo(() => sortMovesForDisplay(filteredMoves, 'type'), [filteredMoves]);
   const selectableItems = useMemo(() => currentRuleSelectableItems(), []);
+  const itemCategoryCounts = useMemo(
+    () =>
+      Object.fromEntries(
+        itemCategoryFilters.map((filter) => [
+          filter.value,
+          selectableItems.filter((item) => item.category === filter.value).length,
+        ]),
+      ) as Record<ItemCategory, number>,
+    [selectableItems],
+  );
   const filteredItems = useMemo(
-    () => selectableItems.filter((item) => matchesSearch(item.chineseName, item.englishName, item.effectSummary)),
-    [query, selectableItems],
+    () =>
+      selectableItems.filter(
+        (item) =>
+          (selectedItemCategories.length === 0 || selectedItemCategories.includes(item.category))
+          && matchesSearch(item.chineseName, item.englishName, item.effectSummary),
+      ),
+    [query, selectableItems, selectedItemCategories],
   );
   const filteredAbilities = useMemo(
     () => abilities.filter((ability) => matchesSearch(ability.chineseName, ability.englishName, abilityOwnerIndex.get(ability.id)?.searchText)),
@@ -695,6 +776,11 @@ export function DexPage({
   };
   const toggleAbilityListItem = (abilityId: string) => {
     setExpandedAbilityListIds((current) => (current.includes(abilityId) ? current.filter((id) => id !== abilityId) : [...current, abilityId]));
+  };
+  const toggleItemCategory = (category: ItemCategory) => {
+    setSelectedItemCategories((current) =>
+      current.includes(category) ? current.filter((value) => value !== category) : [...current, category],
+    );
   };
   const openAbilityOwner = (entry: DexFormEntry) => {
     setTab('pokemon');
@@ -724,7 +810,7 @@ export function DexPage({
         ))}
       </div>
 
-      <div className={`${tab === 'pokemon' || tab === 'moves' ? 'grid grid-cols-[minmax(0,1fr)_auto]' : 'grid grid-cols-1'} gap-2`}>
+      <div className={`${tab === 'pokemon' || tab === 'moves' || tab === 'items' ? 'grid grid-cols-[minmax(0,1fr)_auto]' : 'grid grid-cols-1'} gap-2`}>
         <label className="flex min-w-0 items-center gap-2 rounded-lg border border-border bg-card px-3 py-2">
           <Search size={16} className="shrink-0 text-textMuted" />
           <input
@@ -760,6 +846,19 @@ export function DexPage({
           >
             <Filter size={16} />
             {selectedCatalogMoveType && <span className="ml-1 text-xs">1</span>}
+          </button>
+        )}
+        {tab === 'items' && (
+          <button
+            className={`relative inline-flex h-10 items-center justify-center rounded-lg border px-3 text-sm font-semibold transition active:scale-[0.98] ${
+              selectedItemCategories.length > 0 ? 'border-accent bg-accent/15 text-accent' : 'border-border bg-card text-textSecondary'
+            }`}
+            type="button"
+            aria-label="打开道具类别筛选"
+            onClick={() => setShowItemCategoryFilter(true)}
+          >
+            <Filter size={16} />
+            {selectedItemCategories.length > 0 && <span className="ml-1 text-xs">{selectedItemCategories.length}</span>}
           </button>
         )}
       </div>
@@ -847,21 +946,47 @@ export function DexPage({
       )}
 
       {tab === 'items' && (
-        filteredItems.length === 0 ? (
-          <EmptyState title="没有找到相关道具" action={<Button onClick={() => setQuery('')}>清除搜索</Button>} />
-        ) : (
-        <div className="space-y-2">
-          {filteredItems.map((item) => (
-            <Card key={item.id} className="flex items-center gap-3">
-              <PokemonAvatar iconRef={item.iconRef} label={item.chineseName} size="sm" />
-              <div className="min-w-0 flex-1">
-                <h3 className="text-sm font-semibold">{item.chineseName}</h3>
-                <p className="truncate text-xs text-textSecondary">{item.effectSummary}</p>
-              </div>
-            </Card>
-          ))}
-        </div>
-        )
+        <>
+          {selectedItemCategories.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2">
+              {selectedItemCategories.map((category) => (
+                <span key={category} className="rounded-md border border-accent/35 bg-accent/10 px-2 py-1 text-[11px] font-semibold text-accent">
+                  {itemCategoryLabelByValue[category]}
+                </span>
+              ))}
+              <Button variant="ghost" onClick={() => setSelectedItemCategories([])}>
+                清空
+              </Button>
+            </div>
+          )}
+          {filteredItems.length === 0 ? (
+            <EmptyState
+              title="没有找到相关道具"
+              action={<Button onClick={() => { setQuery(''); setSelectedItemCategories([]); }}>清除筛选</Button>}
+            />
+          ) : (
+            <div className="space-y-2">
+              {filteredItems.map((item) => (
+                <Card key={item.id} className="flex items-center gap-3">
+                  <PokemonAvatar iconRef={item.iconRef} label={item.chineseName} size="sm" />
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-sm font-semibold">{item.chineseName}</h3>
+                    <p className="truncate text-xs text-textSecondary">{item.effectSummary}</p>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )}
+          {showItemCategoryFilter && (
+            <ItemCategoryFilterSheet
+              selectedCategories={selectedItemCategories}
+              categoryCounts={itemCategoryCounts}
+              onToggle={toggleItemCategory}
+              onClear={() => setSelectedItemCategories([])}
+              onClose={() => setShowItemCategoryFilter(false)}
+            />
+          )}
+        </>
       )}
 
       {tab === 'abilities' && (

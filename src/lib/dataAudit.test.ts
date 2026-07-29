@@ -227,6 +227,19 @@ describe('seed data audit', () => {
     expect(currentRuleSelectableItemIds).not.toContain('clear-amulet');
     expect(items.find((item) => item.id === 'assault-vest')?.legalInCurrentRule).toBe(false);
     expect(items.find((item) => item.id === 'clear-amulet')?.legalInCurrentRule).toBe(false);
+
+    const categoryCounts = currentRuleSelectableItems().reduce<Record<string, number>>((counts, item) => {
+      counts[item.category] = (counts[item.category] ?? 0) + 1;
+      return counts;
+    }, {});
+    expect(categoryCounts).toEqual({
+      'held-item': 45,
+      berry: 28,
+      'mega-evolution': 75,
+    });
+    for (const item of currentRuleSelectableItems()) {
+      expect(item.isMegaStone, `${item.id} Mega category`).toBe(item.category === 'mega-evolution');
+    }
   });
 
   it('keeps Mega Stone owners and current-rule item descriptions aligned', () => {
@@ -244,7 +257,7 @@ describe('seed data audit', () => {
       expect(stone.effectSummary).toBe('让对应的宝可梦在战斗中进行 Mega Evolution。');
     }
 
-    const heldItems = currentRuleSelectableItems().filter((item) => !item.isMegaStone && !item.id.endsWith('-berry'));
+    const heldItems = currentRuleSelectableItems().filter((item) => item.category === 'held-item');
     expect(heldItems).toHaveLength(45);
     for (const item of heldItems) {
       expect(item.sourceRefs, `${item.id} localized source`).toContain('pokeapi-item-data');
@@ -286,7 +299,7 @@ describe('seed data audit', () => {
       expect(fileHash(`public/assets/items/${itemId}.png`), `${itemId} must keep its Champions image snapshot`).toBe(expectedHash);
     }
 
-    const berries = selectable.filter((item) => item.id.endsWith('-berry'));
+    const berries = selectable.filter((item) => item.category === 'berry');
     expect(berries.map((item) => item.id).sort(), 'current-rule berry catalog').toEqual(Object.keys(canonicalBerryData).sort());
     for (const berry of berries) {
       expect(berry.sourceRefs, `${berry.id} source`).toContain('pokeapi-item-sprites');
