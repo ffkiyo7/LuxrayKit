@@ -258,6 +258,20 @@ const manualReviewFixtures: ManualReviewFixture[] = [
 ];
 
 describe('damageAdapter', () => {
+  it('maps every calculator-selectable Pokémon form to a Gen9 calc species', () => {
+    const gen = Generations.get(9);
+    const projectFormIds = pokemon.flatMap((entry) => [
+      entry.id,
+      ...entry.megaForms.map((form) => form.id),
+    ]);
+    const unresolved = projectFormIds.flatMap((formId) => {
+      const calcId = calcSpeciesId(formId);
+      return gen.species.get(calcId) ? [] : [`${formId} -> ${calcId}`];
+    });
+
+    expect(unresolved).toEqual([]);
+  });
+
   it('maps every Reg M-A Mega allowlist form to a Gen9 calc species', () => {
     const gen = Generations.get(9);
     const unresolved = regMaMegaAllowlist.flatMap((entry) => {
@@ -309,6 +323,21 @@ describe('damageAdapter', () => {
     expect(result.ruleSetId).toBe(currentRuleSet.id);
     expect(result.attackerConfig).toBeTruthy();
     expect(result.defenderConfig).toBeTruthy();
+  });
+
+  it('resolves Mimikyu damage through its Disguised project form ID', () => {
+    const result = computeDamage({
+      ...defaults,
+      attacker: makeConfig({
+        pokemonId: 'mimikyu-disguised',
+        moveIds: ['giga-drain'],
+        selectedMoveId: 'giga-drain',
+      }),
+    });
+
+    expect(result.status).toBe('experimental-success');
+    expect(result.attackerBattleForm?.id).toBe('mimikyu-disguised');
+    expect(result.damageRolls?.length).toBeGreaterThan(0);
   });
 
   it('matches the Gen9 roll range for Houndoom Flare Blitz into max HP/Defense Garganacl', () => {
