@@ -1,6 +1,6 @@
 [
   {
-    "id": "vgcpastes-champions-mb-mb598",
+    "id": "vgcpastes-champions-mb-mb603",
     "dataKind": "external-snapshot",
     "sourceId": "vgcpastes-champions-mb",
     "sourceLabel": "VGCPastes Champions M-B",
@@ -10,19 +10,25 @@
     "regulation": "M-B",
     "title": "Feitosa's VR July Challenge Champion Team",
     "battleType": "doubles",
-    "reportUrl": "https://x.com/PHSFeitosa/status/2081441472562200583",
+    "reportUrl": "https://x.com/phsfeitosa/status/2082465237618323748?s=46",
     "tournament": "VR July Challenge",
     "eventRank": "Champion",
     "dateShared": "2026-07-26",
+    "replicaCode": "KPX2T7TG0U",
     "hasMoves": true,
-    "hasSpread": false,
+    "hasSpread": true,
     "slots": [
       {
         "pokemonId": "staraptor",
         "abilityId": "intimidate",
         "itemId": "staraptite",
         "nature": "爽朗",
-        "statPoints": {},
+        "statPoints": {
+          "hp": 29,
+          "attack": 5,
+          "specialDefense": 4,
+          "speed": 28
+        },
         "moveIds": [
           "protect",
           "roost",
@@ -35,7 +41,11 @@
         "abilityId": "rough-skin",
         "itemId": "life-orb",
         "nature": "爽朗",
-        "statPoints": {},
+        "statPoints": {
+          "attack": 30,
+          "defense": 4,
+          "speed": 32
+        },
         "moveIds": [
           "protect",
           "rock-slide",
@@ -48,7 +58,12 @@
         "abilityId": "prankster",
         "itemId": "occa-berry",
         "nature": "胆小",
-        "statPoints": {},
+        "statPoints": {
+          "hp": 20,
+          "defense": 6,
+          "specialAttack": 8,
+          "speed": 32
+        },
         "moveIds": [
           "moonblast",
           "tailwind",
@@ -60,8 +75,13 @@
         "pokemonId": "delphox",
         "abilityId": "magician",
         "itemId": "delphoxite",
-        "nature": "内敛",
-        "statPoints": {},
+        "nature": "胆小",
+        "statPoints": {
+          "hp": 13,
+          "defense": 12,
+          "specialAttack": 18,
+          "speed": 23
+        },
         "moveIds": [
           "protect",
           "psychic",
@@ -74,12 +94,17 @@
         "abilityId": "toxic-debris",
         "itemId": "focus-sash",
         "nature": "胆小",
-        "statPoints": {},
+        "statPoints": {
+          "hp": 1,
+          "defense": 1,
+          "specialAttack": 32,
+          "speed": 32
+        },
         "moveIds": [
           "spiky-shield",
+          "sludge-bomb",
           "earth-power",
-          "power-gem",
-          "sludge-bomb"
+          "power-gem"
         ]
       },
       {
@@ -87,18 +112,23 @@
         "abilityId": "defiant",
         "itemId": "chople-berry",
         "nature": "固执",
-        "statPoints": {},
+        "statPoints": {
+          "hp": 31,
+          "attack": 16,
+          "specialDefense": 18,
+          "speed": 1
+        },
         "moveIds": [
-          "kowtow-cleave",
-          "iron-head",
           "sucker-punch",
-          "low-kick"
+          "low-kick",
+          "iron-head",
+          "kowtow-cleave"
         ]
       }
     ]
   },
   {
-    "id": "vgcpastes-champions-mb-mb597",
+    "id": "vgcpastes-champions-mb-mb602",
     "dataKind": "external-snapshot",
     "sourceId": "vgcpastes-champions-mb",
     "sourceLabel": "VGCPastes Champions M-B",
@@ -196,7 +226,7 @@
     ]
   },
   {
-    "id": "vgcpastes-champions-mb-mb596",
+    "id": "vgcpastes-champions-mb-mb601",
     "dataKind": "external-snapshot",
     "sourceId": "vgcpastes-champions-mb",
     "sourceLabel": "VGCPastes Champions M-B",
@@ -295,7 +325,7 @@
     ]
   },
   {
-    "id": "vgcpastes-champions-mb-mb595",
+    "id": "vgcpastes-champions-mb-mb600",
     "dataKind": "external-snapshot",
     "sourceId": "vgcpastes-champions-mb",
     "sourceLabel": "VGCPastes Champions M-B",
@@ -394,7 +424,7 @@
     ]
   },
   {
-    "id": "vgcpastes-champions-mb-mb594",
+    "id": "vgcpastes-champions-mb-mb599",
     "dataKind": "external-snapshot",
     "sourceId": "vgcpastes-champions-mb",
     "sourceLabel": "VGCPastes Champions M-B",
@@ -493,7 +523,7 @@
     ]
   },
   {
-    "id": "vgcpastes-champions-mb-mb593",
+    "id": "vgcpastes-champions-mb-mb598",
     "dataKind": "external-snapshot",
     "sourceId": "vgcpastes-champions-mb",
     "sourceLabel": "VGCPastes Champions M-B",
@@ -617,7 +647,7 @@
     ]
   },
   {
-    "id": "vgcpastes-champions-mb-mb592",
+    "id": "vgcpastes-champions-mb-mb597",
     "dataKind": "external-snapshot",
     "sourceId": "vgcpastes-champions-mb",
     "sourceLabel": "VGCPastes Champions M-B",
@@ -716,7 +746,7 @@
     ]
   },
   {
-    "id": "vgcpastes-champions-mb-mb591",
+    "id": "vgcpastes-champions-mb-mb596",
     "dataKind": "external-snapshot",
     "sourceId": "vgcpastes-champions-mb",
     "sourceLabel": "VGCPastes Champions M-B",
@@ -845,7 +875,7 @@
     ]
   },
   {
-    "id": "vgcpastes-champions-mb-mb590",
+    "id": "vgcpastes-champions-mb-mb595",
     "dataKind": "external-snapshot",
     "sourceId": "vgcpastes-champions-mb",
     "sourceLabel": "VGCPastes Champions M-B",
@@ -944,7 +974,7 @@
     ]
   },
   {
-    "id": "vgcpastes-champions-mb-mb589",
+    "id": "vgcpastes-champions-mb-mb594",
     "dataKind": "external-snapshot",
     "sourceId": "vgcpastes-champions-mb",
     "sourceLabel": "VGCPastes Champions M-B",
@@ -1075,7 +1105,7 @@
     ]
   },
   {
-    "id": "vgcpastes-champions-mb-mb588",
+    "id": "vgcpastes-champions-mb-mb593",
     "dataKind": "external-snapshot",
     "sourceId": "vgcpastes-champions-mb",
     "sourceLabel": "VGCPastes Champions M-B",
@@ -1204,7 +1234,7 @@
     ]
   },
   {
-    "id": "vgcpastes-champions-mb-mb587",
+    "id": "vgcpastes-champions-mb-mb592",
     "dataKind": "external-snapshot",
     "sourceId": "vgcpastes-champions-mb",
     "sourceLabel": "VGCPastes Champions M-B",
