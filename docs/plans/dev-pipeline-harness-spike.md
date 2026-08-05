@@ -1,6 +1,8 @@
 # Spike：Discord 可视、可恢复的强模型会话 Harness
 
 > 状态：**✅ owner 已拍板，待实施** · 2026-07-22
+>
+> **状态注记（2026-08-05）**：仍未实施。**前提已变化**：本稿假设强模型会话跑在 VPS 上（`WORKTREE_ROOT=/home/ubuntu/LuxrayKit-dev-worktrees`），而开发已于 2026-08 迁至 macOS 本机，VPS 目前只承载数据刷新。实施前请先确认 harness 到底该跑在哪一侧。
 > 关联：[dev-pipeline-workflow.md](dev-pipeline-workflow.md) v0.3。`codex-bot + harness` 已取代“强模型 session 只能走 Hermes 插件”的提案；Discord App 注册与 VPS 部署仍待 owner 的 Discord 登录可用时执行。
 
 ## 结论先行

@@ -1,0 +1,84 @@
+name: Rebuild visual baselines
+
+# Manual replacement for running scripts/visual-docker.sh on a dev machine.
+#
+# Development happens on macOS, which can never produce the Linux baselines the
+# `visual` gate in ci.yml compares against — and Playwright snapshot filenames
+# carry the platform but not the CPU architecture, so an arm64 container would
+# silently overwrite CI's amd64 PNGs under identical names. This workflow is
+# therefore the only supported way to regenerate them: same wrapper, same image,
+# same amd64 Linux runner as the gate.
+#
+# Usage — from the branch whose UI change moved the pixels:
+#
+#   gh workflow run visual-baseline.yml --ref "$(git branch --show-current)"
+#   git pull    # once it finishes, to get the committed PNGs
+#
+# The refreshed baselines are committed straight to that branch, so the diff
+# lands in the PR and stays reviewable. Running against `main` is refused: a push
+# to main triggers the Cloudflare Workers Builds production deploy, and new
+# baselines must be reviewed alongside the UI change that caused them.
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: visual-baseline-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  rebuild:
+    name: Regenerate mobile visual baselines
+    runs-on: ubuntu-latest
+    steps:
+      - name: Refuse to run on main
+        if: github.ref_name == 'main'
+        run: |
+          echo "::error::Rebuild baselines on the feature branch that changed the UI, not on main." >&2
+          exit 1
+
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Same wrapper the `visual` gate runs, so the image tag stays derived from
+      # the installed @playwright/test version and the two can never drift.
+      - name: Rebuild baselines in the Playwright image
+        run: npm run test:visual:update
+
+      - name: Commit refreshed baselines
+        run: |
+          set -euo pipefail
+
+          if git diff --quiet -- tests/pwa/visual.spec.ts-snapshots; then
+            echo "Baselines already match the current UI — nothing to commit."
+            exit 0
+          fi
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tests/pwa/visual.spec.ts-snapshots
+          git commit -m 'test: rebuild mobile visual baselines'
+          git push origin "HEAD:${GITHUB_REF_NAME}"
+
+          echo "### Baselines updated" >> "$GITHUB_STEP_SUMMARY"
+          git show --stat --oneline HEAD | tail -n +2 >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload rendered snapshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-baselines
+          path: tests/pwa/visual.spec.ts-snapshots/
+          retention-days: 7

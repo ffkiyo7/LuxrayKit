@@ -1,5 +1,7 @@
 # B2 属性克制 · 代码实现计划（速查卡默认 + 完整矩阵可选）
 
+> **⚠️ 已归档（2026-08-05）· 仅供历史参考，勿作现状引用。** 本计划已实现并上线：属性速查是工具页四大工具之一（`src/pages/TypeChartPage.tsx`、`src/lib/typeChart.ts`，`ToolView = 'typeChart'`），双模式、键盘导航与单测（`src/lib/typeChart.test.ts`、`src/pages/TypeChartPage.test.tsx`）均已就位。文末验收清单未随实现勾选，**不代表未完成**。文中引用的 `tmp/` 原型目录 git 未跟踪、现已不存在。
+
 > 2026-07-10 定稿。两个原型均已通过设计验收（本机 `tmp/`，**git 未跟踪**，执行时可直接打开对照）：
 > - `tmp/type-quick-card/`（速查卡 + 量角器拨盘，**默认模式**）+ `design-qa.md`
 > - `tmp/type-chart-spotlight/`（聚光 18×18 矩阵，**切换模式**）+ `design-qa.md`

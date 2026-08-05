@@ -3,11 +3,11 @@
 **宝可梦 Champions 对战伴侣 · 非官方粉丝工具 · 移动端优先 PWA**
 
 [![PWA](https://img.shields.io/badge/PWA-ready-38BDF8)](https://luxraykit.com)
-[![Data](https://img.shields.io/badge/data-v0.2.0--seed-F59E0B)](./src/data/seed/regMA/)
+[![Data](https://img.shields.io/badge/data-v0.3.0--mb--seed-F59E0B)](./src/data/seed/regMA/)
 [![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 [![Platform](https://img.shields.io/badge/platform-mobile--first-slate)](./tests/pwa/visual.spec.ts)
 
-Luxray Kit 是一个面向 Pokémon Champions 玩家的非官方对战辅助工具。它以移动端 PWA 形态设计，优先服务 Regulation Set M-A（Mega 规则）的环境理解、上位构筑参考和本地队伍管理；伤害计算、速度线和规则图鉴收束为工具页里的辅助查询能力。
+Luxray Kit 是一个面向 Pokémon Champions 玩家的非官方对战辅助工具。它以移动端 PWA 形态设计，优先服务当前 Regulation Set（现为 M-B，Mega 规则）的环境理解、上位构筑参考和本地队伍管理；伤害计算、速度线、规则图鉴和属性速查收束为工具页里的辅助查询能力。
 
 项目仍在持续开发中。当前版本已接入 PokeDB 当季环境统计、PokeDB 速度表与社区上位构筑样本作为数据来源；环境统计会标注来源与口径，不包装成官方完整使用率。伤害计算仍属于实验性近似结果，不应视为官方结论或赛事依据。
 
@@ -20,7 +20,7 @@ Luxray Kit 是一个面向 Pokémon Champions 玩家的非官方对战辅助工�
 - 单打 / 双打环境切换
 - 宝可梦榜、完整榜单和环境详情页
 - 携带道具占比、常见队友占比和常用招式统计
-- 基于 PokeDB 最新赛季 HTML 统计的缓存快照；由 Cloudflare Worker 每小时探针 + 内容签名（赛季 + 更新日）门控，仅在源变化时才重新抓取
+- 基于 PokeDB 最新赛季 HTML 统计的缓存快照；由 Cloudflare Worker 每日 5 个定点探针（聚集在 PokeDB 发布窗口附近）+ 内容签名（赛季 + 更新日）门控，仅在源变化时才重新抓取
 - 数据来源与口径明确标注，不包装成官方完整使用率
 
 ### 队伍一览与上位构筑
@@ -39,7 +39,6 @@ Luxray Kit 是一个面向 Pokémon Champions 玩家的非官方对战辅助工�
 - 成员卡片可一键**跳转速度线 / 伤害计算并代入当前配置**（伤害计算会先询问作为进攻方还是防守方）
 - 队伍码写入、导入带入与详情页复制
 - 队伍 JSON 导入 / 导出，本地备份更方便
-- 队伍分享图生成
 
 ### 工具集合
 
@@ -47,7 +46,8 @@ Luxray Kit 是一个面向 Pokémon Champions 玩家的非官方对战辅助工�
 
 - **速度线**：选自己的宝可梦入轴，调 SP / 性格 / 围巾 / 顺风 / 速度特性后实时看相对快慢；纵轴自带 PokeDB 参照档位（按 PokeDB 排版等距排列、不按数值拉伸，marker 独占一行不遮挡）；点任一档「超速他」反解出超过它所需的最小配置（最小充分 SP 推荐 + 满速兜底，围巾建议受环境携带率门控、速度特性自动识别）；参照档显示真实宝可梦头像与名单，同一速度实数下的多个「种族 × 性格」档按环境使用率排主档
 - **伤害计算**：攻击方 / 防守方独立配置、队伍成员带入（特性 / 道具 / 性格 / SP，招式用当前规则可用进攻招式列表）、图鉴搜索、手动战斗条件和结果卡
-- **规则图鉴**：Pokémon / 招式 / 道具 / 特性浏览、搜索、属性筛选、详情和 learnset 招式筛选
+- **规则图鉴**：Pokémon / 招式 / 道具 / 特性浏览、搜索、属性 / 道具分类筛选、详情和 learnset 招式筛选
+- **属性速查**：速查拨盘（默认）与 18×18 完整克制矩阵双模式，支持键盘导航
 
 ### 我的
 
@@ -62,7 +62,7 @@ Luxray Kit 是一个面向 Pokémon Champions 玩家的非官方对战辅助工�
 | --- | --- |
 | 移动端优先 | 底部 Tab 导航和页面密度按手机使用设计，最大宽度约 430px |
 | 可添加到主屏幕 | 支持通过浏览器安装 / 添加到主屏幕，具体入口取决于系统与浏览器 |
-| 静态部署友好 | 构建产物为纯静态文件，适合 Cloudflare Pages 等平台 |
+| 静态部署友好 | 构建产物为纯静态文件，可脱离 Worker 部署到任意静态托管（仅失去在线刷新） |
 | 本地持久化 | 队伍、收藏和设置写入 IndexedDB，不依赖账号系统 |
 | 离线缓存 | Service Worker 缓存核心静态资源，断网时可访问已缓存内容 |
 
@@ -75,9 +75,9 @@ Luxray Kit 是一个面向 Pokémon Champions 玩家的非官方对战辅助工�
 
 | 数据类别 | 当前状态 | 说明 |
 | --- | --- | --- |
-| 主数据 | `v0.2.0-seed` | 版本化 Regulation Set M-A seed，来源包括官方规则 / allowlist、PokeAPI、PokéBase Champions、社区中文资料和本地人工复核标记 |
-| 环境快照 | 已接入 | `public/data/pokedb/*.json` 缓存 PokeDB 最新赛季 Pokémon 统计；Cloudflare Worker 每小时探针 + 内容签名门控，仅在源变化时重拉 |
-| 上位构筑样本 | 已接入 | PokeDB trainer/list 解析的真实队报，叠加一次性脚本摄入的 VGCPastes「Champions M-A」官方锦标赛构筑（构建期受管 chunk） |
+| 主数据 | `v0.3.0-mb-seed` | 版本化 Regulation Set seed（当前 M-B；目录名 `seed/regMA/` 为历史遗留），来源包括官方规则 / allowlist、PokeAPI、PokéBase Champions、社区中文资料和本地人工复核标记 |
+| 环境快照 | 已接入 | `public/data/pokedb/*.json` 缓存 PokeDB 最新赛季 Pokémon 统计；Cloudflare Worker 每日 5 个定点探针 + 内容签名门控，仅在源变化时重拉 |
+| 上位构筑样本 | 已接入 | PokeDB trainer/list 解析的真实队报，叠加脚本摄入的 VGCPastes「Champions M-A / M-B」官方锦标赛构筑（构建期受管 chunk，M-B 为当前主用） |
 | 速度线参照档 | 已接入 | 一次性脚本抓 PokeDB 速度表生成静态快照 `src/data/speedTiers.ts`（每档含宝可梦图鉴号 / 形态 / 日文名）；规则或环境有变化时手动重跑 |
 | 常用招式 | 已接入 | 维护脚本复用 Worker 解析器抓取 Pokémon 详情页的 `data-move-detail` 生成 `moveStats` |
 | 速度计算 | 已接入 | 基于 Champions SP 口径计算最终速度：`floor((种族速 + SP + 20) × 性格修正)`，叠加围巾 ×1.5 / 速度特性 ×2 / 顺风 ×2 |
@@ -87,6 +87,8 @@ Luxray Kit 是一个面向 Pokémon Champions 玩家的非官方对战辅助工�
 环境数据会先通过 `src/lib/environmentDataset.ts` 审计。未知 Pokémon / 招式 / 道具引用会被报告并从 UI 数据中剔除。`scripts/update-pokedb-environment.mjs` 会动态探测 PokeDB 最新赛季，复用 Worker 的 HTML 解析入口，并同步写入源码审计快照与 public 运行时 JSON。
 
 ## 本地运行
+
+需要 **Node 24**（`.node-version` / `package.json` 的 `engines` / CI 三处一致）。
 
 ```bash
 npm install
@@ -122,18 +124,16 @@ npm run data:vgcpastes:champions-mb    # 摄入 VGCPastes「Champions M-B」构�
 ## 测试
 
 ```bash
-npm test            # Vitest 单元 / 组件测试
-npm run test:pwa    # Playwright PWA / 离线测试
-npm run test:visual # Playwright 移动端视觉回归（在 Docker 容器内跑）
+npm test            # Vitest 单元 / 组件测试（含 Worker 与脚本工具单测）
+npm run test:pwa    # Playwright PWA / 离线测试（用本机 Chrome）
 ```
 
-PWA 视觉回归测试基于 Playwright，覆盖 17 个移动端状态，包括环境首页、完整榜单、环境详情、数据口径、队伍一览、试试灵感、队伍列表、队伍详情、成员编辑、SP 选择器、工具页、伤害计算、速度线、规则图鉴、图鉴详情、属性筛选和我的页面。快照位于 `tests/pwa/visual.spec.ts-snapshots/`。
+PWA 视觉回归覆盖 **18 个**移动端状态，快照位于 `tests/pwa/visual.spec.ts-snapshots/`。它是 **CI-only** 的：基线在 Playwright 官方容器内生成，而开发在 macOS，本机既产不出 Linux 基线，Apple Silicon 的 arm64 容器还会用相同文件名覆盖 CI 的 amd64 基线。
 
-视觉基线在 Playwright 官方容器内生成（需要本机有 Docker daemon），这样任何平台都能复现同样的像素；宿主机直跑会因字体栈不同产生假阳性 diff。更新视觉快照：
+- 校验：开 PR，`ci.yml` 的 `visual` job 是阻塞门禁
+- 重建：`gh workflow run visual-baseline.yml --ref "$(git branch --show-current)"`
 
-```bash
-npm run test:visual:update
-```
+细节见 [`docs/qa/MOBILE_VISUAL_REGRESSION.md`](./docs/qa/MOBILE_VISUAL_REGRESSION.md)。
 
 ## 技术栈
 
@@ -144,7 +144,7 @@ npm run test:visual:update
 | 本地存储 | IndexedDB |
 | 导航 | tab + view state（无 react-router） |
 | PWA | 手写 Web App Manifest + Service Worker |
-| 环境数据 | Cloudflare Worker（每小时探针 + 内容签名门控刷新 PokeDB 统计） |
+| 环境数据 | Cloudflare Worker（每日定点探针 + 内容签名门控刷新 PokeDB 统计，Durable Object alarm 分步执行） |
 | 计算 | 自有 Champions 速度公式 + `@smogon/calc` Gen9 主线伤害近似 |
 | 测试 | Vitest + Playwright |
 | 部署 | 生产为单一 Cloudflare Worker（`luxraykit-app`，托管前端 + API + cron），经 Workers Builds 自动部署；构建产物也可纯静态托管 |
@@ -153,7 +153,7 @@ npm run test:visual:update
 
 - [ ] 队报链接重做 + 双来源统一（指向有实际加点的落点）
 - [ ] 浅色主题品牌色重做（向 Luxray Kit 品牌色对齐）
-- [ ] 更新 PWA manifest 名称、图标和分享卡片为 Luxray Kit 品牌
+- [x] 更新 PWA manifest 名称与图标为 Luxray Kit 品牌（分享卡片 / OG 见下条）
 - [ ] 完善 `luxraykit.com` 下的 SEO、Open Graph 和社媒分享预览
 - [ ] 保持工具页稳定可用，避免把伤害计算扩展成战斗流程模拟器
 - [ ] 支持 Regulation Set 多版本切换
