@@ -38,8 +38,10 @@ Luxray Kit 是一个移动端优先的 Pokémon Champions 对战辅助 PWA。核
 
 ### 环境要求
 
-- Node：`.node-version` 锁定 **22.16.0**（建议本地用此版本）。
-  - ⚠️ 不一致点：CI（`.github/workflows/ci.yml`）使用 Node **24**。两处目前不一致，改动 Node 版本时请同步两边，或视作已知偏差。
+- **开发平台：macOS**（2026-08 起；此前为 Windows → WSL2）。除视觉回归外，全部命令原生可跑，**不需要 Docker**。
+- Node：**24.19.0**，三处已对齐——`.node-version`、`package.json` 的 `engines`、CI（`.github/workflows/ci.yml`）。
+  - `.node-version` 同时被 **Cloudflare Workers Builds** 读取，因此它也决定生产构建所用的 Node 版本：改这个文件等于改生产构建环境。
+  - npm 11（Node 24 自带）默认拦截依赖的安装脚本，`npm ci` 会打印 `npm warn allow-scripts`（esbuild / sharp / workerd / fsevents）。这些包都走 optionalDependencies 提供的预编译产物，**可以安全忽略**。
 - 包管理：npm（仓库提供 `package-lock.json`，CI 用 `npm ci`）。
 
 ### 常用命令
@@ -50,10 +52,10 @@ npm run dev        # Vite 开发服务器，绑定 127.0.0.1（移动端优先�
 npm run build      # tsc -b 全量类型检查 + vite build → dist/
 npm run preview    # 本地预览构建产物
 npm test           # Vitest 单元/组件测试（CI 必跑）
-npm run test:pwa   # Playwright PWA / 离线测试（不含视觉用例）
-npm run test:visual        # 移动端视觉回归，在 Playwright 官方 Docker 容器内跑
-npm run test:visual:update # 重建视觉基线（同样在容器内）
+npm run test:pwa   # Playwright PWA / 离线测试（用本机 Chrome，不含视觉用例）
 ```
+
+`npm run test:visual` / `test:visual:update` 是 **CI-only** 的，macOS 本机跑不了也不该跑——见 §8。
 
 > PWA 提示：开发期 Service Worker 可能缓存旧资源。改动未生效时，在 DevTools → Application → Service Workers 注销后硬刷新。
 
@@ -78,9 +80,13 @@ src/
   data/
     index.ts            # re-export seed/regMA
     environment.ts      # 环境数据加载管线（三级回退 + VGCPastes 合并）
-    seed/regMA/         # Regulation Set M-A 版本化 seed（catalog/moves/items/abilities/allowlist/metadata...）
-    external/           # 外部抓取产物（pokedb/ 快照、vgcpastes/ 样本、名称映射）
-  pages/                # 各页面（懒加载）：Environment / Team / Tools / Calculator / Dex / Speed / Profile / Rule
+    schedule.ts         # ★ 规则/赛季两条时间轴的唯一真源（窗口表 + seasonToRegulation）
+    speedTiers.ts       # 生成产物：PokeDB 速度档位（npm run data:pokedb:speed）
+    pokemonFacts.ts     # 首页趣味小知识事实池（生成产物见 external/pokeapi/）
+    environmentDatasetSeed.ts  # 4 只宝可梦的开发样例，环境数据最后一级回退
+    seed/regMA/         # 版本化规则 seed（历史目录名，当前承载 M-B）：catalog/moves/items/abilities/allowlist/metadata...
+    external/           # 外部抓取产物（pokedb/ 快照、vgcpastes/ 样本、pokeapi/ 事实、名称映射）
+  pages/                # 各页面（懒加载）：Environment / Team / Tools / Calculator / Dex / Speed / TypeChart / Profile / Rule
   components/           # BottomNav / Header / PokemonPicker / onboarding / ui 等
   hooks/                # useAutoHideBottomNav / useVisualViewportMetrics
 
@@ -88,7 +94,8 @@ cloudflare/environment-worker/   # 生产 Worker（前端 + API + cron + DO）
 scripts/                         # 数据维护脚本（Node ESM .mjs）
 public/                          # 静态资源 + sw.js + manifest + 静态环境快照
 tests/pwa/                       # Playwright 规格 + 视觉快照基线
-docs/                            # 产品/研究/QA/进度文档（部分过期）
+docs/                            # product/ research/ qa/ progress/ automation/ plans/ archive/
+                                 #   archive/ 一律不代表现状；plans/ 是待实施计划，同样不是现状
 ```
 
 ---
@@ -111,7 +118,8 @@ main.tsx
 
 - `activeTab: 'environment' | 'teams' | 'tools' | 'profile'` —— 底部 4 Tab。
 - `overlay: 'rule' | null` —— 覆盖层（当前规则图鉴页），打开时隐藏底部导航。
-- `toolView: 'calculator' | 'dex' | 'speed' | null` —— 工具页内的二级视图。
+  - **`RulePage` 当前没有入口，这是有意的**：`App.tsx` 会在 `overlay === 'rule'` 时渲染它，但全仓库没有任何地方调用 `setOverlay('rule')`——规则口径页由 owner 主动隐藏，代码保留待用。**不要把它「修复」成可达。**
+- `toolView: 'calculator' | 'dex' | 'speed' | 'typeChart' | null` —— 工具页内的二级视图（四个工具**全部已上线**，`ToolsPage` 里那个「未开放」分支当前没有任何工具会命中）。
 - 队伍成员「带入」工具的预设：`calcPreset`（攻/防方）、`speedPresetMemberId`、`calculatorMemberId`。
 
 页面全部用 `React.lazy` + `Suspense` 懒加载并经 Vite 分包（见 4.4）。
@@ -185,6 +193,16 @@ npm run data:pokemon-facts:check  # 只校验现有快照，不访问网络；CI
 
 `PokeDbEnvironmentSnapshotPayload` 支持三种 PokeDB 形态（statistics / trainer-list / open-data ranked-teams），由 `isStatisticsPayload` / `isTrainerListPayload` 分派到对应 builder。
 
+#### 赛季排名变动（`lib/seasonRankDelta.ts`）
+
+快照里可能带一个 `previousSeason` 字段（`SeasonRankSnapshot`：`season` / `seasonNumber` / `ranks.{singles,doubles}` 的 `pokemonId → 名次` 表，单个 battle type 约 3.7KB），由 Worker 在换季时写入（见 §6.3）。前端据此在榜单每行渲染 ↑n / ↓n / NEW chip。
+
+三条硬约束，改动时不要绕过：
+
+- **只对比紧邻的上一个赛季**。`isImmediatePredecessor` 要求 `previousSeason.seasonNumber === 当前 seasonNumber - 1`；跨了赛季就整段丢弃——否则 chip 会在标着 M-6 的页面上悄悄表示「相对 M-4」。
+- **没有前序快照就完全不渲染 chip**，不要显示 0 或猜测值。「无数据」和「没变化」必须可区分（后者渲染 `—`）。
+- **PokeDB 只公布名次、不公布绝对使用率**，所以 chip 表达的永远是**名次**变化。文案不要写成使用率变化，数据口径页有对应说明。
+
 ### 5.4 数据审计（`lib/environmentDataset.ts`）
 
 所有进入 UI 的环境数据先经 `auditEnvironmentDataset(dataset, catalog, expectedMetadata)`：未知的 Pokémon / 招式 / 道具 / 特性 / 性格引用会被记录到 `auditIssues` 并从展示数据中剔除。`environmentCatalog` 从 seed 派生（id 列表）。这是「数据来源与口径明确标注、不混入未知项」的保证机制，也是 Worker 端 `ENVIRONMENT_AUDIT_UNKNOWN_THRESHOLD` 校验的同源逻辑。
@@ -213,8 +231,8 @@ npm run data:pokemon-facts:check  # 只校验现有快照，不访问网络；CI
 
 | key | 内容 |
 | --- | --- |
-| `environment:latest` | 当前对外快照 |
-| `environment:status` | 刷新状态（`refreshedAt` / `sourceUpdatedAt` / 审计） |
+| `environment:latest` | 当前对外快照（含 `previousSeason` 前序赛季名次表，见 §6.3） |
+| `environment:status` | 刷新状态（`refreshedAt` / `sourceUpdatedAt` / `previousSeasonLabel` / 审计） |
 | `environment:team-index` | 宝可梦 → 队伍倒排索引 |
 | `environment:refresh-job` | 进行中的刷新 job（`stepCount` / `failureCount`） |
 | `environment:pokedb-freshness-probe` | 上游新鲜度探针（season + 更新日签名） |
@@ -229,6 +247,18 @@ Worker 内刷新由 **cron 触发、Durable Object alarm 步进**，而非自链
 - **步进**（`EnvironmentRefreshDurableObject.alarm`）：DO alarm 每约 `REFRESH_ALARM_DELAY_MS = 1000ms` 跑一步 `runRefreshJobStep`，直到 job `done` 后自动清理（删 job + 删 alarm）。
 - **失败重试**：单步异常累加 `failureCount`，达到 `MAX_REFRESH_JOB_FAILURES = 6` 则放弃（记日志）；否则 `REFRESH_ALARM_FAILURE_RETRY_MS = 10min` 后重试。
 - **为何这样设计**：免费计划单次 Worker 调用**最多 50 个外部子请求**，所以宝可梦详情是 cursor 分批抓（`POKEDB_DETAIL_CHUNK_SIZE`）；DO alarm 取代旧的 cron 自链——旧方案里子请求的 `waitUntil` 在 cron 父调用结束时被取消，导致 job 卡住、数据显示「可能过期」。
+
+#### 换季时保留前序赛季名次（`resolvePreviousSeasonRanks`）
+
+`publishRefreshJob` 覆写 `environment:latest` **之前**先读一次旧快照——换季那一刻它是手上唯一一份刚结束赛季的数据。按顺序取前序名次表：
+
+1. 旧快照里已经带着 `seasonNumber === 本次 - 1` 的 `previousSeason` → 直接带过（稳态，零网络）。
+2. 旧快照自己就是刚结束的那个赛季 → 就地压缩成名次表（正常换季，零网络）。
+3. 都不成立（KV 冷启动、部署晚于换季、快照丢失）→ 现抓 `/pokemon/list?season=<本次-1>`。**PokeDB 会长期保留历史赛季页**（2026-08-05 实测 season=1..4 均可取，各 235 条、解析 0 未知 key），所以这是真正的兜底而不是尽力而为；成功一次后第 1 条就永远短路它。
+
+抓取失败**绝不能让本次发布失败**——记 `environment_previous_season_backfill_failed` 日志、沿用手上已有的值，下次刷新再试。
+
+因此赛季数据不需要人工冻结备份：任何时候都能从 PokeDB 按赛季回补。
 
 ### 6.4 自定义域名
 
@@ -388,15 +418,27 @@ PATH=/usr/local/bin:/usr/bin:/bin
 ## 8. 测试
 
 - **单元/组件**：Vitest + jsdom + `@testing-library` + `fake-indexeddb`。`npm test`，CI 必跑；其中 `src/data/vgcpastesTeamSamples.contract.test.ts` 对队伍库生成 JSON 做数量、字段、唯一性与 audit 对齐门禁，`src/data/pokemonFacts.test.ts` 验证事实池只引用当前规则宝可梦且每日序列稳定不重复。CI 还会在测试前运行不联网的 `npm run data:pokemon-facts:check`。配置见 `vite.config.ts` 的 `test` 段与 `vitest.setup.ts`。
-- **PWA**：`tests/pwa/offline.spec.ts`（离线缓存）+ `tests/pwa/team-samples.spec.ts`（队伍库生成数据渲染）+ `tests/pwa/visual.spec.ts`（移动端视觉回归，17 个状态，基线在 `tests/pwa/visual.spec.ts-snapshots/`，命名含 `visual-mobile-390-linux`）。配置见 `playwright.config.ts`，分成两个 project：
+  - `npm test` 的收集范围**不止 `src/`**：还包括 Worker 单测 `cloudflare/environment-worker/src/index.test.ts` 与脚本工具单测 `scripts/*.test.mjs`（PokeDB 解析、速度档位、Worker 回退门）。改这两处代码同样由 `npm test` 把关。
+  - 例外：`cloudflare/build-notifier/worker.node-test.mjs` 刻意用 `-test.mjs` 而非 `.test.mjs` 命名以避开 vitest 收集，只能手动 `node --test` 跑，**不在 CI 内**。
+- **PWA**：`tests/pwa/offline.spec.ts`（离线缓存）+ `tests/pwa/team-samples.spec.ts`（队伍库生成数据渲染）+ `tests/pwa/visual.spec.ts`（移动端视觉回归，18 个状态，基线在 `tests/pwa/visual.spec.ts-snapshots/`，命名含 `visual-mobile-390-linux`）。配置见 `playwright.config.ts`，分成两个 project：
   - `chrome-mobile-390`（`channel: 'chrome'`，`testIgnore` 掉视觉用例）跑功能类冒烟，用机器上已装的 Google Chrome，CI runner 自带因此无需下载浏览器。`npm run test:pwa` 已固定到这个 project。
   - `visual-mobile-390` 只跑视觉用例，用 `@playwright/test` 自带、被 `package-lock.json` 锁死的 Chromium——刻意不用 `channel: 'chrome'`，因为 Chrome stable 会自动升级，任何一次字体/光栅化变更都会悄悄让基线腐烂。
-- **视觉基线只在 Playwright 官方容器内生成**，镜像 tag 由 `scripts/visual-docker.sh` 从已安装的 `@playwright/test` 版本推导（当前 `mcr.microsoft.com/playwright:v1.59.1-noble`），保证浏览器与字体只随依赖升级而变：
-  - 校验：`npm run test:visual`
-  - 重建：`npm run test:visual:update`
-  - 前置条件：本机有可用的 Docker daemon。WSL2 下可直接装原生 Docker Engine（`apt` 装 `docker-ce`，由 systemd 托管，不需要 Docker Desktop）；若走代理拉镜像，需给 dockerd 配 `/etc/systemd/system/docker.service.d/http-proxy.conf` 并 `systemctl restart docker`（`enable --now` 对已在运行的服务不会重启，改完 drop-in 必须显式 restart）。
-  - 不要在宿主机直接 `npx playwright test tests/pwa/visual.spec.ts`：宿主字体栈与镜像不同，只会得到整屏假阳性 diff。
-  - 历史背景：2026-07 之前基线是在 Windows 上生成的（`chrome-mobile-390-win32`），只有 Windows 能验证；迁到 WSL2 开发后改为容器生成，任何平台都能复现。
+- **视觉回归是 CI-only 能力，本机不跑。** 基线只在 Playwright 官方容器内生成，镜像 tag 由 `scripts/visual-docker.sh` 从已安装的 `@playwright/test` 版本推导（当前 `mcr.microsoft.com/playwright:v1.59.1-noble`），保证浏览器与字体只随依赖升级而变。两个入口都在 GitHub Actions：
+
+  | 目的 | 入口 |
+  | --- | --- |
+  | 校验 | `.github/workflows/ci.yml` 的 `visual` job（**阻塞门禁**，`needs: test`） |
+  | 重建 | `.github/workflows/visual-baseline.yml`（手动 `workflow_dispatch`） |
+
+  ```bash
+  # UI 改动让像素动了之后，在对应分支上重建基线：
+  gh workflow run visual-baseline.yml --ref "$(git branch --show-current)"
+  git pull   # 跑完后拉回工作流提交的 PNG
+  ```
+
+  - **为什么不能在本机跑**：① 开发在 macOS，宿主字体栈与镜像不同，直接 `npx playwright test tests/pwa/visual.spec.ts` 只会得到整屏假阳性 diff；② Playwright 的快照文件名只带平台不带 CPU 架构（`…-visual-mobile-390-linux.png`），Apple Silicon 上拉到的 arm64 镜像会用**完全相同的文件名**覆盖掉 CI 的 amd64 基线，静默污染门禁。`scripts/visual-docker.sh` 因此只支持在 amd64 Linux 上手动运行；在没有 Docker 的机器上它会直接报错并指向上面的工作流。
+  - `visual-baseline.yml` 拒绝在 `main` 上运行：push `main` 会触发生产部署，新基线必须跟引发它的 UI 改动一起在 PR 里被 review。
+  - 历史背景：2026-07 之前基线在 Windows 上生成（`chrome-mobile-390-win32`），只有 Windows 能验证；WSL2 时期改为容器生成；2026-08 迁到 macOS 开发后，容器保留为「基线的定义环境」，但执行位置整体上移到 CI。
 - **视觉用例刻意与刷新中的数据解耦**，否则它没法当门禁用——环境快照的时间戳和榜单会直接印进截图，每次数据刷新都会让门禁变红、卡住 daily auto-merge：
   - `tests/pwa/fixtures/environment-snapshot.json` 是 `public/data/pokedb/reg-ma-environment.json` 的冻结副本，用例用 `page.route` 把运行时那次 fetch 拦截掉换成它。要让门禁看到更新后的数据，把线上文件复制过来覆盖 fixture，再重建基线——这是一次有意的动作，不是自动的。
   - `page.clock.setFixedTime` 把时钟钉在 `2026-07-20T12:00:00Z`：赛季/规则 header 和"可能过期"徽标都由挂钟时间推导，不钉住的话跨过赛季窗口或新鲜度阈值时像素会自己变。
@@ -416,15 +458,25 @@ PATH=/usr/local/bin:/usr/bin:/bin
 
 ---
 
-## 10. 已知过期文档（核对结论）
+## 10. 文档可信度分级（2026-08-05 全量核对）
 
-写本文档时核对了现有文档与代码，以下为已确认的偏差，供清理时参考：
+判断一份文档能不能当事实引用，先看它属于哪一档：
 
-- `docs/progress/DEVELOPMENT_PROGRESS.md`（标注 2026-06-19）多处过期：
-  - 称「速度线入口关闭，保留为未开放卡片」——实际速度线工具已上线且功能完整（`SpeedPage`，`App.tsx` 的 `toolView==='speed'`）。
-  - 称 cron 为每小时 `17 * * * *`——实际为 `wrangler.jsonc` 中 5 个定点时间，且刷新改由 **Durable Object alarm** 步进。
-  - 称自定义域名 routes「已注释/停用」——实际 `routes` 已启用（`custom_domain: true`）。
-- `cloudflare/environment-worker/README.md`：称「Cron refreshes ... once per day」未覆盖 DO + alarm 步进与失败重试机制（见 §6.3）；其余一次性 Cloudflare 配置步骤仍有效。
-- 根 `README.md`：偏产品/功能介绍，技术细节不足以指导开发；`data:vgcpastes` 只列了 M-A，实际还有 M-B（`data:vgcpastes:champions-mb`）。
+| 档位 | 范围 | 怎么用 |
+| --- | --- | --- |
+| **权威** | 本文件、`AGENTS.md`、代码本身 | 冲突时以代码 > 本文件 > 其他 |
+| **现状（已核对）** | `README.md`、`docs/product/PRODUCT_SCOPE_AND_TOOL_BOUNDARIES.md`、`docs/qa/*`、`docs/progress/DEVELOPMENT_PROGRESS.md`、`docs/automation/*` | 可引用；发现偏差请就地修 |
+| **计划（非现状）** | `docs/plans/*` | 记录**未实施**的意图。其中的「现状事实」章节一律不可信 |
+| **历史（禁止引用）** | `docs/archive/*` | 只作决策考古，见 `docs/archive/README.md` |
 
-> 维护约定：改了刷新管线 / 路由 / KV / 分支策略后，请同步更新本文件 §6 与 §9，避免再次出现「文档与代码漂移」。
+### 仍待清理的已知偏差
+
+- `docs/product/Pokemon Champions PRD.md`：停留在 M-A / `v0.2.0-seed`；称速度线「未开放」（实际已上线）；提到「分享图」功能（代码中不存在，已砍）。属产品定稿文档，未逐条订正。
+- `docs/product/PWA_ENVIRONMENT_FIRST_REDESIGN_REQUIREMENTS.md`：「换一批」交互已被「查看全部 / 试试灵感」取代；文中 cron `17 */6 * * *` 已被 §6.3 的 5 个定点 + DO alarm 取代。
+- `cloudflare/environment-worker/README.md`：Files 清单遗漏 `wrangler.preview.jsonc`、`src/index.test.ts`、`DEPLOYMENT_PLAN.md`；其余一次性 Cloudflare 配置步骤仍有效。
+- **代码层**：`index.html` 与 `public/manifest.webmanifest` 的描述文案硬编码了赛季号（当前写着 M-3），与 `src/data/schedule.ts` 去硬编码的目标冲突。静态 HTML 无法读运行时赛季，需要人工同步或改为不含赛季的措辞。
+
+> **维护约定**
+> - 改了刷新管线 / 路由 / KV / 分支策略后，同步更新 §6 与 §9。
+> - 改了测试门禁、Node 版本或视觉回归流程后，同步更新 §2 与 §8。
+> - 计划文档实施完毕后移入 `docs/archive/` 并加归档横幅，**不要留在 `docs/plans/` 冒充现状**。

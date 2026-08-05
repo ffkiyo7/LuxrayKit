@@ -6,6 +6,8 @@
 > 运行前提:这是 owner 自己的**可信通用 VPS Agent 主机**；强/弱模型区分的是能力与职责,不是安全信任等级。
 > 信任模型注记:Hermes、强/弱模型与 Git 凭据由同一 Unix 用户使用是接受的运行前提；弱模型不是不可信或恶意主体。无需为本流水线另加容器、Unix 用户或砍掉 Hermes 的其他 VPS 能力，只用独立 worktree、分支与锁纪律避免开发工作影响 maintenance clone。若未来把 Discord 开给不受信任者，或让外部文本可直接触发执行，再重新评估隔离边界。
 > 标注 ⚠️ 的是待项目 owner 拍板的开放决策。
+>
+> **状态注记（2026-08-05）**：本方案**尚未实施**（§7 路线图多数条目仍为 ⬜），保留为待办计划而非现状描述。其中的视觉回归事实已就地修正（见 §5）。**待 owner 重新拍板的前提变化**：本稿假设开发发生在 VPS Agent 主机上，而开发环境已于 2026-08 迁至 macOS 本机；VPS 目前只承载 PokeDB / VGCPastes 数据刷新。§0 的信任模型与 §6 的 worktree 纪律需按新拓扑重新评估。
 
 ## 0. 角色与信任模型(骨架)
 
@@ -146,9 +148,10 @@ session、一个 worktree 的生命周期绑定起来。
 
 1. **最容易坏而测试最难写的是什么?** → UI/UX(视觉、交互、移动端体验)
    - CI 渲染冒烟:`offline.spec.ts` + `team-samples.spec.ts`(已有)
-   - 本机 win32 视觉回归 17 态:UI 改动 merge 前手动跑(已有,基线平台锁定,严禁 CI 重生成)
+   - 视觉回归 18 态:CI 的 `visual` job 是阻塞门禁;基线为 Linux 容器生成,重建走
+     `visual-baseline.yml` 手动工作流(开发在 macOS,本机无法产出 Linux 基线)
    - **preview URL 真机验收**:手机点开 workers.dev 链接实测(本次打通,见 §6)
-   - UI TASK 的 DoD:强模型先跑 `npm test` + `npm run build`;CI 绿后再完成 Win32 视觉回归与真机验收
+   - UI TASK 的 DoD:强模型先跑 `npm test` + `npm run build`;CI(含 `visual`)绿后再完成真机验收
 2. **什么改动可以自动合并?** → 仅 `automation/pokedb-environment-refresh`、`automation/vgcpastes-team-refresh` 两个白名单分支的纯生成 JSON
 3. **人只想亲眼看什么?** → PLAN 摘要、preview URL、样本数/audit 摘要
 

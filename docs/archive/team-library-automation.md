@@ -1,5 +1,7 @@
 # 实现方案:队伍库(VGCPastes)自动化刷新 + 验证防线
 
+> **⚠️ 已归档（2026-08-05）· 仅供历史参考,勿作现状引用。** 本方案已实现并上线。文中「现状事实(已核实,直接引用,不必重新调研)」一节现已**全部失效**:CI 早已是 `test` + `visual` 两个 job、daily auto-merge 白名单是**两个**分支、视觉基线是 Linux 容器生成而非 win32。工程现状一律以 [`docs/DEVELOPER_GUIDE.md`](../DEVELOPER_GUIDE.md) 为准。
+
 > 本文档是一次性实现任务书,写给执行本任务的 coding agent。实现合并后本文档可删除或归档。
 > 执行前先读 `AGENTS.md`(工作规则)与 `docs/DEVELOPER_GUIDE.md` §6–§9(自动化与部署事实)。
 

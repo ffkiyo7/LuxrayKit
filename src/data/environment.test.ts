@@ -221,6 +221,50 @@ describe('environment runtime loading', () => {
     });
   });
 
+  it('keeps a previous-season snapshot only when it is the season directly before the live one', () => {
+    const battle = (seasonNumber: number) => ({
+      season: `M-${seasonNumber}`,
+      seasonNumber,
+      rule: 'singles' as const,
+      updatedAt: '2026-08-05 23:58:00',
+      sourceUrl: `https://champs.pokedb.tokyo/pokemon/list?season=${seasonNumber}&rule=0`,
+      resultCount: 1,
+      detailCount: 0,
+      pokemonUsage: [
+        { pokemonId: 'garchomp', usageRate: 100, teamCount: 1, moveIds: [], itemIds: [], teammateIds: [] },
+      ],
+      audit: {
+        unknownPokemonKeys: [],
+        unknownItemNames: [],
+        unknownMoveKeys: [],
+        unknownAbilityKeys: [],
+        unknownNatureNames: [],
+        failedDetailKeys: [],
+      },
+    });
+    const snapshotFor = (liveSeason: number, previousSeasonNumber: number) => ({
+      retrievedAt: '2026-08-06T09:00:00.000Z',
+      battles: {
+        singles: battle(liveSeason),
+        doubles: { ...battle(liveSeason), rule: 'doubles' as const },
+      },
+      previousSeason: {
+        season: `M-${previousSeasonNumber}`,
+        seasonNumber: previousSeasonNumber,
+        capturedAt: '2026-08-05T16:00:00.000Z',
+        ranks: { singles: { garchomp: 3 }, doubles: { garchomp: 4 } },
+      },
+    });
+
+    expect(createEnvironmentStateFromPokeDbSnapshot(snapshotFor(5, 4)).previousSeason).toMatchObject({
+      season: 'M-4',
+      ranks: { singles: { garchomp: 3 } },
+    });
+    // A gap (Worker was down across a rollover) would silently relabel the delta, so it is dropped.
+    expect(createEnvironmentStateFromPokeDbSnapshot(snapshotFor(6, 4)).previousSeason).toBeUndefined();
+    expect(createEnvironmentStateFromPokeDbSnapshot(snapshotFor(4, 4)).previousSeason).toBeUndefined();
+  });
+
   it('tags a PokeDB high-score sample by its ladder season so M-3 teams read as M-B', () => {
     const battle = {
       season: 'M-3',

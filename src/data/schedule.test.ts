@@ -18,6 +18,7 @@ describe('schedule', () => {
     expect(seasonToRegulation('M-2')).toBe('M-A');
     expect(seasonToRegulation('M-3')).toBe('M-B');
     expect(seasonToRegulation('M-4')).toBe('M-B');
+    expect(seasonToRegulation('M-5')).toBe('M-B');
     expect(seasonToRegulation('M-9')).toBeUndefined();
   });
 
@@ -34,6 +35,10 @@ describe('schedule', () => {
     // Seasons transition at 02:00 UTC (announced 10:00 in UTC+8). Guard the M-3 -> M-4 boundary.
     expect(currentSeasonLabel(new Date('2026-07-08T01:30:00.000Z'))).toBe('M-3');
     expect(currentSeasonLabel(new Date('2026-07-08T02:30:00.000Z'))).toBe('M-4');
+    // M-4 -> M-5 boundary. M-5 is the last M-B season and ends on the regulation boundary.
+    expect(currentSeasonLabel(new Date('2026-08-05T01:30:00.000Z'))).toBe('M-4');
+    expect(currentSeasonLabel(new Date('2026-08-05T02:30:00.000Z'))).toBe('M-5');
+    expect(currentSeasonLabel(new Date('2026-09-01T00:00:00.000Z'))).toBe('M-5');
   });
 
   it('builds the header context label, preferring the live season', () => {

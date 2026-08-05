@@ -14,6 +14,7 @@ import {
   type PokeDbTrainerTeam,
 } from '../../../src/lib/pokedbEnvironment';
 import type { EnvironmentPokemonUsage, EnvironmentTeamSample } from '../../../src/lib/environmentDataset';
+import type { SeasonRankSnapshot } from '../../../src/lib/seasonRankDelta';
 
 type BattleType = 'singles' | 'doubles';
 
@@ -21,6 +22,10 @@ type EnvironmentSnapshot = {
   retrievedAt: string;
   battles: Partial<Record<BattleType, PokeDbPokemonStatisticsPayload>>;
   teamSamples?: Partial<Record<BattleType, EnvironmentTeamSample[]>>;
+  // The immediately-preceding season's ranks, carried inside the snapshot rather than in its own
+  // KV key so /api/environment/latest can keep streaming the stored text verbatim and offline
+  // clients get the delta from the copy they already cached. ~4KB per battle type.
+  previousSeason?: SeasonRankSnapshot;
   dataFreshness?: {
     source: 'pokedb-pokemon-statistics';
     selectedSeason: number;
@@ -70,6 +75,8 @@ type CacheStatus = {
   failedAt?: string;
   selectedSeason?: number;
   selectedSeasonLabel?: string;
+  /** Which season the rank-delta chips compare against, or undefined when there is nothing to diff. */
+  previousSeasonLabel?: string;
   teamCounts?: Partial<Record<BattleType, number>>;
   audit?: EnvironmentAuditStatus;
   error?: string;
@@ -711,10 +718,111 @@ const configuredInteger = (value: string | undefined, fallback: number, maximum:
   return Number.isInteger(parsed) ? Math.min(Math.max(parsed, 1), maximum) : fallback;
 };
 
+const battleTypeList = ['singles', 'doubles'] as const satisfies readonly BattleType[];
+
+/**
+ * Rank tables keyed by pokemonId. Rank is the array position: PokeDB's list page is emitted in
+ * rank order and every consumer in this repo already derives rank that way.
+ */
+const toRankTable = (entries: Array<{ pokemonId: string }>) =>
+  entries.reduce<Record<string, number>>((acc, entry, index) => {
+    if (entry.pokemonId && acc[entry.pokemonId] === undefined) acc[entry.pokemonId] = index + 1;
+    return acc;
+  }, {});
+
+// Optional all the way down: KV can legitimately hold a snapshot shape older than the current
+// one. dataFreshness is authoritative, but predates some snapshots — fall back to the payload's
+// own season so an older value still classifies correctly instead of forcing a network refetch.
+const snapshotPayload = (snapshot: EnvironmentSnapshot | undefined) =>
+  snapshot?.battles?.singles ?? snapshot?.battles?.doubles;
+
+const snapshotSeasonNumber = (snapshot: EnvironmentSnapshot | undefined) =>
+  snapshot?.dataFreshness?.selectedSeason ?? snapshotPayload(snapshot)?.seasonNumber;
+
+/** Compress an already-published snapshot down to just its ranks. */
+export const seasonRanksFromSnapshot = (
+  snapshot: EnvironmentSnapshot,
+  capturedAt: string,
+): SeasonRankSnapshot | undefined => {
+  const payload = snapshotPayload(snapshot);
+  const seasonNumber = snapshotSeasonNumber(snapshot);
+  if (!payload || !Number.isInteger(seasonNumber)) return undefined;
+  return {
+    season: payload.season,
+    seasonNumber: seasonNumber as number,
+    ...(payload.updatedAt ? { sourceUpdatedAt: payload.updatedAt } : {}),
+    capturedAt,
+    ranks: Object.fromEntries(
+      battleTypeList.flatMap((battleType) => {
+        const battle = snapshot.battles?.[battleType];
+        return battle?.pokemonUsage ? [[battleType, toRankTable(battle.pokemonUsage)] as const] : [];
+      }),
+    ),
+  };
+};
+
+/**
+ * The prior season's ranks for the season we are about to publish.
+ *
+ * Order matters: the two cheap paths come first, and the network path only runs when neither
+ * applies (a cold KV, a deploy that landed after the rollover, or a lost snapshot). PokeDB keeps
+ * every past season addressable at `?season=n`, so that path is a real recovery rather than a
+ * best-effort — but it is one-shot: once a publish succeeds, case 1 short-circuits it forever.
+ *
+ * A failure here must never fail the publish; a missing predecessor just means no delta chips.
+ */
+export async function resolvePreviousSeasonRanks(options: {
+  season: number;
+  current: EnvironmentSnapshot | undefined;
+  baseUrl: string;
+  fetcher: Fetcher;
+  now: () => Date;
+}): Promise<SeasonRankSnapshot | undefined> {
+  const { season, current } = options;
+  const carried = current?.previousSeason;
+  // 1. Already have the immediate predecessor (the steady state).
+  if (carried?.seasonNumber === season - 1) return carried;
+  const capturedAt = options.now().toISOString();
+  // 2. Normal rollover: the snapshot we are replacing *is* the season that just ended.
+  if (current && snapshotSeasonNumber(current) === season - 1) {
+    return seasonRanksFromSnapshot(current, capturedAt) ?? carried;
+  }
+  if (season <= 1) return undefined;
+  // 3. Recovery: pull the previous season's ranking pages straight from PokeDB.
+  try {
+    const lists = await Promise.all(
+      battleTypeList.map((battleType) =>
+        fetchPokemonList({ baseUrl: options.baseUrl, season: season - 1, battleType, fetcher: options.fetcher }),
+      ),
+    );
+    const [singles] = lists;
+    if (singles.seasonNumber !== season - 1) {
+      throw new Error(`PokeDB returned season ${singles.seasonNumber} for a season ${season - 1} request`);
+    }
+    return {
+      season: singles.season,
+      seasonNumber: season - 1,
+      ...(singles.updatedAt ? { sourceUpdatedAt: singles.updatedAt } : {}),
+      capturedAt,
+      ranks: Object.fromEntries(
+        battleTypeList.map((battleType, index) => [battleType, toRankTable(lists[index].rankings)] as const),
+      ),
+    };
+  } catch (error) {
+    console.log(JSON.stringify({
+      event: 'environment_previous_season_backfill_failed',
+      season,
+      error: error instanceof Error ? error.message : String(error),
+    }));
+    return carried;
+  }
+}
+
 function buildSnapshotFromRefreshJob(
   job: RefreshJob,
   teamSamples: Record<BattleType, EnvironmentTeamSample[]>,
   retrievedAt: string,
+  previousSeason: SeasonRankSnapshot | undefined,
 ): EnvironmentSnapshot {
   const singles = buildPokemonStatisticsPayload(job.lists.singles, job.details.singles);
   const doubles = buildPokemonStatisticsPayload(job.lists.doubles, job.details.doubles);
@@ -728,6 +836,7 @@ function buildSnapshotFromRefreshJob(
     retrievedAt,
     battles: { singles, doubles },
     teamSamples,
+    ...(previousSeason ? { previousSeason } : {}),
     dataFreshness: {
       source: 'pokedb-pokemon-statistics',
       selectedSeason: job.season,
@@ -772,11 +881,22 @@ async function publishRefreshJob(
     fetchPreviousSeasonSamples({ baseUrl, season: job.season, battleType: 'singles', fetcher }),
     fetchPreviousSeasonSamples({ baseUrl, season: job.season, battleType: 'doubles', fetcher }),
   ]);
+  // Read the snapshot we are about to replace *before* overwriting it — on a season rollover it
+  // is the only in-hand copy of the season that just ended.
+  const currentSnapshotText = await env.ENVIRONMENT_CACHE.get(SNAPSHOT_KEY);
+  const previousSeason = await resolvePreviousSeasonRanks({
+    season: job.season,
+    current: currentSnapshotText ? (JSON.parse(currentSnapshotText) as EnvironmentSnapshot) : undefined,
+    baseUrl,
+    fetcher,
+    now,
+  });
   const refreshedAt = now().toISOString();
   const snapshot = buildSnapshotFromRefreshJob(
     job,
     { singles: singlesSamples, doubles: doublesSamples },
     refreshedAt,
+    previousSeason,
   );
   const teamIndex = buildTeamIndex(snapshot);
   const audit = buildEnvironmentAuditStatus(snapshot, auditThreshold(env));
@@ -786,6 +906,7 @@ async function publishRefreshJob(
     sourceUpdatedAt: latestSourceUpdatedAt(job.lists),
     selectedSeason: job.season,
     selectedSeasonLabel: snapshot.battles.singles?.season ?? snapshot.battles.doubles?.season,
+    ...(previousSeason ? { previousSeasonLabel: previousSeason.season } : {}),
     teamCounts: {
       singles: snapshot.battles.singles?.resultCount,
       doubles: snapshot.battles.doubles?.resultCount,

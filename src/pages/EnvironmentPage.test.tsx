@@ -566,6 +566,42 @@ describe('EnvironmentPage usage basis', () => {
     expect(screen.queryByText('没有找到匹配的宝可梦')).toBeNull();
   });
 
+  it('shows rank movement against the previous season and explains the 名次 basis', async () => {
+    const user = userEvent.setup();
+    const environment: EnvironmentState = {
+      ...makeEnvironment('rank-relative'),
+      previousSeason: {
+        season: 'M-1',
+        seasonNumber: 1,
+        capturedAt: '2026-06-11T00:00:00.000Z',
+        // Live singles order is garchomp(1) / archaludon(2) / incineroar(3): garchomp climbs
+        // two, archaludon holds, and incineroar is absent from M-1 so it reads as NEW.
+        ranks: { singles: { garchomp: 3, archaludon: 2 } },
+      },
+    };
+    render(<EnvironmentPage environment={environment} onImportSample={() => undefined} />);
+
+    await user.click(screen.getByRole('button', { name: '单打' }));
+    expect(within(screen.getByRole('button', { name: /烈咬陆鲨/ })).getByLabelText('较 M-1 上升 2 名')).toBeTruthy();
+    expect(within(screen.getByRole('button', { name: /铝钢桥龙/ })).getByLabelText('与 M-1 名次持平')).toBeTruthy();
+    expect(within(screen.getByRole('button', { name: /炽焰咆哮虎/ })).getByLabelText('M-1 未上榜')).toBeTruthy();
+
+    await user.click(screen.getByRole('button', { name: '查看数据口径' }));
+    expect(screen.getByText(/相对 M-1 的名次变化，不是使用率变化/)).toBeTruthy();
+  });
+
+  it('renders no movement chip at all when there is no previous season to diff against', async () => {
+    const user = userEvent.setup();
+    render(<EnvironmentPage environment={makeEnvironment('rank-relative')} onImportSample={() => undefined} />);
+
+    await user.click(screen.getByRole('button', { name: '单打' }));
+    const row = screen.getByRole('button', { name: /烈咬陆鲨/ });
+    expect(within(row).queryByLabelText(/名次|未上榜/)).toBeNull();
+
+    await user.click(screen.getByRole('button', { name: '查看数据口径' }));
+    expect(screen.queryByText(/名次变化/)).toBeNull();
+  });
+
   it('resets the scroll position to the top when the visible view changes', async () => {
     const user = userEvent.setup();
     const scrollToSpy = vi.spyOn(window, 'scrollTo').mockImplementation(() => {});

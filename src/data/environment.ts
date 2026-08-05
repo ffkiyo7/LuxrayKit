@@ -13,6 +13,7 @@ import {
   type EnvironmentUsageBasis,
   type RegulationId,
 } from '../lib/environmentDataset';
+import { isImmediatePredecessor, type SeasonRankSnapshot } from '../lib/seasonRankDelta';
 import {
   buildEnvironmentDatasetFromPokeDbOpenData,
   buildEnvironmentDatasetFromPokeDbStatistics,
@@ -31,6 +32,7 @@ export type {
   EnvironmentTeamSlot,
   EnvironmentUsageBasis,
   RegulationId,
+  SeasonRankSnapshot,
 };
 
 // The regulation the app is currently configured for. Surfaces as the default lens for
@@ -45,6 +47,8 @@ export type PokeDbEnvironmentSnapshotPayload = {
   battles: Partial<Record<EnvironmentBattleType, PokeDbRankedTeamsPayload | PokeDbTrainerListPayload | PokeDbPokemonStatisticsPayload>>;
   moveStats?: Partial<Record<EnvironmentBattleType, Record<string, EnvironmentReferenceUsage[]>>>;
   teamSamples?: Partial<Record<EnvironmentBattleType, EnvironmentTeamSample[]>>;
+  /** Written by the Worker at a season rollover; absent on older snapshots and on the static file. */
+  previousSeason?: SeasonRankSnapshot;
 };
 
 export type EnvironmentState = {
@@ -52,6 +56,11 @@ export type EnvironmentState = {
   updatedAt: string;
   sourceUpdatedAt: string;
   seasonLabel: string;
+  /**
+   * The immediately-preceding season's ranks, when the snapshot carries one. Absent means the
+   * UI shows no movement chips at all — never a zero or a guessed value.
+   */
+  previousSeason?: SeasonRankSnapshot;
   sourceKind: 'worker' | 'static' | 'seed';
   freshness: 'fresh' | 'stale';
   // Health of the refresh pipeline itself (distinct from freshness): 'degraded' means the
@@ -98,7 +107,7 @@ const estimateSampleTeamCount = (usage: EnvironmentPokemonUsage[]) => {
 
 const toEnvironmentState = (
   dataset: EnvironmentDataset,
-  metadata: Pick<EnvironmentState, 'loadStatus' | 'seasonLabel' | 'sourceKind' | 'freshness' | 'sourceStatus'>,
+  metadata: Pick<EnvironmentState, 'loadStatus' | 'seasonLabel' | 'sourceKind' | 'freshness' | 'sourceStatus' | 'previousSeason'>,
   extraAuditIssues: EnvironmentDatasetAuditIssue[] = [],
 ): EnvironmentState => {
   const audited = auditDataset(dataset);
@@ -107,6 +116,7 @@ const toEnvironmentState = (
     updatedAt: audited.dataset.source.retrievedAt ?? audited.dataset.updatedAt,
     sourceUpdatedAt: audited.dataset.updatedAt,
     seasonLabel: metadata.seasonLabel,
+    ...(metadata.previousSeason ? { previousSeason: metadata.previousSeason } : {}),
     sourceKind: metadata.sourceKind,
     freshness: metadata.freshness,
     sourceStatus: metadata.sourceStatus,
@@ -200,11 +210,19 @@ export const createEnvironmentStateFromPokeDbSnapshot = (
 ): EnvironmentState => {
   const firstPayload = snapshot.battles.singles ?? snapshot.battles.doubles;
   const pokedbDataset = createPokeDbEnvironmentDatasetFromSnapshot(snapshot, extraTeamSamples);
+  // Only diff against the season directly before this one. A snapshot that skipped a season
+  // (Worker down through a rollover, hand-restored KV) would make "变动" mean something other
+  // than "since last season", so we drop the predecessor rather than mislabel it.
+  const currentSeasonNumber = isStatisticsPayload(firstPayload) ? firstPayload.seasonNumber : undefined;
+  const previousSeason = isImmediatePredecessor(snapshot.previousSeason, currentSeasonNumber)
+    ? snapshot.previousSeason
+    : undefined;
   const state = toEnvironmentState(
     pokedbDataset,
     {
       loadStatus: 'pokedb',
       seasonLabel: firstPayload?.season ?? '未知赛季',
+      ...(previousSeason ? { previousSeason } : {}),
       ...metadata,
       sourceStatus: metadata.sourceStatus ?? 'ok',
     },

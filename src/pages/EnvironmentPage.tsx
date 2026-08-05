@@ -8,7 +8,10 @@ import {
   Newspaper,
   Percent,
   Search,
+  Sparkles,
   Trophy,
+  TrendingDown,
+  TrendingUp,
   Users,
 } from 'lucide-react';
 import { useLayoutEffect, useMemo, useState } from 'react';
@@ -22,6 +25,12 @@ import {
   type EnvironmentTeamSample,
 } from '../data/environment';
 import { currentRuleSet } from '../data';
+import {
+  describeSeasonRankDelta,
+  resolveSeasonRankDelta,
+  selectSeasonRanks,
+  type SeasonRankDelta,
+} from '../lib/seasonRankDelta';
 import { PokemonFactBanner } from '../components/PokemonFactBanner';
 import { Button, Card, PokemonAvatar, TypeBadge } from '../components/ui';
 import { TeamBrowseView } from './TeamBrowseView';
@@ -142,17 +151,66 @@ function RankBadge({ rank }: { rank: number }) {
   );
 }
 
+const rankDeltaStyles = {
+  new: { icon: Sparkles, className: 'border-accent/40 bg-accent/10 text-accent' },
+  up: { icon: TrendingUp, className: 'border-success/40 bg-success/10 text-success' },
+  down: { icon: TrendingDown, className: 'border-danger/40 bg-danger/10 text-danger' },
+} as const;
+
+/**
+ * Movement against the previous season. PokeDB publishes ranks only (no absolute usage %), so
+ * this is always *名次* movement — see the 数据口径 page. Renders nothing when there is no prior
+ * season to diff against, which is the whole contract: no chip beats a fabricated zero.
+ */
+function RankDeltaChip({ delta, previousSeasonLabel }: { delta: SeasonRankDelta; previousSeasonLabel: string }) {
+  const description = describeSeasonRankDelta(delta, previousSeasonLabel);
+
+  // 持平刻意不做成 pill。一个带边框的空药丸读起来像禁用按钮或加载失败，而不是「名次没变」——
+  // 榜首连续两个赛季不动是常态，首页第一行就会撞上它。但它仍然必须渲染：如果持平也留空，
+  // 「没有前序赛季可比」和「比了、没变」就长得一模一样了。宽度对齐数字 chip，列不会跳。
+  if (delta.kind === 'hold') {
+    return (
+      <span
+        aria-label={description}
+        className="inline-flex h-5 w-8 shrink-0 items-center justify-center text-sm font-semibold text-textMuted"
+        title={description}
+      >
+        –
+      </span>
+    );
+  }
+
+  const { icon: Icon, className } = rankDeltaStyles[delta.kind];
+
+  return (
+    <span
+      aria-label={description}
+      className={`inline-flex h-5 shrink-0 items-center gap-0.5 rounded-full border px-1.5 text-[11px] font-semibold tabular-nums ${className}`}
+      title={description}
+    >
+      <Icon size={11} aria-hidden />
+      {delta.kind === 'new' ? 'NEW' : delta.places}
+    </span>
+  );
+}
+
 function RankingRow({
   pokemonId,
   rank,
+  previousRanks,
+  previousSeasonLabel,
   onOpen,
 }: {
   pokemonId: string;
   rank: number;
+  previousRanks?: Record<string, number>;
+  previousSeasonLabel?: string;
   onOpen: (pokemonId: string) => void;
 }) {
   const entry = getEnvironmentPokemon(pokemonId);
   if (!entry) return null;
+
+  const delta = resolveSeasonRankDelta(rank, previousRanks, pokemonId);
 
   return (
     <button className="flex w-full items-center gap-3 border-t border-divider py-3 text-left first:border-t-0" type="button" onClick={() => onOpen(pokemonId)}>
@@ -168,6 +226,7 @@ function RankingRow({
           ))}
         </span>
       </span>
+      {delta && previousSeasonLabel && <RankDeltaChip delta={delta} previousSeasonLabel={previousSeasonLabel} />}
     </button>
   );
 }
@@ -366,6 +425,10 @@ function FullRankingPage({
         }),
     [normalizedQuery, rankings],
   );
+  const previousRanks = useMemo(
+    () => selectSeasonRanks(environment.previousSeason, battleType),
+    [environment.previousSeason, battleType],
+  );
 
   return (
     <div className="space-y-3">
@@ -416,6 +479,8 @@ function FullRankingPage({
                   key={item.pokemonId}
                   pokemonId={item.pokemonId}
                   rank={rank}
+                  previousRanks={previousRanks}
+                  previousSeasonLabel={environment.previousSeason?.season}
                   onOpen={onOpenPokemon}
                 />
               ))}
@@ -449,6 +514,8 @@ function FullRankingPage({
                           key={item.pokemonId}
                           pokemonId={item.pokemonId}
                           rank={rank}
+                          previousRanks={previousRanks}
+                          previousSeasonLabel={environment.previousSeason?.season}
                           onOpen={onOpenPokemon}
                         />
                       ))}
@@ -503,6 +570,15 @@ function EnvironmentMethodologyPage({
       description: '招式、道具 % 是真实占比；队友仅按搭档排名展示',
       icon: Percent,
     },
+    ...(environment.previousSeason
+      ? [
+          {
+            label: '变动',
+            description: `榜单上的 ↑↓ 是相对 ${environment.previousSeason.season} 的名次变化，不是使用率变化；只对比上一个赛季`,
+            icon: TrendingUp,
+          },
+        ]
+      : []),
     {
       label: '构筑',
       description: '来自公开队报链接（已结束赛季 / 構築記事）',
@@ -596,6 +672,10 @@ export function EnvironmentPage({
   const visibleTeamSamples = useMemo(
     () => sortTeamSamplesByDate(teamSamples, 'newest').slice(0, LATEST_TEAM_SAMPLE_COUNT),
     [teamSamples],
+  );
+  const homePreviousRanks = useMemo(
+    () => selectSeasonRanks(environment.previousSeason, battleType),
+    [environment.previousSeason, battleType],
   );
   const changeBattleType = (nextBattleType: EnvironmentBattleType) => {
     setBattleType(nextBattleType);
@@ -720,6 +800,8 @@ export function EnvironmentPage({
               key={item.pokemonId}
               pokemonId={item.pokemonId}
               rank={index + 1}
+              previousRanks={homePreviousRanks}
+              previousSeasonLabel={environment.previousSeason?.season}
               onOpen={(pokemonId) => setDetailState({ pokemonId, returnView: 'home' })}
             />
           ))}

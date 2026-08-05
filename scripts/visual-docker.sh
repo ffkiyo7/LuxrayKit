@@ -8,9 +8,15 @@
 # is derived from the installed @playwright/test version, so the browser and the
 # fonts move only when package-lock.json moves.
 #
-#   ./scripts/visual-docker.sh                     # verify against baselines
-#   ./scripts/visual-docker.sh --update-snapshots  # rebuild baselines
+# CI-ONLY. Development happens on macOS, which cannot produce Linux baselines at
+# all, and Playwright's snapshot filenames carry the platform but NOT the CPU
+# architecture — an arm64 container would silently overwrite CI's amd64 PNGs
+# under identical names. So both entry points live in GitHub Actions:
 #
+#   verify  -> the `visual` job in .github/workflows/ci.yml (blocking gate)
+#   rebuild -> .github/workflows/visual-baseline.yml (manual workflow_dispatch)
+#
+# Running it by hand is supported only on an amd64 Linux host with Docker.
 # Any extra arguments are forwarded to `playwright test`.
 set -euo pipefail
 
@@ -29,9 +35,11 @@ IMAGE="mcr.microsoft.com/playwright:v${PW_VERSION}-noble"
 
 if ! docker info >/dev/null 2>&1; then
   echo "error: cannot talk to the Docker daemon." >&2
-  echo "  - not installed?  see docs/DEVELOPER_GUIDE.md (visual regression)" >&2
-  echo "  - just added yourself to the 'docker' group? that needs a new login:" >&2
-  echo "      newgrp docker    # or restart WSL: wsl.exe --shutdown" >&2
+  echo "  This script is CI-only; a macOS dev box is not expected to run it." >&2
+  echo "  - to verify baselines:  open a PR — the 'visual' CI job is the gate." >&2
+  echo "  - to rebuild baselines: run the 'Rebuild visual baselines' workflow" >&2
+  echo "      gh workflow run visual-baseline.yml --ref \"\$(git branch --show-current)\"" >&2
+  echo "  See docs/DEVELOPER_GUIDE.md §8 (visual regression)." >&2
   exit 1
 fi
 

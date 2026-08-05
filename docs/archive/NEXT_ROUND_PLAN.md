@@ -1,5 +1,9 @@
 # 下一轮开发计划 / TASKS
 
+> **⚠️ 已归档（2026-08-05）· 仅供历史参考，勿作现状引用。** 本清单绝大部分已落地。仍未开始的三项（Task F 伤害计算页排版、Task 13 队报链接重做、Task 15 浅色主题品牌色）已转入 [`docs/progress/DEVELOPMENT_PROGRESS.md`](../progress/DEVELOPMENT_PROGRESS.md)。
+>
+> **已知错误**：文中称 `wrangler.jsonc` 的自定义域名 `routes`「已注释保留 / 停用对外 luxraykit.com」——**这是错的**，`luxraykit.com` 与 `www.luxraykit.com` 均以 `custom_domain: true` 正常服务生产流量。照此文「恢复」配置会摘掉生产域名。
+
 更新日期：2026-06-22
 
 ## 开发流程
