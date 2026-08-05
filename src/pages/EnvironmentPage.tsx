@@ -5,7 +5,6 @@ import {
   Globe2,
   Info,
   List,
-  Minus,
   Newspaper,
   Percent,
   Search,
@@ -156,7 +155,6 @@ const rankDeltaStyles = {
   new: { icon: Sparkles, className: 'border-accent/40 bg-accent/10 text-accent' },
   up: { icon: TrendingUp, className: 'border-success/40 bg-success/10 text-success' },
   down: { icon: TrendingDown, className: 'border-danger/40 bg-danger/10 text-danger' },
-  hold: { icon: Minus, className: 'border-border bg-secondary text-textMuted' },
 } as const;
 
 /**
@@ -165,18 +163,33 @@ const rankDeltaStyles = {
  * season to diff against, which is the whole contract: no chip beats a fabricated zero.
  */
 function RankDeltaChip({ delta, previousSeasonLabel }: { delta: SeasonRankDelta; previousSeasonLabel: string }) {
-  const style = rankDeltaStyles[delta.kind];
-  const Icon = style.icon;
   const description = describeSeasonRankDelta(delta, previousSeasonLabel);
+
+  // 持平刻意不做成 pill。一个带边框的空药丸读起来像禁用按钮或加载失败，而不是「名次没变」——
+  // 榜首连续两个赛季不动是常态，首页第一行就会撞上它。但它仍然必须渲染：如果持平也留空，
+  // 「没有前序赛季可比」和「比了、没变」就长得一模一样了。宽度对齐数字 chip，列不会跳。
+  if (delta.kind === 'hold') {
+    return (
+      <span
+        aria-label={description}
+        className="inline-flex h-5 w-8 shrink-0 items-center justify-center text-sm font-semibold text-textMuted"
+        title={description}
+      >
+        –
+      </span>
+    );
+  }
+
+  const { icon: Icon, className } = rankDeltaStyles[delta.kind];
 
   return (
     <span
       aria-label={description}
-      className={`inline-flex h-5 shrink-0 items-center gap-0.5 rounded-full border px-1.5 text-[11px] font-semibold tabular-nums ${style.className}`}
+      className={`inline-flex h-5 shrink-0 items-center gap-0.5 rounded-full border px-1.5 text-[11px] font-semibold tabular-nums ${className}`}
       title={description}
     >
       <Icon size={11} aria-hidden />
-      {delta.kind === 'new' ? 'NEW' : delta.kind === 'hold' ? '' : delta.places}
+      {delta.kind === 'new' ? 'NEW' : delta.places}
     </span>
   );
 }
