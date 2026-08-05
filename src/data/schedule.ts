@@ -70,6 +70,15 @@ export const seasonSchedule: SeasonScheduleEntry[] = [
     endAt: '2026-08-05T01:59:00.000Z',
     sourceUrl: 'https://news.pokemon-home.com/tc/page/795.html', // Ranked Battles Season M-4 (UTC+8)
   },
+  {
+    label: 'M-5',
+    regulation: 'M-B',
+    startAt: '2026-08-05T02:00:00.000Z',
+    // M-5 is the last M-B season: it ends exactly on the regulation boundary, so this tracks
+    // currentRuleSet rather than repeating the date. The next season starts a new regulation
+    // and needs the catalog authored first (isRegulationRolloverDue signals it).
+    endAt: currentRuleSet.endAt,
+  },
 ];
 
 const toTime = (iso: string) => new Date(iso).getTime();

@@ -7,6 +7,8 @@ import {
   isSnapshotBehindSource,
   nextPageDelayMs,
   probePokeDbFreshness,
+  resolvePreviousSeasonRanks,
+  seasonRanksFromSnapshot,
   EnvironmentRefreshDurableObject,
   runRefreshJobStep,
   startRefreshJob,
@@ -118,12 +120,17 @@ const createRefreshFetcher = (
     }
     if (url.pathname === '/pokemon/list') {
       const battleType = url.searchParams.get('rule') === '1' ? 'doubles' : 'singles';
+      // PokeDB keeps every past season addressable at ?season=n, which is what the
+      // previous-season backfill relies on — serve the requested one, not just the latest.
+      const requestedSeason = Number(url.searchParams.get('season')) || season;
       return new Response(
-        pokemonListHtml(
-          battleType,
-          60,
-          { season, updatedAt: options.updatedAtByBattle?.[battleType] ?? options.updatedAt },
-        ),
+        pokemonListHtml(battleType, 60, {
+          season: requestedSeason,
+          updatedAt:
+            requestedSeason === season
+              ? options.updatedAtByBattle?.[battleType] ?? options.updatedAt
+              : '2026/5/13 23:58',
+        }),
         { status: 200 },
       );
     }
@@ -182,6 +189,152 @@ const pageHtml = (options: {
     </article>
   `;
 };
+
+const publishedSnapshot = (seasonNumber: number, ids: string[], previousSeason?: unknown) => {
+  const battle = (rule: 'singles' | 'doubles') => ({
+    season: `M-${seasonNumber}`,
+    seasonNumber,
+    rule,
+    updatedAt: `2026-07-07 23:58:00`,
+    sourceUrl: `https://example.com/pokemon/list?season=${seasonNumber}`,
+    resultCount: ids.length,
+    detailCount: 0,
+    pokemonUsage: ids.map((pokemonId) => ({
+      pokemonId,
+      usageRate: 0,
+      teamCount: 0,
+      moveIds: [],
+      itemIds: [],
+      teammateIds: [],
+    })),
+    audit: {
+      unknownPokemonKeys: [],
+      unknownItemNames: [],
+      unknownMoveKeys: [],
+      unknownAbilityKeys: [],
+      unknownNatureNames: [],
+      failedDetailKeys: [],
+    },
+  });
+  return {
+    retrievedAt: '2026-07-07T00:00:00.000Z',
+    battles: { singles: battle('singles'), doubles: battle('doubles') },
+    ...(previousSeason ? { previousSeason } : {}),
+    dataFreshness: {
+      source: 'pokedb-pokemon-statistics',
+      selectedSeason: seasonNumber,
+      completeness: 'rankings-complete-details-top-n',
+      detailLimit: 60,
+      notes: '',
+    },
+  };
+};
+
+const rejectingFetcher = vi.fn(async (input: string | URL | Request) => {
+  throw new Error(`Unexpected fetch ${String(input instanceof Request ? input.url : input)}`);
+});
+
+describe('previous-season rank carry-over', () => {
+  const now = () => new Date('2026-08-05T16:00:00.000Z');
+
+  it('compresses a published snapshot down to rank tables keyed by pokemonId', () => {
+    expect(seasonRanksFromSnapshot(publishedSnapshot(4, ['a', 'b', 'c']) as never, now().toISOString())).toEqual({
+      season: 'M-4',
+      seasonNumber: 4,
+      sourceUpdatedAt: '2026-07-07 23:58:00',
+      capturedAt: '2026-08-05T16:00:00.000Z',
+      ranks: {
+        singles: { a: 1, b: 2, c: 3 },
+        doubles: { a: 1, b: 2, c: 3 },
+      },
+    });
+  });
+
+  it('captures the outgoing season from the snapshot it replaces, without touching the network', async () => {
+    const previousSeason = await resolvePreviousSeasonRanks({
+      season: 5,
+      current: publishedSnapshot(4, ['a', 'b']) as never,
+      baseUrl: 'https://example.com',
+      fetcher: rejectingFetcher as never,
+      now,
+    });
+
+    expect(previousSeason).toMatchObject({ season: 'M-4', seasonNumber: 4, ranks: { singles: { a: 1, b: 2 } } });
+    expect(rejectingFetcher).not.toHaveBeenCalled();
+  });
+
+  it('carries an existing predecessor forward on same-season refreshes instead of refetching', async () => {
+    const carried = { season: 'M-4', seasonNumber: 4, capturedAt: 'earlier', ranks: { singles: { a: 1 } } };
+    const previousSeason = await resolvePreviousSeasonRanks({
+      season: 5,
+      current: publishedSnapshot(5, ['b', 'a'], carried) as never,
+      baseUrl: 'https://example.com',
+      fetcher: rejectingFetcher as never,
+      now,
+    });
+
+    expect(previousSeason).toBe(carried);
+    expect(rejectingFetcher).not.toHaveBeenCalled();
+  });
+
+  it('backfills from PokeDB when the KV snapshot cannot supply the predecessor', async () => {
+    const fetcher = createRefreshFetcher({ season: 4 });
+    const previousSeason = await resolvePreviousSeasonRanks({
+      season: 4,
+      current: undefined,
+      baseUrl: 'https://example.com',
+      fetcher: fetcher as never,
+      now,
+    });
+
+    expect(previousSeason).toMatchObject({ season: 'M-3', seasonNumber: 3 });
+    expect(Object.keys(previousSeason?.ranks.singles ?? {})).toHaveLength(60);
+    expect(fetcher.mock.calls.map(([input]) => new URL(String(input)).searchParams.get('season'))).toEqual(['3', '3']);
+  });
+
+  it('keeps whatever it had and still publishes when the backfill fetch fails', async () => {
+    const carried = { season: 'M-2', seasonNumber: 2, capturedAt: 'earlier', ranks: { singles: { a: 1 } } };
+    const failing = vi.fn(async () => new Response('upstream error', { status: 503 }));
+
+    await expect(
+      resolvePreviousSeasonRanks({
+        season: 5,
+        current: publishedSnapshot(5, ['a'], carried) as never,
+        baseUrl: 'https://example.com',
+        fetcher: failing as never,
+        now,
+      }),
+    ).resolves.toBe(carried);
+  });
+
+  it('tolerates a KV value that is not a current-shape snapshot', async () => {
+    // KV can hold an older shape (or a hand-written placeholder). Reading it must not throw and
+    // take the whole publish down with it — fall through to the backfill instead.
+    const fetcher = createRefreshFetcher({ season: 4 });
+    await expect(
+      resolvePreviousSeasonRanks({
+        season: 4,
+        current: { snapshot: 'old' } as never,
+        baseUrl: 'https://example.com',
+        fetcher: fetcher as never,
+        now,
+      }),
+    ).resolves.toMatchObject({ season: 'M-3', seasonNumber: 3 });
+  });
+
+  it('has nothing to diff against for the very first season', async () => {
+    await expect(
+      resolvePreviousSeasonRanks({
+        season: 1,
+        current: undefined,
+        baseUrl: 'https://example.com',
+        fetcher: rejectingFetcher as never,
+        now,
+      }),
+    ).resolves.toBeUndefined();
+    expect(rejectingFetcher).not.toHaveBeenCalled();
+  });
+});
 
 describe('nextPageDelayMs', () => {
   it('jitters the crawl delay within a 600-1800ms window instead of a constant interval', () => {
@@ -779,6 +932,48 @@ describe('environment Worker PokeDB ingestion', () => {
     expect(snapshot.battles.singles.detailCount).toBe(3);
     expect(snapshot.teamSamples).toEqual({ singles: [], doubles: [] });
     expect(values.has('environment:refresh-job')).toBe(false);
+  });
+
+  it('folds the outgoing season into the new snapshot when the season rolls over', async () => {
+    const { env, values } = createKvEnv(
+      { 'environment:latest': JSON.stringify(publishedSnapshot(2, ['pokemon-x', 'pokemon-y'])) },
+      { POKEDB_DETAIL_LIMIT: '3', POKEDB_DETAIL_CHUNK_SIZE: '2' },
+    );
+    const fetcher = createRefreshFetcher({ season: 3 });
+    await startRefreshJob(env, () => undefined, {
+      fetcher,
+      now: () => new Date('2026-07-08T03:00:00.000Z'),
+      createJobId: () => 'job-rollover',
+    });
+
+    let status: unknown;
+    for (let step = 0; step < 4; step += 1) {
+      status = await runRefreshJobStep(env, 'job-rollover', () => undefined, {
+        fetcher,
+        wait: async () => undefined,
+        now: () => new Date(`2026-07-08T03:0${step + 1}:00.000Z`),
+      });
+    }
+
+    const snapshot = JSON.parse(values.get('environment:latest') ?? '{}');
+    expect(status).toMatchObject({ ok: true, done: true, selectedSeason: 3, previousSeasonLabel: 'M-2' });
+    expect(snapshot.previousSeason).toEqual({
+      season: 'M-2',
+      seasonNumber: 2,
+      sourceUpdatedAt: '2026-07-07 23:58:00',
+      capturedAt: '2026-07-08T03:04:00.000Z',
+      ranks: {
+        singles: { 'pokemon-x': 1, 'pokemon-y': 2 },
+        doubles: { 'pokemon-x': 1, 'pokemon-y': 2 },
+      },
+    });
+    // The M-2 ranks came out of KV, so no season=2 *ranking* page was requested. (The
+    // /trainer/list?season=2 hit is the unrelated previous-season team-sample fetch.)
+    const rankingSeasons = fetcher.mock.calls
+      .map(([input]) => new URL(String(input)))
+      .filter((url) => url.pathname === '/pokemon/list')
+      .map((url) => url.searchParams.get('season'));
+    expect(rankingSeasons).not.toContain('2');
   });
 
   it('exposes snapshot audit counts on status and marks latest as degraded when unknowns exceed the threshold', async () => {
