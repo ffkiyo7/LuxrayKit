@@ -135,6 +135,12 @@ PWA 视觉回归覆盖 **18 个**移动端状态，快照位于 `tests/pwa/visua
 
 细节见 [`docs/qa/MOBILE_VISUAL_REGRESSION.md`](./docs/qa/MOBILE_VISUAL_REGRESSION.md)。
 
+## 参与贡献
+
+提交改动前请阅读 [`CONTRIBUTING.md`](./CONTRIBUTING.md)。项目要求 Node 24；PR 至少需要通过 `npm test`，涉及前端行为时还需要通过 `npm run build`。自动生成的数据和资产必须修改对应脚本后重新生成，不直接手改产物。
+
+安全漏洞请按 [`SECURITY.md`](./SECURITY.md) 私下报告，不要先开公开 Issue。
+
 ## 技术栈
 
 | 类别 | 选型 |
@@ -175,6 +181,8 @@ Luxray Kit 是一个非官方粉丝制作工具。
 
 ## License
 
-[MIT License](./LICENSE)
+Luxray Kit 的原创代码与原创文档采用 [MIT License](./LICENSE)。选择 MIT 是为了允许个人和社区自由使用、修改与分发代码，只要求保留版权与许可声明。
 
-代码开源，欢迎 PR 与 Issue。
+Pokémon 名称、商标、角色图像、道具图标、第三方数据、社区队伍内容及其他外部来源材料**不因存放在本仓库而获得 MIT 授权**，仍受各自权利方与来源条款约束。来源、适用范围和再分发注意事项见 [`THIRD_PARTY_NOTICES.md`](./THIRD_PARTY_NOTICES.md)。
+
+欢迎 PR 与 Issue。

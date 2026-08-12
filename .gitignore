@@ -1,9 +1,30 @@
 node_modules
 dist
+coverage
 .npm-cache
+.cache
 .vite
+.DS_Store
+.idea/
+.vscode/
+.agents/
+.codex/
 .codex-logs/
+.claude/
+*.log
+*.tsbuildinfo
 *.local
+.env
+.env.*
+!.env.example
+.envrc
+.dev.vars
+.dev.vars.*
+.npmrc
+*.key
+*.pem
+*.p12
+*.pfx
 .vite-lan*.log
 .vite-phone*.log
 pokemon-champions-mobile-redesign*.html
@@ -15,9 +36,24 @@ tmp/
 .wrangler/
 design-qa.md
 
+# Private working documents and source artifacts kept only in the maintainer checkout
+docs/archive/
+docs/design/
+docs/reviews/
+docs/tasks/
+docs/superpowers/
+docs/plans/dev-pipeline-harness-spike.md
+docs/plans/dev-pipeline-workflow.md
+docs/product/PWA_ENVIRONMENT_FIRST_REDESIGN_REQUIREMENTS.md
+docs/product/PWA_OPENDESIGN_PROMPT.md
+docs/product/Pokemon Champions PRD.md
+docs/product/icon.png
+docs/automation/TEAM_LIBRARY_CURATION.md
+cloudflare/environment-worker/D1_MIGRATION_PLAN.md
+cloudflare/environment-worker/DEPLOYMENT_PLAN.md
+
 # Local-only assets (copyrighted / not for redistribution)
 public/type-icons/
-.claude/settings.local.json
 
 # Local credentials (never commit; Builds API token now lives at ~/.config/cloudflare/)
 cloudflare/api.txt

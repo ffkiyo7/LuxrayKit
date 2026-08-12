@@ -239,7 +239,7 @@ npm run data:pokemon-facts:check  # 只校验现有快照，不访问网络；CI
 
 ### 6.3 在线刷新管线：cron + Durable Object alarm
 
-> **现状（2026-07）**：生产保留两条独立刷新路径。Worker cron + DO 成功时直接更新 KV，供前端第一层读取；外部维护主机可通过 `automation/pokedb-environment-refresh` PR 更新仓库静态 JSON，随 `main` 部署后成为第二层回退（见 §7.1 与 §9）。上游会按出口 IP 动态拒绝请求，最近实测曾出现 Worker 刷新成功而东京 Lightsail 出口被拒，因此两条路径互为冗余，不能把任一固定主机视为唯一来源。诊断时同时检查 `/api/environment/status`、KV 状态和最近的静态快照 PR。
+> **现状（2026-07）**：生产保留两条独立刷新路径。Worker cron + DO 成功时直接更新 KV，供前端第一层读取；外部维护任务可通过 `automation/pokedb-environment-refresh` PR 更新仓库静态 JSON，随 `main` 部署后成为第二层回退（见 §7.1 与 §9）。上游可能按出口 IP 动态拒绝请求，因此两条路径互为冗余，不能把任一固定执行环境视为唯一来源。诊断时同时检查 `/api/environment/status`、KV 状态和最近的静态快照 PR。
 
 Worker 内刷新由 **cron 触发、Durable Object alarm 步进**，而非自链式 `env.SELF.fetch`。
 
@@ -297,14 +297,14 @@ Node ESM 脚本，多数支持 `--check`（只校验是否过期、不写文件�
 ```bash
 npm run data:pokedb:environment        # 抓取/刷新 PokeDB 环境静态快照
 npm run data:pokedb:environment:check  # 仅校验是否需要更新
-npm run data:pokedb:environment:pr     # 外部主机刷新静态快照并创建/更新自动化 PR
+npm run data:pokedb:environment:pr     # 刷新静态快照并创建/更新自动化 PR
 npm run data:pokedb:speed              # 重新生成速度线参照档 src/data/speedTiers.ts
 npm run data:pokedb:speed:check
 npm run data:vgcpastes:champions-ma    # 摄入 VGCPastes「Champions M-A」样本
 npm run data:vgcpastes:champions-mb    # M-B 同上（--reg=mb）
 npm run data:vgcpastes:champions-ma:check  # 只校验 M-A 产物是否与来源一致
 npm run data:vgcpastes:champions-mb:check  # M-B 同上
-npm run data:vgcpastes:pr              # 外部主机默认刷新 M-B 并创建/更新自动化 PR
+npm run data:vgcpastes:pr              # 默认刷新 M-B 并创建/更新自动化 PR
 npm run data:regma:allowlist / :abilities / :moves   # 重生成 seed 派生数据
 npm run data:items:audit                # 只读核验 148 条当前规则道具的中英文名称、类别与本地图片
 npm run data:items:refresh              # 仅用来源图刷新不匹配的本地道具图片
@@ -314,45 +314,11 @@ npm run data:items:refresh              # 仅用来源图刷新不匹配的本�
 
 `update-pokedb-environment.mjs` 会同时写源码审计快照（`src/data/external/pokedb/current_environment_snapshot.json`）与 public 运行时 JSON（`public/data/pokedb/reg-ma-environment.json`），后者即前端第二级回退。
 
-### 7.1 外部环境快照刷新器（冗余路径）
+### 7.1 环境快照自动化 PR（冗余路径）
 
-环境快照可以由一台低配外部主机生成静态回退数据。这是 §6.3 Worker→KV 在线刷新之外的冗余路径，不是唯一生产来源：外部主机不承载线上流量、不写 Cloudflare KV，也不直接改 `main`；它只运行维护脚本，推送自动化分支并创建/更新 PR。后续由 GitHub CI 与 `daily-auto-merge.yml` 合入 `main`，再触发 Cloudflare Workers Builds 部署静态 JSON。截至 2026-07，机械刷新与 Hermes 服务合并在同一台 AWS Lightsail VM，但使用独立的 `/home/ubuntu/LuxrayKit-maintenance` clone 与系统 cron；Hermes 策展 agent 仍使用 `/home/ubuntu/LuxrayKit` 和 Hermes 内置调度器。这是运维合并，不是数据路径合并。上游仍可能按出口 IP 动态拒绝任一主机；失败时 Worker 在线路径与已有静态回退独立可用。
+环境快照维护脚本可以在独立执行环境生成静态回退数据。这是 §6.3 Worker→KV 在线刷新之外的冗余路径，不承载线上流量、不写 Cloudflare KV，也不直接改 `main`；它只推送白名单自动化分支并创建或更新 PR。后续由 GitHub CI 与 `daily-auto-merge.yml` 合入 `main`，再触发 Cloudflare Workers Builds 部署静态 JSON。
 
-VPS 端一次性准备：
-
-```bash
-sudo apt-get update
-sudo apt-get install -y git gh
-curl -fsSL https://deb.nodesource.com/setup_24.x | sudo -E bash -
-sudo apt-get install -y nodejs
-
-# 512MB Lightsail 实例建议加 1GB swap，避免 npm ci 内存吃紧。
-sudo fallocate -l 1G /swapfile
-sudo chmod 600 /swapfile
-sudo mkswap /swapfile
-sudo swapon /swapfile
-```
-
-GitHub 凭据建议使用 fine-grained PAT，仓库访问只选 LuxrayKit。测试 clone 阶段只需要 `Contents: Read-only`；自动 PR 阶段需要 `Contents: Read and write`、`Pull requests: Read and write`、`Metadata: Read`。如果同一凭据还供 Hermes watchdog 读取 CI / auto-merge run，额外给 `Actions: Read-only`。不要给 `Administration`、`Actions: Read and write`、`Secrets`、`Workflows` 或全仓库权限。
-
-VPS clone 后安装依赖并做一次冒烟：
-
-```bash
-npm ci --no-audit --no-fund
-npm run data:pokedb:environment:check -- --detail-limit=3 --skip-team-samples
-npm run data:pokedb:environment:check
-```
-
-确认完整 `--check` 能抓完单/双各 60 个详情页和队伍样本后，配置 `gh`：
-
-```bash
-echo "$GITHUB_PAT" | gh auth login --with-token
-gh auth setup-git
-git config user.name "LuxrayKit VPS Refresh Bot"
-git config user.email "luxraykit-vps-refresh-bot@users.noreply.github.com"
-```
-
-手动跑一次自动 PR：
+手动执行：
 
 ```bash
 npm run data:pokedb:environment:pr
@@ -368,13 +334,6 @@ public/data/pokedb/reg-ma-environment.json
 
 如果远端数据与当前快照一致，脚本成功退出且不推送分支、不更新 PR。如果上游返回 403、连接失败、解析失败或 GitHub 鉴权失败，脚本失败，现有生产 Worker 与静态回退不受影响。
 
-cron 示例（Ubuntu 默认按系统时区；若保持 UTC，请安排在 Worker 主刷新窗口之后；cron 每日执行门控检查，但只在 Worker 失败时抓取 PokeDB）：
-
-```cron
-PATH=/usr/local/bin:/usr/bin:/bin
-30 17 * * * cd /home/ubuntu/LuxrayKit-maintenance && npm run data:pokedb:environment:pr >> /home/ubuntu/pokedb-environment-refresh.log 2>&1
-```
-
 可选环境变量：
 
 ```bash
@@ -384,11 +343,11 @@ export POKEDB_FETCH_RETRY_DELAY_MS=2000
 export POKEDB_PAGE_DELAY_MS=0
 ```
 
-`POKEDB_PAGE_DELAY_MS=0` 适合只由固定 VPS 低频刷新时提速；如上游出现 429 或不稳定，再改成 `150` 或移除此变量，恢复脚本默认的人类化页间延迟。
+`POKEDB_PAGE_DELAY_MS=0` 适合只由固定执行环境低频刷新时提速；如上游出现 429 或不稳定，再改成 `150` 或移除此变量，恢复脚本默认的人类化页间延迟。
 
-### 7.2 外部主机队伍库刷新器
+### 7.2 队伍库自动化 PR
 
-VGCPastes 队伍库的每周机械刷新复用 §7.1 当前配置的外部维护主机、maintenance clone、`gh` 认证和 bot git 身份；这是部署选择，不表示 PokeDB 环境快照只来自该主机。即使机械刷新与 Hermes 服务位于同一台 VM，队伍库刷新也与低频策展 agent 保持独立 clone、调度器和职责。策展职责与 draft PR 规则见 `docs/automation/TEAM_LIBRARY_CURATION.md`。
+VGCPastes 队伍库刷新与 §7.1 使用相同的白名单分支、PR 和 CI 防线，但两条任务的工作区与调度必须隔离，避免失败后留下的生成文件互相污染。
 
 手动执行：
 
@@ -404,14 +363,7 @@ npm run data:vgcpastes:pr -- --dry-run    # 分支/index/worktree 不变，不�
 
 需要人工暂停自动合并时，给 PR 添加 `hold` 标签。虽然 workflow 本身也跳过 draft，但刷新脚本下次复用该自动化 PR 时会把它转回 ready，因此 draft 不是持久暂停开关。
 
-两个外部刷新 cron 共用一个 clone：VGCPastes 脚本发现脏工作区会直接拒跑；现有 PokeDB 脚本若半途失败，可能留下脏生成文件，进而让下一次队伍库刷新响亮失败。PokeDB 后续成功运行会从 `origin/main` 重建分支并自愈；若要提前恢复，先核对失败日志和生成文件，不要绕过工作区保护。
-
-UTC 时区的每周一 cron 示例（与每日 PokeDB 刷新错开）：
-
-```cron
-PATH=/usr/local/bin:/usr/bin:/bin
-30 16 * * 1 cd /home/ubuntu/LuxrayKit-maintenance && npm run data:vgcpastes:pr >> /home/ubuntu/vgcpastes-team-refresh.log 2>&1
-```
+VGCPastes 脚本发现脏工作区会直接拒跑；若前一次生成任务失败，应先核对日志和生成文件，不要绕过工作区保护。
 
 ---
 
@@ -449,12 +401,14 @@ PATH=/usr/local/bin:/usr/bin:/bin
 ## 9. 部署与 CI
 
 - **部署**：经 **Cloudflare Workers Builds（Git 集成）**——push 到 `main` 自动构建并 `wrangler deploy`。preview 走**影子 Worker `luxraykit-app-preview`**：它有自己的 Workers Builds 配置（同一 repo，非 main 分支触发，deploy 为 `wrangler versions upload --config cloudflare/environment-worker/wrangler.preview.jsonc`），产出 per-version preview URL（`<版本前8位>-luxraykit-app-preview.<subdomain>.workers.dev`）做 UI+API 冒烟。三个来之不易的事实：①带 Durable Object 的 Worker 不生成 preview URL（生产 Worker 因此无法直接出 preview）；②Workers Builds 把部署钉死在所连接的 Worker 上，不能在生产 Worker 的 builds 里"上传到别的 worker"，preview 触发器必须建在影子 Worker 自己名下；③wrangler 需配置显式 `preview_urls: true`。影子 Worker 刻意不带 DO/cron/自定义域名/admin secret，刷新路径天然失效。**cron 不在 preview 触发**，但 preview 与生产**共享同一 KV**，对 preview 上的 KV 操作要当作直接影响生产、只读对待。
-- **Preview Discord 通知**：Cloudflare Event Subscription 把 `luxraykit-app-preview` 的成功构建写入 `luxraykit-build-events` Queue，由无公开路由的 `luxraykit-build-notifier` consumer 通过 Discord Webhook 直投 `luxraykit-dev`。consumer 只接受影子 Worker 的成功事件，排除 `main` 与全部 `automation/` 分支；Webhook URL 只存 Cloudflare secret。源码与运维说明见 `cloudflare/build-notifier/`。这条链路不依赖 PR、Cloudflare GitHub bot 评论、Hermes 或 Ariadne。
+- **Preview Discord 通知**：Cloudflare Event Subscription 把 `luxraykit-app-preview` 的成功构建写入 `luxraykit-build-events` Queue，由无公开路由的 `luxraykit-build-notifier` consumer 通过 Discord Webhook 发送通知。consumer 只接受影子 Worker 的成功事件，排除 `main` 与全部 `automation/` 分支；Webhook URL 只存 Cloudflare secret。源码与运维说明见 `cloudflare/build-notifier/`。
 - **CI**（`.github/workflows/ci.yml`）：两个 job，**不部署**。
   - `test`：`npm run data:pokemon-facts:check` + `npm test` + `npm run build` + Playwright 离线与队伍库渲染冒烟 + `npm run worker:environment:check`。
-  - `visual`：`needs: test`，跑 `npm run test:visual`（即容器内的视觉回归），**阻塞门禁**；失败时把 expected/actual/diff 三联图作为 `visual-diffs` artifact 上传。挂在 `test` 后面是为了别在构建已经挂掉时还白拉一次 2GB 镜像——本仓库是 private，Actions 分钟数是计量的（近 30 天约 62 次运行，加上这个 job 后月用量约 500/2000 分钟）。
+  - `visual`：`needs: test`，跑 `npm run test:visual`（即容器内的视觉回归），**阻塞门禁**；失败时把 expected/actual/diff 三联图作为 `visual-diffs` artifact 上传。挂在 `test` 后面是为了避免构建已经失败时仍拉取大型浏览器镜像。
+- **视觉基线重建**（`.github/workflows/visual-baseline.yml`）：仅手动触发，只允许在功能分支更新 Linux 基线并提交回当前分支；拒绝直接改 `main`。
 - **daily-auto-merge**（`.github/workflows/daily-auto-merge.yml`）：每日 20:00 UTC 只自动合并 head 为 `automation/pokedb-environment-refresh` 或 `automation/vgcpastes-team-refresh` 的绿色非 draft PR；功能 / Agent PR 一律人工合并。`main` 无分支保护，合并即触发 Workers Builds 生产部署。
-- 仓库 `.github/workflows/` 目前只有上述两个 workflow（无独立 deploy workflow）。不要假设 GitHub Actions 负责部署或自动跑端到端。
+- **Claude PR 助手**（`.github/workflows/claude.yml`）：Issue / PR 中出现 `@claude` 时调用 `anthropics/claude-code-action@v1`；action 默认只接受拥有仓库写权限的触发者，凭据只从 GitHub Secret `CLAUDE_CODE_OAUTH_TOKEN` 读取。
+- 仓库 `.github/workflows/` 目前共四个 workflow，均不负责生产部署。不要假设 GitHub Actions 负责部署；生产仍只由 Cloudflare Workers Builds 在 `main` 更新后触发。
 
 ---
 
@@ -465,18 +419,14 @@ PATH=/usr/local/bin:/usr/bin:/bin
 | 档位 | 范围 | 怎么用 |
 | --- | --- | --- |
 | **权威** | 本文件、`AGENTS.md`、代码本身 | 冲突时以代码 > 本文件 > 其他 |
-| **现状（已核对）** | `README.md`、`docs/product/PRODUCT_SCOPE_AND_TOOL_BOUNDARIES.md`、`docs/qa/*`、`docs/progress/DEVELOPMENT_PROGRESS.md`、`docs/automation/*` | 可引用；发现偏差请就地修 |
+| **现状（已核对）** | `README.md`、`docs/product/PRODUCT_SCOPE_AND_TOOL_BOUNDARIES.md`、`docs/qa/*`、`docs/progress/DEVELOPMENT_PROGRESS.md` | 可引用；发现偏差请就地修 |
 | **计划（非现状）** | `docs/plans/*` | 记录**未实施**的意图。其中的「现状事实」章节一律不可信 |
-| **历史（禁止引用）** | `docs/archive/*` | 只作决策考古，见 `docs/archive/README.md` |
 
 ### 仍待清理的已知偏差
 
-- `docs/product/Pokemon Champions PRD.md`：停留在 M-A / `v0.2.0-seed`；称速度线「未开放」（实际已上线）；提到「分享图」功能（代码中不存在，已砍）。属产品定稿文档，未逐条订正。
-- `docs/product/PWA_ENVIRONMENT_FIRST_REDESIGN_REQUIREMENTS.md`：「换一批」交互已被「查看全部 / 试试灵感」取代；文中 cron `17 */6 * * *` 已被 §6.3 的 5 个定点 + DO alarm 取代。
-- `cloudflare/environment-worker/README.md`：Files 清单遗漏 `wrangler.preview.jsonc`、`src/index.test.ts`、`DEPLOYMENT_PLAN.md`；其余一次性 Cloudflare 配置步骤仍有效。
 - **代码层**：`index.html` 与 `public/manifest.webmanifest` 的描述文案硬编码了赛季号（当前写着 M-3），与 `src/data/schedule.ts` 去硬编码的目标冲突。静态 HTML 无法读运行时赛季，需要人工同步或改为不含赛季的措辞。
 
 > **维护约定**
 > - 改了刷新管线 / 路由 / KV / 分支策略后，同步更新 §6 与 §9。
 > - 改了测试门禁、Node 版本或视觉回归流程后，同步更新 §2 与 §8。
-> - 计划文档实施完毕后移入 `docs/archive/` 并加归档横幅，**不要留在 `docs/plans/` 冒充现状**。
+> - 计划文档只保留仍有效且适合公开协作的内容；实施完毕或包含本地运维细节的工作稿不进入版本库。
