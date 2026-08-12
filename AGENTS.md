@@ -26,4 +26,6 @@
 
 ## 4. 生成产物
 
-带 `Auto-generated` 头的文件、`src/data/speedTiers.ts`、`src/data/external/**`、`public/data/pokedb/*.json`、Worker 类型声明等均由 `scripts/` 或 wrangler 生成：**改脚本，不手改产物**（对应命令见 `package.json` 的 `data:*` / `worker:*`）。
+带 `Auto-generated` 头的文件、`src/data/speedTiers.ts`、`src/data/external/vgcpastes/**`、`src/data/external/pokeapi/**`、`public/data/pokedb/*.json`、Worker 类型声明等均由 `scripts/` 或 wrangler 生成：**改脚本，不手改产物**（对应命令见 `package.json` 的 `data:*` / `worker:*`）。
+
+**例外**：`src/data/external/` 下的两个 `.ts` 名称映射（`pokedbItemNameMap.ts` / `pokedbResourceKeyMap.ts`）**没有生成脚本，就是手写的**——PokeDB 用日文名报道具/招式，映射只能人工确认。缺映射会触发 Worker 零容忍审计（`workerStatus` 变 degraded），补一行即可；`dataAudit.test.ts` 有门禁保证 Mega 石不漏。

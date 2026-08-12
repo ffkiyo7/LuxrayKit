@@ -16,6 +16,7 @@ import {
   regMaPokemonAllowlistExpectedCount,
   speedBenchmarks,
 } from '../data';
+import { pokedbItemNameToId } from '../data/external/pokedbItemNameMap';
 import { auditSeedData, auditSourceRefs } from './dataAudit';
 import { currentRuleMovesForPokemon, currentRuleSelectableItems } from './currentRuleCatalog';
 
@@ -269,6 +270,27 @@ describe('seed data audit', () => {
     expect(items.find((item) => item.id === 'life-orb')?.effectSummary).toBe('招式威力提高 30%；使出造成伤害的招式后损失最大 HP 的 10%。');
     expect(items.find((item) => item.id === 'light-clay')?.effectSummary).toBe('光墙、反射壁和极光幕延长 3 回合（共 8 回合）。');
     expect(items.find((item) => item.id === 'mental-herb')?.effectSummary).toContain('再来一次');
+  });
+
+  it('keeps every Mega Stone reachable from PokeDB’s Japanese item names', () => {
+    // PokeDB reports held items by Japanese name. An unmapped one trips the Worker's
+    // zero-tolerance audit (workerStatus -> degraded) and the item is dropped from the
+    // displayed stats — which is how ペンドラナイト/scolipite surfaced only after M-5 went
+    // live. Mega Stones are the recurring gap because a new regulation adds a batch at once,
+    // so gate them here instead of waiting for production to report an unknown name.
+    const mappedItemIds = new Set(Object.values(pokedbItemNameToId));
+    const unmapped = items
+      .filter((item) => item.isMegaStone && !mappedItemIds.has(item.id))
+      .map((item) => item.id);
+    expect(unmapped, 'Mega Stones with no PokeDB Japanese name in pokedbItemNameMap.ts').toEqual([]);
+
+    // And nothing points at an item that does not exist — a typo'd id would silently make the
+    // name unmappable again, with the audit still reporting the raw Japanese string.
+    const catalogItemIds = new Set(items.map((item) => item.id));
+    const dangling = Object.entries(pokedbItemNameToId)
+      .filter(([, itemId]) => !catalogItemIds.has(itemId))
+      .map(([japaneseName, itemId]) => `${japaneseName} -> ${itemId}`);
+    expect(dangling, 'pokedbItemNameMap entries pointing at unknown item ids').toEqual([]);
   });
 
   it('keeps all current-rule items with local iconRef snapshots', () => {
