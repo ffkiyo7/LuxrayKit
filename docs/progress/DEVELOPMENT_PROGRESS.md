@@ -73,7 +73,7 @@ npm run test:visual
 
 > **下一轮路线与优先级见 [`docs/plans/product-roadmap-2026-08.md`](../plans/product-roadmap-2026-08.md)。**
 
-## 仍未开始（自 `docs/archive/NEXT_ROUND_PLAN.md` 承接）
+## 仍未开始
 
 - **Task 13 — 队报链接重做 + 双来源统一**（spike 先行）：PokeDB 队报链接多数落在没有实际加点的 X 截图贴，需要换落点或弱化入口。
 - **Task 15 — 浅色主题品牌色重做**：浅色主题目前偏离 Luxray Kit 品牌色。
@@ -92,9 +92,8 @@ npm run test:visual
 ## 文档索引
 
 - 开发者文档（架构 / Worker / 部署）：`docs/DEVELOPER_GUIDE.md`
-- 产品现状：`docs/product/Pokemon Champions PRD.md`
 - 范围边界：`docs/product/PRODUCT_SCOPE_AND_TOOL_BOUNDARIES.md`
-- 历史计划归档：`docs/archive/`（**不代表现状**）
+- 产品路线：`docs/plans/product-roadmap-2026-08.md`
 - 离线验收：`docs/qa/PWA_OFFLINE_CHECKLIST.md`
 - 数据来源：`docs/research/DATA_SOURCE_RESEARCH.md`
 - 计算边界：`docs/research/CALC_ENGINE_SPIKE.md`

@@ -2,7 +2,16 @@
   "name": "pokemon-champions-assistant",
   "private": true,
   "version": "0.1.0",
+  "description": "Unofficial mobile-first PWA companion for Pokémon Champions.",
   "license": "MIT",
+  "homepage": "https://luxraykit.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ffkiyo7/LuxrayKit.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ffkiyo7/LuxrayKit/issues"
+  },
   "type": "module",
   "engines": {
     "node": ">=24.0.0"
@@ -59,10 +68,10 @@
     "autoprefixer": "^10.4.20",
     "fake-indexeddb": "^6.2.5",
     "jsdom": "^29.1.0",
-    "postcss": "^8.5.0",
-    "sharp": "^0.34.5",
+    "postcss": "^8.5.23",
+    "sharp": "^0.35.3",
     "tailwindcss": "^3.4.17",
     "vitest": "^4.1.5",
-    "wrangler": "^4.98.0"
+    "wrangler": "^4.122.0"
   }
 }

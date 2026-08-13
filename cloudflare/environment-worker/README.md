@@ -28,9 +28,10 @@ Why a DO instead of cron self-chaining: the Workers free plan caps **50 external
 ## Files
 
 - `wrangler.jsonc` - Worker config, static assets, cron trigger, KV binding, public vars.
+- `wrangler.preview.jsonc` - Read-only preview Worker config for non-production branches.
 - `src/index.ts` - Worker fetch and scheduled handlers.
+- `src/index.test.ts` - Worker API and refresh-pipeline tests.
 - `src/worker-configuration.d.ts` - Generated Cloudflare runtime and binding types.
-- `D1_MIGRATION_PLAN.md` - Future relational schema and KV-to-D1 migration notes.
 
 ## One-Time Cloudflare Setup
 

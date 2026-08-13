@@ -88,6 +88,13 @@ test('captures the mobile visual regression smoke set', { timeout: 60_000 }, asy
   await page.getByRole('button', { name: '双打' }).click();
   await expect(page).toHaveScreenshot('15-team-browse.png', screenshotOptions);
 
+  // Keep the inspiration draw inside the frozen PokeDB fixture. Event samples are
+  // generated separately and refresh without this fixture or its visual baseline;
+  // including them here makes the pinned shuffle seed select a different card after
+  // an otherwise unrelated data refresh.
+  const rankedFilter = page.getByRole('button', { name: '排位高分' });
+  await rankedFilter.click();
+  await expect(rankedFilter).toHaveAttribute('aria-pressed', 'true');
   await page.getByRole('button', { name: '试试灵感' }).click();
   const inspirationDialog = page.getByRole('dialog', { name: '队伍灵感' });
   await expect(inspirationDialog).toBeVisible();

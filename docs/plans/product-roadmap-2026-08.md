@@ -12,7 +12,7 @@
 ## 0. 本次盘点已完成的事（不属待办）
 
 - **开发环境迁移 macOS 收尾**：Node 三方漂移统一到 24.19.0（`.node-version` / `package.json` engines / CI）；视觉回归改造为 CI-only 并补上此前**根本不存在**的基线重建路径（`.github/workflows/visual-baseline.yml`）。细节见开发指南 §2 / §8。
-- **文档全量核对**：`AGENTS.md` 50 → 29 行；3 份已落地的计划文档移入 `docs/archive/`；README / 开发指南 / 产品边界 / 两份 QA 清单 / 进度文档的错误事实订正完毕。
+- **文档全量核对**：`AGENTS.md` 50 → 29 行；README / 开发指南 / 产品边界 / 两份 QA 清单 / 进度文档的错误事实订正完毕。
 
 ---
 
@@ -38,7 +38,7 @@
 
 - **判断**：完全同意，无附加条件。
 - **为什么值得做**：排名变动是 meta 类产品参与感最强的元素，`NEW` 徽章天然制造回访；实现成本极低（Worker 一个 KV 写入 + 前端按 `pokemonId` join）。
-- **边界说明**：`docs/archive/NEXT_ROUND_PLAN.md` 把「多赛季趋势库」列为非目标。本方案**不是趋势库**——只保留一份前序赛季快照、只做单次 diff，属于有边界的例外。
+- **边界说明**：本方案**不是趋势库**——只保留一份前序赛季快照、只做单次 diff，属于有边界的例外。
 - **时限**：见 §3 的 P0。
 
 ### ✅ B. URL 队伍分享 — 支持
@@ -137,7 +137,6 @@
 | --- | --- |
 | **规则口径页入口**（`RulePage.tsx` 不可达） | **不是 bug，是 owner 主动隐藏的。** 不要「修复」成可达。代码保留现状。 |
 | **接入 `/api/pokemon/:id/teams` 天梯队伍** | 该数据应来自 PokeDB 的 JSON，**但只有赛季结束后才公开，不是常态可用**。因此前端不调用是合理的，不属于「白捡」。若要用，必须先设计数据不可用时的降级形态。 |
-| **开发流水线**（`docs/plans/dev-pipeline-workflow.md`、`dev-pipeline-harness-spike.md`） | **暂停，先不管。** 两份文档已加状态注记，其 VPS 前提与 macOS 开发现状不符，待日后重新评估。 |
 | Node 版本 | 已统一到 24，无异议，无后续动作。 |
 
 ### 未表态、保留待议
@@ -149,6 +148,6 @@
 
 ## 5. 实施须知
 
-- 本文档实施完毕后移入 `docs/archive/` 并加归档横幅，不要留在 `docs/plans/` 冒充现状。
+- 本文档实施完毕后从版本库移除，不要留在 `docs/plans/` 冒充现状。
 - 动手前读 `AGENTS.md`；涉及数据管线 / Worker / 部署读 `docs/DEVELOPER_GUIDE.md` §5–§9。
 - Agent 创建的功能 PR 默认 Draft；提交前 `npm test`，涉及前端行为跑 `npm run build`。

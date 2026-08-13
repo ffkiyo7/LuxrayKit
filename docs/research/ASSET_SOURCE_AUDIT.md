@@ -84,7 +84,7 @@
 
 5. **资产来源单一化清单**：把“每个道具/立绘的来源 URL + license risk”集中成一份机器可读 manifest（现散落在多个 `.mjs` 的硬编码字典里），便于审查与重抓。
 6. **为脆弱外部源加冗余/缓存**：PokéBase `/pokemon` 本次实测超时，招式与 Mega 全靠它；建议保留抓取 HTML 快照缓存（脚本已有 `.npm-cache`，可纳入可重放归档），并准备 PokeAPI 作为 learnset/数值的备援校验。
-7. **license 风险持续标注**：PokeAPI sprites、PokéBase、52poke 在 manifest 中均标 `high` risk，README 免责声明已覆盖；保持每个资产保留来源记录，不对外声称官方授权。
+7. **license 风险持续标注**：PokeAPI sprites、PokéBase、52poke 在 manifest 中均标 `high` risk，`THIRD_PARTY_NOTICES.md` 已明确这些内容不属于项目 MIT 授权范围；保持每个资产保留来源记录，不对外声称官方授权。
 
 ### 低优先级 / 已健康
 

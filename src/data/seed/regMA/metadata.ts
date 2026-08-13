@@ -175,7 +175,7 @@ export const dataSourceManifest: DataSourceManifest = {
       licenseRisk: 'high',
       retrievedAt: '2026-04-29T00:00:00.000Z',
       fieldsUsed: ['pokemon.iconRef'],
-      notes: 'Real Pokemon artwork sprites from PokeAPI sprites repository. User accepted IP/licensing risk for real avatars.',
+      notes: 'Real Pokemon artwork sprites from the PokeAPI sprites repository. These images are not covered by the project MIT license; see THIRD_PARTY_NOTICES.md.',
     },
     {
       id: 'pokeapi-item-sprites',
