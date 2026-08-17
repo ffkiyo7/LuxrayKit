@@ -1,6 +1,3885 @@
 [
   {
-    "id": "vgcpastes-champions-mb-mb690",
+    "id": "vgcpastes-champions-mb-mb750",
+    "dataKind": "external-snapshot",
+    "sourceId": "vgcpastes-champions-mb",
+    "sourceLabel": "VGCPastes Champions M-B",
+    "author": "Dorian Quiñones",
+    "season": "reg-mb",
+    "score": 3,
+    "rank": 3,
+    "regulation": "M-B",
+    "title": "PPL_Dorian's VR to San Francisco Top 4 Team",
+    "battleType": "doubles",
+    "reportUrl": "https://x.com/Ppl_Dorian/status/2089127145557696748",
+    "tournament": "VR to San Francisco",
+    "eventRank": "3rd",
+    "dateShared": "2026-08-16",
+    "hasMoves": true,
+    "hasSpread": false,
+    "slots": [
+      {
+        "pokemonId": "gengar",
+        "abilityId": "cursed-body",
+        "itemId": "gengarite",
+        "nature": "内敛",
+        "statPoints": {},
+        "moveIds": [
+          "sludge-bomb",
+          "shadow-ball",
+          "perish-song",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "sneasler",
+        "abilityId": "unburden",
+        "itemId": "focus-sash",
+        "nature": "固执",
+        "statPoints": {},
+        "moveIds": [
+          "close-combat",
+          "dire-claw",
+          "rock-slide",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "incineroar",
+        "abilityId": "intimidate",
+        "itemId": "sitrus-berry",
+        "nature": "淘气",
+        "statPoints": {},
+        "moveIds": [
+          "flare-blitz",
+          "throat-chop",
+          "fake-out",
+          "parting-shot"
+        ]
+      },
+      {
+        "pokemonId": "kingambit",
+        "abilityId": "defiant",
+        "itemId": "black-glasses",
+        "nature": "固执",
+        "statPoints": {},
+        "moveIds": [
+          "kowtow-cleave",
+          "sucker-punch",
+          "low-kick",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "ninetales-alola",
+        "abilityId": "snow-warning",
+        "itemId": "choice-scarf",
+        "nature": "胆小",
+        "statPoints": {},
+        "moveIds": [
+          "blizzard",
+          "freeze-dry",
+          "icy-wind",
+          "encore"
+        ]
+      },
+      {
+        "pokemonId": "dragonite",
+        "abilityId": "inner-focus",
+        "itemId": "life-orb",
+        "nature": "固执",
+        "statPoints": {},
+        "moveIds": [
+          "dragon-claw",
+          "superpower",
+          "extreme-speed",
+          "protect"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vgcpastes-champions-mb-mb749",
+    "dataKind": "external-snapshot",
+    "sourceId": "vgcpastes-champions-mb",
+    "sourceLabel": "VGCPastes Champions M-B",
+    "author": "Héctor Sánchez",
+    "season": "reg-mb",
+    "score": 4,
+    "rank": 4,
+    "regulation": "M-B",
+    "title": "Héctor Sánchez's VR to San Francisco Top 4 Team",
+    "battleType": "doubles",
+    "reportUrl": "https://x.com/SrTorch13/status/2089125728315138345",
+    "tournament": "VR to San Francisco",
+    "eventRank": "4th",
+    "dateShared": "2026-08-16",
+    "hasMoves": true,
+    "hasSpread": false,
+    "slots": [
+      {
+        "pokemonId": "charizard",
+        "abilityId": "blaze",
+        "itemId": "charizardite-y",
+        "nature": "内敛",
+        "statPoints": {},
+        "moveIds": [
+          "heat-wave",
+          "weather-ball",
+          "solar-beam",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "floette",
+        "abilityId": "flower-veil",
+        "itemId": "floettite",
+        "nature": "内敛",
+        "statPoints": {},
+        "moveIds": [
+          "moonblast",
+          "dazzling-gleam",
+          "light-of-ruin",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "basculegion-male",
+        "abilityId": "adaptability",
+        "itemId": "life-orb",
+        "nature": "固执",
+        "statPoints": {},
+        "moveIds": [
+          "wave-crash",
+          "last-respects",
+          "aqua-jet",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "kingambit",
+        "abilityId": "defiant",
+        "itemId": "chople-berry",
+        "nature": "固执",
+        "statPoints": {},
+        "moveIds": [
+          "kowtow-cleave",
+          "iron-head",
+          "low-kick",
+          "sucker-punch"
+        ]
+      },
+      {
+        "pokemonId": "whimsicott",
+        "abilityId": "prankster",
+        "itemId": "focus-sash",
+        "nature": "胆小",
+        "statPoints": {},
+        "moveIds": [
+          "moonblast",
+          "encore",
+          "tailwind",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "garchomp",
+        "abilityId": "rough-skin",
+        "itemId": "sitrus-berry",
+        "nature": "爽朗",
+        "statPoints": {},
+        "moveIds": [
+          "dragon-claw",
+          "earthquake",
+          "rock-slide",
+          "protect"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vgcpastes-champions-mb-mb748",
+    "dataKind": "external-snapshot",
+    "sourceId": "vgcpastes-champions-mb",
+    "sourceLabel": "VGCPastes Champions M-B",
+    "author": "Erizabeth",
+    "season": "reg-mb",
+    "score": 5,
+    "rank": 5,
+    "regulation": "M-B",
+    "title": "Erizabeth's VR to San Francisco Top 8 Team",
+    "battleType": "doubles",
+    "reportUrl": "https://x.com/rizabeth373/status/2089115599440154971",
+    "tournament": "VR to San Francisco",
+    "eventRank": "5th",
+    "dateShared": "2026-08-16",
+    "hasMoves": true,
+    "hasSpread": false,
+    "slots": [
+      {
+        "pokemonId": "charizard",
+        "abilityId": "blaze",
+        "itemId": "charizardite-y",
+        "nature": "内敛",
+        "statPoints": {},
+        "moveIds": [
+          "heat-wave",
+          "weather-ball",
+          "ancient-power",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "gengar",
+        "abilityId": "cursed-body",
+        "itemId": "gengarite",
+        "nature": "内敛",
+        "statPoints": {},
+        "moveIds": [
+          "shadow-ball",
+          "sludge-bomb",
+          "protect",
+          "substitute"
+        ]
+      },
+      {
+        "pokemonId": "incineroar",
+        "abilityId": "intimidate",
+        "itemId": "sitrus-berry",
+        "nature": "淘气",
+        "statPoints": {},
+        "moveIds": [
+          "flare-blitz",
+          "throat-chop",
+          "parting-shot",
+          "fake-out"
+        ]
+      },
+      {
+        "pokemonId": "dragonite",
+        "abilityId": "inner-focus",
+        "itemId": "life-orb",
+        "nature": "固执",
+        "statPoints": {},
+        "moveIds": [
+          "dragon-claw",
+          "extreme-speed",
+          "superpower",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "sneasler",
+        "abilityId": "unburden",
+        "itemId": "white-herb",
+        "nature": "爽朗",
+        "statPoints": {},
+        "moveIds": [
+          "close-combat",
+          "dire-claw",
+          "fake-out",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "garchomp",
+        "abilityId": "rough-skin",
+        "itemId": "choice-scarf",
+        "nature": "固执",
+        "statPoints": {},
+        "moveIds": [
+          "earthquake",
+          "dragon-claw",
+          "rock-slide",
+          "stomping-tantrum"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vgcpastes-champions-mb-mb747",
+    "dataKind": "external-snapshot",
+    "sourceId": "vgcpastes-champions-mb",
+    "sourceLabel": "VGCPastes Champions M-B",
+    "author": "Shohei Kimura",
+    "season": "reg-mb",
+    "score": 6,
+    "rank": 6,
+    "regulation": "M-B",
+    "title": "zeen's VR to San Francisco Top 8 Team",
+    "battleType": "doubles",
+    "reportUrl": "https://x.com/zeen172M/status/2089101229079265410",
+    "tournament": "VR to San Francisco",
+    "eventRank": "6th",
+    "dateShared": "2026-08-16",
+    "hasMoves": true,
+    "hasSpread": false,
+    "slots": [
+      {
+        "pokemonId": "charizard",
+        "abilityId": "blaze",
+        "itemId": "charizardite-y",
+        "nature": "内敛",
+        "statPoints": {},
+        "moveIds": [
+          "protect",
+          "weather-ball",
+          "heat-wave",
+          "ancient-power"
+        ]
+      },
+      {
+        "pokemonId": "toxapex",
+        "abilityId": "regenerator",
+        "itemId": "leftovers",
+        "nature": "大胆",
+        "statPoints": {},
+        "moveIds": [
+          "infestation",
+          "toxic",
+          "wide-guard",
+          "baneful-bunker"
+        ]
+      },
+      {
+        "pokemonId": "incineroar",
+        "abilityId": "intimidate",
+        "itemId": "sitrus-berry",
+        "nature": "慎重",
+        "statPoints": {},
+        "moveIds": [
+          "flare-blitz",
+          "protect",
+          "parting-shot",
+          "fake-out"
+        ]
+      },
+      {
+        "pokemonId": "venusaur",
+        "abilityId": "chlorophyll",
+        "itemId": "life-orb",
+        "nature": "内敛",
+        "statPoints": {},
+        "moveIds": [
+          "leaf-storm",
+          "sludge-bomb",
+          "earth-power",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "sylveon",
+        "abilityId": "pixilate",
+        "itemId": "fairy-feather",
+        "nature": "内敛",
+        "statPoints": {},
+        "moveIds": [
+          "hyper-voice",
+          "yawn",
+          "quick-attack",
+          "detect"
+        ]
+      },
+      {
+        "pokemonId": "garchomp",
+        "abilityId": "rough-skin",
+        "itemId": "choice-scarf",
+        "nature": "固执",
+        "statPoints": {},
+        "moveIds": [
+          "dragon-claw",
+          "stomping-tantrum",
+          "rock-slide",
+          "earthquake"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vgcpastes-champions-mb-mb746",
+    "dataKind": "external-snapshot",
+    "sourceId": "vgcpastes-champions-mb",
+    "sourceLabel": "VGCPastes Champions M-B",
+    "author": "Kandai Nagatome",
+    "season": "reg-mb",
+    "score": 7,
+    "rank": 7,
+    "regulation": "M-B",
+    "title": "Candy's VR to San Francisco Top 8 Team",
+    "battleType": "doubles",
+    "reportUrl": "https://x.com/sdlnfo/status/2089106993403625736",
+    "tournament": "VR to San Francisco",
+    "eventRank": "7th",
+    "dateShared": "2026-08-16",
+    "hasMoves": true,
+    "hasSpread": false,
+    "slots": [
+      {
+        "pokemonId": "charizard",
+        "abilityId": "blaze",
+        "itemId": "charizardite-y",
+        "nature": "胆小",
+        "statPoints": {},
+        "moveIds": [
+          "heat-wave",
+          "weather-ball",
+          "ancient-power",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "toxapex",
+        "abilityId": "regenerator",
+        "itemId": "leftovers",
+        "nature": "大胆",
+        "statPoints": {},
+        "moveIds": [
+          "infestation",
+          "toxic",
+          "wide-guard",
+          "baneful-bunker"
+        ]
+      },
+      {
+        "pokemonId": "incineroar",
+        "abilityId": "intimidate",
+        "itemId": "sitrus-berry",
+        "nature": "淘气",
+        "statPoints": {},
+        "moveIds": [
+          "flare-blitz",
+          "throat-chop",
+          "parting-shot",
+          "fake-out"
+        ]
+      },
+      {
+        "pokemonId": "venusaur",
+        "abilityId": "chlorophyll",
+        "itemId": "life-orb",
+        "nature": "内敛",
+        "statPoints": {},
+        "moveIds": [
+          "leaf-storm",
+          "sludge-bomb",
+          "earth-power",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "sylveon",
+        "abilityId": "pixilate",
+        "itemId": "fairy-feather",
+        "nature": "冷静",
+        "statPoints": {},
+        "moveIds": [
+          "hyper-voice",
+          "yawn",
+          "quick-attack",
+          "detect"
+        ]
+      },
+      {
+        "pokemonId": "garchomp",
+        "abilityId": "rough-skin",
+        "itemId": "choice-scarf",
+        "nature": "固执",
+        "statPoints": {},
+        "moveIds": [
+          "dragon-claw",
+          "stomping-tantrum",
+          "rock-slide",
+          "earthquake"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vgcpastes-champions-mb-mb745",
+    "dataKind": "external-snapshot",
+    "sourceId": "vgcpastes-champions-mb",
+    "sourceLabel": "VGCPastes Champions M-B",
+    "author": "Masahiro Ito",
+    "season": "reg-mb",
+    "score": 8,
+    "rank": 8,
+    "regulation": "M-B",
+    "title": "gahaku's VR to San Francisco Top 8 Team",
+    "battleType": "doubles",
+    "reportUrl": "https://x.com/gahaku_poke",
+    "tournament": "VR to San Francisco",
+    "eventRank": "8th",
+    "dateShared": "2026-08-16",
+    "hasMoves": true,
+    "hasSpread": false,
+    "slots": [
+      {
+        "pokemonId": "staraptor",
+        "abilityId": "intimidate",
+        "itemId": "staraptite",
+        "nature": "爽朗",
+        "statPoints": {},
+        "moveIds": [
+          "close-combat",
+          "brave-bird",
+          "roost",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "glimmora",
+        "abilityId": "toxic-debris",
+        "itemId": "focus-sash",
+        "nature": "内敛",
+        "statPoints": {},
+        "moveIds": [
+          "sludge-bomb",
+          "power-gem",
+          "spiky-shield",
+          "earth-power"
+        ]
+      },
+      {
+        "pokemonId": "farigiraf",
+        "abilityId": "armor-tail",
+        "itemId": "sitrus-berry",
+        "nature": "自大",
+        "statPoints": {},
+        "moveIds": [
+          "protect",
+          "helping-hand",
+          "trick-room",
+          "psychic"
+        ]
+      },
+      {
+        "pokemonId": "torkoal",
+        "abilityId": "drought",
+        "itemId": "charcoal",
+        "nature": "冷静",
+        "statPoints": {},
+        "moveIds": [
+          "eruption",
+          "protect",
+          "heat-wave",
+          "weather-ball"
+        ]
+      },
+      {
+        "pokemonId": "whimsicott",
+        "abilityId": "prankster",
+        "itemId": "occa-berry",
+        "nature": "胆小",
+        "statPoints": {},
+        "moveIds": [
+          "tailwind",
+          "charm",
+          "moonblast",
+          "fake-tears"
+        ]
+      },
+      {
+        "pokemonId": "sneasler",
+        "abilityId": "poison-touch",
+        "itemId": "life-orb",
+        "nature": "固执",
+        "statPoints": {},
+        "moveIds": [
+          "close-combat",
+          "poison-jab",
+          "rock-slide",
+          "fake-out"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vgcpastes-champions-mb-mb744",
+    "dataKind": "external-snapshot",
+    "sourceId": "vgcpastes-champions-mb",
+    "sourceLabel": "VGCPastes Champions M-B",
+    "author": "Markus Stadter",
+    "season": "reg-mb",
+    "score": 9,
+    "rank": 9,
+    "regulation": "M-B",
+    "title": "13Yoshi37's VR to San Francisco Top 16 Team",
+    "battleType": "doubles",
+    "reportUrl": "https://x.com/13Yoshi37/status/2089094564363506171",
+    "tournament": "VR to San Francisco",
+    "eventRank": "9th",
+    "dateShared": "2026-08-16",
+    "hasMoves": true,
+    "hasSpread": false,
+    "slots": [
+      {
+        "pokemonId": "raichu",
+        "abilityId": "lightning-rod",
+        "itemId": "raichunite",
+        "nature": "胆小",
+        "statPoints": {},
+        "moveIds": [
+          "zap-cannon",
+          "focus-blast",
+          "fake-out",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "staraptor",
+        "abilityId": "intimidate",
+        "itemId": "staraptite",
+        "nature": "爽朗",
+        "statPoints": {},
+        "moveIds": [
+          "close-combat",
+          "brave-bird",
+          "tailwind",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "farigiraf",
+        "abilityId": "armor-tail",
+        "itemId": "sitrus-berry",
+        "nature": "温和",
+        "statPoints": {},
+        "moveIds": [
+          "helping-hand",
+          "psychic",
+          "trick-room",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "kingambit",
+        "abilityId": "defiant",
+        "itemId": "life-orb",
+        "nature": "固执",
+        "statPoints": {},
+        "moveIds": [
+          "kowtow-cleave",
+          "sucker-punch",
+          "swords-dance",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "sylveon",
+        "abilityId": "pixilate",
+        "itemId": "fairy-feather",
+        "nature": "内敛",
+        "statPoints": {},
+        "moveIds": [
+          "hyper-voice",
+          "hyper-beam",
+          "quick-attack",
+          "detect"
+        ]
+      },
+      {
+        "pokemonId": "arcanine-hisui",
+        "abilityId": "rock-head",
+        "itemId": "focus-sash",
+        "nature": "爽朗",
+        "statPoints": {},
+        "moveIds": [
+          "flare-blitz",
+          "head-smash",
+          "extreme-speed",
+          "protect"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vgcpastes-champions-mb-mb743",
+    "dataKind": "external-snapshot",
+    "sourceId": "vgcpastes-champions-mb",
+    "sourceLabel": "VGCPastes Champions M-B",
+    "author": "Michał Kwiatkowski",
+    "season": "reg-mb",
+    "score": 10,
+    "rank": 10,
+    "regulation": "M-B",
+    "title": "Narret's VR to San Francisco Top 16 Team",
+    "battleType": "doubles",
+    "reportUrl": "https://x.com/Narretgg/status/2089091057917067581",
+    "tournament": "VR to San Francisco",
+    "eventRank": "10th",
+    "dateShared": "2026-08-16",
+    "hasMoves": true,
+    "hasSpread": false,
+    "slots": [
+      {
+        "pokemonId": "blaziken",
+        "abilityId": "speed-boost",
+        "itemId": "blazikenite",
+        "nature": "固执",
+        "statPoints": {},
+        "moveIds": [
+          "close-combat",
+          "flare-blitz",
+          "rock-slide",
+          "detect"
+        ]
+      },
+      {
+        "pokemonId": "froslass",
+        "abilityId": "cursed-body",
+        "itemId": "froslassite",
+        "nature": "胆小",
+        "statPoints": {},
+        "moveIds": [
+          "blizzard",
+          "shadow-ball",
+          "aurora-veil",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "incineroar",
+        "abilityId": "intimidate",
+        "itemId": "sitrus-berry",
+        "nature": "慎重",
+        "statPoints": {},
+        "moveIds": [
+          "fake-out",
+          "flare-blitz",
+          "parting-shot",
+          "helping-hand"
+        ]
+      },
+      {
+        "pokemonId": "kingambit",
+        "abilityId": "defiant",
+        "itemId": "black-glasses",
+        "nature": "固执",
+        "statPoints": {},
+        "moveIds": [
+          "kowtow-cleave",
+          "sucker-punch",
+          "swords-dance",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "sinistcha",
+        "abilityId": "hospitality",
+        "itemId": "occa-berry",
+        "nature": "大胆",
+        "statPoints": {},
+        "moveIds": [
+          "matcha-gotcha",
+          "rage-powder",
+          "trick-room",
+          "shadow-ball"
+        ]
+      },
+      {
+        "pokemonId": "sneasler",
+        "abilityId": "unburden",
+        "itemId": "white-herb",
+        "nature": "固执",
+        "statPoints": {},
+        "moveIds": [
+          "close-combat",
+          "gunk-shot",
+          "protect",
+          "fake-out"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vgcpastes-champions-mb-mb742",
+    "dataKind": "external-snapshot",
+    "sourceId": "vgcpastes-champions-mb",
+    "sourceLabel": "VGCPastes Champions M-B",
+    "author": "Marco Silva",
+    "season": "reg-mb",
+    "score": 11,
+    "rank": 11,
+    "regulation": "M-B",
+    "title": "marcofiero's VR to San Francisco Top 16 Team",
+    "battleType": "doubles",
+    "reportUrl": "https://x.com/marc0fier0",
+    "tournament": "VR to San Francisco",
+    "eventRank": "11th",
+    "dateShared": "2026-08-16",
+    "hasMoves": true,
+    "hasSpread": false,
+    "slots": [
+      {
+        "pokemonId": "charizard",
+        "abilityId": "blaze",
+        "itemId": "charizardite-y",
+        "nature": "内敛",
+        "statPoints": {},
+        "moveIds": [
+          "heat-wave",
+          "solar-beam",
+          "weather-ball",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "aerodactyl",
+        "abilityId": "unnerve",
+        "itemId": "aerodactylite",
+        "nature": "爽朗",
+        "statPoints": {},
+        "moveIds": [
+          "rock-slide",
+          "dual-wingbeat",
+          "ice-fang",
+          "tailwind"
+        ]
+      },
+      {
+        "pokemonId": "farigiraf",
+        "abilityId": "armor-tail",
+        "itemId": "sitrus-berry",
+        "nature": "冷静",
+        "statPoints": {},
+        "moveIds": [
+          "psychic",
+          "thunderbolt",
+          "trick-room",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "kingambit",
+        "abilityId": "defiant",
+        "itemId": "focus-sash",
+        "nature": "固执",
+        "statPoints": {},
+        "moveIds": [
+          "kowtow-cleave",
+          "iron-head",
+          "sucker-punch",
+          "low-kick"
+        ]
+      },
+      {
+        "pokemonId": "sylveon",
+        "abilityId": "pixilate",
+        "itemId": "fairy-feather",
+        "nature": "内敛",
+        "statPoints": {},
+        "moveIds": [
+          "hyper-voice",
+          "yawn",
+          "quick-attack",
+          "detect"
+        ]
+      },
+      {
+        "pokemonId": "garchomp",
+        "abilityId": "rough-skin",
+        "itemId": "life-orb",
+        "nature": "爽朗",
+        "statPoints": {},
+        "moveIds": [
+          "earthquake",
+          "dragon-claw",
+          "stomping-tantrum",
+          "protect"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vgcpastes-champions-mb-mb741",
+    "dataKind": "external-snapshot",
+    "sourceId": "vgcpastes-champions-mb",
+    "sourceLabel": "VGCPastes Champions M-B",
+    "author": "Calculus",
+    "season": "reg-mb",
+    "score": 12,
+    "rank": 12,
+    "regulation": "M-B",
+    "title": "Calculus' VR to San Francisco Top 16 Team",
+    "battleType": "doubles",
+    "reportUrl": "https://x.com/CalcVGC/status/2089040172675702920",
+    "tournament": "VR to San Francisco",
+    "eventRank": "12th",
+    "dateShared": "2026-08-16",
+    "hasMoves": true,
+    "hasSpread": false,
+    "slots": [
+      {
+        "pokemonId": "charizard",
+        "abilityId": "blaze",
+        "itemId": "charizardite-y",
+        "nature": "内敛",
+        "statPoints": {},
+        "moveIds": [
+          "heat-wave",
+          "weather-ball",
+          "ancient-power",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "floette",
+        "abilityId": "flower-veil",
+        "itemId": "floettite",
+        "nature": "内敛",
+        "statPoints": {},
+        "moveIds": [
+          "dazzling-gleam",
+          "moonblast",
+          "light-of-ruin",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "basculegion-male",
+        "abilityId": "adaptability",
+        "itemId": "life-orb",
+        "nature": "固执",
+        "statPoints": {},
+        "moveIds": [
+          "wave-crash",
+          "last-respects",
+          "aqua-jet",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "kingambit",
+        "abilityId": "defiant",
+        "itemId": "occa-berry",
+        "nature": "固执",
+        "statPoints": {},
+        "moveIds": [
+          "kowtow-cleave",
+          "iron-head",
+          "sucker-punch",
+          "low-kick"
+        ]
+      },
+      {
+        "pokemonId": "whimsicott",
+        "abilityId": "prankster",
+        "itemId": "focus-sash",
+        "nature": "胆小",
+        "statPoints": {},
+        "moveIds": [
+          "moonblast",
+          "tailwind",
+          "encore",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "garchomp",
+        "abilityId": "rough-skin",
+        "itemId": "sitrus-berry",
+        "nature": "固执",
+        "statPoints": {},
+        "moveIds": [
+          "earthquake",
+          "dragon-claw",
+          "rock-slide",
+          "protect"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vgcpastes-champions-mb-mb740",
+    "dataKind": "external-snapshot",
+    "sourceId": "vgcpastes-champions-mb",
+    "sourceLabel": "VGCPastes Champions M-B",
+    "author": "Louis Markl",
+    "season": "reg-mb",
+    "score": 13,
+    "rank": 13,
+    "regulation": "M-B",
+    "title": "Louis' VR to San Francisco Top 16 Team",
+    "battleType": "doubles",
+    "reportUrl": "https://x.com/Louisvgc",
+    "tournament": "VR to San Francisco",
+    "eventRank": "13th",
+    "dateShared": "2026-08-16",
+    "hasMoves": true,
+    "hasSpread": false,
+    "slots": [
+      {
+        "pokemonId": "floette",
+        "abilityId": "flower-veil",
+        "itemId": "floettite",
+        "nature": "胆小",
+        "statPoints": {},
+        "moveIds": [
+          "dazzling-gleam",
+          "draining-kiss",
+          "protect",
+          "calm-mind"
+        ]
+      },
+      {
+        "pokemonId": "incineroar",
+        "abilityId": "intimidate",
+        "itemId": "sitrus-berry",
+        "nature": "慎重",
+        "statPoints": {},
+        "moveIds": [
+          "fake-out",
+          "parting-shot",
+          "flare-blitz",
+          "helping-hand"
+        ]
+      },
+      {
+        "pokemonId": "basculegion-male",
+        "abilityId": "adaptability",
+        "itemId": "choice-scarf",
+        "nature": "爽朗",
+        "statPoints": {},
+        "moveIds": [
+          "wave-crash",
+          "last-respects",
+          "flip-turn",
+          "aqua-jet"
+        ]
+      },
+      {
+        "pokemonId": "kingambit",
+        "abilityId": "defiant",
+        "itemId": "black-glasses",
+        "nature": "固执",
+        "statPoints": {},
+        "moveIds": [
+          "kowtow-cleave",
+          "protect",
+          "swords-dance",
+          "sucker-punch"
+        ]
+      },
+      {
+        "pokemonId": "sinistcha",
+        "abilityId": "hospitality",
+        "itemId": "focus-sash",
+        "nature": "内敛",
+        "statPoints": {},
+        "moveIds": [
+          "matcha-gotcha",
+          "rage-powder",
+          "protect",
+          "shadow-ball"
+        ]
+      },
+      {
+        "pokemonId": "sneasler",
+        "abilityId": "unburden",
+        "itemId": "white-herb",
+        "nature": "固执",
+        "statPoints": {},
+        "moveIds": [
+          "close-combat",
+          "protect",
+          "fake-out",
+          "dire-claw"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vgcpastes-champions-mb-mb739",
+    "dataKind": "external-snapshot",
+    "sourceId": "vgcpastes-champions-mb",
+    "sourceLabel": "VGCPastes Champions M-B",
+    "author": "Naoto Mizobuchi",
+    "season": "reg-mb",
+    "score": 14,
+    "rank": 14,
+    "regulation": "M-B",
+    "title": "Penguin's VR to San Francisco Top 16 Team",
+    "battleType": "doubles",
+    "reportUrl": "https://x.com/penguin2142",
+    "tournament": "VR to San Francisco",
+    "eventRank": "14th",
+    "dateShared": "2026-08-16",
+    "hasMoves": true,
+    "hasSpread": false,
+    "slots": [
+      {
+        "pokemonId": "charizard",
+        "abilityId": "blaze",
+        "itemId": "charizardite-y",
+        "nature": "内敛",
+        "statPoints": {},
+        "moveIds": [
+          "heat-wave",
+          "ancient-power",
+          "weather-ball",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "aerodactyl",
+        "abilityId": "unnerve",
+        "itemId": "focus-sash",
+        "nature": "爽朗",
+        "statPoints": {},
+        "moveIds": [
+          "rock-slide",
+          "dual-wingbeat",
+          "tailwind",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "incineroar",
+        "abilityId": "intimidate",
+        "itemId": "sitrus-berry",
+        "nature": "淘气",
+        "statPoints": {},
+        "moveIds": [
+          "fake-out",
+          "flare-blitz",
+          "throat-chop",
+          "parting-shot"
+        ]
+      },
+      {
+        "pokemonId": "venusaur",
+        "abilityId": "chlorophyll",
+        "itemId": "wide-lens",
+        "nature": "内敛",
+        "statPoints": {},
+        "moveIds": [
+          "sleep-powder",
+          "leaf-storm",
+          "sludge-bomb",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "sylveon",
+        "abilityId": "pixilate",
+        "itemId": "fairy-feather",
+        "nature": "内敛",
+        "statPoints": {},
+        "moveIds": [
+          "hyper-voice",
+          "hyper-beam",
+          "quick-attack",
+          "detect"
+        ]
+      },
+      {
+        "pokemonId": "garchomp",
+        "abilityId": "rough-skin",
+        "itemId": "life-orb",
+        "nature": "爽朗",
+        "statPoints": {},
+        "moveIds": [
+          "dragon-claw",
+          "rock-slide",
+          "earthquake",
+          "protect"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vgcpastes-champions-mb-mb738",
+    "dataKind": "external-snapshot",
+    "sourceId": "vgcpastes-champions-mb",
+    "sourceLabel": "VGCPastes Champions M-B",
+    "author": "Léo Fontvieille",
+    "season": "reg-mb",
+    "score": 15,
+    "rank": 15,
+    "regulation": "M-B",
+    "title": "Léo Fontvieille's VR to San Francisco Top 16 Team",
+    "battleType": "doubles",
+    "reportUrl": "https://pokepast.es/f41dbaf280a75a4d",
+    "tournament": "VR to San Francisco",
+    "eventRank": "15th",
+    "dateShared": "2026-08-16",
+    "hasMoves": true,
+    "hasSpread": false,
+    "slots": [
+      {
+        "pokemonId": "delphox",
+        "abilityId": "blaze",
+        "itemId": "delphoxite",
+        "nature": "内敛",
+        "statPoints": {},
+        "moveIds": [
+          "heat-wave",
+          "psyshock",
+          "nasty-plot",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "blastoise",
+        "abilityId": "rain-dish",
+        "itemId": "blastoisinite",
+        "nature": "内敛",
+        "statPoints": {},
+        "moveIds": [
+          "water-spout",
+          "shell-smash",
+          "dark-pulse",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "incineroar",
+        "abilityId": "intimidate",
+        "itemId": "sitrus-berry",
+        "nature": "慎重",
+        "statPoints": {},
+        "moveIds": [
+          "parting-shot",
+          "fake-out",
+          "helping-hand",
+          "flare-blitz"
+        ]
+      },
+      {
+        "pokemonId": "kingambit",
+        "abilityId": "defiant",
+        "itemId": "life-orb",
+        "nature": "固执",
+        "statPoints": {},
+        "moveIds": [
+          "kowtow-cleave",
+          "sucker-punch",
+          "swords-dance",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "sinistcha",
+        "abilityId": "hospitality",
+        "itemId": "colbur-berry",
+        "nature": "大胆",
+        "statPoints": {},
+        "moveIds": [
+          "matcha-gotcha",
+          "rage-powder",
+          "trick-room",
+          "life-dew"
+        ]
+      },
+      {
+        "pokemonId": "sneasler",
+        "abilityId": "poison-touch",
+        "itemId": "focus-sash",
+        "nature": "爽朗",
+        "statPoints": {},
+        "moveIds": [
+          "close-combat",
+          "poison-jab",
+          "fake-out",
+          "quick-guard"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vgcpastes-champions-mb-mb737",
+    "dataKind": "external-snapshot",
+    "sourceId": "vgcpastes-champions-mb",
+    "sourceLabel": "VGCPastes Champions M-B",
+    "author": "Carlos Cabal",
+    "season": "reg-mb",
+    "score": 16,
+    "rank": 16,
+    "regulation": "M-B",
+    "title": "Carlos Cabal's VR to San Francisco Top 16 Team",
+    "battleType": "doubles",
+    "reportUrl": "https://x.com/miraii1__/status/2089102640655253838",
+    "tournament": "VR to San Francisco",
+    "eventRank": "16th",
+    "dateShared": "2026-08-16",
+    "hasMoves": true,
+    "hasSpread": false,
+    "slots": [
+      {
+        "pokemonId": "charizard",
+        "abilityId": "blaze",
+        "itemId": "charizardite-y",
+        "nature": "胆小",
+        "statPoints": {},
+        "moveIds": [
+          "heat-wave",
+          "weather-ball",
+          "ancient-power",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "aerodactyl",
+        "abilityId": "unnerve",
+        "itemId": "aerodactylite",
+        "nature": "爽朗",
+        "statPoints": {},
+        "moveIds": [
+          "rock-slide",
+          "dual-wingbeat",
+          "wide-guard",
+          "tailwind"
+        ]
+      },
+      {
+        "pokemonId": "incineroar",
+        "abilityId": "intimidate",
+        "itemId": "sitrus-berry",
+        "nature": "淘气",
+        "statPoints": {},
+        "moveIds": [
+          "fake-out",
+          "darkest-lariat",
+          "flare-blitz",
+          "parting-shot"
+        ]
+      },
+      {
+        "pokemonId": "venusaur",
+        "abilityId": "chlorophyll",
+        "itemId": "life-orb",
+        "nature": "内敛",
+        "statPoints": {},
+        "moveIds": [
+          "sludge-bomb",
+          "leaf-storm",
+          "earth-power",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "sylveon",
+        "abilityId": "pixilate",
+        "itemId": "fairy-feather",
+        "nature": "内敛",
+        "statPoints": {},
+        "moveIds": [
+          "hyper-voice",
+          "quick-attack",
+          "yawn",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "garchomp",
+        "abilityId": "rough-skin",
+        "itemId": "white-herb",
+        "nature": "固执",
+        "statPoints": {},
+        "moveIds": [
+          "dragon-claw",
+          "stomping-tantrum",
+          "earthquake",
+          "protect"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vgcpastes-champions-mb-mb736",
+    "dataKind": "external-snapshot",
+    "sourceId": "vgcpastes-champions-mb",
+    "sourceLabel": "VGCPastes Champions M-B",
+    "author": "Jérémy Côté",
+    "season": "reg-mb",
+    "score": 17,
+    "rank": 17,
+    "regulation": "M-B",
+    "title": "Kangourou's VR to San Francisco Top 32 Team",
+    "battleType": "doubles",
+    "reportUrl": "https://x.com/Kangourou0071",
+    "tournament": "VR to San Francisco",
+    "eventRank": "17th",
+    "dateShared": "2026-08-16",
+    "hasMoves": true,
+    "hasSpread": false,
+    "slots": [
+      {
+        "pokemonId": "charizard",
+        "abilityId": "blaze",
+        "itemId": "charizardite-y",
+        "nature": "内敛",
+        "statPoints": {},
+        "moveIds": [
+          "weather-ball",
+          "heat-wave",
+          "ancient-power",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "toxapex",
+        "abilityId": "regenerator",
+        "itemId": "leftovers",
+        "nature": "大胆",
+        "statPoints": {},
+        "moveIds": [
+          "infestation",
+          "toxic",
+          "wide-guard",
+          "baneful-bunker"
+        ]
+      },
+      {
+        "pokemonId": "incineroar",
+        "abilityId": "intimidate",
+        "itemId": "sitrus-berry",
+        "nature": "淘气",
+        "statPoints": {},
+        "moveIds": [
+          "fake-out",
+          "flare-blitz",
+          "darkest-lariat",
+          "parting-shot"
+        ]
+      },
+      {
+        "pokemonId": "venusaur",
+        "abilityId": "chlorophyll",
+        "itemId": "life-orb",
+        "nature": "内敛",
+        "statPoints": {},
+        "moveIds": [
+          "leaf-storm",
+          "sludge-bomb",
+          "earth-power",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "garchomp",
+        "abilityId": "rough-skin",
+        "itemId": "choice-scarf",
+        "nature": "固执",
+        "statPoints": {},
+        "moveIds": [
+          "earthquake",
+          "dragon-claw",
+          "rock-slide",
+          "stomping-tantrum"
+        ]
+      },
+      {
+        "pokemonId": "sylveon",
+        "abilityId": "pixilate",
+        "itemId": "fairy-feather",
+        "nature": "内敛",
+        "statPoints": {},
+        "moveIds": [
+          "hyper-voice",
+          "yawn",
+          "quick-attack",
+          "detect"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vgcpastes-champions-mb-mb735",
+    "dataKind": "external-snapshot",
+    "sourceId": "vgcpastes-champions-mb",
+    "sourceLabel": "VGCPastes Champions M-B",
+    "author": "Giulio Tarlao",
+    "season": "reg-mb",
+    "score": 18,
+    "rank": 18,
+    "regulation": "M-B",
+    "title": "Giulio Tarlao's VR to San Francisco Top 32 Team",
+    "battleType": "doubles",
+    "reportUrl": "https://x.com/TarlaoGiulio",
+    "tournament": "VR to San Francisco",
+    "eventRank": "18th",
+    "dateShared": "2026-08-16",
+    "hasMoves": true,
+    "hasSpread": false,
+    "slots": [
+      {
+        "pokemonId": "incineroar",
+        "abilityId": "intimidate",
+        "itemId": "passho-berry",
+        "nature": "慎重",
+        "statPoints": {},
+        "moveIds": [
+          "fake-out",
+          "parting-shot",
+          "throat-chop",
+          "flare-blitz"
+        ]
+      },
+      {
+        "pokemonId": "floette",
+        "abilityId": "flower-veil",
+        "itemId": "floettite",
+        "nature": "内敛",
+        "statPoints": {},
+        "moveIds": [
+          "dazzling-gleam",
+          "draining-kiss",
+          "calm-mind",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "sinistcha",
+        "abilityId": "hospitality",
+        "itemId": "occa-berry",
+        "nature": "温和",
+        "statPoints": {},
+        "moveIds": [
+          "matcha-gotcha",
+          "rage-powder",
+          "trick-room",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "delphox",
+        "abilityId": "blaze",
+        "itemId": "delphoxite",
+        "nature": "胆小",
+        "statPoints": {},
+        "moveIds": [
+          "heat-wave",
+          "psyshock",
+          "nasty-plot",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "sneasler",
+        "abilityId": "poison-touch",
+        "itemId": "focus-sash",
+        "nature": "爽朗",
+        "statPoints": {},
+        "moveIds": [
+          "fake-out",
+          "close-combat",
+          "dire-claw",
+          "coaching"
+        ]
+      },
+      {
+        "pokemonId": "maushold-family-of-four",
+        "abilityId": "friend-guard",
+        "itemId": "chople-berry",
+        "nature": "温和",
+        "statPoints": {},
+        "moveIds": [
+          "super-fang",
+          "taunt",
+          "follow-me",
+          "protect"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vgcpastes-champions-mb-mb734",
+    "dataKind": "external-snapshot",
+    "sourceId": "vgcpastes-champions-mb",
+    "sourceLabel": "VGCPastes Champions M-B",
+    "author": "Justin Burns",
+    "season": "reg-mb",
+    "score": 19,
+    "rank": 19,
+    "regulation": "M-B",
+    "title": "Justin Burns' VR to San Francisco Top 32 Team",
+    "battleType": "doubles",
+    "reportUrl": "https://pokepast.es/439d2b34fc07bf9c",
+    "tournament": "VR to San Francisco",
+    "eventRank": "19th",
+    "dateShared": "2026-08-16",
+    "hasMoves": true,
+    "hasSpread": false,
+    "slots": [
+      {
+        "pokemonId": "garchomp",
+        "abilityId": "rough-skin",
+        "itemId": "life-orb",
+        "nature": "爽朗",
+        "statPoints": {},
+        "moveIds": [
+          "stomping-tantrum",
+          "rock-slide",
+          "dragon-claw",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "whimsicott",
+        "abilityId": "prankster",
+        "itemId": "focus-sash",
+        "nature": "胆小",
+        "statPoints": {},
+        "moveIds": [
+          "moonblast",
+          "tailwind",
+          "encore",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "charizard",
+        "abilityId": "blaze",
+        "itemId": "charizardite-y",
+        "nature": "内敛",
+        "statPoints": {},
+        "moveIds": [
+          "weather-ball",
+          "heat-wave",
+          "solar-beam",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "basculegion-male",
+        "abilityId": "adaptability",
+        "itemId": "mystic-water",
+        "nature": "固执",
+        "statPoints": {},
+        "moveIds": [
+          "wave-crash",
+          "aqua-jet",
+          "last-respects",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "incineroar",
+        "abilityId": "intimidate",
+        "itemId": "sitrus-berry",
+        "nature": "固执",
+        "statPoints": {},
+        "moveIds": [
+          "fake-out",
+          "flare-blitz",
+          "throat-chop",
+          "parting-shot"
+        ]
+      },
+      {
+        "pokemonId": "floette",
+        "abilityId": "flower-veil",
+        "itemId": "floettite",
+        "nature": "内敛",
+        "statPoints": {},
+        "moveIds": [
+          "moonblast",
+          "dazzling-gleam",
+          "calm-mind",
+          "protect"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vgcpastes-champions-mb-mb733",
+    "dataKind": "external-snapshot",
+    "sourceId": "vgcpastes-champions-mb",
+    "sourceLabel": "VGCPastes Champions M-B",
+    "author": "Juan Manuel Odriozola",
+    "season": "reg-mb",
+    "score": 20,
+    "rank": 20,
+    "regulation": "M-B",
+    "title": "JMOdri's VR to San Francisco Top 32 Team",
+    "battleType": "doubles",
+    "reportUrl": "https://x.com/JMOdriVGC/status/2089086692166893914",
+    "tournament": "VR to San Francisco",
+    "eventRank": "20th",
+    "dateShared": "2026-08-16",
+    "hasMoves": true,
+    "hasSpread": false,
+    "slots": [
+      {
+        "pokemonId": "charizard",
+        "abilityId": "blaze",
+        "itemId": "charizardite-y",
+        "nature": "胆小",
+        "statPoints": {},
+        "moveIds": [
+          "protect",
+          "heat-wave",
+          "weather-ball",
+          "ancient-power"
+        ]
+      },
+      {
+        "pokemonId": "venusaur",
+        "abilityId": "chlorophyll",
+        "itemId": "life-orb",
+        "nature": "内敛",
+        "statPoints": {},
+        "moveIds": [
+          "protect",
+          "leaf-storm",
+          "sludge-bomb",
+          "earth-power"
+        ]
+      },
+      {
+        "pokemonId": "incineroar",
+        "abilityId": "intimidate",
+        "itemId": "sitrus-berry",
+        "nature": "淘气",
+        "statPoints": {},
+        "moveIds": [
+          "fake-out",
+          "parting-shot",
+          "flare-blitz",
+          "throat-chop"
+        ]
+      },
+      {
+        "pokemonId": "sylveon",
+        "abilityId": "pixilate",
+        "itemId": "fairy-feather",
+        "nature": "内敛",
+        "statPoints": {},
+        "moveIds": [
+          "detect",
+          "yawn",
+          "hyper-voice",
+          "quick-attack"
+        ]
+      },
+      {
+        "pokemonId": "toxapex",
+        "abilityId": "regenerator",
+        "itemId": "leftovers",
+        "nature": "大胆",
+        "statPoints": {},
+        "moveIds": [
+          "baneful-bunker",
+          "wide-guard",
+          "toxic",
+          "infestation"
+        ]
+      },
+      {
+        "pokemonId": "garchomp",
+        "abilityId": "rough-skin",
+        "itemId": "choice-scarf",
+        "nature": "固执",
+        "statPoints": {},
+        "moveIds": [
+          "dragon-claw",
+          "earthquake",
+          "stomping-tantrum",
+          "rock-slide"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vgcpastes-champions-mb-mb732",
+    "dataKind": "external-snapshot",
+    "sourceId": "vgcpastes-champions-mb",
+    "sourceLabel": "VGCPastes Champions M-B",
+    "author": "Betchman",
+    "season": "reg-mb",
+    "score": 21,
+    "rank": 21,
+    "regulation": "M-B",
+    "title": "Betchman's VR to San Francisco Top 32 Team",
+    "battleType": "doubles",
+    "reportUrl": "https://x.com/Betchman22/status/2089080498530472137",
+    "tournament": "VR to San Francisco",
+    "eventRank": "21st",
+    "dateShared": "2026-08-16",
+    "hasMoves": true,
+    "hasSpread": false,
+    "slots": [
+      {
+        "pokemonId": "froslass",
+        "abilityId": "cursed-body",
+        "itemId": "froslassite",
+        "nature": "内敛",
+        "statPoints": {},
+        "moveIds": [
+          "blizzard",
+          "shadow-ball",
+          "taunt",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "glaceon",
+        "abilityId": "snow-cloak",
+        "itemId": "bright-powder",
+        "nature": "内敛",
+        "statPoints": {},
+        "moveIds": [
+          "blizzard",
+          "freeze-dry",
+          "ice-shard",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "talonflame",
+        "abilityId": "gale-wings",
+        "itemId": "life-orb",
+        "nature": "爽朗",
+        "statPoints": {},
+        "moveIds": [
+          "brave-bird",
+          "flare-blitz",
+          "tailwind",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "glimmora",
+        "abilityId": "toxic-debris",
+        "itemId": "glimmoranite",
+        "nature": "胆小",
+        "statPoints": {},
+        "moveIds": [
+          "sludge-bomb",
+          "power-gem",
+          "earth-power",
+          "spiky-shield"
+        ]
+      },
+      {
+        "pokemonId": "sneasler",
+        "abilityId": "unburden",
+        "itemId": "focus-sash",
+        "nature": "顽皮",
+        "statPoints": {},
+        "moveIds": [
+          "dire-claw",
+          "close-combat",
+          "fake-out",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "kingambit",
+        "abilityId": "defiant",
+        "itemId": "chople-berry",
+        "nature": "固执",
+        "statPoints": {},
+        "moveIds": [
+          "kowtow-cleave",
+          "sucker-punch",
+          "low-kick",
+          "protect"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vgcpastes-champions-mb-mb731",
+    "dataKind": "external-snapshot",
+    "sourceId": "vgcpastes-champions-mb",
+    "sourceLabel": "VGCPastes Champions M-B",
+    "author": "Sebastian Li",
+    "season": "reg-mb",
+    "score": 22,
+    "rank": 22,
+    "regulation": "M-B",
+    "title": "ApronVGC's VR to San Francisco Top 32 Team",
+    "battleType": "doubles",
+    "reportUrl": "https://x.com/apronvgc/status/2089079108470780404",
+    "tournament": "VR to San Francisco",
+    "eventRank": "22nd",
+    "dateShared": "2026-08-16",
+    "hasMoves": true,
+    "hasSpread": false,
+    "slots": [
+      {
+        "pokemonId": "whimsicott",
+        "abilityId": "prankster",
+        "itemId": "focus-sash",
+        "nature": "胆小",
+        "statPoints": {},
+        "moveIds": [
+          "moonblast",
+          "tailwind",
+          "encore",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "floette",
+        "abilityId": "flower-veil",
+        "itemId": "floettite",
+        "nature": "内敛",
+        "statPoints": {},
+        "moveIds": [
+          "moonblast",
+          "dazzling-gleam",
+          "light-of-ruin",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "incineroar",
+        "abilityId": "intimidate",
+        "itemId": "charcoal",
+        "nature": "固执",
+        "statPoints": {},
+        "moveIds": [
+          "flare-blitz",
+          "darkest-lariat",
+          "fake-out",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "kingambit",
+        "abilityId": "defiant",
+        "itemId": "black-glasses",
+        "nature": "固执",
+        "statPoints": {},
+        "moveIds": [
+          "kowtow-cleave",
+          "sucker-punch",
+          "swords-dance",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "garchomp",
+        "abilityId": "rough-skin",
+        "itemId": "sitrus-berry",
+        "nature": "爽朗",
+        "statPoints": {},
+        "moveIds": [
+          "dragon-claw",
+          "stomping-tantrum",
+          "rock-slide",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "basculegion-male",
+        "abilityId": "adaptability",
+        "itemId": "life-orb",
+        "nature": "固执",
+        "statPoints": {},
+        "moveIds": [
+          "wave-crash",
+          "aqua-jet",
+          "last-respects",
+          "protect"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vgcpastes-champions-mb-mb728",
+    "dataKind": "external-snapshot",
+    "sourceId": "vgcpastes-champions-mb",
+    "sourceLabel": "VGCPastes Champions M-B",
+    "author": "koyadofudx",
+    "season": "reg-mb",
+    "score": 4,
+    "rank": 4,
+    "regulation": "M-B",
+    "title": "koyadofudx's Extreme Off (Doubles) Top 4 Team",
+    "battleType": "doubles",
+    "reportUrl": "https://x.com/koyadofudx/status/2088906192181719272?s=46",
+    "tournament": "Extreme Off (Doubles)",
+    "eventRank": "Top 4",
+    "dateShared": "2026-08-16",
+    "hasMoves": true,
+    "hasSpread": true,
+    "slots": [
+      {
+        "pokemonId": "charizard",
+        "abilityId": "solar-power",
+        "itemId": "charizardite-y",
+        "nature": "胆小",
+        "statPoints": {
+          "hp": 8,
+          "defense": 3,
+          "specialAttack": 32,
+          "speed": 23
+        },
+        "moveIds": [
+          "overheat",
+          "heat-wave",
+          "solar-beam",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "aerodactyl",
+        "abilityId": "unnerve",
+        "itemId": "aerodactylite",
+        "nature": "爽朗",
+        "statPoints": {
+          "attack": 32,
+          "defense": 2,
+          "speed": 32
+        },
+        "moveIds": [
+          "rock-slide",
+          "dual-wingbeat",
+          "ice-fang",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "kingambit",
+        "abilityId": "defiant",
+        "itemId": "focus-sash",
+        "nature": "固执",
+        "statPoints": {
+          "attack": 32,
+          "specialDefense": 2,
+          "speed": 32
+        },
+        "moveIds": [
+          "kowtow-cleave",
+          "iron-head",
+          "sucker-punch",
+          "low-kick"
+        ]
+      },
+      {
+        "pokemonId": "basculegion-male",
+        "abilityId": "adaptability",
+        "itemId": "choice-scarf",
+        "nature": "爽朗",
+        "statPoints": {
+          "attack": 32,
+          "defense": 10,
+          "speed": 24
+        },
+        "moveIds": [
+          "wave-crash",
+          "last-respects",
+          "aqua-jet",
+          "flip-turn"
+        ]
+      },
+      {
+        "pokemonId": "whimsicott",
+        "abilityId": "prankster",
+        "itemId": "fairy-feather",
+        "nature": "大胆",
+        "statPoints": {
+          "hp": 30,
+          "defense": 17,
+          "specialDefense": 19
+        },
+        "moveIds": [
+          "moonblast",
+          "sunny-day",
+          "tailwind",
+          "encore"
+        ]
+      },
+      {
+        "pokemonId": "garchomp",
+        "abilityId": "rough-skin",
+        "itemId": "life-orb",
+        "nature": "爽朗",
+        "statPoints": {
+          "attack": 32,
+          "specialDefense": 2,
+          "speed": 32
+        },
+        "moveIds": [
+          "earthquake",
+          "dragon-claw",
+          "rock-tomb",
+          "protect"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vgcpastes-champions-mb-mb727",
+    "dataKind": "external-snapshot",
+    "sourceId": "vgcpastes-champions-mb",
+    "sourceLabel": "VGCPastes Champions M-B",
+    "author": "a_zenopoke",
+    "season": "reg-mb",
+    "score": 27,
+    "rank": 27,
+    "regulation": "M-B",
+    "title": "a_zenopoke's Extreme Off (Doubles) Top 32 Team",
+    "battleType": "doubles",
+    "reportUrl": "https://x.com/a_zenopoke/status/2088875036568625383?s=46",
+    "tournament": "Extreme Off (Doubles)",
+    "eventRank": "27th",
+    "dateShared": "2026-08-16",
+    "hasMoves": true,
+    "hasSpread": true,
+    "slots": [
+      {
+        "pokemonId": "froslass",
+        "abilityId": "cursed-body",
+        "itemId": "froslassite",
+        "nature": "胆小",
+        "statPoints": {
+          "hp": 32,
+          "specialAttack": 8,
+          "specialDefense": 2,
+          "speed": 24
+        },
+        "moveIds": [
+          "blizzard",
+          "shadow-ball",
+          "taunt",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "scovillain",
+        "abilityId": "moody",
+        "itemId": "scovillainite",
+        "nature": "大胆",
+        "statPoints": {
+          "hp": 31,
+          "defense": 31,
+          "specialAttack": 3,
+          "specialDefense": 1
+        },
+        "moveIds": [
+          "overheat",
+          "giga-drain",
+          "rage-powder",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "kingambit",
+        "abilityId": "defiant",
+        "itemId": "life-orb",
+        "nature": "固执",
+        "statPoints": {
+          "hp": 32,
+          "attack": 32,
+          "defense": 1,
+          "speed": 1
+        },
+        "moveIds": [
+          "kowtow-cleave",
+          "sucker-punch",
+          "swords-dance",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "basculegion-male",
+        "abilityId": "adaptability",
+        "itemId": "sitrus-berry",
+        "nature": "固执",
+        "statPoints": {
+          "hp": 10,
+          "attack": 28,
+          "defense": 10,
+          "specialDefense": 12,
+          "speed": 6
+        },
+        "moveIds": [
+          "wave-crash",
+          "last-respects",
+          "aqua-jet",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "sneasler",
+        "abilityId": "unburden",
+        "itemId": "white-herb",
+        "nature": "爽朗",
+        "statPoints": {
+          "hp": 4,
+          "attack": 23,
+          "defense": 20,
+          "specialDefense": 1,
+          "speed": 18
+        },
+        "moveIds": [
+          "close-combat",
+          "gunk-shot",
+          "fake-out",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "lycanroc-dusk",
+        "abilityId": "tough-claws",
+        "itemId": "focus-sash",
+        "nature": "固执",
+        "statPoints": {
+          "hp": 1,
+          "attack": 32,
+          "defense": 1,
+          "speed": 32
+        },
+        "moveIds": [
+          "rock-slide",
+          "close-combat",
+          "accelerock",
+          "protect"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vgcpastes-champions-mb-mb726",
+    "dataKind": "external-snapshot",
+    "sourceId": "vgcpastes-champions-mb",
+    "sourceLabel": "VGCPastes Champions M-B",
+    "author": "DN",
+    "season": "reg-mb",
+    "score": 32,
+    "rank": 32,
+    "regulation": "M-B",
+    "title": "DN's Extreme Off (Doubles) Top 32 Team",
+    "battleType": "doubles",
+    "reportUrl": "https://x.com/DN51840610/status/2088871513877569914?s=20",
+    "tournament": "Extreme Off (Doubles)",
+    "eventRank": "32nd",
+    "dateShared": "2026-08-16",
+    "replicaCode": "D3T7RVGU21",
+    "hasMoves": true,
+    "hasSpread": true,
+    "slots": [
+      {
+        "pokemonId": "whimsicott",
+        "abilityId": "prankster",
+        "itemId": "sitrus-berry",
+        "nature": "胆小",
+        "statPoints": {
+          "hp": 32,
+          "defense": 15,
+          "specialAttack": 7,
+          "specialDefense": 5,
+          "speed": 7
+        },
+        "moveIds": [
+          "moonblast",
+          "tailwind",
+          "fake-tears",
+          "taunt"
+        ]
+      },
+      {
+        "pokemonId": "delphox",
+        "abilityId": "blaze",
+        "itemId": "delphoxite",
+        "nature": "胆小",
+        "statPoints": {
+          "hp": 10,
+          "defense": 6,
+          "specialAttack": 18,
+          "speed": 32
+        },
+        "moveIds": [
+          "psyshock",
+          "heat-wave",
+          "will-o-wisp",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "floette",
+        "abilityId": "flower-veil",
+        "itemId": "floettite",
+        "nature": "胆小",
+        "statPoints": {
+          "hp": 2,
+          "specialAttack": 32,
+          "speed": 32
+        },
+        "moveIds": [
+          "dazzling-gleam",
+          "light-of-ruin",
+          "moonblast",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "basculegion-male",
+        "abilityId": "adaptability",
+        "itemId": "focus-sash",
+        "nature": "爽朗",
+        "statPoints": {
+          "attack": 32,
+          "defense": 2,
+          "speed": 32
+        },
+        "moveIds": [
+          "last-respects",
+          "aqua-jet",
+          "liquidation",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "garchomp",
+        "abilityId": "rough-skin",
+        "itemId": "life-orb",
+        "nature": "爽朗",
+        "statPoints": {
+          "hp": 2,
+          "attack": 32,
+          "speed": 32
+        },
+        "moveIds": [
+          "dragon-claw",
+          "earthquake",
+          "rock-slide",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "incineroar",
+        "abilityId": "intimidate",
+        "itemId": "chople-berry",
+        "nature": "慎重",
+        "statPoints": {
+          "hp": 32,
+          "defense": 12,
+          "specialDefense": 10,
+          "speed": 12
+        },
+        "moveIds": [
+          "flare-blitz",
+          "roar",
+          "parting-shot",
+          "fake-out"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vgcpastes-champions-mb-mb725",
+    "dataKind": "external-snapshot",
+    "sourceId": "vgcpastes-champions-mb",
+    "sourceLabel": "VGCPastes Champions M-B",
+    "author": "Onion",
+    "season": "reg-mb",
+    "score": 0,
+    "regulation": "M-B",
+    "title": "Onion's Extreme Off (Doubles) Team",
+    "battleType": "doubles",
+    "reportUrl": "https://x.com/0nion_poke/status/2088872342713983143?s=20",
+    "tournament": "Extreme Off (Doubles)",
+    "dateShared": "2026-08-16",
+    "hasMoves": true,
+    "hasSpread": true,
+    "slots": [
+      {
+        "pokemonId": "charizard",
+        "abilityId": "blaze",
+        "itemId": "charizardite-y",
+        "nature": "内敛",
+        "statPoints": {
+          "hp": 32,
+          "defense": 32,
+          "specialAttack": 2
+        },
+        "moveIds": [
+          "heat-wave",
+          "solar-beam",
+          "weather-ball",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "garchomp",
+        "abilityId": "rough-skin",
+        "itemId": "life-orb",
+        "nature": "爽朗",
+        "statPoints": {
+          "hp": 6,
+          "attack": 28,
+          "speed": 32
+        },
+        "moveIds": [
+          "earthquake",
+          "dragon-claw",
+          "stomping-tantrum",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "aerodactyl",
+        "abilityId": "unnerve",
+        "itemId": "aerodactylite",
+        "nature": "爽朗",
+        "statPoints": {
+          "hp": 20,
+          "attack": 14,
+          "speed": 32
+        },
+        "moveIds": [
+          "rock-slide",
+          "ice-fang",
+          "tailwind",
+          "wide-guard"
+        ]
+      },
+      {
+        "pokemonId": "farigiraf",
+        "abilityId": "armor-tail",
+        "itemId": "sitrus-berry",
+        "nature": "内敛",
+        "statPoints": {
+          "hp": 21,
+          "defense": 18,
+          "specialAttack": 10,
+          "specialDefense": 17
+        },
+        "moveIds": [
+          "psychic",
+          "thunderbolt",
+          "helping-hand",
+          "trick-room"
+        ]
+      },
+      {
+        "pokemonId": "kingambit",
+        "abilityId": "defiant",
+        "itemId": "focus-sash",
+        "nature": "固执",
+        "statPoints": {
+          "hp": 2,
+          "attack": 32,
+          "speed": 32
+        },
+        "moveIds": [
+          "kowtow-cleave",
+          "iron-head",
+          "low-kick",
+          "sucker-punch"
+        ]
+      },
+      {
+        "pokemonId": "sylveon",
+        "abilityId": "pixilate",
+        "itemId": "fairy-feather",
+        "nature": "内敛",
+        "statPoints": {
+          "hp": 9,
+          "defense": 32,
+          "specialAttack": 20,
+          "speed": 5
+        },
+        "moveIds": [
+          "hyper-voice",
+          "hyper-beam",
+          "quick-attack",
+          "detect"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vgcpastes-champions-mb-mb724",
+    "dataKind": "external-snapshot",
+    "sourceId": "vgcpastes-champions-mb",
+    "sourceLabel": "VGCPastes Champions M-B",
+    "author": "alice_0444",
+    "season": "reg-mb",
+    "score": 0,
+    "regulation": "M-B",
+    "title": "alice_0444's Extreme Off (Doubles) Team",
+    "battleType": "doubles",
+    "reportUrl": "https://x.com/alice_0444/status/2088842187182338184?s=20",
+    "tournament": "Extreme Off (Doubles)",
+    "dateShared": "2026-08-16",
+    "replicaCode": "9NGXPAUPJH",
+    "hasMoves": true,
+    "hasSpread": true,
+    "slots": [
+      {
+        "pokemonId": "excadrill",
+        "abilityId": "sand-rush",
+        "itemId": "focus-sash",
+        "nature": "固执",
+        "statPoints": {
+          "attack": 32,
+          "defense": 2,
+          "speed": 32
+        },
+        "moveIds": [
+          "protect",
+          "high-horsepower",
+          "iron-head",
+          "rock-slide"
+        ]
+      },
+      {
+        "pokemonId": "milotic",
+        "abilityId": "competitive",
+        "itemId": "sitrus-berry",
+        "nature": "内敛",
+        "statPoints": {
+          "hp": 32,
+          "defense": 11,
+          "specialAttack": 20,
+          "specialDefense": 1,
+          "speed": 2
+        },
+        "moveIds": [
+          "protect",
+          "ice-beam",
+          "scald",
+          "icy-wind"
+        ]
+      },
+      {
+        "pokemonId": "tyranitar",
+        "abilityId": "sand-stream",
+        "itemId": "tyranitarite",
+        "nature": "固执",
+        "statPoints": {
+          "hp": 16,
+          "attack": 18,
+          "speed": 32
+        },
+        "moveIds": [
+          "protect",
+          "rock-slide",
+          "knock-off",
+          "superpower"
+        ]
+      },
+      {
+        "pokemonId": "gholdengo",
+        "abilityId": "good-as-gold",
+        "itemId": "life-orb",
+        "nature": "内敛",
+        "statPoints": {
+          "hp": 17,
+          "specialAttack": 17,
+          "speed": 32
+        },
+        "moveIds": [
+          "protect",
+          "shadow-ball",
+          "make-it-rain",
+          "nasty-plot"
+        ]
+      },
+      {
+        "pokemonId": "gyarados",
+        "abilityId": "intimidate",
+        "itemId": "expert-belt",
+        "nature": "固执",
+        "statPoints": {
+          "hp": 32,
+          "attack": 5,
+          "defense": 29
+        },
+        "moveIds": [
+          "protect",
+          "ice-fang",
+          "power-whip",
+          "stone-edge"
+        ]
+      },
+      {
+        "pokemonId": "froslass",
+        "abilityId": "cursed-body",
+        "itemId": "froslassite",
+        "nature": "胆小",
+        "statPoints": {
+          "hp": 22,
+          "defense": 8,
+          "specialAttack": 10,
+          "specialDefense": 1,
+          "speed": 25
+        },
+        "moveIds": [
+          "protect",
+          "blizzard",
+          "shadow-ball",
+          "aurora-veil"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vgcpastes-champions-mb-mb722",
+    "dataKind": "external-snapshot",
+    "sourceId": "vgcpastes-champions-mb",
+    "sourceLabel": "VGCPastes Champions M-B",
+    "author": "LawrenceVGC",
+    "season": "reg-mb",
+    "score": 3,
+    "rank": 3,
+    "regulation": "M-B",
+    "title": "Lawrence's Khun Champions Cup #3 Top 4 Team",
+    "battleType": "doubles",
+    "reportUrl": "https://x.com/i/status/2088944447954518102",
+    "tournament": "Khun Champions Cup #3",
+    "eventRank": "3rd",
+    "dateShared": "2026-08-16",
+    "replicaCode": "QS3BGFFCQS",
+    "hasMoves": true,
+    "hasSpread": true,
+    "slots": [
+      {
+        "pokemonId": "gardevoir",
+        "abilityId": "trace",
+        "itemId": "gardevoirite",
+        "nature": "胆小",
+        "statPoints": {
+          "hp": 22,
+          "specialAttack": 20,
+          "speed": 24
+        },
+        "moveIds": [
+          "psychic",
+          "hyper-voice",
+          "calm-mind",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "garchomp",
+        "abilityId": "rough-skin",
+        "itemId": "garchompite",
+        "nature": "爽朗",
+        "statPoints": {
+          "attack": 32,
+          "defense": 2,
+          "speed": 32
+        },
+        "moveIds": [
+          "stomping-tantrum",
+          "rock-slide",
+          "swords-dance",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "sneasler",
+        "abilityId": "poison-touch",
+        "itemId": "focus-sash",
+        "nature": "爽朗",
+        "statPoints": {
+          "hp": 2,
+          "attack": 32,
+          "speed": 32
+        },
+        "moveIds": [
+          "dire-claw",
+          "close-combat",
+          "fake-out",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "kingambit",
+        "abilityId": "defiant",
+        "itemId": "chople-berry",
+        "nature": "固执",
+        "statPoints": {
+          "hp": 32,
+          "attack": 24,
+          "defense": 10
+        },
+        "moveIds": [
+          "kowtow-cleave",
+          "iron-head",
+          "sucker-punch",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "incineroar",
+        "abilityId": "intimidate",
+        "itemId": "sitrus-berry",
+        "nature": "慎重",
+        "statPoints": {
+          "hp": 32,
+          "specialDefense": 11,
+          "speed": 23
+        },
+        "moveIds": [
+          "flare-blitz",
+          "parting-shot",
+          "helping-hand",
+          "fake-out"
+        ]
+      },
+      {
+        "pokemonId": "sinistcha",
+        "abilityId": "hospitality",
+        "itemId": "colbur-berry",
+        "nature": "自大",
+        "statPoints": {
+          "hp": 32,
+          "defense": 11,
+          "specialDefense": 23
+        },
+        "moveIds": [
+          "matcha-gotcha",
+          "rage-powder",
+          "trick-room",
+          "protect"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vgcpastes-champions-mb-mb715",
+    "dataKind": "external-snapshot",
+    "sourceId": "vgcpastes-champions-mb",
+    "sourceLabel": "VGCPastes Champions M-B",
+    "author": "punihina1334",
+    "season": "reg-mb",
+    "score": 0,
+    "regulation": "M-B",
+    "title": "punihina1334's Hatterene Series W33 Champion Team",
+    "battleType": "doubles",
+    "reportUrl": "https://x.com/punihina1334/status/2087659885848576449?s=46",
+    "tournament": "Hatterene Series W33",
+    "eventRank": "Champion",
+    "dateShared": "2026-08-13",
+    "replicaCode": "BR8NCNMJEF",
+    "hasMoves": true,
+    "hasSpread": true,
+    "slots": [
+      {
+        "pokemonId": "meganium",
+        "abilityId": "leaf-guard",
+        "itemId": "meganiumite",
+        "nature": "内敛",
+        "statPoints": {
+          "hp": 20,
+          "specialAttack": 27,
+          "speed": 19
+        },
+        "moveIds": [
+          "solar-beam",
+          "dazzling-gleam",
+          "protect",
+          "weather-ball"
+        ]
+      },
+      {
+        "pokemonId": "tyranitar",
+        "abilityId": "sand-stream",
+        "itemId": "tyranitarite",
+        "nature": "固执",
+        "statPoints": {
+          "hp": 17,
+          "attack": 17,
+          "speed": 32
+        },
+        "moveIds": [
+          "rock-slide",
+          "knock-off",
+          "protect",
+          "low-kick"
+        ]
+      },
+      {
+        "pokemonId": "garchomp",
+        "abilityId": "rough-skin",
+        "itemId": "sitrus-berry",
+        "nature": "固执",
+        "statPoints": {
+          "hp": 12,
+          "attack": 31,
+          "defense": 19,
+          "speed": 4
+        },
+        "moveIds": [
+          "earthquake",
+          "dragon-claw",
+          "protect",
+          "rock-slide"
+        ]
+      },
+      {
+        "pokemonId": "talonflame",
+        "abilityId": "gale-wings",
+        "itemId": "charcoal",
+        "nature": "固执",
+        "statPoints": {
+          "attack": 32,
+          "defense": 1,
+          "specialDefense": 1,
+          "speed": 32
+        },
+        "moveIds": [
+          "brave-bird",
+          "flare-blitz",
+          "protect",
+          "tailwind"
+        ]
+      },
+      {
+        "pokemonId": "aegislash-shield",
+        "abilityId": "stance-change",
+        "itemId": "life-orb",
+        "nature": "内敛",
+        "statPoints": {
+          "hp": 32,
+          "specialAttack": 23,
+          "speed": 11
+        },
+        "moveIds": [
+          "flash-cannon",
+          "shadow-ball",
+          "kings-shield",
+          "wide-guard"
+        ]
+      },
+      {
+        "pokemonId": "sneasler",
+        "abilityId": "unburden",
+        "itemId": "white-herb",
+        "nature": "固执",
+        "statPoints": {
+          "hp": 20,
+          "attack": 20,
+          "defense": 10,
+          "speed": 16
+        },
+        "moveIds": [
+          "close-combat",
+          "dire-claw",
+          "protect",
+          "fake-out"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vgcpastes-champions-mb-mb712",
+    "dataKind": "external-snapshot",
+    "sourceId": "vgcpastes-champions-mb",
+    "sourceLabel": "VGCPastes Champions M-B",
+    "author": "shaikhvgc786",
+    "season": "reg-mb",
+    "score": 0,
+    "regulation": "M-B",
+    "title": "shaikhvgc786's Pokemon VGC Champions Tour Ep.4 Champion Team",
+    "battleType": "doubles",
+    "reportUrl": "https://x.com/shaikhvgc786/status/2087385574542127529?s=46",
+    "tournament": "Pokemon VGC Champions Tour Ep.4",
+    "eventRank": "Champion",
+    "dateShared": "2026-08-12",
+    "replicaCode": "T19WBBU68T",
+    "hasMoves": true,
+    "hasSpread": true,
+    "slots": [
+      {
+        "pokemonId": "milotic",
+        "abilityId": "competitive",
+        "itemId": "leftovers",
+        "nature": "温和",
+        "statPoints": {
+          "hp": 29,
+          "defense": 25,
+          "specialDefense": 1,
+          "speed": 11
+        },
+        "moveIds": [
+          "hypnosis",
+          "muddy-water",
+          "protect",
+          "coil"
+        ]
+      },
+      {
+        "pokemonId": "raichu",
+        "abilityId": "lightning-rod",
+        "itemId": "raichunite",
+        "nature": "胆小",
+        "statPoints": {
+          "hp": 16,
+          "defense": 26,
+          "specialDefense": 1,
+          "speed": 23
+        },
+        "moveIds": [
+          "fake-out",
+          "protect",
+          "focus-blast",
+          "zap-cannon"
+        ]
+      },
+      {
+        "pokemonId": "ceruledge",
+        "abilityId": "flash-fire",
+        "itemId": "focus-sash",
+        "nature": "固执",
+        "statPoints": {
+          "hp": 2,
+          "attack": 32,
+          "speed": 32
+        },
+        "moveIds": [
+          "poltergeist",
+          "bitter-blade",
+          "protect",
+          "shadow-sneak"
+        ]
+      },
+      {
+        "pokemonId": "sinistcha",
+        "abilityId": "hospitality",
+        "itemId": "sitrus-berry",
+        "nature": "大胆",
+        "statPoints": {
+          "hp": 30,
+          "defense": 14,
+          "specialDefense": 22
+        },
+        "moveIds": [
+          "matcha-gotcha",
+          "rage-powder",
+          "protect",
+          "trick-room"
+        ]
+      },
+      {
+        "pokemonId": "floette",
+        "abilityId": "flower-veil",
+        "itemId": "floettite",
+        "nature": "胆小",
+        "statPoints": {
+          "hp": 18,
+          "defense": 27,
+          "specialAttack": 1,
+          "speed": 20
+        },
+        "moveIds": [
+          "dazzling-gleam",
+          "protect",
+          "calm-mind",
+          "draining-kiss"
+        ]
+      },
+      {
+        "pokemonId": "incineroar",
+        "abilityId": "intimidate",
+        "itemId": "passho-berry",
+        "nature": "淘气",
+        "statPoints": {
+          "hp": 32,
+          "attack": 1,
+          "defense": 10,
+          "specialDefense": 14,
+          "speed": 9
+        },
+        "moveIds": [
+          "fake-out",
+          "helping-hand",
+          "throat-chop",
+          "parting-shot"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vgcpastes-champions-mb-mb711",
+    "dataKind": "external-snapshot",
+    "sourceId": "vgcpastes-champions-mb",
+    "sourceLabel": "VGCPastes Champions M-B",
+    "author": "Michael Kelsch",
+    "season": "reg-mb",
+    "score": 0,
+    "regulation": "M-B",
+    "title": "MichaelderBeste's VR August Challenge #2 Champion Team",
+    "battleType": "doubles",
+    "reportUrl": "https://x.com/MichaelderBeste/status/2086522545680048309",
+    "tournament": "VR August Challenge #2",
+    "eventRank": "Champion",
+    "dateShared": "2026-08-09",
+    "hasMoves": true,
+    "hasSpread": false,
+    "slots": [
+      {
+        "pokemonId": "ninetales-alola",
+        "abilityId": "snow-warning",
+        "itemId": "choice-scarf",
+        "nature": "胆小",
+        "statPoints": {},
+        "moveIds": [
+          "blizzard",
+          "freeze-dry",
+          "icy-wind",
+          "encore"
+        ]
+      },
+      {
+        "pokemonId": "incineroar",
+        "abilityId": "intimidate",
+        "itemId": "sitrus-berry",
+        "nature": "淘气",
+        "statPoints": {},
+        "moveIds": [
+          "flare-blitz",
+          "throat-chop",
+          "fake-out",
+          "parting-shot"
+        ]
+      },
+      {
+        "pokemonId": "dragonite",
+        "abilityId": "inner-focus",
+        "itemId": "life-orb",
+        "nature": "固执",
+        "statPoints": {},
+        "moveIds": [
+          "dragon-claw",
+          "superpower",
+          "extreme-speed",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "sneasler",
+        "abilityId": "unburden",
+        "itemId": "focus-sash",
+        "nature": "固执",
+        "statPoints": {},
+        "moveIds": [
+          "close-combat",
+          "dire-claw",
+          "rock-slide",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "gengar",
+        "abilityId": "cursed-body",
+        "itemId": "gengarite",
+        "nature": "内敛",
+        "statPoints": {},
+        "moveIds": [
+          "sludge-bomb",
+          "shadow-ball",
+          "substitute",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "swampert",
+        "abilityId": "torrent",
+        "itemId": "leftovers",
+        "nature": "勇敢",
+        "statPoints": {},
+        "moveIds": [
+          "high-horsepower",
+          "flip-turn",
+          "yawn",
+          "protect"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vgcpastes-champions-mb-mb710",
+    "dataKind": "external-snapshot",
+    "sourceId": "vgcpastes-champions-mb",
+    "sourceLabel": "VGCPastes Champions M-B",
+    "author": "Juan Lucin",
+    "season": "reg-mb",
+    "score": 0,
+    "regulation": "M-B",
+    "title": "Juan Lucin's VR August Challenge #2 Runner Up Team",
+    "battleType": "doubles",
+    "reportUrl": "https://x.com/slucin03",
+    "tournament": "VR August Challenge #2",
+    "eventRank": "Runner Up",
+    "dateShared": "2026-08-09",
+    "hasMoves": true,
+    "hasSpread": false,
+    "slots": [
+      {
+        "pokemonId": "raichu",
+        "abilityId": "lightning-rod",
+        "itemId": "raichunite",
+        "nature": "胆小",
+        "statPoints": {},
+        "moveIds": [
+          "fake-out",
+          "zap-cannon",
+          "focus-blast",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "kingambit",
+        "abilityId": "defiant",
+        "itemId": "life-orb",
+        "nature": "固执",
+        "statPoints": {},
+        "moveIds": [
+          "kowtow-cleave",
+          "swords-dance",
+          "sucker-punch",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "basculegion-male",
+        "abilityId": "adaptability",
+        "itemId": "mystic-water",
+        "nature": "固执",
+        "statPoints": {},
+        "moveIds": [
+          "aqua-jet",
+          "wave-crash",
+          "last-respects",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "aerodactyl",
+        "abilityId": "unnerve",
+        "itemId": "aerodactylite",
+        "nature": "爽朗",
+        "statPoints": {},
+        "moveIds": [
+          "rock-slide",
+          "protect",
+          "tailwind",
+          "dual-wingbeat"
+        ]
+      },
+      {
+        "pokemonId": "sneasler",
+        "abilityId": "poison-touch",
+        "itemId": "focus-sash",
+        "nature": "爽朗",
+        "statPoints": {},
+        "moveIds": [
+          "fake-out",
+          "protect",
+          "close-combat",
+          "dire-claw"
+        ]
+      },
+      {
+        "pokemonId": "sylveon",
+        "abilityId": "pixilate",
+        "itemId": "fairy-feather",
+        "nature": "内敛",
+        "statPoints": {},
+        "moveIds": [
+          "hyper-voice",
+          "hyper-beam",
+          "protect",
+          "quick-attack"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vgcpastes-champions-mb-mb709",
+    "dataKind": "external-snapshot",
+    "sourceId": "vgcpastes-champions-mb",
+    "sourceLabel": "VGCPastes Champions M-B",
+    "author": "Yosuke Takayanagi",
+    "season": "reg-mb",
+    "score": 3,
+    "rank": 3,
+    "regulation": "M-B",
+    "title": "Yanagi's VR August Challenge #2 Top 4 Team",
+    "battleType": "doubles",
+    "reportUrl": "https://x.com/yanagiT_poke/status/2086512497226604896",
+    "tournament": "VR August Challenge #2",
+    "eventRank": "3rd",
+    "dateShared": "2026-08-09",
+    "hasMoves": true,
+    "hasSpread": false,
+    "slots": [
+      {
+        "pokemonId": "staraptor",
+        "abilityId": "intimidate",
+        "itemId": "staraptite",
+        "nature": "爽朗",
+        "statPoints": {},
+        "moveIds": [
+          "brave-bird",
+          "close-combat",
+          "roost",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "farigiraf",
+        "abilityId": "armor-tail",
+        "itemId": "sitrus-berry",
+        "nature": "自大",
+        "statPoints": {},
+        "moveIds": [
+          "psychic",
+          "helping-hand",
+          "trick-room",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "torkoal",
+        "abilityId": "drought",
+        "itemId": "charcoal",
+        "nature": "冷静",
+        "statPoints": {},
+        "moveIds": [
+          "eruption",
+          "heat-wave",
+          "weather-ball",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "sneasler",
+        "abilityId": "poison-touch",
+        "itemId": "life-orb",
+        "nature": "固执",
+        "statPoints": {},
+        "moveIds": [
+          "fake-out",
+          "poison-jab",
+          "close-combat",
+          "rock-slide"
+        ]
+      },
+      {
+        "pokemonId": "basculegion-male",
+        "abilityId": "adaptability",
+        "itemId": "focus-sash",
+        "nature": "固执",
+        "statPoints": {},
+        "moveIds": [
+          "liquidation",
+          "last-respects",
+          "aqua-jet",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "raichu",
+        "abilityId": "lightning-rod",
+        "itemId": "raichunite",
+        "nature": "胆小",
+        "statPoints": {},
+        "moveIds": [
+          "fake-out",
+          "zap-cannon",
+          "focus-blast",
+          "protect"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vgcpastes-champions-mb-mb708",
+    "dataKind": "external-snapshot",
+    "sourceId": "vgcpastes-champions-mb",
+    "sourceLabel": "VGCPastes Champions M-B",
+    "author": "Li Yu-Chi",
+    "season": "reg-mb",
+    "score": 4,
+    "rank": 4,
+    "regulation": "M-B",
+    "title": "Li Yu-Chi's VR August Challenge #2 Top 4 Team",
+    "battleType": "doubles",
+    "reportUrl": "https://x.com/Ado_sorachi/status/2086662946227470832",
+    "tournament": "VR August Challenge #2",
+    "eventRank": "4th",
+    "dateShared": "2026-08-09",
+    "hasMoves": true,
+    "hasSpread": false,
+    "slots": [
+      {
+        "pokemonId": "charizard",
+        "abilityId": "blaze",
+        "itemId": "charizardite-y",
+        "nature": "胆小",
+        "statPoints": {},
+        "moveIds": [
+          "heat-wave",
+          "weather-ball",
+          "ancient-power",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "incineroar",
+        "abilityId": "intimidate",
+        "itemId": "sitrus-berry",
+        "nature": "慎重",
+        "statPoints": {},
+        "moveIds": [
+          "flare-blitz",
+          "parting-shot",
+          "fake-out",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "sylveon",
+        "abilityId": "pixilate",
+        "itemId": "fairy-feather",
+        "nature": "冷静",
+        "statPoints": {},
+        "moveIds": [
+          "hyper-voice",
+          "quick-attack",
+          "yawn",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "toxapex",
+        "abilityId": "regenerator",
+        "itemId": "leftovers",
+        "nature": "大胆",
+        "statPoints": {},
+        "moveIds": [
+          "infestation",
+          "toxic",
+          "wide-guard",
+          "baneful-bunker"
+        ]
+      },
+      {
+        "pokemonId": "garchomp",
+        "abilityId": "rough-skin",
+        "itemId": "choice-scarf",
+        "nature": "固执",
+        "statPoints": {},
+        "moveIds": [
+          "earthquake",
+          "rock-slide",
+          "stomping-tantrum",
+          "dragon-claw"
+        ]
+      },
+      {
+        "pokemonId": "venusaur",
+        "abilityId": "chlorophyll",
+        "itemId": "life-orb",
+        "nature": "内敛",
+        "statPoints": {},
+        "moveIds": [
+          "sludge-bomb",
+          "leaf-storm",
+          "earth-power",
+          "protect"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vgcpastes-champions-mb-mb707",
+    "dataKind": "external-snapshot",
+    "sourceId": "vgcpastes-champions-mb",
+    "sourceLabel": "VGCPastes Champions M-B",
+    "author": "syokora",
+    "season": "reg-mb",
+    "score": 5,
+    "rank": 5,
+    "regulation": "M-B",
+    "title": "syokora's VR August Challenge #2 Top 8 Team",
+    "battleType": "doubles",
+    "reportUrl": "https://x.com/syokoractvdd/status/2086186348298613220",
+    "tournament": "VR August Challenge #2",
+    "eventRank": "5th",
+    "dateShared": "2026-08-09",
+    "hasMoves": true,
+    "hasSpread": false,
+    "slots": [
+      {
+        "pokemonId": "aerodactyl",
+        "abilityId": "unnerve",
+        "itemId": "aerodactylite",
+        "nature": "爽朗",
+        "statPoints": {},
+        "moveIds": [
+          "rock-slide",
+          "dual-wingbeat",
+          "protect",
+          "tailwind"
+        ]
+      },
+      {
+        "pokemonId": "dragonite",
+        "abilityId": "multiscale",
+        "itemId": "dragoninite",
+        "nature": "内敛",
+        "statPoints": {},
+        "moveIds": [
+          "dragon-pulse",
+          "heat-wave",
+          "extreme-speed",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "sneasler",
+        "abilityId": "poison-touch",
+        "itemId": "focus-sash",
+        "nature": "爽朗",
+        "statPoints": {},
+        "moveIds": [
+          "fake-out",
+          "close-combat",
+          "dire-claw",
+          "coaching"
+        ]
+      },
+      {
+        "pokemonId": "basculegion-male",
+        "abilityId": "adaptability",
+        "itemId": "mystic-water",
+        "nature": "固执",
+        "statPoints": {},
+        "moveIds": [
+          "wave-crash",
+          "last-respects",
+          "aqua-jet",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "sylveon",
+        "abilityId": "pixilate",
+        "itemId": "fairy-feather",
+        "nature": "内敛",
+        "statPoints": {},
+        "moveIds": [
+          "hyper-voice",
+          "hyper-beam",
+          "quick-attack",
+          "detect"
+        ]
+      },
+      {
+        "pokemonId": "kingambit",
+        "abilityId": "defiant",
+        "itemId": "chople-berry",
+        "nature": "固执",
+        "statPoints": {},
+        "moveIds": [
+          "kowtow-cleave",
+          "iron-head",
+          "sucker-punch",
+          "low-kick"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vgcpastes-champions-mb-mb706",
+    "dataKind": "external-snapshot",
+    "sourceId": "vgcpastes-champions-mb",
+    "sourceLabel": "VGCPastes Champions M-B",
+    "author": "William Brown",
+    "season": "reg-mb",
+    "score": 6,
+    "rank": 6,
+    "regulation": "M-B",
+    "title": "William Brown's VR August Challenge #2 Top 8 Team",
+    "battleType": "doubles",
+    "reportUrl": "https://x.com/WillBrown_vgc",
+    "tournament": "VR August Challenge #2",
+    "eventRank": "6th",
+    "dateShared": "2026-08-09",
+    "hasMoves": true,
+    "hasSpread": false,
+    "slots": [
+      {
+        "pokemonId": "charizard",
+        "abilityId": "blaze",
+        "itemId": "charizardite-y",
+        "nature": "内敛",
+        "statPoints": {},
+        "moveIds": [
+          "protect",
+          "heat-wave",
+          "weather-ball",
+          "hurricane"
+        ]
+      },
+      {
+        "pokemonId": "pelipper",
+        "abilityId": "drizzle",
+        "itemId": "sitrus-berry",
+        "nature": "内敛",
+        "statPoints": {},
+        "moveIds": [
+          "hurricane",
+          "weather-ball",
+          "tailwind",
+          "wide-guard"
+        ]
+      },
+      {
+        "pokemonId": "archaludon",
+        "abilityId": "stamina",
+        "itemId": "leftovers",
+        "nature": "温和",
+        "statPoints": {},
+        "moveIds": [
+          "protect",
+          "electro-shot",
+          "dragon-pulse",
+          "flash-cannon"
+        ]
+      },
+      {
+        "pokemonId": "venusaur",
+        "abilityId": "chlorophyll",
+        "itemId": "focus-sash",
+        "nature": "内敛",
+        "statPoints": {},
+        "moveIds": [
+          "protect",
+          "sleep-powder",
+          "sludge-bomb",
+          "leaf-storm"
+        ]
+      },
+      {
+        "pokemonId": "swampert",
+        "abilityId": "torrent",
+        "itemId": "swampertite",
+        "nature": "固执",
+        "statPoints": {},
+        "moveIds": [
+          "protect",
+          "wave-crash",
+          "earthquake",
+          "ice-punch"
+        ]
+      },
+      {
+        "pokemonId": "grimmsnarl",
+        "abilityId": "prankster",
+        "itemId": "light-clay",
+        "nature": "自大",
+        "statPoints": {},
+        "moveIds": [
+          "spirit-break",
+          "reflect",
+          "light-screen",
+          "parting-shot"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vgcpastes-champions-mb-mb705",
+    "dataKind": "external-snapshot",
+    "sourceId": "vgcpastes-champions-mb",
+    "sourceLabel": "VGCPastes Champions M-B",
+    "author": "Alex Underhill",
+    "season": "reg-mb",
+    "score": 7,
+    "rank": 7,
+    "regulation": "M-B",
+    "title": "Lexicon's VR August Challenge #2 Top 8 Team",
+    "battleType": "doubles",
+    "reportUrl": "https://x.com/LexiconVGC",
+    "tournament": "VR August Challenge #2",
+    "eventRank": "7th",
+    "dateShared": "2026-08-09",
+    "hasMoves": true,
+    "hasSpread": false,
+    "slots": [
+      {
+        "pokemonId": "charizard",
+        "abilityId": "blaze",
+        "itemId": "charizardite-y",
+        "nature": "内敛",
+        "statPoints": {},
+        "moveIds": [
+          "protect",
+          "heat-wave",
+          "weather-ball",
+          "hurricane"
+        ]
+      },
+      {
+        "pokemonId": "pelipper",
+        "abilityId": "drizzle",
+        "itemId": "sitrus-berry",
+        "nature": "内敛",
+        "statPoints": {},
+        "moveIds": [
+          "hurricane",
+          "weather-ball",
+          "tailwind",
+          "wide-guard"
+        ]
+      },
+      {
+        "pokemonId": "archaludon",
+        "abilityId": "stamina",
+        "itemId": "leftovers",
+        "nature": "温和",
+        "statPoints": {},
+        "moveIds": [
+          "protect",
+          "electro-shot",
+          "dragon-pulse",
+          "flash-cannon"
+        ]
+      },
+      {
+        "pokemonId": "venusaur",
+        "abilityId": "chlorophyll",
+        "itemId": "focus-sash",
+        "nature": "内敛",
+        "statPoints": {},
+        "moveIds": [
+          "protect",
+          "sleep-powder",
+          "sludge-bomb",
+          "leaf-storm"
+        ]
+      },
+      {
+        "pokemonId": "swampert",
+        "abilityId": "torrent",
+        "itemId": "swampertite",
+        "nature": "固执",
+        "statPoints": {},
+        "moveIds": [
+          "protect",
+          "wave-crash",
+          "earthquake",
+          "ice-punch"
+        ]
+      },
+      {
+        "pokemonId": "grimmsnarl",
+        "abilityId": "prankster",
+        "itemId": "light-clay",
+        "nature": "自大",
+        "statPoints": {},
+        "moveIds": [
+          "spirit-break",
+          "reflect",
+          "light-screen",
+          "parting-shot"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vgcpastes-champions-mb-mb704",
+    "dataKind": "external-snapshot",
+    "sourceId": "vgcpastes-champions-mb",
+    "sourceLabel": "VGCPastes Champions M-B",
+    "author": "Juan Salerno",
+    "season": "reg-mb",
+    "score": 8,
+    "rank": 8,
+    "regulation": "M-B",
+    "title": "Juanfi's VR August Challenge #2 Top 8 Team",
+    "battleType": "doubles",
+    "reportUrl": "https://x.com/JuanfiVGC",
+    "tournament": "VR August Challenge #2",
+    "eventRank": "8th",
+    "dateShared": "2026-08-09",
+    "hasMoves": true,
+    "hasSpread": false,
+    "slots": [
+      {
+        "pokemonId": "charizard",
+        "abilityId": "blaze",
+        "itemId": "charizardite-y",
+        "nature": "内敛",
+        "statPoints": {},
+        "moveIds": [
+          "heat-wave",
+          "weather-ball",
+          "ancient-power",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "whimsicott",
+        "abilityId": "prankster",
+        "itemId": "focus-sash",
+        "nature": "胆小",
+        "statPoints": {},
+        "moveIds": [
+          "protect",
+          "moonblast",
+          "encore",
+          "tailwind"
+        ]
+      },
+      {
+        "pokemonId": "kingambit",
+        "abilityId": "defiant",
+        "itemId": "occa-berry",
+        "nature": "固执",
+        "statPoints": {},
+        "moveIds": [
+          "kowtow-cleave",
+          "sucker-punch",
+          "iron-head",
+          "low-kick"
+        ]
+      },
+      {
+        "pokemonId": "basculegion-male",
+        "abilityId": "adaptability",
+        "itemId": "life-orb",
+        "nature": "固执",
+        "statPoints": {},
+        "moveIds": [
+          "wave-crash",
+          "last-respects",
+          "aqua-jet",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "garchomp",
+        "abilityId": "rough-skin",
+        "itemId": "sitrus-berry",
+        "nature": "固执",
+        "statPoints": {},
+        "moveIds": [
+          "earthquake",
+          "rock-slide",
+          "dragon-claw",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "floette",
+        "abilityId": "flower-veil",
+        "itemId": "floettite",
+        "nature": "内敛",
+        "statPoints": {},
+        "moveIds": [
+          "moonblast",
+          "dazzling-gleam",
+          "light-of-ruin",
+          "protect"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vgcpastes-champions-mb-mb703",
+    "dataKind": "external-snapshot",
+    "sourceId": "vgcpastes-champions-mb",
+    "sourceLabel": "VGCPastes Champions M-B",
+    "author": "Joji Kaieda",
+    "season": "reg-mb",
+    "score": 9,
+    "rank": 9,
+    "regulation": "M-B",
+    "title": "Suica's VR August Challenge #2 Top 16 Team",
+    "battleType": "doubles",
+    "reportUrl": "https://x.com/mihono_suica/status/2086190260082671912",
+    "tournament": "VR August Challenge #2",
+    "eventRank": "9th",
+    "dateShared": "2026-08-09",
+    "hasMoves": true,
+    "hasSpread": false,
+    "slots": [
+      {
+        "pokemonId": "charizard",
+        "abilityId": "blaze",
+        "itemId": "charizardite-y",
+        "nature": "内敛",
+        "statPoints": {},
+        "moveIds": [
+          "weather-ball",
+          "heat-wave",
+          "ancient-power",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "garchomp",
+        "abilityId": "rough-skin",
+        "itemId": "choice-scarf",
+        "nature": "固执",
+        "statPoints": {},
+        "moveIds": [
+          "rock-slide",
+          "dragon-claw",
+          "earthquake",
+          "stomping-tantrum"
+        ]
+      },
+      {
+        "pokemonId": "incineroar",
+        "abilityId": "intimidate",
+        "itemId": "sitrus-berry",
+        "nature": "淘气",
+        "statPoints": {},
+        "moveIds": [
+          "flare-blitz",
+          "fake-out",
+          "darkest-lariat",
+          "parting-shot"
+        ]
+      },
+      {
+        "pokemonId": "venusaur",
+        "abilityId": "chlorophyll",
+        "itemId": "life-orb",
+        "nature": "内敛",
+        "statPoints": {},
+        "moveIds": [
+          "sludge-bomb",
+          "leaf-storm",
+          "earth-power",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "toxapex",
+        "abilityId": "regenerator",
+        "itemId": "leftovers",
+        "nature": "大胆",
+        "statPoints": {},
+        "moveIds": [
+          "infestation",
+          "toxic",
+          "wide-guard",
+          "baneful-bunker"
+        ]
+      },
+      {
+        "pokemonId": "sylveon",
+        "abilityId": "pixilate",
+        "itemId": "fairy-feather",
+        "nature": "内敛",
+        "statPoints": {},
+        "moveIds": [
+          "hyper-voice",
+          "quick-attack",
+          "yawn",
+          "detect"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vgcpastes-champions-mb-mb691",
     "dataKind": "external-snapshot",
     "sourceId": "vgcpastes-champions-mb",
     "sourceLabel": "VGCPastes Champions M-B",
@@ -124,7 +4003,7 @@
     ]
   },
   {
-    "id": "vgcpastes-champions-mb-mb688",
+    "id": "vgcpastes-champions-mb-mb689",
     "dataKind": "external-snapshot",
     "sourceId": "vgcpastes-champions-mb",
     "sourceLabel": "VGCPastes Champions M-B",
@@ -250,7 +4129,7 @@
     ]
   },
   {
-    "id": "vgcpastes-champions-mb-mb685",
+    "id": "vgcpastes-champions-mb-mb686",
     "dataKind": "external-snapshot",
     "sourceId": "vgcpastes-champions-mb",
     "sourceLabel": "VGCPastes Champions M-B",
@@ -369,6 +4248,134 @@
           "zap-cannon",
           "focus-blast",
           "volt-switch"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vgcpastes-champions-mb-mb684",
+    "dataKind": "external-snapshot",
+    "sourceId": "vgcpastes-champions-mb",
+    "sourceLabel": "VGCPastes Champions M-B",
+    "author": "Jude Lee",
+    "season": "reg-mb",
+    "score": 1,
+    "rank": 1,
+    "regulation": "M-B",
+    "title": "maGicaUra's Ranked Season M-4 1st Place Team",
+    "battleType": "doubles",
+    "reportUrl": "https://x.com/magicauravgc/status/2084885267719369209",
+    "tournament": "Ranked Season M-4",
+    "eventRank": "1st",
+    "dateShared": "2026-08-17",
+    "replicaCode": "C1L2YW8RSN",
+    "hasMoves": true,
+    "hasSpread": true,
+    "slots": [
+      {
+        "pokemonId": "garchomp",
+        "abilityId": "rough-skin",
+        "itemId": "garchompite",
+        "nature": "固执",
+        "statPoints": {
+          "hp": 15,
+          "attack": 21,
+          "defense": 1,
+          "specialDefense": 25,
+          "speed": 4
+        },
+        "moveIds": [
+          "earthquake",
+          "protect",
+          "rock-slide",
+          "stomping-tantrum"
+        ]
+      },
+      {
+        "pokemonId": "kingambit",
+        "abilityId": "defiant",
+        "itemId": "chople-berry",
+        "nature": "固执",
+        "statPoints": {
+          "hp": 32,
+          "attack": 32,
+          "defense": 1,
+          "speed": 1
+        },
+        "moveIds": [
+          "kowtow-cleave",
+          "iron-head",
+          "sucker-punch",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "sneasler",
+        "abilityId": "unburden",
+        "itemId": "focus-sash",
+        "nature": "爽朗",
+        "statPoints": {
+          "attack": 32,
+          "defense": 2,
+          "speed": 32
+        },
+        "moveIds": [
+          "dire-claw",
+          "fake-out",
+          "coaching",
+          "close-combat"
+        ]
+      },
+      {
+        "pokemonId": "sinistcha",
+        "abilityId": "hospitality",
+        "itemId": "sitrus-berry",
+        "nature": "大胆",
+        "statPoints": {
+          "hp": 32,
+          "defense": 14,
+          "specialDefense": 20
+        },
+        "moveIds": [
+          "matcha-gotcha",
+          "rage-powder",
+          "trick-room",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "incineroar",
+        "abilityId": "intimidate",
+        "itemId": "leftovers",
+        "nature": "自大",
+        "statPoints": {
+          "hp": 32,
+          "defense": 14,
+          "specialDefense": 20
+        },
+        "moveIds": [
+          "flare-blitz",
+          "fake-out",
+          "parting-shot",
+          "helping-hand"
+        ]
+      },
+      {
+        "pokemonId": "floette",
+        "abilityId": "flower-veil",
+        "itemId": "floettite",
+        "nature": "胆小",
+        "statPoints": {
+          "hp": 10,
+          "defense": 23,
+          "specialAttack": 1,
+          "speed": 32
+        },
+        "moveIds": [
+          "dazzling-gleam",
+          "draining-kiss",
+          "protect",
+          "calm-mind"
         ]
       }
     ]
@@ -2785,132 +6792,6 @@
           "matcha-gotcha",
           "rage-powder",
           "trick-room",
-          "protect"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "vgcpastes-champions-mb-mb664",
-    "dataKind": "external-snapshot",
-    "sourceId": "vgcpastes-champions-mb",
-    "sourceLabel": "VGCPastes Champions M-B",
-    "author": "pad1101",
-    "season": "reg-mb",
-    "score": 101,
-    "rank": 101,
-    "regulation": "M-B",
-    "title": "pad1101's Ranked Season M-4 101st Place Team",
-    "battleType": "doubles",
-    "reportUrl": "https://x.com/pad1101/status/2084883164888256671?s=46",
-    "tournament": "Ranked Season M-4",
-    "eventRank": "101st",
-    "dateShared": "2026-08-05",
-    "hasMoves": true,
-    "hasSpread": true,
-    "slots": [
-      {
-        "pokemonId": "floette",
-        "abilityId": "flower-veil",
-        "itemId": "floettite",
-        "nature": "内敛",
-        "statPoints": {
-          "hp": 31,
-          "defense": 27,
-          "specialAttack": 6,
-          "speed": 2
-        },
-        "moveIds": [
-          "light-of-ruin",
-          "moonblast",
-          "dazzling-gleam",
-          "protect"
-        ]
-      },
-      {
-        "pokemonId": "dragonite",
-        "abilityId": "multiscale",
-        "itemId": "white-herb",
-        "nature": "固执",
-        "statPoints": {
-          "hp": 31,
-          "attack": 32,
-          "speed": 3
-        },
-        "moveIds": [
-          "dragon-claw",
-          "superpower",
-          "extreme-speed",
-          "protect"
-        ]
-      },
-      {
-        "pokemonId": "arcanine",
-        "abilityId": "intimidate",
-        "itemId": "sitrus-berry",
-        "nature": "固执",
-        "statPoints": {
-          "hp": 31,
-          "attack": 32,
-          "speed": 3
-        },
-        "moveIds": [
-          "flare-blitz",
-          "wild-charge",
-          "extreme-speed",
-          "protect"
-        ]
-      },
-      {
-        "pokemonId": "snorlax",
-        "abilityId": "thick-fat",
-        "itemId": "leftovers",
-        "nature": "淘气",
-        "statPoints": {
-          "hp": 26,
-          "defense": 27,
-          "specialDefense": 13
-        },
-        "moveIds": [
-          "double-edge",
-          "crunch",
-          "yawn",
-          "protect"
-        ]
-      },
-      {
-        "pokemonId": "garchomp",
-        "abilityId": "rough-skin",
-        "itemId": "choice-scarf",
-        "nature": "固执",
-        "statPoints": {
-          "hp": 4,
-          "attack": 30,
-          "defense": 3,
-          "speed": 29
-        },
-        "moveIds": [
-          "stomping-tantrum",
-          "dragon-claw",
-          "rock-tomb",
-          "breaking-swipe"
-        ]
-      },
-      {
-        "pokemonId": "gholdengo",
-        "abilityId": "good-as-gold",
-        "itemId": "focus-sash",
-        "nature": "内敛",
-        "statPoints": {
-          "hp": 1,
-          "specialAttack": 32,
-          "specialDefense": 1,
-          "speed": 32
-        },
-        "moveIds": [
-          "make-it-rain",
-          "shadow-ball",
-          "nasty-plot",
           "protect"
         ]
       }
