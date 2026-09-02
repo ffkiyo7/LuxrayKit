@@ -643,3 +643,53 @@ describe('seed data audit', () => {
     expect(defaultTeams.every((team) => team.dataVersionId === currentDataVersion.id)).toBe(true);
   });
 });
+
+// `makesContact` used to be inferred from move-name substrings ('rush', 'crash', 'wheel', ...),
+// which both missed contact moves and invented contact on non-contact ones. It is now taken from
+// the Gen 9 dex in @smogon/calc (see scripts/generate-champions-moves.mjs). These benchmarks stop
+// a future regeneration from silently regressing to a guess.
+describe('move contact flags', () => {
+  const contactBenchmarks = [
+    // Previously mis-flagged as non-contact by the substring heuristic.
+    'close-combat',
+    'high-horsepower',
+    'draining-kiss', // Special-category contact move — the old heuristic only ever considered Physical.
+    'sacred-sword',
+    // Ordinary contact moves, as controls.
+    'quick-attack',
+    'u-turn',
+    'knock-off',
+    'play-rough',
+  ];
+
+  const nonContactBenchmarks = [
+    'earthquake',
+    'flamethrower',
+    'protect',
+    // Physical but non-contact; the old heuristic flagged all three from their names.
+    'aura-wheel',
+    'bone-rush',
+    'icicle-crash',
+  ];
+
+  it('marks known contact moves as contact', () => {
+    for (const id of contactBenchmarks) {
+      const move = moves.find((entry) => entry.id === id);
+      expect(move, `${id} should exist in the move catalog`).toBeDefined();
+      expect(move?.makesContact, `${id} makesContact`).toBe(true);
+    }
+  });
+
+  it('keeps known non-contact moves non-contact', () => {
+    for (const id of nonContactBenchmarks) {
+      const move = moves.find((entry) => entry.id === id);
+      expect(move, `${id} should exist in the move catalog`).toBeDefined();
+      expect(move?.makesContact, `${id} makesContact`).toBe(false);
+    }
+  });
+
+  it('gives every move an explicit boolean contact flag', () => {
+    const unset = moves.filter((entry) => typeof entry.makesContact !== 'boolean');
+    expect(unset.map((entry) => entry.id)).toEqual([]);
+  });
+});
