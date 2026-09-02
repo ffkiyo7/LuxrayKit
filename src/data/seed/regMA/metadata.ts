@@ -8,7 +8,7 @@ export const currentRuleSet: RuleSet = {
   name: 'Regulation Set M-B',
   displayName: 'Pokemon Champions Regulation Set M-B',
   startAt: '2026-06-17T02:00:00.000Z',
-  endAt: '2026-09-02T01:59:00.000Z',
+  endAt: '2026-09-09T01:59:00.000Z',
   battleType: 'doubles',
   allowMega: true,
   megaLimitPerBattle: 1,
