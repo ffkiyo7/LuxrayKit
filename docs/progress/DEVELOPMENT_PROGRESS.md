@@ -1,12 +1,23 @@
 # Luxray Kit 开发进度
 
-更新日期：2026-08-05
+更新日期：2026-09-02
 
 > 工程细节（架构 / Worker 刷新管线 / 部署）以 `docs/DEVELOPER_GUIDE.md` 为准，本文件只记录进度概要。
 
 ## 当前阶段
 
 环境优先重构、Luxray Kit 品牌更新和 Cloudflare Worker 统一部署已进入 `main`。生产站点由 `luxraykit-app` Worker 提供静态资源与 API，环境页在线优先读取 KV 中的 PokeDB snapshot，并保留最新赛季静态快照和开发 seed 两级回退。
+
+## 本轮进展（2026-09-02）：Regulation M-C 接入前准备（阶段 A）
+
+PR #59（merge `9101dca`，CI 含 `visual` 门禁一次通过、基线未重建）。计划与阶段 B 门禁见 [`docs/plans/regulation-mc-migration-2026-09.md`](../plans/regulation-mc-migration-2026-09.md)。M-C 于 **2026-09-09 02:00 UTC** 开赛，官方完整清单未公布，**阶段 B（切换规则、落数据、计算器草场 / Aura Guard）未开工**。
+
+- **时间轴冻结**：`regulationSchedule` / `seasonSchedule` 历史边界改字面量，不再引用 `currentRuleSet`；M-B 结束时间按官方延期订正为 `2026-09-09T01:59Z`；M-B / M-5 条目补 `sourceUrl`。
+- **`RegulationId` 扩到 M-C**：`currentRegulation` 改显式映射表、缺失抛错；`sampleRegulation` 查不到赛季返回 `undefined`（不再静默归 M-A）；VGCPastes 样本在加载时按来源文件打标签；队伍库筛选按钮由 `regulationSchedule` 派生。
+- **Mega 表合并改按父级拼接数组**：为 M-C 的 Z Mega（absol / garchomp / lucario 父级已有普通 Mega）铺路，重复 `form.id` 抛错，`dataAudit` 新增 `duplicate-mega-form`。
+- **招式接触标记改用 `@smogon/calc`**：删掉名称启发式，545 条翻转 122 条（近身战 / 十万马力 / 吸取之吻 / 圣剑 → 接触；`aura-wheel` / `bone-rush` / `icicle-crash` → 非接触），`dataAudit.test.ts` 加基准门禁。`makesContact` 目前无消费方，是 Aura Guard 的前置。
+- **脚本隔离**：allowlist 生成器加守卫（存在非 `reg-ma-` 行即拒跑，无 bypass）；catalog batch 生成器批次号 / 大小 / sourceRefs 改命令行参数；特性生成器改目录扫描并新增 `--check`。
+- **去硬编码文案**：manifest / `index.html` / README / 开发指南不再写具体赛季与规则号，唯一真源是 `src/data/schedule.ts` 与 `metadata.ts`。
 
 ## 本轮进展（2026-07-09）：默认双打 · 赛季/规则集中化 · 高分队规则归属
 
@@ -83,17 +94,18 @@ npm run test:visual
 
 - `src/pages/SettingsPage.tsx`、`src/components/RuleSummary.tsx` 无任何引用，属死代码。
 - （**非待办**）`src/pages/RulePage.tsx` 没有入口是**有意为之**，规则口径页由 owner 主动隐藏，勿改成可达。
-- `src/data/schedule.ts` 的 `seasonSchedule` 需在每个赛季更替时追加新条目（缺失的赛季会被 `sampleRegulation` 默认归为 M-A）。**当前已补到 M-5**（M-B 的最后一个赛季）；下一个赛季同时是新规则，需要先编 catalog。
-- M-5 条目缺 `sourceUrl`：官方公告页尚未上线，出现后补填（M-4 是 `news.pokemon-home.com/tc/page/795.html`）。
+- `src/data/schedule.ts` 的 `seasonSchedule` 需在每个赛季更替时追加新条目（缺表的赛季自 2026-09-02 起由 `sampleRegulation` 返回 `undefined`，只在「全部规则」视图可见，不再默认归 M-A）。**当前已补到 M-5**（M-B 的最后一个赛季，`sourceUrl` 已填 `page/803.html`）；下一个赛季同时是新规则 M-C，需要先编 catalog（见 M-C 计划阶段 B）。
 - `src/data/speedTiers.ts` 的 `speedTierSeason` 落后线上环境一个赛季。
-- `index.html` 与 `public/manifest.webmanifest` 的描述文案硬编码了赛季号，与 `src/data/schedule.ts` 的去硬编码目标冲突。
 - 属性速查工具没有视觉基线（四个工具里唯一未覆盖）。
+- `scripts/generate-ability-effects.mjs --check` 对 `catalog.ts` 抽到 0 条特性行（该文件的数组名是 `abilityRows`，`extractAbilityRows` 匹配不到）。改动前既有行为，目前不影响（`catalog.ts` 里的 Champions 专属特性是手写中文），但若日后直接在 `catalog.ts` 加特性行会被漏扫。
+- `src/lib/dataAudit.test.ts` 写死 Mega 形态总数 75、招式接触基准集：M-C 阶段 B 加数据时会变红，属预期，届时按实际数量更新。
 
 ## 文档索引
 
 - 开发者文档（架构 / Worker / 部署）：`docs/DEVELOPER_GUIDE.md`
 - 范围边界：`docs/product/PRODUCT_SCOPE_AND_TOOL_BOUNDARIES.md`
 - 产品路线：`docs/plans/product-roadmap-2026-08.md`
+- M-C 接入计划（阶段 A 已上线，阶段 B 待官方清单）：`docs/plans/regulation-mc-migration-2026-09.md`
 - 离线验收：`docs/qa/PWA_OFFLINE_CHECKLIST.md`
 - 数据来源：`docs/research/DATA_SOURCE_RESEARCH.md`
 - 计算边界：`docs/research/CALC_ENGINE_SPIKE.md`

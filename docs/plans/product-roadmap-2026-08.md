@@ -86,6 +86,7 @@
    `src/data/schedule.ts` 追加 `M-5`（`2026-08-05T02:00Z` → `currentRuleSet.endAt`，regulation `M-B`）。M-5 是 M-B 的最后一个赛季，结束时间正好压在规则边界上，所以直接引用 `currentRuleSet.endAt` 而不是再抄一遍日期。
    - 日期来源：`regMA/metadata.ts` 的 M-B 窗口（`2026-06-17T02:00Z` → `2026-09-02T01:59Z`）+ Serebii 的 M-5 条目（Aug 5 – Sep 2，Regulation M-B）互相印证。
    - `sourceUrl` **留空**：news.pokemon-home.com 上还没有 M-5 的公告页（M-4 是 `page/795.html`，附近页号已逐个查过没有）。公告上线后补填。
+   - **2026-09-02 后续**（PR #59）：官方把 M-B 延期到 `2026-09-09T01:59Z`（`champions-news.pokemon-home.com/en/page/776.html`），Season M-5 公告（`page/803.html`）结束时间同为该值。M-5 的 `endAt` 已改为**字面量**并填上 `sourceUrl`，不再引用 `currentRuleSet.endAt`——历史时间轴与「当前规则」解耦，避免切 M-C 时改坏历史窗口。
 
 2. **M-4 最终快照的去留** — 已定：**丢弃本地冻结副本**，`tmp/season-freeze/` 已删除。
    - **实测结论**：PokeDB **长期保留历史赛季排名页**。2026-08-05 直接请求 `/pokemon/list?season=1..4` 全部返回该赛季自己的数据；用仓库现有的 `parsePokeDbPokemonListPage` 解析 season 3 / 4 真实 HTML，各得 235 条排名、0 个未知 key、名次表 3.7KB。
