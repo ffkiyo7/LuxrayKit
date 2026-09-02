@@ -305,10 +305,30 @@ npm run data:vgcpastes:champions-mb    # M-B 同上（--reg=mb）
 npm run data:vgcpastes:champions-ma:check  # 只校验 M-A 产物是否与来源一致
 npm run data:vgcpastes:champions-mb:check  # M-B 同上
 npm run data:vgcpastes:pr              # 默认刷新 M-B 并创建/更新自动化 PR
-npm run data:regma:allowlist / :abilities / :moves   # 重生成 seed 派生数据
+npm run data:regma:abilities            # 按目录扫描 catalog.ts + 全部 catalog-batch-*.ts，补特性中文名与效果
+npm run data:regma:abilities:check      # 只列出会处理哪些文件与特性行数，不联网、不写文件
+npm run data:regma:catalog-batch        # 生成新的 catalog-batch-NNN.ts 并接线进 catalog.ts
+npm run data:regma:catalog-batch:list   # 只列出已存在批次与下一个批次号
+npm run data:regma:moves                # 重生成 move-catalog.ts（learnset + 招式数据）
+npm run data:regma:allowlist            # ⚠️ M-A 历史脚本，见下方说明；当前仓库状态下会安全拒绝执行
 npm run data:items:audit                # 只读核验 148 条当前规则道具的中英文名称、类别与本地图片
 npm run data:items:refresh              # 仅用来源图刷新不匹配的本地道具图片
 ```
+
+**`data:regma:allowlist` 是 M-A 时代的历史脚本，不要用它接入新规则。** 它全量重写 `src/data/seed/regMA/allowlist.ts`，来源是官方 M-A web-view 端点（至今仍返回同一份 213 行 payload），且脚本内只有 6 条 `英文名 → pokemonId` 映射。现有 `allowlist.ts` 是 235 条（213 条 `reg-ma-` + 22 条**手工追加**的 `reg-mb-`）。跑它会删掉手工行、把 `regMaPokemonAllowlistExpectedCount` 打回 213、并把文件头 sourceRef 改回 M-A。因此脚本开头加了守卫：只要文件里存在非 `reg-ma-` 的行就直接报错退出（**无 bypass 参数，不要为跑通而放宽**）。新规则的行照 M-B 先例手工追加。
+
+`data:regma:catalog-batch` 不再写死批次号 / 批次大小 / 来源标签：
+
+```bash
+npm run data:regma:catalog-batch                       # 批次号 = 已存在最大批次 + 1，取 40 只
+npm run data:regma:catalog-batch -- --size=all         # 一次处理 allowlist 里全部尚未入库的条目
+npm run data:regma:catalog-batch -- --batch=8 --dry-run
+npm run data:regma:catalog-batch -- --source-refs=reg-mc-official-eligible-pokemon,pokeapi-pokemon-data,pokeapi-official-artwork,manual-seed-review
+```
+
+`--source-refs` 必须是 `dataSourceManifest` 里已存在的条目 id，否则数据审计会报 `unresolved-source-ref`。
+
+`data:regma:abilities` 的文件列表原先是手写的、停在 `catalog-batch-005`（漏掉了已存在的 006），现改为扫描 `src/data/seed/regMA/` 目录并按批次号排序；用 `:check` 确认覆盖范围。
 
 `data:items:audit` 从 PokéBase Champions 当前 M-B 道具列表读取英文名和类别，并用 PokeAPI `zh-hans` 道具名核验普通道具与树果的中文身份（PokeAPI 暂无中文名的妖精之羽按 52Poké 人工核验）；普通道具、进化石图片按 PokéBase 对照，树果图片按 PokeAPI 的 `item id → sprite` 对照，再核验 `catalog.ts` 与 `public/assets/items/`。`--report` 会同时打印本地中文效果摘要与 PokéBase 英文描述，供人工逐项语义校对；跨语言描述不冒充自动判定。网络源不稳定或出现不一致时审计会失败，不作为 CI 门禁。`data:items:refresh` 只替换已确认图片不匹配的本地快照，仍须人工检查 diff 后提交；不要手改 `item-icon-mapping.ts` 或单个图片文件。
 
