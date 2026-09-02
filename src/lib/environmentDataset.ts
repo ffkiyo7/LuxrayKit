@@ -48,14 +48,15 @@ export type EnvironmentTeamSlot = {
   moveIds: string[];
 };
 
-export type RegulationId = 'M-A' | 'M-B';
+export type RegulationId = 'M-A' | 'M-B' | 'M-C';
 
 export type EnvironmentTeamSample = {
   id: string;
   dataKind: 'development-sample' | 'external-snapshot';
   // Regulation a sample belongs to. Optional on PokeDB high-score samples, where it is derived
   // from the ladder `season` via the schedule (see sampleRegulation); VGCPastes champion
-  // samples stamp it explicitly. Absent + unmappable season falls back to M-A.
+  // samples are stamped explicitly at load time. Absent + unmappable season stays *unknown*
+  // (sampleRegulation returns undefined) — it is never guessed as M-A.
   regulation?: RegulationId;
   sourceId?: string;
   sourceLabel?: string;

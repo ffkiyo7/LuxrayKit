@@ -16,6 +16,7 @@ import {
   type EnvironmentTeamSample,
   type RegulationId,
 } from '../data/environment';
+import { regulationSchedule } from '../data/schedule';
 import { TeamSampleCard } from './TeamSampleCard';
 import {
   nextTeamSampleShuffleSeed,
@@ -40,9 +41,14 @@ const categoryFilters: Array<{ value: CategoryFilter; label: string }> = [
   { value: 'ranked', label: '排位高分' },
 ];
 
+// Derived from the schedule (newest regulation first) so a rollover only needs the new window
+// appended to `regulationSchedule` — the filter button appears on its own. Samples whose
+// regulation is unknown (sampleRegulation -> undefined) match none of the concrete buttons and
+// remain reachable through "全部规则".
 const regulationFilters: Array<{ value: RegulationFilter; label: string }> = [
-  { value: 'M-B', label: 'M-B' },
-  { value: 'M-A', label: 'M-A' },
+  ...[...regulationSchedule]
+    .sort((left, right) => Date.parse(right.startAt) - Date.parse(left.startAt))
+    .map((entry) => ({ value: entry.id as RegulationFilter, label: entry.id })),
   { value: 'all', label: '全部规则' },
 ];
 
