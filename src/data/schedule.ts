@@ -26,6 +26,8 @@ export type RegulationScheduleEntry = {
   label: string;
   startAt: string;
   endAt: string;
+  /** Official announcement URL, kept for traceability when refreshing the schedule. */
+  sourceUrl?: string;
 };
 
 export type SeasonScheduleEntry = {
@@ -37,19 +39,26 @@ export type SeasonScheduleEntry = {
   sourceUrl?: string;
 };
 
+/**
+ * Regulation windows are literal dates on purpose: this is the *historical* time axis, and it
+ * must not move when `currentRuleSet` is pointed at the next regulation. Append a new entry at
+ * rollover instead of editing the previous one.
+ */
 export const regulationSchedule: RegulationScheduleEntry[] = [
   {
     id: 'M-A',
     // M-A predates this app's tracked window; only its end (= M-B start) is load-bearing here.
     label: 'Regulation M-A',
     startAt: '2026-01-01T00:00:00.000Z',
-    endAt: currentRuleSet.startAt,
+    endAt: '2026-06-17T02:00:00.000Z',
   },
   {
     id: 'M-B',
     label: 'Regulation M-B',
-    startAt: currentRuleSet.startAt,
-    endAt: currentRuleSet.endAt,
+    startAt: '2026-06-17T02:00:00.000Z',
+    // Officially extended to 2026-09-09 01:59 UTC (announcement below).
+    endAt: '2026-09-09T01:59:00.000Z',
+    sourceUrl: 'https://champions-news.pokemon-home.com/en/page/776.html', // M-B extension notice
   },
 ];
 
@@ -58,11 +67,13 @@ export const seasonSchedule: SeasonScheduleEntry[] = [
   // M-2 ends at the M-A->M-B boundary. M-3 (first M-B season) starts with the M-B regulation;
   // M-4 dates are authoritative (official Ranked Battles Season M-4 announcement, UTC+8).
   // MAINTENANCE: append each new season here at rollover (isRegulationRolloverDue signals the
-  // regulation boundary). An "M-n" season missing from this table classifies its high-score
-  // teams as M-A by default (sampleRegulation) — extend the table before a refresh samples it.
+  // regulation boundary). An "M-n" season missing from this table leaves its high-score teams
+  // *unclassified* (sampleRegulation returns undefined): they show up only in the "all
+  // regulations" view and never under a concrete regulation filter. That is deliberate — extend
+  // the table once the season announcement lands rather than guessing a regulation for them.
   { label: 'M-1', regulation: 'M-A', startAt: '2026-04-08T02:00:00.000Z', endAt: '2026-05-13T01:59:00.000Z' },
   { label: 'M-2', regulation: 'M-A', startAt: '2026-05-13T02:00:00.000Z', endAt: '2026-06-17T01:59:00.000Z' },
-  { label: 'M-3', regulation: 'M-B', startAt: currentRuleSet.startAt, endAt: '2026-07-08T01:59:00.000Z' },
+  { label: 'M-3', regulation: 'M-B', startAt: '2026-06-17T02:00:00.000Z', endAt: '2026-07-08T01:59:00.000Z' },
   {
     label: 'M-4',
     regulation: 'M-B',
@@ -74,10 +85,11 @@ export const seasonSchedule: SeasonScheduleEntry[] = [
     label: 'M-5',
     regulation: 'M-B',
     startAt: '2026-08-05T02:00:00.000Z',
-    // M-5 is the last M-B season: it ends exactly on the regulation boundary, so this tracks
-    // currentRuleSet rather than repeating the date. The next season starts a new regulation
-    // and needs the catalog authored first (isRegulationRolloverDue signals it).
-    endAt: currentRuleSet.endAt,
+    // Literal value from the official Ranked Battles Season M-5 announcement. It happens to
+    // coincide with the M-B regulation boundary — that is a coincidence of the calendar, NOT a
+    // derivation: do not re-link this to currentRuleSet.endAt.
+    endAt: '2026-09-09T01:59:00.000Z',
+    sourceUrl: 'https://champions-news.pokemon-home.com/en/page/803.html', // Ranked Battles Season M-5
   },
 ];
 

@@ -35,9 +35,28 @@ export type {
   SeasonRankSnapshot,
 };
 
+// Explicit rule-set-id -> RegulationId map. A missing entry is a hard error rather than a
+// silent fallback: an unmapped rule set means the catalog rolled over without this table being
+// updated, and quietly labelling everything M-A would mis-tag the whole team library.
+const ruleSetRegulationIds: Record<string, RegulationId> = {
+  'reg-ma': 'M-A',
+  'reg-mb': 'M-B',
+  'reg-mc': 'M-C',
+};
+
+const resolveCurrentRegulation = (ruleSetId: string): RegulationId => {
+  const regulation = ruleSetRegulationIds[ruleSetId];
+  if (!regulation) {
+    throw new Error(
+      `Unmapped rule set "${ruleSetId}": add it to ruleSetRegulationIds in src/data/environment.ts.`,
+    );
+  }
+  return regulation;
+};
+
 // The regulation the app is currently configured for. Surfaces as the default lens for
 // team-sample browsing so users see teams that match the live rule set first.
-export const currentRegulation: RegulationId = currentRuleSet.id === 'reg-mb' ? 'M-B' : 'M-A';
+export const currentRegulation: RegulationId = resolveCurrentRegulation(currentRuleSet.id);
 
 export const WORKER_ENVIRONMENT_SNAPSHOT_URL = '/api/environment/latest';
 export const POKEDB_ENVIRONMENT_SNAPSHOT_URL = '/data/pokedb/reg-ma-environment.json';
@@ -271,17 +290,18 @@ let vgcPastesTeamSamplesPromise: Promise<EnvironmentTeamSample[]> | undefined;
 
 // Each regulation's curated VGCPastes set is its own build-time chunk. They load
 // independently so a missing/failed file for one regulation never blanks out the other
-// (a regression Task 8 hardened against). M-A is tagged implicitly via sampleRegulation.
+// (a regression Task 8 hardened against). The regulation is stamped here from the file the
+// rows came from — sampleRegulation no longer guesses M-A for untagged rows.
 const loadVgcPastesRegulationFile = async (
   loader: () => Promise<{ default: unknown }>,
-  label: string,
+  regulation: RegulationId,
 ): Promise<EnvironmentTeamSample[]> => {
   try {
     const payload = (await loader()).default;
-    if (!Array.isArray(payload)) throw new Error(`VGCPastes ${label} payload is not an array.`);
-    return payload as EnvironmentTeamSample[];
+    if (!Array.isArray(payload)) throw new Error(`VGCPastes ${regulation} payload is not an array.`);
+    return (payload as EnvironmentTeamSample[]).map((sample) => ({ regulation, ...sample }));
   } catch (error) {
-    console.error(`Failed to load VGCPastes ${label} team samples; continuing without them.`, error);
+    console.error(`Failed to load VGCPastes ${regulation} team samples; continuing without them.`, error);
     return [];
   }
 };

@@ -7,7 +7,9 @@
 [![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 [![Platform](https://img.shields.io/badge/platform-mobile--first-slate)](./tests/pwa/visual.spec.ts)
 
-Luxray Kit 是一个面向 Pokémon Champions 玩家的非官方对战辅助工具。它以移动端 PWA 形态设计，优先服务当前 Regulation Set（现为 M-B，Mega 规则）的环境理解、上位构筑参考和本地队伍管理；伤害计算、速度线、规则图鉴和属性速查收束为工具页里的辅助查询能力。
+Luxray Kit 是一个面向 Pokémon Champions 玩家的非官方对战辅助工具。它以移动端 PWA 形态设计，优先服务**当前 Regulation Set**（Mega 规则）的环境理解、上位构筑参考和本地队伍管理；伤害计算、速度线、规则图鉴和属性速查收束为工具页里的辅助查询能力。
+
+当前规则与赛季不写在文档里：规则窗口的唯一事实源是 [`src/data/schedule.ts`](./src/data/schedule.ts)，生效中的规则元数据在 [`src/data/seed/regMA/metadata.ts`](./src/data/seed/regMA/metadata.ts) 的 `currentRuleSet`，赛季标签则以 PokeDB 每日快照为准。应用内页头会直接显示当前「赛季 · 规则」。
 
 项目仍在持续开发中。当前版本已接入 PokeDB 当季环境统计、PokeDB 速度表与社区上位构筑样本作为数据来源；环境统计会标注来源与口径，不包装成官方完整使用率。伤害计算仍属于实验性近似结果，不应视为官方结论或赛事依据。
 
@@ -75,9 +77,9 @@ Luxray Kit 是一个面向 Pokémon Champions 玩家的非官方对战辅助工�
 
 | 数据类别 | 当前状态 | 说明 |
 | --- | --- | --- |
-| 主数据 | `v0.3.0-mb-seed` | 版本化 Regulation Set seed（当前 M-B；目录名 `seed/regMA/` 为历史遗留），来源包括官方规则 / allowlist、PokeAPI、PokéBase Champions、社区中文资料和本地人工复核标记 |
+| 主数据 | 已接入 | 版本化 Regulation Set seed（生效规则与版本号见 `metadata.ts` 的 `currentRuleSet` / `currentDataVersion`；目录名 `seed/regMA/` 为历史遗留，与当前规则无关），来源包括官方规则 / allowlist、PokeAPI、PokéBase Champions、社区中文资料和本地人工复核标记 |
 | 环境快照 | 已接入 | `public/data/pokedb/*.json` 缓存 PokeDB 最新赛季 Pokémon 统计；Cloudflare Worker 每日 5 个定点探针 + 内容签名门控，仅在源变化时重拉 |
-| 上位构筑样本 | 已接入 | PokeDB trainer/list 解析的真实队报，叠加脚本摄入的 VGCPastes「Champions M-A / M-B」官方锦标赛构筑（构建期受管 chunk，M-B 为当前主用） |
+| 上位构筑样本 | 已接入 | PokeDB trainer/list 解析的真实队报，叠加脚本摄入的 VGCPastes「Champions M-A / M-B」官方锦标赛构筑（每个规则一个构建期受管 chunk；队伍库默认展示全部规则，可按规则筛选） |
 | 速度线参照档 | 已接入 | 一次性脚本抓 PokeDB 速度表生成静态快照 `src/data/speedTiers.ts`（每档含宝可梦图鉴号 / 形态 / 日文名）；规则或环境有变化时手动重跑 |
 | 常用招式 | 已接入 | 维护脚本复用 Worker 解析器抓取 Pokémon 详情页的 `data-move-detail` 生成 `moveStats` |
 | 速度计算 | 已接入 | 基于 Champions SP 口径计算最终速度：`floor((种族速 + SP + 20) × 性格修正)`，叠加围巾 ×1.5 / 速度特性 ×2 / 顺风 ×2 |

@@ -1,4 +1,4 @@
-import type { Ability, Item, Move, Pokemon } from '../../../types';
+import type { Ability, Item, Move, Pokemon, PokemonForm } from '../../../types';
 import { pokemonBatch006, abilitiesBatch006 } from './catalog-batch-006';
 import { pokemonBatch005, abilitiesBatch005 } from './catalog-batch-005';
 import { pokemonBatch004, abilitiesBatch004 } from './catalog-batch-004';
@@ -18,14 +18,68 @@ const megaRefs = ['reg-mb-official-mega-list', 'pokeapi-pokemon-data', 'pokeapi-
 const heldItemRefs = ['pokebase-champions-item-icons', 'pokeapi-item-data', 'manual-seed-review'];
 const berryItemRefs = ['pokebase-champions-item-icons', 'pokeapi-item-data', 'pokeapi-item-sprites', 'manual-seed-review'];
 const megaItemRefs = ['reg-mb-official-mega-list', 'pokebase-champions-item-icons', 'manual-seed-review'];
-const combinedMegaFormsByParentId = {
-  ...megaFormsByParentId,
-  ...mbMegaFormsByParentId,
+/**
+ * Merge the per-regulation Mega tables by *concatenating* each parent's form array.
+ *
+ * Object spread would be wrong here: the key is the parent `pokemonId`, so a parent that gains a
+ * second Mega in a later regulation (e.g. the Z Megas of Absol / Garchomp / Lucario, whose
+ * parents already carry a plain Mega in the M-A table) would have its earlier forms silently
+ * replaced — with no type error and no test failure. Duplicate `form.id`s are a real authoring
+ * mistake, so they throw instead of one quietly winning.
+ */
+export const mergeMegaFormsByParentId = (
+  tables: Array<Record<string, PokemonForm[]>>,
+): Record<string, PokemonForm[]> => {
+  const merged: Record<string, PokemonForm[]> = {};
+  const formOwner = new Map<string, string>();
+
+  for (const table of tables) {
+    for (const [parentId, forms] of Object.entries(table)) {
+      const bucket = (merged[parentId] ??= []);
+      for (const form of forms) {
+        const owner = formOwner.get(form.id);
+        if (owner !== undefined) {
+          throw new Error(
+            `Duplicate Mega form id "${form.id}" (already registered under parent "${owner}", now under "${parentId}").`,
+          );
+        }
+        formOwner.set(form.id, parentId);
+        bucket.push(form);
+      }
+    }
+  }
+
+  return merged;
 };
-const combinedMegaStoneParentMap = {
-  ...megaStoneParentMap,
-  ...mbMegaStoneParentMap,
+
+/**
+ * Mega stone -> parent Pokemon. Keys are stone item ids, which are unique per Mega form, so a
+ * repeated key with a *different* parent is a conflict rather than an override.
+ */
+export const mergeMegaStoneParentMap = (
+  tables: Array<Record<string, string>>,
+): Record<string, string> => {
+  const merged: Record<string, string> = {};
+
+  for (const table of tables) {
+    for (const [stoneId, parentId] of Object.entries(table)) {
+      const existing = merged[stoneId];
+      if (existing !== undefined && existing !== parentId) {
+        throw new Error(
+          `Mega stone "${stoneId}" maps to conflicting parents "${existing}" and "${parentId}".`,
+        );
+      }
+      merged[stoneId] = parentId;
+    }
+  }
+
+  return merged;
 };
+
+const combinedMegaFormsByParentId = mergeMegaFormsByParentId([megaFormsByParentId, mbMegaFormsByParentId]);
+const combinedMegaStoneParentMap = mergeMegaStoneParentMap([megaStoneParentMap, mbMegaStoneParentMap]);
+// Set union — membership only, so there is no override semantics to guard here (unlike the two
+// keyed tables above).
 const combinedMegaCapableBaseIds = new Set([...megaCapableBaseIds, ...mbMegaCapableBaseIds]);
 
 const artwork = (nationalDexNo: number) => `/assets/pokemon/thumbs/${nationalDexNo}.png`;

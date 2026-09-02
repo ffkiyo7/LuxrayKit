@@ -2,6 +2,7 @@ import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { Generations, toID } from '@smogon/calc';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
@@ -57,34 +58,6 @@ const TARGET_LABELS = {
 };
 
 const PROTECT_TARGETS = new Set(['selected-pokemon', 'all-opponents', 'all-other-pokemon', 'all-pokemon', 'random-opponent']);
-const CONTACT_HINTS = [
-  'tackle',
-  'punch',
-  'kick',
-  'claw',
-  'fang',
-  'bite',
-  'slam',
-  'crash',
-  'charge',
-  'rush',
-  'strike',
-  'blitz',
-  'lariat',
-  'headbutt',
-  'tail',
-  'chop',
-  'jab',
-  'thrust',
-  'wheel',
-  'spin',
-  'impact',
-  'grip',
-  'press',
-  'stomp',
-  'sweep',
-  'whip',
-];
 
 function decodeHtml(value) {
   return value
@@ -195,9 +168,29 @@ function findFlavorText(entries) {
   return (preferred ?? zhHans.at(-1))?.flavor_text?.replace(/\s+/g, ' ').trim();
 }
 
-function inferMakesContact(move) {
-  if (move.category !== 'Physical') return false;
-  return CONTACT_HINTS.some((hint) => move.id.includes(hint));
+// Authoritative contact flag from the Gen 9 dex shipped with @smogon/calc (already a
+// dependency — this is the same data the damage calculator uses). It replaces the old
+// name-substring heuristic, which mis-flagged e.g. Close Combat / High Horsepower /
+// Draining Kiss / Sacred Sword as non-contact.
+//
+// Two interface details, both verified locally:
+//  - `moves.get()` only accepts ID form ('closecombat'); local ids are kebab-case, so they go
+//    through toID(). Passing 'Close Combat' returns undefined.
+//  - `flags.contact` is `1` on contact moves and *absent* otherwise — test for truthiness, not
+//    `=== true`.
+const gen9 = Generations.get(9);
+
+function resolveMakesContact(move) {
+  const entry = gen9.moves.get(toID(move.id));
+  if (!entry) {
+    // Never fall back to a guess: an unknown move id means the contact flag is unknown, and a
+    // silent `false` is exactly the failure mode this change removes.
+    throw new Error(
+      `Move "${move.id}" is not in the @smogon/calc Gen 9 dex, so its contact flag cannot be resolved. ` +
+        'Add an explicit mapping in generate-champions-moves.mjs rather than defaulting makesContact.',
+    );
+  }
+  return Boolean(entry.flags?.contact);
 }
 
 // ── Chinese text cleaning ──
@@ -289,7 +282,7 @@ async function enrichMove(move) {
       chineseName: chineseName || undefined,
       effectSummary: effectSummary || undefined,
       targetScope: TARGET_LABELS[data.target?.name] ?? data.target?.name ?? '单体',
-      makesContact: inferMakesContact(move),
+      makesContact: resolveMakesContact(move),
       affectedByProtect: PROTECT_TARGETS.has(data.target?.name),
       accuracy: manualOverride?.accuracy ?? data.accuracy ?? move.accuracy,
       pp: data.pp ?? move.pp,
@@ -303,7 +296,7 @@ async function enrichMove(move) {
       chineseName: chineseName || undefined,
       effectSummary: effectSummary || undefined,
       targetScope: '单体',
-      makesContact: inferMakesContact(move),
+      makesContact: resolveMakesContact(move),
       affectedByProtect: move.category !== 'Status',
     };
   }

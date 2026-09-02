@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -7,14 +7,26 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
 const CACHE_DIR = resolve(ROOT, '.npm-cache', '52poke-abilities');
 const DATA_DIR = resolve(ROOT, 'src/data/seed/regMA');
-const FILES = [
-  'catalog.ts',
-  'catalog-batch-001.ts',
-  'catalog-batch-002.ts',
-  'catalog-batch-003.ts',
-  'catalog-batch-004.ts',
-  'catalog-batch-005.ts',
-].map((file) => resolve(DATA_DIR, file));
+
+const CHECK_ONLY = process.argv.slice(2).includes('--check');
+
+/**
+ * catalog.ts plus every catalog-batch-NNN.ts, discovered from disk and ordered by batch number.
+ * This used to be a hand-maintained list, which silently stopped covering batch 006 — new
+ * batches' ability rows kept their placeholder text with no error. Run with `--check` to print
+ * what would be processed without touching the network or any file.
+ */
+async function discoverCatalogFiles() {
+  const batches = (await readdir(DATA_DIR))
+    .map((file) => ({ file, match: /^catalog-batch-(\d+)\.ts$/.exec(file) }))
+    .filter((entry) => entry.match)
+    .sort((left, right) => Number(left.match[1]) - Number(right.match[1]))
+    .map((entry) => entry.file);
+
+  return ['catalog.ts', ...batches].map((file) => resolve(DATA_DIR, file));
+}
+
+const FILES = await discoverCatalogFiles();
 
 const API = 'https://wiki.52poke.com/api.php';
 const POKEAPI = 'https://pokeapi.co/api/v2';
@@ -284,6 +296,17 @@ async function main() {
   }
 
   console.log(`Found ${rowsById.size} unique ability rows.`);
+
+  if (CHECK_ONLY) {
+    console.log(`\nWould process ${FILES.length} catalog files:`);
+    for (const file of FILES) {
+      const text = await readFile(file, 'utf8');
+      const rows = extractAbilityRows(text);
+      console.log(`  ${file.slice(ROOT.length + 1)} — ${rows.length} ability rows`);
+    }
+    console.log('\n--check: no network requests made and no files written.');
+    return;
+  }
 
   const effectById = new Map();
   let index = 0;

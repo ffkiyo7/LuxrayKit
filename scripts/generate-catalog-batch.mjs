@@ -6,21 +6,113 @@ import { fileURLToPath } from 'node:url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
 
-const BATCH_SIZE = 40;
-const BATCH_NUMBER = 5;
 const CACHE_DIR = resolve(ROOT, '.npm-cache', 'pokeapi');
 const POKEAPI = 'https://pokeapi.co/api/v2';
 
-const ALLOWLIST_PATH = resolve(ROOT, 'src/data/seed/regMA/allowlist.ts');
-const CATALOG_PATH = resolve(ROOT, 'src/data/seed/regMA/catalog.ts');
-const BATCH_OUTPUT = resolve(ROOT, `src/data/seed/regMA/catalog-batch-${String(BATCH_NUMBER).padStart(3, '0')}.ts`);
+const SEED_DIR = resolve(ROOT, 'src/data/seed/regMA');
+const ALLOWLIST_PATH = resolve(SEED_DIR, 'allowlist.ts');
+const CATALOG_PATH = resolve(SEED_DIR, 'catalog.ts');
 
-const batchSourceRefs = [
-  'reg-ma-official-eligible-pokemon',
+const DEFAULT_SOURCE_REFS = [
+  'reg-mb-official-eligible-pokemon',
   'pokeapi-pokemon-data',
   'pokeapi-official-artwork',
   'manual-seed-review',
 ];
+
+const pad = (n) => String(n).padStart(3, '0');
+const batchFileName = (n) => `catalog-batch-${pad(n)}.ts`;
+
+// ── CLI ────────────────────────────────────────────────────────
+//
+// Nothing about the batch is hard-coded any more: a regulation rollover can add any number of
+// Pokemon, so the batch number auto-discovers (highest existing batch + 1), the size is a flag
+// (`--size=all` for "everything still missing"), and the source refs come from the caller —
+// they must name entries that exist in `dataSourceManifest`, and `reg-ma-*` is no longer
+// assumed. Usage:
+//
+//   node scripts/generate-catalog-batch.mjs [--batch=N] [--size=N|all] [--source-refs=a,b,c]
+//                                           [--list] [--dry-run]
+
+function parseArgs(argv) {
+  const flags = new Map();
+  for (const arg of argv) {
+    const match = /^--([^=]+)(?:=(.*))?$/.exec(arg);
+    if (!match) throw new Error(`Unrecognized argument: ${arg}`);
+    flags.set(match[1], match[2] ?? 'true');
+  }
+
+  const known = new Set(['batch', 'size', 'source-refs', 'list', 'dry-run', 'help']);
+  for (const key of flags.keys()) {
+    if (!known.has(key)) throw new Error(`Unknown flag --${key}. Known: ${[...known].join(', ')}`);
+  }
+
+  const rawSize = flags.get('size');
+  const size =
+    rawSize === undefined ? 40 : rawSize === 'all' ? Number.POSITIVE_INFINITY : Number(rawSize);
+  if (!(size > 0)) throw new Error(`--size must be a positive number or "all" (got "${rawSize}").`);
+
+  const rawBatch = flags.get('batch');
+  const batchNumber = rawBatch === undefined ? undefined : Number(rawBatch);
+  if (rawBatch !== undefined && (!Number.isInteger(batchNumber) || batchNumber < 1)) {
+    throw new Error(`--batch must be a positive integer (got "${rawBatch}").`);
+  }
+
+  const rawRefs = flags.get('source-refs');
+  const sourceRefs = rawRefs === undefined
+    ? DEFAULT_SOURCE_REFS
+    : rawRefs.split(',').map((ref) => ref.trim()).filter(Boolean);
+  if (sourceRefs.length === 0) throw new Error('--source-refs must list at least one ref.');
+
+  return {
+    batchNumber,
+    size,
+    sourceRefs,
+    list: flags.has('list'),
+    dryRun: flags.has('dry-run'),
+    help: flags.has('help'),
+  };
+}
+
+/** Batch numbers already present on disk, ascending. */
+async function existingBatchNumbers() {
+  const files = await readdir(SEED_DIR);
+  return files
+    .map((file) => /^catalog-batch-(\d+)\.ts$/.exec(file))
+    .filter(Boolean)
+    .map((match) => Number(match[1]))
+    .sort((a, b) => a - b);
+}
+
+const args = parseArgs(process.argv.slice(2));
+
+if (args.help) {
+  console.log(
+    'Usage: node scripts/generate-catalog-batch.mjs [--batch=N] [--size=N|all] [--source-refs=a,b,c] [--list] [--dry-run]',
+  );
+  process.exit(0);
+}
+
+const knownBatches = await existingBatchNumbers();
+
+if (args.list) {
+  console.log(`Existing catalog batches (${knownBatches.length}): ${knownBatches.map(pad).join(', ') || '(none)'}`);
+  console.log(`Next batch number would be: ${pad((knownBatches.at(-1) ?? 0) + 1)}`);
+  process.exit(0);
+}
+
+const BATCH_NUMBER = args.batchNumber ?? (knownBatches.at(-1) ?? 0) + 1;
+const BATCH_SIZE = args.size;
+const batchSourceRefs = args.sourceRefs;
+const BATCH_OUTPUT = resolve(SEED_DIR, batchFileName(BATCH_NUMBER));
+
+if (args.batchNumber === undefined) {
+  console.log(`Auto-selected batch ${pad(BATCH_NUMBER)} (existing: ${knownBatches.map(pad).join(', ') || 'none'}).`);
+} else if (knownBatches.includes(BATCH_NUMBER)) {
+  console.warn(`WARNING: batch ${pad(BATCH_NUMBER)} already exists and will be overwritten.`);
+}
+console.log(`Batch size: ${BATCH_SIZE === Number.POSITIVE_INFINITY ? 'all remaining' : BATCH_SIZE}`);
+console.log(`Source refs: ${batchSourceRefs.join(', ')}`);
 
 const artwork = (n) => `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${n}.png`;
 
@@ -397,7 +489,7 @@ async function main() {
         learnableMoves: finalMoves,
         canMega: false,
         megaForms: [],
-        notes: `Batch ${String(BATCH_NUMBER).padStart(3, '0')} catalog row from PokeAPI structured data joined to official Reg M-A allowlist. Manual review still required.`,
+        notes: `Batch ${pad(BATCH_NUMBER)} catalog row from PokeAPI structured data joined to the eligible-Pokemon allowlist. Manual review still required.`,
         sourceRefs: batchSourceRefs,
       });
     } catch (err) {
@@ -457,7 +549,7 @@ async function main() {
   lines.push('');
   lines.push("import type { Ability, Pokemon } from '../../../types';");
   lines.push('');
-  lines.push(`const batchRefs = ['reg-ma-official-eligible-pokemon', 'pokeapi-pokemon-data', 'pokeapi-official-artwork', 'manual-seed-review'];`);
+  lines.push(`const batchRefs = [${batchSourceRefs.map((ref) => `'${escapeStr(ref)}'`).join(', ')}];`);
   lines.push(`const artwork = (n: number) => \`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/\${n}.png\`;`);
   lines.push('');
 
@@ -504,6 +596,11 @@ async function main() {
   lines.push('');
 
   const output = lines.join('\n');
+  if (args.dryRun) {
+    console.log(`\n[dry-run] Would write ${newPokemon.length} Pokemon + ${newAbilities.length} abilities to ${BATCH_OUTPUT}`);
+    console.log('[dry-run] catalog.ts would be left untouched.');
+    return;
+  }
   await writeFile(BATCH_OUTPUT, output, 'utf8');
   console.log(`\nWrote ${newPokemon.length} Pokemon + ${newAbilities.length} abilities to ${BATCH_OUTPUT}`);
 
@@ -517,28 +614,32 @@ async function main() {
   let catalog = await readFile(CATALOG_PATH, 'utf8');
 
   // Check if already imported
-  if (catalog.includes(`catalog-batch-${String(BATCH_NUMBER).padStart(3, '0')}`)) {
+  if (catalog.includes(batchFileName(BATCH_NUMBER).replace(/\.ts$/, ''))) {
     console.log('  Batch already imported in catalog.ts, skipping.');
     return;
   }
 
-  // Add import line after the existing import
+  // Add the import right after catalog.ts's type import. Matched by pattern rather than by an
+  // exact string so adding a type to that import does not silently no-op this rewrite.
+  const typeImport = /^import type \{[^}]*\} from '\.\.\/\.\.\/\.\.\/types';$/m;
+  if (!typeImport.test(catalog)) {
+    throw new Error('Could not find catalog.ts type import anchor; update generate-catalog-batch.mjs.');
+  }
   catalog = catalog.replace(
-    "import type { Ability, Item, Move, Pokemon } from '../../../types';",
-    `import type { Ability, Item, Move, Pokemon } from '../../../types';\nimport { pokemonBatch${String(BATCH_NUMBER).padStart(3, '0')}, abilitiesBatch${String(BATCH_NUMBER).padStart(3, '0')} } from './catalog-batch-${String(BATCH_NUMBER).padStart(3, '0')}';`,
+    typeImport,
+    (line) => `${line}\nimport { pokemonBatch${pad(BATCH_NUMBER)}, abilitiesBatch${pad(BATCH_NUMBER)} } from './${batchFileName(BATCH_NUMBER).replace(/\.ts$/, '')}';`,
   );
 
-  // Spread batch abilities into the abilities array
-  catalog = catalog.replace(
-    'export const abilities: Ability[] = [',
-    `export const abilities: Ability[] = [\n  ...abilitiesBatch${String(BATCH_NUMBER).padStart(3, '0')},`,
-  );
-
-  // Spread batch pokemon into the pokemon array
-  catalog = catalog.replace(
-    'export const pokemon: Pokemon[] = [',
-    `export const pokemon: Pokemon[] = [\n  ...pokemonBatch${String(BATCH_NUMBER).padStart(3, '0')},`,
-  );
+  // Spread batch abilities / pokemon into their arrays.
+  for (const [anchor, spread] of [
+    ['export const abilities: Ability[] = [', `...abilitiesBatch${pad(BATCH_NUMBER)},`],
+    ['export const pokemon: Pokemon[] = [', `...pokemonBatch${pad(BATCH_NUMBER)},`],
+  ]) {
+    if (!catalog.includes(anchor)) {
+      throw new Error(`Could not find catalog.ts anchor "${anchor}"; update generate-catalog-batch.mjs.`);
+    }
+    catalog = catalog.replace(anchor, `${anchor}\n  ${spread}`);
+  }
 
   await writeFile(CATALOG_PATH, catalog, 'utf8');
   console.log('  Done.');

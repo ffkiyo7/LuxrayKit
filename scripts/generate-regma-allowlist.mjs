@@ -1,7 +1,45 @@
-import { writeFile } from 'node:fs/promises';
+// ─────────────────────────────────────────────────────────────────────────────
+// HISTORICAL SCRIPT — Regulation Set M-A only. DO NOT run to add a new regulation.
+//
+// This generator *rewrites* allowlist.ts wholesale from the official M-A web-view endpoint,
+// which still serves the same 213-row M-A payload. Since M-B, new regulations' rows are
+// appended to allowlist.ts BY HAND (M-B added 22 `reg-mb-` rows, and only 28 rows overall
+// carry a `pokemonId`, none of which this script's 6-entry name map can reproduce). Running it
+// against the current file would delete every non-M-A row, reset
+// `regMaPokemonAllowlistExpectedCount` to 213, and revert the header's source ref.
+//
+// The guard below refuses to run whenever allowlist.ts contains non-`reg-ma-` rows. It has no
+// bypass flag on purpose: if you genuinely need to regenerate the M-A base, do it against an
+// empty/M-A-only file and re-apply the manual rows afterwards.
+// ─────────────────────────────────────────────────────────────────────────────
+
+import { readFile, writeFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 
 const sourceUrl = 'https://web-view.app.pokemonchampions.jp/battle/pages/events/rs177501629259kmzbny/en/pokemon.html';
 const outputPath = new URL('../src/data/seed/regMA/allowlist.ts', import.meta.url);
+
+// ── Destructive-rewrite guard ────────────────────────────────────────────────
+
+if (existsSync(outputPath)) {
+  const existing = await readFile(outputPath, 'utf8');
+  const entryIds = [...existing.matchAll(/^\s*id: '([^']+)',$/gm)].map((match) => match[1]);
+  const foreignIds = entryIds.filter((id) => !id.startsWith('reg-ma-'));
+
+  if (foreignIds.length > 0) {
+    const sample = foreignIds.slice(0, 5).join(', ');
+    throw new Error(
+      [
+        'Refusing to run: src/data/seed/regMA/allowlist.ts contains hand-authored rows from a',
+        `later regulation (${foreignIds.length} non-"reg-ma-" entries, e.g. ${sample}).`,
+        '',
+        'This script rewrites the whole file from the M-A-era official endpoint and would delete',
+        'them, reset regMaPokemonAllowlistExpectedCount, and revert the file header source ref.',
+        'Add new-regulation rows by hand instead (see docs/DEVELOPER_GUIDE.md §7).',
+      ].join('\n'),
+    );
+  }
+}
 const catalogPokemonIdsByEnglishName = new Map([
   ['Venusaur', 'venusaur'],
   ['Charizard', 'charizard'],
