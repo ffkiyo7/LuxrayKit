@@ -84,7 +84,7 @@ src/
     speedTiers.ts       # 生成产物：PokeDB 速度档位（npm run data:pokedb:speed）
     pokemonFacts.ts     # 首页趣味小知识事实池（生成产物见 external/pokeapi/）
     environmentDatasetSeed.ts  # 4 只宝可梦的开发样例，环境数据最后一级回退
-    seed/regMA/         # 版本化规则 seed（历史目录名，当前承载 M-B）：catalog/moves/items/abilities/allowlist/metadata...
+    seed/regMA/         # 版本化规则 seed（历史目录名，与当前规则无关）：catalog/moves/items/abilities/allowlist/metadata...
     external/           # 外部抓取产物（pokedb/ 快照、vgcpastes/ 样本、pokeapi/ 事实、名称映射）
   pages/                # 各页面（懒加载）：Environment / Team / Tools / Calculator / Dex / Speed / TypeChart / Profile / Rule
   components/           # BottomNav / Header / PokemonPicker / onboarding / ui 等
@@ -160,9 +160,9 @@ main.tsx
 
 ### 5.1 Seed（`src/data/seed/regMA/`）
 
-Regulation Set M-A 的版本化静态数据：宝可梦 catalog（分 batch）、形态、Mega、招式、learnset、道具、特性、allowlist、性格、默认队伍、来源 manifest 与 `metadata.ts`（`currentRuleSet` / `currentDataVersion` / `defaultPreferences`）。`src/data/index.ts` 统一 re-export。
+当前 Regulation Set 的版本化静态数据（生效规则见 `metadata.ts` 的 `currentRuleSet`，目录名 `regMA/` 是历史遗留，不代表当前规则）：宝可梦 catalog（分 batch）、形态、Mega、招式、learnset、道具、特性、allowlist、性格、默认队伍、来源 manifest 与 `metadata.ts`（`currentRuleSet` / `currentDataVersion` / `defaultPreferences`）。`src/data/index.ts` 统一 re-export。
 
-`currentRegulation`（`data/environment.ts`）由 `currentRuleSet.id` 推导（`reg-mb` → `M-B`，否则 `M-A`），作为队伍样本浏览的默认视角。
+`currentRegulation`（`data/environment.ts`）由 `currentRuleSet.id` 经显式映射表 `ruleSetRegulationIds` 得到 `RegulationId`，作为队伍样本浏览的默认视角。**映射缺失直接抛错**，不兜底到某个具体规则——规则滚动时必须同时补这张表。
 
 ### 5.2 首页趣味小知识事实池
 
@@ -330,7 +330,7 @@ npm run data:regma:catalog-batch -- --source-refs=reg-mc-official-eligible-pokem
 
 `data:regma:abilities` 的文件列表原先是手写的、停在 `catalog-batch-005`（漏掉了已存在的 006），现改为扫描 `src/data/seed/regMA/` 目录并按批次号排序；用 `:check` 确认覆盖范围。
 
-`data:items:audit` 从 PokéBase Champions 当前 M-B 道具列表读取英文名和类别，并用 PokeAPI `zh-hans` 道具名核验普通道具与树果的中文身份（PokeAPI 暂无中文名的妖精之羽按 52Poké 人工核验）；普通道具、进化石图片按 PokéBase 对照，树果图片按 PokeAPI 的 `item id → sprite` 对照，再核验 `catalog.ts` 与 `public/assets/items/`。`--report` 会同时打印本地中文效果摘要与 PokéBase 英文描述，供人工逐项语义校对；跨语言描述不冒充自动判定。网络源不稳定或出现不一致时审计会失败，不作为 CI 门禁。`data:items:refresh` 只替换已确认图片不匹配的本地快照，仍须人工检查 diff 后提交；不要手改 `item-icon-mapping.ts` 或单个图片文件。
+`data:items:audit` 从 PokéBase Champions 当前规则道具列表读取英文名和类别，并用 PokeAPI `zh-hans` 道具名核验普通道具与树果的中文身份（PokeAPI 暂无中文名的妖精之羽按 52Poké 人工核验）；普通道具、进化石图片按 PokéBase 对照，树果图片按 PokeAPI 的 `item id → sprite` 对照，再核验 `catalog.ts` 与 `public/assets/items/`。`--report` 会同时打印本地中文效果摘要与 PokéBase 英文描述，供人工逐项语义校对；跨语言描述不冒充自动判定。网络源不稳定或出现不一致时审计会失败，不作为 CI 门禁。`data:items:refresh` 只替换已确认图片不匹配的本地快照，仍须人工检查 diff 后提交；不要手改 `item-icon-mapping.ts` 或单个图片文件。
 
 `update-pokedb-environment.mjs` 会同时写源码审计快照（`src/data/external/pokedb/current_environment_snapshot.json`）与 public 运行时 JSON（`public/data/pokedb/reg-ma-environment.json`），后者即前端第二级回退。
 
@@ -441,10 +441,6 @@ VGCPastes 脚本发现脏工作区会直接拒跑；若前一次生成任务失�
 | **权威** | 本文件、`AGENTS.md`、代码本身 | 冲突时以代码 > 本文件 > 其他 |
 | **现状（已核对）** | `README.md`、`docs/product/PRODUCT_SCOPE_AND_TOOL_BOUNDARIES.md`、`docs/qa/*`、`docs/progress/DEVELOPMENT_PROGRESS.md` | 可引用；发现偏差请就地修 |
 | **计划（非现状）** | `docs/plans/*` | 记录**未实施**的意图。其中的「现状事实」章节一律不可信 |
-
-### 仍待清理的已知偏差
-
-- **代码层**：`index.html` 与 `public/manifest.webmanifest` 的描述文案硬编码了赛季号（当前写着 M-3），与 `src/data/schedule.ts` 去硬编码的目标冲突。静态 HTML 无法读运行时赛季，需要人工同步或改为不含赛季的措辞。
 
 > **维护约定**
 > - 改了刷新管线 / 路由 / KV / 分支策略后，同步更新 §6 与 §9。
