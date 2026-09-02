@@ -81,7 +81,18 @@
 
 验证：`npm test` 376 通过、`npm run build`（含 `tsc -b`）通过、`npm run test:pwa`（offline + team-samples）2 通过、`npm run worker:environment:check` 通过。
 
-## 更早三轮进展（2026-07-09）：默认双打 · 赛季/规则集中化 · 高分队规则归属
+## 更早三轮进展（2026-09-02）：Regulation M-C 接入前准备（阶段 A）
+
+PR #59（merge `9101dca`，**已合并进 main**，CI 含 `visual` 门禁一次通过、基线未重建）。计划与阶段 B 门禁见 [`docs/plans/regulation-mc-migration-2026-09.md`](../plans/regulation-mc-migration-2026-09.md)。M-C 于 **2026-09-09 02:00 UTC** 开赛，官方完整清单未公布，**阶段 B（切换规则、落数据、计算器草场 / Aura Guard）未开工**；开赛后的降级路径由上面「M-C 软着陆」一轮兜住。
+
+- **时间轴冻结**：`regulationSchedule` / `seasonSchedule` 历史边界改字面量，不再引用 `currentRuleSet`；M-B 结束时间按官方延期订正为 `2026-09-09T01:59Z`；M-B / M-5 条目补 `sourceUrl`。
+- **`RegulationId` 扩到 M-C**：`currentRegulation` 改显式映射表、缺失抛错；`sampleRegulation` 查不到赛季返回 `undefined`（不再静默归 M-A）；VGCPastes 样本在加载时按来源文件打标签；队伍库筛选按钮由 `regulationSchedule` 派生。
+- **Mega 表合并改按父级拼接数组**：为 M-C 的 Z Mega（absol / garchomp / lucario 父级已有普通 Mega）铺路，重复 `form.id` 抛错，`dataAudit` 新增 `duplicate-mega-form`。
+- **招式接触标记改用 `@smogon/calc`**：删掉名称启发式，545 条翻转 122 条（近身战 / 十万马力 / 吸取之吻 / 圣剑 → 接触；`aura-wheel` / `bone-rush` / `icicle-crash` → 非接触），`dataAudit.test.ts` 加基准门禁。`makesContact` 目前无消费方，是 Aura Guard 的前置。
+- **脚本隔离**：allowlist 生成器加守卫（存在非 `reg-ma-` 行即拒跑，无 bypass）；catalog batch 生成器批次号 / 大小 / sourceRefs 改命令行参数；特性生成器改目录扫描并新增 `--check`。
+- **去硬编码文案**：manifest / `index.html` / README / 开发指南不再写具体赛季与规则号，唯一真源是 `src/data/schedule.ts` 与 `metadata.ts`。
+
+## 更早四轮进展（2026-07-09）：默认双打 · 赛季/规则集中化 · 高分队规则归属
 
 分支 `feat/doubles-default-and-season-schedule`（**已合并进 main**）：
 
@@ -165,12 +176,15 @@ npm run test:visual
 - 分享链接预览浮层（`#/t/<code>`）没有视觉基线：用例得先决定合法 code 从哪来（写死会随 catalog 变动失效）。当前由 `App.test.tsx` 的 RTL 用例覆盖。
 - `#/api/ping` 上线后需人工确认 Analytics Engine 里确实出现 `luxraykit_pageviews` 数据集并有行写入（AE 数据集是首次写入才创建，本地 dry-run 只能验证 binding 存在）。
 - `src/styles.css` 首行远程 `@import` Google Fonts（DM Sans）：Vite 无法内联，所以 CSP 必须放行两个字体域名。自托管字体后可收紧。
+- `scripts/generate-ability-effects.mjs --check` 对 `catalog.ts` 抽到 0 条特性行（该文件的数组名是 `abilityRows`，`extractAbilityRows` 匹配不到）。改动前既有行为，目前不影响（`catalog.ts` 里的 Champions 专属特性是手写中文），但若日后直接在 `catalog.ts` 加特性行会被漏扫。
+- `src/lib/dataAudit.test.ts` 写死 Mega 形态总数 75、招式接触基准集：M-C 阶段 B 加数据时会变红，属预期，届时按实际数量更新。
 
 ## 文档索引
 
 - 开发者文档（架构 / Worker / 部署）：`docs/DEVELOPER_GUIDE.md`
 - 范围边界：`docs/product/PRODUCT_SCOPE_AND_TOOL_BOUNDARIES.md`
 - 产品路线：`docs/plans/product-roadmap-2026-08.md`
+- M-C 接入计划（阶段 A 已上线，阶段 B 待官方清单）：`docs/plans/regulation-mc-migration-2026-09.md`
 - 离线验收：`docs/qa/PWA_OFFLINE_CHECKLIST.md`
 - 数据来源：`docs/research/DATA_SOURCE_RESEARCH.md`
 - 计算边界：`docs/research/CALC_ENGINE_SPIKE.md`
