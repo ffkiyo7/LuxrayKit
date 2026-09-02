@@ -33,6 +33,7 @@ export type DataAuditIssue = {
     | 'current-rule-item-mismatch'
     | 'current-rule-nature-missing'
     | 'invalid-mega-ref'
+    | 'duplicate-mega-form'
     | 'default-team-rule-mismatch';
   message: string;
 };
@@ -102,7 +103,16 @@ export function auditSeedData(): DataAuditIssue[] {
       if (!moveIds.has(moveId)) issues.push(issue('missing-move-ref', `Pokemon ${entry.id} references unknown move ${moveId}.`));
     });
 
+    // Per-parent form ids must be unique: multiple Mega tables are merged by concatenating each
+    // parent's array (see catalog.ts mergeMegaFormsByParentId), so a repeated id means one
+    // regulation's form is shadowing another's rather than adding to it.
+    const seenMegaFormIds = new Set<string>();
+
     entry.megaForms.forEach((form) => {
+      if (seenMegaFormIds.has(form.id)) {
+        issues.push(issue('duplicate-mega-form', `Pokemon ${entry.id} has duplicate Mega form id ${form.id}.`));
+      }
+      seenMegaFormIds.add(form.id);
       issues.push(...auditSourceRefs(`Mega form ${form.id}`, form.sourceRefs));
       if (form.requiredItemId && !itemIds.has(form.requiredItemId)) {
         issues.push(issue('missing-item-ref', `Mega form ${form.id} references unknown item ${form.requiredItemId}.`));

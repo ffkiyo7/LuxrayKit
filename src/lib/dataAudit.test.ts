@@ -16,6 +16,8 @@ import {
   regMaPokemonAllowlistExpectedCount,
   speedBenchmarks,
 } from '../data';
+import type { PokemonForm } from '../types';
+import { mergeMegaFormsByParentId, mergeMegaStoneParentMap } from '../data/seed/regMA/catalog';
 import { pokedbItemNameToId } from '../data/external/pokedbItemNameMap';
 import { auditSeedData, auditSourceRefs } from './dataAudit';
 import { currentRuleMovesForPokemon, currentRuleSelectableItems } from './currentRuleCatalog';
@@ -142,6 +144,63 @@ describe('seed data audit', () => {
       ]),
     );
     expect(regMaMegaAllowlist.every((entry) => entry.verificationStatus === 'manual-review')).toBe(true);
+  });
+
+  // Regression guard for the object-spread merge that used to combine the per-regulation Mega
+  // tables: a parent present in two tables (e.g. Absol, which keeps its plain Mega from M-A and
+  // gains a Z Mega later) had its earlier forms silently dropped.
+  it('merges per-regulation Mega tables by appending forms under the same parent', () => {
+    const form = (id: string, pokemonId: string): PokemonForm => ({
+      id,
+      pokemonId,
+      chineseName: id,
+      englishName: id,
+      types: ['Dark'],
+      baseStats: { hp: 1, attack: 1, defense: 1, specialAttack: 1, specialDefense: 1, speed: 1 },
+      abilities: [],
+      requiredItemId: `${id}-stone`,
+      sourceRefs: ['manual-seed-review'],
+    });
+
+    const merged = mergeMegaFormsByParentId([
+      { absol: [form('mega-absol', 'absol')] },
+      { absol: [form('mega-absol-z', 'absol')] },
+    ]);
+
+    expect(merged.absol.map((entry) => entry.id)).toEqual(['mega-absol', 'mega-absol-z']);
+  });
+
+  it('rejects a duplicate Mega form id instead of letting the later table win', () => {
+    const form = (id: string, pokemonId: string): PokemonForm => ({
+      id,
+      pokemonId,
+      chineseName: id,
+      englishName: id,
+      types: ['Dark'],
+      baseStats: { hp: 1, attack: 1, defense: 1, specialAttack: 1, specialDefense: 1, speed: 1 },
+      abilities: [],
+      sourceRefs: ['manual-seed-review'],
+    });
+
+    expect(() =>
+      mergeMegaFormsByParentId([{ absol: [form('mega-absol', 'absol')] }, { absol: [form('mega-absol', 'absol')] }]),
+    ).toThrow(/Duplicate Mega form id/);
+  });
+
+  it('rejects a Mega stone that maps to two different parents', () => {
+    expect(() => mergeMegaStoneParentMap([{ absolite: 'absol' }, { absolite: 'absol' }])).not.toThrow();
+    expect(() => mergeMegaStoneParentMap([{ absolite: 'absol' }, { absolite: 'lucario' }])).toThrow(
+      /conflicting parents/,
+    );
+  });
+
+  it('keeps every Mega form id unique within its parent', () => {
+    for (const entry of pokemon) {
+      const ids = entry.megaForms.map((form) => form.id);
+      expect(new Set(ids).size, `${entry.id} Mega form ids`).toBe(ids.length);
+    }
+    // Total across the merged M-A + M-B tables. Update deliberately when a regulation adds Megas.
+    expect(pokemon.flatMap((entry) => entry.megaForms)).toHaveLength(75);
   });
 
   it('connects Champions-added Mega forms to Pokemon, stones, and local assets', () => {
