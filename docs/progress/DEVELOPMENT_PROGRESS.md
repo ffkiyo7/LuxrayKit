@@ -8,7 +8,30 @@
 
 环境优先重构、Luxray Kit 品牌更新和 Cloudflare Worker 统一部署已进入 `main`。生产站点由 `luxraykit-app` Worker 提供静态资源与 API，环境页在线优先读取 KV 中的 PokeDB snapshot，并保留最新赛季静态快照和开发 seed 两级回退。
 
-## 本轮进展（2026-09-07）：条件请求 · 首屏瘦身 · TeamPage 拆分
+## 本轮进展（2026-09-07）：站内留言箱（Durable Object SQLite）
+
+分支 `feat/feedback-inbox`（stacked 在 `perf/snapshot-etag-first-paint` 之上，PR base 为该分支）。
+
+**起因**：PR #62 给「反馈」做的三个 GitHub issue 入口，owner 验收时否掉了——**三个入口都强制登录 GitHub，而且三个太多**。对一个不需要账号的本地优先 PWA 来说，登录墙是最高的一道门槛。改成不依赖 GitHub 的站内留言箱。
+
+- **Worker：`/api/feedback`（`cloudflare/environment-worker/src/feedbackInbox.ts`）**。存储用 Durable Object 自带的 SQLite（migrations 追加 `v2` / `new_sqlite_classes`，**v1 未动**）：deploy 即建库，**零 Dashboard 操作**——D1 与新 KV namespace 都要 owner 先手工创建再把 id 填回配置。单实例 `idFromName('feedback-inbox')`。
+  - `POST /api/feedback` 公开：body ≤ 4 KB，`message` trim 后 5–1000 字符，`contact` ≤ 120，`route` 走 `routePatterns` 白名单（与 `/api/ping` 同一份，不在就置空），`website` 蜜罐返回与真成功形状相同的 201 但不落库。
+  - `GET /api/feedback?status=new|read|all&limit=50` / `PATCH /api/feedback/:id` `{status:'read'}` 复用 `ADMIN_REFRESH_TOKEN` Bearer 鉴权。
+  - **限流在 DO 内做**（单实例天然串行，不需要锁）：同一 `client_key` 5 条 / UTC 日，全站 200 条 / UTC 日，越界 429。
+  - **隐私边界**：不存 IP 原文——`client_key` = SHA-256(固定盐 + IP + 当天 UTC 日期) 取前 16 位，**在 Worker 里就算完**，DO 只见派生值且每天轮换；不存 UA 原文，只落 iOS / Android / Windows / macOS / other。
+  - **Discord 推送**：secret `FEEDBACK_DISCORD_WEBHOOK` 存在时 `ctx.waitUntil` 发一条 embed，未设置静默跳过，推送失败只记日志（留言已落库）。
+  - **preview 没有 DO 绑定**（`wrangler.preview.jsonc` 刻意不加），三个端点一律 503 `feedback_unavailable`。
+  - 字段表、curl 示例与 secret 设置命令见开发指南 §6.8。
+- **前端**：新路由 `#/profile/feedback`（`hashRoute.ts`，同步进 `routePatterns`，所以 ping 白名单自动包含它）+ 底部弹层 `src/pages/profile/FeedbackSheet.tsx`：三选一 chip（问题 / 建议 / 其他，默认建议）、计数 textarea、可选联系方式、隐藏蜜罐、自动附带 `__APP_BUILD__` / 数据版本 / 来源路由。草稿存 `sessionStorage`（误关不丢字，发送成功即清）；429 / 503 / 网络错误各给一句能据此行动的话，离线时禁用发送。
+- **「我的」与引导**：「反馈与建议」三入口卡 → 一张「留言」卡 + 「写留言」按钮；「关于」把「复制版本信息」降为次要样式，卡底留一行小字「也可以在 GitHub 提 issue」。`branding.feedbackLinks` 只剩 `general`，`.github/ISSUE_TEMPLATE/` 保留（GitHub 侧仍有用）。引导末页三个 chip 与「发送反馈」都改成按钮：完成引导 + 跳到留言表单。
+
+**测试怎么做的**：能纯化的判断（校验、`client_key` 派生、UA 归类、限流判定、Discord payload）全部导出成纯函数单测；SQL 收在 `FeedbackRepository` 接口后面，`feedbackInbox.test.ts` 用一个只认那几条语句的内存 `SqlLike` 假实现跑 insert / list / patch / 限流；`index.test.ts` 用 stub 的 `FEEDBACK_INBOX.get().fetch` 覆盖路由、鉴权、503、蜜罐、body 上限、Discord `waitUntil`。
+
+验证：见本文件末尾的当前验证命令一节；数字与视觉基线结论写在 PR 里。
+
+⚠️ 与上两轮同因：**本 PR 上没有 CI**（`ci.yml` 只在 `pull_request: branches: [main]` 触发，这是 stacked PR），数字来自本机。
+
+## 上一轮进展（2026-09-07）：条件请求 · 首屏瘦身 · TeamPage 拆分
 
 分支 `perf/snapshot-etag-first-paint`（stacked 在 `feat/hash-routing-share-feedback` 之上，PR base 为该分支）。一条主题：**打开环境首页要下载的东西太多**（实测约 345 KB gzip + 450 KB 未压缩快照）。首屏 JS 合计 **404,548 → 236,378 字节（-42%）**。
 
@@ -21,7 +44,7 @@
 
 ⚠️ 与上一轮同因：**本 PR 上没有 CI**（`ci.yml` 只在 `pull_request: branches: [main]` 触发，这是 stacked PR），数字来自本机。
 
-## 上一轮进展（2026-09-07）：hash 路由 · 队伍分享链接 · 反馈入口 · 匿名统计
+## 更早一轮进展（2026-09-07）：hash 路由 · 队伍分享链接 · 反馈入口 · 匿名统计
 
 分支 `feat/hash-routing-share-feedback`（stacked 在 `feat/mc-soft-landing` 之上，PR 待合并）。四件事，一条根因：App 此前**没有任何 URL 状态**，Android 物理返回键直接退出 PWA、无法深链、无法分享、无法按页面统计。
 
@@ -43,7 +66,7 @@
 
 ⚠️ **本 PR 上没有 CI**：`ci.yml` 只在 `pull_request: branches: [main]` 触发，而这是 stacked 在 `feat/mc-soft-landing` 上的 PR。`test` 与 `visual` 两个门禁要等 PR #61 合并、本 PR 改 base 到 `main` 之后才会跑。上面的数字全部来自本机。
 
-## 更早一轮进展（2026-09-07）：M-C 软着陆 · 回退层新鲜度 · SW 预缓存 manifest · 清理
+## 更早两轮进展（2026-09-07）：M-C 软着陆 · 回退层新鲜度 · SW 预缓存 manifest · 清理
 
 分支 `feat/mc-soft-landing`（PR 待合并）。目标是**开赛后线上不出现用户视角不可接受的降级**，不做阶段 B（切 `currentRuleSet`、落 M-C catalog 数据）：
 
@@ -58,7 +81,7 @@
 
 验证：`npm test` 376 通过、`npm run build`（含 `tsc -b`）通过、`npm run test:pwa`（offline + team-samples）2 通过、`npm run worker:environment:check` 通过。
 
-## 更早两轮进展（2026-07-09）：默认双打 · 赛季/规则集中化 · 高分队规则归属
+## 更早三轮进展（2026-07-09）：默认双打 · 赛季/规则集中化 · 高分队规则归属
 
 分支 `feat/doubles-default-and-season-schedule`（**已合并进 main**）：
 
@@ -82,7 +105,7 @@
 - 深浅主题和滚动时自动隐藏底部导航。
 - **URL hash 路由**：四个 Tab 与所有二级页面可深链、可收藏、可用物理返回键后退（路由表见开发指南 §4.1）。
 - **队伍分享链接** `#/t/<code>`：详情页一键生成，对方先看预览与失效项 warning 再决定导入（格式见开发指南 §4.6）。
-- **反馈入口**：引导末页与「我的 → 反馈与建议」三个入口直达 GitHub issue；「我的 → 关于」可一键复制版本信息。
+- **站内留言**：引导末页与「我的 → 留言」都进 `#/profile/feedback` 表单，**不需要 GitHub 账号**；留言不公开，存 Cloudflare Durable Object SQLite，新留言推 Discord（见开发指南 §6.8）。「我的 → 关于」可一键复制版本信息，并保留一个 GitHub issue 出口。
 
 ### 数据
 

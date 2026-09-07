@@ -2,7 +2,7 @@
 
 > **状态：待实施计划，不是现状描述**（文档分级见 `docs/DEVELOPER_GUIDE.md` §10）。
 > 建立日期：2026-08-05 · 起因：产品进入需求瓶颈，一次集中的现状盘点 + 方案评审。
-> 最近更新：2026-09-07 · **P0 / P1 / P2 已落地**（P2 见分支 `feat/hash-routing-share-feedback`），第 1 节的反馈回路缺口也已补上。下一个入口是 P3。
+> 最近更新：2026-09-07 · **P0 / P1 / P2 已落地**（P2 见分支 `feat/hash-routing-share-feedback`），第 1 节的反馈回路缺口也已补上（反馈入口后来又从 GitHub issue 换成站内留言箱，见第 1 节）。下一个入口是 P3。
 > 本文记录 owner 已表态的判断与优先级，供下一轮开工时直接领取任务。
 >
 > **已落地的部分留在本文只作决策留痕**；实现事实以开发指南 §5.3 / §6.3 为准。
@@ -20,7 +20,7 @@
 
 盘点中确认的结构性问题——**这不是灵感枯竭，是信息缺失**：
 
-- ~~onboarding 第 5 页的「反馈问题 / 功能建议 / 留言」三个 chip 是纯 `<span>`，**没有 link 也没有 handler**（`src/components/onboarding/Onboarding.tsx:140-162`）。产品**没有任何反馈入口**。~~ ✅ 2026-09-07（`feat/hash-routing-share-feedback`）：chip 变真链接，末页「发送反馈」开 issue chooser，「我的」新增「反馈与建议」卡 + 「关于」卡（可复制版本信息）。
+- ~~onboarding 第 5 页的「反馈问题 / 功能建议 / 留言」三个 chip 是纯 `<span>`，**没有 link 也没有 handler**（`src/components/onboarding/Onboarding.tsx:140-162`）。产品**没有任何反馈入口**。~~ ✅ 2026-09-07（`feat/hash-routing-share-feedback`，PR #62）：chip 变真链接，末页「发送反馈」开 issue chooser，「我的」新增「反馈与建议」卡 + 「关于」卡（可复制版本信息）。**随后被换掉**（`feat/feedback-inbox`）：GitHub 三入口**都强制登录 GitHub、而且三个太多**，改成不依赖 GitHub 的站内留言箱——一个表单（`#/profile/feedback`）、私信箱、存 Cloudflare Durable Object SQLite、新留言推到 owner 的 Discord。GitHub 只在「关于」卡底留一个小字出口。见开发指南 §6.8。
 - ~~没有任何埋点：不知道 307 份队伍样本哪些被导入过，不知道四个工具谁在被用。~~ 🚧 2026-09-07：**只做了页面级**匿名统计（Workers Analytics Engine，`POST /api/ping`，路由模式 / PWA / 主题 / 国家，可关）。这回答了「四个工具谁在被用」，**没有**回答「哪些队伍样本被导入过」——那需要事件级埋点，尚未决定要不要做。
 - 没有账号（这是有意设计，不改），因此也没有用户触点。
 

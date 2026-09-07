@@ -132,6 +132,7 @@ main.tsx
 | `#/tools/calculator` / `dex` / `speed` / `typechart` | 四个工具 |
 | `#/tools/dex/:pokemonId` | 图鉴详情 |
 | `#/profile` | 我的 |
+| `#/profile/feedback` | 站内留言表单（底部弹层，见 §6.8） |
 | `#/t/:code` | 分享链接预览（见 §4.6） |
 
 - 空 hash 或无法识别的 hash 一律 `history.replaceState` 归一化到 `#/env`，**不留历史记录**。
@@ -310,6 +311,9 @@ npm run data:pokemon-facts:check  # 只校验现有快照，不访问网络；CI
 | `GET /api/pokemon/:pokemonId/teams?battleType=singles` | 某宝可梦相关队伍（来自 team-index） |
 | `POST /api/environment/refresh` | 受保护，手动触发刷新（`Authorization: Bearer <ADMIN_REFRESH_TOKEN>`）；支持 `?step=1&jobId=` 单步 |
 | `POST /api/ping` | 匿名页面访问计数，恒定 204 `no-store`（见 §6.7） |
+| `POST /api/feedback` | 站内留言提交，公开；201 `{ id, createdAt }`（见 §6.8） |
+| `GET /api/feedback?status=new\|read\|all&limit=50` | 受保护，列留言（`Authorization: Bearer <ADMIN_REFRESH_TOKEN>`） |
+| `PATCH /api/feedback/:id` | 受保护，`{ status: 'read' }` 标记已读 |
 | 其它 `/api/*` | 404 JSON |
 | 其它 | `env.ASSETS.fetch`（前端） |
 
@@ -420,6 +424,78 @@ npm run worker:app:types   # 改 binding 后重新生成 worker-configuration.d.
   AE 是采样存储，聚合时用 `sum(_sample_interval)` 而不是 `count()`，否则高流量下会低估。
 
 数据集在首次写入时自动创建，Dashboard 不需要预先建。preview 与生产刻意共用同一个数据集：preview 流量可以忽略，两个半空的数据集比一个更难看懂。
+
+
+### 6.8 站内留言箱（Durable Object SQLite）
+
+「我的 → 留言」与引导末页都走 `#/profile/feedback` 的表单（`src/pages/profile/FeedbackSheet.tsx`）。
+**私信箱**：用户提交后只看到「已收到」，留言不公开、站内任何地方都不展示。
+
+- **为什么是 DO + SQLite**：`new_sqlite_classes` 迁移在 `wrangler deploy` 时自动建库，**零
+  Dashboard 操作**；D1 与新 KV namespace 都要 owner 先手工创建、再把 id 填回配置。留言量级
+  （每天上限 200 条）也远在单实例的舒适区内。
+- **绑定**：`FEEDBACK_INBOX` → `FeedbackInboxDurableObject`，单实例 `idFromName('feedback-inbox')`。
+  migrations 追加 `{"tag": "v2", "new_sqlite_classes": ["FeedbackInboxDurableObject"]}`——**v1 不可改**。
+- **preview 没有这个绑定**（`wrangler.preview.jsonc` 刻意不带 DO），所以 preview 上三个端点
+  一律返回 503 `{ "error": "feedback_unavailable" }`，前端显示「留言功能暂时不可用」。这是
+  结构性事实，不是故障。
+
+**表结构**（`this.ctx.storage.sql`，建表在 `blockConcurrencyWhile` 里）：
+
+```sql
+feedback(id TEXT PK, created_at TEXT, kind TEXT, message TEXT, contact TEXT,
+         route TEXT, app_build TEXT, data_version TEXT, ua_family TEXT,
+         country TEXT, client_key TEXT, status TEXT)
+```
+
+`kind` ∈ `bug` / `idea` / `other`，`status` ∈ `new` / `read`。
+
+**校验**（`parseFeedbackBody`）：body ≤ 4 KB（按 UTF-8 字节，1000 个汉字约 3 KB）；`message`
+trim 后 5–1000 字符；`contact` ≤ 120；`appBuild` / `dataVersion` ≤ 40；`route` 必须在
+`src/lib/hashRoute.ts` 的 `routePatterns` 里（与 `/api/ping` 同一份白名单），不在就**置空而不是报错**
+——它只是诊断信息。`website` 是蜜罐字段：非空直接返回一个与真成功**形状完全相同**的 201，
+但不落库。
+
+**限流**（在 DO 内做——单实例天然串行，读计数和写入之间插不进第二个请求，不需要锁）：
+
+| 维度 | 上限 | 越界 |
+| --- | --- | --- |
+| 同一 `client_key`（≈ 同一 IP + 同一 UTC 日） | 5 条 / 天 | 429 `{ "error": "feedback_rate_limited" }` |
+| 全站 | 200 条 / UTC 日 | 同上 |
+
+**隐私边界**（与 §6.7 同一条线）：
+
+- **不存 IP 原文**。`client_key` = SHA-256(固定盐 + `cf-connecting-ip` + 当天 UTC 日期) 取前 16 位，
+  **在 Worker 里就算完**，DO 只见得到这个派生值。它每天轮换，所以能当日配额用，却拼不出跨天的同一个人。
+- **不存 UA 原文**。`ua_family` 只落 iOS / Android / Windows / macOS / other 五个粗粒度值。
+- `country` 用 `request.cf.country`（Cloudflare 自己解析的两位国家码）。
+- 所有响应 `cache-control: no-store`。
+
+**Discord 推送**：`env.FEEDBACK_DISCORD_WEBHOOK` 存在时，`ctx.waitUntil` 发一条 embed
+（kind 中文、正文截到 1500、联系方式、来源页面、构建、数据版本、国家、设备、id、UTC+8 时间）。
+**未设置就静默跳过**；推送失败只记 `feedback_discord_push_failed` JSON 日志，不影响用户那边的 201
+——留言已经落库了。设置命令：
+
+```bash
+npx wrangler secret put FEEDBACK_DISCORD_WEBHOOK --config cloudflare/environment-worker/wrangler.jsonc
+```
+
+**管理**（复用 `ADMIN_REFRESH_TOKEN`，与手动刷新同一个 secret）：
+
+```bash
+# 未读列表（默认 status=new，limit ≤ 200，按 created_at 倒序）
+curl -H "Authorization: Bearer $ADMIN_REFRESH_TOKEN" https://luxraykit.com/api/feedback?status=new
+
+# 标记已读
+curl -X PATCH -H "Authorization: Bearer $ADMIN_REFRESH_TOKEN" -H 'content-type: application/json' \
+  -d '{"status":"read"}' https://luxraykit.com/api/feedback/<id>
+```
+
+**代码与测试**：`cloudflare/environment-worker/src/feedbackInbox.ts` 把能纯化的判断（校验、
+`client_key` 派生、UA 归类、限流判定、Discord payload）全部导出成纯函数，SQL 收在
+`FeedbackRepository` 接口后面；`feedbackInbox.test.ts` 用一个只认这几条语句的内存 `SqlLike`
+假实现跑 insert / list / patch / 限流，`index.test.ts` 用 stub 的 `FEEDBACK_INBOX.get().fetch`
+覆盖路由、鉴权、503、蜜罐与 body 上限。
 
 ---
 
