@@ -1,4 +1,7 @@
-import { abilities, currentDataVersion, currentRuleNatureOptions, currentRuleSet, items, moves, pokemon, regMaPokemonAllowlist } from './seed/regMA';
+import { abilities, currentDataVersion, currentRuleNatureOptions, currentRuleSet, items, pokemon, regMaPokemonAllowlist } from './seed/regMA';
+// Ids only. Importing the full `move-catalog.ts` here for the audit id list is what pulled the
+// 362 KB (55 KB gzip) move chunk into the environment first paint; see scripts/generate-move-ids.mjs.
+import { moveIds } from './seed/regMA/move-ids';
 import { currentEnvironmentDataset } from './environmentDatasetSeed';
 import { pokedbItemNameToId } from './external/pokedbItemNameMap';
 import {
@@ -14,6 +17,7 @@ import {
   type RegulationId,
 } from '../lib/environmentDataset';
 import { isImmediatePredecessor, type SeasonRankSnapshot } from '../lib/seasonRankDelta';
+import type { Move } from '../types';
 import {
   buildEnvironmentDatasetFromPokeDbOpenData,
   buildEnvironmentDatasetFromPokeDbStatistics,
@@ -96,7 +100,7 @@ export type EnvironmentState = {
 
 const environmentCatalog = {
   pokemonIds: pokemon.map((entry) => entry.id),
-  moveIds: moves.map((entry) => entry.id),
+  moveIds,
   itemIds: items.map((entry) => entry.id),
   abilityIds: abilities.map((entry) => entry.id),
   natureIds: currentRuleNatureOptions.map((entry) => entry.id),
@@ -257,6 +261,13 @@ type FetchedEnvironmentSnapshot = {
   cacheState?: string;
   sourceStatus?: string;
   latestSourceUpdatedAt?: string;
+  /**
+   * `x-luxray-refreshed-at` from the Worker. The snapshot body may be served out of the
+   * browser's HTTP cache after a 304, so the body's own `retrievedAt` can lag the pipeline;
+   * this header always comes from the live response (browsers merge 304 headers into the
+   * cached entry) and is therefore the authoritative 「抓取」 time.
+   */
+  refreshedAt?: string;
 };
 
 const fetchEnvironmentSnapshot = async (
@@ -275,8 +286,12 @@ const fetchEnvironmentSnapshot = async (
     cacheState: response.headers.get('x-luxray-cache-state') ?? undefined,
     sourceStatus: response.headers.get('x-luxray-source-status') ?? undefined,
     latestSourceUpdatedAt: response.headers.get('x-luxray-latest-source-updated-at') ?? undefined,
+    refreshedAt: response.headers.get('x-luxray-refreshed-at') ?? undefined,
   };
 };
+
+const withRefreshedAt = (state: EnvironmentState, refreshedAt: string | undefined): EnvironmentState =>
+  refreshedAt ? { ...state, updatedAt: refreshedAt } : state;
 
 const parseEnvironmentSourceTime = (value: string | undefined) => {
   if (!value) return Number.NaN;
@@ -328,8 +343,11 @@ export const loadEnvironmentState = async (
   // The curated VGCPastes samples are fetched only after a base snapshot loads, so
   // the worker/static snapshot remains the primary (first) request.
   try {
-    const workerUrl = `${WORKER_ENVIRONMENT_SNAPSHOT_URL}?refresh=${Date.now()}`;
-    const result = await fetchEnvironmentSnapshot(fetcher, workerUrl, 'no-store');
+    // No cache-busting query string and `no-cache` rather than `no-store`: the Worker serves
+    // the snapshot with an ETag, so the browser revalidates on every load but a 304 keeps the
+    // 450 KB body out of the wire. `fetch` transparently returns the cached body plus the
+    // freshly merged x-luxray-* headers.
+    const result = await fetchEnvironmentSnapshot(fetcher, WORKER_ENVIRONMENT_SNAPSHOT_URL, 'no-cache');
     const workerMetadata = {
       sourceKind: 'worker' as const,
       freshness: result.cacheState === 'fresh' ? 'fresh' as const : 'stale' as const,
@@ -338,7 +356,10 @@ export const loadEnvironmentState = async (
 
     if (workerMetadata.freshness === 'fresh' && workerMetadata.sourceStatus === 'ok') {
       const vgcPastesTeamSamples = await loadVgcPastesTeamSamples();
-      return createEnvironmentStateFromPokeDbSnapshot(result.snapshot, workerMetadata, vgcPastesTeamSamples);
+      return withRefreshedAt(
+        createEnvironmentStateFromPokeDbSnapshot(result.snapshot, workerMetadata, vgcPastesTeamSamples),
+        result.refreshedAt,
+      );
     }
 
     // A stale or degraded Worker can lag behind the independently maintained static
@@ -347,7 +368,10 @@ export const loadEnvironmentState = async (
     try {
       const staticResult = await fetchEnvironmentSnapshot(fetcher, POKEDB_ENVIRONMENT_SNAPSHOT_URL, 'force-cache');
       const vgcPastesTeamSamples = await loadVgcPastesTeamSamples();
-      const workerState = createEnvironmentStateFromPokeDbSnapshot(result.snapshot, workerMetadata, vgcPastesTeamSamples);
+      const workerState = withRefreshedAt(
+        createEnvironmentStateFromPokeDbSnapshot(result.snapshot, workerMetadata, vgcPastesTeamSamples),
+        result.refreshedAt,
+      );
       const staticState = createEnvironmentStateFromPokeDbSnapshot(staticResult.snapshot, {
         sourceKind: 'static',
         freshness: 'stale',
@@ -367,7 +391,10 @@ export const loadEnvironmentState = async (
     }
 
     const vgcPastesTeamSamples = await loadVgcPastesTeamSamples();
-    return createEnvironmentStateFromPokeDbSnapshot(result.snapshot, workerMetadata, vgcPastesTeamSamples);
+    return withRefreshedAt(
+      createEnvironmentStateFromPokeDbSnapshot(result.snapshot, workerMetadata, vgcPastesTeamSamples),
+      result.refreshedAt,
+    );
   } catch {
     // Static deployments and offline installs can keep using the bundled maintenance snapshot.
   }
@@ -392,7 +419,28 @@ export const environmentPokemonUsage: Record<EnvironmentBattleType, EnvironmentP
 export const environmentTeamSamples: EnvironmentTeamSample[] = environmentFallbackState.teamSamples;
 
 export const getEnvironmentPokemon = (pokemonId: string) => pokemon.find((entry) => entry.id === pokemonId);
-export const getEnvironmentMove = (moveId: string) => moves.find((entry) => entry.id === moveId);
 export const getEnvironmentItem = (itemId: string) => items.find((entry) => entry.id === itemId);
+
+/**
+ * Move objects for the environment detail screen, loaded on demand.
+ *
+ * The environment home (`#/env`) renders rankings and team cards and never needs a `Move`, so
+ * the catalog stays out of the first paint and arrives when someone opens a Pokémon's detail.
+ * The promise is memoised; a failed load is forgotten so the next open can retry.
+ */
+let environmentMovesPromise: Promise<Move[]> | undefined;
+
+export const loadEnvironmentMoves = (): Promise<Move[]> => {
+  environmentMovesPromise ??= import('./seed/regMA/move-catalog')
+    .then((module) => module.championsMoves)
+    .catch((error) => {
+      environmentMovesPromise = undefined;
+      throw error;
+    });
+  return environmentMovesPromise;
+};
+
+export const loadEnvironmentMove = async (moveId: string) =>
+  (await loadEnvironmentMoves()).find((entry) => entry.id === moveId);
 
 export const environmentSourceLabel = environmentFallbackState.sourceLabel;

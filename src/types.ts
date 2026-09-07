@@ -234,6 +234,13 @@ export type TeamSource =
       title: string;
       reportUrl: string;
       importedAt: string;
+    }
+  | {
+      // Imported from a `#/t/<code>` share link. `sharedAt` is when the link was opened
+      // (the code carries no timestamp of its own — nothing about the sharer is encoded).
+      kind: 'share-link-import';
+      sharedAt: string;
+      importedAt: string;
     };
 
 export type Team = {
@@ -258,6 +265,9 @@ export type UserPreference = {
   hasSeenEnvironmentImportNotice: boolean;
   hasCompletedOnboarding: boolean;
   hasSeenLuxrayEasterEgg: boolean;
+  // Opt *out*, so the default (false) keeps the anonymous page-view ping on. See lib/analytics.ts
+  // for exactly what it sends — no cookie, no identifier, no user content.
+  analyticsOptOut: boolean;
 };
 
 export type AppState = {

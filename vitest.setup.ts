@@ -1,3 +1,15 @@
+import { beforeEach } from 'vitest';
+
+// Hash routing keeps navigation in `location.hash`, and jsdom carries the URL (plus its
+// session history state) across tests inside a file. Reset both before every test so a
+// case never inherits the previous one's screen. replaceState — not `location.hash = ''` —
+// because it also clears the `lkDepth` marker that `useHashRoute().back()` reads.
+if (typeof window !== 'undefined') {
+  beforeEach(() => {
+    window.history.replaceState(null, '', window.location.pathname + window.location.search);
+  });
+}
+
 // jsdom does not implement window.scrollTo, so any component that resets the
 // window scroll position (e.g. EnvironmentPage view switches) would otherwise
 // flood the test output with "Not implemented: Window's scrollTo()" noise.

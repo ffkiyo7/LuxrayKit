@@ -35,6 +35,16 @@
     "ALLOWED_ORIGINS": "*",
     "SCHEDULED_MAX_JITTER_MS": "90000"
   },
+  "analytics_engine_datasets": [
+    {
+      // Anonymous page-view counter for POST /api/ping. AE datasets are created on first
+      // write — nothing to provision in the Dashboard. Preview and production intentionally
+      // share the dataset: preview traffic is a rounding error and one dataset beats two
+      // half-populated ones.
+      "binding": "LUXRAY_ANALYTICS",
+      "dataset": "luxraykit_pageviews"
+    }
+  ],
   "kv_namespaces": [
     {
       "binding": "ENVIRONMENT_CACHE",

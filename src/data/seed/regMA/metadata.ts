@@ -43,6 +43,7 @@ export const defaultPreferences: UserPreference = {
   hasSeenEnvironmentImportNotice: false,
   hasCompletedOnboarding: false,
   hasSeenLuxrayEasterEgg: false,
+  analyticsOptOut: false,
 };
 
 export const dataSourceManifest: DataSourceManifest = {

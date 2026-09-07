@@ -7,6 +7,7 @@ import { currentRuleMovesForPokemon, currentRuleSelectableItems } from '../lib/c
 import { evaluateMemberLegality } from '../lib/legality';
 import { getDexFormEntries, type DexFormEntry } from '../lib/pokemonForms';
 import { createDefaultTeamMember } from '../lib/teamMemberDefaults';
+import { useHashRoute } from '../hooks/useHashRoute';
 import { useAppStore } from '../state/AppContext';
 import type { ItemCategory, Move, PokemonType } from '../types';
 import { Button, Card, EmptyState, OverlappingAvatars, PokemonAvatar, TypeBadge } from '../components/ui';
@@ -686,7 +687,15 @@ export function DexPage({
   const [selectedItemCategories, setSelectedItemCategories] = useState<ItemCategory[]>([]);
   const [showItemCategoryFilter, setShowItemCategoryFilter] = useState(false);
   const [expandedMoveId, setExpandedMoveId] = useState<string | null>(null);
-  const [detailPokemonId, setDetailPokemonId] = useState<string | null>(null);
+  // The open Pokemon comes from #/tools/dex/:pokemonId so a dex entry is linkable and the
+  // hardware back button closes the detail. Tab, search and filters stay local — they are
+  // a working set, not a destination.
+  const { route, navigate, back } = useHashRoute();
+  const detailPokemonId = route.name === 'dex-pokemon' ? route.pokemonId : null;
+  const closeDetail = () => {
+    if (route.name === 'dex-pokemon') navigate({ name: 'tool', tool: 'dex' }, { replace: true });
+  };
+  const openDetail = (pokemonId: string) => navigate({ name: 'dex-pokemon', pokemonId });
   const [expandedAbilityListIds, setExpandedAbilityListIds] = useState<string[]>([]);
   const dexEntries = useMemo(
     () =>
@@ -787,7 +796,7 @@ export function DexPage({
     setQuery('');
     setSelectedTypes([]);
     setShowTypeFilter(false);
-    setDetailPokemonId(entry.id);
+    openDetail(entry.id);
   };
 
   return (
@@ -869,23 +878,23 @@ export function DexPage({
             <div className="flex flex-wrap items-center gap-2">
               <span className="rounded-md border border-border bg-secondary px-2 py-1 text-[11px] font-semibold text-textSecondary">{typeFilterLabel}</span>
               {showMegaOnly && <span className="rounded-md border border-accent/35 bg-accent/10 px-2 py-1 text-[11px] font-semibold text-accent">仅 Mega</span>}
-              <Button variant="ghost" onClick={() => { setSelectedTypes([]); setShowMegaOnly(false); setDetailPokemonId(null); }}>
+              <Button variant="ghost" onClick={() => { setSelectedTypes([]); setShowMegaOnly(false); closeDetail(); }}>
                 清空
               </Button>
             </div>
           )}
           {filteredPokemon.length === 0 ? (
-            <EmptyState title="没有找到相关内容" action={<Button onClick={() => { setQuery(''); setSelectedTypes([]); setShowMegaOnly(false); setDetailPokemonId(null); }}>清除筛选</Button>} />
+            <EmptyState title="没有找到相关内容" action={<Button onClick={() => { setQuery(''); setSelectedTypes([]); setShowMegaOnly(false); closeDetail(); }}>清除筛选</Button>} />
           ) : detailPokemon ? (
             <PokemonDetail
               entry={detailPokemon}
-              onBack={() => setDetailPokemonId(null)}
+              onBack={back}
               onOpenCalculator={onOpenCalculator}
             />
           ) : (
             <div className="space-y-2">
               {filteredPokemon.map((entry) => (
-                <PokemonListCard key={entry.id} entry={entry} onOpen={() => setDetailPokemonId(entry.id)} />
+                <PokemonListCard key={entry.id} entry={entry} onOpen={() => openDetail(entry.id)} />
               ))}
             </div>
           )}

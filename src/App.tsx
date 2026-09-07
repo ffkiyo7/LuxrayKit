@@ -10,6 +10,9 @@ import { productName } from './branding';
 import { productContextLabel } from './data/schedule';
 import type { EnvironmentState, EnvironmentTeamSample } from './data/environment';
 import { useAutoHideBottomNav } from './hooks/useAutoHideBottomNav';
+import { useHashRoute } from './hooks/useHashRoute';
+import { routeForTab, routePattern, tabForRoute, type Route, type ToolRouteId } from './lib/hashRoute';
+import { trackRoute } from './lib/analytics';
 import { AppProvider, useAppStore } from './state/AppContext';
 import type { Team, TeamMember } from './types';
 import type { ToolView } from './pages/ToolsPage';
@@ -22,6 +25,7 @@ const ProfilePage = lazy(() => import('./pages/ProfilePage').then((module) => ({
 const RulePage = lazy(() => import('./pages/RulePage').then((module) => ({ default: module.RulePage })));
 const SpeedPage = lazy(() => import('./pages/SpeedPage').then((module) => ({ default: module.SpeedPage })));
 const TeamPage = lazy(() => import('./pages/TeamPage').then((module) => ({ default: module.TeamPage })));
+const SharedTeamPreview = lazy(() => import('./pages/SharedTeamPreview').then((module) => ({ default: module.SharedTeamPreview })));
 const ToolsPage = lazy(() => import('./pages/ToolsPage').then((module) => ({ default: module.ToolsPage })));
 const TypeChartPage = lazy(() => import('./pages/TypeChartPage').then((module) => ({ default: module.TypeChartPage })));
 
@@ -36,6 +40,28 @@ const tabs = [
 ] satisfies Array<{ id: TabId; label: string; icon: typeof Users }>;
 
 const IMPORT_FEEDBACK_DURATION_MS = 2500;
+
+// The tool view id used in code (`typeChart`) predates the route table; the URL keeps an
+// all-lowercase slug. These two maps are the only place the two spellings meet.
+const toolViewByRouteId: Record<ToolRouteId, ToolView> = {
+  calculator: 'calculator',
+  dex: 'dex',
+  speed: 'speed',
+  typechart: 'typeChart',
+};
+
+const routeIdByToolView: Record<ToolView, ToolRouteId> = {
+  calculator: 'calculator',
+  dex: 'dex',
+  speed: 'speed',
+  typeChart: 'typechart',
+};
+
+const toolViewForRoute = (route: Route): ToolView | null => {
+  if (route.name === 'tool') return toolViewByRouteId[route.tool];
+  if (route.name === 'dex-pokemon') return 'dex';
+  return null;
+};
 
 type AppToast = {
   title: string;
@@ -139,9 +165,15 @@ function ToolWorkspace({
 }
 
 function AppShell() {
-  const [activeTab, setActiveTab] = useState<TabId>('environment');
+  // Navigation lives in the URL hash (see lib/hashRoute.ts): the Android hardware back
+  // button, deep links and share links all need it. Only ephemeral, id-bearing presets
+  // stay in memory below.
+  const { route, navigate, back } = useHashRoute();
+  const activeTab: TabId = tabForRoute(route);
+  const toolView = toolViewForRoute(route);
+  // RulePage stays deliberately unreachable — kept rendered behind a state that nothing
+  // sets, and intentionally *not* given a route. See AGENTS.md / DEVELOPER_GUIDE §4.1.
   const [overlay, setOverlay] = useState<OverlayPage>(null);
-  const [toolView, setToolView] = useState<ToolView | null>(null);
   const [calculatorMemberId, setCalculatorMemberId] = useState<string | undefined>();
   const [speedPresetMemberId, setSpeedPresetMemberId] = useState<string | undefined>();
   const [calcPreset, setCalcPreset] = useState<{ memberId: string; side: CalcSide } | undefined>();
@@ -199,26 +231,34 @@ function AppShell() {
     };
   }, []);
 
-  const openTool = useCallback((view: ToolView) => {
-    if (view === 'calculator') setCalculatorMemberId(undefined);
-    setCalcPreset(undefined);
-    setSpeedPresetMemberId(undefined);
-    setToolView(view);
-    setActiveTab('tools');
-  }, []);
+  const openTool = useCallback(
+    (view: ToolView) => {
+      if (view === 'calculator') setCalculatorMemberId(undefined);
+      setCalcPreset(undefined);
+      setSpeedPresetMemberId(undefined);
+      navigate({ name: 'tool', tool: routeIdByToolView[view] });
+    },
+    [navigate],
+  );
 
-  const sendMemberToSpeed = useCallback((memberId: string) => {
-    setSpeedPresetMemberId(memberId);
-    setToolView('speed');
-    setActiveTab('tools');
-  }, []);
+  // 「带入」presets carry a local member id, which has no meaning in anyone else's URL —
+  // they stay in memory while only the destination tool goes into the route.
+  const sendMemberToSpeed = useCallback(
+    (memberId: string) => {
+      setSpeedPresetMemberId(memberId);
+      navigate({ name: 'tool', tool: 'speed' });
+    },
+    [navigate],
+  );
 
-  const sendMemberToCalculator = useCallback((memberId: string, side: CalcSide) => {
-    setCalculatorMemberId(undefined);
-    setCalcPreset({ memberId, side });
-    setToolView('calculator');
-    setActiveTab('tools');
-  }, []);
+  const sendMemberToCalculator = useCallback(
+    (memberId: string, side: CalcSide) => {
+      setCalculatorMemberId(undefined);
+      setCalcPreset({ memberId, side });
+      navigate({ name: 'tool', tool: 'calculator' });
+    },
+    [navigate],
+  );
 
   useEffect(() => {
     if (activeTab !== 'tools' || toolView !== 'calculator') {
@@ -234,6 +274,13 @@ function AppShell() {
     void replacePreferences({ ...preferences, hasCompletedOnboarding: true });
   }, [preferences, replacePreferences]);
 
+  // Onboarding's feedback entries land on the message form. Finishing the tour first matters:
+  // otherwise the overlay would still be on top of the sheet the user just asked for.
+  const openFeedbackFromOnboarding = useCallback(() => {
+    completeOnboarding();
+    navigate({ name: 'profile-feedback' });
+  }, [completeOnboarding, navigate]);
+
   const performImportSampleTeam = useCallback(
     async (sample: EnvironmentTeamSample) => {
       const { createImportedTeamFromEnvironmentSample } = await import('./lib/environmentImport');
@@ -242,9 +289,9 @@ function AppShell() {
       setActiveTeamId(importedTeam.id);
       setHighlightedImportTeamId(importedTeam.id);
       setImportToast({ title: '已导入配置' });
-      setActiveTab('teams');
+      navigate({ name: 'teams' });
     },
-    [environmentState?.dataStatusLabel, saveTeam],
+    [environmentState?.dataStatusLabel, navigate, saveTeam],
   );
 
   const importSampleTeam = useCallback(
@@ -265,6 +312,42 @@ function AppShell() {
     await replacePreferences({ ...preferences, hasSeenEnvironmentImportNotice: true });
     await performImportSampleTeam(sample);
   }, [pendingImportSample, performImportSampleTeam, preferences, replacePreferences]);
+
+  // Share flow: navigator.share where the platform has it (Android/iOS sheet), clipboard
+  // otherwise. The code is generated on demand rather than stored — it must always reflect
+  // the team as it is now.
+  const shareTeam = useCallback(
+    async (team: Team) => {
+      if (team.members.length === 0) return;
+      try {
+        const { encodeTeamShare, teamShareUrl } = await import('./lib/teamShare');
+        const url = teamShareUrl(await encodeTeamShare(team));
+        if (typeof navigator.share === 'function') {
+          await navigator.share({ title: `${team.name} · ${productName}`, url });
+          return;
+        }
+        await navigator.clipboard.writeText(url);
+        setImportToast({ title: '链接已复制', description: '把它发给队友即可导入' });
+      } catch (error) {
+        // A user dismissing the native share sheet rejects with AbortError — that is a
+        // cancellation, not a failure, and must not raise a warning toast.
+        if (error instanceof DOMException && error.name === 'AbortError') return;
+        setImportToast({ title: '分享失败', description: '请稍后再试或手动复制地址栏链接', tone: 'warning' });
+      }
+    },
+    [],
+  );
+
+  const importSharedTeam = useCallback(
+    async (team: Team) => {
+      await saveTeam(team);
+      setActiveTeamId(team.id);
+      setHighlightedImportTeamId(team.id);
+      setImportToast({ title: '已导入分享队伍' });
+      navigate({ name: 'team-detail', teamId: team.id }, { replace: true });
+    },
+    [navigate, saveTeam],
+  );
 
   const copyReplicaCode = useCallback(async (replicaCode: string) => {
     try {
@@ -292,6 +375,7 @@ function AppShell() {
             highlightedTeamId={highlightedImportTeamId}
             onActiveTeamChange={setActiveTeamId}
             onCopyReplicaCode={copyReplicaCode}
+            onShareTeam={shareTeam}
             onSendToSpeed={sendMemberToSpeed}
             onSendToCalculator={sendMemberToCalculator}
           />
@@ -300,12 +384,12 @@ function AppShell() {
         return toolView ? (
           <ToolWorkspace
             view={toolView}
-            onBack={() => setToolView(null)}
+            onBack={back}
             selectedMemberId={calculatorMemberId}
             onPickMember={setCalculatorMemberId}
             onOpenCalculator={(pokemonId) => {
               setCalculatorMemberId(pokemonId);
-              setToolView('calculator');
+              navigate({ name: 'tool', tool: 'calculator' });
             }}
             environment={environmentState}
             activeTeam={activeTeam}
@@ -321,6 +405,7 @@ function AppShell() {
   }, [
     activeTab,
     activeTeam,
+    back,
     calculatorMemberId,
     calcPreset,
     speedPresetMember,
@@ -331,7 +416,9 @@ function AppShell() {
     highlightedImportTeamId,
     importSampleTeam,
     copyReplicaCode,
+    navigate,
     openTool,
+    shareTeam,
     overlay,
     toolView,
   ]);
@@ -339,6 +426,15 @@ function AppShell() {
   useEffect(() => {
     document.title = overlay === 'rule' ? `当前规则 · ${productName}` : productName;
   }, [overlay]);
+
+  // Anonymous page view, one per distinct route. Lives here rather than inside useHashRoute
+  // because the opt-out preference is only reachable through the store — and because the hook
+  // is mounted by four different components, which would otherwise each want to report.
+  // trackRoute itself de-duplicates repeats, so the extra guard is belt-and-braces.
+  const currentRoutePattern = routePattern(route);
+  useEffect(() => {
+    trackRoute(currentRoutePattern, { optOut: preferences.analyticsOptOut });
+  }, [currentRoutePattern, preferences.analyticsOptOut]);
 
   useEffect(() => {
     document.documentElement.dataset.theme = preferences.theme;
@@ -376,6 +472,11 @@ function AppShell() {
           </span>
         </div>
       )}
+      {route.name === 'share' && (
+        <Suspense fallback={null}>
+          <SharedTeamPreview code={route.code} onClose={back} onImport={importSharedTeam} />
+        </Suspense>
+      )}
       {pendingImportSample && (
         <ImportCoverageNoticeDialog
           sample={pendingImportSample}
@@ -385,8 +486,17 @@ function AppShell() {
           }}
         />
       )}
-      {!overlay && <BottomNav activeTab={activeTab} tabs={tabs} onChange={setActiveTab} hidden={bottomNavAutoHide.hidden} />}
-      {!preferences.hasCompletedOnboarding && <Onboarding onComplete={completeOnboarding} />}
+      {!overlay && (
+        <BottomNav
+          activeTab={activeTab}
+          tabs={tabs}
+          onChange={(tab) => navigate(routeForTab(tab))}
+          hidden={bottomNavAutoHide.hidden}
+        />
+      )}
+      {!preferences.hasCompletedOnboarding && (
+        <Onboarding onComplete={completeOnboarding} onOpenFeedback={openFeedbackFromOnboarding} />
+      )}
     </main>
   );
 }

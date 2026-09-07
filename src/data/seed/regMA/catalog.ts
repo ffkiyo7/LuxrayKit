@@ -1,4 +1,4 @@
-import type { Ability, Item, Move, Pokemon, PokemonForm } from '../../../types';
+import type { Ability, Item, Pokemon, PokemonForm } from '../../../types';
 import { pokemonBatch006, abilitiesBatch006 } from './catalog-batch-006';
 import { pokemonBatch005, abilitiesBatch005 } from './catalog-batch-005';
 import { pokemonBatch004, abilitiesBatch004 } from './catalog-batch-004';
@@ -9,7 +9,6 @@ import { megaFormsByParentId, megaStoneParentMap, megaCapableBaseIds } from './m
 import { mbMegaFormsByParentId, mbMegaStoneParentMap, mbMegaCapableBaseIds } from './mega-catalog-mb';
 import { itemIconMapping } from './item-icon-mapping';
 import { pokemonForms032 } from './catalog-forms';
-import { championsMoves } from './move-catalog';
 
 const catalogRefs = ['reg-mb-official-eligible-pokemon', 'pokeapi-pokemon-data', 'pokeapi-official-artwork', 'manual-seed-review'];
 const abilityRefs = ['pokemon-zhwiki-ability-text', 'pokeapi-pokemon-data'];
@@ -614,8 +613,6 @@ export const items: Item[] = [
   unavailableItem('clear-amulet', '清净坠饰', 'Clear Amulet', '防止能力被其他宝可梦的招式或特性降低。'),
   unavailableItem('assault-vest', '突击背心', 'Assault Vest', '特防提高 50%，但只能使用造成伤害的招式。'),
 ];
-
-export const moves: Move[] = championsMoves;
 
 export const pokemon: Pokemon[] = [
   ...pokemonBatch006,

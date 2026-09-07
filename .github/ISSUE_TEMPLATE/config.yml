@@ -1,0 +1,2 @@
+# 保留「空白 issue」入口：很多反馈两个模板都不太贴，硬套模板反而会让人放弃提交。
+blank_issues_enabled: true

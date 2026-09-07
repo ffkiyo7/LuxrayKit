@@ -14,12 +14,12 @@ import {
   TrendingUp,
   Users,
 } from 'lucide-react';
-import { useLayoutEffect, useMemo, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import {
   currentRegulation as catalogRegulation,
   getEnvironmentItem,
-  getEnvironmentMove,
   getEnvironmentPokemon,
+  loadEnvironmentMoves,
   type EnvironmentBattleType,
   type EnvironmentPokemonUsage,
   type EnvironmentState,
@@ -34,11 +34,39 @@ import {
   selectSeasonRanks,
   type SeasonRankDelta,
 } from '../lib/seasonRankDelta';
+import { useHashRoute } from '../hooks/useHashRoute';
 import { PokemonFactBanner } from '../components/PokemonFactBanner';
 import { Button, Card, PokemonAvatar, TypeBadge } from '../components/ui';
 import { TeamBrowseView } from './TeamBrowseView';
 import { TeamSampleCard } from './TeamSampleCard';
 import { sortTeamSamplesByDate } from './environmentTeamSamples';
+import type { Move } from '../types';
+
+/**
+ * The move catalog is 55 KB gzip and only the Pokémon detail screen needs it, so it is kept out
+ * of the environment first paint (see `loadEnvironmentMoves`) and requested when a detail
+ * mounts. Until it resolves the 常用招式 card is simply absent — the same thing that happens
+ * when a snapshot carries no move stats — rather than a spinner or a placeholder row.
+ */
+function useEnvironmentMoveLookup() {
+  const [movesById, setMovesById] = useState<Map<string, Move>>();
+
+  useEffect(() => {
+    let active = true;
+    loadEnvironmentMoves()
+      .then((moves) => {
+        if (active) setMovesById(new Map(moves.map((move) => [move.id, move])));
+      })
+      .catch((error) => {
+        console.error('Failed to load the move catalog; move names stay hidden.', error);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  return movesById;
+}
 
 const battleTypeLabels: Record<EnvironmentBattleType, string> = {
   singles: '单打',
@@ -306,6 +334,7 @@ function PokemonEnvironmentDetail({
   onImportSample: (sample: EnvironmentTeamSample) => Promise<void> | void;
 }) {
   const [expandedSection, setExpandedSection] = useState<'moves' | 'items' | 'teammates' | null>(null);
+  const movesById = useEnvironmentMoveLookup();
   const usage = environment.pokemonUsage[battleType].find((item) => item.pokemonId === pokemonId);
   const usageRank = environment.pokemonUsage[battleType].findIndex((item) => item.pokemonId === pokemonId) + 1;
   const entry = getEnvironmentPokemon(pokemonId);
@@ -313,8 +342,8 @@ function PokemonEnvironmentDetail({
   if (!entry) return null;
 
   const moveRows = (usage?.moveStats ?? [])
-    .map((stat) => ({ stat, move: getEnvironmentMove(stat.id) }))
-    .filter((row): row is { stat: NonNullable<EnvironmentPokemonUsage['moveStats']>[number]; move: NonNullable<ReturnType<typeof getEnvironmentMove>> } =>
+    .map((stat) => ({ stat, move: movesById?.get(stat.id) }))
+    .filter((row): row is { stat: NonNullable<EnvironmentPokemonUsage['moveStats']>[number]; move: Move } =>
       Boolean(row.move),
     );
   const itemRows = (usage?.itemStats ?? [])
@@ -722,8 +751,20 @@ export function EnvironmentPage({
   // Default to the current regulation's primary format (M-B → doubles) so every
   // battle-type toggle across the app lands on the same default. Single source: currentRuleSet.
   const [battleType, setBattleType] = useState<EnvironmentBattleType>(currentRuleSet.battleType);
-  const [view, setView] = useState<'home' | 'ranking' | 'methodology' | 'teams'>('home');
-  const [detailState, setDetailState] = useState<{ pokemonId: string; returnView: 'home' | 'ranking' } | null>(null);
+  // Which environment screen is showing comes from the URL (#/env, #/env/ranking, …) so the
+  // hardware back button and deep links work. `battleType` stays local: it is a view toggle,
+  // not a destination, and putting it in the URL would double the number of shareable states
+  // for no gain.
+  const { route, navigate, back } = useHashRoute();
+  const view: 'home' | 'ranking' | 'methodology' | 'teams' =
+    route.name === 'env-ranking'
+      ? 'ranking'
+      : route.name === 'env-methodology'
+        ? 'methodology'
+        : route.name === 'env-teams'
+          ? 'teams'
+          : 'home';
+  const detailPokemonId = route.name === 'env-pokemon' ? route.pokemonId : null;
   const rankings = useMemo(() => environment.pokemonUsage[battleType], [battleType, environment.pokemonUsage]);
   // The home teaser shows the latest teams by date; the newest data (current regulation)
   // naturally floats to the top without a hard regulation filter. The full 队伍一览 defaults to
@@ -750,24 +791,22 @@ export function EnvironmentPage({
   // the list lands mid-page (e.g. on the items card) instead of the avatar header.
   // useLayoutEffect runs before paint so the correction is invisible (no flicker of
   // the old scroll position on slower devices).
-  const detailPokemonId = detailState?.pokemonId ?? null;
   useLayoutEffect(() => {
     if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') {
       window.scrollTo({ top: 0, left: 0 });
     }
   }, [view, detailPokemonId]);
 
-  if (detailState) {
+  if (detailPokemonId) {
     return (
       <PokemonEnvironmentDetail
         environment={environment}
         battleType={battleType}
-        pokemonId={detailState.pokemonId}
+        pokemonId={detailPokemonId}
         onImportSample={onImportSample}
-        onBack={() => {
-          setView(detailState.returnView);
-          setDetailState(null);
-        }}
+        // back() pops the real history entry, so 返回环境 lands on whichever screen opened
+        // this detail (home or the full ranking) without tracking a returnView by hand.
+        onBack={back}
       />
     );
   }
@@ -779,8 +818,8 @@ export function EnvironmentPage({
         battleType={battleType}
         rankings={rankings}
         onBattleTypeChange={setBattleType}
-        onBack={() => setView('home')}
-        onOpenPokemon={(pokemonId) => setDetailState({ pokemonId, returnView: 'ranking' })}
+        onBack={back}
+        onOpenPokemon={(pokemonId) => navigate({ name: 'env-pokemon', pokemonId })}
       />
     );
   }
@@ -791,7 +830,7 @@ export function EnvironmentPage({
         environment={environment}
         battleType={battleType}
         onBattleTypeChange={changeBattleType}
-        onBack={() => setView('home')}
+        onBack={back}
       />
     );
   }
@@ -802,7 +841,7 @@ export function EnvironmentPage({
         battleType={battleType}
         samples={environment.teamSamples}
         onBattleTypeChange={changeBattleType}
-        onBack={() => setView('home')}
+        onBack={back}
         onImportSample={onImportSample}
       />
     );
@@ -837,7 +876,7 @@ export function EnvironmentPage({
           className="absolute bottom-3 right-3 inline-flex h-8 items-center gap-1.5 rounded-lg border border-border bg-card px-2 text-xs font-semibold text-textSecondary active:scale-[0.98]"
           title="查看数据口径"
           type="button"
-          onClick={() => setView('methodology')}
+          onClick={() => navigate({ name: 'env-methodology' })}
         >
           <Info size={15} />
           数据口径
@@ -854,7 +893,7 @@ export function EnvironmentPage({
             <BarChart3 size={16} className="text-accent" />
             <h3 className="text-sm font-semibold">宝可梦榜</h3>
           </div>
-          <button aria-label="查看全部宝可梦" className="inline-flex items-center gap-1 text-xs text-accent" type="button" onClick={() => setView('ranking')}>
+          <button aria-label="查看全部宝可梦" className="inline-flex items-center gap-1 text-xs text-accent" type="button" onClick={() => navigate({ name: 'env-ranking' })}>
             <List size={14} />
             查看全部
           </button>
@@ -867,7 +906,7 @@ export function EnvironmentPage({
               rank={index + 1}
               previousRanks={homePreviousRanks}
               previousSeasonLabel={environment.previousSeason?.season}
-              onOpen={(pokemonId) => setDetailState({ pokemonId, returnView: 'home' })}
+              onOpen={(pokemonId) => navigate({ name: 'env-pokemon', pokemonId })}
             />
           ))}
         </div>
@@ -884,7 +923,7 @@ export function EnvironmentPage({
               aria-label="查看全部队伍"
               className="inline-flex items-center gap-1 text-xs text-accent"
               type="button"
-              onClick={() => setView('teams')}
+              onClick={() => navigate({ name: 'env-teams' })}
             >
               <List size={14} />
               查看全部

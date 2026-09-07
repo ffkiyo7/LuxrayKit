@@ -45,6 +45,10 @@ const normalizePreferences = (preferences?: Partial<UserPreference>): UserPrefer
   ...defaultPreferences,
   ...preferences,
   theme: preferences?.theme ?? defaultPreferences.theme,
+  // Coerce rather than spread: an older stored record has no such field, and anything other
+  // than an explicit `true` must read as "analytics on" so the default is not silently flipped
+  // by a corrupted value.
+  analyticsOptOut: preferences?.analyticsOptOut === true,
 });
 
 export function AppProvider({ children }: { children: React.ReactNode }) {

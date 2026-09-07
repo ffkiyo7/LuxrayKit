@@ -1,4 +1,4 @@
-import { ArrowUpDown, Calculator, ChevronDown, ChevronUp, Minus, Plus, Search, Users, X } from 'lucide-react';
+import { ArrowUpDown, Calculator, ChevronDown, ChevronUp, Search, Users } from 'lucide-react';
 import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { abilities as allAbilities, currentDataVersion, currentRuleNatureOptions, currentRuleSet, items as allItems, moves, pokemon } from '../data';
 import { currentRuleMovesForPokemon, currentRuleNatures, natureOptionLabel } from '../lib/currentRuleCatalog';
@@ -15,6 +15,7 @@ import { findBattleForm } from '../lib/pokemonForms';
 import { clampStatPointValue, MAX_STAT_POINTS_PER_STAT, MAX_TOTAL_STAT_POINTS } from '../lib/statPoints';
 import { useAppStore } from '../state/AppContext';
 import type { Move as AppMove, Pokemon, StatPoints, TeamMember } from '../types';
+import { StatPointPicker } from '../components/StatPointPicker';
 import { Card, PokemonAvatar, TypeBadge } from '../components/ui';
 
 export type CalcSide = 'attacker' | 'defender';
@@ -88,74 +89,6 @@ const filterMovesByQuery = (availableMoves: AppMove[], query: string) => {
     ))
     .map(({ move }) => move);
 };
-
-function StatPointPicker({
-  label,
-  value,
-  onChange,
-  onClose,
-}: {
-  label: string;
-  value: number;
-  onChange: (value: number) => void;
-  onClose: () => void;
-}) {
-  const nextValue = clampStatPointValue(value);
-
-  return (
-    <div className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-[430px] rounded-t-2xl border border-border bg-card p-4 shadow-none">
-      <div className="mx-auto mb-3 h-1 w-9 rounded-full bg-disabled" />
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <div>
-          <p className="text-sm font-semibold">{label} SP</p>
-          <p className="text-xs text-textSecondary">拖动滑条，或直接设为最小 / 最大</p>
-        </div>
-        <button className="grid h-8 w-8 place-items-center rounded-lg text-textSecondary" title="关闭 SP 调整" type="button" onClick={onClose}>
-          <X size={18} />
-        </button>
-      </div>
-      <div className="mb-4 text-center">
-        <p className="text-[34px] font-bold text-accent">{nextValue}</p>
-        <p className="text-xs text-textMuted">范围 0-{MAX_STAT_POINTS_PER_STAT}</p>
-      </div>
-      <input
-        aria-label={`${label} SP`}
-        className="mb-4 h-9 w-full accent-accent"
-        max={MAX_STAT_POINTS_PER_STAT}
-        min={0}
-        type="range"
-        value={nextValue}
-        onChange={(event) => onChange(Number(event.target.value))}
-      />
-      <div className="grid grid-cols-4 gap-2">
-        <button className="inline-flex min-h-8 items-center justify-center rounded-lg border border-border px-2 text-xs font-semibold text-textSecondary" type="button" onClick={() => onChange(0)}>
-          min
-        </button>
-        <button
-          aria-label={`${label} -1`}
-          className="inline-flex min-h-8 items-center justify-center rounded-lg border border-border text-textSecondary disabled:opacity-40"
-          disabled={nextValue <= 0}
-          type="button"
-          onClick={() => onChange(nextValue - 1)}
-        >
-          <Minus size={13} />
-        </button>
-        <button
-          aria-label={`${label} +1`}
-          className="inline-flex min-h-8 items-center justify-center rounded-lg border border-border text-textSecondary disabled:opacity-40"
-          disabled={nextValue >= MAX_STAT_POINTS_PER_STAT}
-          type="button"
-          onClick={() => onChange(nextValue + 1)}
-        >
-          <Plus size={13} />
-        </button>
-        <button className="inline-flex min-h-8 items-center justify-center rounded-lg bg-accent px-2 text-xs font-semibold text-page" type="button" onClick={() => onChange(MAX_STAT_POINTS_PER_STAT)}>
-          max
-        </button>
-      </div>
-    </div>
-  );
-}
 
 // ── SideConfigCard ──
 
@@ -486,6 +419,7 @@ function SideConfigCard({
           </fieldset>
           {editingStat && (
             <StatPointPicker
+              boundsVariant="plain"
               label={editingStat.label}
               value={config.statPoints[editingStat.key] ?? 0}
               onChange={(value) => updateStatPoint(editingStat.key, value)}

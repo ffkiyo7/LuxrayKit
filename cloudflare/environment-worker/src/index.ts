@@ -15,6 +15,20 @@ import {
   type PokeDbTrainerTeam,
 } from '../../../src/lib/pokedbEnvironment';
 import type { EnvironmentPokemonUsage, EnvironmentTeamSample } from '../../../src/lib/environmentDataset';
+import { routePatterns } from '../../../src/lib/hashRoute';
+import {
+  deriveClientKey,
+  FEEDBACK_DURABLE_OBJECT_NAME,
+  FEEDBACK_LIST_URL,
+  FEEDBACK_MARK_READ_URL,
+  FEEDBACK_SUBMIT_URL,
+  MAX_FEEDBACK_BODY_BYTES,
+  parseFeedbackBody,
+  pushFeedbackToDiscord,
+  uaFamily,
+  type FeedbackRecord,
+  type FeedbackSubmitEnvelope,
+} from './feedbackInbox';
 import type { SeasonRankSnapshot } from '../../../src/lib/seasonRankDelta';
 
 type BattleType = 'singles' | 'doubles';
@@ -141,6 +155,11 @@ type AppEnv = Env & {
   ENVIRONMENT_AUDIT_UNKNOWN_THRESHOLD?: string;
   SCHEDULED_MAX_JITTER_MS?: string;
   ENVIRONMENT_REFRESHER?: DurableObjectNamespace;
+  // Absent on the preview shadow Worker (no DO bindings there) — every feedback route must
+  // degrade to 503 rather than throw. `FEEDBACK_DISCORD_WEBHOOK` is a secret, so it never
+  // appears in the generated types either.
+  FEEDBACK_INBOX?: DurableObjectNamespace;
+  FEEDBACK_DISCORD_WEBHOOK?: string;
 };
 
 const SNAPSHOT_KEY = 'environment:latest';
@@ -211,7 +230,7 @@ const pokeDbItemNameById = new Map(Object.entries(pokedbItemNameToId).map(([name
 const jsonHeaders = (env: AppEnv, extra: HeadersInit = {}) => ({
   'content-type': 'application/json; charset=utf-8',
   'access-control-allow-origin': env.ALLOWED_ORIGINS || '*',
-  'access-control-allow-methods': 'GET,POST,OPTIONS',
+  'access-control-allow-methods': 'GET,POST,PATCH,OPTIONS',
   'access-control-allow-headers': 'authorization,content-type',
   ...extra,
 });
@@ -1266,6 +1285,9 @@ async function scheduleEnvironmentRefreshAlarm(env: AppEnv, jobId: string) {
   }
 }
 
+// Re-exported so `wrangler.jsonc` can name a single entry module for both Durable Objects.
+export { FeedbackInboxDurableObject } from './feedbackInbox';
+
 export class EnvironmentRefreshDurableObject implements DurableObject {
   private readonly state: DurableObjectState;
   private readonly env: AppEnv;
@@ -1443,15 +1465,56 @@ async function isAuthorizedRefresh(request: Request, env: AppEnv) {
   return constantTimeEqual(token, env.ADMIN_REFRESH_TOKEN);
 }
 
-async function handleLatest(_request: Request, env: AppEnv) {
-  const [snapshotText, statusText, probeText] = await Promise.all([
-    env.ENVIRONMENT_CACHE.get(SNAPSHOT_KEY),
+/**
+ * Content identity of the published snapshot, for `ETag` / `If-None-Match`.
+ *
+ * Deliberately built from the *content* fields of `environment:status` only. `refreshedAt` /
+ * `retrievedAt` are excluded: when the freshness probe reports no upstream change,
+ * `startScheduledRefresh` still rewrites those timestamps, and treating that as a content
+ * change would bust every browser cache daily for a byte-identical 450 KB body.
+ */
+export const buildLatestEtag = async (status: CacheStatus | undefined) => {
+  const identity = [
+    `sourceUpdatedAt=${status?.sourceUpdatedAt ?? ''}`,
+    `selectedSeason=${status?.selectedSeason ?? ''}`,
+    `previousSeasonLabel=${status?.previousSeasonLabel ?? ''}`,
+  ].join(';');
+  return `"${(await sha256Hex(identity)).slice(0, 16)}"`;
+};
+
+const etagMatches = (ifNoneMatch: string | null, etag: string) =>
+  Boolean(
+    ifNoneMatch &&
+      ifNoneMatch
+        .split(',')
+        .map((candidate) => candidate.trim().replace(/^W\//, ''))
+        .some((candidate) => candidate === etag || candidate === '*'),
+  );
+
+const snapshotSourceUpdatedAtFromBody = (snapshotText: string | null | undefined) => {
+  if (!snapshotText) return undefined;
+  const snapshot = JSON.parse(snapshotText) as EnvironmentSnapshot;
+  return [snapshot.battles?.singles?.updatedAt, snapshot.battles?.doubles?.updatedAt]
+    .filter((value): value is string => Boolean(value))
+    .sort()
+    .at(-1);
+};
+
+async function handleLatest(request: Request, env: AppEnv) {
+  const [statusText, probeText] = await Promise.all([
     env.ENVIRONMENT_CACHE.get(STATUS_KEY),
     env.ENVIRONMENT_CACHE.get(POKEDB_FRESHNESS_PROBE_KEY),
   ]);
   const status = statusText ? (JSON.parse(statusText) as CacheStatus) : undefined;
+  const etag = await buildLatestEtag(status);
+  // A conditional hit must never pay for the 450 KB snapshot read + JSON.parse, so it is only
+  // taken when `status.audit` (written by publishRefreshJob) can supply the audit headers.
+  // Older KV entries predate that field and fall through to the full 200 path.
+  const conditionalHit = Boolean(status?.audit) && etagMatches(request.headers.get('if-none-match'), etag);
 
-  if (!snapshotText) {
+  const snapshotText = conditionalHit ? undefined : await env.ENVIRONMENT_CACHE.get(SNAPSHOT_KEY);
+
+  if (!conditionalHit && !snapshotText) {
     return jsonResponse(
       env,
       {
@@ -1462,16 +1525,15 @@ async function handleLatest(_request: Request, env: AppEnv) {
     );
   }
 
-  const snapshot = JSON.parse(snapshotText) as EnvironmentSnapshot;
-  const audit = buildEnvironmentAuditStatus(snapshot, auditThreshold(env));
-  const workerStatus = status?.ok && !audit.alert ? 'ok' : 'degraded';
+  const audit =
+    status?.audit ??
+    (snapshotText
+      ? buildEnvironmentAuditStatus(JSON.parse(snapshotText) as EnvironmentSnapshot, auditThreshold(env))
+      : undefined);
+  const auditAlert = audit?.alert ?? false;
+  const workerStatus = status?.ok && !auditAlert ? 'ok' : 'degraded';
   const probe = probeText ? (JSON.parse(probeText) as PokeDbFreshnessProbe) : undefined;
-  const snapshotSourceUpdatedAt =
-    status?.sourceUpdatedAt ??
-    [snapshot.battles.singles?.updatedAt, snapshot.battles.doubles?.updatedAt]
-      .filter((value): value is string => Boolean(value))
-      .sort()
-      .at(-1);
+  const snapshotSourceUpdatedAt = status?.sourceUpdatedAt ?? snapshotSourceUpdatedAtFromBody(snapshotText);
   const cacheState = isSnapshotBehindSource(snapshotSourceUpdatedAt, probe?.sourceUpdatedAt)
     ? 'stale'
     : 'fresh';
@@ -1481,17 +1543,25 @@ async function handleLatest(_request: Request, env: AppEnv) {
   // version (e.g. the source is currently blocking us). The UI surfaces this separately.
   const sourceStatus = status?.ok === false ? 'degraded' : 'ok';
 
-  return new Response(snapshotText, {
-    headers: jsonHeaders(env, {
-      'cache-control': 'no-store',
-      'x-luxray-cache-state': cacheState,
-      'x-luxray-worker-status': workerStatus,
-      'x-luxray-source-status': sourceStatus,
-      ...(latestSourceUpdatedAt ? { 'x-luxray-latest-source-updated-at': latestSourceUpdatedAt } : {}),
-      'x-luxray-audit-alert': audit.alert ? '1' : '0',
-      'x-luxray-audit-unknown-count': String(audit.totalUnknownCount),
-    }),
+  // `private, no-cache` — the browser may keep the body but must revalidate every time, which
+  // is what turns a repeat visit into a 304 with no payload. A 304 carries the full x-luxray-*
+  // set because the browser merges these headers into its cached entry; the UI reads
+  // fresh/stale/degraded from them even when the body came from the HTTP cache.
+  const headers = jsonHeaders(env, {
+    'cache-control': 'private, no-cache',
+    etag,
+    'x-luxray-cache-state': cacheState,
+    'x-luxray-worker-status': workerStatus,
+    'x-luxray-source-status': sourceStatus,
+    ...(latestSourceUpdatedAt ? { 'x-luxray-latest-source-updated-at': latestSourceUpdatedAt } : {}),
+    ...(status?.refreshedAt ? { 'x-luxray-refreshed-at': status.refreshedAt } : {}),
+    'x-luxray-audit-alert': auditAlert ? '1' : '0',
+    'x-luxray-audit-unknown-count': String(audit?.totalUnknownCount ?? 0),
   });
+
+  if (conditionalHit) return new Response(null, { status: 304, headers });
+
+  return new Response(snapshotText, { headers });
 }
 
 async function handleStatus(env: AppEnv) {
@@ -1563,8 +1633,181 @@ async function handlePokemonTeams(url: URL, env: AppEnv, pokemonId: string) {
   );
 }
 
+/**
+ * POST /api/ping — anonymous page-view counter.
+ *
+ * What is recorded: the parameter-free route pattern, whether the client is running as an
+ * installed PWA, the active theme, and Cloudflare's own two-letter country for the request.
+ * What is NOT recorded, ever: IP, the raw User-Agent, any id (team, share code, Pokemon), any
+ * user content, and no cookie or identifier is ever set — there is nothing here to join rows
+ * into a session or a person.
+ *
+ * Every invalid body is dropped silently with the same 204 a good one gets: this endpoint has
+ * no failure mode worth telling a client about, and a chatty 4xx would only invite probing.
+ */
+const PING_ROUTE_PATTERNS = new Set(routePatterns);
+const MAX_PING_ROUTE_LENGTH = 64;
+const MAX_PING_BODY_BYTES = 512;
+
+type PingPayload = { route: string; standalone: boolean; theme: 'dark' | 'light' };
+
+export const parsePingPayload = (value: unknown): PingPayload | null => {
+  if (!value || typeof value !== 'object') return null;
+  const candidate = value as Partial<PingPayload>;
+  if (typeof candidate.route !== 'string' || candidate.route.length > MAX_PING_ROUTE_LENGTH) return null;
+  if (!PING_ROUTE_PATTERNS.has(candidate.route)) return null;
+  if (typeof candidate.standalone !== 'boolean') return null;
+  if (candidate.theme !== 'dark' && candidate.theme !== 'light') return null;
+  return { route: candidate.route, standalone: candidate.standalone, theme: candidate.theme };
+};
+
+async function handlePing(request: Request, env: AppEnv): Promise<Response> {
+  const discard = () => new Response(null, { status: 204, headers: jsonHeaders(env, { 'cache-control': 'no-store' }) });
+
+  let payload: PingPayload | null = null;
+  try {
+    const body = await request.text();
+    if (body.length > MAX_PING_BODY_BYTES) return discard();
+    payload = parsePingPayload(JSON.parse(body));
+  } catch {
+    return discard();
+  }
+  if (!payload) return discard();
+
+  // Optional at runtime even though `wrangler types` declares it required: a local
+  // `wrangler dev` against an older config, or a future deploy that drops the dataset,
+  // must degrade to a no-op rather than 500 on a diagnostics endpoint.
+  const analytics = env.LUXRAY_ANALYTICS as AnalyticsEngineDataset | undefined;
+  const country = (request as { cf?: { country?: string } }).cf?.country ?? '';
+  try {
+    analytics?.writeDataPoint({
+      blobs: [payload.route, payload.standalone ? 'pwa' : 'browser', payload.theme, country],
+      doubles: [1],
+      indexes: [payload.route],
+    });
+  } catch {
+    // Never let a metrics write affect the response.
+  }
+
+  return discard();
+}
+
+/* ------------------------------------------------------------------------- *
+ * 站内留言箱 `/api/feedback`（存储与隐私边界见 src/feedbackInbox.ts 顶部）
+ * ------------------------------------------------------------------------- */
+
+const FEEDBACK_ROUTE_PATTERNS = new Set(routePatterns);
+
+const noStore = { 'cache-control': 'no-store' } as const;
+
+/** preview 影子 Worker 没有 DO 绑定，所以「留言功能暂时不可用」是结构性事实，不是故障。 */
+const feedbackStub = (env: AppEnv) => {
+  if (!env.FEEDBACK_INBOX) return null;
+  return env.FEEDBACK_INBOX.get(env.FEEDBACK_INBOX.idFromName(FEEDBACK_DURABLE_OBJECT_NAME));
+};
+
+const feedbackUnavailable = (env: AppEnv) =>
+  jsonResponse(env, { error: 'feedback_unavailable' }, { status: 503, headers: noStore });
+
+async function handleFeedbackSubmit(request: Request, env: AppEnv, ctx: ExecutionContext): Promise<Response> {
+  const body = await request.text();
+  // Byte length, not string length: 1000 CJK characters are ~3 KB of UTF-8.
+  if (new TextEncoder().encode(body).length > MAX_FEEDBACK_BODY_BYTES) {
+    return jsonResponse(env, { error: 'feedback_too_large' }, { status: 413, headers: noStore });
+  }
+
+  let parsed;
+  try {
+    parsed = parseFeedbackBody(JSON.parse(body), FEEDBACK_ROUTE_PATTERNS);
+  } catch {
+    return jsonResponse(env, { error: 'invalid_feedback', field: 'body' }, { status: 400, headers: noStore });
+  }
+  if (!parsed.ok) {
+    return jsonResponse(env, { error: 'invalid_feedback', field: parsed.field }, { status: 400, headers: noStore });
+  }
+
+  const now = new Date();
+  // Honeypot: answer exactly like a real success — same status, same shape — so a bot
+  // cannot tell the field gave it away, and nothing is written.
+  if (parsed.honeypot) {
+    return jsonResponse(
+      env,
+      { id: crypto.randomUUID(), createdAt: now.toISOString() },
+      { status: 201, headers: noStore },
+    );
+  }
+
+  const stub = feedbackStub(env);
+  if (!stub) return feedbackUnavailable(env);
+
+  const envelope: FeedbackSubmitEnvelope = {
+    submission: parsed.submission,
+    // The IP is hashed here and never travels further: the Durable Object only ever sees
+    // the derived, day-scoped key.
+    clientKey: await deriveClientKey(request.headers.get('cf-connecting-ip') ?? '', now),
+    uaFamily: uaFamily(request.headers.get('user-agent')),
+    country: (request as { cf?: { country?: string } }).cf?.country ?? '',
+    receivedAt: now.toISOString(),
+  };
+
+  const response = await stub.fetch(new Request(FEEDBACK_SUBMIT_URL, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json; charset=utf-8' },
+    body: JSON.stringify(envelope),
+  }));
+
+  if (response.status === 429) {
+    return jsonResponse(env, { error: 'feedback_rate_limited' }, { status: 429, headers: noStore });
+  }
+  if (!response.ok) {
+    return jsonResponse(env, { error: 'feedback_store_failed' }, { status: 500, headers: noStore });
+  }
+
+  const { record } = await response.json() as { record: FeedbackRecord };
+  // Discord push runs after the response: the message is already durable, so a webhook
+  // outage must not turn a stored message into an error for the user.
+  if (env.FEEDBACK_DISCORD_WEBHOOK) {
+    ctx.waitUntil(pushFeedbackToDiscord(env.FEEDBACK_DISCORD_WEBHOOK, record));
+  }
+
+  return jsonResponse(env, { id: record.id, createdAt: record.createdAt }, { status: 201, headers: noStore });
+}
+
+async function handleFeedbackList(request: Request, env: AppEnv, url: URL): Promise<Response> {
+  if (!(await isAuthorizedRefresh(request, env))) {
+    return jsonResponse(env, { error: 'unauthorized' }, { status: 401, headers: noStore });
+  }
+  const stub = feedbackStub(env);
+  if (!stub) return feedbackUnavailable(env);
+
+  const listUrl = new URL(FEEDBACK_LIST_URL);
+  listUrl.searchParams.set('status', url.searchParams.get('status') ?? 'new');
+  listUrl.searchParams.set('limit', url.searchParams.get('limit') ?? '');
+  const response = await stub.fetch(new Request(listUrl.toString()));
+  return jsonResponse(env, await response.json(), { status: response.status, headers: noStore });
+}
+
+async function handleFeedbackPatch(request: Request, env: AppEnv, id: string): Promise<Response> {
+  if (!(await isAuthorizedRefresh(request, env))) {
+    return jsonResponse(env, { error: 'unauthorized' }, { status: 401, headers: noStore });
+  }
+  const payload = await request.json().catch(() => null) as { status?: unknown } | null;
+  if (payload?.status !== 'read') {
+    return jsonResponse(env, { error: 'invalid_feedback_status' }, { status: 400, headers: noStore });
+  }
+  const stub = feedbackStub(env);
+  if (!stub) return feedbackUnavailable(env);
+
+  const response = await stub.fetch(new Request(FEEDBACK_MARK_READ_URL, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json; charset=utf-8' },
+    body: JSON.stringify({ id }),
+  }));
+  return jsonResponse(env, await response.json(), { status: response.status, headers: noStore });
+}
+
 export default {
-  async fetch(request: Request, env: AppEnv, _ctx: ExecutionContext): Promise<Response> {
+  async fetch(request: Request, env: AppEnv, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
 
     if (request.method === 'OPTIONS') {
@@ -1619,6 +1862,20 @@ export default {
           { status: 500, headers: { 'cache-control': 'no-store' } },
         );
       }
+    }
+
+    if (request.method === 'POST' && url.pathname === '/api/ping') {
+      return handlePing(request, env);
+    }
+
+    if (url.pathname === '/api/feedback') {
+      if (request.method === 'POST') return handleFeedbackSubmit(request, env, ctx);
+      if (request.method === 'GET') return handleFeedbackList(request, env, url);
+    }
+
+    const feedbackItemMatch = url.pathname.match(/^\/api\/feedback\/([^/]+)$/);
+    if (request.method === 'PATCH' && feedbackItemMatch) {
+      return handleFeedbackPatch(request, env, decodeURIComponent(feedbackItemMatch[1]));
     }
 
     if (url.pathname.startsWith('/api/')) {

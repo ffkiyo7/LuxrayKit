@@ -62,6 +62,13 @@ const normalizeTeamSource = (source: unknown): TeamSource | undefined => {
       importedAt: String(candidate.importedAt ?? now()),
     };
   }
+  if (candidate.kind === 'share-link-import') {
+    return {
+      kind: 'share-link-import',
+      sharedAt: String(candidate.sharedAt ?? now()),
+      importedAt: String(candidate.importedAt ?? now()),
+    };
+  }
   if (candidate.kind === 'external-report-import') {
     return {
       kind: 'external-report-import',

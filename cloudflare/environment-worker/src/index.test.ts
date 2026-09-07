@@ -15,6 +15,7 @@ import {
   startScheduledRefresh,
 } from './index';
 import worker from './index';
+import { routePatterns } from '../../../src/lib/hashRoute';
 
 const rankingKeys = regMaPokemonAllowlist.slice(0, 60).map((entry) => {
   const [dexNo, formNo = '000'] = entry.championsFormId.split('-');
@@ -1476,4 +1477,456 @@ describe('environment Worker PokeDB ingestion', () => {
     });
   });
 
+});
+
+describe('GET /api/environment/latest conditional requests', () => {
+  const snapshotBody = JSON.stringify({
+    retrievedAt: '2026-06-12T00:00:00.000Z',
+    battles: {
+      singles: { season: 'M-2', seasonNumber: 2, rule: 'singles', updatedAt: '2026-06-10 23:58:00', pokemonUsage: [], audit: {} },
+      doubles: { season: 'M-2', seasonNumber: 2, rule: 'doubles', updatedAt: '2026-06-10 23:58:00', pokemonUsage: [], audit: {} },
+    },
+  });
+
+  const healthyAudit = {
+    threshold: 0,
+    totalUnknownCount: 0,
+    alert: false,
+    counts: {
+      unknownPokemonKeys: 0,
+      unknownItemNames: 0,
+      unknownMoveKeys: 0,
+      unknownAbilityKeys: 0,
+      unknownNatureNames: 0,
+      failedDetailKeys: 0,
+    },
+    values: {
+      unknownPokemonKeys: [],
+      unknownItemNames: [],
+      unknownMoveKeys: [],
+      unknownAbilityKeys: [],
+      unknownNatureNames: [],
+      failedDetailKeys: [],
+    },
+  };
+
+  const statusRecord = (overrides: Record<string, unknown> = {}) =>
+    JSON.stringify({
+      ok: true,
+      refreshedAt: '2026-06-12T00:00:00.000Z',
+      sourceUpdatedAt: '2026-06-10 23:58:00',
+      selectedSeason: 2,
+      selectedSeasonLabel: 'M-2',
+      previousSeasonLabel: 'M-1',
+      audit: healthyAudit,
+      ...overrides,
+    });
+
+  const latest = (env: unknown, headers: Record<string, string> = {}) =>
+    worker.fetch(new Request('https://luxraykit.com/api/environment/latest', { headers }), env as never, {} as never);
+
+  it('keeps the ETag stable when only refreshedAt moves and changes it when the source content does', async () => {
+    const withStatus = (status: string) =>
+      latest(createKvEnv({ 'environment:latest': snapshotBody, 'environment:status': status }).env);
+
+    const base = await withStatus(statusRecord());
+    // The probe finds no upstream change, but startScheduledRefresh still rewrites refreshedAt.
+    // That is not a content change, so browsers must keep their cached copy.
+    const rebumped = await withStatus(statusRecord({ refreshedAt: '2026-06-13T04:00:00.000Z' }));
+    const newSource = await withStatus(statusRecord({ sourceUpdatedAt: '2026-06-12 23:58:00' }));
+    const newPreviousSeason = await withStatus(statusRecord({ previousSeasonLabel: 'M-2' }));
+
+    const etag = base.headers.get('etag');
+    expect(etag).toMatch(/^"[0-9a-f]{16}"$/);
+    expect(rebumped.headers.get('etag')).toBe(etag);
+    expect(newSource.headers.get('etag')).not.toBe(etag);
+    expect(newPreviousSeason.headers.get('etag')).not.toBe(etag);
+    expect(base.headers.get('cache-control')).toBe('private, no-cache');
+    expect(base.headers.get('x-luxray-refreshed-at')).toBe('2026-06-12T00:00:00.000Z');
+  });
+
+  it('answers a matching If-None-Match with 304, all x-luxray headers and no KV snapshot read', async () => {
+    const { env } = createKvEnv({ 'environment:latest': snapshotBody, 'environment:status': statusRecord() });
+    const first = await latest(env);
+    const etag = first.headers.get('etag') ?? '';
+    (env as { ENVIRONMENT_CACHE: { get: { mockClear: () => void } } }).ENVIRONMENT_CACHE.get.mockClear();
+
+    const conditional = await latest(env, { 'if-none-match': etag });
+
+    expect(conditional.status).toBe(304);
+    expect(await conditional.text()).toBe('');
+    expect(conditional.headers.get('etag')).toBe(etag);
+    expect(conditional.headers.get('cache-control')).toBe('private, no-cache');
+    expect(conditional.headers.get('x-luxray-cache-state')).toBe('fresh');
+    expect(conditional.headers.get('x-luxray-worker-status')).toBe('ok');
+    expect(conditional.headers.get('x-luxray-source-status')).toBe('ok');
+    expect(conditional.headers.get('x-luxray-latest-source-updated-at')).toBe('2026-06-10 23:58:00');
+    expect(conditional.headers.get('x-luxray-refreshed-at')).toBe('2026-06-12T00:00:00.000Z');
+    expect(conditional.headers.get('x-luxray-audit-alert')).toBe('0');
+    expect(conditional.headers.get('x-luxray-audit-unknown-count')).toBe('0');
+    // The whole point: a 304 never touches the 450 KB snapshot value.
+    const readKeys = (env as { ENVIRONMENT_CACHE: { get: { mock: { calls: string[][] } } } }).ENVIRONMENT_CACHE.get.mock.calls.map(
+      ([key]) => key,
+    );
+    expect(readKeys).not.toContain('environment:latest');
+  });
+
+  it('returns a full 200 body when If-None-Match does not match', async () => {
+    const { env } = createKvEnv({ 'environment:latest': snapshotBody, 'environment:status': statusRecord() });
+
+    const response = await latest(env, { 'if-none-match': '"0123456789abcdef"' });
+
+    expect(response.status).toBe(200);
+    expect(await response.text()).toBe(snapshotBody);
+    expect(response.headers.get('x-luxray-audit-unknown-count')).toBe('0');
+  });
+
+  it('falls back to auditing the snapshot body when an older status record carries no audit', async () => {
+    const legacySnapshot = JSON.stringify({
+      retrievedAt: '2026-06-12T00:00:00.000Z',
+      battles: {
+        singles: {
+          season: 'M-2',
+          seasonNumber: 2,
+          rule: 'singles',
+          updatedAt: '2026-06-10 23:58:00',
+          pokemonUsage: [],
+          audit: {
+            unknownPokemonKeys: ['9999-00'],
+            unknownItemNames: [],
+            unknownMoveKeys: [],
+            unknownAbilityKeys: [],
+            unknownNatureNames: [],
+            failedDetailKeys: [],
+          },
+        },
+      },
+    });
+    const legacyStatus = JSON.stringify({
+      ok: true,
+      refreshedAt: '2026-06-12T00:00:00.000Z',
+      sourceUpdatedAt: '2026-06-10 23:58:00',
+      selectedSeason: 2,
+      selectedSeasonLabel: 'M-2',
+    });
+    const { env } = createKvEnv({ 'environment:latest': legacySnapshot, 'environment:status': legacyStatus });
+
+    const first = await latest(env);
+    expect(first.status).toBe(200);
+    expect(first.headers.get('x-luxray-audit-alert')).toBe('1');
+    expect(first.headers.get('x-luxray-audit-unknown-count')).toBe('1');
+    expect(first.headers.get('x-luxray-worker-status')).toBe('degraded');
+
+    // Without status.audit the 304 shortcut cannot supply the audit headers, so a conditional
+    // request still gets the full body rather than a header set invented from nothing.
+    const conditional = await latest(env, { 'if-none-match': first.headers.get('etag') ?? '' });
+    expect(conditional.status).toBe(200);
+    expect(conditional.headers.get('x-luxray-audit-unknown-count')).toBe('1');
+  });
+});
+
+describe('POST /api/ping anonymous page views', () => {
+  const pingEnv = () => {
+    const writeDataPoint = vi.fn();
+    const env = { ALLOWED_ORIGINS: '*', LUXRAY_ANALYTICS: { writeDataPoint } };
+    return { env, writeDataPoint };
+  };
+
+  const ping = (env: unknown, body: unknown, cf?: Record<string, string>) => {
+    const request = new Request('https://luxraykit.com/api/ping', {
+      method: 'POST',
+      body: typeof body === 'string' ? body : JSON.stringify(body),
+    });
+    if (cf) Object.defineProperty(request, 'cf', { value: cf });
+    return worker.fetch(request, env as never, {} as never);
+  };
+
+  it('writes one point per accepted ping and echoes nothing back', async () => {
+    const { env, writeDataPoint } = pingEnv();
+
+    const response = await ping(env, { route: '/env/pokemon/:id', standalone: true, theme: 'dark' }, { country: 'JP' });
+
+    expect(response.status).toBe(204);
+    expect(response.headers.get('cache-control')).toBe('no-store');
+    expect(await response.text()).toBe('');
+    expect(writeDataPoint).toHaveBeenCalledTimes(1);
+    expect(writeDataPoint).toHaveBeenCalledWith({
+      blobs: ['/env/pokemon/:id', 'pwa', 'dark', 'JP'],
+      doubles: [1],
+      indexes: ['/env/pokemon/:id'],
+    });
+  });
+
+  it('records browser vs pwa and leaves country empty when Cloudflare did not resolve one', async () => {
+    const { env, writeDataPoint } = pingEnv();
+
+    await ping(env, { route: '/teams/:id', standalone: false, theme: 'light' });
+
+    expect(writeDataPoint).toHaveBeenCalledWith({
+      blobs: ['/teams/:id', 'browser', 'light', ''],
+      doubles: [1],
+      indexes: ['/teams/:id'],
+    });
+  });
+
+  it.each([
+    ['not JSON at all', 'not json'],
+    ['an unknown route', { route: '/admin', standalone: true, theme: 'dark' }],
+    ['a concrete id instead of a pattern', { route: '/teams/team-abc123', standalone: true, theme: 'dark' }],
+    ['a path traversal attempt', { route: '/env/../../etc/passwd', standalone: true, theme: 'dark' }],
+    ['an over-long route', { route: `/env/${'x'.repeat(200)}`, standalone: true, theme: 'dark' }],
+    ['a non-boolean standalone', { route: '/env', standalone: 'yes', theme: 'dark' }],
+    ['an unknown theme', { route: '/env', standalone: true, theme: 'sepia' }],
+    ['a missing field', { route: '/env', theme: 'dark' }],
+    ['an array body', [1, 2, 3]],
+    ['a null body', null],
+  ])('drops %s without writing a data point', async (_label, body) => {
+    const { env, writeDataPoint } = pingEnv();
+
+    const response = await ping(env, body);
+
+    expect(response.status).toBe(204);
+    expect(writeDataPoint).not.toHaveBeenCalled();
+  });
+
+  it('accepts every pattern the client can emit', async () => {
+    const { env, writeDataPoint } = pingEnv();
+
+    for (const route of routePatterns) {
+      await ping(env, { route, standalone: false, theme: 'dark' });
+    }
+
+    expect(writeDataPoint).toHaveBeenCalledTimes(routePatterns.length);
+  });
+
+  it('stays a 204 no-op when the Analytics Engine binding is absent', async () => {
+    const response = await ping({ ALLOWED_ORIGINS: '*' }, { route: '/env', standalone: false, theme: 'dark' });
+    expect(response.status).toBe(204);
+  });
+
+  it('does not answer GET /api/ping', async () => {
+    const { env } = pingEnv();
+    const response = await worker.fetch(new Request('https://luxraykit.com/api/ping'), env as never, {} as never);
+    expect(response.status).toBe(404);
+  });
+});
+
+describe('/api/feedback in-app message inbox', () => {
+  const feedbackEnv = (overrides: Record<string, unknown> = {}) => {
+    const envelopes: Array<Record<string, unknown>> = [];
+    const doFetch = vi.fn(async (request: Request) => {
+      const body = await request.json() as { submission?: { message?: string } };
+      envelopes.push(body as Record<string, unknown>);
+      return new Response(JSON.stringify({
+        record: {
+          id: 'fb-1',
+          createdAt: '2026-09-07T08:00:00.000Z',
+          kind: 'idea',
+          message: body.submission?.message ?? '',
+          contact: '',
+          route: '/profile',
+          appBuild: 'abc1234',
+          dataVersion: 'reg-mb-1',
+          uaFamily: 'iOS',
+          country: 'JP',
+          status: 'new',
+        },
+      }), { status: 201 });
+    });
+    const env = {
+      ALLOWED_ORIGINS: '*',
+      ADMIN_REFRESH_TOKEN: 'secret',
+      FEEDBACK_INBOX: {
+        idFromName: vi.fn((name: string) => ({ name })),
+        get: vi.fn(() => ({ fetch: doFetch })),
+      },
+      ...overrides,
+    };
+    return { env, doFetch, envelopes };
+  };
+
+  const waitUntilContext = () => {
+    const pending: Array<Promise<unknown>> = [];
+    return { ctx: { waitUntil: (promise: Promise<unknown>) => pending.push(promise) }, pending };
+  };
+
+  const validBody = (patch: Record<string, unknown> = {}) => ({
+    kind: 'idea',
+    message: '希望速度线支持按实数排序',
+    contact: '',
+    route: '/profile',
+    appBuild: 'abc1234',
+    dataVersion: 'reg-mb-1',
+    website: '',
+    ...patch,
+  });
+
+  const post = (env: unknown, body: unknown, init: { headers?: Record<string, string>; cf?: Record<string, string> } = {}, ctx: unknown = {}) => {
+    const request = new Request('https://luxraykit.com/api/feedback', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', ...(init.headers ?? {}) },
+      body: typeof body === 'string' ? body : JSON.stringify(body),
+    });
+    if (init.cf) Object.defineProperty(request, 'cf', { value: init.cf });
+    return worker.fetch(request, env as never, ctx as never);
+  };
+
+  it('stores a valid message and answers with its id, never with the stored content', async () => {
+    const { env, envelopes } = feedbackEnv();
+
+    const response = await post(env, validBody(), {
+      headers: { 'cf-connecting-ip': '203.0.113.7', 'user-agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)' },
+      cf: { country: 'JP' },
+    });
+
+    expect(response.status).toBe(201);
+    expect(response.headers.get('cache-control')).toBe('no-store');
+    expect(await response.json()).toEqual({ id: 'fb-1', createdAt: '2026-09-07T08:00:00.000Z' });
+    expect(env.FEEDBACK_INBOX.idFromName).toHaveBeenCalledWith('feedback-inbox');
+
+    const [envelope] = envelopes;
+    expect(envelope).toMatchObject({ uaFamily: 'iOS', country: 'JP' });
+    expect(envelope.submission).toMatchObject({ kind: 'idea', route: '/profile' });
+    // The raw IP and the raw User-Agent must never reach the Durable Object.
+    expect(JSON.stringify(envelope)).not.toContain('203.0.113.7');
+    expect(JSON.stringify(envelope)).not.toContain('Mozilla');
+    expect(envelope.clientKey).toMatch(/^[0-9a-f]{16}$/);
+  });
+
+  it('answers a honeypot hit with an indistinguishable 201 and writes nothing', async () => {
+    const { env, doFetch } = feedbackEnv();
+
+    const response = await post(env, validBody({ website: 'https://spam.example' }));
+
+    expect(response.status).toBe(201);
+    expect(Object.keys(await response.json() as object).sort()).toEqual(['createdAt', 'id']);
+    expect(doFetch).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['an unknown kind', validBody({ kind: 'rant' })],
+    ['a too-short message', validBody({ message: '短' })],
+    ['a non-JSON body', 'not json'],
+  ])('rejects %s with 400 and stores nothing', async (_label, body) => {
+    const { env, doFetch } = feedbackEnv();
+    const response = await post(env, body);
+    expect(response.status).toBe(400);
+    expect(doFetch).not.toHaveBeenCalled();
+  });
+
+  it('rejects a body over 4 KB before parsing it', async () => {
+    const { env, doFetch } = feedbackEnv();
+    const response = await post(env, validBody({ message: 'x'.repeat(5000) }));
+    expect(response.status).toBe(413);
+    expect(await response.json()).toEqual({ error: 'feedback_too_large' });
+    expect(doFetch).not.toHaveBeenCalled();
+  });
+
+  it('passes the Durable Object rate-limit verdict through as a 429', async () => {
+    const { env } = feedbackEnv();
+    env.FEEDBACK_INBOX.get = vi.fn(() => ({
+      fetch: vi.fn(async () => new Response(JSON.stringify({ error: 'feedback_rate_limited' }), { status: 429 })),
+    }));
+
+    const response = await post(env, validBody());
+
+    expect(response.status).toBe(429);
+    expect(await response.json()).toEqual({ error: 'feedback_rate_limited' });
+  });
+
+  it('degrades to 503 wherever the Durable Object binding is missing (preview shadow Worker)', async () => {
+    const previewEnv = { ALLOWED_ORIGINS: '*', ADMIN_REFRESH_TOKEN: 'secret' };
+
+    const submitted = await post(previewEnv, validBody());
+    expect(submitted.status).toBe(503);
+    expect(await submitted.json()).toEqual({ error: 'feedback_unavailable' });
+
+    const listed = await worker.fetch(
+      new Request('https://luxraykit.com/api/feedback', { headers: { authorization: 'Bearer secret' } }),
+      previewEnv as never,
+      {} as never,
+    );
+    expect(listed.status).toBe(503);
+  });
+
+  it('pushes to Discord only when the webhook secret is set, and after the response', async () => {
+    const discord = vi.fn(async () => new Response('', { status: 204 }));
+    const { env } = feedbackEnv({ FEEDBACK_DISCORD_WEBHOOK: 'https://discord.example/hook' });
+    vi.stubGlobal('fetch', discord);
+    const { ctx, pending } = waitUntilContext();
+
+    const response = await post(env, validBody(), {}, ctx);
+
+    expect(response.status).toBe(201);
+    expect(pending).toHaveLength(1);
+    await Promise.all(pending);
+    expect(discord).toHaveBeenCalledTimes(1);
+    const payload = JSON.parse((discord.mock.calls[0] as unknown as [string, RequestInit])[1].body as string);
+    expect(payload.embeds[0].title).toContain('新留言');
+    vi.unstubAllGlobals();
+
+    const { env: silentEnv } = feedbackEnv();
+    const { ctx: silentCtx, pending: silentPending } = waitUntilContext();
+    await post(silentEnv, validBody(), {}, silentCtx);
+    expect(silentPending).toHaveLength(0);
+  });
+
+  it('guards the admin endpoints with the same bearer token as the refresh route', async () => {
+    const { env } = feedbackEnv();
+    const listStub = vi.fn(async () => new Response(JSON.stringify({ items: [], status: 'new', limit: 50 }), { status: 200 }));
+    env.FEEDBACK_INBOX.get = vi.fn(() => ({ fetch: listStub }));
+
+    const anonymous = await worker.fetch(new Request('https://luxraykit.com/api/feedback'), env as never, {} as never);
+    expect(anonymous.status).toBe(401);
+    expect(listStub).not.toHaveBeenCalled();
+
+    const wrongToken = await worker.fetch(
+      new Request('https://luxraykit.com/api/feedback', { headers: { authorization: 'Bearer nope' } }),
+      env as never,
+      {} as never,
+    );
+    expect(wrongToken.status).toBe(401);
+
+    const authorized = await worker.fetch(
+      new Request('https://luxraykit.com/api/feedback?status=all&limit=5', { headers: { authorization: 'Bearer secret' } }),
+      env as never,
+      {} as never,
+    );
+    expect(authorized.status).toBe(200);
+    expect(authorized.headers.get('cache-control')).toBe('no-store');
+    const forwarded = new URL((listStub.mock.calls[0] as unknown as [Request])[0].url);
+    expect(forwarded.searchParams.get('status')).toBe('all');
+    expect(forwarded.searchParams.get('limit')).toBe('5');
+  });
+
+  it('marks one message read through PATCH /api/feedback/:id', async () => {
+    const { env } = feedbackEnv();
+    const patchStub = vi.fn(async () => new Response(JSON.stringify({ id: 'fb-1', status: 'read' }), { status: 200 }));
+    env.FEEDBACK_INBOX.get = vi.fn(() => ({ fetch: patchStub }));
+
+    const patch = (body: unknown, headers: Record<string, string>) =>
+      worker.fetch(
+        new Request('https://luxraykit.com/api/feedback/fb-1', { method: 'PATCH', headers, body: JSON.stringify(body) }),
+        env as never,
+        {} as never,
+      );
+
+    expect((await patch({ status: 'read' }, {})).status).toBe(401);
+    expect((await patch({ status: 'archived' }, { authorization: 'Bearer secret' })).status).toBe(400);
+
+    const ok = await patch({ status: 'read' }, { authorization: 'Bearer secret' });
+    expect(ok.status).toBe(200);
+    expect(await ok.json()).toEqual({ id: 'fb-1', status: 'read' });
+    expect(await (patchStub.mock.calls[0] as unknown as [Request])[0].json()).toEqual({ id: 'fb-1' });
+  });
+
+  it('does not answer GET on a single feedback id', async () => {
+    const { env } = feedbackEnv();
+    const response = await worker.fetch(
+      new Request('https://luxraykit.com/api/feedback/fb-1', { headers: { authorization: 'Bearer secret' } }),
+      env as never,
+      {} as never,
+    );
+    expect(response.status).toBe(404);
+  });
 });

@@ -71,6 +71,10 @@ test('captures the mobile visual regression smoke set', { timeout: 60_000 }, asy
 
   await page.getByRole('button', { name: /烈咬陆鲨/ }).click();
   await expect(page.getByRole('heading', { name: '烈咬陆鲨', exact: true })).toBeVisible();
+  // 常用招式 comes from the move catalog, which this screen loads on demand (it is deliberately
+  // not in the environment first paint). Wait for it so the shot is taken on the settled layout
+  // rather than racing the chunk. Same pixels, just a deterministic moment.
+  await expect(page.getByText('常用招式')).toBeVisible();
   await expect(page.getByText('相关上位构筑')).toBeVisible();
   await expect(page).toHaveScreenshot('03-pokemon-environment-detail.png', screenshotOptions);
 

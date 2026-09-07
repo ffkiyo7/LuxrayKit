@@ -1,10 +1,13 @@
-import { Compass, Database, Download, Moon, ShieldCheck, Sun, Trash2, Upload } from 'lucide-react';
+import { ClipboardCopy, Compass, Database, Download, Info, MessageSquare, Moon, PenLine, ShieldCheck, Sun, Trash2, Upload } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { currentDataVersion, currentRuleSet } from '../data';
+import { feedbackLinks, productName } from '../branding';
+import { useHashRoute } from '../hooks/useHashRoute';
 import { TeamImportError, parseTeamImport } from '../lib/exportImport';
 import { useAppStore } from '../state/AppContext';
 import type { UserPreference } from '../types';
 import { Button, Card } from '../components/ui';
+import { FeedbackSheet } from './profile/FeedbackSheet';
 
 type BackupPayload = {
   schemaVersion: 'champions-local-backup-v1';
@@ -24,6 +27,18 @@ type Notice = {
   message: string;
 };
 
+/**
+ * The exact string a bug report needs. Keep it one line per fact and stable in shape — it
+ * gets pasted into an issue, so a human has to be able to read it at a glance.
+ */
+const versionInfoLines = () => [
+  `${productName} 版本信息`,
+  `规则：${currentRuleSet.displayName}`,
+  `数据版本：${currentDataVersion.id}`,
+  `构建：${__APP_BUILD__}`,
+  `UA：${typeof navigator === 'undefined' ? '未知' : navigator.userAgent}`,
+];
+
 const isBackupPayload = (value: unknown): value is BackupPayload => {
   if (!value || typeof value !== 'object') return false;
   const candidate = value as Partial<BackupPayload>;
@@ -32,8 +47,22 @@ const isBackupPayload = (value: unknown): value is BackupPayload => {
 
 export function ProfilePage() {
   const { teams, preferences, replaceTeams, replacePreferences, clearLocalData, lastRefreshError, updateTheme } = useAppStore();
+  // The message form is a route, not a local overlay: onboarding and any future entry point
+  // can deep-link straight into it, and the browser back button closes it for free.
+  const { route, navigate, back } = useHashRoute();
   const inputRef = useRef<HTMLInputElement>(null);
   const [notice, setNotice] = useState<Notice | null>(null);
+  const [versionCopied, setVersionCopied] = useState(false);
+
+  const copyVersionInfo = async () => {
+    try {
+      await navigator.clipboard.writeText(versionInfoLines().join('\n'));
+      setVersionCopied(true);
+      window.setTimeout(() => setVersionCopied(false), 2000);
+    } catch {
+      setNotice({ type: 'error', title: '复制失败', message: '请手动选中下面的版本信息复制。' });
+    }
+  };
 
   const exportBackup = () => {
     const payload: BackupPayload = {
@@ -96,7 +125,7 @@ export function ProfilePage() {
               <span className="text-xs text-textSecondary">{preferences.theme === 'dark' ? '深色工具界面' : '浅色工具界面'}</span>
             </span>
             <button
-              className="grid grid-cols-2 rounded-lg border border-border bg-secondary p-1 text-textSecondary"
+              className="grid shrink-0 grid-cols-2 rounded-lg border border-border bg-secondary p-1 text-textSecondary"
               type="button"
               aria-label="切换深色和浅色主题"
               aria-pressed={preferences.theme === 'light'}
@@ -107,6 +136,28 @@ export function ProfilePage() {
               </span>
               <span className={`grid h-8 w-8 place-items-center rounded-md ${preferences.theme === 'dark' ? 'bg-card text-accent' : ''}`}>
                 <Moon size={16} />
+              </span>
+            </button>
+          </div>
+          <div className="flex items-center justify-between gap-3 py-3">
+            <span className="min-w-0">
+              <span className="block text-sm">匿名使用统计</span>
+              <span className="block text-xs text-textSecondary">
+                只记录打开了哪个页面、是否以 PWA 运行、深色还是浅色、以及所在国家/地区。不含 IP、设备标识或任何队伍内容，也不写 cookie。
+              </span>
+            </span>
+            <button
+              className="grid shrink-0 grid-cols-2 rounded-lg border border-border bg-secondary p-1 text-textSecondary"
+              type="button"
+              aria-label="切换匿名使用统计"
+              aria-pressed={!preferences.analyticsOptOut}
+              onClick={() => replacePreferences({ ...preferences, analyticsOptOut: !preferences.analyticsOptOut })}
+            >
+              <span className={`grid h-8 w-10 place-items-center rounded-md text-xs font-semibold ${preferences.analyticsOptOut ? 'bg-card text-textPrimary surface-shadow' : ''}`}>
+                关闭
+              </span>
+              <span className={`grid h-8 w-10 place-items-center rounded-md text-xs font-semibold ${preferences.analyticsOptOut ? '' : 'bg-card text-accent'}`}>
+                开启
               </span>
             </button>
           </div>
@@ -160,6 +211,55 @@ export function ProfilePage() {
       </Card>
 
       <Card>
+        <p className="mb-2 flex items-center gap-2 text-[11px] uppercase tracking-wide text-textMuted">
+          <MessageSquare size={13} aria-hidden="true" />
+          留言
+        </p>
+        <p className="text-sm text-textSecondary">有问题、想法或想说的话，直接写给我们，不需要账号。</p>
+        <Button className="mt-3 w-full" type="button" onClick={() => navigate({ name: 'profile-feedback' })}>
+          <PenLine size={14} />
+          写留言
+        </Button>
+      </Card>
+
+      <Card>
+        <p className="mb-2 flex items-center gap-2 text-[11px] uppercase tracking-wide text-textMuted">
+          <Info size={13} aria-hidden="true" />
+          关于
+        </p>
+        <dl className="divide-y divide-divider text-sm">
+          {[
+            ['产品', productName],
+            ['规则', currentRuleSet.displayName],
+            ['数据版本', currentDataVersion.id],
+            ['构建', __APP_BUILD__],
+          ].map(([label, value]) => (
+            <div key={label} className="flex items-baseline justify-between gap-3 py-2">
+              <dt className="shrink-0 text-textSecondary">{label}</dt>
+              <dd className="min-w-0 break-all text-right font-medium">{value}</dd>
+            </div>
+          ))}
+        </dl>
+        <button
+          type="button"
+          className="mt-3 inline-flex min-h-8 w-full items-center justify-center gap-1.5 rounded-lg border border-border bg-secondary px-3 text-xs font-medium text-textSecondary transition active:scale-[0.98]"
+          onClick={() => void copyVersionInfo()}
+        >
+          <ClipboardCopy size={14} />
+          {versionCopied ? '版本信息已复制' : '复制版本信息'}
+        </button>
+        <p className="mt-2 text-xs text-textSecondary">留言里附带的构建标识已经自动带上，这个按钮留给需要手动粘贴的场合。</p>
+        <a
+          className="mt-2 inline-block text-xs text-textMuted underline decoration-dotted underline-offset-2"
+          href={feedbackLinks.general}
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          也可以在 GitHub 提 issue
+        </a>
+      </Card>
+
+      <Card>
         <p className="mb-3 flex items-center gap-2 text-sm font-semibold">
           <Database size={16} className="text-textSecondary" />
           本地数据
@@ -169,6 +269,8 @@ export function ProfilePage() {
           清除本地数据
         </Button>
       </Card>
+
+      {route.name === 'profile-feedback' && <FeedbackSheet onClose={back} />}
     </div>
   );
 }

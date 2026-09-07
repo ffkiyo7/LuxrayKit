@@ -1,6 +1,6 @@
 # 移动端视觉回归
 
-更新日期：2026-08-05
+更新日期：2026-09-07
 
 ## 工具
 
@@ -18,7 +18,7 @@ Playwright 使用 `visual-mobile-390` 项目运行视觉 smoke，浏览器是 `@
 2. 完整宝可梦榜。
 3. 宝可梦环境详情。
 4. 队伍列表。
-5. 队伍详情。
+5. 队伍详情（含分享按钮）。
 6. 成员编辑。
 7. 成员 SP 调整。
 8. 工具页。
@@ -26,7 +26,7 @@ Playwright 使用 `visual-mobile-390` 项目运行视觉 smoke，浏览器是 `@
 10. 规则图鉴。
 11. 图鉴详情。
 12. 图鉴属性筛选。
-13. 我的。
+13. 我的（含匿名使用统计开关、反馈与建议卡、关于卡）。
 14. 数据口径。
 15. 队伍一览（双打）。
 16. 试试灵感弹窗。
@@ -70,10 +70,12 @@ gh workflow run visual-baseline.yml --ref "$(git branch --show-current)"
 - 环境视觉测试会屏蔽 Service Worker；数据应通过开发服务器稳定提供。
 - 改动 Header、底部导航、主题 token、卡片、字体或环境数据展示时，至少运行视觉套件。
 - 改动 Service Worker、IndexedDB 或路由入口时，同时运行离线套件（`npm run test:pwa`，本机可跑）。
+- **2%（`0.02`）的像素阈值会吞掉小改动**：一个按钮、一行文案这种局部变化很可能不足以让基线变红。所以「基线没变」**不等于**「UI 没变」——改了页面就自己 `npm run build && npm run preview` 在浏览器里目视确认一遍，不要拿门禁当验收。
 
 ## 当前缺口
 
 - 属性速查工具没有视觉基线（四个工具里唯一没覆盖的）。
+- 分享链接预览浮层（`#/t/<code>`）没有视觉基线：它需要先造一个合法 code 再走 URL 进入，用例得先决定 code 从哪来（写死一个会随 catalog 变动而失效）。当前由 `App.test.tsx` 的 RTL 用例覆盖。
 - **赛季排名变动 chip（↑n / ↓n / NEW）没有视觉基线**。视觉用例只走静态快照那条路（只 route `**/data/pokedb/reg-ma-environment.json`），而 `previousSeason` 只有 Worker 会写，静态文件里不会有——所以现有 fixture 加个字段等于伪造一个真实路径不存在的状态。要补这层覆盖得先决定视觉用例怎么表示「Worker 来源」的数据（例如额外 route `/api/environment/latest`），属独立设计题。当前该 chip 由 `EnvironmentPage.test.tsx` 的 RTL 用例覆盖。
 - Worker fresh / stale、静态回退和环境加载失败没有视觉基线。
 - 首次导入提示和成功 Toast 没有独立视觉基线。

@@ -31,6 +31,8 @@
     "data:regma:catalog-batch": "node scripts/generate-catalog-batch.mjs",
     "data:regma:catalog-batch:list": "node scripts/generate-catalog-batch.mjs --list",
     "data:regma:moves": "node scripts/generate-champions-moves.mjs",
+    "data:regma:move-ids": "node scripts/generate-move-ids.mjs",
+    "data:regma:move-ids:check": "node scripts/generate-move-ids.mjs --check",
     "data:items:audit": "node scripts/audit-item-catalog.mjs",
     "data:items:refresh": "node scripts/audit-item-catalog.mjs --write",
     "data:pokemon-facts": "node scripts/generate-pokemon-facts.mjs",

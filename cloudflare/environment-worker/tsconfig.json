@@ -16,6 +16,7 @@
     "../../src/data/external/**/*.ts",
     "../../src/data/seed/regMA/**/*.ts",
     "../../src/lib/environmentDataset.ts",
+    "../../src/lib/hashRoute.ts",
     "../../src/lib/pokedbEnvironment.ts",
     "../../src/lib/seasonRankDelta.ts",
     "../../src/types.ts"

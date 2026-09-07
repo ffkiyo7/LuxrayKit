@@ -11,14 +11,15 @@ import teamSamples from './data/external/pokedb/s1_team_samples.json';
 import vgcPastesSamples from './data/external/vgcpastes/reg_ma_champions_ma_team_samples.json';
 import {
   createEnvironmentStateFromPokeDbSnapshot,
-  getEnvironmentMove,
   getEnvironmentPokemon,
+  loadEnvironmentMove,
 } from './data/environment';
 import { currentDataVersion, currentRuleNatureOptions, currentRuleSet, pokemon } from './data';
 import { repository } from './lib/db';
 import type { Team, TeamMember } from './types';
 import { sortTeamSamplesByDate } from './pages/environmentTeamSamples';
 import { productContextLabel } from './data/schedule';
+import { feedbackLinks } from './branding';
 
 const DB_NAME = 'pokemon-champions-assistant';
 const pokedbSnapshot = {
@@ -34,7 +35,7 @@ const testEnvironmentState = createEnvironmentStateFromPokeDbSnapshot(pokedbSnap
 const vgcPastesTeamSamples = vgcPastesSamples as typeof testEnvironmentState.teamSamples;
 const basicPokeDbSample = testEnvironmentState.teamSamples.find((sample) => sample.id === 'pokedb-singles-rank-1')!;
 const topSinglesPokemon = getEnvironmentPokemon(testEnvironmentState.pokemonUsage.singles[0].pokemonId)!;
-const topSinglesMove = getEnvironmentMove(testEnvironmentState.pokemonUsage.singles[0].moveStats?.[0]?.id ?? '')!;
+const topSinglesMove = (await loadEnvironmentMove(testEnvironmentState.pokemonUsage.singles[0].moveStats?.[0]?.id ?? ''))!;
 const relatedGarchompSample = testEnvironmentState.teamSamples.find(
   (sample) => sample.battleType === 'singles' && sample.slots.some((slot) => slot.pokemonId === 'garchomp'),
 )!;
@@ -320,6 +321,100 @@ describe('App page flows', () => {
     expect(screen.queryByText('当前规则')).toBeNull();
     expect(screen.queryByRole('button', { name: /当前赛季|规则详情/ })).toBeNull();
     expect(screen.queryByText(/本地队伍\s+\d|收藏\s+\d/)).toBeNull();
+  });
+
+  it('lets the user turn the anonymous page-view ping off, and persists that choice', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await waitForEnvironmentPage();
+    await user.click(screen.getByRole('button', { name: '我的' }));
+
+    const toggle = await screen.findByRole('button', { name: '切换匿名使用统计' });
+    // Default is opted *in*; the copy has to state exactly what leaves the device.
+    expect(toggle.getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByText(/不含 IP、设备标识或任何队伍内容，也不写 cookie/)).toBeTruthy();
+
+    await user.click(toggle);
+    await waitFor(() => expect(screen.getByRole('button', { name: '切换匿名使用统计' }).getAttribute('aria-pressed')).toBe('false'));
+    await waitFor(async () => {
+      const state = await repository.loadState();
+      expect(state.preferences.analyticsOptOut).toBe(true);
+    });
+  });
+
+  it('opens the in-app message form from 我的, and keeps one GitHub exit under 关于', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await waitForEnvironmentPage();
+    await user.click(screen.getByRole('button', { name: '我的' }));
+    await screen.findByRole('heading', { name: '我的' });
+
+    // The three GitHub issue entry points are gone — they all forced a login.
+    expect(screen.queryByRole('link', { name: /反馈问题/ })).toBeNull();
+    expect(screen.queryByRole('link', { name: /功能建议/ })).toBeNull();
+
+    const githubExit = screen.getByRole('link', { name: '也可以在 GitHub 提 issue' });
+    expect(githubExit.getAttribute('href')).toBe(feedbackLinks.general);
+    expect(githubExit.getAttribute('target')).toBe('_blank');
+    expect(githubExit.getAttribute('rel')).toBe('noopener noreferrer');
+
+    await user.click(screen.getByRole('button', { name: /写留言/ }));
+    expect(window.location.hash).toBe('#/profile/feedback');
+    const sheet = await screen.findByRole('dialog', { name: '写留言' });
+    expect(within(sheet).getByLabelText('留言内容')).toBeTruthy();
+
+    // 返回 closes the sheet without leaving the profile tab.
+    await user.click(within(sheet).getAllByRole('button', { name: '关闭留言' })[1]);
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: '写留言' })).toBeNull());
+    expect(window.location.hash).toBe('#/profile');
+  });
+
+  it('lands on the message form when the onboarding finale invites feedback', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await waitForEnvironmentPage();
+
+    const tour = await screen.findByRole('dialog', { name: 'LuxrayKit 引导' });
+    for (let step = 0; step < 4; step += 1) {
+      await user.click(within(tour).getByRole('button', { name: '下一步' }));
+    }
+    expect(within(tour).getByText('一起把 LuxrayKit 做得更好')).toBeTruthy();
+
+    // The three chips are buttons now, not GitHub links — all three open the same form.
+    expect(within(tour).queryByRole('link', { name: /反馈问题/ })).toBeNull();
+    await user.click(within(tour).getByRole('button', { name: /反馈问题/ }));
+
+    // Onboarding is finished first, so the tour does not sit on top of the sheet.
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'LuxrayKit 引导' })).toBeNull());
+    expect(window.location.hash).toBe('#/profile/feedback');
+    const sheet = await screen.findByRole('dialog', { name: '写留言' });
+    expect(within(sheet).getByLabelText('留言内容')).toBeTruthy();
+    await waitFor(async () => {
+      const state = await repository.loadState();
+      expect(state.preferences.hasCompletedOnboarding).toBe(true);
+    });
+  });
+
+  it('shows a copyable build identity under 关于', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await waitForEnvironmentPage();
+    await user.click(screen.getByRole('button', { name: '我的' }));
+    await screen.findByRole('heading', { name: '我的' });
+
+    // 关于 must name the regulation and data version from the catalog, never a literal.
+    expect(screen.getByText(currentRuleSet.displayName)).toBeTruthy();
+    expect(screen.getByText(currentDataVersion.id)).toBeTruthy();
+
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } });
+    await user.click(screen.getByRole('button', { name: /复制版本信息/ }));
+    await waitFor(() => expect(writeText).toHaveBeenCalledTimes(1));
+    const copied = writeText.mock.calls[0][0] as string;
+    expect(copied).toContain(currentRuleSet.displayName);
+    expect(copied).toContain(currentDataVersion.id);
+    expect(copied).toMatch(/构建：\S+/);
+    expect(await screen.findByRole('button', { name: /版本信息已复制/ })).toBeTruthy();
   });
 
   it('creates and switches teams, then expands and collapses a member card', async () => {
@@ -764,7 +859,9 @@ describe('App page flows', () => {
     await user.click(screen.getByRole('button', { name: '单打' }));
     await user.click(screen.getByRole('button', { name: new RegExp(topSinglesPokemon.chineseName) }));
     expect(await screen.findByRole('heading', { name: topSinglesPokemon.chineseName })).toBeTruthy();
-    expect(screen.getByText('常用招式')).toBeTruthy();
+    // The move catalog is loaded on demand once the detail mounts, so the 常用招式 card
+    // appears a tick after the heading rather than in the same render.
+    expect(await screen.findByText('常用招式')).toBeTruthy();
     expect(screen.getByText(topSinglesMove.chineseName)).toBeTruthy();
     expect(screen.getByText('携带道具')).toBeTruthy();
     expect(screen.getByText('常见队友')).toBeTruthy();
@@ -1308,6 +1405,99 @@ describe('App page flows', () => {
     await user.type(screen.getByPlaceholderText('搜索名称'), '烈咬陆鲨');
     expect(await screen.findByText(/沙隐 Sand Veil/)).toBeTruthy();
     expect(await screen.findByText(/粗糙皮肤 Rough Skin/)).toBeTruthy();
+  });
+
+  it('opens a Pokemon environment detail directly from a #/env/pokemon deep link', async () => {
+    window.location.hash = '#/env/pokemon/garchomp';
+    render(<App />);
+
+    expect(await screen.findByRole('heading', { name: '烈咬陆鲨' }, { timeout: 5000 })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /返回环境/ })).toBeTruthy();
+    // Nothing pushed this entry, so 返回 replaces into the environment home instead of
+    // walking off the site.
+    expect(screen.queryByRole('heading', { name: '环境' })).toBeNull();
+  });
+
+  it('drives the bottom tabs through the URL hash', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await waitForEnvironmentPage();
+    expect(window.location.hash).toBe('#/env');
+
+    await user.click(screen.getByRole('button', { name: '队伍' }));
+    await screen.findByText('我的队伍');
+    expect(window.location.hash).toBe('#/teams');
+
+    await user.click(screen.getByRole('button', { name: '工具' }));
+    await screen.findByRole('heading', { name: '工具' });
+    expect(window.location.hash).toBe('#/tools');
+
+    await user.click(screen.getByRole('button', { name: /规则图鉴/ }));
+    await waitForDexPage();
+    expect(window.location.hash).toBe('#/tools/dex');
+
+    await user.click(screen.getByRole('button', { name: '我的' }));
+    await screen.findByRole('heading', { name: '我的' });
+    expect(window.location.hash).toBe('#/profile');
+  });
+
+  it('previews a #/t/<code> share link and imports it into the team list', { timeout: 20000 }, async () => {
+    const { encodeTeamShare } = await import('./lib/teamShare');
+    const shared = testTeam('分享来的队', [garchompMember()]);
+    // jsdom has no CompressionStream, so this exercises the uncompressed `p1` path — the
+    // decoder accepts either prefix, which is the point of having both.
+    window.location.hash = `#/t/${await encodeTeamShare(shared)}`;
+
+    const user = userEvent.setup();
+    render(<App />);
+
+    const dialog = await screen.findByRole('dialog', { name: '分享的队伍' }, { timeout: 10000 });
+    expect(await within(dialog).findByRole('heading', { name: '分享来的队' })).toBeTruthy();
+    expect(within(dialog).getByText('烈咬陆鲨')).toBeTruthy();
+    expect(within(dialog).getByText(/粗糙皮肤 · 磁铁 · 爽朗/)).toBeTruthy();
+
+    await user.click(within(dialog).getByRole('button', { name: /导入到我的队伍/ }));
+
+    expect(await screen.findByRole('heading', { name: '分享来的队' })).toBeTruthy();
+    expect((await screen.findByRole('status')).textContent).toContain('已导入分享队伍');
+    await waitFor(async () => {
+      const state = await repository.loadState();
+      const imported = state.teams.find((team) => team.name === '分享来的队');
+      expect(imported?.source?.kind).toBe('share-link-import');
+      expect(imported?.members[0].pokemonId).toBe('garchomp');
+    });
+
+    await user.click(screen.getByRole('button', { name: '返回队伍列表' }));
+    expect(await screen.findByLabelText('队伍：分享来的队')).toBeTruthy();
+  });
+
+  it('explains a corrupt share link instead of rendering a blank overlay', async () => {
+    window.location.hash = '#/t/z1notarealcode';
+    render(<App />);
+
+    const dialog = await screen.findByRole('dialog', { name: '分享的队伍' }, { timeout: 10000 });
+    expect(await within(dialog).findByText('分享链接打不开')).toBeTruthy();
+    expect(within(dialog).queryByRole('button', { name: /导入到我的队伍/ })).toBeNull();
+  });
+
+  it('copies a share URL from team detail when the platform has no share sheet', async () => {
+    const user = await renderApp();
+    // userEvent.setup() installs its own clipboard stub, so override it *after* renderApp.
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } });
+    await openDefaultTeam(user);
+
+    await user.click(screen.getByRole('button', { name: '分享 Luxray test' }));
+
+    await waitFor(() => expect(writeText).toHaveBeenCalledTimes(1));
+    const sharedUrl = writeText.mock.calls[0][0] as string;
+    expect(sharedUrl.startsWith(`${window.location.origin}/#/t/`)).toBe(true);
+    expect((await screen.findByRole('status')).textContent).toContain('链接已复制');
+
+    const { decodeTeamShare } = await import('./lib/teamShare');
+    const decoded = await decodeTeamShare(sharedUrl.split('/#/t/')[1]);
+    expect(decoded.name).toBe('Luxray test');
+    expect(decoded.members[0].pokemonId).toBe('luxray');
   });
 
   it('opens the speed line tool from the tools page', async () => {
