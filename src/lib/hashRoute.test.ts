@@ -29,6 +29,7 @@ describe('parseHashRoute', () => {
     expect(parseHashRoute('#/tools/speed')).toEqual({ name: 'tool', tool: 'speed' });
     expect(parseHashRoute('#/tools/typechart')).toEqual({ name: 'tool', tool: 'typechart' });
     expect(parseHashRoute('#/profile')).toEqual({ name: 'profile' });
+    expect(parseHashRoute('#/profile/feedback')).toEqual({ name: 'profile-feedback' });
     expect(parseHashRoute('#/t/z1abc')).toEqual({ name: 'share', code: 'z1abc' });
   });
 
@@ -51,6 +52,7 @@ describe('parseHashRoute', () => {
     expect(parseHashRoute('#/tools/speed/extra')).toEqual(defaultRoute);
     expect(parseHashRoute('#/teams/a/b')).toEqual(defaultRoute);
     expect(parseHashRoute('#/profile/extra')).toEqual(defaultRoute);
+    expect(parseHashRoute('#/profile/feedback/extra')).toEqual(defaultRoute);
     expect(parseHashRoute('#/t')).toEqual(defaultRoute);
   });
 });
@@ -84,6 +86,7 @@ describe('buildHash', () => {
       { name: 'tool', tool: 'typechart' },
       { name: 'dex-pokemon', pokemonId: 'x' },
       { name: 'profile' },
+      { name: 'profile-feedback' },
       { name: 'share', code: 'x' },
     ];
     routes.forEach((route) => {
@@ -100,6 +103,7 @@ describe('parentRoute', () => {
     expect(parentRoute({ name: 'team-detail', teamId: 'x' })).toEqual({ name: 'teams' });
     expect(parentRoute({ name: 'tool', tool: 'speed' })).toEqual({ name: 'tools' });
     expect(parentRoute({ name: 'dex-pokemon', pokemonId: 'x' })).toEqual({ name: 'tool', tool: 'dex' });
+    expect(parentRoute({ name: 'profile-feedback' })).toEqual({ name: 'profile' });
   });
 
   it('sends a cold-opened share link to the team list', () => {
@@ -119,6 +123,7 @@ describe('tabForRoute / routeForTab', () => {
     expect(tabForRoute({ name: 'share', code: 'x' })).toBe('teams');
     expect(tabForRoute({ name: 'dex-pokemon', pokemonId: 'x' })).toBe('tools');
     expect(tabForRoute({ name: 'profile' })).toBe('profile');
+    expect(tabForRoute({ name: 'profile-feedback' })).toBe('profile');
   });
 
   it('round-trips a tab through its root route', () => {
@@ -153,6 +158,7 @@ describe('routePattern', () => {
       { name: 'tool', tool: 'typechart' },
       { name: 'dex-pokemon', pokemonId: 'x' },
       { name: 'profile' },
+      { name: 'profile-feedback' },
       { name: 'share', code: 'x' },
     ];
     const emitted = new Set(routes.map(routePattern));

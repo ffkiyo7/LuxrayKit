@@ -25,6 +25,7 @@ export type Route =
   | { name: 'tool'; tool: ToolRouteId }
   | { name: 'dex-pokemon'; pokemonId: string }
   | { name: 'profile' }
+  | { name: 'profile-feedback' }
   | { name: 'share'; code: string };
 
 export type RouteTabId = 'environment' | 'teams' | 'tools' | 'profile';
@@ -79,7 +80,11 @@ export function parseHashRoute(hash: string | undefined | null): Route {
     return defaultRoute;
   }
 
-  if (first === 'profile' && !second) return { name: 'profile' };
+  if (first === 'profile') {
+    if (!second) return { name: 'profile' };
+    if (second === 'feedback' && !third) return { name: 'profile-feedback' };
+    return defaultRoute;
+  }
 
   if (first === 't' && second && !third) return { name: 'share', code: second };
 
@@ -111,6 +116,8 @@ export function buildHash(route: Route): string {
       return `#/tools/dex/${encodeSegment(route.pokemonId)}`;
     case 'profile':
       return '#/profile';
+    case 'profile-feedback':
+      return '#/profile/feedback';
     case 'share':
       return `#/t/${encodeSegment(route.code)}`;
   }
@@ -134,6 +141,8 @@ export function parentRoute(route: Route): Route {
       return { name: 'tools' };
     case 'dex-pokemon':
       return { name: 'tool', tool: 'dex' };
+    case 'profile-feedback':
+      return { name: 'profile' };
     default:
       return route;
   }
@@ -157,6 +166,7 @@ export function tabForRoute(route: Route): RouteTabId {
     case 'dex-pokemon':
       return 'tools';
     case 'profile':
+    case 'profile-feedback':
       return 'profile';
   }
 }
@@ -204,6 +214,8 @@ export function routePattern(route: Route): string {
       return '/tools/dex/:id';
     case 'profile':
       return '/profile';
+    case 'profile-feedback':
+      return '/profile/feedback';
     case 'share':
       return '/t/:code';
   }
@@ -222,5 +234,6 @@ export const routePatterns: string[] = [
   ...toolRouteIds.map((tool) => `/tools/${tool}`),
   '/tools/dex/:id',
   '/profile',
+  '/profile/feedback',
   '/t/:code',
 ];
