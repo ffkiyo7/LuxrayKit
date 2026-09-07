@@ -1,7 +1,6 @@
 import { Bug, Check, Lightbulb, MessageCircle, RotateCcw } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
-import { feedbackLinks, type FeedbackKind } from '../../branding';
 import { Diorama } from './Diorama';
 import type { DioramaScene } from './Diorama';
 
@@ -136,29 +135,31 @@ function BottomCTA({
   );
 }
 
-/* --- feedback: three real entry points, not decoration -------------------- */
+/* --- feedback: three real entry points, not decoration --------------------
+   All three open the same in-app message form — the kind is picked inside it. They stay
+   three separate buttons because naming the three things people actually want to say is
+   what makes the screen an invitation rather than a label. */
 const KINDS = [
-  { icon: Bug, label: '反馈问题', kind: 'bug' },
-  { icon: Lightbulb, label: '功能建议', kind: 'feature' },
-  { icon: MessageCircle, label: '留言', kind: 'general' },
-] as const satisfies ReadonlyArray<{ icon: typeof Bug; label: string; kind: FeedbackKind }>;
+  { icon: Bug, label: '反馈问题' },
+  { icon: Lightbulb, label: '功能建议' },
+  { icon: MessageCircle, label: '留言' },
+] as const satisfies ReadonlyArray<{ icon: typeof Bug; label: string }>;
 
-function FeedbackHint({ bodyText }: { bodyText: string }) {
+function FeedbackHint({ bodyText, onOpenFeedback }: { bodyText: string; onOpenFeedback: () => void }) {
   return (
     <div className="mx-auto w-full max-w-[330px]">
       <p className="mb-4 text-[15px] leading-normal text-textSecondary">{bodyText}</p>
       <div className="flex justify-center gap-2">
-        {KINDS.map(({ icon: Icon, label, kind }) => (
-          <a
+        {KINDS.map(({ icon: Icon, label }) => (
+          <button
             key={label}
-            className="inline-flex h-[34px] items-center gap-1.5 rounded-full border border-border bg-card px-3 text-[13px] font-medium text-textSecondary"
-            href={feedbackLinks[kind]}
-            rel="noopener noreferrer"
-            target="_blank"
+            type="button"
+            onClick={onOpenFeedback}
+            className="inline-flex h-[34px] shrink-0 items-center gap-1.5 rounded-full border border-border bg-card px-3 text-[13px] font-medium text-textSecondary transition active:scale-[0.98]"
           >
             <Icon size={14} className="text-accent" />
             {label}
-          </a>
+          </button>
         ))}
       </div>
     </div>
@@ -199,8 +200,12 @@ function DoneScreen({ onEnter, onRestart }: { onEnter: () => void; onRestart: ()
 /**
  * Onboarding — the five-screen first-launch tour. Calls `onComplete` once the
  * user reaches the end, skips, or chooses to enter the app.
+ *
+ * The last screen's feedback entries call `onOpenFeedback`, which finishes onboarding *and*
+ * navigates to `#/profile/feedback` — the tour is rendered outside the router, so it gets
+ * the jump as a callback instead of reaching for `navigate` itself.
  */
-export function Onboarding({ onComplete }: { onComplete: () => void }) {
+export function Onboarding({ onComplete, onOpenFeedback }: { onComplete: () => void; onOpenFeedback: () => void }) {
   const [i, setI] = useState(0);
   const [done, setDone] = useState(false);
   const last = TOTAL - 1;
@@ -222,7 +227,7 @@ export function Onboarding({ onComplete }: { onComplete: () => void }) {
             <OnboardingSlide
               eyebrow={stepLabel(i)}
               title={slide.title}
-              body={slide.custom === 'feedback' ? <FeedbackHint bodyText={slide.body} /> : slide.body}
+              body={slide.custom === 'feedback' ? <FeedbackHint bodyText={slide.body} onOpenFeedback={onOpenFeedback} /> : slide.body}
               illustration={<Diorama scene={slide.scene} />}
               illustrationMaxH={slide.maxH}
             />
@@ -235,9 +240,11 @@ export function Onboarding({ onComplete }: { onComplete: () => void }) {
             secondaryLabel={i === last ? '发送反馈' : '跳过'}
             onSecondary={() => {
               // On the last slide this button is a real feedback entry, not a second 跳过:
-              // open the issue chooser, then still finish onboarding so the user is not
-              // dumped back into the tour when they return from GitHub.
-              if (i === last) window.open(feedbackLinks.general, '_blank', 'noopener,noreferrer');
+              // it finishes the tour and drops the user straight into the message form.
+              if (i === last) {
+                onOpenFeedback();
+                return;
+              }
               setDone(true);
             }}
           />

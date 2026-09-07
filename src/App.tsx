@@ -274,6 +274,13 @@ function AppShell() {
     void replacePreferences({ ...preferences, hasCompletedOnboarding: true });
   }, [preferences, replacePreferences]);
 
+  // Onboarding's feedback entries land on the message form. Finishing the tour first matters:
+  // otherwise the overlay would still be on top of the sheet the user just asked for.
+  const openFeedbackFromOnboarding = useCallback(() => {
+    completeOnboarding();
+    navigate({ name: 'profile-feedback' });
+  }, [completeOnboarding, navigate]);
+
   const performImportSampleTeam = useCallback(
     async (sample: EnvironmentTeamSample) => {
       const { createImportedTeamFromEnvironmentSample } = await import('./lib/environmentImport');
@@ -487,7 +494,9 @@ function AppShell() {
           hidden={bottomNavAutoHide.hidden}
         />
       )}
-      {!preferences.hasCompletedOnboarding && <Onboarding onComplete={completeOnboarding} />}
+      {!preferences.hasCompletedOnboarding && (
+        <Onboarding onComplete={completeOnboarding} onOpenFeedback={openFeedbackFromOnboarding} />
+      )}
     </main>
   );
 }

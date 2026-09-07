@@ -342,19 +342,65 @@ describe('App page flows', () => {
     });
   });
 
-  it('offers real feedback links and a copyable build identity on the profile page', async () => {
+  it('opens the in-app message form from 我的, and keeps one GitHub exit under 关于', async () => {
     const user = userEvent.setup();
     render(<App />);
     await waitForEnvironmentPage();
     await user.click(screen.getByRole('button', { name: '我的' }));
     await screen.findByRole('heading', { name: '我的' });
 
-    const bugLink = screen.getByRole('link', { name: /反馈问题/ });
-    expect(bugLink.getAttribute('href')).toBe(feedbackLinks.bug);
-    expect(bugLink.getAttribute('target')).toBe('_blank');
-    expect(bugLink.getAttribute('rel')).toBe('noopener noreferrer');
-    expect(screen.getByRole('link', { name: /功能建议/ }).getAttribute('href')).toBe(feedbackLinks.feature);
-    expect(screen.getByRole('link', { name: /其他留言/ }).getAttribute('href')).toBe(feedbackLinks.general);
+    // The three GitHub issue entry points are gone — they all forced a login.
+    expect(screen.queryByRole('link', { name: /反馈问题/ })).toBeNull();
+    expect(screen.queryByRole('link', { name: /功能建议/ })).toBeNull();
+
+    const githubExit = screen.getByRole('link', { name: '也可以在 GitHub 提 issue' });
+    expect(githubExit.getAttribute('href')).toBe(feedbackLinks.general);
+    expect(githubExit.getAttribute('target')).toBe('_blank');
+    expect(githubExit.getAttribute('rel')).toBe('noopener noreferrer');
+
+    await user.click(screen.getByRole('button', { name: /写留言/ }));
+    expect(window.location.hash).toBe('#/profile/feedback');
+    const sheet = await screen.findByRole('dialog', { name: '写留言' });
+    expect(within(sheet).getByLabelText('留言内容')).toBeTruthy();
+
+    // 返回 closes the sheet without leaving the profile tab.
+    await user.click(within(sheet).getAllByRole('button', { name: '关闭留言' })[1]);
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: '写留言' })).toBeNull());
+    expect(window.location.hash).toBe('#/profile');
+  });
+
+  it('lands on the message form when the onboarding finale invites feedback', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await waitForEnvironmentPage();
+
+    const tour = await screen.findByRole('dialog', { name: 'LuxrayKit 引导' });
+    for (let step = 0; step < 4; step += 1) {
+      await user.click(within(tour).getByRole('button', { name: '下一步' }));
+    }
+    expect(within(tour).getByText('一起把 LuxrayKit 做得更好')).toBeTruthy();
+
+    // The three chips are buttons now, not GitHub links — all three open the same form.
+    expect(within(tour).queryByRole('link', { name: /反馈问题/ })).toBeNull();
+    await user.click(within(tour).getByRole('button', { name: /反馈问题/ }));
+
+    // Onboarding is finished first, so the tour does not sit on top of the sheet.
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'LuxrayKit 引导' })).toBeNull());
+    expect(window.location.hash).toBe('#/profile/feedback');
+    const sheet = await screen.findByRole('dialog', { name: '写留言' });
+    expect(within(sheet).getByLabelText('留言内容')).toBeTruthy();
+    await waitFor(async () => {
+      const state = await repository.loadState();
+      expect(state.preferences.hasCompletedOnboarding).toBe(true);
+    });
+  });
+
+  it('shows a copyable build identity under 关于', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await waitForEnvironmentPage();
+    await user.click(screen.getByRole('button', { name: '我的' }));
+    await screen.findByRole('heading', { name: '我的' });
 
     // 关于 must name the regulation and data version from the catalog, never a literal.
     expect(screen.getByText(currentRuleSet.displayName)).toBeTruthy();
