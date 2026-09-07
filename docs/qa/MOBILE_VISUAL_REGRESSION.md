@@ -78,3 +78,5 @@ gh workflow run visual-baseline.yml --ref "$(git branch --show-current)"
 - Worker fresh / stale、静态回退和环境加载失败没有视觉基线。
 - 首次导入提示和成功 Toast 没有独立视觉基线。
 - 浅色主题没有视觉基线。
+- **速度线头部的「PokeDB M-{season} 静态参照」文案不在基线内**：用例 17 截图前 `scrollBy(0, 120)` 把头部滚出视口。2026-09-07 `speedTierSeason` 3→5 后重跑 `visual-baseline.yml`，18 张全部报「已一致」——赛季号回归不会被视觉门禁抓到，靠 `SpeedPage.test.tsx` 的 RTL 断言兜底。
+- **队伍一览的规则筛选 chip 在 2% 像素阈值之内**：新增一枚「M-C」chip 后基线 15 未触发重建，小尺寸 UI 增删可能被阈值吞掉，review 时不要把「visual 绿」当作「无 UI 变化」。
