@@ -1,6 +1,7 @@
-import { Compass, Database, Download, Moon, ShieldCheck, Sun, Trash2, Upload } from 'lucide-react';
+import { Bug, ClipboardCopy, Compass, Database, Download, Info, Lightbulb, MessageCircle, Moon, ShieldCheck, Sun, Trash2, Upload } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { currentDataVersion, currentRuleSet } from '../data';
+import { feedbackLinks, productName } from '../branding';
 import { TeamImportError, parseTeamImport } from '../lib/exportImport';
 import { useAppStore } from '../state/AppContext';
 import type { UserPreference } from '../types';
@@ -24,6 +25,24 @@ type Notice = {
   message: string;
 };
 
+const feedbackEntries = [
+  { kind: 'bug', icon: Bug, label: '反馈问题', hint: '页面不对、数据不准、点了没反应' },
+  { kind: 'feature', icon: Lightbulb, label: '功能建议', hint: '想要的新功能或改进' },
+  { kind: 'general', icon: MessageCircle, label: '其他留言', hint: '不确定归哪类就走这里' },
+] as const;
+
+/**
+ * The exact string a bug report needs. Keep it one line per fact and stable in shape — it
+ * gets pasted into an issue, so a human has to be able to read it at a glance.
+ */
+const versionInfoLines = () => [
+  `${productName} 版本信息`,
+  `规则：${currentRuleSet.displayName}`,
+  `数据版本：${currentDataVersion.id}`,
+  `构建：${__APP_BUILD__}`,
+  `UA：${typeof navigator === 'undefined' ? '未知' : navigator.userAgent}`,
+];
+
 const isBackupPayload = (value: unknown): value is BackupPayload => {
   if (!value || typeof value !== 'object') return false;
   const candidate = value as Partial<BackupPayload>;
@@ -34,6 +53,17 @@ export function ProfilePage() {
   const { teams, preferences, replaceTeams, replacePreferences, clearLocalData, lastRefreshError, updateTheme } = useAppStore();
   const inputRef = useRef<HTMLInputElement>(null);
   const [notice, setNotice] = useState<Notice | null>(null);
+  const [versionCopied, setVersionCopied] = useState(false);
+
+  const copyVersionInfo = async () => {
+    try {
+      await navigator.clipboard.writeText(versionInfoLines().join('\n'));
+      setVersionCopied(true);
+      window.setTimeout(() => setVersionCopied(false), 2000);
+    } catch {
+      setNotice({ type: 'error', title: '复制失败', message: '请手动选中下面的版本信息复制。' });
+    }
+  };
 
   const exportBackup = () => {
     const payload: BackupPayload = {
@@ -157,6 +187,56 @@ export function ProfilePage() {
           当前规则、本地队伍与 PokeDB 环境快照会保留在浏览器内。离线时优先读取已缓存资源。
         </p>
         {lastRefreshError && <p className="mt-3 rounded-lg bg-reviewBg p-2 text-xs text-warning">{lastRefreshError}</p>}
+      </Card>
+
+      <Card>
+        <p className="mb-2 text-[11px] uppercase tracking-wide text-textMuted">反馈与建议</p>
+        <p className="text-sm text-textSecondary">仓库是公开的，反馈直接开 GitHub issue，不需要账号以外的东西。</p>
+        <div className="mt-3 divide-y divide-divider">
+          {feedbackEntries.map(({ kind, icon: Icon, label, hint }) => (
+            <a
+              key={kind}
+              className="flex items-center justify-between gap-3 py-3"
+              href={feedbackLinks[kind]}
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              <span className="flex min-w-0 items-center gap-2">
+                <Icon size={16} className="shrink-0 text-accent" />
+                <span className="min-w-0">
+                  <span className="block text-sm">{label}</span>
+                  <span className="block truncate text-xs text-textSecondary">{hint}</span>
+                </span>
+              </span>
+              <span className="shrink-0 text-xs font-semibold text-accent">前往 →</span>
+            </a>
+          ))}
+        </div>
+      </Card>
+
+      <Card>
+        <p className="mb-2 flex items-center gap-2 text-[11px] uppercase tracking-wide text-textMuted">
+          <Info size={13} aria-hidden="true" />
+          关于
+        </p>
+        <dl className="divide-y divide-divider text-sm">
+          {[
+            ['产品', productName],
+            ['规则', currentRuleSet.displayName],
+            ['数据版本', currentDataVersion.id],
+            ['构建', __APP_BUILD__],
+          ].map(([label, value]) => (
+            <div key={label} className="flex items-baseline justify-between gap-3 py-2">
+              <dt className="shrink-0 text-textSecondary">{label}</dt>
+              <dd className="min-w-0 break-all text-right font-medium">{value}</dd>
+            </div>
+          ))}
+        </dl>
+        <Button variant="ghost" className="mt-3 w-full" onClick={() => void copyVersionInfo()}>
+          <ClipboardCopy size={14} />
+          {versionCopied ? '版本信息已复制' : '复制版本信息'}
+        </Button>
+        <p className="mt-2 text-xs text-textSecondary">提 issue 时把这段粘进去，问题更容易定位到具体版本。</p>
       </Card>
 
       <Card>

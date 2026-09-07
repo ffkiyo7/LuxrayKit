@@ -19,6 +19,7 @@ import { repository } from './lib/db';
 import type { Team, TeamMember } from './types';
 import { sortTeamSamplesByDate } from './pages/environmentTeamSamples';
 import { productContextLabel } from './data/schedule';
+import { feedbackLinks } from './branding';
 
 const DB_NAME = 'pokemon-champions-assistant';
 const pokedbSnapshot = {
@@ -320,6 +321,35 @@ describe('App page flows', () => {
     expect(screen.queryByText('当前规则')).toBeNull();
     expect(screen.queryByRole('button', { name: /当前赛季|规则详情/ })).toBeNull();
     expect(screen.queryByText(/本地队伍\s+\d|收藏\s+\d/)).toBeNull();
+  });
+
+  it('offers real feedback links and a copyable build identity on the profile page', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await waitForEnvironmentPage();
+    await user.click(screen.getByRole('button', { name: '我的' }));
+    await screen.findByRole('heading', { name: '我的' });
+
+    const bugLink = screen.getByRole('link', { name: /反馈问题/ });
+    expect(bugLink.getAttribute('href')).toBe(feedbackLinks.bug);
+    expect(bugLink.getAttribute('target')).toBe('_blank');
+    expect(bugLink.getAttribute('rel')).toBe('noopener noreferrer');
+    expect(screen.getByRole('link', { name: /功能建议/ }).getAttribute('href')).toBe(feedbackLinks.feature);
+    expect(screen.getByRole('link', { name: /其他留言/ }).getAttribute('href')).toBe(feedbackLinks.general);
+
+    // 关于 must name the regulation and data version from the catalog, never a literal.
+    expect(screen.getByText(currentRuleSet.displayName)).toBeTruthy();
+    expect(screen.getByText(currentDataVersion.id)).toBeTruthy();
+
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } });
+    await user.click(screen.getByRole('button', { name: /复制版本信息/ }));
+    await waitFor(() => expect(writeText).toHaveBeenCalledTimes(1));
+    const copied = writeText.mock.calls[0][0] as string;
+    expect(copied).toContain(currentRuleSet.displayName);
+    expect(copied).toContain(currentDataVersion.id);
+    expect(copied).toMatch(/构建：\S+/);
+    expect(await screen.findByRole('button', { name: /版本信息已复制/ })).toBeTruthy();
   });
 
   it('creates and switches teams, then expands and collapses a member card', async () => {

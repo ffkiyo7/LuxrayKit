@@ -1,6 +1,7 @@
 import { Bug, Check, Lightbulb, MessageCircle, RotateCcw } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
+import { feedbackLinks, type FeedbackKind } from '../../branding';
 import { Diorama } from './Diorama';
 import type { DioramaScene } from './Diorama';
 
@@ -135,26 +136,29 @@ function BottomCTA({
   );
 }
 
-/* --- feedback: a lightweight entry hint, not a full form ------------------ */
+/* --- feedback: three real entry points, not decoration -------------------- */
 const KINDS = [
-  { icon: Bug, label: '反馈问题' },
-  { icon: Lightbulb, label: '功能建议' },
-  { icon: MessageCircle, label: '留言' },
-] as const;
+  { icon: Bug, label: '反馈问题', kind: 'bug' },
+  { icon: Lightbulb, label: '功能建议', kind: 'feature' },
+  { icon: MessageCircle, label: '留言', kind: 'general' },
+] as const satisfies ReadonlyArray<{ icon: typeof Bug; label: string; kind: FeedbackKind }>;
 
 function FeedbackHint({ bodyText }: { bodyText: string }) {
   return (
     <div className="mx-auto w-full max-w-[330px]">
       <p className="mb-4 text-[15px] leading-normal text-textSecondary">{bodyText}</p>
       <div className="flex justify-center gap-2">
-        {KINDS.map(({ icon: Icon, label }) => (
-          <span
+        {KINDS.map(({ icon: Icon, label, kind }) => (
+          <a
             key={label}
             className="inline-flex h-[34px] items-center gap-1.5 rounded-full border border-border bg-card px-3 text-[13px] font-medium text-textSecondary"
+            href={feedbackLinks[kind]}
+            rel="noopener noreferrer"
+            target="_blank"
           >
             <Icon size={14} className="text-accent" />
             {label}
-          </span>
+          </a>
         ))}
       </div>
     </div>
@@ -229,7 +233,13 @@ export function Onboarding({ onComplete }: { onComplete: () => void }) {
             primaryLabel={i === last ? '开始使用' : '下一步'}
             onPrimary={() => (i === last ? setDone(true) : setI(i + 1))}
             secondaryLabel={i === last ? '发送反馈' : '跳过'}
-            onSecondary={() => setDone(true)}
+            onSecondary={() => {
+              // On the last slide this button is a real feedback entry, not a second 跳过:
+              // open the issue chooser, then still finish onboarding so the user is not
+              // dumped back into the tour when they return from GitHub.
+              if (i === last) window.open(feedbackLinks.general, '_blank', 'noopener,noreferrer');
+              setDone(true);
+            }}
           />
         </>
       )}
