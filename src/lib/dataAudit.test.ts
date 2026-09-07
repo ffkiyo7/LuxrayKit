@@ -17,6 +17,7 @@ import {
 } from '../data';
 import type { PokemonForm } from '../types';
 import { mergeMegaFormsByParentId, mergeMegaStoneParentMap } from '../data/seed/regMA/catalog';
+import { moveIds } from '../data/seed/regMA/move-ids';
 import { pokedbItemNameToId } from '../data/external/pokedbItemNameMap';
 import { auditSeedData, auditSourceRefs } from './dataAudit';
 import { currentRuleMovesForPokemon, currentRuleSelectableItems } from './currentRuleCatalog';
@@ -505,6 +506,15 @@ describe('seed data audit', () => {
     expect(nameMap['chilling-water']).toBe('泼冷水');
     expect(nameMap['syrup-bomb']).toBe('糖浆炸弹');
     expect(moves.find((move) => move.id === 'syrup-bomb')?.accuracy).toBe(85);
+  });
+
+  it('keeps the generated move id list identical to the move catalog', () => {
+    // src/data/environment.ts audits move references against move-ids.ts so the environment
+    // first paint never pulls the 362 KB move catalog. A silent drift here would make the
+    // Worker's zero-tolerance audit reject moves that actually exist (or accept ones that
+    // don't), so it is a gate rather than a convention.
+    expect(moveIds).toEqual(moves.map((move) => move.id));
+    expect(new Set(moveIds).size).toBe(moveIds.length);
   });
 
   it('keeps real catalog rows on local sprite icons', () => {
