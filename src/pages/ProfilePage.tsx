@@ -125,7 +125,7 @@ export function ProfilePage() {
               <span className="text-xs text-textSecondary">{preferences.theme === 'dark' ? '深色工具界面' : '浅色工具界面'}</span>
             </span>
             <button
-              className="grid grid-cols-2 rounded-lg border border-border bg-secondary p-1 text-textSecondary"
+              className="grid shrink-0 grid-cols-2 rounded-lg border border-border bg-secondary p-1 text-textSecondary"
               type="button"
               aria-label="切换深色和浅色主题"
               aria-pressed={preferences.theme === 'light'}
@@ -147,7 +147,7 @@ export function ProfilePage() {
               </span>
             </span>
             <button
-              className="grid grid-cols-2 rounded-lg border border-border bg-secondary p-1 text-textSecondary"
+              className="grid shrink-0 grid-cols-2 rounded-lg border border-border bg-secondary p-1 text-textSecondary"
               type="button"
               aria-label="切换匿名使用统计"
               aria-pressed={!preferences.analyticsOptOut}
