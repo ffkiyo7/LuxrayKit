@@ -1,4 +1,4 @@
-import { ChevronUp, Minus, Plus, Save, Search, Trash2, X } from 'lucide-react';
+import { ChevronUp, Save, Search, Trash2, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { abilities, currentRuleNatureOptions, items, moves, pokemon } from '../../data';
 import { currentRuleMovesForPokemon, currentRuleSelectableItemsForPokemon, natureOptionLabel } from '../../lib/currentRuleCatalog';
@@ -6,6 +6,7 @@ import { evaluateMemberLegality } from '../../lib/legality';
 import { findBattleForm } from '../../lib/pokemonForms';
 import { MAX_STAT_POINTS_PER_STAT, MAX_TOTAL_STAT_POINTS, statPointTotal } from '../../lib/statPoints';
 import type { Item, Move, Team, TeamMember } from '../../types';
+import { StatPointPicker } from '../../components/StatPointPicker';
 import { Button, Card, PokemonAvatar, TypeBadge } from '../../components/ui';
 import { HeldItemIcon, HeldItemLine } from './HeldItem';
 
@@ -199,78 +200,6 @@ const statPointControls: Array<{ key: keyof TeamMember['statPoints']; label: str
   { key: 'specialDefense', label: '特防' },
   { key: 'speed', label: '速度' },
 ];
-
-function StatPointPicker({
-  label,
-  value,
-  min = 0,
-  max = MAX_STAT_POINTS_PER_STAT,
-  onChange,
-  onClose,
-}: {
-  label: string;
-  value: number;
-  min?: number;
-  max?: number;
-  onChange: (value: number) => void;
-  onClose: () => void;
-}) {
-  const nextValue = Math.max(min, Math.min(max, Math.round(value)));
-
-  return (
-    <div className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-[430px] rounded-t-2xl border border-border bg-card p-4 shadow-none">
-      <div className="mx-auto mb-3 h-1 w-9 rounded-full bg-disabled" />
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <div>
-          <p className="text-sm font-semibold">{label} SP</p>
-          <p className="text-xs text-textSecondary">拖动滑条，或直接设为最小 / 最大</p>
-        </div>
-        <button className="grid h-8 w-8 place-items-center rounded-lg text-textSecondary" title="关闭 SP 调整" onClick={onClose}>
-          <X size={18} />
-        </button>
-      </div>
-      <div className="mb-4 text-center">
-        <p className="text-[34px] font-bold text-accent">{nextValue}</p>
-        <p className="text-xs text-textMuted">范围 {min}-{max}</p>
-      </div>
-      <input
-        aria-label={`${label} SP`}
-        className="mb-4 h-9 w-full accent-accent"
-        max={max}
-        min={min}
-        type="range"
-        value={nextValue}
-        onChange={(event) => onChange(Number(event.target.value))}
-      />
-      <div className="grid grid-cols-4 gap-2">
-        <Button variant="ghost" onClick={() => onChange(min)}>
-          min
-        </Button>
-        <button
-          aria-label={`${label} -1`}
-          className="inline-flex min-h-8 items-center justify-center rounded-lg border border-border text-textSecondary disabled:opacity-40"
-          disabled={nextValue <= min}
-          type="button"
-          onClick={() => onChange(nextValue - 1)}
-        >
-          <Minus size={13} />
-        </button>
-        <button
-          aria-label={`${label} +1`}
-          className="inline-flex min-h-8 items-center justify-center rounded-lg border border-border text-textSecondary disabled:opacity-40"
-          disabled={nextValue >= max}
-          type="button"
-          onClick={() => onChange(nextValue + 1)}
-        >
-          <Plus size={13} />
-        </button>
-        <Button onClick={() => onChange(max)}>
-          max
-        </Button>
-      </div>
-    </div>
-  );
-}
 
 export function MemberEditor({
   team,
