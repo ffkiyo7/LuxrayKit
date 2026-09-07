@@ -12,7 +12,8 @@ import {
 
 const inMB = new Date('2026-07-09T00:00:00.000Z'); // M-B regulation, M-4 season
 const inMA = new Date('2026-05-01T00:00:00.000Z'); // M-A regulation, M-2 season
-const afterMB = new Date('2026-10-01T00:00:00.000Z'); // past M-B end, no next regulation yet
+const inMC = new Date('2026-09-10T00:00:00.000Z'); // M-C regulation, season not yet announced
+const afterMC = new Date('2026-12-20T00:00:00.000Z'); // past M-C end, no next regulation yet
 
 describe('schedule', () => {
   // The historical time axis must not move when `currentRuleSet` is repointed at the next
@@ -23,6 +24,10 @@ describe('schedule', () => {
     expect(byId['M-B'].startAt).toBe('2026-06-17T02:00:00.000Z');
     expect(byId['M-B'].endAt).toBe('2026-09-09T01:59:00.000Z');
     expect(byId['M-B'].sourceUrl).toBe('https://champions-news.pokemon-home.com/en/page/776.html');
+    // M-C window is announced; the catalog for it is not authored yet (see isRegulationRolloverDue).
+    expect(byId['M-C'].startAt).toBe('2026-09-09T02:00:00.000Z');
+    expect(byId['M-C'].endAt).toBe('2026-12-02T01:59:00.000Z');
+    expect(byId['M-C'].sourceUrl).toBe('https://news.pokemon-home.com/en/page/816.html');
 
     const bySeason = Object.fromEntries(seasonSchedule.map((entry) => [entry.label, entry]));
     expect(bySeason['M-3'].startAt).toBe('2026-06-17T02:00:00.000Z');
@@ -44,8 +49,14 @@ describe('schedule', () => {
     expect(currentRegulation(inMB).id).toBe('M-B');
     expect(currentRegulation(new Date('2026-07-20T12:00:00.000Z')).id).toBe('M-B'); // visual-test clock
     expect(currentRegulation(inMA).id).toBe('M-A');
-    expect(currentRegulation(afterMB).id).toBe('M-B'); // clamps to latest until M-C is announced
+    expect(currentRegulation(new Date('2026-07-20T12:00:00.000Z')).id).toBe('M-B'); // still M-B pre-rollover
+    // M-C opens 2026-09-09 02:00 UTC. The schedule follows the date immediately; the catalog
+    // (currentRuleSet) is repointed separately once M-C data is authored.
+    expect(currentRegulation(new Date('2026-09-09T01:30:00.000Z')).id).toBe('M-B');
+    expect(currentRegulation(inMC).id).toBe('M-C');
+    expect(currentRegulation(afterMC).id).toBe('M-C'); // clamps to latest until M-D is announced
     expect(currentRegulationLabel(inMB)).toBe('Regulation M-B');
+    expect(currentRegulationLabel(inMC)).toBe('Regulation M-C');
   });
 
   it('derives the current season label from the schedule as an offline fallback', () => {
@@ -72,6 +83,9 @@ describe('schedule', () => {
     // M-B was officially extended to 2026-09-09 01:59 UTC.
     expect(isRegulationRolloverDue(new Date('2026-09-08T00:00:00.000Z'))).toBe(false);
     expect(isRegulationRolloverDue(new Date('2026-09-09T02:00:00.000Z'))).toBe(true);
-    expect(isRegulationRolloverDue(afterMB)).toBe(true);
+    // Adding the M-C *window* does not clear the flag: it tracks the catalog (currentRuleSet),
+    // which is still M-B, so the reminder must keep firing until M-C data is authored.
+    expect(isRegulationRolloverDue(inMC)).toBe(true);
+    expect(isRegulationRolloverDue(afterMC)).toBe(true);
   });
 });

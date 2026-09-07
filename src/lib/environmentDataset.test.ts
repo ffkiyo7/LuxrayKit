@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { currentDataVersion, currentRuleSet, items, moves, pokemon } from '../data';
 import {
   auditEnvironmentDataset,
+  unresolvedPokemonId,
   type EnvironmentDataset,
   type EnvironmentDatasetCatalog,
 } from './environmentDataset';
@@ -167,6 +168,63 @@ describe('environment dataset audit', () => {
         moveIds: ['flare-blitz'],
       },
     ]);
+  });
+
+  it('keeps unresolved PokeDB rows in place so ranks below them do not shift up', () => {
+    const dataset = makeDataset({
+      battles: {
+        singles: {
+          pokemonUsage: [
+            {
+              pokemonId: 'charizard',
+              usageRate: 34.8,
+              teamCount: 184,
+              moveIds: [],
+              itemIds: [],
+              teammateIds: [],
+            },
+            {
+              // Parser sentinel: PokeDB ranks it, the local catalog has no row for it yet.
+              pokemonId: unresolvedPokemonId('0812-00'),
+              displayName: 'ゴリランダー',
+              usageRate: 20,
+              teamCount: 100,
+              moveIds: [],
+              itemIds: [],
+              teammateIds: [],
+            },
+            {
+              // A genuinely bogus id is still dropped — this path is unchanged.
+              pokemonId: 'missing-pokemon',
+              usageRate: 12,
+              teamCount: 3,
+              moveIds: [],
+              itemIds: [],
+              teammateIds: [],
+            },
+          ],
+          teamSamples: [],
+        },
+        doubles: { pokemonUsage: [], teamSamples: [] },
+      },
+    });
+
+    const result = auditEnvironmentDataset(dataset, catalog, {
+      ruleSetId: currentRuleSet.id,
+      dataVersionId: currentDataVersion.id,
+    });
+
+    expect(result.dataset.battles.singles.pokemonUsage.map((usage) => usage.pokemonId)).toEqual([
+      'charizard',
+      'pokedb:0812-00',
+    ]);
+    expect(result.dataset.battles.singles.pokemonUsage[1]).toMatchObject({
+      unresolved: true,
+      displayName: 'ゴリランダー',
+    });
+    // Distinct code from missing-pokemon-ref: "known unknown, kept" vs "unknown, dropped".
+    expect(result.issues.filter((entry) => entry.code === 'unresolved-pokemon-ref')).toHaveLength(1);
+    expect(result.issues.filter((entry) => entry.code === 'missing-pokemon-ref')).toHaveLength(1);
   });
 
   it('reports blocking metadata and numeric issues instead of silently accepting them', () => {

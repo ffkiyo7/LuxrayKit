@@ -150,9 +150,30 @@ describe('PokeDB environment ingestion', () => {
       rankings: [
         { rank: 1, pokeDbKey: '0445-00', pokemonId: 'garchomp', pokemonName: 'ガブリアス' },
         { rank: 2, pokeDbKey: '1018-00', pokemonId: 'archaludon', pokemonName: 'ブリジュラス' },
+        // Unmapped key keeps its row behind a sentinel id: dropping it would move rank 4+ up one.
+        { rank: 3, pokeDbKey: '9999-00', pokemonId: 'pokedb:9999-00', pokemonName: '未知' },
       ],
+      // Recording it in the audit is unchanged — that is what tells a maintainer to add the map.
       audit: { unknownPokemonKeys: ['9999-00'] },
     });
+  });
+
+  it('throws only when the ranking page maps nothing at all', () => {
+    const onlyUnknown = `
+      <title>ポケモン使用率ランキング シーズンM-2（シングルバトル）</title>
+      <select name="season"><option value="2" selected>シーズンM-2</option></select>
+      <span class="tag is-light is-info">更新日</span><span class="tag is-light">2026/6/10 23:58</span>
+      <a href="/pokemon/show/9999-00?season=2&amp;rule=0" class="list-pokemon button is-fullwidth">
+        <div class="pokemon-rank is-family-monospace">1</div>
+        <div class="pokemon-name">未知</div>
+      </a>
+    `;
+
+    expect(() => parsePokeDbPokemonListPage(onlyUnknown, {
+      battleType: 'singles',
+      sourceUrl: 'https://champs.pokedb.tokyo/pokemon/list?season=2&rule=0',
+      pokemonKeyToId,
+    })).toThrow(/no mapped Pokemon/);
   });
 
   it('parses detail statistics for moves, items, teammates, abilities, and natures', () => {

@@ -3,6 +3,7 @@ import { pokedbAbilityKeyToId, pokedbMoveKeyToId } from '../../../src/data/exter
 import { regMaPokemonAllowlist } from '../../../src/data/seed/regMA/allowlist';
 import { pokemon } from '../../../src/data/seed/regMA/catalog';
 import {
+  isUnresolvedPokemonId,
   parsePokeDbPokemonDetailPage,
   parsePokeDbPokemonListPage,
   parsePokeDbTrainerListPage,
@@ -594,6 +595,26 @@ function buildPokemonStatisticsPayload(
 ): PokeDbPokemonStatisticsPayload {
   const pokemonUsage: EnvironmentPokemonUsage[] = list.rankings.map((ranking) => {
     const teamCount = Math.max(list.resultCount - ranking.rank + 1, 1);
+    // Unresolved rows have no detail page fetched (see startRefreshJob) — emit the rank position
+    // with empty stats plus the source-page name so the UI can render a placeholder.
+    if (isUnresolvedPokemonId(ranking.pokemonId)) {
+      return {
+        pokemonId: ranking.pokemonId,
+        displayName: ranking.pokemonName,
+        usageRate: Math.round(((teamCount / Math.max(list.resultCount, 1)) * 100) * 10) / 10,
+        teamCount,
+        moveIds: [],
+        itemIds: [],
+        teammateIds: [],
+        abilityIds: [],
+        natureIds: [],
+        moveStats: [],
+        itemStats: [],
+        teammateStats: [],
+        abilityStats: [],
+        natureStats: [],
+      };
+    }
     const detail = detailsByPokemonId[ranking.pokemonId];
     return {
       pokemonId: ranking.pokemonId,
@@ -652,7 +673,9 @@ export async function fetchPokemonStatisticsBattle(options: {
     battleType: options.battleType,
     fetcher,
   });
-  const topRankings = list.rankings.slice(0, detailLimit);
+  // Sentinel rows keep their rank but have no PokeDB detail page we can map — skip fetching them
+  // (they still consume a detail-limit slot so the top-N window matches the source ranking).
+  const topRankings = list.rankings.slice(0, detailLimit).filter((ranking) => !isUnresolvedPokemonId(ranking.pokemonId));
   const detailsByPokemonId: Record<string, PokeDbPokemonDetailPayload> = {};
 
   for (const [index, ranking] of topRankings.entries()) {
@@ -1023,13 +1046,19 @@ export async function startRefreshJob(
       };
     }
     const detailLimit = configuredInteger(env.POKEDB_DETAIL_LIMIT, DEFAULT_DETAIL_LIMIT, MAX_DETAIL_LIMIT);
+    // Rows whose PokeDB key has no local catalog mapping keep their rank in the published list
+    // (see buildPokemonStatisticsPayload) but are never queued for a detail fetch: there is no id
+    // to key the detail by, and their stats would be unmappable anyway.
     const pending = (['singles', 'doubles'] as const).flatMap((battleType) =>
-      ({ singles, doubles })[battleType].rankings.slice(0, detailLimit).map((ranking) => ({
-        battleType,
-        pokeDbKey: ranking.pokeDbKey,
-        pokemonId: ranking.pokemonId,
-        rank: ranking.rank,
-      })),
+      ({ singles, doubles })[battleType].rankings
+        .slice(0, detailLimit)
+        .filter((ranking) => !isUnresolvedPokemonId(ranking.pokemonId))
+        .map((ranking) => ({
+          battleType,
+          pokeDbKey: ranking.pokeDbKey,
+          pokemonId: ranking.pokemonId,
+          rank: ranking.rank,
+        })),
     );
     const timestamp = currentTime.toISOString();
     const job: RefreshJob = {
