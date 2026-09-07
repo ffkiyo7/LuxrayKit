@@ -26,6 +26,10 @@
 
 验证：`npm test` **441 通过**（39 文件）、`npm run build`（含 `tsc -b`）通过、`npm run test:pwa`（offline + team-samples）2 通过、`npm run worker:environment:check` 通过。
 
+视觉基线重建（`visual-baseline.yml`）：**只有 13「我的」变了**（多了统计开关 + 反馈与建议卡 + 关于卡）。**05「队伍详情」没变**——新增的分享按钮是 36×36，占 390×800 视口不到 0.5%，被 2% 像素阈值吞掉了。已在浏览器里用真实构建产物核对：按钮在 x=323 / 36×36，完全在视口内、不压标题，点击能生成链接并弹「链接已复制」toast。这正是 `docs/qa/MOBILE_VISUAL_REGRESSION.md` 里那条「基线没变 ≠ UI 没变」的实例。
+
+⚠️ **本 PR 上没有 CI**：`ci.yml` 只在 `pull_request: branches: [main]` 触发，而这是 stacked 在 `feat/mc-soft-landing` 上的 PR。`test` 与 `visual` 两个门禁要等 PR #61 合并、本 PR 改 base 到 `main` 之后才会跑。上面的数字全部来自本机。
+
 ## 上一轮进展（2026-09-07）：M-C 软着陆 · 回退层新鲜度 · SW 预缓存 manifest · 清理
 
 分支 `feat/mc-soft-landing`（PR 待合并）。目标是**开赛后线上不出现用户视角不可接受的降级**，不做阶段 B（切 `currentRuleSet`、落 M-C catalog 数据）：
