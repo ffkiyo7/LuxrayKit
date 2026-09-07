@@ -1470,7 +1470,7 @@ const etagMatches = (ifNoneMatch: string | null, etag: string) =>
         .some((candidate) => candidate === etag || candidate === '*'),
   );
 
-const snapshotSourceUpdatedAtFromBody = (snapshotText: string | undefined) => {
+const snapshotSourceUpdatedAtFromBody = (snapshotText: string | null | undefined) => {
   if (!snapshotText) return undefined;
   const snapshot = JSON.parse(snapshotText) as EnvironmentSnapshot;
   return [snapshot.battles?.singles?.updatedAt, snapshot.battles?.doubles?.updatedAt]
