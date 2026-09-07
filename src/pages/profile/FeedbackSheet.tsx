@@ -244,7 +244,10 @@ export function FeedbackSheet({ onClose, route = '/profile' }: { onClose: () => 
               <p className="mt-3 rounded-lg bg-reviewBg p-2 text-xs text-warning">当前离线，恢复网络后再发送。草稿已保留。</p>
             )}
 
-            <Button className="mt-3 h-10 w-full" type="button" disabled={!canSubmit} onClick={() => void submit()}>
+            {/* `disabled:bg-secondary` on top of the shared Button: the primary variant keeps
+                its accent fill when disabled, which on a full-width send button reads as
+                "tap me" even though it does nothing. */}
+            <Button className="mt-3 h-10 w-full disabled:bg-secondary" type="button" disabled={!canSubmit} onClick={() => void submit()}>
               <Send size={14} />
               {status === 'submitting' ? '发送中...' : '发送'}
             </Button>
