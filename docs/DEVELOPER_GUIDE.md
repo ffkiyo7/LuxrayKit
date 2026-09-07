@@ -2,7 +2,7 @@
 
 面向贡献者的工程说明。内容以仓库 `main` 当前代码为准核对，覆盖架构、数据流、Worker 刷新管线、脚本与部署。
 
-> 注意：仓库根的 `README.md` 偏产品视角，`docs/progress/DEVELOPMENT_PROGRESS.md` 已明显过期（详见文末「已知过期文档」）。本文档以代码为准。
+> 注意：仓库根的 `README.md` 偏产品视角，`docs/progress/DEVELOPMENT_PROGRESS.md` 记录进度概要。两者与本文件的可信度分级见 §10；冲突时一律以代码 > 本文件 > 其他为准。
 
 ---
 
@@ -154,6 +154,15 @@ main.tsx
 
 > 注意 `manualChunks` 对路径做了 `\\`→`/` 归一化（兼容 Windows）。新增大 seed 文件时考虑是否要并入既有 chunk。
 
+### 4.5 Service Worker（`public/sw.js`）
+
+手写 SW，无 Workbox。install 预缓存 app shell + 静态环境快照；同源 GET 走缓存优先 + 后台更新；`/api/*` **永不**读写离线缓存。
+
+- **道具图标预缓存表是构建产物**：`vite.config.ts` 的 `luxraykit-precache-manifest` 插件在 `closeBundle` 调 `scripts/precache-manifest.mjs`，从道具 catalog 的 `iconRef` 写出 `dist/precache-manifest.json`（`{ generatedAt, itemIcons }`，当前 148 条）；SW 在 install 时 fetch 它再逐个 `cache.add`（单个图标失败、manifest 缺失或无法解析都不阻塞安装）。**改道具不用改 `sw.js`**——那里曾经是手写数组，每次加道具都会漂移。
+- **`CACHE_NAME` 当前 `champions-tool-v8`**，改版本要同步 `docs/qa/PWA_OFFLINE_CHECKLIST.md`。
+- **新版本提示**：SW 保持 `skipWaiting` + `clients.claim`，部署会在打开着的标签页下面换掉 controller，而页面仍跑旧 chunk。`src/main.tsx` 监听 `controllerchange`，**仅当页面此前已有 controller**（首次安装不提示）时派发 `luxraykit:service-worker-updated`，由 `components/ServiceWorkerUpdateToast.tsx` 渲染刷新 toast。用 CustomEvent 是为了让注册侧保持几行纯 DOM，不进 `AppShell` 的 state。
+- **CSP**：`public/_headers` 的 `Content-Security-Policy` 以同源为主，两处刻意放宽：`style-src 'unsafe-inline'`（React 写 inline style 属性）与 Google Fonts 两个域名（`src/styles.css` 首行远程 `@import` DM Sans，Vite 无法内联）。`_headers` **只在 Cloudflare 生效**，`vite preview` 与 Playwright 都看不到它——改动后只能上线后在生产 DevTools 人工核对。
+
 ---
 
 ## 5. 数据层
@@ -192,6 +201,16 @@ npm run data:pokemon-facts:check  # 只校验现有快照，不访问网络；CI
 每级成功拿到 base 快照后，再**并行**懒加载 VGCPastes 锦标赛样本（`loadVgcPastesTeamSamples`）合并进去。VGCPastes 按 regulation 拆成独立 build chunk（`reg_ma_*` / `reg_mb_*`），单个文件失败只是少一批样本，不会让整页空白（`loadVgcPastesRegulationFile` 各自 try/catch）。
 
 `PokeDbEnvironmentSnapshotPayload` 支持三种 PokeDB 形态（statistics / trainer-list / open-data ranked-teams），由 `isStatisticsPayload` / `isTrainerListPayload` 分派到对应 builder。
+
+#### 未知宝可梦的哨兵占位行（2026-09）
+
+规则滚动时 PokeDB 会先于本地 catalog 出现新宝可梦。**不要把这些行丢掉**：UI 的名次就是数组下标，丢一行会让它下面所有名次整体上移一位。
+
+- `parsePokeDbPokemonListPage` 对查不到映射的 key 保留该行，`pokemonId` 写成哨兵 `pokedb:<pokeDbKey>`（如 `pokedb:0812-00`），`pokemonName` 取页面原名。整页**一个**都映射不上时仍然抛错。
+- `audit.unknownPokemonKeys` 照旧记录该 key——**审计契约不变**，Worker 零容忍审计（`ENVIRONMENT_AUDIT_UNKNOWN_THRESHOLD` 默认 0）该 degraded 仍 degraded。这是维护者补映射的信号，不要因为「前端不崩了」就放宽它。
+- `normalizeUsage`（`lib/environmentDataset.ts`）对 `pokedb:` 前缀不剔除，标 `unresolved: true` 并保留 `displayName`，记 issue code **`unresolved-pokemon-ref`**（区别于 `missing-pokemon-ref`：前者是「已知的未知，保留」，后者是「未知，剔除」）。
+- 前端 `EnvironmentPage` 的 `RankingRow` 对哨兵行渲染 `UnresolvedRankingRow`：通用头像、`displayName`、「图鉴待补」chip，**不是 button**（没有详情页可进）。完整榜搜索对这些行按 `displayName` 匹配。
+- **队伍样本 slot 里的未知宝可梦仍然剔除**，没有跟着改——那里的名次不是下标推导的，问题不存在。
 
 #### 赛季排名变动（`lib/seasonRankDelta.ts`）
 
@@ -246,6 +265,7 @@ Worker 内刷新由 **cron 触发、Durable Object alarm 步进**，而非自链
 - **触发**（`scheduled` handler）：cron 触发后加随机抖动（`SCHEDULED_MAX_JITTER_MS`，避开固定整点 bot 节奏），调 `startScheduledRefresh` 先发廉价 list 页探针；按「season + 更新日」内容签名比对，**仅在上游变化时**创建刷新 job。cron 时间见 `wrangler.jsonc`（约 `15:35` / `16:05` UTC 主窗口围绕 PokeDB 每日 00:30 JST 发布，加 `02/08/20:35` 稀疏兜底）。
 - **步进**（`EnvironmentRefreshDurableObject.alarm`）：DO alarm 每约 `REFRESH_ALARM_DELAY_MS = 1000ms` 跑一步 `runRefreshJobStep`，直到 job `done` 后自动清理（删 job + 删 alarm）。
 - **失败重试**：单步异常累加 `failureCount`，达到 `MAX_REFRESH_JOB_FAILURES = 6` 则放弃（记日志）；否则 `REFRESH_ALARM_FAILURE_RETRY_MS = 10min` 后重试。
+- **哨兵 id 不抓详情**：`startRefreshJob` 生成 `pending` 时跳过 `pokedb:` 前缀的行（`fetchPokemonStatisticsBattle` 同理），没有 id 就没法给详情建索引，抓了也映射不上。它们仍占用 `detailLimit` 名额，好让 top-N 窗口与来源榜单对齐。`buildPokemonStatisticsPayload` 给这些行空 stats 加 `displayName`。见 §5.3。
 - **为何这样设计**：免费计划单次 Worker 调用**最多 50 个外部子请求**，所以宝可梦详情是 cursor 分批抓（`POKEDB_DETAIL_CHUNK_SIZE`）；DO alarm 取代旧的 cron 自链——旧方案里子请求的 `waitUntil` 在 cron 父调用结束时被取消，导致 job 卡住、数据显示「可能过期」。
 
 #### 换季时保留前序赛季名次（`resolvePreviousSeasonRanks`）
@@ -396,7 +416,8 @@ VGCPastes 脚本发现脏工作区会直接拒跑；若前一次生成任务失�
 ## 8. 测试
 
 - **单元/组件**：Vitest + jsdom + `@testing-library` + `fake-indexeddb`。`npm test`，CI 必跑；其中 `src/data/vgcpastesTeamSamples.contract.test.ts` 对队伍库生成 JSON 做数量、字段、唯一性与 audit 对齐门禁，`src/data/pokemonFacts.test.ts` 验证事实池只引用当前规则宝可梦且每日序列稳定不重复。CI 还会在测试前运行不联网的 `npm run data:pokemon-facts:check`。配置见 `vite.config.ts` 的 `test` 段与 `vitest.setup.ts`。
-  - `npm test` 的收集范围**不止 `src/`**：还包括 Worker 单测 `cloudflare/environment-worker/src/index.test.ts` 与脚本工具单测 `scripts/*.test.mjs`（PokeDB 解析、速度档位、Worker 回退门）。改这两处代码同样由 `npm test` 把关。
+  - `npm test` 的收集范围**不止 `src/`**：还包括 Worker 单测 `cloudflare/environment-worker/src/index.test.ts` 与脚本工具单测 `scripts/*.test.mjs`（PokeDB 解析、速度档位、Worker 回退门与静态快照落后判定、SW 预缓存 manifest）。改这两处代码同样由 `npm test` 把关。
+  - `src/sw.test.ts` 直接读 `public/sw.js` 源码做断言（`new Function` 注入假 `self`/`caches`/`fetch`）：`/api/*` 永不读写离线缓存、不预缓存已下线的 `/data/vgcpastes/` 与 `reg-ma-s1-environment.json`、道具图标只走构建期 manifest（源码里不得再出现 `'/assets/items/` 字面量）。
   - 例外：`cloudflare/build-notifier/worker.node-test.mjs` 刻意用 `-test.mjs` 而非 `.test.mjs` 命名以避开 vitest 收集，只能手动 `node --test` 跑，**不在 CI 内**。
 - **PWA**：`tests/pwa/offline.spec.ts`（离线缓存）+ `tests/pwa/team-samples.spec.ts`（队伍库生成数据渲染）+ `tests/pwa/visual.spec.ts`（移动端视觉回归，18 个状态，基线在 `tests/pwa/visual.spec.ts-snapshots/`，命名含 `visual-mobile-390-linux`）。配置见 `playwright.config.ts`，分成两个 project：
   - `chrome-mobile-390`（`channel: 'chrome'`，`testIgnore` 掉视觉用例）跑功能类冒烟，用机器上已装的 Google Chrome，CI runner 自带因此无需下载浏览器。`npm run test:pwa` 已固定到这个 project。
