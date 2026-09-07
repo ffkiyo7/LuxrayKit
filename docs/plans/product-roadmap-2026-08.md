@@ -2,7 +2,7 @@
 
 > **状态：待实施计划，不是现状描述**（文档分级见 `docs/DEVELOPER_GUIDE.md` §10）。
 > 建立日期：2026-08-05 · 起因：产品进入需求瓶颈，一次集中的现状盘点 + 方案评审。
-> 最近更新：2026-08-05 · **P0 与 P1 已落地**（分支 `agent/season-rank-delta`），下一个入口是 P2。
+> 最近更新：2026-09-07 · **P0 / P1 / P2 已落地**（P2 见分支 `feat/hash-routing-share-feedback`），第 1 节的反馈回路缺口也已补上。下一个入口是 P3。
 > 本文记录 owner 已表态的判断与优先级，供下一轮开工时直接领取任务。
 >
 > **已落地的部分留在本文只作决策留痕**；实现事实以开发指南 §5.3 / §6.3 为准。
@@ -20,11 +20,11 @@
 
 盘点中确认的结构性问题——**这不是灵感枯竭，是信息缺失**：
 
-- onboarding 第 5 页的「反馈问题 / 功能建议 / 留言」三个 chip 是纯 `<span>`，**没有 link 也没有 handler**（`src/components/onboarding/Onboarding.tsx:140-162`）。产品**没有任何反馈入口**。
-- 没有任何埋点：不知道 307 份队伍样本哪些被导入过，不知道四个工具谁在被用。
+- ~~onboarding 第 5 页的「反馈问题 / 功能建议 / 留言」三个 chip 是纯 `<span>`，**没有 link 也没有 handler**（`src/components/onboarding/Onboarding.tsx:140-162`）。产品**没有任何反馈入口**。~~ ✅ 2026-09-07（`feat/hash-routing-share-feedback`）：chip 变真链接，末页「发送反馈」开 issue chooser，「我的」新增「反馈与建议」卡 + 「关于」卡（可复制版本信息）。
+- ~~没有任何埋点：不知道 307 份队伍样本哪些被导入过，不知道四个工具谁在被用。~~ 🚧 2026-09-07：**只做了页面级**匿名统计（Workers Analytics Engine，`POST /api/ping`，路由模式 / PWA / 主题 / 国家，可关）。这回答了「四个工具谁在被用」，**没有**回答「哪些队伍样本被导入过」——那需要事件级埋点，尚未决定要不要做。
 - 没有账号（这是有意设计，不改），因此也没有用户触点。
 
-**结论**：任何功能上线后都无法判断其价值。在补上某种反馈通道之前，路线规划只能靠推理，不能靠证据。此项未排期，但应在决定下一个大功能前先想清楚。
+**结论**：反馈通道与页面级证据已到位，事件级埋点仍缺。下一个大功能前可以先看几周页面数据。
 
 ---
 
@@ -106,11 +106,14 @@
 
 **已知覆盖缺口**：chip 没有视觉基线——视觉用例只 route 静态快照，而 `previousSeason` 只有 Worker 会写。补这层要先决定视觉用例怎么表示 Worker 来源的数据，属独立设计题，已记进 `docs/qa/MOBILE_VISUAL_REGRESSION.md` 的缺口清单。
 
-### P2 — 方案 B URL 队伍分享
+### ✅ P2 — 方案 B URL 队伍分享（2026-09-07 落地，`feat/hash-routing-share-feedback`）
 
-- 编码：6 只 × (pokemonId / formId / abilityId / itemId / nature / 4×moveId / 6×SP)，紧凑打包 → base64url。
-- 解码：hash 参数解析 + 预览浮层 + 一键导入，复用 `src/lib/environmentImport.ts` 的导入链路与 `src/lib/teamSchema.ts` 的校验。
-- 需处理：跨规则代际的 id 失效（分享链接可能来自旧规则）——按现有 `legality.ts` 的降级策略提示，不要静默丢弃。
+原计划与实现的差异，以及为什么：
+
+- ~~编码：6 只 × (pokemonId / formId / abilityId / itemId / nature / 4×moveId / 6×SP)，紧凑打包 → base64url。~~ 实现多带了 `level`，并在 base64url 前加了一层 `deflate-raw`（前缀 `z1`，无 `CompressionStream` 时降级 `p1`）；六只满配约 400 字符。格式见开发指南 §4.6。
+- ~~解码：hash 参数解析 + 预览浮层 + 一键导入，复用 `src/lib/environmentImport.ts` 的导入链路与 `src/lib/teamSchema.ts` 的校验。~~ 预览浮层与一键导入按计划做了；**没有**复用 `environmentImport.ts`——它是为「PokeDB 样本 → 队伍」写的，带 `environment-sample-import` 来源和样本专属 notes 文案，套不上分享链接。`teamShare.ts` 自己做 catalog 校验，`teamSchema.ts` 只扩了 `normalizeTeamSource` 认新的 `share-link-import`。
+- ~~需处理：跨规则代际的 id 失效（分享链接可能来自旧规则）——按现有 `legality.ts` 的降级策略提示，不要静默丢弃。~~ 已处理：查不到的 id 保留成员、清该字段、列一条中文 warning，`legalityStatus` 走 `evaluateMemberLegality`。
+- **计划外的前置**：分享链接需要 URL 状态，而 app 当时**没有任何路由**，所以同一分支先做了 hash 路由（开发指南 §4.1）。
 
 ### P3 — 速度线 UX 做减法（方案 D 的前置）
 

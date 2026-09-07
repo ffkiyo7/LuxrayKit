@@ -8,7 +8,25 @@
 
 环境优先重构、Luxray Kit 品牌更新和 Cloudflare Worker 统一部署已进入 `main`。生产站点由 `luxraykit-app` Worker 提供静态资源与 API，环境页在线优先读取 KV 中的 PokeDB snapshot，并保留最新赛季静态快照和开发 seed 两级回退。
 
-## 本轮进展（2026-09-07）：M-C 软着陆 · 回退层新鲜度 · SW 预缓存 manifest · 清理
+## 本轮进展（2026-09-07）：hash 路由 · 队伍分享链接 · 反馈入口 · 匿名统计
+
+分支 `feat/hash-routing-share-feedback`（stacked 在 `feat/mc-soft-landing` 之上，PR 待合并）。四件事，一条根因：App 此前**没有任何 URL 状态**，Android 物理返回键直接退出 PWA、无法深链、无法分享、无法按页面统计。
+
+- **hash 路由（不引 react-router）**：`src/lib/hashRoute.ts` 纯函数 + `src/hooks/useHashRoute.ts`。路由表见开发指南 §4.1（`#/env`、`#/env/ranking|methodology|teams`、`#/env/pokemon/:id`、`#/teams[/:teamId]`、`#/tools[/calculator|dex|speed|typechart]`、`#/tools/dex/:id`、`#/profile`、`#/t/:code`）。
+  - `AppShell` / `EnvironmentPage` / `TeamPage` / `DexPage` 各自读路由，因此 hook 由模块级 `useSyncExternalStore` 支撑；`navigate` 走 `pushState`（能把深度计数写进 `history.state`），`back()` 只在下一条历史确实是本 app 压的时候才 `history.back()`，否则 replace 到父路由——**冷启动打开分享链接后点返回不会跳出站外**。
+  - 只有「去哪个页面」进 URL；筛选 / 搜索 / `battleType` / 弹窗 / 带入预设留在内存。
+  - `RulePage` 仍**刻意没有路由也没有入口**。
+  - 行为变化：**刷新停在当前页**（以前回首页），`tests/pwa/offline.spec.ts` 已按新行为断言。
+- **队伍分享链接**（路线图 P2）：`src/lib/teamShare.ts`，`<origin>/#/t/<code>`。deflate-raw + base64url（前缀 `z1`），无 `CompressionStream` 时降级纯 base64url（`p1`），六只满配约 400 字符。格式与取舍见开发指南 §4.6。
+  - 载荷**不含** notes / replicaCode / 任何本地 id。
+  - 用字符串 id 而非 catalog 下标：下标换规则后会**静默指向另一个招式**。解码逐字段对当前 catalog 核对，查不到就**保留成员、清该字段、列一条中文 warning**，预览浮层全部展示后再由用户决定导不导。
+  - 队伍详情加「分享」按钮（空队伍禁用，优先 `navigator.share`，否则复制链接）；`TeamSource` 新增 `share-link-import`。
+- **反馈入口**：`.github/ISSUE_TEMPLATE/`（bug / feature / `blank_issues_enabled: true`）、`branding.ts` 的 `feedbackLinks`；引导第 5 页三个 chip 从 `<span>` 变成真链接，末页「发送反馈」先开 issue 再完成引导；「我的」新增「反馈与建议」卡与「关于」卡（产品 / 规则 / 数据版本 / 构建标识 + 「复制版本信息」）。构建标识由 `vite.config.ts` 的 `define` 注入 `__APP_BUILD__`（git short SHA，取不到退化为时间戳）。
+- **匿名使用统计**：Workers Analytics Engine 数据集 `luxraykit_pageviews`，无第三方脚本、无 cookie、无任何标识符。`POST /api/ping` 只收去参数的路由模式 / 是否 PWA / 主题，加 Cloudflare 自己解析的国家码；**不记录 IP、UA 原文、任何 id 或用户内容**。校验白名单直接从 `src/lib/hashRoute.ts` 导入，前后端同一份路由表；非法输入与合法输入一样静默 204。「我的」有开关（`UserPreference.analyticsOptOut`，默认开启），`import.meta.env.DEV` 下不发。字段表与查询方式见开发指南 §6.7。
+
+验证：`npm test` **441 通过**（39 文件）、`npm run build`（含 `tsc -b`）通过、`npm run test:pwa`（offline + team-samples）2 通过、`npm run worker:environment:check` 通过。
+
+## 上一轮进展（2026-09-07）：M-C 软着陆 · 回退层新鲜度 · SW 预缓存 manifest · 清理
 
 分支 `feat/mc-soft-landing`（PR 待合并）。目标是**开赛后线上不出现用户视角不可接受的降级**，不做阶段 B（切 `currentRuleSet`、落 M-C catalog 数据）：
 
@@ -23,7 +41,7 @@
 
 验证：`npm test` 376 通过、`npm run build`（含 `tsc -b`）通过、`npm run test:pwa`（offline + team-samples）2 通过、`npm run worker:environment:check` 通过。
 
-## 上一轮进展（2026-07-09）：默认双打 · 赛季/规则集中化 · 高分队规则归属
+## 更早一轮进展（2026-07-09）：默认双打 · 赛季/规则集中化 · 高分队规则归属
 
 分支 `feat/doubles-default-and-season-schedule`（**已合并进 main**）：
 
@@ -45,6 +63,9 @@
 - 本地队伍 CRUD、成员编辑和 JSON 备份。（配队分析页上一轮已下线；分享图上一轮已砍，代码中不存在。）
 - 规则图鉴、伤害计算与速度线收束到工具页，速度线已上线（超速反哺建议、环境参照档）。
 - 深浅主题和滚动时自动隐藏底部导航。
+- **URL hash 路由**：四个 Tab 与所有二级页面可深链、可收藏、可用物理返回键后退（路由表见开发指南 §4.1）。
+- **队伍分享链接** `#/t/<code>`：详情页一键生成，对方先看预览与失效项 warning 再决定导入（格式见开发指南 §4.6）。
+- **反馈入口**：引导末页与「我的 → 反馈与建议」三个入口直达 GitHub issue；「我的 → 关于」可一键复制版本信息。
 
 ### 数据
 
@@ -56,7 +77,8 @@
 
 ### Cloudflare
 
-- Worker 路由：`/health`、`/api/environment/status`、`/api/environment/latest`、`/api/pokemon/:pokemonId/teams`、受保护的 `/api/environment/refresh`。
+- Worker 路由：`/health`、`/api/environment/status`、`/api/environment/latest`、`/api/pokemon/:pokemonId/teams`、受保护的 `/api/environment/refresh`、`POST /api/ping`（匿名页面访问计数）。
+- Analytics Engine 数据集 `luxraykit_pageviews`（binding `LUXRAY_ANALYTICS`，preview 与生产共用；AE 首次写入自动创建，Dashboard 无需预建）。
 - KV key：`environment:latest`、`environment:status`、`environment:team-index`、`environment:refresh-job`、`environment:pokedb-freshness-probe`（**5 个，赛季变动没有新增 key**，前序名次表放在 `environment:latest` 内部）。
 - Cron 探针 + Durable Object 步进：`wrangler.jsonc` 配多个定点 Cron（围绕 PokeDB 每日 00:30 JST 发布窗口 + 稀疏兜底），cron 先发廉价 list 页请求，按「season + 更新日」内容签名（PokeDB 当前无 ETag/Last-Modified）比对；签名未变即廉价退出，有变化才创建刷新 job，再由 `EnvironmentRefreshDurableObject` 的 alarm 每约 1s 步进一次 cursor 分批刷新，完成后自动清理，失败重试上限 6 次（间隔 10min）。详见 `docs/DEVELOPER_GUIDE.md` §6.3。
 - Worker 同时托管 Vite `dist`，支持 SPA fallback。
@@ -100,6 +122,8 @@ npm run test:visual
 - `src/data/schedule.ts` 的 `seasonSchedule` 需在每个赛季更替时追加新条目（缺表的赛季 `sampleRegulation` 返回 `undefined`，其高分队样本只在「全部规则」视图可见，不再静默归 M-A）。**当前补到 M-5**；M-6 的官方公告尚未上线，出现后追加（格式照 M-5 的 `sourceUrl`）。
 - （**非待办**）`src/pages/RulePage.tsx` 没有入口是**有意为之**，规则口径页由 owner 主动隐藏，勿改成可达。
 - 属性速查工具没有视觉基线（四个工具里唯一未覆盖）。
+- 分享链接预览浮层（`#/t/<code>`）没有视觉基线：用例得先决定合法 code 从哪来（写死会随 catalog 变动失效）。当前由 `App.test.tsx` 的 RTL 用例覆盖。
+- `#/api/ping` 上线后需人工确认 Analytics Engine 里确实出现 `luxraykit_pageviews` 数据集并有行写入（AE 数据集是首次写入才创建，本地 dry-run 只能验证 binding 存在）。
 - `src/styles.css` 首行远程 `@import` Google Fonts（DM Sans）：Vite 无法内联，所以 CSP 必须放行两个字体域名。自托管字体后可收紧。
 
 ## 文档索引

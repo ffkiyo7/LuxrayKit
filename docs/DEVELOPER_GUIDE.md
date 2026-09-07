@@ -66,7 +66,7 @@ npm run test:pwa   # Playwright PWA / 离线测试（用本机 Chrome，不含�
 ```
 src/
   main.tsx              # 入口：挂载 App + 注册 service worker
-  App.tsx               # AppShell：Tab/overlay/toolView 路由，环境数据加载，导入流程
+  App.tsx               # AppShell：从 hash 路由派生页面，环境数据加载，导入 / 分享流程
   branding.ts           # 产品名等品牌常量
   types.ts              # 全局领域类型（Pokemon/Move/Item/Team/UserPreference 等）
   state/AppContext.tsx  # 全局 store（teams + preferences），封装 IndexedDB 持久化
@@ -76,6 +76,9 @@ src/
     pokedbEnvironment.ts     # PokeDB HTML 解析 + 数据集构建（前端与 Worker 共用）
     environmentImport.ts     # 环境样本 → 本地队伍导入
     calculations.ts / damageAdapter.ts  # 速度 / 伤害计算
+    hashRoute.ts        # ★ 路由表唯一真源（纯函数；Worker 的 /api/ping 校验也复用它）
+    teamShare.ts        # 队伍分享链接编解码（见 §4.6）
+    analytics.ts        # 匿名页面访问 ping（见 §6.7）
     legality.ts / teamSchema.ts / exportImport.ts / statPoints.ts ...
   data/
     index.ts            # re-export seed/regMA
@@ -88,7 +91,7 @@ src/
     external/           # 外部抓取产物（pokedb/ 快照、vgcpastes/ 样本、pokeapi/ 事实、名称映射）
   pages/                # 各页面（懒加载）：Environment / Team / Tools / Calculator / Dex / Speed / TypeChart / Profile / Rule
   components/           # BottomNav / Header / PokemonPicker / onboarding / ui 等
-  hooks/                # useAutoHideBottomNav / useVisualViewportMetrics
+  hooks/                # useHashRoute / useAutoHideBottomNav / useVisualViewportMetrics
 
 cloudflare/environment-worker/   # 生产 Worker（前端 + API + cron + DO）
 scripts/                         # 数据维护脚本（Node ESM .mjs）
@@ -104,7 +107,7 @@ docs/                            # product/ research/ qa/ progress/ automation/ 
 
 ### 4.1 组件树与路由
 
-无路由库。`App.tsx` 用本地 state 充当「路由器」：
+无路由库，导航状态放在 URL hash 里：
 
 ```
 main.tsx
@@ -114,15 +117,34 @@ main.tsx
              └─ AppShell
 ```
 
-`AppShell` 的关键 state：
+**路由表**（`src/lib/hashRoute.ts` 是唯一真源）：
 
-- `activeTab: 'environment' | 'teams' | 'tools' | 'profile'` —— 底部 4 Tab。
-- `overlay: 'rule' | null` —— 覆盖层（当前规则图鉴页），打开时隐藏底部导航。
-  - **`RulePage` 当前没有入口，这是有意的**：`App.tsx` 会在 `overlay === 'rule'` 时渲染它，但全仓库没有任何地方调用 `setOverlay('rule')`——规则口径页由 owner 主动隐藏，代码保留待用。**不要把它「修复」成可达。**
-- `toolView: 'calculator' | 'dex' | 'speed' | 'typeChart' | null` —— 工具页内的二级视图（四个工具**全部已上线**，`ToolsPage` 里那个「未开放」分支当前没有任何工具会命中）。
-- 队伍成员「带入」工具的预设：`calcPreset`（攻/防方）、`speedPresetMemberId`、`calculatorMemberId`。
+| hash | 页面 |
+| --- | --- |
+| `#/env` | 环境首页（默认） |
+| `#/env/ranking` | 完整宝可梦榜 |
+| `#/env/methodology` | 数据口径 |
+| `#/env/teams` | 队伍一览 |
+| `#/env/pokemon/:pokemonId` | 宝可梦环境详情 |
+| `#/teams` | 我的队伍列表 |
+| `#/teams/:teamId` | 队伍详情 |
+| `#/tools` | 工具首页 |
+| `#/tools/calculator` / `dex` / `speed` / `typechart` | 四个工具 |
+| `#/tools/dex/:pokemonId` | 图鉴详情 |
+| `#/profile` | 我的 |
+| `#/t/:code` | 分享链接预览（见 §4.6） |
 
-页面全部用 `React.lazy` + `Suspense` 懒加载并经 Vite 分包（见 4.4）。
+- 空 hash 或无法识别的 hash 一律 `history.replaceState` 归一化到 `#/env`，**不留历史记录**。
+- `lib/hashRoute.ts` 只有纯函数：`parseHashRoute` / `buildHash` / `parentRoute` / `tabForRoute` / `routeForTab` / `routePattern`。id 先按 `/` 切段再 `decodeURIComponent`，含斜杠的 id 不会撑破路径。
+- `hooks/useHashRoute.ts` 负责浏览器侧。AppShell、EnvironmentPage、TeamPage、DexPage 各自调用它，因此它由**模块级 `useSyncExternalStore`** 支撑，保证同一次渲染里所有消费者读到同一个 route。
+  - `navigate()` 用 `pushState` / `replaceState` 而不是赋值 `location.hash`：这样能把深度计数写进 `history.state`，且状态更新是同步的。仍然订阅 `hashchange` + `popstate`，所以浏览器前进/后退、Android 物理返回键、以及测试里直接改 `window.location.hash` 都能同步。
+  - `back()` 只在 `history.state.lkDepth > 0`（下面那条确实是本 app 压的）时调 `history.back()`；否则 `replace` 到父路由。**冷启动打开深链后点「返回」不会跳出站外**，这是这套深度计数存在的唯一理由。
+- **只有「去哪个页面」进 URL**。筛选、搜索框、`battleType` 切换、成员编辑器 / 选人弹窗 / 命名弹窗、以及队伍成员「带入」工具的预设（`calcPreset` / `speedPresetMemberId` / `calculatorMemberId`，都带本地成员 id）一律留在内存 state。
+- `AppShell` 仍保留的 state：`overlay: 'rule' | null`。
+  - **`RulePage` 当前没有入口，这是有意的**：`App.tsx` 会在 `overlay === 'rule'` 时渲染它，但全仓库没有任何地方调用 `setOverlay('rule')`，也**刻意没有给它路由**——规则口径页由 owner 主动隐藏，代码保留待用。**不要把它「修复」成可达。**
+- `toolView` 由路由派生（四个工具**全部已上线**，`ToolsPage` 里那个「未开放」分支当前没有任何工具会命中）。代码里的 `typeChart` 与 URL 里的 `typechart` 通过 `App.tsx` 顶部两张映射表互转，别在别处再写一份。
+- 副作用：**刷新页面会停在当前页**（以前一律回首页）。`tests/pwa/offline.spec.ts` 已按新行为断言。
+- 页面全部用 `React.lazy` + `Suspense` 懒加载并经 Vite 分包（见 4.4）。
 
 ### 4.2 全局状态：`AppContext`
 
@@ -162,6 +184,30 @@ main.tsx
 - **`CACHE_NAME` 当前 `champions-tool-v8`**，改版本要同步 `docs/qa/PWA_OFFLINE_CHECKLIST.md`。
 - **新版本提示**：SW 保持 `skipWaiting` + `clients.claim`，部署会在打开着的标签页下面换掉 controller，而页面仍跑旧 chunk。`src/main.tsx` 监听 `controllerchange`，**仅当页面此前已有 controller**（首次安装不提示）时派发 `luxraykit:service-worker-updated`，由 `components/ServiceWorkerUpdateToast.tsx` 渲染刷新 toast。用 CustomEvent 是为了让注册侧保持几行纯 DOM，不进 `AppShell` 的 state。
 - **CSP**：`public/_headers` 的 `Content-Security-Policy` 以同源为主，两处刻意放宽：`style-src 'unsafe-inline'`（React 写 inline style 属性）与 Google Fonts 两个域名（`src/styles.css` 首行远程 `@import` DM Sans，Vite 无法内联）。`_headers` **只在 Cloudflare 生效**，`vite preview` 与 Playwright 都看不到它——改动后只能上线后在生产 DevTools 人工核对。
+
+### 4.6 队伍分享链接（`lib/teamShare.ts`）
+
+`<origin>/#/t/<code>`。code 只承载「另一个人重建这支队伍所需的东西」：
+
+- **带**：队伍名 + 每个成员的 `pokemonId` / `formId` / `abilityId` / `itemId` / `nature` / `moveIds`(≤4) / 6 项 SP / `level`。
+- **不带**：`notes`（私人）、`replicaCode`（游戏内队伍码，会过期，也不该由我们转发）、以及任何 `id`（本地 IndexedDB 主键；导入时重新生成，所以导入自己的链接不会和原队伍撞 id）。
+
+编码格式：
+
+```
+record 0   : 队伍名
+record 1.. : 每个成员一条，字段定序，缺省留空
+             pokemonId / formId / abilityId / itemId / nature / moveIds(,) / SP(,) / level
+分隔符      : record = U+001E，field = U+001F，两者都是控制字符，名称里出现就直接剔除（无需转义层）
+压缩        : deflate-raw → base64url，前缀 z1
+降级        : 无 CompressionStream（老 Safari）时纯 base64url，前缀 p1；解码两种都认
+```
+
+`formId` 等于 `pokemonId` 时省略、SP 末尾的 0 截掉、`level === 50` 省略、成员记录末尾的空字段整段截掉。六只满配约 400 字符。
+
+**为什么用字符串 id 而不是 catalog 下标**：下标在换规则、catalog 重排之后会**静默指向另一个招式**；字符串 id 顶多是「查不到」，可以点名。所以 `decodeTeamShare` 逐个字段对当前 catalog（`pokemon` / `moves` / `items` / `abilities` / `currentRuleNatureOptions`）核对，查不到时**保留该成员、清掉该字段、push 一条中文 warning**，SP 用 `clampStatPointValue` 夹紧、总量超 66 也记 warning。预览浮层把 warnings 全列出来再让用户决定导不导。
+
+导入后的队伍 `source.kind = 'share-link-import'`（`types.ts` + `teamSchema.ts` 的 `normalizeTeamSource`）。
 
 ---
 
@@ -243,6 +289,7 @@ npm run data:pokemon-facts:check  # 只校验现有快照，不访问网络；CI
 | `GET /api/environment/status` | 刷新状态与审计健康 |
 | `GET /api/pokemon/:pokemonId/teams?battleType=singles` | 某宝可梦相关队伍（来自 team-index） |
 | `POST /api/environment/refresh` | 受保护，手动触发刷新（`Authorization: Bearer <ADMIN_REFRESH_TOKEN>`）；支持 `?step=1&jobId=` 单步 |
+| `POST /api/ping` | 匿名页面访问计数，恒定 204 `no-store`（见 §6.7） |
 | 其它 `/api/*` | 404 JSON |
 | 其它 | `env.ASSETS.fetch`（前端） |
 
@@ -307,6 +354,44 @@ npm run worker:app:types   # 改 binding 后重新生成 worker-configuration.d.
 ```
 
 `http://localhost:8787/__scheduled` 可本地触发 scheduled handler。
+
+### 6.7 匿名使用统计（Analytics Engine 数据集 `luxraykit_pageviews`）
+
+无第三方脚本、无 cookie、无任何标识符。路由变化时前端 `lib/analytics.ts` 发一次 `POST /api/ping`（`navigator.sendBeacon`，不可用时 `fetch(..., { keepalive: true })`，任何错误吞掉；同一路由不重复发；`import.meta.env.DEV` 下不发）。
+
+**记录什么**（Worker 写入，`blobs` 定序）：
+
+| 字段 | 内容 |
+| --- | --- |
+| `blob1` / `index1` | 去参数的路由模式，如 `/env/pokemon/:id` |
+| `blob2` | `pwa`（装到主屏幕）或 `browser` |
+| `blob3` | `dark` / `light` |
+| `blob4` | `request.cf.country`，Cloudflare 自己解析的两位国家码，取不到就空串 |
+| `double1` | 恒为 `1`（计数用） |
+
+**绝不记录**：IP、UA 原文、任何 id（队伍 id、分享 code、宝可梦 id）、任何用户内容；也不写 cookie 或任何标识符——这些行**没有任何字段能把两条记录拼成一个会话或一个人**。
+
+**校验**：Worker 从 `src/lib/hashRoute.ts` 导入 `routePatterns` 做白名单（前后端同一份路由表），加长度上限；任何不合法的 body 与合法的一样静默返回 204，不给探测者任何信号。binding 不存在时降级成 no-op。
+
+**用户可关**：`UserPreference.analyticsOptOut`（默认 `false` = 开启），开关在「我的 → 设置与数据 → 匿名使用统计」。
+
+**怎么查**：
+
+- Dashboard → Workers & Pages → 你的账号 → Analytics Engine → `luxraykit_pageviews`。
+- 或 SQL API（需要带 `Analytics Read` 权限的 API token）：
+
+  ```bash
+  curl -s "https://api.cloudflare.com/client/v4/accounts/<account_id>/analytics_engine/sql" \
+    -H "Authorization: Bearer <token>" \
+    -d "SELECT blob1 AS route, blob2 AS mode, sum(_sample_interval) AS views
+        FROM luxraykit_pageviews
+        WHERE timestamp > NOW() - INTERVAL '7' DAY
+        GROUP BY route, mode ORDER BY views DESC"
+  ```
+
+  AE 是采样存储，聚合时用 `sum(_sample_interval)` 而不是 `count()`，否则高流量下会低估。
+
+数据集在首次写入时自动创建，Dashboard 不需要预先建。preview 与生产刻意共用同一个数据集：preview 流量可以忽略，两个半空的数据集比一个更难看懂。
 
 ---
 
@@ -419,6 +504,8 @@ VGCPastes 脚本发现脏工作区会直接拒跑；若前一次生成任务失�
   - `npm test` 的收集范围**不止 `src/`**：还包括 Worker 单测 `cloudflare/environment-worker/src/index.test.ts` 与脚本工具单测 `scripts/*.test.mjs`（PokeDB 解析、速度档位、Worker 回退门与静态快照落后判定、SW 预缓存 manifest）。改这两处代码同样由 `npm test` 把关。
   - `src/sw.test.ts` 直接读 `public/sw.js` 源码做断言（`new Function` 注入假 `self`/`caches`/`fetch`）：`/api/*` 永不读写离线缓存、不预缓存已下线的 `/data/vgcpastes/` 与 `reg-ma-s1-environment.json`、道具图标只走构建期 manifest（源码里不得再出现 `'/assets/items/` 字面量）。
   - 例外：`cloudflare/build-notifier/worker.node-test.mjs` 刻意用 `-test.mjs` 而非 `.test.mjs` 命名以避开 vitest 收集，只能手动 `node --test` 跑，**不在 CI 内**。
+  - `src/lib/teamShare.test.ts` 刻意跑在 **node** environment：jsdom 没有 `CompressionStream`，在 jsdom 下每个 code 都会静默走未压缩的 `p1` 分支，长度断言就测错了东西（`p1` 分支另有独立用例）。
+  - `vitest.setup.ts` 在每个用例前 `history.replaceState` 清掉 hash 与 `lkDepth`：jsdom 的 URL 和会话历史在同一文件内跨用例保留，不清的话一个用例会继承上一个用例停留的页面。
 - **PWA**：`tests/pwa/offline.spec.ts`（离线缓存）+ `tests/pwa/team-samples.spec.ts`（队伍库生成数据渲染）+ `tests/pwa/visual.spec.ts`（移动端视觉回归，18 个状态，基线在 `tests/pwa/visual.spec.ts-snapshots/`，命名含 `visual-mobile-390-linux`）。配置见 `playwright.config.ts`，分成两个 project：
   - `chrome-mobile-390`（`channel: 'chrome'`，`testIgnore` 掉视觉用例）跑功能类冒烟，用机器上已装的 Google Chrome，CI runner 自带因此无需下载浏览器。`npm run test:pwa` 已固定到这个 project。
   - `visual-mobile-390` 只跑视觉用例，用 `@playwright/test` 自带、被 `package-lock.json` 锁死的 Chromium——刻意不用 `channel: 'chrome'`，因为 Chrome stable 会自动升级，任何一次字体/光栅化变更都会悄悄让基线腐烂。
