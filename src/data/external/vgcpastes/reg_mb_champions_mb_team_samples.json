@@ -1,10 +1,109 @@
 [
   {
-    "id": "vgcpastes-champions-mb-mb820",
+    "id": "vgcpastes-champions-mb-mb859",
     "dataKind": "external-snapshot",
     "sourceId": "vgcpastes-champions-mb",
     "sourceLabel": "VGCPastes Champions M-B",
-    "author": "Thacrow",
+    "author": "Zachary Weed",
+    "season": "reg-mb",
+    "score": 3,
+    "rank": 3,
+    "regulation": "M-B",
+    "title": "WhimVGC's Worlds 2026 Top 4 Team",
+    "battleType": "doubles",
+    "reportUrl": "https://x.com/WhimsicottVG/status/2093524867023016307",
+    "tournament": "Worlds 2026 San Francisco",
+    "eventRank": "3rd",
+    "dateShared": "2026-08-31",
+    "hasMoves": true,
+    "hasSpread": false,
+    "slots": [
+      {
+        "pokemonId": "froslass",
+        "abilityId": "cursed-body",
+        "itemId": "froslassite",
+        "nature": "胆小",
+        "statPoints": {},
+        "moveIds": [
+          "blizzard",
+          "shadow-ball",
+          "aurora-veil",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "sneasler",
+        "abilityId": "unburden",
+        "itemId": "white-herb",
+        "nature": "固执",
+        "statPoints": {},
+        "moveIds": [
+          "close-combat",
+          "gunk-shot",
+          "fake-out",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "lycanroc-dusk",
+        "abilityId": "tough-claws",
+        "itemId": "focus-sash",
+        "nature": "固执",
+        "statPoints": {},
+        "moveIds": [
+          "rock-slide",
+          "close-combat",
+          "accelerock",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "basculegion-male",
+        "abilityId": "adaptability",
+        "itemId": "life-orb",
+        "nature": "爽朗",
+        "statPoints": {},
+        "moveIds": [
+          "wave-crash",
+          "last-respects",
+          "aqua-jet",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "kingambit",
+        "abilityId": "defiant",
+        "itemId": "black-glasses",
+        "nature": "固执",
+        "statPoints": {},
+        "moveIds": [
+          "kowtow-cleave",
+          "sucker-punch",
+          "swords-dance",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "scovillain",
+        "abilityId": "moody",
+        "itemId": "scovillainite",
+        "nature": "大胆",
+        "statPoints": {},
+        "moveIds": [
+          "overheat",
+          "giga-drain",
+          "rage-powder",
+          "protect"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vgcpastes-champions-mb-mb858",
+    "dataKind": "external-snapshot",
+    "sourceId": "vgcpastes-champions-mb",
+    "sourceLabel": "VGCPastes Champions M-B",
+    "author": "João Felipe Leite",
     "season": "reg-mb",
     "score": 4,
     "rank": 4,
@@ -13,7 +112,7 @@
     "battleType": "doubles",
     "reportUrl": "https://pokepast.es/60727d4b5abeb091",
     "tournament": "Worlds 2026 San Francisco",
-    "eventRank": "Top 4",
+    "eventRank": "4th",
     "dateShared": "2026-08-30",
     "hasMoves": true,
     "hasSpread": true,
@@ -129,20 +228,119 @@
     ]
   },
   {
-    "id": "vgcpastes-champions-mb-mb819",
+    "id": "vgcpastes-champions-mb-mb857",
     "dataKind": "external-snapshot",
     "sourceId": "vgcpastes-champions-mb",
     "sourceLabel": "VGCPastes Champions M-B",
-    "author": "Yuu",
+    "author": "Antonio Sánchez",
     "season": "reg-mb",
-    "score": 8,
-    "rank": 8,
+    "score": 5,
+    "rank": 5,
+    "regulation": "M-B",
+    "title": "Rahxen's Worlds 2026 Top 8 Team",
+    "battleType": "doubles",
+    "reportUrl": "https://x.com/ImRahxen/status/2093838912326455662",
+    "tournament": "Worlds 2026 San Francisco",
+    "eventRank": "5th",
+    "dateShared": "2026-08-31",
+    "hasMoves": true,
+    "hasSpread": false,
+    "slots": [
+      {
+        "pokemonId": "incineroar",
+        "abilityId": "intimidate",
+        "itemId": "sitrus-berry",
+        "nature": "淘气",
+        "statPoints": {},
+        "moveIds": [
+          "fake-out",
+          "parting-shot",
+          "flare-blitz",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "toxapex",
+        "abilityId": "regenerator",
+        "itemId": "leftovers",
+        "nature": "悠闲",
+        "statPoints": {},
+        "moveIds": [
+          "baneful-bunker",
+          "infestation",
+          "toxic",
+          "wide-guard"
+        ]
+      },
+      {
+        "pokemonId": "garchomp",
+        "abilityId": "rough-skin",
+        "itemId": "choice-scarf",
+        "nature": "固执",
+        "statPoints": {},
+        "moveIds": [
+          "stomping-tantrum",
+          "earthquake",
+          "dragon-claw",
+          "rock-slide"
+        ]
+      },
+      {
+        "pokemonId": "charizard",
+        "abilityId": "blaze",
+        "itemId": "charizardite-y",
+        "nature": "胆小",
+        "statPoints": {},
+        "moveIds": [
+          "protect",
+          "heat-wave",
+          "solar-beam",
+          "weather-ball"
+        ]
+      },
+      {
+        "pokemonId": "venusaur",
+        "abilityId": "chlorophyll",
+        "itemId": "focus-sash",
+        "nature": "内敛",
+        "statPoints": {},
+        "moveIds": [
+          "protect",
+          "sludge-bomb",
+          "earth-power",
+          "sleep-powder"
+        ]
+      },
+      {
+        "pokemonId": "sylveon",
+        "abilityId": "pixilate",
+        "itemId": "fairy-feather",
+        "nature": "冷静",
+        "statPoints": {},
+        "moveIds": [
+          "detect",
+          "hyper-voice",
+          "quick-attack",
+          "yawn"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vgcpastes-champions-mb-mb856",
+    "dataKind": "external-snapshot",
+    "sourceId": "vgcpastes-champions-mb",
+    "sourceLabel": "VGCPastes Champions M-B",
+    "author": "Yuya Wakasugi",
+    "season": "reg-mb",
+    "score": 6,
+    "rank": 6,
     "regulation": "M-B",
     "title": "Yuu's Worlds 2026 Top 8 Team",
     "battleType": "doubles",
     "reportUrl": "https://x.com/yu_yan_poke/status/2093915603673514484?s=46",
     "tournament": "Worlds 2026 San Francisco",
-    "eventRank": "Top 8",
+    "eventRank": "6th",
     "dateShared": "2026-08-30",
     "replicaCode": "PDH3DRQ3FW",
     "hasMoves": true,
@@ -258,7 +456,748 @@
     ]
   },
   {
-    "id": "vgcpastes-champions-mb-mb818",
+    "id": "vgcpastes-champions-mb-mb855",
+    "dataKind": "external-snapshot",
+    "sourceId": "vgcpastes-champions-mb",
+    "sourceLabel": "VGCPastes Champions M-B",
+    "author": "Stefano Greppi",
+    "season": "reg-mb",
+    "score": 7,
+    "rank": 7,
+    "regulation": "M-B",
+    "title": "Stefano Greppi's Worlds 2026 Top 8 Team",
+    "battleType": "doubles",
+    "reportUrl": "https://x.com/ssteccaa/status/2094210717159154051?s=46",
+    "tournament": "Worlds 2026 San Francisco",
+    "eventRank": "7th",
+    "dateShared": "2026-08-31",
+    "replicaCode": "F2MFXB90GY",
+    "hasMoves": true,
+    "hasSpread": true,
+    "slots": [
+      {
+        "pokemonId": "charizard",
+        "abilityId": "blaze",
+        "itemId": "charizardite-y",
+        "nature": "内敛",
+        "statPoints": {
+          "hp": 32,
+          "defense": 12,
+          "specialAttack": 1,
+          "speed": 21
+        },
+        "moveIds": [
+          "heat-wave",
+          "solar-beam",
+          "weather-ball",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "kingambit",
+        "abilityId": "defiant",
+        "itemId": "focus-sash",
+        "nature": "固执",
+        "statPoints": {
+          "attack": 32,
+          "specialDefense": 2,
+          "speed": 32
+        },
+        "moveIds": [
+          "sucker-punch",
+          "kowtow-cleave",
+          "iron-head",
+          "low-kick"
+        ]
+      },
+      {
+        "pokemonId": "sylveon",
+        "abilityId": "pixilate",
+        "itemId": "fairy-feather",
+        "nature": "内敛",
+        "statPoints": {
+          "hp": 7,
+          "defense": 23,
+          "specialAttack": 26,
+          "speed": 10
+        },
+        "moveIds": [
+          "hyper-voice",
+          "hyper-beam",
+          "protect",
+          "quick-attack"
+        ]
+      },
+      {
+        "pokemonId": "aerodactyl",
+        "formId": "mega-aerodactyl",
+        "abilityId": "unnerve",
+        "itemId": "aerodactylite",
+        "nature": "爽朗",
+        "statPoints": {
+          "hp": 16,
+          "attack": 13,
+          "specialDefense": 5,
+          "speed": 32
+        },
+        "moveIds": [
+          "ice-fang",
+          "rock-slide",
+          "tailwind",
+          "dual-wingbeat"
+        ]
+      },
+      {
+        "pokemonId": "farigiraf",
+        "abilityId": "armor-tail",
+        "itemId": "sitrus-berry",
+        "nature": "大胆",
+        "statPoints": {
+          "hp": 27,
+          "defense": 20,
+          "specialDefense": 19
+        },
+        "moveIds": [
+          "trick-room",
+          "psychic",
+          "thunderbolt",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "garchomp",
+        "abilityId": "rough-skin",
+        "itemId": "life-orb",
+        "nature": "爽朗",
+        "statPoints": {
+          "attack": 32,
+          "defense": 1,
+          "specialDefense": 1,
+          "speed": 32
+        },
+        "moveIds": [
+          "dragon-claw",
+          "rock-tomb",
+          "earthquake",
+          "protect"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vgcpastes-champions-mb-mb854",
+    "dataKind": "external-snapshot",
+    "sourceId": "vgcpastes-champions-mb",
+    "sourceLabel": "VGCPastes Champions M-B",
+    "author": "Giovanni Piscitelli",
+    "season": "reg-mb",
+    "score": 8,
+    "rank": 8,
+    "regulation": "M-B",
+    "title": "Genius' Worlds 2026 Top 8 Team",
+    "battleType": "doubles",
+    "reportUrl": "https://x.com/GeniusVGC/status/2093879424483823948",
+    "tournament": "Worlds 2026 San Francisco",
+    "eventRank": "8th",
+    "dateShared": "2026-08-31",
+    "hasMoves": true,
+    "hasSpread": false,
+    "slots": [
+      {
+        "pokemonId": "garchomp",
+        "abilityId": "rough-skin",
+        "itemId": "life-orb",
+        "nature": "爽朗",
+        "statPoints": {},
+        "moveIds": [
+          "earthquake",
+          "dragon-claw",
+          "rock-slide",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "kingambit",
+        "abilityId": "defiant",
+        "itemId": "chople-berry",
+        "nature": "固执",
+        "statPoints": {},
+        "moveIds": [
+          "kowtow-cleave",
+          "iron-head",
+          "sucker-punch",
+          "low-kick"
+        ]
+      },
+      {
+        "pokemonId": "charizard",
+        "abilityId": "blaze",
+        "itemId": "charizardite-y",
+        "nature": "内敛",
+        "statPoints": {},
+        "moveIds": [
+          "heat-wave",
+          "weather-ball",
+          "ancient-power",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "whimsicott",
+        "abilityId": "prankster",
+        "itemId": "focus-sash",
+        "nature": "胆小",
+        "statPoints": {},
+        "moveIds": [
+          "moonblast",
+          "encore",
+          "tailwind",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "basculegion-male",
+        "abilityId": "adaptability",
+        "itemId": "mystic-water",
+        "nature": "固执",
+        "statPoints": {},
+        "moveIds": [
+          "wave-crash",
+          "last-respects",
+          "aqua-jet",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "floette",
+        "abilityId": "flower-veil",
+        "itemId": "floettite",
+        "nature": "内敛",
+        "statPoints": {},
+        "moveIds": [
+          "moonblast",
+          "dazzling-gleam",
+          "light-of-ruin",
+          "protect"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vgcpastes-champions-mb-mb853",
+    "dataKind": "external-snapshot",
+    "sourceId": "vgcpastes-champions-mb",
+    "sourceLabel": "VGCPastes Champions M-B",
+    "author": "Shohei Kimura",
+    "season": "reg-mb",
+    "score": 9,
+    "rank": 9,
+    "regulation": "M-B",
+    "title": "zeen's Worlds 2026 Top 16 Team",
+    "battleType": "doubles",
+    "reportUrl": "https://x.com/zeen172m/status/2093816163243643312?s=46&t=WmXEnVa3rTSw0P9A0n6S3Q",
+    "tournament": "Worlds 2026 San Francisco",
+    "eventRank": "9th",
+    "dateShared": "2026-08-30",
+    "replicaCode": "TMTM7YB013",
+    "hasMoves": true,
+    "hasSpread": true,
+    "slots": [
+      {
+        "pokemonId": "basculegion-male",
+        "abilityId": "adaptability",
+        "itemId": "colbur-berry",
+        "nature": "固执",
+        "statPoints": {
+          "hp": 4,
+          "attack": 31,
+          "defense": 16,
+          "speed": 15
+        },
+        "moveIds": [
+          "wave-crash",
+          "last-respects",
+          "aqua-jet",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "charizard",
+        "abilityId": "solar-power",
+        "itemId": "charizardite-y",
+        "nature": "胆小",
+        "statPoints": {
+          "hp": 4,
+          "defense": 23,
+          "specialAttack": 11,
+          "speed": 28
+        },
+        "moveIds": [
+          "heat-wave",
+          "weather-ball",
+          "ancient-power",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "kingambit",
+        "abilityId": "defiant",
+        "itemId": "black-glasses",
+        "nature": "固执",
+        "statPoints": {
+          "hp": 13,
+          "attack": 28,
+          "defense": 1,
+          "specialDefense": 8,
+          "speed": 16
+        },
+        "moveIds": [
+          "kowtow-cleave",
+          "iron-head",
+          "sucker-punch",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "whimsicott",
+        "abilityId": "prankster",
+        "itemId": "focus-sash",
+        "nature": "胆小",
+        "statPoints": {
+          "hp": 1,
+          "defense": 1,
+          "specialAttack": 32,
+          "speed": 32
+        },
+        "moveIds": [
+          "moonblast",
+          "tailwind",
+          "encore",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "garchomp",
+        "abilityId": "rough-skin",
+        "itemId": "life-orb",
+        "nature": "爽朗",
+        "statPoints": {
+          "hp": 16,
+          "attack": 12,
+          "defense": 6,
+          "speed": 32
+        },
+        "moveIds": [
+          "dragon-claw",
+          "earthquake",
+          "rock-slide",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "floette",
+        "abilityId": "flower-veil",
+        "itemId": "floettite",
+        "nature": "内敛",
+        "statPoints": {
+          "hp": 22,
+          "defense": 4,
+          "specialAttack": 20,
+          "speed": 20
+        },
+        "moveIds": [
+          "moonblast",
+          "dazzling-gleam",
+          "light-of-ruin",
+          "protect"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vgcpastes-champions-mb-mb852",
+    "dataKind": "external-snapshot",
+    "sourceId": "vgcpastes-champions-mb",
+    "sourceLabel": "VGCPastes Champions M-B",
+    "author": "Carson St. Denis",
+    "season": "reg-mb",
+    "score": 10,
+    "rank": 10,
+    "regulation": "M-B",
+    "title": "Carson St. Denis' Worlds 2026 Top 16 Team",
+    "battleType": "doubles",
+    "reportUrl": "https://x.com/mimikyufool/status/2094096285418815594?s=46&t=WmXEnVa3rTSw0P9A0n6S3Q",
+    "tournament": "Worlds 2026 San Francisco",
+    "eventRank": "10th",
+    "dateShared": "2026-08-31",
+    "replicaCode": "FG47SL47SU",
+    "hasMoves": true,
+    "hasSpread": true,
+    "slots": [
+      {
+        "pokemonId": "whimsicott",
+        "abilityId": "prankster",
+        "itemId": "focus-sash",
+        "nature": "胆小",
+        "statPoints": {
+          "defense": 2,
+          "specialAttack": 32,
+          "speed": 32
+        },
+        "moveIds": [
+          "protect",
+          "encore",
+          "moonblast",
+          "tailwind"
+        ]
+      },
+      {
+        "pokemonId": "charizard",
+        "formId": "mega-charizard-y",
+        "abilityId": "drought",
+        "itemId": "charizardite-y",
+        "nature": "内敛",
+        "statPoints": {
+          "hp": 20,
+          "defense": 32,
+          "specialAttack": 1,
+          "speed": 13
+        },
+        "moveIds": [
+          "weather-ball",
+          "protect",
+          "heat-wave",
+          "solar-beam"
+        ]
+      },
+      {
+        "pokemonId": "basculegion-male",
+        "abilityId": "adaptability",
+        "itemId": "mystic-water",
+        "nature": "固执",
+        "statPoints": {
+          "attack": 28,
+          "defense": 13,
+          "speed": 25
+        },
+        "moveIds": [
+          "wave-crash",
+          "last-respects",
+          "aqua-jet",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "kingambit",
+        "abilityId": "defiant",
+        "itemId": "chople-berry",
+        "nature": "固执",
+        "statPoints": {
+          "hp": 32,
+          "attack": 25,
+          "defense": 9
+        },
+        "moveIds": [
+          "sucker-punch",
+          "iron-head",
+          "kowtow-cleave",
+          "low-kick"
+        ]
+      },
+      {
+        "pokemonId": "sneasler",
+        "abilityId": "unburden",
+        "itemId": "white-herb",
+        "nature": "固执",
+        "statPoints": {
+          "hp": 16,
+          "attack": 20,
+          "speed": 30
+        },
+        "moveIds": [
+          "close-combat",
+          "dire-claw",
+          "rock-tomb",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "garchomp",
+        "abilityId": "rough-skin",
+        "itemId": "life-orb",
+        "nature": "爽朗",
+        "statPoints": {
+          "hp": 2,
+          "attack": 32,
+          "speed": 32
+        },
+        "moveIds": [
+          "rock-slide",
+          "earthquake",
+          "dragon-claw",
+          "protect"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vgcpastes-champions-mb-mb851",
+    "dataKind": "external-snapshot",
+    "sourceId": "vgcpastes-champions-mb",
+    "sourceLabel": "VGCPastes Champions M-B",
+    "author": "Cary D’Ortona",
+    "season": "reg-mb",
+    "score": 11,
+    "rank": 11,
+    "regulation": "M-B",
+    "title": "mimikyufool's Worlds 2026 Top 16 Team",
+    "battleType": "doubles",
+    "reportUrl": "https://x.com/mimikyufool/status/2093919714640802119?s=46&t=WmXEnVa3rTSw0P9A0n6S3Q",
+    "tournament": "Worlds 2026 San Francisco",
+    "eventRank": "11th",
+    "dateShared": "2026-08-30",
+    "replicaCode": "58N380SYT2",
+    "hasMoves": true,
+    "hasSpread": true,
+    "slots": [
+      {
+        "pokemonId": "staraptor",
+        "abilityId": "intimidate",
+        "itemId": "staraptite",
+        "nature": "爽朗",
+        "statPoints": {
+          "hp": 22,
+          "attack": 12,
+          "speed": 32
+        },
+        "moveIds": [
+          "dual-wingbeat",
+          "close-combat",
+          "tailwind",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "arcanine-hisui",
+        "abilityId": "rock-head",
+        "itemId": "focus-sash",
+        "nature": "爽朗",
+        "statPoints": {
+          "attack": 32,
+          "defense": 1,
+          "specialDefense": 1,
+          "speed": 32
+        },
+        "moveIds": [
+          "flare-blitz",
+          "head-smash",
+          "extreme-speed",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "kingambit",
+        "abilityId": "defiant",
+        "itemId": "life-orb",
+        "nature": "固执",
+        "statPoints": {
+          "hp": 32,
+          "attack": 32,
+          "specialDefense": 1,
+          "speed": 1
+        },
+        "moveIds": [
+          "kowtow-cleave",
+          "sucker-punch",
+          "swords-dance",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "sylveon",
+        "abilityId": "pixilate",
+        "itemId": "fairy-feather",
+        "nature": "内敛",
+        "statPoints": {
+          "hp": 21,
+          "defense": 6,
+          "specialAttack": 24,
+          "speed": 15
+        },
+        "moveIds": [
+          "hyper-voice",
+          "hyper-beam",
+          "quick-attack",
+          "detect"
+        ]
+      },
+      {
+        "pokemonId": "raichu",
+        "abilityId": "lightning-rod",
+        "itemId": "raichunite",
+        "nature": "胆小",
+        "statPoints": {
+          "hp": 32,
+          "defense": 8,
+          "specialDefense": 1,
+          "speed": 25
+        },
+        "moveIds": [
+          "zap-cannon",
+          "focus-blast",
+          "fake-out",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "farigiraf",
+        "abilityId": "armor-tail",
+        "itemId": "sitrus-berry",
+        "nature": "温和",
+        "statPoints": {
+          "hp": 29,
+          "defense": 14,
+          "specialDefense": 23
+        },
+        "moveIds": [
+          "psychic",
+          "helping-hand",
+          "trick-room",
+          "protect"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vgcpastes-champions-mb-mb850",
+    "dataKind": "external-snapshot",
+    "sourceId": "vgcpastes-champions-mb",
+    "sourceLabel": "VGCPastes Champions M-B",
+    "author": "Emilio Forbes",
+    "season": "reg-mb",
+    "score": 12,
+    "rank": 12,
+    "regulation": "M-B",
+    "title": "emforbes' Worlds 2026 Top 16 Team",
+    "battleType": "doubles",
+    "reportUrl": "https://x.com/gazemilyy/status/2094455985519964373?s=20",
+    "tournament": "Worlds 2026 San Francisco",
+    "eventRank": "12th",
+    "dateShared": "2026-08-31",
+    "replicaCode": "EE6F94UC7P",
+    "hasMoves": true,
+    "hasSpread": true,
+    "slots": [
+      {
+        "pokemonId": "aerodactyl",
+        "abilityId": "unnerve",
+        "itemId": "aerodactylite",
+        "nature": "爽朗",
+        "statPoints": {
+          "hp": 9,
+          "attack": 23,
+          "defense": 2,
+          "speed": 32
+        },
+        "moveIds": [
+          "rock-slide",
+          "dual-wingbeat",
+          "tailwind",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "raichu",
+        "abilityId": "lightning-rod",
+        "itemId": "raichunite",
+        "nature": "胆小",
+        "statPoints": {
+          "hp": 21,
+          "defense": 16,
+          "specialAttack": 5,
+          "speed": 24
+        },
+        "moveIds": [
+          "zap-cannon",
+          "focus-blast",
+          "fake-out",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "sneasler",
+        "abilityId": "unburden",
+        "itemId": "white-herb",
+        "nature": "爽朗",
+        "statPoints": {
+          "hp": 30,
+          "attack": 21,
+          "speed": 15
+        },
+        "moveIds": [
+          "close-combat",
+          "dire-claw",
+          "feint",
+          "fake-out"
+        ]
+      },
+      {
+        "pokemonId": "sylveon",
+        "abilityId": "pixilate",
+        "itemId": "fairy-feather",
+        "nature": "内敛",
+        "statPoints": {
+          "hp": 8,
+          "defense": 22,
+          "specialAttack": 21,
+          "speed": 15
+        },
+        "moveIds": [
+          "hyper-voice",
+          "hyper-beam",
+          "yawn",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "kingambit",
+        "abilityId": "defiant",
+        "itemId": "life-orb",
+        "nature": "固执",
+        "statPoints": {
+          "hp": 32,
+          "attack": 32,
+          "specialDefense": 2
+        },
+        "moveIds": [
+          "kowtow-cleave",
+          "sucker-punch",
+          "swords-dance",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "tsareena",
+        "abilityId": "queenly-majesty",
+        "itemId": "focus-sash",
+        "nature": "爽朗",
+        "statPoints": {
+          "hp": 4,
+          "attack": 32,
+          "defense": 1,
+          "speed": 29
+        },
+        "moveIds": [
+          "power-whip",
+          "triple-axel",
+          "low-kick",
+          "protect"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vgcpastes-champions-mb-mb849",
     "dataKind": "external-snapshot",
     "sourceId": "vgcpastes-champions-mb",
     "sourceLabel": "VGCPastes Champions M-B",
@@ -395,58 +1334,93 @@
     ]
   },
   {
-    "id": "vgcpastes-champions-mb-mb817",
+    "id": "vgcpastes-champions-mb-mb848",
     "dataKind": "external-snapshot",
     "sourceId": "vgcpastes-champions-mb",
     "sourceLabel": "VGCPastes Champions M-B",
-    "author": "mimikyufool",
+    "author": "Justin Tang",
     "season": "reg-mb",
-    "score": 16,
-    "rank": 16,
+    "score": 14,
+    "rank": 14,
     "regulation": "M-B",
-    "title": "mimikyufool's Worlds 2026 Top 16 Team",
+    "title": "Panda's Worlds 2026 Top 16 Team",
     "battleType": "doubles",
-    "reportUrl": "https://x.com/mimikyufool/status/2093919714640802119?s=46&t=WmXEnVa3rTSw0P9A0n6S3Q",
+    "reportUrl": "https://x.com/unironicpanda/status/2094527520217677909?s=46",
     "tournament": "Worlds 2026 San Francisco",
-    "eventRank": "Top 16",
-    "dateShared": "2026-08-30",
-    "replicaCode": "58N380SYT2",
+    "eventRank": "14th",
+    "dateShared": "2026-08-31",
+    "replicaCode": "BFCQ81G5S3",
     "hasMoves": true,
     "hasSpread": true,
     "slots": [
       {
-        "pokemonId": "staraptor",
-        "abilityId": "intimidate",
-        "itemId": "staraptite",
-        "nature": "爽朗",
+        "pokemonId": "blastoise",
+        "abilityId": "rain-dish",
+        "itemId": "blastoisinite",
+        "nature": "内敛",
         "statPoints": {
           "hp": 22,
-          "attack": 12,
-          "speed": 32
+          "specialAttack": 25,
+          "speed": 19
         },
         "moveIds": [
-          "dual-wingbeat",
-          "close-combat",
-          "tailwind",
+          "water-spout",
+          "dark-pulse",
+          "shell-smash",
           "protect"
         ]
       },
       {
-        "pokemonId": "arcanine-hisui",
-        "abilityId": "rock-head",
-        "itemId": "focus-sash",
-        "nature": "爽朗",
+        "pokemonId": "delphox",
+        "abilityId": "blaze",
+        "itemId": "delphoxite",
+        "nature": "胆小",
         "statPoints": {
-          "attack": 32,
-          "defense": 1,
-          "specialDefense": 1,
+          "hp": 9,
+          "defense": 14,
+          "specialAttack": 11,
           "speed": 32
         },
         "moveIds": [
-          "flare-blitz",
-          "head-smash",
-          "extreme-speed",
+          "heat-wave",
+          "psychic",
+          "nasty-plot",
           "protect"
+        ]
+      },
+      {
+        "pokemonId": "sinistcha",
+        "abilityId": "hospitality",
+        "itemId": "colbur-berry",
+        "nature": "大胆",
+        "statPoints": {
+          "hp": 32,
+          "defense": 14,
+          "specialDefense": 19,
+          "speed": 1
+        },
+        "moveIds": [
+          "matcha-gotcha",
+          "rage-powder",
+          "trick-room",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "sneasler",
+        "abilityId": "poison-touch",
+        "itemId": "focus-sash",
+        "nature": "爽朗",
+        "statPoints": {
+          "hp": 2,
+          "attack": 32,
+          "speed": 32
+        },
+        "moveIds": [
+          "fake-out",
+          "poison-jab",
+          "close-combat",
+          "quick-guard"
         ]
       },
       {
@@ -455,10 +1429,10 @@
         "itemId": "life-orb",
         "nature": "固执",
         "statPoints": {
-          "hp": 32,
+          "hp": 30,
           "attack": 32,
           "specialDefense": 1,
-          "speed": 1
+          "speed": 3
         },
         "moveIds": [
           "kowtow-cleave",
@@ -468,193 +1442,27 @@
         ]
       },
       {
-        "pokemonId": "sylveon",
-        "abilityId": "pixilate",
-        "itemId": "fairy-feather",
-        "nature": "内敛",
-        "statPoints": {
-          "hp": 21,
-          "defense": 6,
-          "specialAttack": 24,
-          "speed": 15
-        },
-        "moveIds": [
-          "hyper-voice",
-          "hyper-beam",
-          "quick-attack",
-          "detect"
-        ]
-      },
-      {
-        "pokemonId": "raichu",
-        "abilityId": "lightning-rod",
-        "itemId": "raichunite",
-        "nature": "胆小",
-        "statPoints": {
-          "hp": 32,
-          "defense": 8,
-          "specialDefense": 1,
-          "speed": 25
-        },
-        "moveIds": [
-          "zap-cannon",
-          "focus-blast",
-          "fake-out",
-          "protect"
-        ]
-      },
-      {
-        "pokemonId": "farigiraf",
-        "abilityId": "armor-tail",
+        "pokemonId": "incineroar",
+        "abilityId": "intimidate",
         "itemId": "sitrus-berry",
-        "nature": "温和",
+        "nature": "慎重",
         "statPoints": {
-          "hp": 29,
-          "defense": 14,
-          "specialDefense": 23
+          "hp": 28,
+          "defense": 2,
+          "specialDefense": 10,
+          "speed": 26
         },
         "moveIds": [
-          "psychic",
-          "helping-hand",
-          "trick-room",
-          "protect"
+          "fake-out",
+          "flare-blitz",
+          "throat-chop",
+          "parting-shot"
         ]
       }
     ]
   },
   {
-    "id": "vgcpastes-champions-mb-mb816",
-    "dataKind": "external-snapshot",
-    "sourceId": "vgcpastes-champions-mb",
-    "sourceLabel": "VGCPastes Champions M-B",
-    "author": "Shohei Kimura",
-    "season": "reg-mb",
-    "score": 16,
-    "rank": 16,
-    "regulation": "M-B",
-    "title": "zeen's Worlds 2026 Top 16 Team",
-    "battleType": "doubles",
-    "reportUrl": "https://x.com/zeen172m/status/2093816163243643312?s=46&t=WmXEnVa3rTSw0P9A0n6S3Q",
-    "tournament": "Worlds 2026 San Francisco",
-    "eventRank": "Top 16",
-    "dateShared": "2026-08-30",
-    "replicaCode": "TMTM7YB013",
-    "hasMoves": true,
-    "hasSpread": true,
-    "slots": [
-      {
-        "pokemonId": "basculegion-male",
-        "abilityId": "adaptability",
-        "itemId": "colbur-berry",
-        "nature": "固执",
-        "statPoints": {
-          "hp": 4,
-          "attack": 31,
-          "defense": 16,
-          "speed": 15
-        },
-        "moveIds": [
-          "wave-crash",
-          "last-respects",
-          "aqua-jet",
-          "protect"
-        ]
-      },
-      {
-        "pokemonId": "charizard",
-        "abilityId": "solar-power",
-        "itemId": "charizardite-y",
-        "nature": "胆小",
-        "statPoints": {
-          "hp": 4,
-          "defense": 23,
-          "specialAttack": 11,
-          "speed": 28
-        },
-        "moveIds": [
-          "heat-wave",
-          "weather-ball",
-          "ancient-power",
-          "protect"
-        ]
-      },
-      {
-        "pokemonId": "kingambit",
-        "abilityId": "defiant",
-        "itemId": "black-glasses",
-        "nature": "固执",
-        "statPoints": {
-          "hp": 13,
-          "attack": 28,
-          "defense": 1,
-          "specialDefense": 8,
-          "speed": 16
-        },
-        "moveIds": [
-          "kowtow-cleave",
-          "iron-head",
-          "sucker-punch",
-          "protect"
-        ]
-      },
-      {
-        "pokemonId": "whimsicott",
-        "abilityId": "prankster",
-        "itemId": "focus-sash",
-        "nature": "胆小",
-        "statPoints": {
-          "hp": 1,
-          "defense": 1,
-          "specialAttack": 32,
-          "speed": 32
-        },
-        "moveIds": [
-          "moonblast",
-          "tailwind",
-          "encore",
-          "protect"
-        ]
-      },
-      {
-        "pokemonId": "garchomp",
-        "abilityId": "rough-skin",
-        "itemId": "life-orb",
-        "nature": "爽朗",
-        "statPoints": {
-          "hp": 16,
-          "attack": 12,
-          "defense": 6,
-          "speed": 32
-        },
-        "moveIds": [
-          "dragon-claw",
-          "earthquake",
-          "rock-slide",
-          "protect"
-        ]
-      },
-      {
-        "pokemonId": "floette",
-        "abilityId": "flower-veil",
-        "itemId": "floettite",
-        "nature": "内敛",
-        "statPoints": {
-          "hp": 22,
-          "defense": 4,
-          "specialAttack": 20,
-          "speed": 20
-        },
-        "moveIds": [
-          "moonblast",
-          "dazzling-gleam",
-          "light-of-ruin",
-          "protect"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "vgcpastes-champions-mb-mb815",
+    "id": "vgcpastes-champions-mb-mb847",
     "dataKind": "external-snapshot",
     "sourceId": "vgcpastes-champions-mb",
     "sourceLabel": "VGCPastes Champions M-B",
@@ -667,7 +1475,7 @@
     "battleType": "doubles",
     "reportUrl": "https://x.com/chlotad/status/2093798600077885946?s=46&t=WmXEnVa3rTSw0P9A0n6S3Q",
     "tournament": "Worlds 2026 San Francisco",
-    "eventRank": "Top 16",
+    "eventRank": "16th",
     "dateShared": "2026-08-30",
     "hasMoves": true,
     "hasSpread": true,
@@ -780,7 +1588,137 @@
     ]
   },
   {
-    "id": "vgcpastes-champions-mb-mb814",
+    "id": "vgcpastes-champions-mb-mb846",
+    "dataKind": "external-snapshot",
+    "sourceId": "vgcpastes-champions-mb",
+    "sourceLabel": "VGCPastes Champions M-B",
+    "author": "Narawitch Naenna",
+    "season": "reg-mb",
+    "score": 17,
+    "rank": 17,
+    "regulation": "M-B",
+    "title": "MyStars' Worlds 2026 Top 32 Team",
+    "battleType": "doubles",
+    "reportUrl": "https://x.com/mystarseiei/status/2095035366319505727?s=46",
+    "tournament": "Worlds 2026 San Francisco",
+    "eventRank": "17th",
+    "dateShared": "2026-09-01",
+    "replicaCode": "0V59GGVAVK",
+    "hasMoves": true,
+    "hasSpread": true,
+    "slots": [
+      {
+        "pokemonId": "charizard",
+        "abilityId": "blaze",
+        "itemId": "charizardite-y",
+        "nature": "内敛",
+        "statPoints": {
+          "hp": 24,
+          "defense": 16,
+          "specialAttack": 1,
+          "speed": 25
+        },
+        "moveIds": [
+          "heat-wave",
+          "weather-ball",
+          "hurricane",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "venusaur",
+        "abilityId": "chlorophyll",
+        "itemId": "focus-sash",
+        "nature": "内敛",
+        "statPoints": {
+          "hp": 2,
+          "specialAttack": 32,
+          "speed": 32
+        },
+        "moveIds": [
+          "protect",
+          "sludge-bomb",
+          "sleep-powder",
+          "leaf-storm"
+        ]
+      },
+      {
+        "pokemonId": "grimmsnarl",
+        "abilityId": "prankster",
+        "itemId": "light-clay",
+        "nature": "自大",
+        "statPoints": {
+          "hp": 32,
+          "defense": 16,
+          "specialDefense": 18
+        },
+        "moveIds": [
+          "light-screen",
+          "spirit-break",
+          "reflect",
+          "parting-shot"
+        ]
+      },
+      {
+        "pokemonId": "archaludon",
+        "abilityId": "stamina",
+        "itemId": "leftovers",
+        "nature": "温和",
+        "statPoints": {
+          "hp": 32,
+          "defense": 1,
+          "specialAttack": 5,
+          "specialDefense": 15,
+          "speed": 13
+        },
+        "moveIds": [
+          "protect",
+          "dragon-pulse",
+          "flash-cannon",
+          "electro-shot"
+        ]
+      },
+      {
+        "pokemonId": "pelipper",
+        "abilityId": "drizzle",
+        "itemId": "sitrus-berry",
+        "nature": "内敛",
+        "statPoints": {
+          "hp": 31,
+          "defense": 2,
+          "specialAttack": 5,
+          "specialDefense": 16,
+          "speed": 12
+        },
+        "moveIds": [
+          "hurricane",
+          "weather-ball",
+          "wide-guard",
+          "tailwind"
+        ]
+      },
+      {
+        "pokemonId": "swampert",
+        "abilityId": "torrent",
+        "itemId": "swampertite",
+        "nature": "固执",
+        "statPoints": {
+          "hp": 21,
+          "attack": 23,
+          "defense": 4,
+          "speed": 18
+        },
+        "moveIds": [
+          "ice-punch",
+          "wave-crash",
+          "earthquake",
+          "protect"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vgcpastes-champions-mb-mb845",
     "dataKind": "external-snapshot",
     "sourceId": "vgcpastes-champions-mb",
     "sourceLabel": "VGCPastes Champions M-B",
@@ -906,1123 +1844,189 @@
     ]
   },
   {
-    "id": "vgcpastes-champions-mb-mb813",
+    "id": "vgcpastes-champions-mb-mb844",
     "dataKind": "external-snapshot",
     "sourceId": "vgcpastes-champions-mb",
     "sourceLabel": "VGCPastes Champions M-B",
-    "author": "Paul Chua",
+    "author": "Si Dawei",
     "season": "reg-mb",
-    "score": 32,
-    "rank": 32,
+    "score": 24,
+    "rank": 24,
     "regulation": "M-B",
-    "title": "Paul's Worlds 2026 Top 32 Team",
+    "title": "sunoru's Worlds 2026 Top 32 Team",
     "battleType": "doubles",
-    "reportUrl": "https://x.com/Paul_Chua_/status/2093890878201118742",
+    "reportUrl": "https://x.com/sunoru_sidw/status/2095398088118538309?s=46",
     "tournament": "Worlds 2026 San Francisco",
-    "eventRank": "Top 32",
-    "dateShared": "2026-08-30",
-    "replicaCode": "YMS21RYBD6",
+    "eventRank": "24th",
+    "dateShared": "2026-09-03",
+    "replicaCode": "RTNVG9WHTL",
     "hasMoves": true,
     "hasSpread": true,
     "slots": [
-      {
-        "pokemonId": "charizard",
-        "abilityId": "blaze",
-        "itemId": "charizardite-y",
-        "nature": "胆小",
-        "statPoints": {
-          "hp": 22,
-          "defense": 19,
-          "specialAttack": 2,
-          "speed": 23
-        },
-        "moveIds": [
-          "heat-wave",
-          "weather-ball",
-          "ancient-power",
-          "protect"
-        ]
-      },
-      {
-        "pokemonId": "incineroar",
-        "abilityId": "intimidate",
-        "itemId": "sitrus-berry",
-        "nature": "淘气",
-        "statPoints": {
-          "hp": 32,
-          "defense": 16,
-          "specialDefense": 17,
-          "speed": 1
-        },
-        "moveIds": [
-          "fake-out",
-          "flare-blitz",
-          "throat-chop",
-          "parting-shot"
-        ]
-      },
-      {
-        "pokemonId": "garchomp",
-        "abilityId": "rough-skin",
-        "itemId": "choice-scarf",
-        "nature": "固执",
-        "statPoints": {
-          "hp": 10,
-          "attack": 20,
-          "defense": 4,
-          "speed": 32
-        },
-        "moveIds": [
-          "dragon-claw",
-          "earthquake",
-          "stomping-tantrum",
-          "rock-slide"
-        ]
-      },
-      {
-        "pokemonId": "venusaur",
-        "abilityId": "chlorophyll",
-        "itemId": "life-orb",
-        "nature": "内敛",
-        "statPoints": {
-          "hp": 2,
-          "specialAttack": 32,
-          "speed": 32
-        },
-        "moveIds": [
-          "leaf-storm",
-          "sludge-bomb",
-          "earth-power",
-          "protect"
-        ]
-      },
-      {
-        "pokemonId": "sylveon",
-        "abilityId": "pixilate",
-        "itemId": "fairy-feather",
-        "nature": "内敛",
-        "statPoints": {
-          "hp": 25,
-          "defense": 28,
-          "specialAttack": 10,
-          "speed": 3
-        },
-        "moveIds": [
-          "hyper-voice",
-          "quick-attack",
-          "yawn",
-          "detect"
-        ]
-      },
-      {
-        "pokemonId": "toxapex",
-        "abilityId": "regenerator",
-        "itemId": "leftovers",
-        "nature": "悠闲",
-        "statPoints": {
-          "hp": 32,
-          "defense": 18,
-          "specialDefense": 16
-        },
-        "moveIds": [
-          "toxic",
-          "infestation",
-          "wide-guard",
-          "baneful-bunker"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "vgcpastes-champions-mb-mb812",
-    "dataKind": "external-snapshot",
-    "sourceId": "vgcpastes-champions-mb",
-    "sourceLabel": "VGCPastes Champions M-B",
-    "author": "Ryoma Okamoto",
-    "season": "reg-mb",
-    "score": 34,
-    "rank": 34,
-    "regulation": "M-B",
-    "title": "Ryoma's Worlds 2026 Top 64 Team",
-    "battleType": "doubles",
-    "reportUrl": "https://x.com/ryoma9901_poke/status/2093901336626762123?s=46&t=WmXEnVa3rTSw0P9A0n6S3Q",
-    "tournament": "Worlds 2026 San Francisco",
-    "eventRank": "34th",
-    "dateShared": "2026-08-30",
-    "replicaCode": "MGM9CLXSK5",
-    "hasMoves": true,
-    "hasSpread": true,
-    "slots": [
-      {
-        "pokemonId": "charizard",
-        "abilityId": "blaze",
-        "itemId": "charizardite-y",
-        "nature": "内敛",
-        "statPoints": {
-          "hp": 18,
-          "defense": 26,
-          "specialAttack": 1,
-          "speed": 21
-        },
-        "moveIds": [
-          "heat-wave",
-          "weather-ball",
-          "ancient-power",
-          "protect"
-        ]
-      },
-      {
-        "pokemonId": "venusaur",
-        "abilityId": "chlorophyll",
-        "itemId": "wide-lens",
-        "nature": "内敛",
-        "statPoints": {
-          "hp": 4,
-          "specialAttack": 30,
-          "speed": 32
-        },
-        "moveIds": [
-          "leaf-storm",
-          "sludge-bomb",
-          "protect",
-          "sleep-powder"
-        ]
-      },
-      {
-        "pokemonId": "incineroar",
-        "abilityId": "intimidate",
-        "itemId": "sitrus-berry",
-        "nature": "慎重",
-        "statPoints": {
-          "hp": 32,
-          "defense": 12,
-          "specialDefense": 21,
-          "speed": 1
-        },
-        "moveIds": [
-          "flare-blitz",
-          "darkest-lariat",
-          "fake-out",
-          "parting-shot"
-        ]
-      },
-      {
-        "pokemonId": "sylveon",
-        "abilityId": "pixilate",
-        "itemId": "fairy-feather",
-        "nature": "内敛",
-        "statPoints": {
-          "hp": 1,
-          "defense": 18,
-          "specialAttack": 21,
-          "speed": 26
-        },
-        "moveIds": [
-          "hyper-voice",
-          "hyper-beam",
-          "quick-attack",
-          "detect"
-        ]
-      },
-      {
-        "pokemonId": "aerodactyl",
-        "abilityId": "unnerve",
-        "itemId": "focus-sash",
-        "nature": "爽朗",
-        "statPoints": {
-          "hp": 2,
-          "attack": 32,
-          "speed": 32
-        },
-        "moveIds": [
-          "rock-slide",
-          "dual-wingbeat",
-          "protect",
-          "tailwind"
-        ]
-      },
-      {
-        "pokemonId": "garchomp",
-        "abilityId": "rough-skin",
-        "itemId": "life-orb",
-        "nature": "爽朗",
-        "statPoints": {
-          "hp": 3,
-          "attack": 10,
-          "defense": 31,
-          "speed": 22
-        },
-        "moveIds": [
-          "dragon-claw",
-          "earthquake",
-          "stomping-tantrum",
-          "protect"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "vgcpastes-champions-mb-mb811",
-    "dataKind": "external-snapshot",
-    "sourceId": "vgcpastes-champions-mb",
-    "sourceLabel": "VGCPastes Champions M-B",
-    "author": "fevermajin",
-    "season": "reg-mb",
-    "score": 37,
-    "rank": 37,
-    "regulation": "M-B",
-    "title": "fevermajin's Worlds 2026 Top 64 Team",
-    "battleType": "doubles",
-    "reportUrl": "https://x.com/fevermajin/status/2094003819885814055?s=46",
-    "tournament": "Worlds 2026 San Francisco",
-    "eventRank": "37th",
-    "dateShared": "2026-08-30",
-    "replicaCode": "0KR782A4BV",
-    "hasMoves": true,
-    "hasSpread": true,
-    "slots": [
-      {
-        "pokemonId": "raichu",
-        "abilityId": "lightning-rod",
-        "itemId": "raichunite",
-        "nature": "胆小",
-        "statPoints": {
-          "hp": 32,
-          "specialAttack": 2,
-          "speed": 32
-        },
-        "moveIds": [
-          "zap-cannon",
-          "focus-blast",
-          "fake-out",
-          "protect"
-        ]
-      },
-      {
-        "pokemonId": "kingambit",
-        "abilityId": "defiant",
-        "itemId": "occa-berry",
-        "nature": "固执",
-        "statPoints": {
-          "hp": 16,
-          "attack": 32,
-          "specialDefense": 10,
-          "speed": 8
-        },
-        "moveIds": [
-          "kowtow-cleave",
-          "sucker-punch",
-          "iron-head",
-          "protect"
-        ]
-      },
-      {
-        "pokemonId": "arcanine-hisui",
-        "abilityId": "rock-head",
-        "itemId": "focus-sash",
-        "nature": "爽朗",
-        "statPoints": {
-          "hp": 2,
-          "attack": 32,
-          "speed": 32
-        },
-        "moveIds": [
-          "flare-blitz",
-          "head-smash",
-          "extreme-speed",
-          "protect"
-        ]
-      },
-      {
-        "pokemonId": "farigiraf",
-        "abilityId": "armor-tail",
-        "itemId": "sitrus-berry",
-        "nature": "大胆",
-        "statPoints": {
-          "hp": 31,
-          "defense": 11,
-          "specialDefense": 24
-        },
-        "moveIds": [
-          "psychic",
-          "trick-room",
-          "helping-hand",
-          "protect"
-        ]
-      },
-      {
-        "pokemonId": "staraptor",
-        "abilityId": "intimidate",
-        "itemId": "staraptite",
-        "nature": "爽朗",
-        "statPoints": {
-          "hp": 15,
-          "attack": 19,
-          "speed": 32
-        },
-        "moveIds": [
-          "brave-bird",
-          "tailwind",
-          "close-combat",
-          "protect"
-        ]
-      },
-      {
-        "pokemonId": "sylveon",
-        "abilityId": "pixilate",
-        "itemId": "fairy-feather",
-        "nature": "内敛",
-        "statPoints": {
-          "hp": 13,
-          "defense": 18,
-          "specialAttack": 20,
-          "speed": 15
-        },
-        "moveIds": [
-          "hyper-voice",
-          "quick-attack",
-          "yawn",
-          "detect"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "vgcpastes-champions-mb-mb810",
-    "dataKind": "external-snapshot",
-    "sourceId": "vgcpastes-champions-mb",
-    "sourceLabel": "VGCPastes Champions M-B",
-    "author": "ryankchua",
-    "season": "reg-mb",
-    "score": 38,
-    "rank": 38,
-    "regulation": "M-B",
-    "title": "ryankchua's Worlds 2026 Top 64 Team",
-    "battleType": "doubles",
-    "reportUrl": "https://x.com/ryankchua/status/2093960976781742087?s=46",
-    "tournament": "Worlds 2026 San Francisco",
-    "eventRank": "38th",
-    "dateShared": "2026-08-30",
-    "hasMoves": true,
-    "hasSpread": true,
-    "slots": [
-      {
-        "pokemonId": "raichu",
-        "abilityId": "lightning-rod",
-        "itemId": "raichunite",
-        "nature": "胆小",
-        "statPoints": {
-          "hp": 32,
-          "defense": 11,
-          "speed": 23
-        },
-        "moveIds": [
-          "protect",
-          "fake-out",
-          "focus-blast",
-          "zap-cannon"
-        ]
-      },
-      {
-        "pokemonId": "staraptor",
-        "abilityId": "intimidate",
-        "itemId": "staraptite",
-        "nature": "爽朗",
-        "statPoints": {
-          "hp": 21,
-          "attack": 13,
-          "speed": 32
-        },
-        "moveIds": [
-          "protect",
-          "tailwind",
-          "brave-bird",
-          "close-combat"
-        ]
-      },
-      {
-        "pokemonId": "arcanine-hisui",
-        "abilityId": "rock-head",
-        "itemId": "focus-sash",
-        "nature": "爽朗",
-        "statPoints": {
-          "hp": 2,
-          "attack": 32,
-          "speed": 32
-        },
-        "moveIds": [
-          "protect",
-          "extreme-speed",
-          "rock-slide",
-          "flare-blitz"
-        ]
-      },
-      {
-        "pokemonId": "farigiraf",
-        "abilityId": "armor-tail",
-        "itemId": "sitrus-berry",
-        "nature": "温和",
-        "statPoints": {
-          "hp": 29,
-          "defense": 14,
-          "specialDefense": 23
-        },
-        "moveIds": [
-          "protect",
-          "helping-hand",
-          "trick-room",
-          "psychic"
-        ]
-      },
-      {
-        "pokemonId": "sylveon",
-        "abilityId": "pixilate",
-        "itemId": "fairy-feather",
-        "nature": "内敛",
-        "statPoints": {
-          "hp": 19,
-          "defense": 17,
-          "specialAttack": 20,
-          "speed": 10
-        },
-        "moveIds": [
-          "detect",
-          "quick-attack",
-          "yawn",
-          "hyper-voice"
-        ]
-      },
-      {
-        "pokemonId": "kingambit",
-        "abilityId": "defiant",
-        "itemId": "life-orb",
-        "nature": "固执",
-        "statPoints": {
-          "hp": 32,
-          "attack": 32,
-          "specialDefense": 1,
-          "speed": 1
-        },
-        "moveIds": [
-          "protect",
-          "swords-dance",
-          "sucker-punch",
-          "kowtow-cleave"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "vgcpastes-champions-mb-mb809",
-    "dataKind": "external-snapshot",
-    "sourceId": "vgcpastes-champions-mb",
-    "sourceLabel": "VGCPastes Champions M-B",
-    "author": "Kota Kawabe",
-    "season": "reg-mb",
-    "score": 39,
-    "rank": 39,
-    "regulation": "M-B",
-    "title": "koota's Worlds 2026 Top 64 Team",
-    "battleType": "doubles",
-    "reportUrl": "https://x.com/koota488/status/2093948431387533419?s=46",
-    "tournament": "Worlds 2026 San Francisco",
-    "eventRank": "39th",
-    "dateShared": "2026-08-30",
-    "replicaCode": "NK704Y2TR4",
-    "hasMoves": true,
-    "hasSpread": true,
-    "slots": [
-      {
-        "pokemonId": "floette",
-        "abilityId": "flower-veil",
-        "itemId": "floettite",
-        "nature": "内敛",
-        "statPoints": {
-          "hp": 22,
-          "defense": 4,
-          "specialAttack": 15,
-          "speed": 25
-        },
-        "moveIds": [
-          "moonblast",
-          "dazzling-gleam",
-          "light-of-ruin",
-          "protect"
-        ]
-      },
-      {
-        "pokemonId": "garchomp",
-        "abilityId": "rough-skin",
-        "itemId": "life-orb",
-        "nature": "爽朗",
-        "statPoints": {
-          "hp": 2,
-          "attack": 32,
-          "speed": 32
-        },
-        "moveIds": [
-          "stomping-tantrum",
-          "dragon-claw",
-          "rock-slide",
-          "protect"
-        ]
-      },
-      {
-        "pokemonId": "whimsicott",
-        "abilityId": "prankster",
-        "itemId": "focus-sash",
-        "nature": "胆小",
-        "statPoints": {
-          "hp": 2,
-          "specialAttack": 32,
-          "speed": 32
-        },
-        "moveIds": [
-          "moonblast",
-          "encore",
-          "tailwind",
-          "protect"
-        ]
-      },
       {
         "pokemonId": "delphox",
+        "formId": "mega-delphox",
         "abilityId": "blaze",
         "itemId": "delphoxite",
         "nature": "胆小",
         "statPoints": {
-          "hp": 31,
-          "defense": 25,
-          "specialAttack": 9,
-          "speed": 1
+          "hp": 25,
+          "defense": 2,
+          "specialAttack": 7,
+          "speed": 32
         },
         "moveIds": [
           "heat-wave",
           "psychic",
-          "will-o-wisp",
+          "nasty-plot",
           "protect"
         ]
       },
       {
-        "pokemonId": "basculegion-male",
-        "abilityId": "adaptability",
+        "pokemonId": "vanilluxe",
+        "abilityId": "snow-warning",
         "itemId": "choice-scarf",
-        "nature": "爽朗",
-        "statPoints": {
-          "attack": 20,
-          "defense": 14,
-          "speed": 32
-        },
-        "moveIds": [
-          "wave-crash",
-          "aqua-jet",
-          "flip-turn",
-          "last-respects"
-        ]
-      },
-      {
-        "pokemonId": "kingambit",
-        "abilityId": "defiant",
-        "itemId": "chople-berry",
-        "nature": "固执",
-        "statPoints": {
-          "hp": 32,
-          "attack": 16,
-          "speed": 18
-        },
-        "moveIds": [
-          "kowtow-cleave",
-          "sucker-punch",
-          "iron-head",
-          "low-kick"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "vgcpastes-champions-mb-mb808",
-    "dataKind": "external-snapshot",
-    "sourceId": "vgcpastes-champions-mb",
-    "sourceLabel": "VGCPastes Champions M-B",
-    "author": "Naoto Mizobuchi",
-    "season": "reg-mb",
-    "score": 41,
-    "rank": 41,
-    "regulation": "M-B",
-    "title": "Penguin's Worlds 2026 Top 64 Team",
-    "battleType": "doubles",
-    "reportUrl": "https://x.com/penguin2142/status/2093882115695780327?s=46",
-    "tournament": "Worlds 2026 San Francisco",
-    "eventRank": "41st",
-    "dateShared": "2026-08-30",
-    "replicaCode": "CGFCYQP9MY",
-    "hasMoves": true,
-    "hasSpread": true,
-    "slots": [
-      {
-        "pokemonId": "charizard",
-        "abilityId": "blaze",
-        "itemId": "charizardite-y",
-        "nature": "内敛",
-        "statPoints": {
-          "hp": 20,
-          "defense": 18,
-          "specialAttack": 1,
-          "speed": 27
-        },
-        "moveIds": [
-          "heat-wave",
-          "ancient-power",
-          "weather-ball",
-          "protect"
-        ]
-      },
-      {
-        "pokemonId": "venusaur",
-        "abilityId": "chlorophyll",
-        "itemId": "wide-lens",
-        "nature": "内敛",
-        "statPoints": {
-          "hp": 14,
-          "specialAttack": 32,
-          "speed": 20
-        },
-        "moveIds": [
-          "sleep-powder",
-          "leaf-storm",
-          "sludge-bomb",
-          "protect"
-        ]
-      },
-      {
-        "pokemonId": "aerodactyl",
-        "abilityId": "unnerve",
-        "itemId": "focus-sash",
-        "nature": "爽朗",
-        "statPoints": {
-          "hp": 2,
-          "attack": 32,
-          "speed": 32
-        },
-        "moveIds": [
-          "rock-slide",
-          "dual-wingbeat",
-          "tailwind",
-          "protect"
-        ]
-      },
-      {
-        "pokemonId": "incineroar",
-        "abilityId": "intimidate",
-        "itemId": "sitrus-berry",
-        "nature": "淘气",
-        "statPoints": {
-          "hp": 32,
-          "defense": 10,
-          "specialDefense": 19,
-          "speed": 5
-        },
-        "moveIds": [
-          "fake-out",
-          "flare-blitz",
-          "throat-chop",
-          "parting-shot"
-        ]
-      },
-      {
-        "pokemonId": "garchomp",
-        "abilityId": "rough-skin",
-        "itemId": "life-orb",
-        "nature": "爽朗",
-        "statPoints": {
-          "hp": 6,
-          "attack": 28,
-          "speed": 32
-        },
-        "moveIds": [
-          "dragon-claw",
-          "rock-slide",
-          "earthquake",
-          "protect"
-        ]
-      },
-      {
-        "pokemonId": "sylveon",
-        "abilityId": "pixilate",
-        "itemId": "fairy-feather",
-        "nature": "内敛",
-        "statPoints": {
-          "hp": 19,
-          "defense": 28,
-          "specialAttack": 14,
-          "speed": 5
-        },
-        "moveIds": [
-          "hyper-voice",
-          "hyper-beam",
-          "quick-attack",
-          "detect"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "vgcpastes-champions-mb-mb807",
-    "dataKind": "external-snapshot",
-    "sourceId": "vgcpastes-champions-mb",
-    "sourceLabel": "VGCPastes Champions M-B",
-    "author": "Yuya Tada",
-    "season": "reg-mb",
-    "score": 45,
-    "rank": 45,
-    "regulation": "M-B",
-    "title": "YT's Worlds 2026 Top 64 Team",
-    "battleType": "doubles",
-    "reportUrl": "https://x.com/ytpublic/status/2093888284984492429?s=46",
-    "tournament": "Worlds 2026 San Francisco",
-    "eventRank": "45th",
-    "dateShared": "2026-08-30",
-    "replicaCode": "XG6T3UULGB",
-    "hasMoves": true,
-    "hasSpread": true,
-    "slots": [
-      {
-        "pokemonId": "whimsicott",
-        "abilityId": "prankster",
-        "itemId": "focus-sash",
         "nature": "胆小",
         "statPoints": {
-          "hp": 2,
-          "specialAttack": 32,
-          "speed": 32
-        },
-        "moveIds": [
-          "moonblast",
-          "tailwind",
-          "encore",
-          "protect"
-        ]
-      },
-      {
-        "pokemonId": "garchomp",
-        "abilityId": "rough-skin",
-        "itemId": "life-orb",
-        "nature": "爽朗",
-        "statPoints": {
-          "hp": 6,
-          "attack": 28,
-          "speed": 32
-        },
-        "moveIds": [
-          "dragon-claw",
-          "stomping-tantrum",
-          "rock-slide",
-          "protect"
-        ]
-      },
-      {
-        "pokemonId": "charizard",
-        "abilityId": "solar-power",
-        "itemId": "charizardite-y",
-        "nature": "胆小",
-        "statPoints": {
-          "hp": 20,
-          "defense": 8,
-          "specialAttack": 6,
-          "speed": 32
-        },
-        "moveIds": [
-          "heat-wave",
-          "weather-ball",
-          "ancient-power",
-          "protect"
-        ]
-      },
-      {
-        "pokemonId": "basculegion-male",
-        "abilityId": "adaptability",
-        "itemId": "mystic-water",
-        "nature": "固执",
-        "statPoints": {
-          "hp": 4,
-          "attack": 20,
-          "defense": 11,
-          "specialDefense": 6,
-          "speed": 25
-        },
-        "moveIds": [
-          "wave-crash",
-          "last-respects",
-          "aqua-jet",
-          "protect"
-        ]
-      },
-      {
-        "pokemonId": "kingambit",
-        "abilityId": "defiant",
-        "itemId": "occa-berry",
-        "nature": "固执",
-        "statPoints": {
-          "hp": 15,
-          "attack": 18,
+          "hp": 11,
           "defense": 1,
-          "specialDefense": 6,
-          "speed": 26
+          "specialAttack": 22,
+          "speed": 32
         },
         "moveIds": [
-          "kowtow-cleave",
-          "sucker-punch",
-          "low-kick",
-          "iron-head"
+          "blizzard",
+          "freeze-dry",
+          "sheer-cold",
+          "icy-wind"
         ]
       },
       {
         "pokemonId": "floette",
+        "formId": "mega-floette",
         "abilityId": "flower-veil",
         "itemId": "floettite",
-        "nature": "胆小",
+        "nature": "内敛",
         "statPoints": {
-          "hp": 2,
-          "specialAttack": 32,
+          "hp": 20,
+          "defense": 9,
+          "specialAttack": 5,
           "speed": 32
         },
         "moveIds": [
+          "protect",
           "moonblast",
           "dazzling-gleam",
-          "light-of-ruin",
-          "protect"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "vgcpastes-champions-mb-mb806",
-    "dataKind": "external-snapshot",
-    "sourceId": "vgcpastes-champions-mb",
-    "sourceLabel": "VGCPastes Champions M-B",
-    "author": "Brandon Davis",
-    "season": "reg-mb",
-    "score": 51,
-    "rank": 51,
-    "regulation": "M-B",
-    "title": "bdogplatinum's Worlds 2026 Top 64 Team",
-    "battleType": "doubles",
-    "reportUrl": "https://x.com/bdogplatinum/status/2093855162268024892?s=46",
-    "tournament": "Worlds 2026 San Francisco",
-    "eventRank": "51st",
-    "dateShared": "2026-08-30",
-    "replicaCode": "TW7MB1736R",
-    "hasMoves": true,
-    "hasSpread": true,
-    "slots": [
-      {
-        "pokemonId": "farigiraf",
-        "abilityId": "armor-tail",
-        "itemId": "sitrus-berry",
-        "nature": "悠闲",
-        "statPoints": {
-          "hp": 25,
-          "defense": 26,
-          "specialDefense": 15
-        },
-        "moveIds": [
-          "trick-room",
-          "helping-hand",
-          "twin-beam",
-          "thunderbolt"
-        ]
-      },
-      {
-        "pokemonId": "maushold-family-of-four",
-        "abilityId": "technician",
-        "itemId": "wide-lens",
-        "nature": "爽朗",
-        "statPoints": {
-          "hp": 2,
-          "attack": 32,
-          "speed": 32
-        },
-        "moveIds": [
-          "protect",
-          "follow-me",
-          "after-you",
-          "population-bomb"
-        ]
-      },
-      {
-        "pokemonId": "incineroar",
-        "abilityId": "intimidate",
-        "itemId": "white-herb",
-        "nature": "固执",
-        "statPoints": {
-          "hp": 32,
-          "attack": 32,
-          "speed": 2
-        },
-        "moveIds": [
-          "fake-out",
-          "flare-blitz",
-          "darkest-lariat",
-          "close-combat"
-        ]
-      },
-      {
-        "pokemonId": "abomasnow",
-        "abilityId": "snow-warning",
-        "itemId": "abomasite",
-        "nature": "冷静",
-        "statPoints": {
-          "hp": 32,
-          "defense": 2,
-          "specialAttack": 32
-        },
-        "moveIds": [
-          "ice-shard",
-          "blizzard",
-          "energy-ball",
-          "earth-power"
-        ]
-      },
-      {
-        "pokemonId": "sylveon",
-        "abilityId": "pixilate",
-        "itemId": "life-orb",
-        "nature": "冷静",
-        "statPoints": {
-          "hp": 28,
-          "attack": 4,
-          "specialAttack": 32,
-          "speed": 2
-        },
-        "moveIds": [
-          "detect",
-          "quick-attack",
-          "hyper-voice",
-          "hyper-beam"
-        ]
-      },
-      {
-        "pokemonId": "camerupt",
-        "abilityId": "solid-rock",
-        "itemId": "cameruptite",
-        "nature": "冷静",
-        "statPoints": {
-          "hp": 32,
-          "defense": 2,
-          "specialAttack": 32
-        },
-        "moveIds": [
-          "protect",
-          "earth-power",
-          "heat-wave",
-          "ancient-power"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "vgcpastes-champions-mb-mb805",
-    "dataKind": "external-snapshot",
-    "sourceId": "vgcpastes-champions-mb",
-    "sourceLabel": "VGCPastes Champions M-B",
-    "author": "Hirofumi Kimura",
-    "season": "reg-mb",
-    "score": 64,
-    "rank": 64,
-    "regulation": "M-B",
-    "title": "Kae-ru's Worlds 2026 Top 64 Team",
-    "battleType": "doubles",
-    "reportUrl": "https://x.com/hirosipoke/status/2093865112788771194?s=46",
-    "tournament": "Worlds 2026 San Francisco",
-    "eventRank": "Top 64",
-    "dateShared": "2026-08-30",
-    "replicaCode": "FJKMK3U9H9",
-    "hasMoves": true,
-    "hasSpread": true,
-    "slots": [
-      {
-        "pokemonId": "sneasler",
-        "abilityId": "poison-touch",
-        "itemId": "focus-sash",
-        "nature": "爽朗",
-        "statPoints": {
-          "hp": 1,
-          "attack": 32,
-          "defense": 1,
-          "speed": 32
-        },
-        "moveIds": [
-          "close-combat",
-          "dire-claw",
-          "quick-guard",
-          "fake-out"
-        ]
-      },
-      {
-        "pokemonId": "blastoise",
-        "abilityId": "torrent",
-        "itemId": "blastoisinite",
-        "nature": "胆小",
-        "statPoints": {
-          "hp": 2,
-          "specialAttack": 32,
-          "speed": 32
-        },
-        "moveIds": [
-          "water-spout",
-          "dark-pulse",
-          "protect",
-          "shell-smash"
-        ]
-      },
-      {
-        "pokemonId": "incineroar",
-        "abilityId": "intimidate",
-        "itemId": "sitrus-berry",
-        "nature": "淘气",
-        "statPoints": {
-          "hp": 32,
-          "defense": 10,
-          "speed": 24
-        },
-        "moveIds": [
-          "fake-out",
-          "flare-blitz",
-          "parting-shot",
-          "helping-hand"
+          "calm-mind"
         ]
       },
       {
         "pokemonId": "sinistcha",
         "abilityId": "hospitality",
-        "itemId": "colbur-berry",
+        "itemId": "kasib-berry",
         "nature": "大胆",
         "statPoints": {
-          "hp": 32,
-          "defense": 14,
-          "specialDefense": 20
+          "hp": 31,
+          "defense": 4,
+          "specialDefense": 30,
+          "speed": 1
         },
         "moveIds": [
-          "matcha-gotcha",
+          "life-dew",
           "rage-powder",
-          "protect",
-          "trick-room"
+          "matcha-gotcha",
+          "protect"
         ]
       },
       {
-        "pokemonId": "delphox",
-        "abilityId": "blaze",
-        "itemId": "delphoxite",
-        "nature": "胆小",
+        "pokemonId": "milotic",
+        "abilityId": "competitive",
+        "itemId": "leftovers",
+        "nature": "大胆",
         "statPoints": {
-          "hp": 18,
-          "defense": 5,
-          "specialAttack": 13,
-          "speed": 30
+          "hp": 32,
+          "defense": 21,
+          "specialDefense": 11,
+          "speed": 2
         },
         "moveIds": [
-          "heat-wave",
-          "nasty-plot",
-          "psychic",
+          "coil",
+          "protect",
+          "muddy-water",
+          "hypnosis"
+        ]
+      },
+      {
+        "pokemonId": "incineroar",
+        "abilityId": "intimidate",
+        "itemId": "sitrus-berry",
+        "nature": "淘气",
+        "statPoints": {
+          "hp": 32,
+          "defense": 10,
+          "specialDefense": 18,
+          "speed": 6
+        },
+        "moveIds": [
+          "fake-out",
+          "parting-shot",
+          "flare-blitz",
+          "darkest-lariat"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vgcpastes-champions-mb-mb787",
+    "dataKind": "external-snapshot",
+    "sourceId": "vgcpastes-champions-mb",
+    "sourceLabel": "VGCPastes Champions M-B",
+    "author": "ursakingvgc",
+    "season": "reg-mb",
+    "score": 4,
+    "rank": 4,
+    "regulation": "M-B",
+    "title": "ursakingvgc's Worlds 2026 Top 4 Team (Seniors)",
+    "battleType": "doubles",
+    "reportUrl": "https://x.com/ursakingvgc/status/2095041414916661500?s=46",
+    "tournament": "Worlds 2026 San Francisco",
+    "eventRank": "4th (Seniors)",
+    "dateShared": "2026-09-01",
+    "replicaCode": "XP899K0BMP",
+    "hasMoves": true,
+    "hasSpread": true,
+    "slots": [
+      {
+        "pokemonId": "froslass",
+        "abilityId": "cursed-body",
+        "itemId": "froslassite",
+        "nature": "内敛",
+        "statPoints": {
+          "hp": 24,
+          "specialAttack": 10,
+          "speed": 32
+        },
+        "moveIds": [
+          "blizzard",
+          "shadow-ball",
+          "aurora-veil",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "lycanroc-dusk",
+        "abilityId": "tough-claws",
+        "itemId": "focus-sash",
+        "nature": "固执",
+        "statPoints": {
+          "hp": 1,
+          "attack": 32,
+          "defense": 1,
+          "speed": 32
+        },
+        "moveIds": [
+          "rock-slide",
+          "accelerock",
+          "close-combat",
           "protect"
         ]
       },
@@ -2033,119 +2037,45 @@
         "nature": "固执",
         "statPoints": {
           "hp": 32,
-          "attack": 16,
-          "specialDefense": 18
-        },
-        "moveIds": [
-          "sucker-punch",
-          "kowtow-cleave",
-          "protect",
-          "swords-dance"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "vgcpastes-champions-mb-mb804",
-    "dataKind": "external-snapshot",
-    "sourceId": "vgcpastes-champions-mb",
-    "sourceLabel": "VGCPastes Champions M-B",
-    "author": "carr0quin",
-    "season": "reg-mb",
-    "score": 80,
-    "rank": 80,
-    "regulation": "M-B",
-    "title": "carr0quin's Worlds 2026 Team",
-    "battleType": "doubles",
-    "reportUrl": "https://x.com/carr0quin/status/2093589866466730343?s=46",
-    "tournament": "Worlds 2026 San Francisco",
-    "eventRank": "80th",
-    "dateShared": "2026-08-29",
-    "replicaCode": "NHH1KE4BM0",
-    "hasMoves": true,
-    "hasSpread": true,
-    "slots": [
-      {
-        "pokemonId": "floette",
-        "abilityId": "flower-veil",
-        "itemId": "floettite",
-        "nature": "内敛",
-        "statPoints": {
-          "hp": 8,
-          "defense": 1,
-          "specialAttack": 25,
-          "speed": 32
-        },
-        "moveIds": [
-          "moonblast",
-          "dazzling-gleam",
-          "light-of-ruin",
-          "protect"
-        ]
-      },
-      {
-        "pokemonId": "charizard",
-        "abilityId": "blaze",
-        "itemId": "charizardite-y",
-        "nature": "内敛",
-        "statPoints": {
-          "hp": 16,
-          "defense": 6,
-          "specialAttack": 31,
-          "speed": 13
-        },
-        "moveIds": [
-          "heat-wave",
-          "weather-ball",
-          "solar-beam",
-          "protect"
-        ]
-      },
-      {
-        "pokemonId": "whimsicott",
-        "abilityId": "prankster",
-        "itemId": "focus-sash",
-        "nature": "胆小",
-        "statPoints": {
-          "hp": 2,
-          "specialAttack": 32,
-          "speed": 32
-        },
-        "moveIds": [
-          "moonblast",
-          "tailwind",
-          "encore",
-          "protect"
-        ]
-      },
-      {
-        "pokemonId": "garchomp",
-        "abilityId": "rough-skin",
-        "itemId": "life-orb",
-        "nature": "爽朗",
-        "statPoints": {
-          "hp": 1,
           "attack": 32,
           "defense": 1,
-          "speed": 32
+          "speed": 1
         },
         "moveIds": [
-          "dragon-claw",
-          "earthquake",
-          "rock-slide",
+          "kowtow-cleave",
+          "swords-dance",
+          "sucker-punch",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "sneasler",
+        "abilityId": "unburden",
+        "itemId": "white-herb",
+        "nature": "固执",
+        "statPoints": {
+          "hp": 12,
+          "attack": 10,
+          "specialDefense": 13,
+          "speed": 31
+        },
+        "moveIds": [
+          "fake-out",
+          "close-combat",
+          "gunk-shot",
           "protect"
         ]
       },
       {
         "pokemonId": "basculegion-male",
         "abilityId": "adaptability",
-        "itemId": "mystic-water",
+        "itemId": "sitrus-berry",
         "nature": "固执",
         "statPoints": {
-          "hp": 4,
-          "attack": 31,
-          "defense": 10,
-          "speed": 21
+          "hp": 24,
+          "attack": 18,
+          "defense": 18,
+          "specialDefense": 6
         },
         "moveIds": [
           "wave-crash",
@@ -2155,27 +2085,26 @@
         ]
       },
       {
-        "pokemonId": "kingambit",
-        "abilityId": "defiant",
-        "itemId": "black-glasses",
-        "nature": "固执",
+        "pokemonId": "scovillain",
+        "abilityId": "moody",
+        "itemId": "scovillainite",
+        "nature": "大胆",
         "statPoints": {
-          "hp": 32,
-          "attack": 32,
-          "specialDefense": 1,
-          "speed": 1
+          "hp": 31,
+          "defense": 27,
+          "specialDefense": 8
         },
         "moveIds": [
-          "kowtow-cleave",
-          "sucker-punch",
-          "iron-head",
+          "rage-powder",
+          "giga-drain",
+          "overheat",
           "protect"
         ]
       }
     ]
   },
   {
-    "id": "vgcpastes-champions-mb-mb779",
+    "id": "vgcpastes-champions-mb-mb786",
     "dataKind": "external-snapshot",
     "sourceId": "vgcpastes-champions-mb",
     "sourceLabel": "VGCPastes Champions M-B",
@@ -2304,20 +2233,20 @@
     ]
   },
   {
-    "id": "vgcpastes-champions-mb-mb778",
+    "id": "vgcpastes-champions-mb-mb785",
     "dataKind": "external-snapshot",
     "sourceId": "vgcpastes-champions-mb",
     "sourceLabel": "VGCPastes Champions M-B",
     "author": "jrassicvgc",
     "season": "reg-mb",
-    "score": 16,
-    "rank": 16,
+    "score": 11,
+    "rank": 11,
     "regulation": "M-B",
     "title": "jrassicvgc's Worlds 2026 Top 16 Team (Seniors)",
     "battleType": "doubles",
     "reportUrl": "https://x.com/jrassicvgc/status/2093795530187145278?s=46",
     "tournament": "Worlds 2026 San Francisco",
-    "eventRank": "Top 16 (Seniors)",
+    "eventRank": "11th (Seniors)",
     "dateShared": "2026-08-30",
     "replicaCode": "PL4NAFCVEM",
     "hasMoves": true,
@@ -2432,20 +2361,20 @@
     ]
   },
   {
-    "id": "vgcpastes-champions-mb-mb777",
+    "id": "vgcpastes-champions-mb-mb784",
     "dataKind": "external-snapshot",
     "sourceId": "vgcpastes-champions-mb",
     "sourceLabel": "VGCPastes Champions M-B",
     "author": "dr__carrot",
     "season": "reg-mb",
-    "score": 32,
-    "rank": 32,
+    "score": 20,
+    "rank": 20,
     "regulation": "M-B",
     "title": "dr__carrot's Worlds 2026 Top 32 Team (Seniors)",
     "battleType": "doubles",
     "reportUrl": "https://x.com/dr__carrot/status/2093874412680527951?s=46",
     "tournament": "Worlds 2026 San Francisco",
-    "eventRank": "Top 32 (Seniors)",
+    "eventRank": "20th (Seniors)",
     "dateShared": "2026-08-30",
     "replicaCode": "MYV9TNP60T",
     "hasMoves": true,
@@ -2558,7 +2487,7 @@
     ]
   },
   {
-    "id": "vgcpastes-champions-mb-mb776",
+    "id": "vgcpastes-champions-mb-mb778",
     "dataKind": "external-snapshot",
     "sourceId": "vgcpastes-champions-mb",
     "sourceLabel": "VGCPastes Champions M-B",
@@ -10146,7 +10075,7 @@
     "dataKind": "external-snapshot",
     "sourceId": "vgcpastes-champions-mb",
     "sourceLabel": "VGCPastes Champions M-B",
-    "author": "kazuki",
+    "author": "Kazuki Ogushi",
     "season": "reg-mb",
     "score": 0,
     "regulation": "M-B",
@@ -11361,7 +11290,7 @@
     "dataKind": "external-snapshot",
     "sourceId": "vgcpastes-champions-mb",
     "sourceLabel": "VGCPastes Champions M-B",
-    "author": "kim0227poke",
+    "author": "Yuto Kimura",
     "season": "reg-mb",
     "score": 0,
     "regulation": "M-B",
@@ -14599,7 +14528,7 @@
     "dataKind": "external-snapshot",
     "sourceId": "vgcpastes-champions-mb",
     "sourceLabel": "VGCPastes Champions M-B",
-    "author": "yurineptcg",
+    "author": "Junhee Lee",
     "season": "reg-mb",
     "score": 589,
     "rank": 589,
@@ -15230,7 +15159,7 @@
     "dataKind": "external-snapshot",
     "sourceId": "vgcpastes-champions-mb",
     "sourceLabel": "VGCPastes Champions M-B",
-    "author": "kazuki",
+    "author": "Kazuki Ogushi",
     "season": "reg-mb",
     "score": 9,
     "rank": 9,
@@ -20166,7 +20095,7 @@
     "dataKind": "external-snapshot",
     "sourceId": "vgcpastes-champions-mb",
     "sourceLabel": "VGCPastes Champions M-B",
-    "author": "samuvgc_",
+    "author": "Samuel Pereira",
     "season": "reg-mb",
     "score": 21,
     "rank": 21,
@@ -21063,7 +20992,7 @@
     "dataKind": "external-snapshot",
     "sourceId": "vgcpastes-champions-mb",
     "sourceLabel": "VGCPastes Champions M-B",
-    "author": "dizvgc",
+    "author": "Junhyuk Song",
     "season": "reg-mb",
     "score": 0,
     "regulation": "M-B",
@@ -21190,7 +21119,7 @@
     "dataKind": "external-snapshot",
     "sourceId": "vgcpastes-champions-mb",
     "sourceLabel": "VGCPastes Champions M-B",
-    "author": "yurineptcg",
+    "author": "Junhee Lee",
     "season": "reg-mb",
     "score": 0,
     "regulation": "M-B",
@@ -30347,7 +30276,7 @@
     "dataKind": "external-snapshot",
     "sourceId": "vgcpastes-champions-mb",
     "sourceLabel": "VGCPastes Champions M-B",
-    "author": "ansena",
+    "author": "Iruto Konno",
     "season": "reg-mb",
     "score": 0,
     "regulation": "M-B",
