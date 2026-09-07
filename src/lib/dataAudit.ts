@@ -13,7 +13,6 @@ import {
   regMaPokemonAllowlistExpectedCount,
   regMaMegaAllowlist,
   regMaMegaAllowlistExpectedCount,
-  speedBenchmarks,
 } from '../data';
 
 export type DataAuditIssue = {
@@ -191,15 +190,6 @@ export function auditSeedData(): DataAuditIssue[] {
       if (!base?.megaForms.some((form) => form.id === entry.formId)) {
         issues.push(issue('mega-allowlist-catalog-mismatch', `Mega allowlist ${entry.id} maps to unknown form ${entry.formId}.`));
       }
-    }
-  });
-
-  speedBenchmarks.forEach((entry) => {
-    if (entry.dataVersionId !== currentDataVersion.id) {
-      issues.push(issue('version-mismatch', `Benchmark ${entry.id} uses ${entry.dataVersionId}, expected ${currentDataVersion.id}.`));
-    }
-    if (!pokemonIds.has(entry.pokemonId)) {
-      issues.push(issue('missing-pokemon-ref', `Benchmark ${entry.id} references unknown Pokemon ${entry.pokemonId}.`));
     }
   });
 
