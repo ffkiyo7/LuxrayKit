@@ -345,7 +345,12 @@ npm run data:pokedb:environment:pr
 npm run data:pokedb:environment:pr -- --force  # 忽略 Worker 状态，强制应急刷新
 ```
 
-该脚本会从最新 `origin/main` 重建 `automation/pokedb-environment-refresh`，然后先请求一次 `https://luxraykit.com/api/environment/latest`：仅当 Worker 返回 `stale` / `degraded`、非 2xx 或健康检查不可达时，才运行 `npm run data:pokedb:environment`。Worker 为 `fresh + ok` 时直接成功退出，因此正常日只产生一次轻量同源健康检查，不访问 PokeDB。`--force` 保留人工应急刷新能力。需要刷新时，脚本只提交以下两个生成文件，并用 `gh` 创建或更新 PR：
+该脚本会从最新 `origin/main` 重建 `automation/pokedb-environment-refresh`，然后先请求一次 `https://luxraykit.com/api/environment/latest`，由 `scripts/pokedb-worker-fallback-gate.mjs` 判定是否需要抓取。**两类触发条件**：
+
+1. **Worker 不健康**：返回 `stale` / `degraded`、非 2xx，或健康检查不可达。
+2. **静态快照落后**（2026-09 新增）：Worker 健康时，比较本地 `public/data/pokedb/reg-ma-environment.json` 的 `battles.*.updatedAt` 最大值与响应头 `x-luxray-latest-source-updated-at`，落后超过 `STATIC_SNAPSHOT_MAX_LAG_DAYS`（默认 7）天就刷新。**为什么需要它**：旧逻辑只在 Worker 出问题时刷新，而 Worker 一直健康就意味着第二层回退永远不更新——线上实测它停在 2026-07-18 的 M-4 数据、赛季已经走到 M-5。本地文件读不到（缺失 / 损坏）同样触发刷新；响应头缺失则**不**触发，不靠猜测启动抓取。
+
+两条都不满足时脚本直接成功退出，正常日只产生一次轻量同源健康检查，不访问 PokeDB。`--force` 保留人工应急刷新能力。需要刷新时，脚本只提交以下两个生成文件，并用 `gh` 创建或更新 PR：
 
 ```text
 src/data/external/pokedb/current_environment_snapshot.json
@@ -361,6 +366,7 @@ export POKEDB_FETCH_ATTEMPTS=5
 export POKEDB_FETCH_TIMEOUT_MS=20000
 export POKEDB_FETCH_RETRY_DELAY_MS=2000
 export POKEDB_PAGE_DELAY_MS=0
+export STATIC_SNAPSHOT_MAX_LAG_DAYS=7   # 静态回退层容许落后上游的天数（0 = 每次上游更新都刷）
 ```
 
 `POKEDB_PAGE_DELAY_MS=0` 适合只由固定执行环境低频刷新时提速；如上游出现 429 或不稳定，再改成 `150` 或移除此变量，恢复脚本默认的人类化页间延迟。
