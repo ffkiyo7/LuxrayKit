@@ -44,6 +44,13 @@ test('keeps app shell, teams, and unavailable tools available offline', async ({
 
   await context.setOffline(true);
   await page.reload({ waitUntil: 'domcontentloaded' });
+  // Navigation now lives in the URL hash, so a reload comes back to the screen the user was
+  // on (工具) instead of resetting to 环境. That is the whole point of the change — assert the
+  // new behaviour rather than papering over it.
+  await expect(page).toHaveURL(/#\/tools$/);
+  await expect(page.getByRole('heading', { name: '工具', exact: true })).toBeVisible();
+
+  await page.getByRole('button', { name: '环境', exact: true }).click();
   await expect(page.getByRole('heading', { name: '环境', exact: true })).toBeVisible();
 
   await page.getByRole('button', { name: '队伍', exact: true }).click();

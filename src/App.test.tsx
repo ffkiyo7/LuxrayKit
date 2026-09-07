@@ -1310,6 +1310,40 @@ describe('App page flows', () => {
     expect(await screen.findByText(/粗糙皮肤 Rough Skin/)).toBeTruthy();
   });
 
+  it('opens a Pokemon environment detail directly from a #/env/pokemon deep link', async () => {
+    window.location.hash = '#/env/pokemon/garchomp';
+    render(<App />);
+
+    expect(await screen.findByRole('heading', { name: '烈咬陆鲨' }, { timeout: 5000 })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /返回环境/ })).toBeTruthy();
+    // Nothing pushed this entry, so 返回 replaces into the environment home instead of
+    // walking off the site.
+    expect(screen.queryByRole('heading', { name: '环境' })).toBeNull();
+  });
+
+  it('drives the bottom tabs through the URL hash', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await waitForEnvironmentPage();
+    expect(window.location.hash).toBe('#/env');
+
+    await user.click(screen.getByRole('button', { name: '队伍' }));
+    await screen.findByText('我的队伍');
+    expect(window.location.hash).toBe('#/teams');
+
+    await user.click(screen.getByRole('button', { name: '工具' }));
+    await screen.findByRole('heading', { name: '工具' });
+    expect(window.location.hash).toBe('#/tools');
+
+    await user.click(screen.getByRole('button', { name: /规则图鉴/ }));
+    await waitForDexPage();
+    expect(window.location.hash).toBe('#/tools/dex');
+
+    await user.click(screen.getByRole('button', { name: '我的' }));
+    await screen.findByRole('heading', { name: '我的' });
+    expect(window.location.hash).toBe('#/profile');
+  });
+
   it('opens the speed line tool from the tools page', async () => {
     const user = await renderApp();
 

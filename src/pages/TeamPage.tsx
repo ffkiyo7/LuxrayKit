@@ -7,6 +7,7 @@ import { evaluateMemberLegality } from '../lib/legality';
 import { findBattleForm, getMemberBattleForm } from '../lib/pokemonForms';
 import { MAX_STAT_POINTS_PER_STAT, MAX_TOTAL_STAT_POINTS, statPointTotal } from '../lib/statPoints';
 import { createDefaultTeamMember } from '../lib/teamMemberDefaults';
+import { useHashRoute } from '../hooks/useHashRoute';
 import { useAppStore } from '../state/AppContext';
 import { useVisualViewportMetrics } from '../hooks/useVisualViewportMetrics';
 import type { Item, Move, Team, TeamMember } from '../types';
@@ -1000,7 +1001,12 @@ export function TeamPage({
   onSendToCalculator: (memberId: string, side: 'attacker' | 'defender') => void;
 }) {
   const { teams, addTeam, deleteTeam, replaceTeams, saveTeam, updateMember, preferences, replacePreferences } = useAppStore();
-  const [detailTeamId, setDetailTeamId] = useState<string | null>(null);
+  // Which team is open lives in the URL (#/teams/:teamId) so a team is linkable and the
+  // hardware back button leaves the detail instead of the app. The member editor, the
+  // Pokemon picker and the rename modal stay local: they are transient overlays, not
+  // destinations worth a history entry.
+  const { route, navigate, back } = useHashRoute();
+  const detailTeamId = route.name === 'team-detail' ? route.teamId : null;
   const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
   const [expandedMemberId, setExpandedMemberId] = useState<string | null>(null);
   const [showPicker, setShowPicker] = useState(false);
@@ -1023,7 +1029,7 @@ export function TeamPage({
 
   const openTeamDetail = (teamId: string) => {
     onActiveTeamChange(teamId);
-    setDetailTeamId(teamId);
+    navigate({ name: 'team-detail', teamId });
     setExpandedMemberId(null);
     setEditingMemberId(null);
     setShowPicker(false);
@@ -1036,7 +1042,7 @@ export function TeamPage({
   };
 
   const closeTeamDetail = () => {
-    setDetailTeamId(null);
+    back();
     setExpandedMemberId(null);
     setEditingMemberId(null);
     setShowPicker(false);
@@ -1068,7 +1074,7 @@ export function TeamPage({
     if (!name) return;
     const team = await addTeam(name);
     onActiveTeamChange(team.id);
-    setDetailTeamId(team.id);
+    navigate({ name: 'team-detail', teamId: team.id });
     setShowNameModal(false);
     setExpandedMemberId(null);
   };
@@ -1082,7 +1088,9 @@ export function TeamPage({
     await deleteTeam(team.id);
     if (activeTeamId === team.id) onActiveTeamChange(nextActiveTeam?.id);
     if (detailTeamId === team.id) {
-      setDetailTeamId(null);
+      // The route still points at a team that no longer exists; replace (not push) so
+      // 返回 does not walk back into a dead detail page.
+      navigate({ name: 'teams' }, { replace: true });
       setExpandedMemberId(null);
       setEditingMemberId(null);
     }

@@ -10,6 +10,8 @@ import { productName } from './branding';
 import { productContextLabel } from './data/schedule';
 import type { EnvironmentState, EnvironmentTeamSample } from './data/environment';
 import { useAutoHideBottomNav } from './hooks/useAutoHideBottomNav';
+import { useHashRoute } from './hooks/useHashRoute';
+import { routeForTab, tabForRoute, type Route, type ToolRouteId } from './lib/hashRoute';
 import { AppProvider, useAppStore } from './state/AppContext';
 import type { Team, TeamMember } from './types';
 import type { ToolView } from './pages/ToolsPage';
@@ -36,6 +38,28 @@ const tabs = [
 ] satisfies Array<{ id: TabId; label: string; icon: typeof Users }>;
 
 const IMPORT_FEEDBACK_DURATION_MS = 2500;
+
+// The tool view id used in code (`typeChart`) predates the route table; the URL keeps an
+// all-lowercase slug. These two maps are the only place the two spellings meet.
+const toolViewByRouteId: Record<ToolRouteId, ToolView> = {
+  calculator: 'calculator',
+  dex: 'dex',
+  speed: 'speed',
+  typechart: 'typeChart',
+};
+
+const routeIdByToolView: Record<ToolView, ToolRouteId> = {
+  calculator: 'calculator',
+  dex: 'dex',
+  speed: 'speed',
+  typeChart: 'typechart',
+};
+
+const toolViewForRoute = (route: Route): ToolView | null => {
+  if (route.name === 'tool') return toolViewByRouteId[route.tool];
+  if (route.name === 'dex-pokemon') return 'dex';
+  return null;
+};
 
 type AppToast = {
   title: string;
@@ -139,9 +163,15 @@ function ToolWorkspace({
 }
 
 function AppShell() {
-  const [activeTab, setActiveTab] = useState<TabId>('environment');
+  // Navigation lives in the URL hash (see lib/hashRoute.ts): the Android hardware back
+  // button, deep links and share links all need it. Only ephemeral, id-bearing presets
+  // stay in memory below.
+  const { route, navigate, back } = useHashRoute();
+  const activeTab: TabId = tabForRoute(route);
+  const toolView = toolViewForRoute(route);
+  // RulePage stays deliberately unreachable — kept rendered behind a state that nothing
+  // sets, and intentionally *not* given a route. See AGENTS.md / DEVELOPER_GUIDE §4.1.
   const [overlay, setOverlay] = useState<OverlayPage>(null);
-  const [toolView, setToolView] = useState<ToolView | null>(null);
   const [calculatorMemberId, setCalculatorMemberId] = useState<string | undefined>();
   const [speedPresetMemberId, setSpeedPresetMemberId] = useState<string | undefined>();
   const [calcPreset, setCalcPreset] = useState<{ memberId: string; side: CalcSide } | undefined>();
@@ -199,26 +229,34 @@ function AppShell() {
     };
   }, []);
 
-  const openTool = useCallback((view: ToolView) => {
-    if (view === 'calculator') setCalculatorMemberId(undefined);
-    setCalcPreset(undefined);
-    setSpeedPresetMemberId(undefined);
-    setToolView(view);
-    setActiveTab('tools');
-  }, []);
+  const openTool = useCallback(
+    (view: ToolView) => {
+      if (view === 'calculator') setCalculatorMemberId(undefined);
+      setCalcPreset(undefined);
+      setSpeedPresetMemberId(undefined);
+      navigate({ name: 'tool', tool: routeIdByToolView[view] });
+    },
+    [navigate],
+  );
 
-  const sendMemberToSpeed = useCallback((memberId: string) => {
-    setSpeedPresetMemberId(memberId);
-    setToolView('speed');
-    setActiveTab('tools');
-  }, []);
+  // 「带入」presets carry a local member id, which has no meaning in anyone else's URL —
+  // they stay in memory while only the destination tool goes into the route.
+  const sendMemberToSpeed = useCallback(
+    (memberId: string) => {
+      setSpeedPresetMemberId(memberId);
+      navigate({ name: 'tool', tool: 'speed' });
+    },
+    [navigate],
+  );
 
-  const sendMemberToCalculator = useCallback((memberId: string, side: CalcSide) => {
-    setCalculatorMemberId(undefined);
-    setCalcPreset({ memberId, side });
-    setToolView('calculator');
-    setActiveTab('tools');
-  }, []);
+  const sendMemberToCalculator = useCallback(
+    (memberId: string, side: CalcSide) => {
+      setCalculatorMemberId(undefined);
+      setCalcPreset({ memberId, side });
+      navigate({ name: 'tool', tool: 'calculator' });
+    },
+    [navigate],
+  );
 
   useEffect(() => {
     if (activeTab !== 'tools' || toolView !== 'calculator') {
@@ -242,9 +280,9 @@ function AppShell() {
       setActiveTeamId(importedTeam.id);
       setHighlightedImportTeamId(importedTeam.id);
       setImportToast({ title: '已导入配置' });
-      setActiveTab('teams');
+      navigate({ name: 'teams' });
     },
-    [environmentState?.dataStatusLabel, saveTeam],
+    [environmentState?.dataStatusLabel, navigate, saveTeam],
   );
 
   const importSampleTeam = useCallback(
@@ -300,12 +338,12 @@ function AppShell() {
         return toolView ? (
           <ToolWorkspace
             view={toolView}
-            onBack={() => setToolView(null)}
+            onBack={back}
             selectedMemberId={calculatorMemberId}
             onPickMember={setCalculatorMemberId}
             onOpenCalculator={(pokemonId) => {
               setCalculatorMemberId(pokemonId);
-              setToolView('calculator');
+              navigate({ name: 'tool', tool: 'calculator' });
             }}
             environment={environmentState}
             activeTeam={activeTeam}
@@ -321,6 +359,7 @@ function AppShell() {
   }, [
     activeTab,
     activeTeam,
+    back,
     calculatorMemberId,
     calcPreset,
     speedPresetMember,
@@ -331,6 +370,7 @@ function AppShell() {
     highlightedImportTeamId,
     importSampleTeam,
     copyReplicaCode,
+    navigate,
     openTool,
     overlay,
     toolView,
@@ -385,7 +425,14 @@ function AppShell() {
           }}
         />
       )}
-      {!overlay && <BottomNav activeTab={activeTab} tabs={tabs} onChange={setActiveTab} hidden={bottomNavAutoHide.hidden} />}
+      {!overlay && (
+        <BottomNav
+          activeTab={activeTab}
+          tabs={tabs}
+          onChange={(tab) => navigate(routeForTab(tab))}
+          hidden={bottomNavAutoHide.hidden}
+        />
+      )}
       {!preferences.hasCompletedOnboarding && <Onboarding onComplete={completeOnboarding} />}
     </main>
   );
