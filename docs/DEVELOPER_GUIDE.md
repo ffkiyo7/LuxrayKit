@@ -474,7 +474,9 @@ trim 后 5–1000 字符；`contact` ≤ 120；`appBuild` / `dataVersion` ≤ 40
 **Discord 推送**：`env.FEEDBACK_DISCORD_WEBHOOK` 存在时，`ctx.waitUntil` 发一条 embed
 （kind 中文、正文截到 1500、联系方式、来源页面、构建、数据版本、国家、设备、id、UTC+8 时间）。
 **未设置就静默跳过**；推送失败只记 `feedback_discord_push_failed` JSON 日志，不影响用户那边的 201
-——留言已经落库了。设置命令：
+——留言已经落库了。
+
+**Webhook 要绑到一个专用频道**（如 `#luxraykit-feedback`），不要复用 `luxraykit-dev` / build-notifier 那个 Webhook：Discord Webhook 本身就是按频道创建的，留言混进构建通知里等于噪音。在该频道「整合 → Webhook → 新建」拿到 URL 后：
 
 ```bash
 npx wrangler secret put FEEDBACK_DISCORD_WEBHOOK --config cloudflare/environment-worker/wrangler.jsonc
