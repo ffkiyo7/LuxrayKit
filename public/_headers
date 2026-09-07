@@ -3,3 +3,14 @@
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: geolocation=(), microphone=(), camera=()
   X-Frame-Options: DENY
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob:; connect-src 'self'; font-src 'self' https://fonts.gstatic.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; manifest-src 'self'
+
+# CSP notes (verify in production DevTools after deploy — _headers only takes effect on Cloudflare,
+# never under `vite preview`, so no local test can catch a regression here):
+#   script-src 'self'      — the app ships no inline <script>; index.html loads one module bundle.
+#   style-src  'unsafe-inline' — React writes inline style attributes (style-src-attr falls back here).
+#   style-src / font-src fonts.googleapis.com / fonts.gstatic.com — src/styles.css keeps a remote
+#     @import for DM Sans, which Vite cannot inline; a bare 'self' policy silently drops the webfont.
+#     Self-host the font and these two entries can go.
+#   img-src data: blob:  — catalog icons may be data: URIs; avatars fall back to generated blobs.
+#   connect-src 'self'   — /api/* is served by the same Worker origin; there is no third-party call.

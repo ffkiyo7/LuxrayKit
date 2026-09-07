@@ -15,10 +15,26 @@ export type EnvironmentReferenceUsage = {
   teamCount: number;
 };
 
+/**
+ * Sentinel id for a PokeDB Pokemon the local catalog does not know yet — a regulation opened new
+ * Pokemon before the catalog was authored. Dropping such a row would silently shift every lower
+ * rank up by one (the UI derives 名次 from array position), so the row survives the whole pipeline
+ * as `pokedb:<pokeDbKey>` and renders as a placeholder. The key is still recorded in the parser's
+ * `audit.unknownPokemonKeys`, so the Worker's zero-tolerance audit keeps degrading until a
+ * maintainer adds the mapping.
+ */
+export const UNRESOLVED_POKEMON_ID_PREFIX = 'pokedb:';
+export const unresolvedPokemonId = (pokeDbKey: string) => `${UNRESOLVED_POKEMON_ID_PREFIX}${pokeDbKey}`;
+export const isUnresolvedPokemonId = (pokemonId: string) => pokemonId.startsWith(UNRESOLVED_POKEMON_ID_PREFIX);
+
 export type EnvironmentPokemonUsage = {
   pokemonId: string;
   usageRate: number;
   teamCount: number;
+  /** Source-page name, carried only for `unresolved` rows so the placeholder has a label. */
+  displayName?: string;
+  /** True when `pokemonId` is an unresolved sentinel: render a placeholder, never a detail link. */
+  unresolved?: boolean;
   moveIds: string[];
   itemIds: string[];
   teammateIds: string[];
@@ -108,6 +124,9 @@ export type EnvironmentDatasetAuditIssue = {
     | 'data-version-mismatch'
     | 'missing-battle-data'
     | 'missing-pokemon-ref'
+    // Distinct from missing-pokemon-ref: the row is *known to be unknown* (a `pokedb:` sentinel
+    // from the parser) and is deliberately kept as a placeholder instead of dropped.
+    | 'unresolved-pokemon-ref'
     | 'missing-move-ref'
     | 'missing-item-ref'
     | 'missing-ability-ref'
@@ -188,8 +207,19 @@ const normalizeUsage = (
   issues: EnvironmentDatasetAuditIssue[],
 ): EnvironmentPokemonUsage | undefined => {
   const path = `battles.${battleType}.pokemonUsage[${index}]`;
+  const unresolved = isUnresolvedPokemonId(usage.pokemonId);
 
-  if (!ids.pokemon.has(usage.pokemonId)) {
+  if (unresolved) {
+    // Kept, not dropped: removing it renumbers every lower rank. The issue is still recorded so
+    // the audit stays loud (Worker zero-tolerance threshold, maintainer signal).
+    issues.push(
+      issue(
+        'unresolved-pokemon-ref',
+        `${path}.pokemonId`,
+        `${path} references PokeDB Pokemon ${usage.pokemonId} that is not in the local catalog yet; kept as a placeholder.`,
+      ),
+    );
+  } else if (!ids.pokemon.has(usage.pokemonId)) {
     issues.push(issue('missing-pokemon-ref', `${path}.pokemonId`, `${path} references unknown Pokemon ${usage.pokemonId}.`));
     return undefined;
   }
@@ -213,6 +243,8 @@ const normalizeUsage = (
     pokemonId: usage.pokemonId,
     usageRate: usage.usageRate,
     teamCount: usage.teamCount,
+    ...(unresolved ? { unresolved: true } : {}),
+    ...(usage.displayName ? { displayName: usage.displayName } : {}),
     moveIds: filterKnownIds(usage.moveIds, ids.moves, 'missing-move-ref', `${path}.moveIds`, issues),
     itemIds: filterKnownIds(usage.itemIds, ids.items, 'missing-item-ref', `${path}.itemIds`, issues),
     teammateIds: filterKnownIds(usage.teammateIds, ids.pokemon, 'missing-pokemon-ref', `${path}.teammateIds`, issues),

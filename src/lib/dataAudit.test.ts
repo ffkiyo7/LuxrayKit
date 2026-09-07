@@ -14,7 +14,6 @@ import {
   regMaMegaAllowlistExpectedCount,
   regMaPokemonAllowlist,
   regMaPokemonAllowlistExpectedCount,
-  speedBenchmarks,
 } from '../data';
 import type { PokemonForm } from '../types';
 import { mergeMegaFormsByParentId, mergeMegaStoneParentMap } from '../data/seed/regMA/catalog';
@@ -632,11 +631,6 @@ describe('seed data audit', () => {
         message: 'Test row references unknown sourceRef missing-source.',
       },
     ]);
-  });
-
-  it('keeps benchmark versions aligned with the active data version', () => {
-    expect(speedBenchmarks.every((benchmark) => benchmark.dataVersionId === currentDataVersion.id)).toBe(true);
-    expect(speedBenchmarks.every((benchmark) => benchmark.speedStatPoints >= 0 && benchmark.speedStatPoints <= 32)).toBe(true);
   });
 
   it('keeps default teams tied to the active data version', () => {

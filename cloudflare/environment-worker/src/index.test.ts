@@ -24,15 +24,18 @@ const rankingKeys = regMaPokemonAllowlist.slice(0, 60).map((entry) => {
 const pokemonListHtml = (
   battleType: 'singles' | 'doubles',
   count = 60,
-  options: { season?: number; updatedAt?: string } = {},
+  options: { season?: number; updatedAt?: string; unknownKeyAtIndex?: number } = {},
 ) => {
   const season = options.season ?? 2;
   const updatedAt = options.updatedAt ?? '2026/6/10 23:58';
+  const keys = rankingKeys.slice(0, count).map((key, index) =>
+    index === options.unknownKeyAtIndex ? '9999-00' : key,
+  );
   return `
   <title>ポケモン使用率ランキング シーズンM-${season}</title>
   <select><option value="${season}" selected>シーズンM-${season}</option></select>
   <span>更新日</span><span class="tag is-light">${updatedAt}</span>
-  ${rankingKeys.slice(0, count).map((key, index) => `
+  ${keys.map((key, index) => `
     <a href="/pokemon/show/${key}?season=${season}&amp;rule=${battleType === 'singles' ? 0 : 1}" class="list-pokemon button">
       <div class="pokemon-rank">${index + 1}</div><div class="pokemon-name">pokemon-${index + 1}</div>
     </a>
@@ -469,6 +472,61 @@ describe('environment Worker PokeDB ingestion', () => {
     });
   });
 
+  it('keeps unmapped ranking rows as placeholders without fetching their detail page', async () => {
+    // 9999-00 is deliberately absent from the allowlist: this is what a new regulation's Pokemon
+    // looks like before the catalog is authored. It must hold rank 2 so 0006-00 stays rank 3.
+    const listHtml = `
+      <title>ポケモン使用率ランキング シーズンM-2（シングルバトル）</title>
+      <select><option value="2" selected>シーズンM-2</option></select>
+      <span>更新日</span><span class="tag is-light">2026/6/10 23:58</span>
+      <a href="/pokemon/show/0445-00?season=2&amp;rule=0" class="list-pokemon button">
+        <div class="pokemon-rank">1</div><div class="pokemon-name">ガブリアス</div>
+      </a>
+      <a href="/pokemon/show/9999-00?season=2&amp;rule=0" class="list-pokemon button">
+        <div class="pokemon-rank">2</div><div class="pokemon-name">ミライドン</div>
+      </a>
+      <a href="/pokemon/show/0006-00?season=2&amp;rule=0" class="list-pokemon button">
+        <div class="pokemon-rank">3</div><div class="pokemon-name">リザードン</div>
+      </a>
+    `;
+    const fetcher = vi.fn(async (input: string | URL | Request) =>
+      new Response(new URL(String(input)).pathname === '/pokemon/list' ? listHtml : pokemonDetailHtml, { status: 200 }),
+    );
+
+    const payload = await fetchPokemonStatisticsBattle({
+      baseUrl: 'https://example.com',
+      season: 2,
+      battleType: 'singles',
+      detailLimit: 3,
+      fetcher,
+      wait: async () => {},
+      random: () => 0,
+    });
+
+    // No /pokemon/show/9999-00 request: there is no id to key its stats by.
+    expect(fetcher.mock.calls.map(([input]) => String(input))).toEqual([
+      'https://example.com/pokemon/list?season=2&rule=0',
+      'https://example.com/pokemon/show/0445-00?season=2&rule=0',
+      'https://example.com/pokemon/show/0006-00?season=2&rule=0',
+    ]);
+    expect(payload.pokemonUsage.map((usage) => usage.pokemonId)).toEqual([
+      'garchomp',
+      'pokedb:9999-00',
+      'charizard',
+    ]);
+    expect(payload.pokemonUsage[1]).toMatchObject({
+      pokemonId: 'pokedb:9999-00',
+      displayName: 'ミライドン',
+      moveStats: [],
+      itemStats: [],
+      teammateStats: [],
+      abilityStats: [],
+      natureStats: [],
+    });
+    // The audit contract is unchanged: the key is still reported, so workerStatus still degrades.
+    expect(payload.audit.unknownPokemonKeys).toContain('9999-00');
+  });
+
   it('rejects the statistics payload when a top-N detail request fails', async () => {
     const listHtml = `
       <title>シーズンM-2</title>
@@ -579,6 +637,34 @@ describe('environment Worker PokeDB ingestion', () => {
     expect(scheduled).toEqual(['job-top-60']);
     expect(values.get('environment:latest')).toBe('{"snapshot":"old"}');
     expect(values.get('environment:team-index')).toBe('{"index":"old"}');
+  });
+
+  it('excludes unmapped ranking rows from the detail queue while keeping them in the list', async () => {
+    const { env, values } = createKvEnv();
+    const fetcher = vi.fn(async (input: string | URL | Request) => {
+      const url = new URL(input instanceof Request ? input.url : String(input));
+      if (url.pathname === '/pokemon/list') {
+        const battleType = url.searchParams.get('rule') === '1' ? 'doubles' : 'singles';
+        // One unmapped key per battle type: 120 ranked rows, 118 detail fetches queued.
+        return new Response(pokemonListHtml(battleType, 60, { unknownKeyAtIndex: 1 }), { status: 200 });
+      }
+      if (url.pathname.startsWith('/pokemon/show/')) return new Response(pokemonDetailHtml, { status: 200 });
+      if (url.pathname === '/trainer/list') return new Response(pageHtml({ season: 1, page: 1, pageCount: 1 }), { status: 200 });
+      throw new Error(`Unexpected URL ${url}`);
+    });
+
+    const result = await startRefreshJob(env, recordSchedule([]), {
+      fetcher,
+      now: () => new Date('2026-06-12T00:00:00.000Z'),
+      createJobId: () => 'job-unmapped',
+    });
+
+    const job = JSON.parse(values.get('environment:refresh-job') ?? '{}');
+    expect(result).toMatchObject({ ok: true, state: 'started', pendingCount: 118 });
+    expect(job.lists.singles.rankings).toHaveLength(60);
+    expect(job.lists.singles.rankings[1]).toMatchObject({ rank: 2, pokemonId: 'pokedb:9999-00' });
+    expect(job.pending.some((entry: { pokemonId: string }) => entry.pokemonId.startsWith('pokedb:'))).toBe(false);
+    expect(job.lists.singles.audit.unknownPokemonKeys).toEqual(['9999-00']);
   });
 
   it('skips detail refresh when a successful snapshot has the same season and source update time', async () => {

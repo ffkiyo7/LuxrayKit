@@ -1,4 +1,4 @@
-import type { BaseStats, PokemonType, SpeedBenchmark, Team, TeamMember } from '../types';
+import type { BaseStats, PokemonType, TeamMember } from '../types';
 import { currentRuleNatureOptions, items } from '../data';
 import { findPokemon, getMemberBattleForm } from './pokemonForms';
 import { clampStatPointValue } from './statPoints';
@@ -147,30 +147,6 @@ export const memberBattleStats = (member: TeamMember) => {
   const found = getMemberBattleForm(member);
   return calculateBattleStats(found?.baseStats ?? { hp: 50, attack: 50, defense: 50, specialAttack: 50, specialDefense: 50, speed: 50 }, member.statPoints, member.level, member.nature);
 };
-
-export const buildTeamBenchmarks = (team: Team): SpeedBenchmark[] =>
-  team.members
-    .filter((member) => member.pokemonId)
-    .map((member) => {
-      const found = getPokemon(member.pokemonId);
-      const form = getMemberBattleForm(member);
-      return {
-        id: `team-${team.id}-${member.id}`,
-        name: form ? `${form.chineseName} 队内` : '队内成员',
-        pokemonId: member.pokemonId ?? 'unknown',
-        formId: form?.isMega ? form.id : undefined,
-        nature: member.nature,
-        speedStatPoints: member.statPoints.speed ?? 0,
-        itemOrStatus: items.find((item) => item.id === member.itemId)?.chineseName ?? '无',
-        isMega: Boolean(form?.isMega),
-        finalSpeed: memberSpeed(member),
-        tags: ['当前队伍'],
-        source: team.name,
-        notes: '由当前队伍配置生成的 benchmark。',
-        benchmarkType: 'team',
-        dataVersionId: team.dataVersionId,
-      };
-    });
 
 export const attackingTypes: PokemonType[] = [
   'Normal',

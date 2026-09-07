@@ -2,9 +2,10 @@
 import { cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { EnvironmentState, EnvironmentTeamSample } from '../data/environment';
+import { currentRegulation as catalogRegulation, type EnvironmentState, type EnvironmentTeamSample } from '../data/environment';
+import { regulationSchedule } from '../data/schedule';
 import { pokemon } from '../data/seed/regMA/catalog';
-import { EnvironmentPage } from './EnvironmentPage';
+import { CatalogRegulationLagNotice, EnvironmentPage } from './EnvironmentPage';
 
 const makeEnvironment = (overallUsageBasis: EnvironmentState['overallUsageBasis']): EnvironmentState => ({
   auditIssues: [],
@@ -600,6 +601,60 @@ describe('EnvironmentPage usage basis', () => {
 
     await user.click(screen.getByRole('button', { name: '查看数据口径' }));
     expect(screen.queryByText(/名次变化/)).toBeNull();
+  });
+
+  it('keeps catalog-missing Pokemon in the ranking as non-clickable placeholders', async () => {
+    const user = userEvent.setup();
+    const base = makeEnvironment('rank-relative');
+    const environment: EnvironmentState = {
+      ...base,
+      pokemonUsage: {
+        // Sentinel sits at rank 2, so 炽焰咆哮虎 must stay at rank 3 rather than moving up.
+        singles: [
+          base.pokemonUsage.singles[0],
+          {
+            pokemonId: 'pokedb:9999-00',
+            displayName: 'ミライドン',
+            unresolved: true,
+            usageRate: 99,
+            teamCount: 211,
+            moveIds: [],
+            itemIds: [],
+            teammateIds: [],
+          },
+          base.pokemonUsage.singles[2],
+        ],
+        doubles: [],
+      },
+    };
+    render(<EnvironmentPage environment={environment} onImportSample={() => undefined} />);
+
+    await user.click(screen.getByRole('button', { name: '单打' }));
+    expect(screen.getByText('ミライドン')).toBeTruthy();
+    expect(screen.getByText('图鉴待补')).toBeTruthy();
+    // Placeholder rows are not buttons: there is no detail page to open.
+    expect(screen.queryByRole('button', { name: /ミライドン/ })).toBeNull();
+    expect(within(screen.getByRole('button', { name: /炽焰咆哮虎/ })).getByLabelText('第 3 名，铜牌')).toBeTruthy();
+
+    await user.click(screen.getByRole('button', { name: '查看全部宝可梦' }));
+    await user.type(screen.getByRole('searchbox', { name: '搜索宝可梦' }), 'ミライドン');
+    expect(screen.getByText('ミライドン')).toBeTruthy();
+    expect(screen.queryByText('烈咬陆鲨')).toBeNull();
+  });
+
+  it('flags a catalog that lags the regulation schedule, and stays silent when they agree', () => {
+    // Both regulation labels are derived: this asserts the mechanism, not a hard-coded M-C.
+    const scheduleAheadOfCatalog = regulationSchedule.find((entry) => entry.id !== catalogRegulation);
+    expect(scheduleAheadOfCatalog).toBeTruthy();
+
+    render(<CatalogRegulationLagNotice now={new Date(scheduleAheadOfCatalog!.startAt)} />);
+    expect(screen.getByRole('status').textContent).toContain(`规则已切换到 ${scheduleAheadOfCatalog!.id}`);
+    expect(screen.getByRole('status').textContent).toContain(`本地图鉴仍为 ${catalogRegulation}`);
+    cleanup();
+
+    const catalogWindow = regulationSchedule.find((entry) => entry.id === catalogRegulation);
+    render(<CatalogRegulationLagNotice now={new Date(catalogWindow!.startAt)} />);
+    expect(screen.queryByRole('status')).toBeNull();
   });
 
   it('resets the scroll position to the top when the visible view changes', async () => {

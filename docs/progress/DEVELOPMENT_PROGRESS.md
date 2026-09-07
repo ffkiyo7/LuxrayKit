@@ -1,6 +1,6 @@
 # Luxray Kit 开发进度
 
-更新日期：2026-08-05
+更新日期：2026-09-07
 
 > 工程细节（架构 / Worker 刷新管线 / 部署）以 `docs/DEVELOPER_GUIDE.md` 为准，本文件只记录进度概要。
 
@@ -8,7 +8,22 @@
 
 环境优先重构、Luxray Kit 品牌更新和 Cloudflare Worker 统一部署已进入 `main`。生产站点由 `luxraykit-app` Worker 提供静态资源与 API，环境页在线优先读取 KV 中的 PokeDB snapshot，并保留最新赛季静态快照和开发 seed 两级回退。
 
-## 本轮进展（2026-07-09）：默认双打 · 赛季/规则集中化 · 高分队规则归属
+## 本轮进展（2026-09-07）：M-C 软着陆 · 回退层新鲜度 · SW 预缓存 manifest · 清理
+
+分支 `feat/mc-soft-landing`（PR 待合并）。目标是**开赛后线上不出现用户视角不可接受的降级**，不做阶段 B（切 `currentRuleSet`、落 M-C catalog 数据）：
+
+- **M-C 窗口进 `schedule.ts`**：`2026-09-09T02:00Z` → `2026-12-02T01:59Z`（[官方公告](https://news.pokemon-home.com/en/page/816.html)）。**不动 `currentRuleSet`、不加 M-6 赛季**（未公布）。`isRegulationRolloverDue` 跟的是 catalog 不是 schedule，所以补了窗口后仍持续报「该滚了」。
+- **「图鉴更新中」提示**：schedule 解析出的当前规则与 catalog 的规则不一致时，环境首页头部渲染一条提示（两个规则号都从数据推导，下次滚动无需改文案）。
+- **未知宝可梦不再从榜单整行剔除**：以前 `pokemonKeyToId` 查不到就丢行，导致下面所有名次整体上移一位（UI 的名次就是数组下标）。现在保留为 `pokedb:<key>` 哨兵，前端渲染不可点的占位行 + 「图鉴待补」chip，完整榜搜索按页面原名匹配。审计契约不变：key 照旧进 `unknownPokemonKeys`，Worker 零容忍审计该 degraded 仍 degraded。队伍样本 slot 里的未知宝可梦维持剔除，未扩。
+- **静态回退层新鲜度**：刷新 PR 脚本以前只在 Worker 不健康时抓取，Worker 一直健康 = 第二层永不更新（实测停在 2026-07-18 的 M-4）。现在额外比较本地快照 `battles.*.updatedAt` 与响应头 `x-luxray-latest-source-updated-at`，落后超过 `STATIC_SNAPSHOT_MAX_LAG_DAYS`（默认 7）天也刷。
+- **生成产物刷新到 M-5**：静态环境快照 → 2026-09-07 07:18；`speedTiers.ts` 从 M-3 → M-5（`speedTierSeason` 3→5，SpeedPage 头部文案随之改变）。视觉基线 **未**重建：`visual-baseline.yml` 实测 18 张全部与现状一致，因为速度线用例截图前 `scrollBy(0, 120)` 已把「PokeDB M-{season} 静态参照」头部滚出视口——这条文案不在视觉门禁覆盖范围内，缺口已记入 `docs/qa/MOBILE_VISUAL_REGRESSION.md`。
+- **SW 预缓存 manifest**：`sw.js` 里手写的 ~120 条道具图标路径改为构建期从道具 catalog 的 `iconRef` 生成 `dist/precache-manifest.json`（当前 148 条），`CACHE_NAME` 升到 `champions-tool-v8`；新增「新版本已就绪，刷新以更新」toast。
+- **CSP**：`public/_headers` 加 `Content-Security-Policy`（同源为主；`style-src`/`font-src` 额外放行 Google Fonts，因为 `styles.css` 的 DM Sans 远程 `@import` 无法被 Vite 内联）。`_headers` 只在 Cloudflare 生效，**上线后需人工在生产 DevTools 确认无违规**。
+- **死代码清理**：见下方「已知代码层待办」。
+
+验证：`npm test` 376 通过、`npm run build`（含 `tsc -b`）通过、`npm run test:pwa`（offline + team-samples）2 通过、`npm run worker:environment:check` 通过。
+
+## 上一轮进展（2026-07-09）：默认双打 · 赛季/规则集中化 · 高分队规则归属
 
 分支 `feat/doubles-default-and-season-schedule`（**已合并进 main**）：
 
@@ -35,7 +50,7 @@
 
 - 当前规则（M-B）allowlist **235 条**（真源 `src/data/seed/regMA/allowlist.ts` 的 `regMaPokemonAllowlistExpectedCount`，有单测门禁）。
 - 当前 seed 包含本地宝可梦、形态、招式、learnset、道具、特性、Mega 和来源 manifest。
-- 静态环境快照当前为 PokeDB **M-4**：单打 / 双打各 **235 个排名**，各含前 60 个宝可梦详情统计和队报样本。仓库内静态快照由 VPS automation PR 刷新，线上第一层由 Worker cron + KV 刷新，两者可能不同步。
+- 静态环境快照当前为 PokeDB **M-5**（源更新 2026-09-07 07:18）：单打 / 双打各 **235 个排名**，各含前 60 个宝可梦详情统计和队报样本。仓库内静态快照由 automation PR 刷新，线上第一层由 Worker cron + KV 刷新，两者可能不同步；刷新触发条件见开发指南 §7.1。
 - Worker 和静态维护脚本均动态探测最新赛季，并复用 PokeDB HTML 解析入口。
 - 数据进入 UI 前经过 `EnvironmentDataset` 审计，未知引用会被报告并过滤。
 
@@ -81,13 +96,11 @@ npm run test:visual
 
 ## 已知代码层待办
 
-- `src/pages/SettingsPage.tsx`、`src/components/RuleSummary.tsx` 无任何引用，属死代码。
+- **M-C 阶段 B 未做**：`currentRuleSet` 仍是 `reg-mb`，M-C catalog（新宝可梦、道具、allowlist 行）尚未编写。官方完整清单未公布前不动，`isRegulationRolloverDue` 会持续报提醒。落地前榜单里的新宝可梦按 `pokedb:` 哨兵渲染占位行。
+- `src/data/schedule.ts` 的 `seasonSchedule` 需在每个赛季更替时追加新条目（缺表的赛季 `sampleRegulation` 返回 `undefined`，其高分队样本只在「全部规则」视图可见，不再静默归 M-A）。**当前补到 M-5**；M-6 的官方公告尚未上线，出现后追加（格式照 M-5 的 `sourceUrl`）。
 - （**非待办**）`src/pages/RulePage.tsx` 没有入口是**有意为之**，规则口径页由 owner 主动隐藏，勿改成可达。
-- `src/data/schedule.ts` 的 `seasonSchedule` 需在每个赛季更替时追加新条目（缺失的赛季会被 `sampleRegulation` 默认归为 M-A）。**当前已补到 M-5**（M-B 的最后一个赛季）；下一个赛季同时是新规则，需要先编 catalog。
-- M-5 条目缺 `sourceUrl`：官方公告页尚未上线，出现后补填（M-4 是 `news.pokemon-home.com/tc/page/795.html`）。
-- `src/data/speedTiers.ts` 的 `speedTierSeason` 落后线上环境一个赛季。
-- `index.html` 与 `public/manifest.webmanifest` 的描述文案硬编码了赛季号，与 `src/data/schedule.ts` 的去硬编码目标冲突。
 - 属性速查工具没有视觉基线（四个工具里唯一未覆盖）。
+- `src/styles.css` 首行远程 `@import` Google Fonts（DM Sans）：Vite 无法内联，所以 CSP 必须放行两个字体域名。自托管字体后可收紧。
 
 ## 文档索引
 

@@ -91,9 +91,12 @@ async function main() {
 
   if (!process.argv.includes('--force')) {
     const health = await checkWorkerEnvironmentHealth();
-    console.log(`Worker environment gate: ${health.reason} (cache=${health.cacheState ?? 'unknown'}, source=${health.sourceStatus ?? 'unknown'}).`);
+    const lag = health.lagDays === undefined ? '' : `, static-lag=${health.lagDays}d`;
+    console.log(
+      `Worker environment gate: ${health.reason} (cache=${health.cacheState ?? 'unknown'}, source=${health.sourceStatus ?? 'unknown'}${lag}).`,
+    );
     if (!health.shouldRefresh) {
-      console.log('Worker snapshot is healthy and fresh. Skipping the VPS PokeDB crawl.');
+      console.log('Worker snapshot is healthy and fresh, and the static fallback is within its lag budget. Skipping the VPS PokeDB crawl.');
       return;
     }
   } else {

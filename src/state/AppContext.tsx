@@ -10,12 +10,10 @@ type Store = AppState & {
   deleteTeam: (teamId: string) => Promise<void>;
   addTeam: (name?: string) => Promise<Team>;
   updateMember: (teamId: string, member: TeamMember) => Promise<void>;
-  toggleFavoriteBenchmark: (benchmarkId: string) => Promise<void>;
   updateTheme: (theme: UserPreference['theme']) => Promise<void>;
   replacePreferences: (preferences: UserPreference) => Promise<void>;
   replaceTeams: (teams: Team[]) => Promise<void>;
   clearLocalData: () => Promise<void>;
-  simulateRefresh: () => Promise<void>;
 };
 
 const AppContext = createContext<Store | undefined>(undefined);
@@ -125,19 +123,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [savePreferences],
   );
 
-  const toggleFavoriteBenchmark = useCallback(
-    async (benchmarkId: string) => {
-      const exists = preferences.favoriteBenchmarkIds.includes(benchmarkId);
-      await savePreferences({
-        ...preferences,
-        favoriteBenchmarkIds: exists
-          ? preferences.favoriteBenchmarkIds.filter((id) => id !== benchmarkId)
-          : [...preferences.favoriteBenchmarkIds, benchmarkId],
-      });
-    },
-    [preferences, savePreferences],
-  );
-
   const replaceTeams = useCallback(async (nextTeams: Team[]) => {
     const orderedTeams = withSequentialSortOrder(nextTeams);
     setTeams(orderedTeams);
@@ -150,10 +135,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setPreferences(normalizePreferences());
   }, []);
 
-  const simulateRefresh = useCallback(async () => {
-    setLastRefreshError(undefined);
-  }, []);
-
   const value = useMemo<Store>(
     () => ({
       loading,
@@ -164,12 +145,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       deleteTeam,
       addTeam,
       updateMember,
-      toggleFavoriteBenchmark,
       updateTheme,
       replacePreferences,
       replaceTeams,
       clearLocalData,
-      simulateRefresh,
     }),
     [
       addTeam,
@@ -181,9 +160,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       replacePreferences,
       replaceTeams,
       saveTeam,
-      simulateRefresh,
       teams,
-      toggleFavoriteBenchmark,
       updateTheme,
       updateMember,
     ],

@@ -250,42 +250,9 @@ export type Team = {
   source?: TeamSource;
 };
 
-export type DamageCalcContext = {
-  attacker?: TeamMember;
-  defender?: TeamMember;
-  moveId?: string;
-  battleType: BattleType;
-  spreadDamage: boolean;
-  weather: string;
-  terrain: string;
-  statStages: Record<string, number>;
-  megaState: MegaSelectionState;
-  additionalChampionsMechanics: 'pending';
-  dataVersionId: string;
-};
-
-export type SpeedBenchmark = {
-  id: string;
-  name: string;
-  pokemonId: string;
-  formId?: string;
-  nature: string;
-  speedStatPoints: number;
-  itemOrStatus: string;
-  isMega: boolean;
-  finalSpeed: number;
-  tags: string[];
-  source: string;
-  notes: string;
-  benchmarkType: 'preset' | 'favorite' | 'team';
-  dataVersionId: string;
-};
-
 export type UserPreference = {
   language: 'zh-CN';
   theme: 'dark' | 'light';
-  favoriteBenchmarkIds: string[];
-  defaultBenchmarkFilters: string[];
   cachedRuleSetId: string;
   lastDataRefreshAt: string;
   hasSeenEnvironmentImportNotice: boolean;

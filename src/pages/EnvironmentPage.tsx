@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useLayoutEffect, useMemo, useState } from 'react';
 import {
+  currentRegulation as catalogRegulation,
   getEnvironmentItem,
   getEnvironmentMove,
   getEnvironmentPokemon,
@@ -24,7 +25,9 @@ import {
   type EnvironmentState,
   type EnvironmentTeamSample,
 } from '../data/environment';
+import { currentRegulation as scheduledRegulation } from '../data/schedule';
 import { currentRuleSet } from '../data';
+import { isUnresolvedPokemonId } from '../lib/environmentDataset';
 import {
   describeSeasonRankDelta,
   resolveSeasonRankDelta,
@@ -194,19 +197,77 @@ function RankDeltaChip({ delta, previousSeasonLabel }: { delta: SeasonRankDelta;
   );
 }
 
+/**
+ * Regulations rotate on an officially announced date (`schedule.ts`); the matching catalog is
+ * hand-authored and lands later (`currentRuleSet` → `currentRegulation`). While the two disagree
+ * the app is showing the *previous* regulation's Pokédex, so say it plainly instead of letting it
+ * pass as current. Both regulation labels are derived, never hard-coded — this notice must not
+ * need editing at the next rollover. Renders nothing while catalog and schedule agree.
+ */
+export function CatalogRegulationLagNotice({ now = new Date() }: { now?: Date }) {
+  const scheduled = scheduledRegulation(now).id;
+  if (scheduled === catalogRegulation) return null;
+
+  return (
+    <div
+      className="flex items-start gap-2 rounded-lg border border-border bg-secondary px-3 py-2 text-xs leading-5 text-textSecondary"
+      role="status"
+    >
+      <Info size={14} className="mt-0.5 shrink-0 text-textMuted" aria-hidden="true" />
+      <span>
+        规则已切换到 {scheduled}，本地图鉴仍为 {catalogRegulation}，新宝可梦与道具数据待补。
+      </span>
+    </div>
+  );
+}
+
+/**
+ * A ranking row whose Pokemon is not in the local catalog yet (new regulation, catalog not
+ * authored). It must still occupy its rank — dropping it would renumber everything below — but
+ * there is nothing to show on a detail page, so it is a static row rather than a button.
+ */
+function UnresolvedRankingRow({
+  usage,
+  rank,
+}: {
+  usage: EnvironmentPokemonUsage;
+  rank: number;
+}) {
+  const label = usage.displayName?.trim() || usage.pokemonId;
+
+  return (
+    <div className="flex w-full items-center gap-3 border-t border-divider py-3 text-left first:border-t-0">
+      <span className="w-7 shrink-0 text-center">
+        <RankBadge rank={rank} />
+      </span>
+      <PokemonAvatar iconRef="?" label={label} size="lg" />
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-sm font-semibold text-textSecondary">{label}</span>
+        <span className="mt-1 inline-flex h-5 items-center rounded-full border border-border bg-elevated px-2 text-[11px] font-semibold text-textMuted">
+          图鉴待补
+        </span>
+      </span>
+    </div>
+  );
+}
+
 function RankingRow({
-  pokemonId,
+  usage,
   rank,
   previousRanks,
   previousSeasonLabel,
   onOpen,
 }: {
-  pokemonId: string;
+  usage: EnvironmentPokemonUsage;
   rank: number;
   previousRanks?: Record<string, number>;
   previousSeasonLabel?: string;
   onOpen: (pokemonId: string) => void;
 }) {
+  const pokemonId = usage.pokemonId;
+  if (usage.unresolved || isUnresolvedPokemonId(pokemonId)) {
+    return <UnresolvedRankingRow usage={usage} rank={rank} />;
+  }
   const entry = getEnvironmentPokemon(pokemonId);
   if (!entry) return null;
 
@@ -418,10 +479,12 @@ function FullRankingPage({
         .filter(({ item }) => {
           if (!normalizedQuery) return true;
           const entry = getEnvironmentPokemon(item.pokemonId);
-          return entry
-            ? entry.chineseName.toLocaleLowerCase().includes(normalizedQuery)
-              || entry.englishName.toLocaleLowerCase().includes(normalizedQuery)
-            : false;
+          if (entry) {
+            return entry.chineseName.toLocaleLowerCase().includes(normalizedQuery)
+              || entry.englishName.toLocaleLowerCase().includes(normalizedQuery);
+          }
+          // Placeholder rows have no catalog entry; the source-page name is all we can match on.
+          return Boolean(item.displayName?.toLocaleLowerCase().includes(normalizedQuery));
         }),
     [normalizedQuery, rankings],
   );
@@ -477,7 +540,7 @@ function FullRankingPage({
               {filteredRankings.map(({ item, rank }) => (
                 <RankingRow
                   key={item.pokemonId}
-                  pokemonId={item.pokemonId}
+                  usage={item}
                   rank={rank}
                   previousRanks={previousRanks}
                   previousSeasonLabel={environment.previousSeason?.season}
@@ -512,7 +575,7 @@ function FullRankingPage({
                       {tierRankings.map(({ item, rank }) => (
                         <RankingRow
                           key={item.pokemonId}
-                          pokemonId={item.pokemonId}
+                          usage={item}
                           rank={rank}
                           previousRanks={previousRanks}
                           previousSeasonLabel={environment.previousSeason?.season}
@@ -781,6 +844,8 @@ export function EnvironmentPage({
         </button>
       </section>
 
+      <CatalogRegulationLagNotice />
+
       <PokemonFactBanner />
 
       <Card>
@@ -798,7 +863,7 @@ export function EnvironmentPage({
           {visibleRankings.map((item, index) => (
             <RankingRow
               key={item.pokemonId}
-              pokemonId={item.pokemonId}
+              usage={item}
               rank={index + 1}
               previousRanks={homePreviousRanks}
               previousSeasonLabel={environment.previousSeason?.season}

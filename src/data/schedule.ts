@@ -60,6 +60,13 @@ export const regulationSchedule: RegulationScheduleEntry[] = [
     endAt: '2026-09-09T01:59:00.000Z',
     sourceUrl: 'https://champions-news.pokemon-home.com/en/page/776.html', // M-B extension notice
   },
+  {
+    id: 'M-C',
+    label: 'Regulation M-C',
+    startAt: '2026-09-09T02:00:00.000Z',
+    endAt: '2026-12-02T01:59:00.000Z',
+    sourceUrl: 'https://news.pokemon-home.com/en/page/816.html', // Regulation M-C announcement
+  },
 ];
 
 export const seasonSchedule: SeasonScheduleEntry[] = [
@@ -134,9 +141,11 @@ export const productContextLabel = (liveSeasonLabel?: string, now: Date = new Da
 };
 
 /**
- * True once `now` has passed the current regulation's end without a later regulation defined —
- * i.e. the schedule + catalog need a manual M-(next) update. Surface this from the daily
- * refresh/CI job so a rollover isn't silently missed.
+ * True once `now` has passed the **catalog's** (`currentRuleSet`) end without a *still-future*
+ * regulation window left in the schedule — i.e. the catalog needs a manual M-(next) update.
+ * Appending the next window here (as M-C was, ahead of its data) deliberately does NOT clear the
+ * flag: the schedule can run ahead of the catalog, and this is the signal that it currently does.
+ * Surface it from the daily refresh/CI job so a rollover isn't silently missed.
  */
 export const isRegulationRolloverDue = (now: Date = new Date()): boolean => {
   const t = now.getTime();

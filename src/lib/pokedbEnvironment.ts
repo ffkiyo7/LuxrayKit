@@ -1,4 +1,5 @@
 import type { EligiblePokemon, Pokemon } from '../types';
+import { isUnresolvedPokemonId, unresolvedPokemonId } from './environmentDataset';
 import type {
   EnvironmentBattleDataset,
   EnvironmentBattleType,
@@ -8,6 +9,8 @@ import type {
   EnvironmentTeamSample,
   EnvironmentTeamSlot,
 } from './environmentDataset';
+
+export { isUnresolvedPokemonId, unresolvedPokemonId, UNRESOLVED_POKEMON_ID_PREFIX } from './environmentDataset';
 
 export type PokeDbRankedTeamSlot = {
   id: string;
@@ -60,9 +63,11 @@ export type PokeDbTrainerListPayload = {
 export type PokeDbPokemonRankingEntry = {
   rank: number;
   pokeDbKey: string;
+  /** Local catalog id, or an `unresolvedPokemonId` sentinel when the key has no mapping yet. */
   pokemonId: string;
   pokemonName: string;
 };
+
 
 export type PokeDbPokemonStatisticsPayload = {
   season: string;
@@ -601,22 +606,21 @@ export function parsePokeDbPokemonListPage(
   const rankingMatches = [...html.matchAll(
     /<a[^>]+href="\/pokemon\/show\/([^"?]+)\?[^"]*"[^>]*class="[^"]*\blist-pokemon\b[^"]*"[^>]*>[\s\S]*?<div class="pokemon-rank[^"]*">\s*(\d+)\s*<\/div>[\s\S]*?<div class="pokemon-name">\s*([^<]+?)\s*<\/div>[\s\S]*?<\/a>/g,
   )];
-  const rankings = rankingMatches.flatMap((match) => {
+  // Unmapped keys keep their row (with an `unresolvedPokemonId` sentinel) so ranks stay aligned
+  // with the source page; they are still recorded in the audit so the mapping gets fixed.
+  const rankings = rankingMatches.map((match) => {
     const pokeDbKey = match[1];
-    const pokemonId = options.pokemonKeyToId[pokeDbKey];
-    if (!pokemonId) {
-      unknownPokemonKeys.add(pokeDbKey);
-      return [];
-    }
-    return [{
+    const mappedId = options.pokemonKeyToId[pokeDbKey];
+    if (!mappedId) unknownPokemonKeys.add(pokeDbKey);
+    return {
       rank: Number(match[2]),
       pokeDbKey,
-      pokemonId,
+      pokemonId: mappedId ?? unresolvedPokemonId(pokeDbKey),
       pokemonName: decodeHtml(match[3]),
-    }];
+    };
   });
 
-  if (rankings.length === 0) {
+  if (rankings.every((ranking) => isUnresolvedPokemonId(ranking.pokemonId))) {
     throw new Error(`${options.battleType} Pokemon ranking page contained no mapped Pokemon`);
   }
 
