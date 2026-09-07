@@ -106,7 +106,8 @@ export function FeedbackSheet({ onClose, route = '/profile' }: { onClose: () => 
   };
 
   const trimmedLength = draft.message.trim().length;
-  const canSubmit = trimmedLength >= FEEDBACK_MESSAGE_MIN && status !== 'submitting' && online;
+  // Browser connectivity is only a hint; the request determines whether sending works.
+  const canSubmit = trimmedLength >= FEEDBACK_MESSAGE_MIN && status !== 'submitting';
 
   const submit = async () => {
     if (!canSubmit) return;
@@ -202,13 +203,19 @@ export function FeedbackSheet({ onClose, route = '/profile' }: { onClose: () => 
               ref={messageRef}
               className="mt-1 min-h-[132px] w-full resize-none rounded-lg border border-border bg-secondary p-3 text-sm text-textPrimary outline-none focus:border-accent"
               maxLength={FEEDBACK_MESSAGE_MAX}
+              aria-describedby="feedback-message-help"
               placeholder="遇到的问题、想要的功能，或者随便说点什么。"
               value={draft.message}
               onChange={(event) => update({ message: event.target.value })}
             />
-            <p className="mt-1 text-right text-[11px] tabular-nums text-textMuted">
-              {draft.message.length}/{FEEDBACK_MESSAGE_MAX}
-            </p>
+            <div id="feedback-message-help" className="mt-1 flex justify-between gap-2 text-[11px] tabular-nums text-textMuted">
+              <span aria-live="polite">
+                {trimmedLength < FEEDBACK_MESSAGE_MIN
+                  ? `至少 ${FEEDBACK_MESSAGE_MIN} 字，还差 ${FEEDBACK_MESSAGE_MIN - trimmedLength} 字（不计首尾空格）`
+                  : '已达到最低字数'}
+              </span>
+              <span>{draft.message.length}/{FEEDBACK_MESSAGE_MAX}</span>
+            </div>
 
             <label className="mt-2 block text-[11px] font-semibold text-textSecondary" htmlFor="feedback-contact">
               联系方式（可选）
@@ -241,7 +248,7 @@ export function FeedbackSheet({ onClose, route = '/profile' }: { onClose: () => 
               </p>
             )}
             {!online && (
-              <p className="mt-3 rounded-lg bg-reviewBg p-2 text-xs text-warning">当前离线，恢复网络后再发送。草稿已保留。</p>
+              <p className="mt-3 rounded-lg bg-reviewBg p-2 text-xs text-warning">浏览器提示当前离线，仍可尝试发送；发送失败会保留草稿。</p>
             )}
 
             {/* `disabled:bg-secondary` on top of the shared Button: the primary variant keeps

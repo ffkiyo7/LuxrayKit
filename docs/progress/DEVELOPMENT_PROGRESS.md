@@ -22,7 +22,7 @@
   - **Discord 推送**：secret `FEEDBACK_DISCORD_WEBHOOK` 存在时 `ctx.waitUntil` 发一条 embed，未设置静默跳过，推送失败只记日志（留言已落库）。
   - **preview 没有 DO 绑定**（`wrangler.preview.jsonc` 刻意不加），三个端点一律 503 `feedback_unavailable`。
   - 字段表、curl 示例与 secret 设置命令见开发指南 §6.8。
-- **前端**：新路由 `#/profile/feedback`（`hashRoute.ts`，同步进 `routePatterns`，所以 ping 白名单自动包含它）+ 底部弹层 `src/pages/profile/FeedbackSheet.tsx`：三选一 chip（问题 / 建议 / 其他，默认建议）、计数 textarea、可选联系方式、隐藏蜜罐、自动附带 `__APP_BUILD__` / 数据版本 / 来源路由。草稿存 `sessionStorage`（误关不丢字，发送成功即清）；429 / 503 / 网络错误各给一句能据此行动的话，离线时禁用发送。
+- **前端**：新路由 `#/profile/feedback`（`hashRoute.ts`，同步进 `routePatterns`，所以 ping 白名单自动包含它）+ 底部弹层 `src/pages/profile/FeedbackSheet.tsx`：三选一 chip（问题 / 建议 / 其他，默认建议）、计数 textarea、可选联系方式、隐藏蜜罐、自动附带 `__APP_BUILD__` / 数据版本 / 来源路由。草稿存 `sessionStorage`（误关不丢字，发送成功即清）；429 / 503 / 网络错误各给一句能据此行动的话，离线状态仅提示、允许尝试发送，实际失败保留草稿并可重试；表单显示最低 5 字要求及还差字数（2026-09-08 修正）。
 - **「我的」与引导**：「反馈与建议」三入口卡 → 一张「留言」卡 + 「写留言」按钮；「关于」把「复制版本信息」降为次要样式，卡底留一行小字「也可以在 GitHub 提 issue」。`branding.feedbackLinks` 只剩 `general`，`.github/ISSUE_TEMPLATE/` 保留（GitHub 侧仍有用）。引导末页三个 chip 与「发送反馈」都改成按钮：完成引导 + 跳到留言表单。
 
 **测试怎么做的**：能纯化的判断（校验、`client_key` 派生、UA 归类、限流判定、Discord payload）全部导出成纯函数单测；SQL 收在 `FeedbackRepository` 接口后面，`feedbackInbox.test.ts` 用一个只认那几条语句的内存 `SqlLike` 假实现跑 insert / list / patch / 限流；`index.test.ts` 用 stub 的 `FEEDBACK_INBOX.get().fetch` 覆盖路由、鉴权、503、蜜罐、body 上限、Discord `waitUntil`。
