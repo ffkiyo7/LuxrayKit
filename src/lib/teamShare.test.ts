@@ -9,6 +9,7 @@ import { currentRuleNatureOptions, pokemon } from '../data';
 import { currentRuleMovesForPokemon, currentRuleSelectableItemsForPokemon } from './currentRuleCatalog';
 import { MAX_TOTAL_STAT_POINTS } from './statPoints';
 import {
+  MAX_SHARED_TEAM_NAME_LENGTH,
   TeamShareDecodeError,
   decodeTeamShare,
   encodeTeamShare,
@@ -241,6 +242,14 @@ describe('decodeTeamShare rejects malformed input', () => {
   ])('rejects %j with a readable message', async (code, message) => {
     await expect(decodeTeamShare(code)).rejects.toThrow(TeamShareDecodeError);
     await expect(decodeTeamShare(code)).rejects.toThrow(message);
+  });
+});
+
+describe('decodeTeamShare bounds free text', () => {
+  it('truncates an oversized team name instead of storing it verbatim', async () => {
+    const code = await encodeTeamShare({ name: '队'.repeat(500), members: [] });
+    const decoded = await decodeTeamShare(code);
+    expect(decoded.name).toBe('队'.repeat(MAX_SHARED_TEAM_NAME_LENGTH));
   });
 });
 

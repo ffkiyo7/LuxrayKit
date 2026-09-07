@@ -38,6 +38,7 @@ const COMPRESSED_PREFIX = 'z1';
 const PLAIN_PREFIX = 'p1';
 
 const DEFAULT_LEVEL = 50;
+export const MAX_SHARED_TEAM_NAME_LENGTH = 60;
 
 export class TeamShareDecodeError extends Error {
   constructor(message: string) {
@@ -259,7 +260,9 @@ export async function decodeTeamShare(code: string): Promise<DecodedTeamShare> {
   }
 
   const [rawName = '', ...memberRecords] = text.split(RECORD_SEPARATOR);
-  const name = sanitizeText(rawName);
+  // The name is the one free-text field a stranger's link can write into local storage; cap
+  // it so a crafted link cannot dump kilobytes into a team card. Everything else is an id.
+  const name = sanitizeText(rawName).slice(0, MAX_SHARED_TEAM_NAME_LENGTH);
   if (!name) throw new TeamShareDecodeError('分享链接里没有队伍名，可能已损坏。');
 
   const warnings: string[] = [];
