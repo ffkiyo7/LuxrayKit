@@ -1444,15 +1444,56 @@ async function isAuthorizedRefresh(request: Request, env: AppEnv) {
   return constantTimeEqual(token, env.ADMIN_REFRESH_TOKEN);
 }
 
-async function handleLatest(_request: Request, env: AppEnv) {
-  const [snapshotText, statusText, probeText] = await Promise.all([
-    env.ENVIRONMENT_CACHE.get(SNAPSHOT_KEY),
+/**
+ * Content identity of the published snapshot, for `ETag` / `If-None-Match`.
+ *
+ * Deliberately built from the *content* fields of `environment:status` only. `refreshedAt` /
+ * `retrievedAt` are excluded: when the freshness probe reports no upstream change,
+ * `startScheduledRefresh` still rewrites those timestamps, and treating that as a content
+ * change would bust every browser cache daily for a byte-identical 450 KB body.
+ */
+export const buildLatestEtag = async (status: CacheStatus | undefined) => {
+  const identity = [
+    `sourceUpdatedAt=${status?.sourceUpdatedAt ?? ''}`,
+    `selectedSeason=${status?.selectedSeason ?? ''}`,
+    `previousSeasonLabel=${status?.previousSeasonLabel ?? ''}`,
+  ].join(';');
+  return `"${(await sha256Hex(identity)).slice(0, 16)}"`;
+};
+
+const etagMatches = (ifNoneMatch: string | null, etag: string) =>
+  Boolean(
+    ifNoneMatch &&
+      ifNoneMatch
+        .split(',')
+        .map((candidate) => candidate.trim().replace(/^W\//, ''))
+        .some((candidate) => candidate === etag || candidate === '*'),
+  );
+
+const snapshotSourceUpdatedAtFromBody = (snapshotText: string | undefined) => {
+  if (!snapshotText) return undefined;
+  const snapshot = JSON.parse(snapshotText) as EnvironmentSnapshot;
+  return [snapshot.battles?.singles?.updatedAt, snapshot.battles?.doubles?.updatedAt]
+    .filter((value): value is string => Boolean(value))
+    .sort()
+    .at(-1);
+};
+
+async function handleLatest(request: Request, env: AppEnv) {
+  const [statusText, probeText] = await Promise.all([
     env.ENVIRONMENT_CACHE.get(STATUS_KEY),
     env.ENVIRONMENT_CACHE.get(POKEDB_FRESHNESS_PROBE_KEY),
   ]);
   const status = statusText ? (JSON.parse(statusText) as CacheStatus) : undefined;
+  const etag = await buildLatestEtag(status);
+  // A conditional hit must never pay for the 450 KB snapshot read + JSON.parse, so it is only
+  // taken when `status.audit` (written by publishRefreshJob) can supply the audit headers.
+  // Older KV entries predate that field and fall through to the full 200 path.
+  const conditionalHit = Boolean(status?.audit) && etagMatches(request.headers.get('if-none-match'), etag);
 
-  if (!snapshotText) {
+  const snapshotText = conditionalHit ? undefined : await env.ENVIRONMENT_CACHE.get(SNAPSHOT_KEY);
+
+  if (!conditionalHit && !snapshotText) {
     return jsonResponse(
       env,
       {
@@ -1463,16 +1504,15 @@ async function handleLatest(_request: Request, env: AppEnv) {
     );
   }
 
-  const snapshot = JSON.parse(snapshotText) as EnvironmentSnapshot;
-  const audit = buildEnvironmentAuditStatus(snapshot, auditThreshold(env));
-  const workerStatus = status?.ok && !audit.alert ? 'ok' : 'degraded';
+  const audit =
+    status?.audit ??
+    (snapshotText
+      ? buildEnvironmentAuditStatus(JSON.parse(snapshotText) as EnvironmentSnapshot, auditThreshold(env))
+      : undefined);
+  const auditAlert = audit?.alert ?? false;
+  const workerStatus = status?.ok && !auditAlert ? 'ok' : 'degraded';
   const probe = probeText ? (JSON.parse(probeText) as PokeDbFreshnessProbe) : undefined;
-  const snapshotSourceUpdatedAt =
-    status?.sourceUpdatedAt ??
-    [snapshot.battles.singles?.updatedAt, snapshot.battles.doubles?.updatedAt]
-      .filter((value): value is string => Boolean(value))
-      .sort()
-      .at(-1);
+  const snapshotSourceUpdatedAt = status?.sourceUpdatedAt ?? snapshotSourceUpdatedAtFromBody(snapshotText);
   const cacheState = isSnapshotBehindSource(snapshotSourceUpdatedAt, probe?.sourceUpdatedAt)
     ? 'stale'
     : 'fresh';
@@ -1482,17 +1522,25 @@ async function handleLatest(_request: Request, env: AppEnv) {
   // version (e.g. the source is currently blocking us). The UI surfaces this separately.
   const sourceStatus = status?.ok === false ? 'degraded' : 'ok';
 
-  return new Response(snapshotText, {
-    headers: jsonHeaders(env, {
-      'cache-control': 'no-store',
-      'x-luxray-cache-state': cacheState,
-      'x-luxray-worker-status': workerStatus,
-      'x-luxray-source-status': sourceStatus,
-      ...(latestSourceUpdatedAt ? { 'x-luxray-latest-source-updated-at': latestSourceUpdatedAt } : {}),
-      'x-luxray-audit-alert': audit.alert ? '1' : '0',
-      'x-luxray-audit-unknown-count': String(audit.totalUnknownCount),
-    }),
+  // `private, no-cache` — the browser may keep the body but must revalidate every time, which
+  // is what turns a repeat visit into a 304 with no payload. A 304 carries the full x-luxray-*
+  // set because the browser merges these headers into its cached entry; the UI reads
+  // fresh/stale/degraded from them even when the body came from the HTTP cache.
+  const headers = jsonHeaders(env, {
+    'cache-control': 'private, no-cache',
+    etag,
+    'x-luxray-cache-state': cacheState,
+    'x-luxray-worker-status': workerStatus,
+    'x-luxray-source-status': sourceStatus,
+    ...(latestSourceUpdatedAt ? { 'x-luxray-latest-source-updated-at': latestSourceUpdatedAt } : {}),
+    ...(status?.refreshedAt ? { 'x-luxray-refreshed-at': status.refreshedAt } : {}),
+    'x-luxray-audit-alert': auditAlert ? '1' : '0',
+    'x-luxray-audit-unknown-count': String(audit?.totalUnknownCount ?? 0),
   });
+
+  if (conditionalHit) return new Response(null, { status: 304, headers });
+
+  return new Response(snapshotText, { headers });
 }
 
 async function handleStatus(env: AppEnv) {

@@ -1479,6 +1479,152 @@ describe('environment Worker PokeDB ingestion', () => {
 
 });
 
+describe('GET /api/environment/latest conditional requests', () => {
+  const snapshotBody = JSON.stringify({
+    retrievedAt: '2026-06-12T00:00:00.000Z',
+    battles: {
+      singles: { season: 'M-2', seasonNumber: 2, rule: 'singles', updatedAt: '2026-06-10 23:58:00', pokemonUsage: [], audit: {} },
+      doubles: { season: 'M-2', seasonNumber: 2, rule: 'doubles', updatedAt: '2026-06-10 23:58:00', pokemonUsage: [], audit: {} },
+    },
+  });
+
+  const healthyAudit = {
+    threshold: 0,
+    totalUnknownCount: 0,
+    alert: false,
+    counts: {
+      unknownPokemonKeys: 0,
+      unknownItemNames: 0,
+      unknownMoveKeys: 0,
+      unknownAbilityKeys: 0,
+      unknownNatureNames: 0,
+      failedDetailKeys: 0,
+    },
+    values: {
+      unknownPokemonKeys: [],
+      unknownItemNames: [],
+      unknownMoveKeys: [],
+      unknownAbilityKeys: [],
+      unknownNatureNames: [],
+      failedDetailKeys: [],
+    },
+  };
+
+  const statusRecord = (overrides: Record<string, unknown> = {}) =>
+    JSON.stringify({
+      ok: true,
+      refreshedAt: '2026-06-12T00:00:00.000Z',
+      sourceUpdatedAt: '2026-06-10 23:58:00',
+      selectedSeason: 2,
+      selectedSeasonLabel: 'M-2',
+      previousSeasonLabel: 'M-1',
+      audit: healthyAudit,
+      ...overrides,
+    });
+
+  const latest = (env: unknown, headers: Record<string, string> = {}) =>
+    worker.fetch(new Request('https://luxraykit.com/api/environment/latest', { headers }), env as never, {} as never);
+
+  it('keeps the ETag stable when only refreshedAt moves and changes it when the source content does', async () => {
+    const withStatus = (status: string) =>
+      latest(createKvEnv({ 'environment:latest': snapshotBody, 'environment:status': status }).env);
+
+    const base = await withStatus(statusRecord());
+    // The probe finds no upstream change, but startScheduledRefresh still rewrites refreshedAt.
+    // That is not a content change, so browsers must keep their cached copy.
+    const rebumped = await withStatus(statusRecord({ refreshedAt: '2026-06-13T04:00:00.000Z' }));
+    const newSource = await withStatus(statusRecord({ sourceUpdatedAt: '2026-06-12 23:58:00' }));
+    const newPreviousSeason = await withStatus(statusRecord({ previousSeasonLabel: 'M-2' }));
+
+    const etag = base.headers.get('etag');
+    expect(etag).toMatch(/^"[0-9a-f]{16}"$/);
+    expect(rebumped.headers.get('etag')).toBe(etag);
+    expect(newSource.headers.get('etag')).not.toBe(etag);
+    expect(newPreviousSeason.headers.get('etag')).not.toBe(etag);
+    expect(base.headers.get('cache-control')).toBe('private, no-cache');
+    expect(base.headers.get('x-luxray-refreshed-at')).toBe('2026-06-12T00:00:00.000Z');
+  });
+
+  it('answers a matching If-None-Match with 304, all x-luxray headers and no KV snapshot read', async () => {
+    const { env } = createKvEnv({ 'environment:latest': snapshotBody, 'environment:status': statusRecord() });
+    const first = await latest(env);
+    const etag = first.headers.get('etag') ?? '';
+    (env as { ENVIRONMENT_CACHE: { get: { mockClear: () => void } } }).ENVIRONMENT_CACHE.get.mockClear();
+
+    const conditional = await latest(env, { 'if-none-match': etag });
+
+    expect(conditional.status).toBe(304);
+    expect(await conditional.text()).toBe('');
+    expect(conditional.headers.get('etag')).toBe(etag);
+    expect(conditional.headers.get('cache-control')).toBe('private, no-cache');
+    expect(conditional.headers.get('x-luxray-cache-state')).toBe('fresh');
+    expect(conditional.headers.get('x-luxray-worker-status')).toBe('ok');
+    expect(conditional.headers.get('x-luxray-source-status')).toBe('ok');
+    expect(conditional.headers.get('x-luxray-latest-source-updated-at')).toBe('2026-06-10 23:58:00');
+    expect(conditional.headers.get('x-luxray-refreshed-at')).toBe('2026-06-12T00:00:00.000Z');
+    expect(conditional.headers.get('x-luxray-audit-alert')).toBe('0');
+    expect(conditional.headers.get('x-luxray-audit-unknown-count')).toBe('0');
+    // The whole point: a 304 never touches the 450 KB snapshot value.
+    const readKeys = (env as { ENVIRONMENT_CACHE: { get: { mock: { calls: string[][] } } } }).ENVIRONMENT_CACHE.get.mock.calls.map(
+      ([key]) => key,
+    );
+    expect(readKeys).not.toContain('environment:latest');
+  });
+
+  it('returns a full 200 body when If-None-Match does not match', async () => {
+    const { env } = createKvEnv({ 'environment:latest': snapshotBody, 'environment:status': statusRecord() });
+
+    const response = await latest(env, { 'if-none-match': '"0123456789abcdef"' });
+
+    expect(response.status).toBe(200);
+    expect(await response.text()).toBe(snapshotBody);
+    expect(response.headers.get('x-luxray-audit-unknown-count')).toBe('0');
+  });
+
+  it('falls back to auditing the snapshot body when an older status record carries no audit', async () => {
+    const legacySnapshot = JSON.stringify({
+      retrievedAt: '2026-06-12T00:00:00.000Z',
+      battles: {
+        singles: {
+          season: 'M-2',
+          seasonNumber: 2,
+          rule: 'singles',
+          updatedAt: '2026-06-10 23:58:00',
+          pokemonUsage: [],
+          audit: {
+            unknownPokemonKeys: ['9999-00'],
+            unknownItemNames: [],
+            unknownMoveKeys: [],
+            unknownAbilityKeys: [],
+            unknownNatureNames: [],
+            failedDetailKeys: [],
+          },
+        },
+      },
+    });
+    const legacyStatus = JSON.stringify({
+      ok: true,
+      refreshedAt: '2026-06-12T00:00:00.000Z',
+      sourceUpdatedAt: '2026-06-10 23:58:00',
+      selectedSeason: 2,
+      selectedSeasonLabel: 'M-2',
+    });
+    const { env } = createKvEnv({ 'environment:latest': legacySnapshot, 'environment:status': legacyStatus });
+
+    const first = await latest(env);
+    expect(first.status).toBe(200);
+    expect(first.headers.get('x-luxray-audit-alert')).toBe('1');
+    expect(first.headers.get('x-luxray-audit-unknown-count')).toBe('1');
+    expect(first.headers.get('x-luxray-worker-status')).toBe('degraded');
+
+    // Without status.audit the 304 shortcut cannot supply the audit headers, so a conditional
+    // request still gets the full body rather than a header set invented from nothing.
+    const conditional = await latest(env, { 'if-none-match': first.headers.get('etag') ?? '' });
+    expect(conditional.status).toBe(200);
+    expect(conditional.headers.get('x-luxray-audit-unknown-count')).toBe('1');
+  });
+});
+
 describe('POST /api/ping anonymous page views', () => {
   const pingEnv = () => {
     const writeDataPoint = vi.fn();
