@@ -1,8 +1,32 @@
-import { defineConfig } from 'vitest/config';
+import { defineConfig, type Plugin } from 'vitest/config';
 import react from '@vitejs/plugin-react';
+// @ts-expect-error -- plain ESM maintenance script, also unit-tested from scripts/*.test.mjs
+import { writePrecacheManifest } from './scripts/precache-manifest.mjs';
+
+/**
+ * Emits dist/precache-manifest.json (item icon paths, straight from the item catalog's iconRef)
+ * for public/sw.js to read at install time. The service worker used to carry a hand-written copy
+ * of this list, which drifted from the catalog on every item change.
+ */
+const precacheManifestPlugin = (): Plugin => {
+  let root = '';
+  let outDir = 'dist';
+  return {
+    name: 'luxraykit-precache-manifest',
+    apply: 'build',
+    configResolved(config) {
+      root = config.root;
+      outDir = config.build.outDir;
+    },
+    async closeBundle() {
+      const manifest = await writePrecacheManifest(outDir, { root });
+      this.info(`precache-manifest.json: ${manifest.itemIcons.length} item icons`);
+    },
+  };
+};
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), precacheManifestPlugin()],
   build: {
     rollupOptions: {
       output: {

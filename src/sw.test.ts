@@ -7,6 +7,17 @@ describe('service worker request strategy', () => {
 
     expect(source).not.toContain('/data/vgcpastes/');
     expect(source).toContain('/data/pokedb/reg-ma-environment.json');
+    // Retired in 2026-06 and deleted from public/; must not come back as a precache entry.
+    expect(source).not.toContain('reg-ma-s1-environment.json');
+  });
+
+  it('reads item icons from the build-time manifest instead of a hand-written array', () => {
+    const source = readFileSync(new URL('../public/sw.js', import.meta.url), 'utf8');
+
+    expect(source).toContain('/precache-manifest.json');
+    // The old inline list is what this replaced; a reintroduced literal would drift again.
+    expect(source).not.toContain("'/assets/items/");
+    expect(source).toContain("const CACHE_NAME = 'champions-tool-v8'");
   });
 
   it('always fetches API requests from the network without reading or writing the offline cache', async () => {

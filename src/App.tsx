@@ -4,6 +4,7 @@ import { BottomNav } from './components/BottomNav';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { Header } from './components/Header';
 import { Onboarding } from './components/onboarding/Onboarding';
+import { ServiceWorkerUpdateToast } from './components/ServiceWorkerUpdateToast';
 import { Button } from './components/ui';
 import { productName } from './branding';
 import { productContextLabel } from './data/schedule';
@@ -395,6 +396,7 @@ export function App() {
     <ErrorBoundary>
       <AppProvider>
         <AppShell />
+        <ServiceWorkerUpdateToast />
       </AppProvider>
     </ErrorBoundary>
   );
