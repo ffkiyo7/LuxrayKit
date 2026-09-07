@@ -11,6 +11,8 @@
 > - T6：额外改了 `index.html` 的 meta description（与 manifest 同一处硬编码）。
 >
 > 阶段 B 仍受 §1 门禁约束。`dataAudit.test.ts` 写死的 Mega 总数 75 会在 Task 8 加数据时变红，属预期，届时按实际数量更新。
+>
+> **进度（2026-09-07）**：**软着陆已落地**（PR #61 `feat/mc-soft-landing`，不在本文的 Task 编号内）：`regulationSchedule` 追加 M-C 窗口（`currentRuleSet` 未动，M-6 未加）；schedule 与 catalog 规则不一致时环境首页显示「图鉴更新中」提示；PokeDB 榜单里 catalog 查不到的宝可梦保留为 `pokedb:<key>` 哨兵占位行而不再整行剔除（Worker 零容忍审计契约不变，`workerStatus` 仍会 degraded 提醒补映射）。这只保证开赛后**不跳号、不错标规则**，阶段 B 的数据落地边界不变。
 
 ---
 
