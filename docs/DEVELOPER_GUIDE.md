@@ -431,6 +431,8 @@ npm run worker:app:types   # 改 binding 后重新生成 worker-configuration.d.
 「我的 → 留言」与引导末页都走 `#/profile/feedback` 的表单（`src/pages/profile/FeedbackSheet.tsx`）。
 **私信箱**：用户提交后只看到「已收到」，留言不公开、站内任何地方都不展示。
 
+表单明确提示 trim 后的最低 5 字要求及还差字数；不足 5 字或发送中禁用发送。浏览器离线状态仅作提示，不阻止尝试发送；实际请求失败时显示错误、保留草稿并允许重试。
+
 - **为什么是 DO + SQLite**：`new_sqlite_classes` 迁移在 `wrangler deploy` 时自动建库，**零
   Dashboard 操作**；D1 与新 KV namespace 都要 owner 先手工创建、再把 id 填回配置。留言量级
   （每天上限 200 条）也远在单实例的舒适区内。

@@ -28,6 +28,7 @@ describe('FeedbackSheet', () => {
     cleanup();
     vi.unstubAllGlobals();
     window.sessionStorage.clear();
+    Reflect.deleteProperty(navigator, 'onLine');
   });
 
   it('keeps 发送 disabled until the message clears the five-character minimum', async () => {
@@ -38,10 +39,13 @@ describe('FeedbackSheet', () => {
     const send = screen.getByRole('button', { name: /发送/ });
     expect((send as HTMLButtonElement).disabled).toBe(true);
 
-    await user.type(screen.getByLabelText('留言内容'), '太短');
+    await user.type(screen.getByLabelText('留言内容'), '  太短  ');
+    expect(screen.getByText('至少 5 字，还差 3 字（不计首尾空格）')).toBeTruthy();
     expect((send as HTMLButtonElement).disabled).toBe(true);
 
-    await user.type(screen.getByLabelText('留言内容'), '了一点点');
+    await user.clear(screen.getByLabelText('留言内容'));
+    await user.type(screen.getByLabelText('留言内容'), '  刚好五个字  ');
+    expect(screen.getByText('已达到最低字数')).toBeTruthy();
     expect((send as HTMLButtonElement).disabled).toBe(false);
     expect(fetchMock).not.toHaveBeenCalled();
   });
@@ -125,7 +129,8 @@ describe('FeedbackSheet', () => {
     expect(screen.queryByText('已收到，谢谢！')).toBeNull();
   });
 
-  it('keeps the draft after a network failure so the retry costs nothing', async () => {
+  it('keeps the draft and allows retry after an actual offline request failure', async () => {
+    Object.defineProperty(navigator, 'onLine', { configurable: true, value: false });
     const user = userEvent.setup();
     stubFetch(async () => {
       throw new TypeError('Failed to fetch');
@@ -137,6 +142,11 @@ describe('FeedbackSheet', () => {
 
     expect((await screen.findByRole('alert')).textContent).toBe('发送失败，草稿还在，可以再试一次。');
     expect(window.sessionStorage.getItem('luxraykit:feedback-draft')).toContain('这是一条正常长度的留言');
+    expect((screen.getByRole('button', { name: /^发送$/ }) as HTMLButtonElement).disabled).toBe(false);
+    const retryFetch = stubFetch(jsonResponse(created, 201));
+    await user.click(screen.getByRole('button', { name: /^发送$/ }));
+    expect(await screen.findByText('已收到，谢谢！')).toBeTruthy();
+    expect(retryFetch).toHaveBeenCalledTimes(1);
   });
 
   it('restores a draft that survived an accidental close, and clears it once sent', async () => {
@@ -158,7 +168,7 @@ describe('FeedbackSheet', () => {
     expect(window.sessionStorage.getItem('luxraykit:feedback-draft')).toBeNull();
   });
 
-  it('disables sending while offline and says so', async () => {
+  it('allows sending when the browser reports offline but the request succeeds', async () => {
     const user = userEvent.setup();
     const fetchMock = stubFetch(jsonResponse(created, 201));
     Object.defineProperty(navigator, 'onLine', { configurable: true, value: false });
@@ -166,10 +176,11 @@ describe('FeedbackSheet', () => {
 
     await user.type(screen.getByLabelText('留言内容'), '这是一条正常长度的留言');
 
-    expect((screen.getByRole('button', { name: /发送/ }) as HTMLButtonElement).disabled).toBe(true);
-    expect(screen.getByText(/当前离线/)).toBeTruthy();
-    expect(fetchMock).not.toHaveBeenCalled();
-    Object.defineProperty(navigator, 'onLine', { configurable: true, value: true });
+    expect((screen.getByRole('button', { name: /^发送$/ }) as HTMLButtonElement).disabled).toBe(false);
+    expect(screen.getByText(/浏览器提示当前离线/)).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: /^发送$/ }));
+    expect(await screen.findByText('已收到，谢谢！')).toBeTruthy();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it('closes from both the backdrop and the 关闭 control', async () => {
