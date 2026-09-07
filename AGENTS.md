@@ -29,3 +29,7 @@
 带 `Auto-generated` 头的文件、`src/data/speedTiers.ts`、`src/data/external/vgcpastes/**`、`src/data/external/pokeapi/**`、`public/data/pokedb/*.json`、Worker 类型声明等均由 `scripts/` 或 wrangler 生成：**改脚本，不手改产物**（对应命令见 `package.json` 的 `data:*` / `worker:*`）。
 
 **例外**：`src/data/external/` 下的两个 `.ts` 名称映射（`pokedbItemNameMap.ts` / `pokedbResourceKeyMap.ts`）**没有生成脚本，就是手写的**——PokeDB 用日文名报道具/招式，映射只能人工确认。缺映射会触发 Worker 零容忍审计（`workerStatus` 变 degraded），补一行即可；`dataAudit.test.ts` 有门禁保证 Mega 石不漏。
+
+## 5. 进度文档
+
+`docs/plans/` / `docs/progress/` 里的任务状态用统一符号：清单 `[ ]` / `[x]` / `[-]`；表格状态列与 `- ✅ xxx` 列表用 ✅ 完成 / ❌ 取消 / 🚧 进行中 / 🎮 待验 / ⬜ 未开始，符号放最前、后接依据（commit / 日期）。完成项的删除线按 `strike-done` 脚本的判定加（它会列出该划哪几行），不自己数 `~~`。
