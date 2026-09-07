@@ -16,6 +16,19 @@ import {
 } from '../../../src/lib/pokedbEnvironment';
 import type { EnvironmentPokemonUsage, EnvironmentTeamSample } from '../../../src/lib/environmentDataset';
 import { routePatterns } from '../../../src/lib/hashRoute';
+import {
+  deriveClientKey,
+  FEEDBACK_DURABLE_OBJECT_NAME,
+  FEEDBACK_LIST_URL,
+  FEEDBACK_MARK_READ_URL,
+  FEEDBACK_SUBMIT_URL,
+  MAX_FEEDBACK_BODY_BYTES,
+  parseFeedbackBody,
+  pushFeedbackToDiscord,
+  uaFamily,
+  type FeedbackRecord,
+  type FeedbackSubmitEnvelope,
+} from './feedbackInbox';
 import type { SeasonRankSnapshot } from '../../../src/lib/seasonRankDelta';
 
 type BattleType = 'singles' | 'doubles';
@@ -142,6 +155,11 @@ type AppEnv = Env & {
   ENVIRONMENT_AUDIT_UNKNOWN_THRESHOLD?: string;
   SCHEDULED_MAX_JITTER_MS?: string;
   ENVIRONMENT_REFRESHER?: DurableObjectNamespace;
+  // Absent on the preview shadow Worker (no DO bindings there) — every feedback route must
+  // degrade to 503 rather than throw. `FEEDBACK_DISCORD_WEBHOOK` is a secret, so it never
+  // appears in the generated types either.
+  FEEDBACK_INBOX?: DurableObjectNamespace;
+  FEEDBACK_DISCORD_WEBHOOK?: string;
 };
 
 const SNAPSHOT_KEY = 'environment:latest';
@@ -212,7 +230,7 @@ const pokeDbItemNameById = new Map(Object.entries(pokedbItemNameToId).map(([name
 const jsonHeaders = (env: AppEnv, extra: HeadersInit = {}) => ({
   'content-type': 'application/json; charset=utf-8',
   'access-control-allow-origin': env.ALLOWED_ORIGINS || '*',
-  'access-control-allow-methods': 'GET,POST,OPTIONS',
+  'access-control-allow-methods': 'GET,POST,PATCH,OPTIONS',
   'access-control-allow-headers': 'authorization,content-type',
   ...extra,
 });
@@ -1267,6 +1285,9 @@ async function scheduleEnvironmentRefreshAlarm(env: AppEnv, jobId: string) {
   }
 }
 
+// Re-exported so `wrangler.jsonc` can name a single entry module for both Durable Objects.
+export { FeedbackInboxDurableObject } from './feedbackInbox';
+
 export class EnvironmentRefreshDurableObject implements DurableObject {
   private readonly state: DurableObjectState;
   private readonly env: AppEnv;
@@ -1671,8 +1692,122 @@ async function handlePing(request: Request, env: AppEnv): Promise<Response> {
   return discard();
 }
 
+/* ------------------------------------------------------------------------- *
+ * 站内留言箱 `/api/feedback`（存储与隐私边界见 src/feedbackInbox.ts 顶部）
+ * ------------------------------------------------------------------------- */
+
+const FEEDBACK_ROUTE_PATTERNS = new Set(routePatterns);
+
+const noStore = { 'cache-control': 'no-store' } as const;
+
+/** preview 影子 Worker 没有 DO 绑定，所以「留言功能暂时不可用」是结构性事实，不是故障。 */
+const feedbackStub = (env: AppEnv) => {
+  if (!env.FEEDBACK_INBOX) return null;
+  return env.FEEDBACK_INBOX.get(env.FEEDBACK_INBOX.idFromName(FEEDBACK_DURABLE_OBJECT_NAME));
+};
+
+const feedbackUnavailable = (env: AppEnv) =>
+  jsonResponse(env, { error: 'feedback_unavailable' }, { status: 503, headers: noStore });
+
+async function handleFeedbackSubmit(request: Request, env: AppEnv, ctx: ExecutionContext): Promise<Response> {
+  const body = await request.text();
+  // Byte length, not string length: 1000 CJK characters are ~3 KB of UTF-8.
+  if (new TextEncoder().encode(body).length > MAX_FEEDBACK_BODY_BYTES) {
+    return jsonResponse(env, { error: 'feedback_too_large' }, { status: 413, headers: noStore });
+  }
+
+  let parsed;
+  try {
+    parsed = parseFeedbackBody(JSON.parse(body), FEEDBACK_ROUTE_PATTERNS);
+  } catch {
+    return jsonResponse(env, { error: 'invalid_feedback', field: 'body' }, { status: 400, headers: noStore });
+  }
+  if (!parsed.ok) {
+    return jsonResponse(env, { error: 'invalid_feedback', field: parsed.field }, { status: 400, headers: noStore });
+  }
+
+  const now = new Date();
+  // Honeypot: answer exactly like a real success — same status, same shape — so a bot
+  // cannot tell the field gave it away, and nothing is written.
+  if (parsed.honeypot) {
+    return jsonResponse(
+      env,
+      { id: crypto.randomUUID(), createdAt: now.toISOString() },
+      { status: 201, headers: noStore },
+    );
+  }
+
+  const stub = feedbackStub(env);
+  if (!stub) return feedbackUnavailable(env);
+
+  const envelope: FeedbackSubmitEnvelope = {
+    submission: parsed.submission,
+    // The IP is hashed here and never travels further: the Durable Object only ever sees
+    // the derived, day-scoped key.
+    clientKey: await deriveClientKey(request.headers.get('cf-connecting-ip') ?? '', now),
+    uaFamily: uaFamily(request.headers.get('user-agent')),
+    country: (request as { cf?: { country?: string } }).cf?.country ?? '',
+    receivedAt: now.toISOString(),
+  };
+
+  const response = await stub.fetch(new Request(FEEDBACK_SUBMIT_URL, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json; charset=utf-8' },
+    body: JSON.stringify(envelope),
+  }));
+
+  if (response.status === 429) {
+    return jsonResponse(env, { error: 'feedback_rate_limited' }, { status: 429, headers: noStore });
+  }
+  if (!response.ok) {
+    return jsonResponse(env, { error: 'feedback_store_failed' }, { status: 500, headers: noStore });
+  }
+
+  const { record } = await response.json() as { record: FeedbackRecord };
+  // Discord push runs after the response: the message is already durable, so a webhook
+  // outage must not turn a stored message into an error for the user.
+  if (env.FEEDBACK_DISCORD_WEBHOOK) {
+    ctx.waitUntil(pushFeedbackToDiscord(env.FEEDBACK_DISCORD_WEBHOOK, record));
+  }
+
+  return jsonResponse(env, { id: record.id, createdAt: record.createdAt }, { status: 201, headers: noStore });
+}
+
+async function handleFeedbackList(request: Request, env: AppEnv, url: URL): Promise<Response> {
+  if (!(await isAuthorizedRefresh(request, env))) {
+    return jsonResponse(env, { error: 'unauthorized' }, { status: 401, headers: noStore });
+  }
+  const stub = feedbackStub(env);
+  if (!stub) return feedbackUnavailable(env);
+
+  const listUrl = new URL(FEEDBACK_LIST_URL);
+  listUrl.searchParams.set('status', url.searchParams.get('status') ?? 'new');
+  listUrl.searchParams.set('limit', url.searchParams.get('limit') ?? '');
+  const response = await stub.fetch(new Request(listUrl.toString()));
+  return jsonResponse(env, await response.json(), { status: response.status, headers: noStore });
+}
+
+async function handleFeedbackPatch(request: Request, env: AppEnv, id: string): Promise<Response> {
+  if (!(await isAuthorizedRefresh(request, env))) {
+    return jsonResponse(env, { error: 'unauthorized' }, { status: 401, headers: noStore });
+  }
+  const payload = await request.json().catch(() => null) as { status?: unknown } | null;
+  if (payload?.status !== 'read') {
+    return jsonResponse(env, { error: 'invalid_feedback_status' }, { status: 400, headers: noStore });
+  }
+  const stub = feedbackStub(env);
+  if (!stub) return feedbackUnavailable(env);
+
+  const response = await stub.fetch(new Request(FEEDBACK_MARK_READ_URL, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json; charset=utf-8' },
+    body: JSON.stringify({ id }),
+  }));
+  return jsonResponse(env, await response.json(), { status: response.status, headers: noStore });
+}
+
 export default {
-  async fetch(request: Request, env: AppEnv, _ctx: ExecutionContext): Promise<Response> {
+  async fetch(request: Request, env: AppEnv, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
 
     if (request.method === 'OPTIONS') {
@@ -1731,6 +1866,16 @@ export default {
 
     if (request.method === 'POST' && url.pathname === '/api/ping') {
       return handlePing(request, env);
+    }
+
+    if (url.pathname === '/api/feedback') {
+      if (request.method === 'POST') return handleFeedbackSubmit(request, env, ctx);
+      if (request.method === 'GET') return handleFeedbackList(request, env, url);
+    }
+
+    const feedbackItemMatch = url.pathname.match(/^\/api\/feedback\/([^/]+)$/);
+    if (request.method === 'PATCH' && feedbackItemMatch) {
+      return handleFeedbackPatch(request, env, decodeURIComponent(feedbackItemMatch[1]));
     }
 
     if (url.pathname.startsWith('/api/')) {

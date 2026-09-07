@@ -71,14 +71,27 @@
       {
         "name": "ENVIRONMENT_REFRESHER",
         "class_name": "EnvironmentRefreshDurableObject"
+      },
+      {
+        // 站内留言箱。存储用 DO 自带的 SQLite（migrations v2），deploy 即建表，
+        // 不需要在 Dashboard 里预先创建任何资源。preview 配置刻意不带这个绑定。
+        "name": "FEEDBACK_INBOX",
+        "class_name": "FeedbackInboxDurableObject"
       }
     ]
   },
+  // migrations 是只追加的历史：v1 永远不能改，新类另起一个 tag。
   "migrations": [
     {
       "tag": "v1",
       "new_sqlite_classes": [
         "EnvironmentRefreshDurableObject"
+      ]
+    },
+    {
+      "tag": "v2",
+      "new_sqlite_classes": [
+        "FeedbackInboxDurableObject"
       ]
     }
   ]

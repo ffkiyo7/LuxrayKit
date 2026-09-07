@@ -1710,3 +1710,223 @@ describe('POST /api/ping anonymous page views', () => {
     expect(response.status).toBe(404);
   });
 });
+
+describe('/api/feedback in-app message inbox', () => {
+  const feedbackEnv = (overrides: Record<string, unknown> = {}) => {
+    const envelopes: Array<Record<string, unknown>> = [];
+    const doFetch = vi.fn(async (request: Request) => {
+      const body = await request.json() as { submission?: { message?: string } };
+      envelopes.push(body as Record<string, unknown>);
+      return new Response(JSON.stringify({
+        record: {
+          id: 'fb-1',
+          createdAt: '2026-09-07T08:00:00.000Z',
+          kind: 'idea',
+          message: body.submission?.message ?? '',
+          contact: '',
+          route: '/profile',
+          appBuild: 'abc1234',
+          dataVersion: 'reg-mb-1',
+          uaFamily: 'iOS',
+          country: 'JP',
+          status: 'new',
+        },
+      }), { status: 201 });
+    });
+    const env = {
+      ALLOWED_ORIGINS: '*',
+      ADMIN_REFRESH_TOKEN: 'secret',
+      FEEDBACK_INBOX: {
+        idFromName: vi.fn((name: string) => ({ name })),
+        get: vi.fn(() => ({ fetch: doFetch })),
+      },
+      ...overrides,
+    };
+    return { env, doFetch, envelopes };
+  };
+
+  const waitUntilContext = () => {
+    const pending: Array<Promise<unknown>> = [];
+    return { ctx: { waitUntil: (promise: Promise<unknown>) => pending.push(promise) }, pending };
+  };
+
+  const validBody = (patch: Record<string, unknown> = {}) => ({
+    kind: 'idea',
+    message: '希望速度线支持按实数排序',
+    contact: '',
+    route: '/profile',
+    appBuild: 'abc1234',
+    dataVersion: 'reg-mb-1',
+    website: '',
+    ...patch,
+  });
+
+  const post = (env: unknown, body: unknown, init: { headers?: Record<string, string>; cf?: Record<string, string> } = {}, ctx: unknown = {}) => {
+    const request = new Request('https://luxraykit.com/api/feedback', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', ...(init.headers ?? {}) },
+      body: typeof body === 'string' ? body : JSON.stringify(body),
+    });
+    if (init.cf) Object.defineProperty(request, 'cf', { value: init.cf });
+    return worker.fetch(request, env as never, ctx as never);
+  };
+
+  it('stores a valid message and answers with its id, never with the stored content', async () => {
+    const { env, envelopes } = feedbackEnv();
+
+    const response = await post(env, validBody(), {
+      headers: { 'cf-connecting-ip': '203.0.113.7', 'user-agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)' },
+      cf: { country: 'JP' },
+    });
+
+    expect(response.status).toBe(201);
+    expect(response.headers.get('cache-control')).toBe('no-store');
+    expect(await response.json()).toEqual({ id: 'fb-1', createdAt: '2026-09-07T08:00:00.000Z' });
+    expect(env.FEEDBACK_INBOX.idFromName).toHaveBeenCalledWith('feedback-inbox');
+
+    const [envelope] = envelopes;
+    expect(envelope).toMatchObject({ uaFamily: 'iOS', country: 'JP' });
+    expect(envelope.submission).toMatchObject({ kind: 'idea', route: '/profile' });
+    // The raw IP and the raw User-Agent must never reach the Durable Object.
+    expect(JSON.stringify(envelope)).not.toContain('203.0.113.7');
+    expect(JSON.stringify(envelope)).not.toContain('Mozilla');
+    expect(envelope.clientKey).toMatch(/^[0-9a-f]{16}$/);
+  });
+
+  it('answers a honeypot hit with an indistinguishable 201 and writes nothing', async () => {
+    const { env, doFetch } = feedbackEnv();
+
+    const response = await post(env, validBody({ website: 'https://spam.example' }));
+
+    expect(response.status).toBe(201);
+    expect(Object.keys(await response.json() as object).sort()).toEqual(['createdAt', 'id']);
+    expect(doFetch).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['an unknown kind', validBody({ kind: 'rant' })],
+    ['a too-short message', validBody({ message: '短' })],
+    ['a non-JSON body', 'not json'],
+  ])('rejects %s with 400 and stores nothing', async (_label, body) => {
+    const { env, doFetch } = feedbackEnv();
+    const response = await post(env, body);
+    expect(response.status).toBe(400);
+    expect(doFetch).not.toHaveBeenCalled();
+  });
+
+  it('rejects a body over 4 KB before parsing it', async () => {
+    const { env, doFetch } = feedbackEnv();
+    const response = await post(env, validBody({ message: 'x'.repeat(5000) }));
+    expect(response.status).toBe(413);
+    expect(await response.json()).toEqual({ error: 'feedback_too_large' });
+    expect(doFetch).not.toHaveBeenCalled();
+  });
+
+  it('passes the Durable Object rate-limit verdict through as a 429', async () => {
+    const { env } = feedbackEnv();
+    env.FEEDBACK_INBOX.get = vi.fn(() => ({
+      fetch: vi.fn(async () => new Response(JSON.stringify({ error: 'feedback_rate_limited' }), { status: 429 })),
+    }));
+
+    const response = await post(env, validBody());
+
+    expect(response.status).toBe(429);
+    expect(await response.json()).toEqual({ error: 'feedback_rate_limited' });
+  });
+
+  it('degrades to 503 wherever the Durable Object binding is missing (preview shadow Worker)', async () => {
+    const previewEnv = { ALLOWED_ORIGINS: '*', ADMIN_REFRESH_TOKEN: 'secret' };
+
+    const submitted = await post(previewEnv, validBody());
+    expect(submitted.status).toBe(503);
+    expect(await submitted.json()).toEqual({ error: 'feedback_unavailable' });
+
+    const listed = await worker.fetch(
+      new Request('https://luxraykit.com/api/feedback', { headers: { authorization: 'Bearer secret' } }),
+      previewEnv as never,
+      {} as never,
+    );
+    expect(listed.status).toBe(503);
+  });
+
+  it('pushes to Discord only when the webhook secret is set, and after the response', async () => {
+    const discord = vi.fn(async () => new Response('', { status: 204 }));
+    const { env } = feedbackEnv({ FEEDBACK_DISCORD_WEBHOOK: 'https://discord.example/hook' });
+    vi.stubGlobal('fetch', discord);
+    const { ctx, pending } = waitUntilContext();
+
+    const response = await post(env, validBody(), {}, ctx);
+
+    expect(response.status).toBe(201);
+    expect(pending).toHaveLength(1);
+    await Promise.all(pending);
+    expect(discord).toHaveBeenCalledTimes(1);
+    const payload = JSON.parse((discord.mock.calls[0] as unknown as [string, RequestInit])[1].body as string);
+    expect(payload.embeds[0].title).toContain('新留言');
+    vi.unstubAllGlobals();
+
+    const { env: silentEnv } = feedbackEnv();
+    const { ctx: silentCtx, pending: silentPending } = waitUntilContext();
+    await post(silentEnv, validBody(), {}, silentCtx);
+    expect(silentPending).toHaveLength(0);
+  });
+
+  it('guards the admin endpoints with the same bearer token as the refresh route', async () => {
+    const { env } = feedbackEnv();
+    const listStub = vi.fn(async () => new Response(JSON.stringify({ items: [], status: 'new', limit: 50 }), { status: 200 }));
+    env.FEEDBACK_INBOX.get = vi.fn(() => ({ fetch: listStub }));
+
+    const anonymous = await worker.fetch(new Request('https://luxraykit.com/api/feedback'), env as never, {} as never);
+    expect(anonymous.status).toBe(401);
+    expect(listStub).not.toHaveBeenCalled();
+
+    const wrongToken = await worker.fetch(
+      new Request('https://luxraykit.com/api/feedback', { headers: { authorization: 'Bearer nope' } }),
+      env as never,
+      {} as never,
+    );
+    expect(wrongToken.status).toBe(401);
+
+    const authorized = await worker.fetch(
+      new Request('https://luxraykit.com/api/feedback?status=all&limit=5', { headers: { authorization: 'Bearer secret' } }),
+      env as never,
+      {} as never,
+    );
+    expect(authorized.status).toBe(200);
+    expect(authorized.headers.get('cache-control')).toBe('no-store');
+    const forwarded = new URL((listStub.mock.calls[0] as unknown as [Request])[0].url);
+    expect(forwarded.searchParams.get('status')).toBe('all');
+    expect(forwarded.searchParams.get('limit')).toBe('5');
+  });
+
+  it('marks one message read through PATCH /api/feedback/:id', async () => {
+    const { env } = feedbackEnv();
+    const patchStub = vi.fn(async () => new Response(JSON.stringify({ id: 'fb-1', status: 'read' }), { status: 200 }));
+    env.FEEDBACK_INBOX.get = vi.fn(() => ({ fetch: patchStub }));
+
+    const patch = (body: unknown, headers: Record<string, string>) =>
+      worker.fetch(
+        new Request('https://luxraykit.com/api/feedback/fb-1', { method: 'PATCH', headers, body: JSON.stringify(body) }),
+        env as never,
+        {} as never,
+      );
+
+    expect((await patch({ status: 'read' }, {})).status).toBe(401);
+    expect((await patch({ status: 'archived' }, { authorization: 'Bearer secret' })).status).toBe(400);
+
+    const ok = await patch({ status: 'read' }, { authorization: 'Bearer secret' });
+    expect(ok.status).toBe(200);
+    expect(await ok.json()).toEqual({ id: 'fb-1', status: 'read' });
+    expect(await (patchStub.mock.calls[0] as unknown as [Request])[0].json()).toEqual({ id: 'fb-1' });
+  });
+
+  it('does not answer GET on a single feedback id', async () => {
+    const { env } = feedbackEnv();
+    const response = await worker.fetch(
+      new Request('https://luxraykit.com/api/feedback/fb-1', { headers: { authorization: 'Bearer secret' } }),
+      env as never,
+      {} as never,
+    );
+    expect(response.status).toBe(404);
+  });
+});
