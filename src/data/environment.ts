@@ -257,6 +257,13 @@ type FetchedEnvironmentSnapshot = {
   cacheState?: string;
   sourceStatus?: string;
   latestSourceUpdatedAt?: string;
+  /**
+   * `x-luxray-refreshed-at` from the Worker. The snapshot body may be served out of the
+   * browser's HTTP cache after a 304, so the body's own `retrievedAt` can lag the pipeline;
+   * this header always comes from the live response (browsers merge 304 headers into the
+   * cached entry) and is therefore the authoritative 「抓取」 time.
+   */
+  refreshedAt?: string;
 };
 
 const fetchEnvironmentSnapshot = async (
@@ -275,8 +282,12 @@ const fetchEnvironmentSnapshot = async (
     cacheState: response.headers.get('x-luxray-cache-state') ?? undefined,
     sourceStatus: response.headers.get('x-luxray-source-status') ?? undefined,
     latestSourceUpdatedAt: response.headers.get('x-luxray-latest-source-updated-at') ?? undefined,
+    refreshedAt: response.headers.get('x-luxray-refreshed-at') ?? undefined,
   };
 };
+
+const withRefreshedAt = (state: EnvironmentState, refreshedAt: string | undefined): EnvironmentState =>
+  refreshedAt ? { ...state, updatedAt: refreshedAt } : state;
 
 const parseEnvironmentSourceTime = (value: string | undefined) => {
   if (!value) return Number.NaN;
@@ -328,8 +339,11 @@ export const loadEnvironmentState = async (
   // The curated VGCPastes samples are fetched only after a base snapshot loads, so
   // the worker/static snapshot remains the primary (first) request.
   try {
-    const workerUrl = `${WORKER_ENVIRONMENT_SNAPSHOT_URL}?refresh=${Date.now()}`;
-    const result = await fetchEnvironmentSnapshot(fetcher, workerUrl, 'no-store');
+    // No cache-busting query string and `no-cache` rather than `no-store`: the Worker serves
+    // the snapshot with an ETag, so the browser revalidates on every load but a 304 keeps the
+    // 450 KB body out of the wire. `fetch` transparently returns the cached body plus the
+    // freshly merged x-luxray-* headers.
+    const result = await fetchEnvironmentSnapshot(fetcher, WORKER_ENVIRONMENT_SNAPSHOT_URL, 'no-cache');
     const workerMetadata = {
       sourceKind: 'worker' as const,
       freshness: result.cacheState === 'fresh' ? 'fresh' as const : 'stale' as const,
@@ -338,7 +352,10 @@ export const loadEnvironmentState = async (
 
     if (workerMetadata.freshness === 'fresh' && workerMetadata.sourceStatus === 'ok') {
       const vgcPastesTeamSamples = await loadVgcPastesTeamSamples();
-      return createEnvironmentStateFromPokeDbSnapshot(result.snapshot, workerMetadata, vgcPastesTeamSamples);
+      return withRefreshedAt(
+        createEnvironmentStateFromPokeDbSnapshot(result.snapshot, workerMetadata, vgcPastesTeamSamples),
+        result.refreshedAt,
+      );
     }
 
     // A stale or degraded Worker can lag behind the independently maintained static
@@ -347,7 +364,10 @@ export const loadEnvironmentState = async (
     try {
       const staticResult = await fetchEnvironmentSnapshot(fetcher, POKEDB_ENVIRONMENT_SNAPSHOT_URL, 'force-cache');
       const vgcPastesTeamSamples = await loadVgcPastesTeamSamples();
-      const workerState = createEnvironmentStateFromPokeDbSnapshot(result.snapshot, workerMetadata, vgcPastesTeamSamples);
+      const workerState = withRefreshedAt(
+        createEnvironmentStateFromPokeDbSnapshot(result.snapshot, workerMetadata, vgcPastesTeamSamples),
+        result.refreshedAt,
+      );
       const staticState = createEnvironmentStateFromPokeDbSnapshot(staticResult.snapshot, {
         sourceKind: 'static',
         freshness: 'stale',
@@ -367,7 +387,10 @@ export const loadEnvironmentState = async (
     }
 
     const vgcPastesTeamSamples = await loadVgcPastesTeamSamples();
-    return createEnvironmentStateFromPokeDbSnapshot(result.snapshot, workerMetadata, vgcPastesTeamSamples);
+    return withRefreshedAt(
+      createEnvironmentStateFromPokeDbSnapshot(result.snapshot, workerMetadata, vgcPastesTeamSamples),
+      result.refreshedAt,
+    );
   } catch {
     // Static deployments and offline installs can keep using the bundled maintenance snapshot.
   }

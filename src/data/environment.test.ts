@@ -59,8 +59,8 @@ describe('environment runtime loading', () => {
     const state = await loadEnvironmentState(fetcher);
 
     expect(fetcher).toHaveBeenCalledWith(
-      expect.stringMatching(new RegExp(`^${WORKER_ENVIRONMENT_SNAPSHOT_URL.replace('/', '\\/')}\\?refresh=\\d+$`)),
-      expect.objectContaining({ cache: 'no-store' }),
+      WORKER_ENVIRONMENT_SNAPSHOT_URL,
+      expect.objectContaining({ cache: 'no-cache' }),
     );
     expect(fetcher).toHaveBeenCalledTimes(1);
     expect(state.sourceLabel).toContain('PokeDB');
@@ -80,6 +80,57 @@ describe('environment runtime loading', () => {
       hasSpread: true,
       replicaCode: expect.any(String),
     });
+  });
+
+  it('requests the Worker snapshot conditionally instead of cache-busting it', async () => {
+    const fetcher = vi.fn(async () =>
+      new Response(JSON.stringify(pokedbSnapshot), {
+        status: 200,
+        headers: { 'x-luxray-cache-state': 'fresh' },
+      }),
+    );
+
+    await loadEnvironmentState(fetcher);
+
+    const [url, init] = fetcher.mock.calls[0] as [string, RequestInit];
+    // A `?refresh=` cache buster plus `no-store` made every load re-download the full 450 KB
+    // snapshot. The Worker now serves an ETag, so we revalidate instead of re-downloading.
+    expect(url).toBe(WORKER_ENVIRONMENT_SNAPSHOT_URL);
+    expect(url).not.toContain('refresh=');
+    expect(init.cache).toBe('no-cache');
+    expect(init.cache).not.toBe('no-store');
+  });
+
+  it('prefers the x-luxray-refreshed-at header over the cached body retrievedAt', async () => {
+    const fetcher = vi.fn(async () =>
+      new Response(JSON.stringify(pokedbSnapshot), {
+        status: 200,
+        headers: {
+          'x-luxray-cache-state': 'fresh',
+          // A 304 leaves the body (and its retrievedAt) in the browser cache while the header
+          // carries the live pipeline time, so the header wins.
+          'x-luxray-refreshed-at': '2026-06-09T01:02:03.000Z',
+        },
+      }),
+    );
+
+    const state = await loadEnvironmentState(fetcher);
+
+    expect(state.updatedAt).toBe('2026-06-09T01:02:03.000Z');
+    expect(state.updatedAt).not.toBe(pokedbSnapshot.retrievedAt);
+  });
+
+  it('falls back to the body retrievedAt when the Worker sends no refreshed-at header', async () => {
+    const fetcher = vi.fn(async () =>
+      new Response(JSON.stringify(pokedbSnapshot), {
+        status: 200,
+        headers: { 'x-luxray-cache-state': 'fresh' },
+      }),
+    );
+
+    const state = await loadEnvironmentState(fetcher);
+
+    expect(state.updatedAt).toBe(pokedbSnapshot.retrievedAt);
   });
 
   it('keeps PokeDB environment data when the VGCPastes enrichment chunk cannot load', async () => {
@@ -349,8 +400,8 @@ describe('environment runtime loading', () => {
 
     expect(fetcher).toHaveBeenNthCalledWith(
       1,
-      expect.stringMatching(new RegExp(`^${WORKER_ENVIRONMENT_SNAPSHOT_URL.replace('/', '\\/')}\\?refresh=\\d+$`)),
-      expect.objectContaining({ cache: 'no-store' }),
+      WORKER_ENVIRONMENT_SNAPSHOT_URL,
+      expect.objectContaining({ cache: 'no-cache' }),
     );
     expect(fetcher).toHaveBeenNthCalledWith(2, POKEDB_ENVIRONMENT_SNAPSHOT_URL, expect.objectContaining({ cache: 'force-cache' }));
     expect(fetcher).toHaveBeenCalledTimes(2);
@@ -369,11 +420,7 @@ describe('environment runtime loading', () => {
 
     const state = await loadEnvironmentState(fetcher);
 
-    expect(fetcher).toHaveBeenNthCalledWith(
-      1,
-      expect.stringMatching(new RegExp(`^${WORKER_ENVIRONMENT_SNAPSHOT_URL.replace('/', '\\/')}\\?refresh=\\d+$`)),
-      expect.any(Object),
-    );
+    expect(fetcher).toHaveBeenNthCalledWith(1, WORKER_ENVIRONMENT_SNAPSHOT_URL, expect.any(Object));
     expect(fetcher).toHaveBeenNthCalledWith(2, POKEDB_ENVIRONMENT_SNAPSHOT_URL, expect.any(Object));
     expect(state.loadStatus).toBe('fallback');
     expect(state.sourceKind).toBe('seed');
