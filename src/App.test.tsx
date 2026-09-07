@@ -1344,6 +1344,65 @@ describe('App page flows', () => {
     expect(window.location.hash).toBe('#/profile');
   });
 
+  it('previews a #/t/<code> share link and imports it into the team list', { timeout: 20000 }, async () => {
+    const { encodeTeamShare } = await import('./lib/teamShare');
+    const shared = testTeam('分享来的队', [garchompMember()]);
+    // jsdom has no CompressionStream, so this exercises the uncompressed `p1` path — the
+    // decoder accepts either prefix, which is the point of having both.
+    window.location.hash = `#/t/${await encodeTeamShare(shared)}`;
+
+    const user = userEvent.setup();
+    render(<App />);
+
+    const dialog = await screen.findByRole('dialog', { name: '分享的队伍' }, { timeout: 10000 });
+    expect(await within(dialog).findByRole('heading', { name: '分享来的队' })).toBeTruthy();
+    expect(within(dialog).getByText('烈咬陆鲨')).toBeTruthy();
+    expect(within(dialog).getByText(/粗糙皮肤 · 磁铁 · 爽朗/)).toBeTruthy();
+
+    await user.click(within(dialog).getByRole('button', { name: /导入到我的队伍/ }));
+
+    expect(await screen.findByRole('heading', { name: '分享来的队' })).toBeTruthy();
+    expect((await screen.findByRole('status')).textContent).toContain('已导入分享队伍');
+    await waitFor(async () => {
+      const state = await repository.loadState();
+      const imported = state.teams.find((team) => team.name === '分享来的队');
+      expect(imported?.source?.kind).toBe('share-link-import');
+      expect(imported?.members[0].pokemonId).toBe('garchomp');
+    });
+
+    await user.click(screen.getByRole('button', { name: '返回队伍列表' }));
+    expect(await screen.findByLabelText('队伍：分享来的队')).toBeTruthy();
+  });
+
+  it('explains a corrupt share link instead of rendering a blank overlay', async () => {
+    window.location.hash = '#/t/z1notarealcode';
+    render(<App />);
+
+    const dialog = await screen.findByRole('dialog', { name: '分享的队伍' }, { timeout: 10000 });
+    expect(await within(dialog).findByText('分享链接打不开')).toBeTruthy();
+    expect(within(dialog).queryByRole('button', { name: /导入到我的队伍/ })).toBeNull();
+  });
+
+  it('copies a share URL from team detail when the platform has no share sheet', async () => {
+    const user = await renderApp();
+    // userEvent.setup() installs its own clipboard stub, so override it *after* renderApp.
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } });
+    await openDefaultTeam(user);
+
+    await user.click(screen.getByRole('button', { name: '分享 Luxray test' }));
+
+    await waitFor(() => expect(writeText).toHaveBeenCalledTimes(1));
+    const sharedUrl = writeText.mock.calls[0][0] as string;
+    expect(sharedUrl.startsWith(`${window.location.origin}/#/t/`)).toBe(true);
+    expect((await screen.findByRole('status')).textContent).toContain('链接已复制');
+
+    const { decodeTeamShare } = await import('./lib/teamShare');
+    const decoded = await decodeTeamShare(sharedUrl.split('/#/t/')[1]);
+    expect(decoded.name).toBe('Luxray test');
+    expect(decoded.members[0].pokemonId).toBe('luxray');
+  });
+
   it('opens the speed line tool from the tools page', async () => {
     const user = await renderApp();
 

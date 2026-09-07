@@ -24,6 +24,7 @@ const ProfilePage = lazy(() => import('./pages/ProfilePage').then((module) => ({
 const RulePage = lazy(() => import('./pages/RulePage').then((module) => ({ default: module.RulePage })));
 const SpeedPage = lazy(() => import('./pages/SpeedPage').then((module) => ({ default: module.SpeedPage })));
 const TeamPage = lazy(() => import('./pages/TeamPage').then((module) => ({ default: module.TeamPage })));
+const SharedTeamPreview = lazy(() => import('./pages/SharedTeamPreview').then((module) => ({ default: module.SharedTeamPreview })));
 const ToolsPage = lazy(() => import('./pages/ToolsPage').then((module) => ({ default: module.ToolsPage })));
 const TypeChartPage = lazy(() => import('./pages/TypeChartPage').then((module) => ({ default: module.TypeChartPage })));
 
@@ -304,6 +305,42 @@ function AppShell() {
     await performImportSampleTeam(sample);
   }, [pendingImportSample, performImportSampleTeam, preferences, replacePreferences]);
 
+  // Share flow: navigator.share where the platform has it (Android/iOS sheet), clipboard
+  // otherwise. The code is generated on demand rather than stored — it must always reflect
+  // the team as it is now.
+  const shareTeam = useCallback(
+    async (team: Team) => {
+      if (team.members.length === 0) return;
+      try {
+        const { encodeTeamShare, teamShareUrl } = await import('./lib/teamShare');
+        const url = teamShareUrl(await encodeTeamShare(team));
+        if (typeof navigator.share === 'function') {
+          await navigator.share({ title: `${team.name} · ${productName}`, url });
+          return;
+        }
+        await navigator.clipboard.writeText(url);
+        setImportToast({ title: '链接已复制', description: '把它发给队友即可导入' });
+      } catch (error) {
+        // A user dismissing the native share sheet rejects with AbortError — that is a
+        // cancellation, not a failure, and must not raise a warning toast.
+        if (error instanceof DOMException && error.name === 'AbortError') return;
+        setImportToast({ title: '分享失败', description: '请稍后再试或手动复制地址栏链接', tone: 'warning' });
+      }
+    },
+    [],
+  );
+
+  const importSharedTeam = useCallback(
+    async (team: Team) => {
+      await saveTeam(team);
+      setActiveTeamId(team.id);
+      setHighlightedImportTeamId(team.id);
+      setImportToast({ title: '已导入分享队伍' });
+      navigate({ name: 'team-detail', teamId: team.id }, { replace: true });
+    },
+    [navigate, saveTeam],
+  );
+
   const copyReplicaCode = useCallback(async (replicaCode: string) => {
     try {
       await navigator.clipboard.writeText(replicaCode);
@@ -330,6 +367,7 @@ function AppShell() {
             highlightedTeamId={highlightedImportTeamId}
             onActiveTeamChange={setActiveTeamId}
             onCopyReplicaCode={copyReplicaCode}
+            onShareTeam={shareTeam}
             onSendToSpeed={sendMemberToSpeed}
             onSendToCalculator={sendMemberToCalculator}
           />
@@ -372,6 +410,7 @@ function AppShell() {
     copyReplicaCode,
     navigate,
     openTool,
+    shareTeam,
     overlay,
     toolView,
   ]);
@@ -415,6 +454,11 @@ function AppShell() {
             {importToast.description && <span className="mt-0.5 block text-xs font-medium text-textSecondary">{importToast.description}</span>}
           </span>
         </div>
+      )}
+      {route.name === 'share' && (
+        <Suspense fallback={null}>
+          <SharedTeamPreview code={route.code} onClose={back} onImport={importSharedTeam} />
+        </Suspense>
       )}
       {pendingImportSample && (
         <ImportCoverageNoticeDialog

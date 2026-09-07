@@ -1,4 +1,4 @@
-import { ArrowLeft, ChevronUp, Copy, Edit3, Gauge, GripVertical, Info, Minus, Plus, Save, Search, Swords, Trash2, X } from 'lucide-react';
+import { ArrowLeft, ChevronUp, Copy, Edit3, Gauge, GripVertical, Info, Minus, Plus, Save, Search, Share2, Swords, Trash2, X } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
 import { abilities, currentRuleNatureOptions, items, moves, pokemon } from '../data';
 import { memberBattleStats, memberLabel } from '../lib/calculations';
@@ -990,6 +990,7 @@ export function TeamPage({
   highlightedTeamId,
   onActiveTeamChange,
   onCopyReplicaCode,
+  onShareTeam,
   onSendToSpeed,
   onSendToCalculator,
 }: {
@@ -997,6 +998,7 @@ export function TeamPage({
   highlightedTeamId?: string;
   onActiveTeamChange: (teamId: string | undefined) => void;
   onCopyReplicaCode: (replicaCode: string) => Promise<void> | void;
+  onShareTeam: (team: Team) => Promise<void> | void;
   onSendToSpeed: (memberId: string) => void;
   onSendToCalculator: (memberId: string, side: 'attacker' | 'defender') => void;
 }) {
@@ -1261,6 +1263,16 @@ export function TeamPage({
                 )}
               </p>
             </div>
+            <button
+              aria-label={`分享 ${activeTeam.name}`}
+              className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-border bg-card text-textSecondary active:scale-[0.98] disabled:opacity-40"
+              disabled={activeTeam.members.length === 0}
+              title={activeTeam.members.length === 0 ? '空队伍无法分享' : '分享队伍'}
+              type="button"
+              onClick={() => void onShareTeam(activeTeam)}
+            >
+              <Share2 size={17} />
+            </button>
           </div>
 
           <div className="grid grid-cols-2 gap-2">

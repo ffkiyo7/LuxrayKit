@@ -234,6 +234,13 @@ export type TeamSource =
       title: string;
       reportUrl: string;
       importedAt: string;
+    }
+  | {
+      // Imported from a `#/t/<code>` share link. `sharedAt` is when the link was opened
+      // (the code carries no timestamp of its own — nothing about the sharer is encoded).
+      kind: 'share-link-import';
+      sharedAt: string;
+      importedAt: string;
     };
 
 export type Team = {

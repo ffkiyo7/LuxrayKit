@@ -80,6 +80,40 @@ describe('team schema migration', () => {
     });
   });
 
+  it('preserves share-link import source metadata in current schema teams', () => {
+    const migrated = migrateTeamExportPayload({
+      schemaVersion: 2,
+      teams: [
+        {
+          ...defaultTeams[0],
+          source: {
+            kind: 'share-link-import',
+            sharedAt: '2026-09-01T04:00:00.000Z',
+            importedAt: '2026-09-01T04:00:05.000Z',
+          },
+        },
+      ],
+    });
+
+    expect(migrated[0].source).toEqual({
+      kind: 'share-link-import',
+      sharedAt: '2026-09-01T04:00:00.000Z',
+      importedAt: '2026-09-01T04:00:05.000Z',
+    });
+  });
+
+  it('backfills share-link timestamps rather than dropping the source', () => {
+    const migrated = migrateTeamExportPayload({
+      schemaVersion: 2,
+      teams: [{ ...defaultTeams[0], source: { kind: 'share-link-import' } as never }],
+    });
+
+    expect(migrated[0].source?.kind).toBe('share-link-import');
+    const source = migrated[0].source as Extract<NonNullable<typeof migrated[0]['source']>, { kind: 'share-link-import' }>;
+    expect(Number.isNaN(Date.parse(source.sharedAt))).toBe(false);
+    expect(Number.isNaN(Date.parse(source.importedAt))).toBe(false);
+  });
+
   it('migrates v0 teams by filling optional member defaults', () => {
     const migrated = migrateTeamExportPayload({
       schemaVersion: 0,
