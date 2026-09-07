@@ -8,12 +8,13 @@ import { expect, test } from '@playwright/test';
  * decision — do it deliberately, with the new number in the PR, not to make a red run green.
  *
  * Measured 2026-09-07 against `vite preview` (which gzips, so these are wire bytes):
- *   before this change: 404,548 bytes across 14 files
- *   after:              351,690 bytes across 13 files  → budget 387,000 (+10%)
- * The dominant entries are calc-engine (116 KB), index (81 KB), the two VGCPastes sample
- * chunks (67 KB), regma-pokemon-catalog (44 KB), EnvironmentPage (21 KB) and environment (18 KB).
+ *   before this change:        404,548 bytes across 14 files
+ *   after move catalog off:    351,690 bytes across 13 files
+ *   after calc-engine off:     236,378 bytes across 13 files  → budget 260,000 (+10%)
+ * The dominant entries are index (81 KB), the two VGCPastes sample chunks (67 KB),
+ * regma-pokemon-catalog (44 KB), EnvironmentPage (21 KB) and environment (18 KB).
  */
-const FIRST_PAINT_JS_BUDGET_BYTES = 387_000;
+const FIRST_PAINT_JS_BUDGET_BYTES = 260_000;
 
 /**
  * `move-catalog.ts` (362 KB raw / 55 KB gzip) reached the environment home through
@@ -21,8 +22,14 @@ const FIRST_PAINT_JS_BUDGET_BYTES = 387_000;
  * `regma-pokemon-catalog` chunk statically depend on `regma-moves`. It now loads on demand
  * from the Pokémon detail screen. The environment home renders rankings and team cards and
  * needs no `Move` object at all, so this must stay out of the navigation.
+ *
+ * `calc-engine` (@smogon/calc, 479 KB raw / 115 KB gzip) reached the entry chunk the same way:
+ * Rollup's synthetic `\0commonjsHelpers.js` had no manual-chunk assignment and landed in
+ * `calc-engine`, so the entry — which needs that helper for React's CJS build — imported the
+ * whole calculator. `vendor-helpers` now owns the helper. Only the lazy CalculatorPage may
+ * pull the engine.
  */
-const FORBIDDEN_FIRST_PAINT_CHUNKS = ['regma-moves'];
+const FORBIDDEN_FIRST_PAINT_CHUNKS = ['regma-moves', 'calc-engine'];
 
 test('keeps the move catalog out of the environment first paint and stays inside the JS budget', async ({ page }) => {
   const requestedScripts = new Set<string>();

@@ -8,12 +8,13 @@
 
 环境优先重构、Luxray Kit 品牌更新和 Cloudflare Worker 统一部署已进入 `main`。生产站点由 `luxraykit-app` Worker 提供静态资源与 API，环境页在线优先读取 KV 中的 PokeDB snapshot，并保留最新赛季静态快照和开发 seed 两级回退。
 
-## 本轮进展（2026-09-07）：条件请求 · 招式表移出首屏 · TeamPage 拆分
+## 本轮进展（2026-09-07）：条件请求 · 首屏瘦身 · TeamPage 拆分
 
-分支 `perf/snapshot-etag-first-paint`（stacked 在 `feat/hash-routing-share-feedback` 之上，PR base 为该分支）。三件事，一条主题：**打开环境首页要下载的东西太多**（实测约 345 KB gzip + 450 KB 未压缩快照）。
+分支 `perf/snapshot-etag-first-paint`（stacked 在 `feat/hash-routing-share-feedback` 之上，PR base 为该分支）。一条主题：**打开环境首页要下载的东西太多**（实测约 345 KB gzip + 450 KB 未压缩快照）。首屏 JS 合计 **404,548 → 236,378 字节（-42%）**。
 
 - **环境快照条件请求（ETag / 304）**：Worker 的 `handleLatest` 以 `environment:status` 的内容身份字段（`sourceUpdatedAt` / `selectedSeason` / `previousSeasonLabel`）生成 ETag，`cache-control` 从 `no-store` 改为 `private, no-cache`；命中 `If-None-Match` 返回 **304 且带全套 `x-luxray-*` 头**，并且**不读、不 `JSON.parse` 那份 450 KB 快照**（审计头改读 `status.audit`，老 KV 记录才回退解析）。新增 `x-luxray-refreshed-at`。前端去掉 `?refresh=` 与 `no-store`，改 `cache: 'no-cache'`，「抓取」时间优先取响应头。语义见开发指南 §5.3 / §6.1。
-- **招式表移出首屏**：导入链是 `index → EnvironmentPage → regma-pokemon-catalog → regma-moves` —— 罪魁是 `catalog.ts` 里的 `export const moves = championsMoves`，它让**共享的**宝可梦 catalog chunk 静态依赖 362 KB 的招式表。现在 `moves` 的 re-export 独立成 `src/data/seed/regMA/moves.ts`；环境审计改用新生成产物 `move-ids.ts`（`scripts/generate-move-ids.mjs`，不联网，`dataAudit.test.ts` 做防漂移门禁）；招式对象由 `loadEnvironmentMoves()` 在进入宝可梦详情时动态 `import()`。**首屏实际下载的 JS 404,548 → 351,690 字节（-13%），14 个文件 → 13 个**，由新用例 `tests/pwa/first-paint-budget.spec.ts`（预算 387,000，已挂进 CI 的 PWA 冒烟步骤）守住。
+- **招式表移出首屏**：导入链是 `index → EnvironmentPage → regma-pokemon-catalog → regma-moves` —— 罪魁是 `catalog.ts` 里的 `export const moves = championsMoves`，它让**共享的**宝可梦 catalog chunk 静态依赖 362 KB 的招式表。现在 `moves` 的 re-export 独立成 `src/data/seed/regMA/moves.ts`；环境审计改用新生成产物 `move-ids.ts`（`scripts/generate-move-ids.mjs`，不联网，`dataAudit.test.ts` 做防漂移门禁）；招式对象由 `loadEnvironmentMoves()` 在进入宝可梦详情时动态 `import()`。**首屏实际下载的 JS 404,548 → 351,690 字节（-13%），14 个文件 → 13 个**，由新用例 `tests/pwa/first-paint-budget.spec.ts`（已挂进 CI 的 PWA 冒烟步骤）守住。
+- **`calc-engine` 移出首屏**：`@smogon/calc`（115 KB gzip）被 index chunk 静态引入，但 `src/` 里只有 `damageAdapter.ts` 和 lazy 的 `CalculatorPage.tsx` 用它 —— 真凶是 Rollup commonjs 插件的虚拟模块 `\0commonjsHelpers.js` 在 `manualChunks` 里没有归属，被 Rollup 塞进 `calc-engine`；React / ReactDOM 是 CJS 包，index 需要这个 helper，于是 index 为几十字节的 helper 拉下整个计算引擎。现在 helper 单独归到 116 字节的 `vendor-helpers` chunk。**首屏 351,690 → 236,378 字节（-33%），13 个文件**；预算收到 260,000，`calc-engine` 也进了用例的禁载名单。产物核实：`index-*.js` 的静态 import 只剩 `vendor-helpers`，全 dist 只有 `CalculatorPage-*.js` 引 `calc-engine`。
 - **`TeamPage` 拆分 + 补测**：1320 行单体按现有内部组件边界拆到 `src/pages/team/`（`MemberCard` / `MemberEditor` / `TeamListCard` / `TeamDialogs` / `HeldItem` / `teamDrag`），`TeamPage.tsx` 只剩 360 行编排；拖拽排序的纯逻辑抽成可测的 `teamDrag.ts`。两页各自一份的 `StatPointPicker` 合并成 `src/components/StatPointPicker.tsx`（min/max 按钮两种写法都被视觉基线钉住，保留 `boundsVariant` prop）。新增 `team/TeamPage.test.tsx`（10 例）与 `team/teamDrag.test.ts`（9 例）。**零像素变化。**
 
 验证：`npm test` **469 通过**（41 文件）、`npm run build`（含 `tsc -b`）通过、`npm run test:pwa`（offline + team-samples + first-paint-budget）3 通过、`npm run worker:environment:check` 通过。

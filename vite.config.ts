@@ -54,6 +54,12 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           const normalizedId = id.replace(/\\/g, '/');
+          // Rollup's commonjs plugin synthesises a virtual `\0commonjsHelpers.js` module that every
+          // CJS dependency needs — React and ReactDOM included, so the entry chunk needs it too.
+          // Left unassigned it lands in whichever manual chunk claimed it first (`calc-engine`),
+          // and the entry then pulls all 116 KB of @smogon/calc down for a few dozen bytes of
+          // helper. Give it a chunk of its own so nothing but the helper travels with it.
+          if (normalizedId.includes('commonjsHelpers')) return 'vendor-helpers';
           if (normalizedId.includes('node_modules/@smogon/')) return 'calc-engine';
           if (normalizedId.includes('/src/data/seed/regMA/move-catalog.ts')) return 'regma-moves';
           if (

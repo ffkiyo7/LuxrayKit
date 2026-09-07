@@ -183,16 +183,18 @@ main.tsx
 
 `vite.config.ts` 的 `manualChunks` 手动切出大块以优化首屏：
 
+- `vendor-helpers` ← Rollup commonjs 插件的虚拟模块 `\0commonjsHelpers.js`
 - `calc-engine` ← `@smogon/calc`
 - `regma-moves` ← `move-catalog.ts`
 - `regma-pokemon-catalog` ← `catalog.ts` / `catalog-batch-*` / `catalog-forms.ts` / `mega-catalog.ts`
 
 > 注意 `manualChunks` 对路径做了 `\\`→`/` 归一化（兼容 Windows）。新增大 seed 文件时考虑是否要并入既有 chunk。
 
-**环境首页首屏预算**：`tests/pwa/first-paint-budget.spec.ts`（CI 的 PWA 冒烟步骤）打开 `#/env`，等 Top 5 榜单与上位构筑卡片渲染完，断言 ① 没有请求 `regma-moves` chunk，② 浏览器实际拉取的 JS（`PerformanceResourceTiming.transferSize`）不超过 387,000 字节 —— 2026-09-07 实测 351,690 上浮 10%。抬预算是产品决定，要带新数字写进 PR，不是为了让红的变绿。
+**环境首页首屏预算**：`tests/pwa/first-paint-budget.spec.ts`（CI 的 PWA 冒烟步骤）打开 `#/env`，等 Top 5 榜单与上位构筑卡片渲染完，断言 ① 没有请求 `regma-moves` / `calc-engine` chunk，② 浏览器实际拉取的 JS（`PerformanceResourceTiming.transferSize`）不超过 260,000 字节 —— 2026-09-07 实测 236,378 上浮 10%。抬预算是产品决定，要带新数字写进 PR，不是为了让红的变绿。
 
 - **衡量口径是「首屏实际下载的 JS」，不是 chunk 名**：把大模块塞进 index chunk 或用 `manualChunks` 换个名字都不算优化。
 - `move-catalog.ts` 曾经通过 `catalog.ts` 的 `export const moves = championsMoves` 进入首屏 —— 那行让共享的 `regma-pokemon-catalog` chunk 静态依赖 `regma-moves`，于是 `index → EnvironmentPage → regma-pokemon-catalog → regma-moves` 一路带进来 55 KB gzip。现在 `moves` 的 re-export 独立在 `src/data/seed/regMA/moves.ts`，环境审计改用生成的 `move-ids.ts`，招式对象由 `loadEnvironmentMoves()` 在进入宝可梦详情时动态 `import()`。首屏 404,548 → 351,690 字节（-13%）。
+- `calc-engine` 曾经被 index chunk 静态引入，但 `src/` 里只有 `damageAdapter.ts` 与 lazy 的 `CalculatorPage.tsx` 用 `@smogon/calc` —— 真正的原因是 Rollup commonjs 插件的虚拟模块 `\0commonjsHelpers.js` 没有 `manualChunks` 归属，被塞进了 `calc-engine`；React / ReactDOM 是 CJS 包，index 需要这个 helper，于是几十字节的 helper 拉下整个 115 KB gzip 的计算引擎。现在 helper 独立成 116 字节的 `vendor-helpers` chunk。首屏 351,690 → 236,378 字节（-33%）。**新增 `manualChunks` 规则时优先给虚拟模块（`\0` 开头）显式归属**，否则它会跟着第一个匹配到的规则走。
 
 ### 4.5 Service Worker（`public/sw.js`）
 
