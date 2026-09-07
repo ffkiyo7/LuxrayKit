@@ -15,6 +15,7 @@ import {
   type PokeDbTrainerTeam,
 } from '../../../src/lib/pokedbEnvironment';
 import type { EnvironmentPokemonUsage, EnvironmentTeamSample } from '../../../src/lib/environmentDataset';
+import { routePatterns } from '../../../src/lib/hashRoute';
 import type { SeasonRankSnapshot } from '../../../src/lib/seasonRankDelta';
 
 type BattleType = 'singles' | 'doubles';
@@ -1563,6 +1564,65 @@ async function handlePokemonTeams(url: URL, env: AppEnv, pokemonId: string) {
   );
 }
 
+/**
+ * POST /api/ping — anonymous page-view counter.
+ *
+ * What is recorded: the parameter-free route pattern, whether the client is running as an
+ * installed PWA, the active theme, and Cloudflare's own two-letter country for the request.
+ * What is NOT recorded, ever: IP, the raw User-Agent, any id (team, share code, Pokemon), any
+ * user content, and no cookie or identifier is ever set — there is nothing here to join rows
+ * into a session or a person.
+ *
+ * Every invalid body is dropped silently with the same 204 a good one gets: this endpoint has
+ * no failure mode worth telling a client about, and a chatty 4xx would only invite probing.
+ */
+const PING_ROUTE_PATTERNS = new Set(routePatterns);
+const MAX_PING_ROUTE_LENGTH = 64;
+const MAX_PING_BODY_BYTES = 512;
+
+type PingPayload = { route: string; standalone: boolean; theme: 'dark' | 'light' };
+
+export const parsePingPayload = (value: unknown): PingPayload | null => {
+  if (!value || typeof value !== 'object') return null;
+  const candidate = value as Partial<PingPayload>;
+  if (typeof candidate.route !== 'string' || candidate.route.length > MAX_PING_ROUTE_LENGTH) return null;
+  if (!PING_ROUTE_PATTERNS.has(candidate.route)) return null;
+  if (typeof candidate.standalone !== 'boolean') return null;
+  if (candidate.theme !== 'dark' && candidate.theme !== 'light') return null;
+  return { route: candidate.route, standalone: candidate.standalone, theme: candidate.theme };
+};
+
+async function handlePing(request: Request, env: AppEnv): Promise<Response> {
+  const discard = () => new Response(null, { status: 204, headers: jsonHeaders(env, { 'cache-control': 'no-store' }) });
+
+  let payload: PingPayload | null = null;
+  try {
+    const body = await request.text();
+    if (body.length > MAX_PING_BODY_BYTES) return discard();
+    payload = parsePingPayload(JSON.parse(body));
+  } catch {
+    return discard();
+  }
+  if (!payload) return discard();
+
+  // Optional at runtime even though `wrangler types` declares it required: a local
+  // `wrangler dev` against an older config, or a future deploy that drops the dataset,
+  // must degrade to a no-op rather than 500 on a diagnostics endpoint.
+  const analytics = env.LUXRAY_ANALYTICS as AnalyticsEngineDataset | undefined;
+  const country = (request as { cf?: { country?: string } }).cf?.country ?? '';
+  try {
+    analytics?.writeDataPoint({
+      blobs: [payload.route, payload.standalone ? 'pwa' : 'browser', payload.theme, country],
+      doubles: [1],
+      indexes: [payload.route],
+    });
+  } catch {
+    // Never let a metrics write affect the response.
+  }
+
+  return discard();
+}
+
 export default {
   async fetch(request: Request, env: AppEnv, _ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
@@ -1619,6 +1679,10 @@ export default {
           { status: 500, headers: { 'cache-control': 'no-store' } },
         );
       }
+    }
+
+    if (request.method === 'POST' && url.pathname === '/api/ping') {
+      return handlePing(request, env);
     }
 
     if (url.pathname.startsWith('/api/')) {

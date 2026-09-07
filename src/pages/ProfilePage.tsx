@@ -141,6 +141,28 @@ export function ProfilePage() {
             </button>
           </div>
           <div className="flex items-center justify-between gap-3 py-3">
+            <span className="min-w-0">
+              <span className="block text-sm">匿名使用统计</span>
+              <span className="block text-xs text-textSecondary">
+                只记录打开了哪个页面、是否以 PWA 运行、深色还是浅色、以及所在国家/地区。不含 IP、设备标识或任何队伍内容，也不写 cookie。
+              </span>
+            </span>
+            <button
+              className="grid grid-cols-2 rounded-lg border border-border bg-secondary p-1 text-textSecondary"
+              type="button"
+              aria-label="切换匿名使用统计"
+              aria-pressed={!preferences.analyticsOptOut}
+              onClick={() => replacePreferences({ ...preferences, analyticsOptOut: !preferences.analyticsOptOut })}
+            >
+              <span className={`grid h-8 w-10 place-items-center rounded-md text-xs font-semibold ${preferences.analyticsOptOut ? 'bg-card text-textPrimary surface-shadow' : ''}`}>
+                关闭
+              </span>
+              <span className={`grid h-8 w-10 place-items-center rounded-md text-xs font-semibold ${preferences.analyticsOptOut ? '' : 'bg-card text-accent'}`}>
+                开启
+              </span>
+            </button>
+          </div>
+          <div className="flex items-center justify-between gap-3 py-3">
             <span>
               <span className="block text-sm">新手引导</span>
               <span className="text-xs text-textSecondary">重新观看首次启动的功能引导。</span>

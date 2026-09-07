@@ -15,6 +15,7 @@ import {
   startScheduledRefresh,
 } from './index';
 import worker from './index';
+import { routePatterns } from '../../../src/lib/hashRoute';
 
 const rankingKeys = regMaPokemonAllowlist.slice(0, 60).map((entry) => {
   const [dexNo, formNo = '000'] = entry.championsFormId.split('-');
@@ -1476,4 +1477,90 @@ describe('environment Worker PokeDB ingestion', () => {
     });
   });
 
+});
+
+describe('POST /api/ping anonymous page views', () => {
+  const pingEnv = () => {
+    const writeDataPoint = vi.fn();
+    const env = { ALLOWED_ORIGINS: '*', LUXRAY_ANALYTICS: { writeDataPoint } };
+    return { env, writeDataPoint };
+  };
+
+  const ping = (env: unknown, body: unknown, cf?: Record<string, string>) => {
+    const request = new Request('https://luxraykit.com/api/ping', {
+      method: 'POST',
+      body: typeof body === 'string' ? body : JSON.stringify(body),
+    });
+    if (cf) Object.defineProperty(request, 'cf', { value: cf });
+    return worker.fetch(request, env as never, {} as never);
+  };
+
+  it('writes one point per accepted ping and echoes nothing back', async () => {
+    const { env, writeDataPoint } = pingEnv();
+
+    const response = await ping(env, { route: '/env/pokemon/:id', standalone: true, theme: 'dark' }, { country: 'JP' });
+
+    expect(response.status).toBe(204);
+    expect(response.headers.get('cache-control')).toBe('no-store');
+    expect(await response.text()).toBe('');
+    expect(writeDataPoint).toHaveBeenCalledTimes(1);
+    expect(writeDataPoint).toHaveBeenCalledWith({
+      blobs: ['/env/pokemon/:id', 'pwa', 'dark', 'JP'],
+      doubles: [1],
+      indexes: ['/env/pokemon/:id'],
+    });
+  });
+
+  it('records browser vs pwa and leaves country empty when Cloudflare did not resolve one', async () => {
+    const { env, writeDataPoint } = pingEnv();
+
+    await ping(env, { route: '/teams/:id', standalone: false, theme: 'light' });
+
+    expect(writeDataPoint).toHaveBeenCalledWith({
+      blobs: ['/teams/:id', 'browser', 'light', ''],
+      doubles: [1],
+      indexes: ['/teams/:id'],
+    });
+  });
+
+  it.each([
+    ['not JSON at all', 'not json'],
+    ['an unknown route', { route: '/admin', standalone: true, theme: 'dark' }],
+    ['a concrete id instead of a pattern', { route: '/teams/team-abc123', standalone: true, theme: 'dark' }],
+    ['a path traversal attempt', { route: '/env/../../etc/passwd', standalone: true, theme: 'dark' }],
+    ['an over-long route', { route: `/env/${'x'.repeat(200)}`, standalone: true, theme: 'dark' }],
+    ['a non-boolean standalone', { route: '/env', standalone: 'yes', theme: 'dark' }],
+    ['an unknown theme', { route: '/env', standalone: true, theme: 'sepia' }],
+    ['a missing field', { route: '/env', theme: 'dark' }],
+    ['an array body', [1, 2, 3]],
+    ['a null body', null],
+  ])('drops %s without writing a data point', async (_label, body) => {
+    const { env, writeDataPoint } = pingEnv();
+
+    const response = await ping(env, body);
+
+    expect(response.status).toBe(204);
+    expect(writeDataPoint).not.toHaveBeenCalled();
+  });
+
+  it('accepts every pattern the client can emit', async () => {
+    const { env, writeDataPoint } = pingEnv();
+
+    for (const route of routePatterns) {
+      await ping(env, { route, standalone: false, theme: 'dark' });
+    }
+
+    expect(writeDataPoint).toHaveBeenCalledTimes(routePatterns.length);
+  });
+
+  it('stays a 204 no-op when the Analytics Engine binding is absent', async () => {
+    const response = await ping({ ALLOWED_ORIGINS: '*' }, { route: '/env', standalone: false, theme: 'dark' });
+    expect(response.status).toBe(204);
+  });
+
+  it('does not answer GET /api/ping', async () => {
+    const { env } = pingEnv();
+    const response = await worker.fetch(new Request('https://luxraykit.com/api/ping'), env as never, {} as never);
+    expect(response.status).toBe(404);
+  });
 });

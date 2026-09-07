@@ -323,6 +323,25 @@ describe('App page flows', () => {
     expect(screen.queryByText(/本地队伍\s+\d|收藏\s+\d/)).toBeNull();
   });
 
+  it('lets the user turn the anonymous page-view ping off, and persists that choice', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await waitForEnvironmentPage();
+    await user.click(screen.getByRole('button', { name: '我的' }));
+
+    const toggle = await screen.findByRole('button', { name: '切换匿名使用统计' });
+    // Default is opted *in*; the copy has to state exactly what leaves the device.
+    expect(toggle.getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByText(/不含 IP、设备标识或任何队伍内容，也不写 cookie/)).toBeTruthy();
+
+    await user.click(toggle);
+    await waitFor(() => expect(screen.getByRole('button', { name: '切换匿名使用统计' }).getAttribute('aria-pressed')).toBe('false'));
+    await waitFor(async () => {
+      const state = await repository.loadState();
+      expect(state.preferences.analyticsOptOut).toBe(true);
+    });
+  });
+
   it('offers real feedback links and a copyable build identity on the profile page', async () => {
     const user = userEvent.setup();
     render(<App />);

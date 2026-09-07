@@ -11,7 +11,8 @@ import { productContextLabel } from './data/schedule';
 import type { EnvironmentState, EnvironmentTeamSample } from './data/environment';
 import { useAutoHideBottomNav } from './hooks/useAutoHideBottomNav';
 import { useHashRoute } from './hooks/useHashRoute';
-import { routeForTab, tabForRoute, type Route, type ToolRouteId } from './lib/hashRoute';
+import { routeForTab, routePattern, tabForRoute, type Route, type ToolRouteId } from './lib/hashRoute';
+import { trackRoute } from './lib/analytics';
 import { AppProvider, useAppStore } from './state/AppContext';
 import type { Team, TeamMember } from './types';
 import type { ToolView } from './pages/ToolsPage';
@@ -418,6 +419,15 @@ function AppShell() {
   useEffect(() => {
     document.title = overlay === 'rule' ? `当前规则 · ${productName}` : productName;
   }, [overlay]);
+
+  // Anonymous page view, one per distinct route. Lives here rather than inside useHashRoute
+  // because the opt-out preference is only reachable through the store — and because the hook
+  // is mounted by four different components, which would otherwise each want to report.
+  // trackRoute itself de-duplicates repeats, so the extra guard is belt-and-braces.
+  const currentRoutePattern = routePattern(route);
+  useEffect(() => {
+    trackRoute(currentRoutePattern, { optOut: preferences.analyticsOptOut });
+  }, [currentRoutePattern, preferences.analyticsOptOut]);
 
   useEffect(() => {
     document.documentElement.dataset.theme = preferences.theme;

@@ -265,6 +265,9 @@ export type UserPreference = {
   hasSeenEnvironmentImportNotice: boolean;
   hasCompletedOnboarding: boolean;
   hasSeenLuxrayEasterEgg: boolean;
+  // Opt *out*, so the default (false) keeps the anonymous page-view ping on. See lib/analytics.ts
+  // for exactly what it sends — no cookie, no identifier, no user content.
+  analyticsOptOut: boolean;
 };
 
 export type AppState = {
