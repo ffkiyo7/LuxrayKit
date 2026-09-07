@@ -8,7 +8,19 @@
 
 环境优先重构、Luxray Kit 品牌更新和 Cloudflare Worker 统一部署已进入 `main`。生产站点由 `luxraykit-app` Worker 提供静态资源与 API，环境页在线优先读取 KV 中的 PokeDB snapshot，并保留最新赛季静态快照和开发 seed 两级回退。
 
-## 本轮进展（2026-09-07）：hash 路由 · 队伍分享链接 · 反馈入口 · 匿名统计
+## 本轮进展（2026-09-07）：条件请求 · 招式表移出首屏 · TeamPage 拆分
+
+分支 `perf/snapshot-etag-first-paint`（stacked 在 `feat/hash-routing-share-feedback` 之上，PR base 为该分支）。三件事，一条主题：**打开环境首页要下载的东西太多**（实测约 345 KB gzip + 450 KB 未压缩快照）。
+
+- **环境快照条件请求（ETag / 304）**：Worker 的 `handleLatest` 以 `environment:status` 的内容身份字段（`sourceUpdatedAt` / `selectedSeason` / `previousSeasonLabel`）生成 ETag，`cache-control` 从 `no-store` 改为 `private, no-cache`；命中 `If-None-Match` 返回 **304 且带全套 `x-luxray-*` 头**，并且**不读、不 `JSON.parse` 那份 450 KB 快照**（审计头改读 `status.audit`，老 KV 记录才回退解析）。新增 `x-luxray-refreshed-at`。前端去掉 `?refresh=` 与 `no-store`，改 `cache: 'no-cache'`，「抓取」时间优先取响应头。语义见开发指南 §5.3 / §6.1。
+- **招式表移出首屏**：导入链是 `index → EnvironmentPage → regma-pokemon-catalog → regma-moves` —— 罪魁是 `catalog.ts` 里的 `export const moves = championsMoves`，它让**共享的**宝可梦 catalog chunk 静态依赖 362 KB 的招式表。现在 `moves` 的 re-export 独立成 `src/data/seed/regMA/moves.ts`；环境审计改用新生成产物 `move-ids.ts`（`scripts/generate-move-ids.mjs`，不联网，`dataAudit.test.ts` 做防漂移门禁）；招式对象由 `loadEnvironmentMoves()` 在进入宝可梦详情时动态 `import()`。**首屏实际下载的 JS 404,548 → 351,690 字节（-13%），14 个文件 → 13 个**，由新用例 `tests/pwa/first-paint-budget.spec.ts`（预算 387,000，已挂进 CI 的 PWA 冒烟步骤）守住。
+- **`TeamPage` 拆分 + 补测**：1320 行单体按现有内部组件边界拆到 `src/pages/team/`（`MemberCard` / `MemberEditor` / `TeamListCard` / `TeamDialogs` / `HeldItem` / `teamDrag`），`TeamPage.tsx` 只剩 360 行编排；拖拽排序的纯逻辑抽成可测的 `teamDrag.ts`。两页各自一份的 `StatPointPicker` 合并成 `src/components/StatPointPicker.tsx`（min/max 按钮两种写法都被视觉基线钉住，保留 `boundsVariant` prop）。新增 `team/TeamPage.test.tsx`（10 例）与 `team/teamDrag.test.ts`（9 例）。**零像素变化。**
+
+验证：`npm test` **469 通过**（41 文件）、`npm run build`（含 `tsc -b`）通过、`npm run test:pwa`（offline + team-samples + first-paint-budget）3 通过、`npm run worker:environment:check` 通过。
+
+⚠️ 与上一轮同因：**本 PR 上没有 CI**（`ci.yml` 只在 `pull_request: branches: [main]` 触发，这是 stacked PR），数字来自本机。
+
+## 上一轮进展（2026-09-07）：hash 路由 · 队伍分享链接 · 反馈入口 · 匿名统计
 
 分支 `feat/hash-routing-share-feedback`（stacked 在 `feat/mc-soft-landing` 之上，PR 待合并）。四件事，一条根因：App 此前**没有任何 URL 状态**，Android 物理返回键直接退出 PWA、无法深链、无法分享、无法按页面统计。
 
@@ -30,7 +42,7 @@
 
 ⚠️ **本 PR 上没有 CI**：`ci.yml` 只在 `pull_request: branches: [main]` 触发，而这是 stacked 在 `feat/mc-soft-landing` 上的 PR。`test` 与 `visual` 两个门禁要等 PR #61 合并、本 PR 改 base 到 `main` 之后才会跑。上面的数字全部来自本机。
 
-## 上一轮进展（2026-09-07）：M-C 软着陆 · 回退层新鲜度 · SW 预缓存 manifest · 清理
+## 更早一轮进展（2026-09-07）：M-C 软着陆 · 回退层新鲜度 · SW 预缓存 manifest · 清理
 
 分支 `feat/mc-soft-landing`（PR 待合并）。目标是**开赛后线上不出现用户视角不可接受的降级**，不做阶段 B（切 `currentRuleSet`、落 M-C catalog 数据）：
 
@@ -45,7 +57,7 @@
 
 验证：`npm test` 376 通过、`npm run build`（含 `tsc -b`）通过、`npm run test:pwa`（offline + team-samples）2 通过、`npm run worker:environment:check` 通过。
 
-## 更早一轮进展（2026-07-09）：默认双打 · 赛季/规则集中化 · 高分队规则归属
+## 更早两轮进展（2026-07-09）：默认双打 · 赛季/规则集中化 · 高分队规则归属
 
 分支 `feat/doubles-default-and-season-schedule`（**已合并进 main**）：
 
@@ -92,12 +104,12 @@
 ### 测试
 
 - Vitest 覆盖 App、IndexedDB、导入导出、环境审计、PokeDB 转换、合法性、SP 与伤害 adapter。
-- Playwright 离线用例覆盖环境、队伍持久化、备份，并断言速度线离线可用。
+- Playwright 离线用例覆盖环境、队伍持久化、备份，并断言速度线离线可用；`first-paint-budget.spec.ts` 守住环境首页首屏的 JS 预算与禁载 chunk。
 - 视觉回归覆盖 18 个移动端状态（CI-only，缺口见 `docs/qa/MOBILE_VISUAL_REGRESSION.md`）。
 
 ## 当前边界与已知问题
 
-- 环境页已按 `x-luxray-cache-state` 显示「可能过期」等新鲜度状态；尚无显式手动“检查更新”按钮（每次加载已带 `?refresh=` 强制回源）。
+- 环境页已按 `x-luxray-cache-state` 显示「可能过期」等新鲜度状态；尚无显式手动“检查更新”按钮（每次加载都会带 `If-None-Match` 回源验证，内容没变时拿 304，body 走浏览器 HTTP 缓存）。
 - API 和静态快照都失败时使用开发 seed，加载失败页没有重试按钮。
 - 伤害计算是 Gen9 主线公式近似，不是 Champions 官方公式。
 

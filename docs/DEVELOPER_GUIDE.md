@@ -145,6 +145,19 @@ main.tsx
 - `toolView` 由路由派生（四个工具**全部已上线**，`ToolsPage` 里那个「未开放」分支当前没有任何工具会命中）。代码里的 `typeChart` 与 URL 里的 `typechart` 通过 `App.tsx` 顶部两张映射表互转，别在别处再写一份。
 - 副作用：**刷新页面会停在当前页**（以前一律回首页）。`tests/pwa/offline.spec.ts` 已按新行为断言。
 - 页面全部用 `React.lazy` + `Suspense` 懒加载并经 Vite 分包（见 4.4）。
+- **`TeamPage` 拆在 `src/pages/team/`**（`TeamPage.tsx` 只剩编排，约 360 行）：
+
+  | 文件 | 内容 |
+  | --- | --- |
+  | `team/MemberCard.tsx` | 队伍成员卡（收起 / 展开、能力值条、速度线 / 伤害计算入口） |
+  | `team/MemberEditor.tsx` | 成员编辑器底部弹层，含 `FieldLabel` / `SelectField` / `ItemSearchField` / `MoveSlotPicker` / `statPointControls` |
+  | `team/TeamListCard.tsx` | 队伍列表卡（含拖拽把手） |
+  | `team/TeamDialogs.tsx` | `ConfirmDeleteTeamDialog` / `TeamNameModal` / `LuxrayEasterEggDialog` |
+  | `team/HeldItem.tsx` | `HeldItemIcon` / `HeldItemLine`，成员卡、编辑器与道具列表三处共用 |
+  | `team/teamDrag.ts` | 拖拽排序纯逻辑：`measureDragRows`（唯一读 DOM 的地方交给调用方）/ `resolveDragTargetIndex` / `reorderById` / `clampIndex` |
+
+  `teamDrag.ts` 单独抽出来是为了可测：原来的 `resolveDragTargetIndex` 闭包捕获 `teams` 和卡片 ref，没有真实指针与布局就跑不了。`team/teamDrag.test.ts` 覆盖中点判定与无测量时的兜底步进，`team/TeamPage.test.tsx` 覆盖列表 / 新建 / 深链详情 / 添加成员 / SP 与重复道具校验 / 删除二次确认 / 空队伍禁用分享。
+- **SP 滑条只有一份**：`src/components/StatPointPicker.tsx`，成员编辑器与伤害计算器共用。两边的 min/max 按钮长得不一样且都被视觉基线钉住（06/07 与 09），所以保留 `boundsVariant`（`accent` = 共用 `ui` `<Button>`；`plain` = 计算器的裸按钮）而不是强行统一。
 
 ### 4.2 全局状态：`AppContext`
 
@@ -175,6 +188,11 @@ main.tsx
 - `regma-pokemon-catalog` ← `catalog.ts` / `catalog-batch-*` / `catalog-forms.ts` / `mega-catalog.ts`
 
 > 注意 `manualChunks` 对路径做了 `\\`→`/` 归一化（兼容 Windows）。新增大 seed 文件时考虑是否要并入既有 chunk。
+
+**环境首页首屏预算**：`tests/pwa/first-paint-budget.spec.ts`（CI 的 PWA 冒烟步骤）打开 `#/env`，等 Top 5 榜单与上位构筑卡片渲染完，断言 ① 没有请求 `regma-moves` chunk，② 浏览器实际拉取的 JS（`PerformanceResourceTiming.transferSize`）不超过 387,000 字节 —— 2026-09-07 实测 351,690 上浮 10%。抬预算是产品决定，要带新数字写进 PR，不是为了让红的变绿。
+
+- **衡量口径是「首屏实际下载的 JS」，不是 chunk 名**：把大模块塞进 index chunk 或用 `manualChunks` 换个名字都不算优化。
+- `move-catalog.ts` 曾经通过 `catalog.ts` 的 `export const moves = championsMoves` 进入首屏 —— 那行让共享的 `regma-pokemon-catalog` chunk 静态依赖 `regma-moves`，于是 `index → EnvironmentPage → regma-pokemon-catalog → regma-moves` 一路带进来 55 KB gzip。现在 `moves` 的 re-export 独立在 `src/data/seed/regMA/moves.ts`，环境审计改用生成的 `move-ids.ts`，招式对象由 `loadEnvironmentMoves()` 在进入宝可梦详情时动态 `import()`。首屏 404,548 → 351,690 字节（-13%）。
 
 ### 4.5 Service Worker（`public/sw.js`）
 
@@ -240,7 +258,7 @@ npm run data:pokemon-facts:check  # 只校验现有快照，不访问网络；CI
 
 `loadEnvironmentState()` 是前端读取环境数据的唯一入口，三级回退：
 
-1. **Worker 快照**：`GET /api/environment/latest?refresh=<ts>`（`cache: 'no-store'`）。读响应头 `x-luxray-cache-state`（`fresh`/`stale`）、`x-luxray-source-status`（`ok`/`degraded`）和 `x-luxray-latest-source-updated-at`（探针已知的上游最新时间）决定 `freshness` / `sourceStatus`。若 Worker 为 `stale` 或 `degraded`，继续读取静态快照并按源更新时间选择更新的一份；静态快照追平探针时间时仍标记为 `fresh`，避免健康的冗余快照被旧 Worker 数据遮蔽或误报为过期。
+1. **Worker 快照**：`GET /api/environment/latest`（`cache: 'no-cache'`，**不带 `?refresh=` 查询串**）。Worker 会带 `ETag` + `cache-control: private, no-cache`，所以每次打开都回源验证、但内容没变时拿到 **304**，450 KB 的 body 不过网（见 §6.1）。读响应头 `x-luxray-cache-state`（`fresh`/`stale`）、`x-luxray-source-status`（`ok`/`degraded`）和 `x-luxray-latest-source-updated-at`（探针已知的上游最新时间）决定 `freshness` / `sourceStatus`。**快照 body 可能来自浏览器 HTTP 缓存，「抓取」时间以响应头为准**：`updatedAt` 优先取 `x-luxray-refreshed-at`，缺失才回退到 body 的 `retrievedAt`（304 时浏览器会把新响应头合并进缓存条目，所以头永远是最新的，body 不一定）。`public/sw.js` 对 `/api/*` 一律直连不进 SW cache，这层缓存完全由浏览器 HTTP 缓存负责。若 Worker 为 `stale` 或 `degraded`，继续读取静态快照并按源更新时间选择更新的一份；静态快照追平探针时间时仍标记为 `fresh`，避免健康的冗余快照被旧 Worker 数据遮蔽或误报为过期。
 2. **静态快照**：`/data/pokedb/reg-ma-environment.json`（`cache: 'force-cache'`）。供 Worker 降级比较、纯静态部署与离线使用。
 3. **内置 seed**：`environmentFallbackState`（来自 `environmentDatasetSeed.ts`），始终可用的开发样例。
 
@@ -285,13 +303,21 @@ npm run data:pokemon-facts:check  # 只校验现有快照，不访问网络；CI
 | 方法 + 路径 | 说明 |
 | --- | --- |
 | `GET /health` | 健康检查 |
-| `GET /api/environment/latest` | 最新快照 + `x-luxray-cache-state` / `-source-status` / `-worker-status` / `-latest-source-updated-at` 头 |
+| `GET /api/environment/latest` | 最新快照 + `x-luxray-cache-state` / `-source-status` / `-worker-status` / `-latest-source-updated-at` / `-refreshed-at` 头；带 `ETag`，条件请求命中回 304 |
 | `GET /api/environment/status` | 刷新状态与审计健康 |
 | `GET /api/pokemon/:pokemonId/teams?battleType=singles` | 某宝可梦相关队伍（来自 team-index） |
 | `POST /api/environment/refresh` | 受保护，手动触发刷新（`Authorization: Bearer <ADMIN_REFRESH_TOKEN>`）；支持 `?step=1&jobId=` 单步 |
 | `POST /api/ping` | 匿名页面访问计数，恒定 204 `no-store`（见 §6.7） |
 | 其它 `/api/*` | 404 JSON |
 | 其它 | `env.ASSETS.fetch`（前端） |
+
+**`/api/environment/latest` 的条件请求语义**（`handleLatest`）：
+
+- `ETag` = `environment:status` 里**内容身份**字段（`sourceUpdatedAt` / `selectedSeason` / `previousSeasonLabel`）拼串后 sha256 取前 16 位。**刻意不含 `refreshedAt` / `retrievedAt`**：探针发现上游没变时 `startScheduledRefresh` 仍会重写这两个时间戳，把它们算进 ETag 等于每天让所有浏览器白下 450 KB。
+- 200 与 304 都是 `cache-control: private, no-cache`：允许浏览器缓存 body，但每次必须回源验证。
+- **304 也带全套 `x-luxray-*` 头**（浏览器会把 304 的响应头合并进缓存条目，前端靠它们判断 fresh/stale/degraded），并且**不读、不 `JSON.parse` 快照**。
+- 审计头（`x-luxray-audit-alert` / `-audit-unknown-count`）优先读 `status.audit`（`publishRefreshJob` 写入）；只有老 KV 记录缺这个字段时才回退到解析快照计算 —— 那种记录也不走 304 捷径，直接返回完整 200，避免凭空编头。`x-luxray-worker-status` 语义不变（`status.ok && !audit.alert`）。
+- `x-luxray-refreshed-at` = `status.refreshedAt`，让前端在 body 来自 HTTP 缓存时仍能显示最新抓取时间。
 
 ### 6.2 KV（namespace `ENVIRONMENT_CACHE`）
 
@@ -415,6 +441,8 @@ npm run data:regma:abilities:check      # 只列出会处理哪些文件与特�
 npm run data:regma:catalog-batch        # 生成新的 catalog-batch-NNN.ts 并接线进 catalog.ts
 npm run data:regma:catalog-batch:list   # 只列出已存在批次与下一个批次号
 npm run data:regma:moves                # 重生成 move-catalog.ts（learnset + 招式数据）
+npm run data:regma:move-ids             # 从 move-catalog.ts 派生 move-ids.ts（只含 id 数组，不联网）
+npm run data:regma:move-ids:check       # 只校验 move-ids.ts 是否与 catalog 一致
 npm run data:regma:allowlist            # ⚠️ M-A 历史脚本，见下方说明；当前仓库状态下会安全拒绝执行
 npm run data:items:audit                # 只读核验 148 条当前规则道具的中英文名称、类别与本地图片
 npm run data:items:refresh              # 仅用来源图刷新不匹配的本地道具图片
@@ -436,6 +464,8 @@ npm run data:regma:catalog-batch -- --source-refs=reg-mc-official-eligible-pokem
 `data:regma:abilities` 的文件列表原先是手写的、停在 `catalog-batch-005`（漏掉了已存在的 006），现改为扫描 `src/data/seed/regMA/` 目录并按批次号排序；用 `:check` 确认覆盖范围。
 
 `data:items:audit` 从 PokéBase Champions 当前规则道具列表读取英文名和类别，并用 PokeAPI `zh-hans` 道具名核验普通道具与树果的中文身份（PokeAPI 暂无中文名的妖精之羽按 52Poké 人工核验）；普通道具、进化石图片按 PokéBase 对照，树果图片按 PokeAPI 的 `item id → sprite` 对照，再核验 `catalog.ts` 与 `public/assets/items/`。`--report` 会同时打印本地中文效果摘要与 PokéBase 英文描述，供人工逐项语义校对；跨语言描述不冒充自动判定。网络源不稳定或出现不一致时审计会失败，不作为 CI 门禁。`data:items:refresh` 只替换已确认图片不匹配的本地快照，仍须人工检查 diff 后提交；不要手改 `item-icon-mapping.ts` 或单个图片文件。
+
+`generate-move-ids.mjs` 用 esbuild 把 `move-catalog.ts` 打包后 import（与 `precache-manifest.mjs` 同一套写法，全程离线），只写出 id 数组。这样 `src/data/environment.ts` 的审计不必为了一份 id 列表拖进 362 KB 的招式表（见 §4.4）。防漂移门禁在 `src/lib/dataAudit.test.ts`：`moveIds` 必须与 `moves.map(m => m.id)` 完全相等，改了招式表却没跑脚本时 `npm test` 直接红。
 
 `update-pokedb-environment.mjs` 会同时写源码审计快照（`src/data/external/pokedb/current_environment_snapshot.json`）与 public 运行时 JSON（`public/data/pokedb/reg-ma-environment.json`），后者即前端第二级回退。
 
@@ -506,7 +536,7 @@ VGCPastes 脚本发现脏工作区会直接拒跑；若前一次生成任务失�
   - 例外：`cloudflare/build-notifier/worker.node-test.mjs` 刻意用 `-test.mjs` 而非 `.test.mjs` 命名以避开 vitest 收集，只能手动 `node --test` 跑，**不在 CI 内**。
   - `src/lib/teamShare.test.ts` 刻意跑在 **node** environment：jsdom 没有 `CompressionStream`，在 jsdom 下每个 code 都会静默走未压缩的 `p1` 分支，长度断言就测错了东西（`p1` 分支另有独立用例）。
   - `vitest.setup.ts` 在每个用例前 `history.replaceState` 清掉 hash 与 `lkDepth`：jsdom 的 URL 和会话历史在同一文件内跨用例保留，不清的话一个用例会继承上一个用例停留的页面。
-- **PWA**：`tests/pwa/offline.spec.ts`（离线缓存）+ `tests/pwa/team-samples.spec.ts`（队伍库生成数据渲染）+ `tests/pwa/visual.spec.ts`（移动端视觉回归，18 个状态，基线在 `tests/pwa/visual.spec.ts-snapshots/`，命名含 `visual-mobile-390-linux`）。配置见 `playwright.config.ts`，分成两个 project：
+- **PWA**：`tests/pwa/offline.spec.ts`（离线缓存）+ `tests/pwa/team-samples.spec.ts`（队伍库生成数据渲染）+ `tests/pwa/first-paint-budget.spec.ts`（环境首页首屏 JS 预算与禁载 chunk，见 §4.4）+ `tests/pwa/visual.spec.ts`（移动端视觉回归，18 个状态，基线在 `tests/pwa/visual.spec.ts-snapshots/`，命名含 `visual-mobile-390-linux`）。配置见 `playwright.config.ts`，分成两个 project：
   - `chrome-mobile-390`（`channel: 'chrome'`，`testIgnore` 掉视觉用例）跑功能类冒烟，用机器上已装的 Google Chrome，CI runner 自带因此无需下载浏览器。`npm run test:pwa` 已固定到这个 project。
   - `visual-mobile-390` 只跑视觉用例，用 `@playwright/test` 自带、被 `package-lock.json` 锁死的 Chromium——刻意不用 `channel: 'chrome'`，因为 Chrome stable 会自动升级，任何一次字体/光栅化变更都会悄悄让基线腐烂。
 - **视觉回归是 CI-only 能力，本机不跑。** 基线只在 Playwright 官方容器内生成，镜像 tag 由 `scripts/visual-docker.sh` 从已安装的 `@playwright/test` 版本推导（当前 `mcr.microsoft.com/playwright:v1.59.1-noble`），保证浏览器与字体只随依赖升级而变。两个入口都在 GitHub Actions：
@@ -537,7 +567,7 @@ VGCPastes 脚本发现脏工作区会直接拒跑；若前一次生成任务失�
 - **部署**：经 **Cloudflare Workers Builds（Git 集成）**——push 到 `main` 自动构建并 `wrangler deploy`。preview 走**影子 Worker `luxraykit-app-preview`**：它有自己的 Workers Builds 配置（同一 repo，非 main 分支触发，deploy 为 `wrangler versions upload --config cloudflare/environment-worker/wrangler.preview.jsonc`），产出 per-version preview URL（`<版本前8位>-luxraykit-app-preview.<subdomain>.workers.dev`）做 UI+API 冒烟。三个来之不易的事实：①带 Durable Object 的 Worker 不生成 preview URL（生产 Worker 因此无法直接出 preview）；②Workers Builds 把部署钉死在所连接的 Worker 上，不能在生产 Worker 的 builds 里"上传到别的 worker"，preview 触发器必须建在影子 Worker 自己名下；③wrangler 需配置显式 `preview_urls: true`。影子 Worker 刻意不带 DO/cron/自定义域名/admin secret，刷新路径天然失效。**cron 不在 preview 触发**，但 preview 与生产**共享同一 KV**，对 preview 上的 KV 操作要当作直接影响生产、只读对待。
 - **Preview Discord 通知**：Cloudflare Event Subscription 把 `luxraykit-app-preview` 的成功构建写入 `luxraykit-build-events` Queue，由无公开路由的 `luxraykit-build-notifier` consumer 通过 Discord Webhook 发送通知。consumer 只接受影子 Worker 的成功事件，排除 `main` 与全部 `automation/` 分支；Webhook URL 只存 Cloudflare secret。源码与运维说明见 `cloudflare/build-notifier/`。
 - **CI**（`.github/workflows/ci.yml`）：两个 job，**不部署**。
-  - `test`：`npm run data:pokemon-facts:check` + `npm test` + `npm run build` + Playwright 离线与队伍库渲染冒烟 + `npm run worker:environment:check`。
+  - `test`：`npm run data:pokemon-facts:check` + `npm test` + `npm run build` + Playwright 离线 / 队伍库渲染 / 首屏预算冒烟 + `npm run worker:environment:check`。
   - `visual`：`needs: test`，跑 `npm run test:visual`（即容器内的视觉回归），**阻塞门禁**；失败时把 expected/actual/diff 三联图作为 `visual-diffs` artifact 上传。挂在 `test` 后面是为了避免构建已经失败时仍拉取大型浏览器镜像。
 - **视觉基线重建**（`.github/workflows/visual-baseline.yml`）：仅手动触发，只允许在功能分支更新 Linux 基线并提交回当前分支；拒绝直接改 `main`。
 - **daily-auto-merge**（`.github/workflows/daily-auto-merge.yml`）：每日 20:00 UTC 只自动合并 head 为 `automation/pokedb-environment-refresh` 或 `automation/vgcpastes-team-refresh` 的绿色非 draft PR；功能 / Agent PR 一律人工合并。`main` 无分支保护，合并即触发 Workers Builds 生产部署。
