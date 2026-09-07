@@ -14,12 +14,12 @@ import {
   TrendingUp,
   Users,
 } from 'lucide-react';
-import { useLayoutEffect, useMemo, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import {
   currentRegulation as catalogRegulation,
   getEnvironmentItem,
-  getEnvironmentMove,
   getEnvironmentPokemon,
+  loadEnvironmentMoves,
   type EnvironmentBattleType,
   type EnvironmentPokemonUsage,
   type EnvironmentState,
@@ -40,6 +40,33 @@ import { Button, Card, PokemonAvatar, TypeBadge } from '../components/ui';
 import { TeamBrowseView } from './TeamBrowseView';
 import { TeamSampleCard } from './TeamSampleCard';
 import { sortTeamSamplesByDate } from './environmentTeamSamples';
+import type { Move } from '../types';
+
+/**
+ * The move catalog is 55 KB gzip and only the Pokémon detail screen needs it, so it is kept out
+ * of the environment first paint (see `loadEnvironmentMoves`) and requested when a detail
+ * mounts. Until it resolves the 常用招式 card is simply absent — the same thing that happens
+ * when a snapshot carries no move stats — rather than a spinner or a placeholder row.
+ */
+function useEnvironmentMoveLookup() {
+  const [movesById, setMovesById] = useState<Map<string, Move>>();
+
+  useEffect(() => {
+    let active = true;
+    loadEnvironmentMoves()
+      .then((moves) => {
+        if (active) setMovesById(new Map(moves.map((move) => [move.id, move])));
+      })
+      .catch((error) => {
+        console.error('Failed to load the move catalog; move names stay hidden.', error);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  return movesById;
+}
 
 const battleTypeLabels: Record<EnvironmentBattleType, string> = {
   singles: '单打',
@@ -307,6 +334,7 @@ function PokemonEnvironmentDetail({
   onImportSample: (sample: EnvironmentTeamSample) => Promise<void> | void;
 }) {
   const [expandedSection, setExpandedSection] = useState<'moves' | 'items' | 'teammates' | null>(null);
+  const movesById = useEnvironmentMoveLookup();
   const usage = environment.pokemonUsage[battleType].find((item) => item.pokemonId === pokemonId);
   const usageRank = environment.pokemonUsage[battleType].findIndex((item) => item.pokemonId === pokemonId) + 1;
   const entry = getEnvironmentPokemon(pokemonId);
@@ -314,8 +342,8 @@ function PokemonEnvironmentDetail({
   if (!entry) return null;
 
   const moveRows = (usage?.moveStats ?? [])
-    .map((stat) => ({ stat, move: getEnvironmentMove(stat.id) }))
-    .filter((row): row is { stat: NonNullable<EnvironmentPokemonUsage['moveStats']>[number]; move: NonNullable<ReturnType<typeof getEnvironmentMove>> } =>
+    .map((stat) => ({ stat, move: movesById?.get(stat.id) }))
+    .filter((row): row is { stat: NonNullable<EnvironmentPokemonUsage['moveStats']>[number]; move: Move } =>
       Boolean(row.move),
     );
   const itemRows = (usage?.itemStats ?? [])

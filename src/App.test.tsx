@@ -11,8 +11,8 @@ import teamSamples from './data/external/pokedb/s1_team_samples.json';
 import vgcPastesSamples from './data/external/vgcpastes/reg_ma_champions_ma_team_samples.json';
 import {
   createEnvironmentStateFromPokeDbSnapshot,
-  getEnvironmentMove,
   getEnvironmentPokemon,
+  loadEnvironmentMove,
 } from './data/environment';
 import { currentDataVersion, currentRuleNatureOptions, currentRuleSet, pokemon } from './data';
 import { repository } from './lib/db';
@@ -35,7 +35,7 @@ const testEnvironmentState = createEnvironmentStateFromPokeDbSnapshot(pokedbSnap
 const vgcPastesTeamSamples = vgcPastesSamples as typeof testEnvironmentState.teamSamples;
 const basicPokeDbSample = testEnvironmentState.teamSamples.find((sample) => sample.id === 'pokedb-singles-rank-1')!;
 const topSinglesPokemon = getEnvironmentPokemon(testEnvironmentState.pokemonUsage.singles[0].pokemonId)!;
-const topSinglesMove = getEnvironmentMove(testEnvironmentState.pokemonUsage.singles[0].moveStats?.[0]?.id ?? '')!;
+const topSinglesMove = (await loadEnvironmentMove(testEnvironmentState.pokemonUsage.singles[0].moveStats?.[0]?.id ?? ''))!;
 const relatedGarchompSample = testEnvironmentState.teamSamples.find(
   (sample) => sample.battleType === 'singles' && sample.slots.some((slot) => slot.pokemonId === 'garchomp'),
 )!;
@@ -813,7 +813,9 @@ describe('App page flows', () => {
     await user.click(screen.getByRole('button', { name: '单打' }));
     await user.click(screen.getByRole('button', { name: new RegExp(topSinglesPokemon.chineseName) }));
     expect(await screen.findByRole('heading', { name: topSinglesPokemon.chineseName })).toBeTruthy();
-    expect(screen.getByText('常用招式')).toBeTruthy();
+    // The move catalog is loaded on demand once the detail mounts, so the 常用招式 card
+    // appears a tick after the heading rather than in the same render.
+    expect(await screen.findByText('常用招式')).toBeTruthy();
     expect(screen.getByText(topSinglesMove.chineseName)).toBeTruthy();
     expect(screen.getByText('携带道具')).toBeTruthy();
     expect(screen.getByText('常见队友')).toBeTruthy();

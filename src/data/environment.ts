@@ -1,4 +1,7 @@
-import { abilities, currentDataVersion, currentRuleNatureOptions, currentRuleSet, items, moves, pokemon, regMaPokemonAllowlist } from './seed/regMA';
+import { abilities, currentDataVersion, currentRuleNatureOptions, currentRuleSet, items, pokemon, regMaPokemonAllowlist } from './seed/regMA';
+// Ids only. Importing the full `move-catalog.ts` here for the audit id list is what pulled the
+// 362 KB (55 KB gzip) move chunk into the environment first paint; see scripts/generate-move-ids.mjs.
+import { moveIds } from './seed/regMA/move-ids';
 import { currentEnvironmentDataset } from './environmentDatasetSeed';
 import { pokedbItemNameToId } from './external/pokedbItemNameMap';
 import {
@@ -14,6 +17,7 @@ import {
   type RegulationId,
 } from '../lib/environmentDataset';
 import { isImmediatePredecessor, type SeasonRankSnapshot } from '../lib/seasonRankDelta';
+import type { Move } from '../types';
 import {
   buildEnvironmentDatasetFromPokeDbOpenData,
   buildEnvironmentDatasetFromPokeDbStatistics,
@@ -96,7 +100,7 @@ export type EnvironmentState = {
 
 const environmentCatalog = {
   pokemonIds: pokemon.map((entry) => entry.id),
-  moveIds: moves.map((entry) => entry.id),
+  moveIds,
   itemIds: items.map((entry) => entry.id),
   abilityIds: abilities.map((entry) => entry.id),
   natureIds: currentRuleNatureOptions.map((entry) => entry.id),
@@ -415,7 +419,28 @@ export const environmentPokemonUsage: Record<EnvironmentBattleType, EnvironmentP
 export const environmentTeamSamples: EnvironmentTeamSample[] = environmentFallbackState.teamSamples;
 
 export const getEnvironmentPokemon = (pokemonId: string) => pokemon.find((entry) => entry.id === pokemonId);
-export const getEnvironmentMove = (moveId: string) => moves.find((entry) => entry.id === moveId);
 export const getEnvironmentItem = (itemId: string) => items.find((entry) => entry.id === itemId);
+
+/**
+ * Move objects for the environment detail screen, loaded on demand.
+ *
+ * The environment home (`#/env`) renders rankings and team cards and never needs a `Move`, so
+ * the catalog stays out of the first paint and arrives when someone opens a Pokémon's detail.
+ * The promise is memoised; a failed load is forgotten so the next open can retry.
+ */
+let environmentMovesPromise: Promise<Move[]> | undefined;
+
+export const loadEnvironmentMoves = (): Promise<Move[]> => {
+  environmentMovesPromise ??= import('./seed/regMA/move-catalog')
+    .then((module) => module.championsMoves)
+    .catch((error) => {
+      environmentMovesPromise = undefined;
+      throw error;
+    });
+  return environmentMovesPromise;
+};
+
+export const loadEnvironmentMove = async (moveId: string) =>
+  (await loadEnvironmentMoves()).find((entry) => entry.id === moveId);
 
 export const environmentSourceLabel = environmentFallbackState.sourceLabel;
