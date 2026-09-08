@@ -24,10 +24,10 @@
 - **视觉回归是 CI-only**：开发在 macOS，本机无法产出 Linux 基线（且 Playwright 快照名只带平台不带架构，arm64 会静默覆盖 CI 的 amd64 基线）。校验靠 CI 的 `visual` 阻塞门禁，重建走 `gh workflow run visual-baseline.yml --ref <当前分支>`。
 - 视觉用例吃冻结数据（fixture + 固定时钟），**不要为了"让截图跟上最新数据"去改用例或放宽阈值**——这层解耦是为了让日常数据刷新不卡住 auto-merge。
 
-## 4. 文件读写与命令职责
+## 4. 文件操作规范
 
-- 修改文件内容时，Codex 使用 `apply_patch`，Claude Code 使用 `Edit`；批量或规则化转换使用 Python 脚本。
-- Bash 只用于文件系统操作、文本搜索和运行测试；禁止使用 `sed` 或 heredoc 修改文件。
+- 修改文件内容时，Codex 使用 `apply_patch`，Claude Code 使用 `Edit`。仅当改动可以用同一条规则机械地应用于大量文件（通常 ≥10 个）时，才编写 Python 脚本，脚本执行后必须用 `git diff` 检查结果；少量文件、各处改动内容不同，一律逐个使用编辑工具。
+- Bash 只用于文件系统操作（mv / mkdir / chmod）、文本搜索和运行测试；禁止使用 `sed` 或 heredoc 修改文件内容。
 - 读取文件使用专用的查看或读取工具（如 `View` / `Read`），不要使用 `cat`。
 
 ## 5. 生成产物
