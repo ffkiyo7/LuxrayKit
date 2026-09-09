@@ -78,6 +78,12 @@ const knownForms: Record<string, Pick<MegaEvolutionEntry, 'basePokemonId' | 'for
   'Mega Barbaracle': { basePokemonId: 'barbaracle', formId: 'mega-barbaracle' },
   'Mega Dragalge': { basePokemonId: 'dragalge', formId: 'mega-dragalge' },
   'Mega Falinks': { basePokemonId: 'falinks', formId: 'mega-falinks' },
+  'Mega Absol Z': { basePokemonId: 'absol', formId: 'mega-absol-z' },
+  'Mega Garchomp Z': { basePokemonId: 'garchomp', formId: 'mega-garchomp-z' },
+  'Mega Lucario Z': { basePokemonId: 'lucario', formId: 'mega-lucario-z' },
+  'Mega Salamence': { basePokemonId: 'salamence', formId: 'mega-salamence' },
+  'Mega Golisopod': { basePokemonId: 'golisopod', formId: 'mega-golisopod' },
+  'Mega Baxcalibur': { basePokemonId: 'baxcalibur', formId: 'mega-baxcalibur' },
 };
 
 const names = [
@@ -156,18 +162,40 @@ const names = [
   'Mega Barbaracle',
   'Mega Dragalge',
   'Mega Falinks',
+  // Reg M-C additions (2026-09-09). The three Z Megas coexist with their parent's plain Mega.
+  'Mega Absol Z',
+  'Mega Garchomp Z',
+  'Mega Lucario Z',
+  'Mega Salamence',
+  'Mega Golisopod',
+  'Mega Baxcalibur',
 ];
 
-export const regMaMegaAllowlistExpectedCount = 75;
+export const regMaMegaAllowlistExpectedCount = 81;
 
-export const regMaMegaAllowlist: MegaEvolutionEntry[] = names.map((englishName) => ({
-  id: englishName.toLowerCase().replaceAll(' ', '-'),
-  englishName,
-  legalInCurrentRule: true,
-  verificationStatus: 'manual-review',
-  sourceRefs,
-  reviewNotes: knownForms[englishName]
-    ? 'Reg M-B Mega list entry joined to current local catalog form data.'
-    : 'Reg M-B Mega list entry. Battle data, sprites, item mapping, and base catalog row still need a follow-up data pass.',
-  ...knownForms[englishName],
-}));
+// Added by the M-C announcement rather than carried over from the M-B list, so they cite the M-C
+// source entry instead.
+const mcNames = new Set([
+  'Mega Absol Z',
+  'Mega Garchomp Z',
+  'Mega Lucario Z',
+  'Mega Salamence',
+  'Mega Golisopod',
+  'Mega Baxcalibur',
+]);
+const mcSourceRefs = ['reg-mc-official-mega-list', 'pokebase-champions-mega-data', 'manual-seed-review'];
+
+export const regMaMegaAllowlist: MegaEvolutionEntry[] = names.map((englishName) => {
+  const regulation = mcNames.has(englishName) ? 'M-C' : 'M-B';
+  return {
+    id: englishName.toLowerCase().replaceAll(' ', '-'),
+    englishName,
+    legalInCurrentRule: true,
+    verificationStatus: 'manual-review' as const,
+    sourceRefs: mcNames.has(englishName) ? mcSourceRefs : sourceRefs,
+    reviewNotes: knownForms[englishName]
+      ? `Reg ${regulation} Mega list entry joined to current local catalog form data.`
+      : `Reg ${regulation} Mega list entry. Battle data, sprites, item mapping, and base catalog row still need a follow-up data pass.`,
+    ...knownForms[englishName],
+  };
+});

@@ -1,3 +1,15 @@
+// PokeDB reports held items by Japanese name, so every catalog item needs an entry here or the
+// Worker's zero-tolerance audit goes degraded (`dataAudit.test.ts` gates the Mega Stones).
+//
+// Reg M-C (2026-09-09) caveat on provenance: PokeDB has **not** published M-C yet — its latest
+// season is still M-5 (`/pokemon/list?season=5`; `season=6` 404s), so the 18 items M-C adds do not
+// appear on PokeDB at all and their strings could not be read off it. They come from PokeAPI `ja`
+// names instead, which is the same orthography PokeDB uses (verified against a live PokeDB detail
+// page: こだわりスカーフ / いのちのたま / オボンのみ all match PokeAPI verbatim).
+// The six new Mega Stone names are the one genuine inference: PokeDB shows no Z stone yet, so they
+// follow the established `<日本語種族名> + ナイト` pattern with the X/Y suffix convention extended to
+// Z. Both the full-width and half-width Z are mapped, the same defensive doubling this file already
+// uses for ジジーロンナイト / ジジーロナイト. Re-verify once season M-6 is live on PokeDB.
 export const pokedbItemNameToId: Record<string, string> = {
   くろおび: 'black-belt',
   くろいメガネ: 'black-glasses',
@@ -44,6 +56,19 @@ export const pokedbItemNameToId: Record<string, string> = {
   しろいハーブ: 'white-herb',
   ものしりメガネ: 'wise-glasses',
   フォーカスレンズ: 'zoom-lens',
+  // Reg M-C held items
+  ながねぎ: 'leek',
+  ゴツゴツメット: 'rocky-helmet',
+  ふうせん: 'air-balloon',
+  レッドカード: 'red-card',
+  しめつけバンド: 'binding-band',
+  だっしゅつボタン: 'eject-button',
+  ノーマルジュエル: 'normal-gem',
+  グランドコート: 'terrain-extender',
+  エレキシード: 'electric-seed',
+  サイコシード: 'psychic-seed',
+  ミストシード: 'misty-seed',
+  グラスシード: 'grassy-seed',
   ナナシのみ: 'aspear-berry',
   リリバのみ: 'babiri-berry',
   ヨロギのみ: 'charti-berry',
@@ -148,4 +173,14 @@ export const pokedbItemNameToId: Record<string, string> = {
   バンギラスナイト: 'tyranitarite',
   フシギバナイト: 'venusaurite',
   ウツボットナイト: 'victreebelite',
+  // Reg M-C Mega Stones (pattern-inferred — see the file header)
+  アブソルナイトＺ: 'absolite-z',
+  アブソルナイトZ: 'absolite-z',
+  ガブリアスナイトＺ: 'garchompite-z',
+  ガブリアスナイトZ: 'garchompite-z',
+  ルカリオナイトＺ: 'lucarionite-z',
+  ルカリオナイトZ: 'lucarionite-z',
+  ボーマンダナイト: 'salamencite',
+  グソクムシャナイト: 'golisopite',
+  セグレイブナイト: 'baxcalibrite',
 };

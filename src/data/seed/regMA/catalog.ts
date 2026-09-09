@@ -7,6 +7,7 @@ import { pokemonBatch002, abilitiesBatch002 } from './catalog-batch-002';
 import { pokemonBatch001, abilitiesBatch001 } from './catalog-batch-001';
 import { megaFormsByParentId, megaStoneParentMap, megaCapableBaseIds } from './mega-catalog';
 import { mbMegaFormsByParentId, mbMegaStoneParentMap, mbMegaCapableBaseIds } from './mega-catalog-mb';
+import { mcMegaFormsByParentId, mcMegaStoneParentMap, mcMegaCapableBaseIds } from './mega-catalog-mc';
 import { itemIconMapping } from './item-icon-mapping';
 import { pokemonForms032 } from './catalog-forms';
 
@@ -75,11 +76,11 @@ export const mergeMegaStoneParentMap = (
   return merged;
 };
 
-const combinedMegaFormsByParentId = mergeMegaFormsByParentId([megaFormsByParentId, mbMegaFormsByParentId]);
-const combinedMegaStoneParentMap = mergeMegaStoneParentMap([megaStoneParentMap, mbMegaStoneParentMap]);
+const combinedMegaFormsByParentId = mergeMegaFormsByParentId([megaFormsByParentId, mbMegaFormsByParentId, mcMegaFormsByParentId]);
+const combinedMegaStoneParentMap = mergeMegaStoneParentMap([megaStoneParentMap, mbMegaStoneParentMap, mcMegaStoneParentMap]);
 // Set union — membership only, so there is no override semantics to guard here (unlike the two
 // keyed tables above).
-const combinedMegaCapableBaseIds = new Set([...megaCapableBaseIds, ...mbMegaCapableBaseIds]);
+const combinedMegaCapableBaseIds = new Set([...megaCapableBaseIds, ...mbMegaCapableBaseIds, ...mcMegaCapableBaseIds]);
 
 const artwork = (nationalDexNo: number) => `/assets/pokemon/thumbs/${nationalDexNo}.png`;
 const formArtwork = (formSpriteId: number) => artwork(formSpriteId);
@@ -158,6 +159,40 @@ const abilityRows: Ability[] = [
     effectSummary: '一般属性招式会变为龙属性，威力提高 20%。',
     pokemonIds: [],
     calculationImpact: 'confirmed',
+    legalInCurrentRule: true,
+    sourceRefs: championsAbilityRefs,
+  },
+  // ── Reg M-C Mega abilities (2026-09-09) ──
+  // Effect text follows the Champions wording (Bulbapedia's Champions ability description template),
+  // which gives explicit percentages where PokéBase still shows the main-series "威力会提高" phrasing.
+  // Damage modelling is NOT implemented yet (Task 10), so these stay `calculationImpact: 'pending'`.
+  {
+    id: 'aura-guard',
+    chineseName: '波导防护',
+    englishName: 'Aura Guard',
+    effectSummary: '受到接触类招式的伤害减半。',
+    pokemonIds: [],
+    calculationImpact: 'pending',
+    legalInCurrentRule: true,
+    sourceRefs: championsAbilityRefs,
+  },
+  {
+    id: 'aerilate',
+    chineseName: '飞行皮肤',
+    englishName: 'Aerilate',
+    effectSummary: '一般属性招式会变为飞行属性，威力提高 20%。',
+    pokemonIds: [],
+    calculationImpact: 'pending',
+    legalInCurrentRule: true,
+    sourceRefs: championsAbilityRefs,
+  },
+  {
+    id: 'thermal-exchange',
+    chineseName: '热交换',
+    englishName: 'Thermal Exchange',
+    effectSummary: '受到火属性招式的伤害时攻击提高 1 级，且不会陷入灼伤状态。',
+    pokemonIds: [],
+    calculationImpact: 'pending',
     legalInCurrentRule: true,
     sourceRefs: championsAbilityRefs,
   },
@@ -397,7 +432,9 @@ const duplicateItemRestriction = '同队不得重复携带同名道具。';
 const megaRestriction = '每场战斗只能 Mega Evolution 一次。';
 
 const heldItemRows = [
+  ['air-balloon', '气球', 'Air Balloon', '浮在空中，不受地面属性招式以及撒菱、毒菱、黏黏网影响；受到招式伤害后本场战斗内消失。'],
   ['big-root', '大根茎', 'Big Root', '吸取类招式及其他回复 HP 效果的回复量提高 30%。'],
+  ['binding-band', '紧绑束带', 'Binding Band', '处于紧束状态的目标每回合损失的 HP 由最大 HP 的 1/8 变为 1/6。'],
   ['black-belt', '黑带', 'Black Belt', '格斗属性招式的威力提高 20%。'],
   ['black-glasses', '黑色眼镜', 'Black Glasses', '恶属性招式的威力提高 20%。'],
   ['bright-powder', '光粉', 'Bright Powder', '以携带者为目标的招式命中率降低 10%。'],
@@ -405,15 +442,19 @@ const heldItemRows = [
   ['choice-scarf', '讲究围巾', 'Choice Scarf', '速度提高 50%，但换下前只能使用首次选定的招式。'],
   ['damp-rock', '潮湿岩石', 'Damp Rock', '携带者召唤的雨天气延长 3 回合（共 8 回合）。'],
   ['dragon-fang', '龙之牙', 'Dragon Fang', '龙属性招式的威力提高 20%。'],
+  ['eject-button', '逃脱按键', 'Eject Button', '受到招式伤害时，携带者换下；使用后本场战斗内消失。'],
+  ['electric-seed', '电气种子', 'Electric Seed', '处于电气场地时防御提高 1 级；使用后本场战斗内消失。'],
   ['expert-belt', '达人带', 'Expert Belt', '效果绝佳的招式威力提高 20%。'],
   ['fairy-feather', '妖精之羽', 'Fairy Feather', '妖精属性招式的威力提高 20%。'],
   ['focus-band', '气势头带', 'Focus Band', '受到本应致命的招式伤害时，有 10% 概率保留 1 HP。'],
   ['focus-sash', '气势披带', 'Focus Sash', '满 HP 时受到本应致命的招式伤害会保留 1 HP，使用后消耗。'],
+  ['grassy-seed', '青草种子', 'Grassy Seed', '处于青草场地时防御提高 1 级；使用后本场战斗内消失。'],
   ['hard-stone', '硬石头', 'Hard Stone', '岩石属性招式的威力提高 20%。'],
   ['heat-rock', '炽热岩石', 'Heat Rock', '携带者召唤的晴朗天气延长 3 回合（共 8 回合）。'],
   ['icy-rock', '冰冷岩石', 'Icy Rock', '携带者召唤的雪天气延长 3 回合（共 8 回合）。'],
   ['iron-ball', '黑色铁球', 'Iron Ball', '速度减半；若携带者原本不接地，则会变为接地并受到地面属性招式及场地陷阱影响。'],
   ['kings-rock', '王者之证', "King's Rock", '造成伤害的招式有 10% 概率使目标畏缩。'],
+  ['leek', '大葱', 'Leek', '由大葱鸭或葱游兵携带时，击中要害等级提高 2 级。'],
   ['leftovers', '吃剩的东西', 'Leftovers', '每回合结束时回复最大 HP 的 1/16。'],
   ['life-orb', '生命宝珠', 'Life Orb', '招式威力提高 30%；使出造成伤害的招式后损失最大 HP 的 10%。'],
   ['light-clay', '光之黏土', 'Light Clay', '光墙、反射壁和极光幕延长 3 回合（共 8 回合）。'],
@@ -423,11 +464,16 @@ const heldItemRows = [
   ['metal-coat', '金属膜', 'Metal Coat', '钢属性招式的威力提高 20%。'],
   ['metronome', '节拍器', 'Metronome', '连续使用同一招式时，威力加成每次增加 20%，最高 100%；改用其他招式时重置。'],
   ['miracle-seed', '奇迹种子', 'Miracle Seed', '草属性招式的威力提高 20%。'],
+  ['misty-seed', '薄雾种子', 'Misty Seed', '处于薄雾场地时特防提高 1 级；使用后本场战斗内消失。'],
   ['muscle-band', '力量头带', 'Muscle Band', '物理招式的威力提高 10%。'],
   ['mystic-water', '神秘水滴', 'Mystic Water', '水属性招式的威力提高 20%。'],
   ['never-melt-ice', '不融冰', 'Never-Melt Ice', '冰属性招式的威力提高 20%。'],
+  ['normal-gem', '一般宝石', 'Normal Gem', '一般属性招式的威力提高 30%；使用后本场战斗内消失。'],
   ['poison-barb', '毒针', 'Poison Barb', '毒属性招式的威力提高 20%。'],
+  ['psychic-seed', '精神种子', 'Psychic Seed', '处于精神场地时特防提高 1 级；使用后本场战斗内消失。'],
   ['quick-claw', '先制之爪', 'Quick Claw', '有 20% 概率在同优先度招式中率先行动。'],
+  ['red-card', '红牌', 'Red Card', '受到招式伤害时，强制攻击方换下；使用后本场战斗内消失。'],
+  ['rocky-helmet', '凸凸头盔', 'Rocky Helmet', '受到接触类招式攻击时，让攻击方损失最大 HP 的 1/6。'],
   ['scope-lens', '焦点镜', 'Scope Lens', '击中要害等级提高 1 级。'],
   ['sharp-beak', '锐利鸟嘴', 'Sharp Beak', '飞行属性招式的威力提高 20%。'],
   ['shell-bell', '贝壳之铃', 'Shell Bell', '造成伤害后，回复所造成伤害的 1/8 HP。'],
@@ -437,6 +483,7 @@ const heldItemRows = [
   ['smooth-rock', '沙沙岩石', 'Smooth Rock', '携带者召唤的沙暴天气延长 3 回合（共 8 回合）。'],
   ['soft-sand', '柔软沙子', 'Soft Sand', '地面属性招式的威力提高 20%。'],
   ['spell-tag', '诅咒之符', 'Spell Tag', '幽灵属性招式的威力提高 20%。'],
+  ['terrain-extender', '大地膜', 'Terrain Extender', '携带者以招式或特性展开的场地延长 3 回合（共 8 回合）。'],
   ['twisted-spoon', '弯曲的汤匙', 'Twisted Spoon', '超能力属性招式的威力提高 20%。'],
   ['wide-lens', '广角镜', 'Wide Lens', '招式命中率提高 10%。'],
   ['white-herb', '白色香草', 'White Herb', '将被降低的能力变化复原，使用后消耗。'],
@@ -480,6 +527,10 @@ type MegaStoneRow = readonly [string, string, string] | readonly [string, string
 const megaStoneRows: ReadonlyArray<MegaStoneRow> = [
   ['abomasite', '暴雪王进化石', 'Abomasite'],
   ['absolite', '阿勃梭鲁进化石', 'Absolite'],
+  // Reg M-C Mega Stones. The explicit parent list mirrors the Charizardite X/Y precedent so the
+  // `legality.ts` requiredItemId ↔ applicablePokemonIds chain holds even if a stone ever drops out
+  // of `mcMegaStoneParentMap` (which takes precedence when present).
+  ['absolite-z', '阿勃梭鲁进化石Z', 'Absolite Z', ['absol']],
   ['aerodactylite', '化石翼龙进化石', 'Aerodactylite'],
   ['aggronite', '波士可多拉进化石', 'Aggronite'],
   ['alakazite', '胡地进化石', 'Alakazite'],
@@ -488,6 +539,7 @@ const megaStoneRows: ReadonlyArray<MegaStoneRow> = [
   ['audinite', '差不多娃娃进化石', 'Audinite'],
   ['barbaracite', '龟足巨铠进化石', 'Barbaracite'],
   ['banettite', '诅咒娃娃进化石', 'Banettite'],
+  ['baxcalibrite', '戟脊龙进化石', 'Baxcalibrite', ['baxcalibur']],
   ['beedrillite', '大针蜂进化石', 'Beedrillite'],
   ['blazikenite', '火焰鸡进化石', 'Blazikenite'],
   ['blastoisinite', '水箭龟进化石', 'Blastoisinite'],
@@ -512,10 +564,12 @@ const megaStoneRows: ReadonlyArray<MegaStoneRow> = [
   ['froslassite', '雪妖女进化石', 'Froslassite'],
   ['galladite', '艾路雷朵进化石', 'Galladite'],
   ['garchompite', '烈咬陆鲨进化石', 'Garchompite', ['garchomp']],
+  ['garchompite-z', '烈咬陆鲨进化石Z', 'Garchompite Z', ['garchomp']],
   ['gardevoirite', '沙奈朵进化石', 'Gardevoirite'],
   ['gengarite', '耿鬼进化石', 'Gengarite'],
   ['glalitite', '冰鬼护进化石', 'Glalitite'],
   ['glimmoranite', '晶光花进化石', 'Glimmoranite'],
+  ['golisopite', '具甲武者进化石', 'Golisopite', ['golisopod']],
   ['golurkite', '泥偶巨人进化石', 'Golurkite'],
   ['greninjite', '甲贺忍蛙进化石', 'Greninjite'],
   ['gyaradosite', '暴鲤龙进化石', 'Gyaradosite'],
@@ -525,6 +579,7 @@ const megaStoneRows: ReadonlyArray<MegaStoneRow> = [
   ['kangaskhanite', '袋兽进化石', 'Kangaskhanite'],
   ['lopunnite', '长耳兔进化石', 'Lopunnite'],
   ['lucarionite', '路卡利欧进化石', 'Lucarionite'],
+  ['lucarionite-z', '路卡利欧进化石Z', 'Lucarionite Z', ['lucario']],
   ['malamarite', '乌贼王进化石', 'Malamarite'],
   ['manectite', '雷电兽进化石', 'Manectite'],
   ['mawilite', '大嘴娃进化石', 'Mawilite'],
@@ -538,6 +593,7 @@ const megaStoneRows: ReadonlyArray<MegaStoneRow> = [
   ['raichunite', '雷丘进化石Y', 'Raichunite Y'],
   ['raichunite-x', '雷丘进化石X', 'Raichunite X'],
   ['sablenite', '勾魂眼进化石', 'Sablenite'],
+  ['salamencite', '暴飞龙进化石', 'Salamencite', ['salamence']],
   ['scizorite', '巨钳螳螂进化石', 'Scizorite'],
   ['scolipite', '蜈蚣王进化石', 'Scolipite'],
   ['scovillainite', '狠辣椒进化石', 'Scovillainite'],
@@ -799,16 +855,24 @@ export const pokemon: Pokemon[] = [
   },
 ];
 
-// ── Merge mega forms from mega-catalog into parent Pokemon ──
+// ── Merge mega forms from the per-regulation Mega tables into parent Pokemon ──
+//
+// A few rows in this file (venusaur / charizard / garchomp) still spell their Mega out inline, and
+// those inline copies duplicate the M-A table. So *append* the table's forms instead of only filling
+// empty arrays: skipping a parent that already has one inline form would drop the Z Mega a later
+// regulation adds under the same parent (mega-garchomp-z is exactly that case). Dedupe by form id so
+// the inline copy stays authoritative for the forms it already defines.
 for (let i = 0; i < pokemon.length; i++) {
   const entry = pokemon[i];
-  if (combinedMegaCapableBaseIds.has(entry.id) && entry.megaForms.length === 0) {
-    pokemon[i] = {
-      ...entry,
-      canMega: true,
-      megaForms: combinedMegaFormsByParentId[entry.id] ?? [],
-    };
-  }
+  if (!combinedMegaCapableBaseIds.has(entry.id)) continue;
+  const inlineFormIds = new Set(entry.megaForms.map((form) => form.id));
+  const tableForms = (combinedMegaFormsByParentId[entry.id] ?? []).filter((form) => !inlineFormIds.has(form.id));
+  if (tableForms.length === 0 && entry.canMega) continue;
+  pokemon[i] = {
+    ...entry,
+    canMega: true,
+    megaForms: [...entry.megaForms, ...tableForms],
+  };
 }
 
 // ── Derive artworkRef from iconRef (thumbs → artwork) ──

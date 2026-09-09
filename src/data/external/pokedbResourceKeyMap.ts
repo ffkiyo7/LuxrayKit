@@ -734,4 +734,12 @@ export const pokedbAbilityKeyToId: Record<number, string> = {
   309: 'dragonize',
   310: 'mega-sol',
   311: 'spicy-spray',
+  // Reg M-C Mega abilities. Both keys are the abilities' real PokeAPI numeric ids, which is what
+  // PokeDB uses for every ability that also exists in the main series.
+  184: 'aerilate',
+  270: 'thermal-exchange',
+  // `aura-guard` (Mega Lucario Z's signature) is deliberately absent: it is Champions-only, so it has
+  // no PokeAPI id, and PokeDB has not published M-C yet (latest season is M-5), so its real key is
+  // unobserved. Guessing a number would silently resolve the wrong ability, which is worse than
+  // leaving it unmapped — an unmapped key is reported as-is. Add it once season M-6 is live.
 };
