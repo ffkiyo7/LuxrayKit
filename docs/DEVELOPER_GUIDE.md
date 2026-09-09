@@ -646,7 +646,7 @@ VGCPastes 脚本发现脏工作区会直接拒跑；若前一次生成任务失�
   - 历史背景：2026-07 之前基线在 Windows 上生成（`chrome-mobile-390-win32`），只有 Windows 能验证；WSL2 时期改为容器生成；2026-08 迁到 macOS 开发后，容器保留为「基线的定义环境」，但执行位置整体上移到 CI。
 - **视觉用例刻意与刷新中的数据解耦**，否则它没法当门禁用——环境快照的时间戳和榜单会直接印进截图，每次数据刷新都会让门禁变红、卡住 daily auto-merge：
   - `tests/pwa/fixtures/environment-snapshot.json` 是 `public/data/pokedb/reg-ma-environment.json` 的冻结副本，用例用 `page.route` 把运行时那次 fetch 拦截掉换成它。要让门禁看到更新后的数据，把线上文件复制过来覆盖 fixture，再重建基线——这是一次有意的动作，不是自动的。
-  - `page.clock.setFixedTime` 把时钟钉在 `2026-07-20T12:00:00Z`：赛季/规则 header 和"可能过期"徽标都由挂钟时间推导，不钉住的话跨过赛季窗口或新鲜度阈值时像素会自己变。
+  - `page.clock.setFixedTime` 把时钟钉在 **`currentRuleSet.startAt` + 11 天 12:00 UTC**（由 `metadata.ts` 推导，不写字面量）：赛季/规则 header 与「规则已切换」提示都由挂钟时间推导，时钟若落在上一规则窗口会渲染反向提示。fixture 的 `retrievedAt` / `updatedAt` / 赛季标签在 `page.route` 里按该时钟改写，JSON 本身不动。换规则后基线仍需重建（header 文案变了），用 `-f mode=all` 强制全量重写。
   - **残留耦合**：VGCPastes 队伍库是 build-time 动态 `import()` 的 bundle 产物，拦不住。`automation/vgcpastes-team-refresh`（周级）如果改到截图里可见的靠前队伍，视觉门禁会红——这时人工确认后重建基线即可。PokeDB 环境刷新（日级，churn 的大头）已经被 fixture 完全隔离。
 
 ---
