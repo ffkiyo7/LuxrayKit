@@ -641,6 +641,7 @@ VGCPastes 脚本发现脏工作区会直接拒跑；若前一次生成任务失�
   ```
 
   - **为什么不能在本机跑**：① 开发在 macOS，宿主字体栈与镜像不同，直接 `npx playwright test tests/pwa/visual.spec.ts` 只会得到整屏假阳性 diff；② Playwright 的快照文件名只带平台不带 CPU 架构（`…-visual-mobile-390-linux.png`），Apple Silicon 上拉到的 arm64 镜像会用**完全相同的文件名**覆盖掉 CI 的 amd64 基线，静默污染门禁。`scripts/visual-docker.sh` 因此只支持在 amd64 Linux 上手动运行；在没有 Docker 的机器上它会直接报错并指向上面的工作流。
+  - `workflow_dispatch` 的 `mode` 输入默认 `changed`（Playwright 原生行为：只重写 diff 超出 2% `maxDiffPixelRatio` 的快照）。语义过期但像素差在阈值内的基线（典型是规则轮换只挪动了 header 几个字）不会被替换、工作流会报 "nothing to commit"，这时加 `-f mode=all` 强制全量重写。
   - `visual-baseline.yml` 拒绝在 `main` 上运行：push `main` 会触发生产部署，新基线必须跟引发它的 UI 改动一起在 PR 里被 review。
   - 历史背景：2026-07 之前基线在 Windows 上生成（`chrome-mobile-390-win32`），只有 Windows 能验证；WSL2 时期改为容器生成；2026-08 迁到 macOS 开发后，容器保留为「基线的定义环境」，但执行位置整体上移到 CI。
 - **视觉用例刻意与刷新中的数据解耦**，否则它没法当门禁用——环境快照的时间戳和榜单会直接印进截图，每次数据刷新都会让门禁变红、卡住 daily auto-merge：
