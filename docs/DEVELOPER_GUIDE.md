@@ -522,6 +522,8 @@ npm run data:regma:abilities            # 按目录扫描 catalog.ts + 全部 ca
 npm run data:regma:abilities:check      # 只列出会处理哪些文件与特性行数，不联网、不写文件
 npm run data:regma:catalog-batch        # 生成新的 catalog-batch-NNN.ts 并接线进 catalog.ts
 npm run data:regma:catalog-batch:list   # 只列出已存在批次与下一个批次号
+npm run data:regma:physical-metrics       # 重生成 physicalMetrics.ts（按 catalog 里的 dex 号取 PokeAPI 身高体重）
+npm run data:regma:physical-metrics:check # 只校验 physicalMetrics.ts 是否与 catalog + PokeAPI 一致
 npm run data:regma:moves                # 重生成 move-catalog.ts（learnset + 招式数据）
 npm run data:regma:move-ids             # 从 move-catalog.ts 派生 move-ids.ts（只含 id 数组，不联网）
 npm run data:regma:move-ids:check       # 只校验 move-ids.ts 是否与 catalog 一致
@@ -530,7 +532,7 @@ npm run data:items:audit                # 只读核验 148 条当前规则道具
 npm run data:items:refresh              # 仅用来源图刷新不匹配的本地道具图片
 ```
 
-**`data:regma:allowlist` 是 M-A 时代的历史脚本，不要用它接入新规则。** 它全量重写 `src/data/seed/regMA/allowlist.ts`，来源是官方 M-A web-view 端点（至今仍返回同一份 213 行 payload），且脚本内只有 6 条 `英文名 → pokemonId` 映射。现有 `allowlist.ts` 是 235 条（213 条 `reg-ma-` + 22 条**手工追加**的 `reg-mb-`）。跑它会删掉手工行、把 `regMaPokemonAllowlistExpectedCount` 打回 213、并把文件头 sourceRef 改回 M-A。因此脚本开头加了守卫：只要文件里存在非 `reg-ma-` 的行就直接报错退出（**无 bypass 参数，不要为跑通而放宽**）。新规则的行照 M-B 先例手工追加。
+**`data:regma:allowlist` 是 M-A 时代的历史脚本，不要用它接入新规则。** 它全量重写 `src/data/seed/regMA/allowlist.ts`，来源是官方 M-A web-view 端点（至今仍返回同一份 213 行 payload），且脚本内只有 6 条 `英文名 → pokemonId` 映射。现有 `allowlist.ts` 是 262 条（212 条 `reg-ma-` + 22 条 `reg-mb-` + 28 条 `reg-mc-`，后两批都是**手工追加**的）。跑它会删掉手工行、把 `regMaPokemonAllowlistExpectedCount` 打回 213、并把文件头 sourceRef 改回 M-A。因此脚本开头加了守卫：只要文件里存在非 `reg-ma-` 的行就直接报错退出（**无 bypass 参数，不要为跑通而放宽**）。新规则的行照 M-B 先例手工追加。
 
 `data:regma:catalog-batch` 不再写死批次号 / 批次大小 / 来源标签：
 
@@ -543,7 +545,11 @@ npm run data:regma:catalog-batch -- --source-refs=reg-mc-official-eligible-pokem
 
 `--source-refs` 必须是 `dataSourceManifest` 里已存在的条目 id，否则数据审计会报 `unresolved-source-ref`。
 
-`data:regma:abilities` 的文件列表原先是手写的、停在 `catalog-batch-005`（漏掉了已存在的 006），现改为扫描 `src/data/seed/regMA/` 目录并按批次号排序；用 `:check` 确认覆盖范围。
+`data:regma:abilities` 的文件列表原先是手写的、停在 `catalog-batch-005`（漏掉了已存在的 006），现改为扫描 `src/data/seed/regMA/` 目录并按批次号排序；用 `:check` 确认覆盖范围。Champions 独有特性（`firemane` / `eelevate` / `piercing-drill` / `spicy-spray` …）在 PokeAPI 上是 404，脚本按「PokeAPI 没有」处理、中文名回落到神奇宝贝百科或现有 catalog 行；其余 HTTP 状态仍然致命。
+
+`data:regma:physical-metrics` 生成 `src/data/seed/regMA/physicalMetrics.ts`（DexPage 的身高体重表）。表按 `nationalDexNo` 索引、`DexPage.tsx` 也按本体 dex 号取值，所以每个 dex 号只取**默认形态**（`/pokemon/<dexNo>/`）一行，异种形态不单独建行（没有可用的 key）。每次新增宝可梦后跑一次；`:check` 会在文件与 catalog + PokeAPI 不一致时失败。
+
+`data:regma:moves` 对每只 catalog 宝可梦抓一次 PokéBase 的 Available Moves 页（页面缓存在 `.npm-cache/pokebase/`，首次全量重跑必定走网络）。两个形态的 PokéBase slug 与 PokeAPI 不同名、直接用 catalog id 会拿到 soft-404 壳页（HTTP 200、约 349 KB、没有 Available Moves 行），脚本里因此有两张表：`POKEBASE_SLUG_OVERRIDES`（`basculegion-male` → `basculegion`，已核验 learnset 一致）与 `POKEBASE_LEARNSET_CARRY_FORWARD`（`tauros-paldea-combat-breed`：它的物种页 `/pokemon/tauros-paldea` 虽标题写 Combat Breed，却把斗战 / 火炽 / 水澜三种的招式**合并**列出，不能用，所以这一行的 learnset 从上一版 `move-catalog.ts` 原样沿用，若有招式在新抓取里不存在则直接报错）。下次刷新时复查这两个 slug。
 
 `data:items:audit` 从 PokéBase Champions 当前规则道具列表读取英文名和类别，并用 PokeAPI `zh-hans` 道具名核验普通道具与树果的中文身份（PokeAPI 暂无中文名的妖精之羽按 52Poké 人工核验）；普通道具、进化石图片按 PokéBase 对照，树果图片按 PokeAPI 的 `item id → sprite` 对照，再核验 `catalog.ts` 与 `public/assets/items/`。`--report` 会同时打印本地中文效果摘要与 PokéBase 英文描述，供人工逐项语义校对；跨语言描述不冒充自动判定。网络源不稳定或出现不一致时审计会失败，不作为 CI 门禁。`data:items:refresh` 只替换已确认图片不匹配的本地快照，仍须人工检查 diff 后提交；不要手改 `item-icon-mapping.ts` 或单个图片文件。
 
