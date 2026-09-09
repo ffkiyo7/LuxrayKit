@@ -258,11 +258,12 @@ describe('speed tier grouping', () => {
     });
   });
 
-  // ⚠️ Reg M-C: this guard is about the *committed* snapshot, which is still the M-5 one, so it holds
-  // today. It becomes wrong the moment `npm run data:pokedb:speed` is re-run against a season that has
-  // M-C in it: the Z Megas are released and catalogued now, so their chips are legitimate data rather
-  // than placeholders and the 151 tier will no longer be empty. Replace both assertions with the
-  // resolution check above when the snapshot is regenerated.
+  // ⚠️ Reg M-C: `npm run data:pokedb:speed` was re-run on 2026-09-09 and PokeDB is still publishing
+  // Season M-5 (`speedTierSeason === 5`) — no M-6 board exists yet — so the regenerated snapshot still
+  // carries zero Mega Z chips and this guard still holds. It becomes wrong on the first refresh against
+  // a season that has M-C in it: the Z Megas are released and catalogued now, so their chips will be
+  // legitimate data rather than placeholders and the 151 tier will no longer be empty. Replace both
+  // assertions with the resolution check above at that point.
   it('does not ship Mega Z placeholder references in the generated speed snapshot', () => {
     const placeholderNames = speedTierSnapshots
       .flatMap((snapshot) => snapshot.tiers)
