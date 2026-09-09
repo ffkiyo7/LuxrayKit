@@ -220,6 +220,12 @@ const SPECIES_ID_MAP: Record<string, string> = {
   'mega-eelektross': 'eelektross', 'mega-pyroar': 'pyroar',
   'mega-malamar': 'malamar', 'mega-barbaracle': 'barbaracle',
   'mega-dragalge': 'dragalge', 'mega-falinks': 'falinks',
+  // Reg M-C. Unusually for Champions-added Megas, @smogon/calc's Gen 9 dex already carries all six
+  // with matching types and base stats, so these map to their own species rather than falling back to
+  // the base form. (`speciesOverrides` still supplies stats/types from the catalog either way.)
+  'mega-absol-z': 'absolmegaz', 'mega-garchomp-z': 'garchompmegaz',
+  'mega-lucario-z': 'lucariomegaz', 'mega-salamence': 'salamencemega',
+  'mega-golisopod': 'golisopodmega', 'mega-baxcalibur': 'baxcaliburmega',
 };
 
 export function calcSpeciesId(projectId: string): ReturnType<typeof toID> {

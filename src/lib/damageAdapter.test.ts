@@ -280,7 +280,7 @@ describe('damageAdapter', () => {
       return gen.species.get(calcId) ? [] : [`${entry.formId} -> ${calcId}`];
     });
 
-    expect(regMaMegaAllowlist).toHaveLength(75);
+    expect(regMaMegaAllowlist).toHaveLength(81);
     expect(unresolved).toEqual([]);
   });
 
