@@ -1,6 +1,6 @@
 # Luxray Kit 开发进度
 
-更新日期：2026-09-07
+更新日期：2026-09-09
 
 > 工程细节（架构 / Worker 刷新管线 / 部署）以 `docs/DEVELOPER_GUIDE.md` 为准，本文件只记录进度概要。
 
@@ -8,7 +8,24 @@
 
 环境优先重构、Luxray Kit 品牌更新和 Cloudflare Worker 统一部署已进入 `main`。生产站点由 `luxraykit-app` Worker 提供静态资源与 API，环境页在线优先读取 KV 中的 PokeDB snapshot，并保留最新赛季静态快照和开发 seed 两级回退。
 
-## 本轮进展（2026-09-07）：站内留言箱（Durable Object SQLite）
+## 本轮进展（2026-09-09）：Regulation Set M-C 接入（阶段 B · Task 7–9）
+
+分支 `feat/reg-mc-rollout`，Draft PR #68。官方 M-C 2026-09-09 02:00 UTC 开赛，本轮把**当前规则**与跟着规则走的全部生成产物切过去；计划见 `docs/plans/regulation-mc-migration-2026-09.md`。
+
+- ✅ **Task 7 — 规则切换**（commit `e215a42` / `e5ea302`）：`currentRuleSet` → `reg-mc`（`2026-09-09T02:00Z → 2026-12-02T01:59Z`，战斗参数逐项对照官方公告确认、与 M-B 一致），`dataVersionId` → `dv-reg-mc-seed-0.4.0`，`regulationSchedule` 补 M-C 窗口，`seasonSchedule` 补 **Season M-6**（公告已上线）。软着陆的「图鉴更新中」提示与 `pokedb:<key>` 哨兵占位行随之消失。
+- ✅ **Task 8 — catalog 增补**：allowlist 235 → **262**，**与官方 Eligible Pokémon 端点实时重抓后零差异**（双向差集均为空）。catalog 行 235 → **262**（新 `catalog-batch-007`，27 行）、Mega 75 → **81**（新 `mega-catalog-mc.ts`）、可选道具 148 → **166**（held-item 45→57、berry 28 不变）、招式 545 → **566**、特性 198 → **214**、form 行 32 → **39**、`physicalMetrics` 186 → **231**（其中 22 行是 M-B 时代就漏掉的回填 —— 这些宝可梦在图鉴里身高体重一直是空的）。
+- ✅ **Task 9 — 全量重生成**：趣味知识快照重生成（**150 条 / `reg-mc`**，首页知识区不再空白）、速度线快照与静态环境兜底重跑、道具审计 **166/166**、`worker:app:types` 零 diff、`worker:environment:check` dry-run 通过。**零容忍审计两个规则全零**（unknown Pokemon / items / moves / abilities / natures 各 0）。
+- ✅ **脚本**：新增 `scripts/generate-physical-metrics.mjs`（`physicalMetrics.ts` 此前带 `Generated` 头却没有生成器）与 `scripts/update-mc-assets.mjs`。修掉五个脚本的**既有**破损：`generate-catalog-batch` 不会输出非默认形态行（两个 Squawkabilly 会变成两份绿羽毛）、`generate-ability-effects` 把 Champions 独有特性的 PokeAPI 404 当致命错、`generate-champions-moves` 撞上两个 PokéBase soft-404 slug、`generate-item-icons` 的图标选择器零命中（跑全量会静默清空 `item-icon-mapping.ts`）、`audit-item-catalog` 因道具 payload 跨 chunk 而**改之前就是直接失败的**。
+- ✅ **一个会静默丢数据的 bug**：`catalog.ts` 的 Mega 合并循环只在 `megaForms` 为空数组时填表，但 garchomp 把自己的普通 Mega 内联写在该文件里 —— 于是 `mega-garchomp-z` 会被整只跳过，**不报类型错、没有测试会红**。改为追加 + 按 form id 去重；回归确认 absol / garchomp / lucario 三只现在同时拥有普通 Mega 与 Z Mega。
+- ✅ **Maushold 形态索引定论**：Champions form index 是游戏内 0-based 序号（可从同一份官方 payload 自证），`0925-001` 才是 Family of Four。本地 catalog 行一直是 `maushold-family-of-four`，**即 M-A/M-B 的合法性一直挂在错误的家族形态上**，M-C 起才对。另，dex 925 体重 2.3 → 2.8 kg（PokeAPI 现值，旧值是过期快照）。
+- 🎮 **Mega 具甲武者的特性待入游戏核实**：PokéBase 未列，Bulbapedia 说 Tough Claws，PokémonDB 与 `@smogon/calc` 报的是本体的 Emergency Exit（slot-0 继承假象，它对三个 Z Mega 同样报错）。当前按 Tough Claws 落库。
+- 🎮 **6 块 Mega 石的日文名是推断值、`aura-guard` 的 PokeDB resource key 故意留空**：PokeDB 尚未发布 M-C（最新赛季仍 M-5，`?season=6` 为 404），读不到真实值；猜 id 会静默解析到错误特性。
+- 🎮 **Task 9 验收边界里「M-C 开赛后跑一次真实 PokeDB 刷新」尚未满足**：等 PokeDB 上线 Season M-6 后复跑，确认 27 只新宝可梦 / 6 个新 Mega / 18 个新道具都没被零容忍审计剔除（`workerStatus` 不为 degraded）。同一时机把 `speedTier.test.ts` 的 Mega Z 占位守卫换成同文件里的 resolution 检查。
+- ⬜ **Task 10（计算器：草场地形与 Aura Guard）未开工**，另开 PR。在它落地前 `aura-guard` / `aerilate` / `thermal-exchange` 的 `calculationImpact` 均为 `pending`，伤害计算不读它们。
+
+验证：`npm test` **532 通过**（43 文件）、`npm run build`（含 `tsc -b`）通过、`npm run test:pwa -- tests/pwa/offline.spec.ts` 1 通过，以及 `data:pokemon-facts:check` / `data:pokedb:speed:check` / `data:pokedb:environment:check` / `data:items:audit` / `data:regma:physical-metrics:check` / `data:regma:move-ids:check` / `data:regma:abilities:check` / `worker:environment:check` 全过。**未跑** `data:regma:moves`（75 分钟网络全量作业，已在本 PR 内跑过一次）；视觉回归 CI-only，未动用例与基线。
+
+## 上一轮进展（2026-09-07）：站内留言箱（Durable Object SQLite）
 
 分支 `feat/feedback-inbox`（stacked 在 `perf/snapshot-etag-first-paint` 之上，PR base 为该分支）。
 
@@ -31,7 +48,7 @@
 
 ⚠️ 与上两轮同因：**本 PR 上没有 CI**（`ci.yml` 只在 `pull_request: branches: [main]` 触发，这是 stacked PR），数字来自本机。
 
-## 上一轮进展（2026-09-07）：条件请求 · 首屏瘦身 · TeamPage 拆分
+## 更早一轮进展（2026-09-07）：条件请求 · 首屏瘦身 · TeamPage 拆分
 
 分支 `perf/snapshot-etag-first-paint`（stacked 在 `feat/hash-routing-share-feedback` 之上，PR base 为该分支）。一条主题：**打开环境首页要下载的东西太多**（实测约 345 KB gzip + 450 KB 未压缩快照）。首屏 JS 合计 **404,548 → 236,378 字节（-42%）**。
 
@@ -44,7 +61,7 @@
 
 ⚠️ 与上一轮同因：**本 PR 上没有 CI**（`ci.yml` 只在 `pull_request: branches: [main]` 触发，这是 stacked PR），数字来自本机。
 
-## 更早一轮进展（2026-09-07）：hash 路由 · 队伍分享链接 · 反馈入口 · 匿名统计
+## 更早两轮进展（2026-09-07）：hash 路由 · 队伍分享链接 · 反馈入口 · 匿名统计
 
 分支 `feat/hash-routing-share-feedback`（stacked 在 `feat/mc-soft-landing` 之上，PR 待合并）。四件事，一条根因：App 此前**没有任何 URL 状态**，Android 物理返回键直接退出 PWA、无法深链、无法分享、无法按页面统计。
 
@@ -66,7 +83,7 @@
 
 ⚠️ **本 PR 上没有 CI**：`ci.yml` 只在 `pull_request: branches: [main]` 触发，而这是 stacked 在 `feat/mc-soft-landing` 上的 PR。`test` 与 `visual` 两个门禁要等 PR #61 合并、本 PR 改 base 到 `main` 之后才会跑。上面的数字全部来自本机。
 
-## 更早两轮进展（2026-09-07）：M-C 软着陆 · 回退层新鲜度 · SW 预缓存 manifest · 清理
+## 更早三轮进展（2026-09-07）：M-C 软着陆 · 回退层新鲜度 · SW 预缓存 manifest · 清理
 
 分支 `feat/mc-soft-landing`（PR 待合并）。目标是**开赛后线上不出现用户视角不可接受的降级**，不做阶段 B（切 `currentRuleSet`、落 M-C catalog 数据）：
 
@@ -81,7 +98,7 @@
 
 验证：`npm test` 376 通过、`npm run build`（含 `tsc -b`）通过、`npm run test:pwa`（offline + team-samples）2 通过、`npm run worker:environment:check` 通过。
 
-## 更早三轮进展（2026-09-02）：Regulation M-C 接入前准备（阶段 A）
+## 更早四轮进展（2026-09-02）：Regulation M-C 接入前准备（阶段 A）
 
 PR #59（merge `9101dca`，**已合并进 main**，CI 含 `visual` 门禁一次通过、基线未重建）。计划与阶段 B 门禁见 [`docs/plans/regulation-mc-migration-2026-09.md`](../plans/regulation-mc-migration-2026-09.md)。M-C 于 **2026-09-09 02:00 UTC** 开赛，官方完整清单未公布，**阶段 B（切换规则、落数据、计算器草场 / Aura Guard）未开工**；开赛后的降级路径由上面「M-C 软着陆」一轮兜住。
 
@@ -92,7 +109,7 @@ PR #59（merge `9101dca`，**已合并进 main**，CI 含 `visual` 门禁一次�
 - **脚本隔离**：allowlist 生成器加守卫（存在非 `reg-ma-` 行即拒跑，无 bypass）；catalog batch 生成器批次号 / 大小 / sourceRefs 改命令行参数；特性生成器改目录扫描并新增 `--check`。
 - **去硬编码文案**：manifest / `index.html` / README / 开发指南不再写具体赛季与规则号，唯一真源是 `src/data/schedule.ts` 与 `metadata.ts`。
 
-## 更早四轮进展（2026-07-09）：默认双打 · 赛季/规则集中化 · 高分队规则归属
+## 更早五轮进展（2026-07-09）：默认双打 · 赛季/规则集中化 · 高分队规则归属
 
 分支 `feat/doubles-default-and-season-schedule`（**已合并进 main**）：
 
@@ -169,22 +186,23 @@ npm run test:visual
 
 ## 已知代码层待办
 
-- **M-C 阶段 B 未做**：`currentRuleSet` 仍是 `reg-mb`，M-C catalog（新宝可梦、道具、allowlist 行）尚未编写。官方完整清单未公布前不动，`isRegulationRolloverDue` 会持续报提醒。落地前榜单里的新宝可梦按 `pokedb:` 哨兵渲染占位行。
-- `src/data/schedule.ts` 的 `seasonSchedule` 需在每个赛季更替时追加新条目（缺表的赛季 `sampleRegulation` 返回 `undefined`，其高分队样本只在「全部规则」视图可见，不再静默归 M-A）。**当前补到 M-5**；M-6 的官方公告尚未上线，出现后追加（格式照 M-5 的 `sourceUrl`）。
+- **M-C 阶段 B 的 Task 7–9 已落地**（PR #68，Draft）：`currentRuleSet` 为 `reg-mc`，allowlist / catalog / Mega / 道具 / 招式 / 特性 / 立绘全部补齐，哨兵占位行已消失。**Task 10（计算器草场地形与 Aura Guard）仍未做**，另开 PR。
+- `src/data/schedule.ts` 的 `seasonSchedule` 需在每个赛季更替时追加新条目（缺表的赛季 `sampleRegulation` 返回 `undefined`，其高分队样本只在「全部规则」视图可见，不再静默归 M-A）。**当前补到 M-6**（M-C 赛季）；下一个赛季的公告出现后追加（格式照 M-5/M-6 的 `sourceUrl`）。
+- **PokeDB 尚未发布 M-C**：最新赛季仍是 M-5（`?season=6` 返回 404），所以 `speedTiers.ts` 与静态环境兜底都停在 M-5 的数据上，6 块新 Mega 石的日文名为推断值、`aura-guard` 的 PokeDB resource key 留空。PokeDB 上线 M-6 后需复跑真实刷新并复核这三项。
 - （**非待办**）`src/pages/RulePage.tsx` 没有入口是**有意为之**，规则口径页由 owner 主动隐藏，勿改成可达。
 - 属性速查工具没有视觉基线（四个工具里唯一未覆盖）。
 - 分享链接预览浮层（`#/t/<code>`）没有视觉基线：用例得先决定合法 code 从哪来（写死会随 catalog 变动失效）。当前由 `App.test.tsx` 的 RTL 用例覆盖。
 - `#/api/ping` 上线后需人工确认 Analytics Engine 里确实出现 `luxraykit_pageviews` 数据集并有行写入（AE 数据集是首次写入才创建，本地 dry-run 只能验证 binding 存在）。
 - `src/styles.css` 首行远程 `@import` Google Fonts（DM Sans）：Vite 无法内联，所以 CSP 必须放行两个字体域名。自托管字体后可收紧。
 - `scripts/generate-ability-effects.mjs --check` 对 `catalog.ts` 抽到 0 条特性行（该文件的数组名是 `abilityRows`，`extractAbilityRows` 匹配不到）。改动前既有行为，目前不影响（`catalog.ts` 里的 Champions 专属特性是手写中文），但若日后直接在 `catalog.ts` 加特性行会被漏扫。
-- `src/lib/dataAudit.test.ts` 写死 Mega 形态总数 75、招式接触基准集：M-C 阶段 B 加数据时会变红，属预期，届时按实际数量更新。
+- `src/lib/dataAudit.test.ts` 写死各项总数（当前 pokemon 262 / Mega 81 / 道具 166 / 招式 566 / 特性 214 / form 39）与招式接触基准集：每次加数据都会变红，属预期门禁，届时按实际数量更新并在注释里写清算式。
 
 ## 文档索引
 
 - 开发者文档（架构 / Worker / 部署）：`docs/DEVELOPER_GUIDE.md`
 - 范围边界：`docs/product/PRODUCT_SCOPE_AND_TOOL_BOUNDARIES.md`
 - 产品路线：`docs/plans/product-roadmap-2026-08.md`
-- M-C 接入计划（阶段 A 已上线，阶段 B 待官方清单）：`docs/plans/regulation-mc-migration-2026-09.md`
+- M-C 接入计划（阶段 A 已上线；阶段 B 的 Task 7–9 见 PR #68，Task 10 未开工）：`docs/plans/regulation-mc-migration-2026-09.md`
 - 离线验收：`docs/qa/PWA_OFFLINE_CHECKLIST.md`
 - 数据来源：`docs/research/DATA_SOURCE_RESEARCH.md`
 - 计算边界：`docs/research/CALC_ENGINE_SPIKE.md`
