@@ -2,7 +2,9 @@ import { currentDataVersion, currentRuleSet } from './seed/regMA';
 import type { EnvironmentDataset } from '../lib/environmentDataset';
 
 export const currentEnvironmentDataset: EnvironmentDataset = {
-  id: 'reg-mb-development-environment',
+  // Rule-neutral id on purpose: this is a development placeholder, and the real rule identity comes
+  // from `ruleSetId` below. Baking a regulation into the id only made it drift every rollover.
+  id: 'development-environment',
   ruleSetId: currentRuleSet.id,
   dataVersionId: currentDataVersion.id,
   sourceLabel: `${currentRuleSet.name} · ${currentDataVersion.versionName} · 开发预览`,
@@ -10,7 +12,7 @@ export const currentEnvironmentDataset: EnvironmentDataset = {
   updatedAt: '2026-05-27T10:00:00.000+08:00',
   source: {
     kind: 'development-seed',
-    name: 'Local Reg M-B development seed',
+    name: 'Local development seed',
     retrievedAt: '2026-05-27T10:00:00.000+08:00',
     notes: '占位环境数据包，用于验证环境页信息架构；不代表真实使用率或真实高分样本。',
   },
