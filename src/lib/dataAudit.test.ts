@@ -118,8 +118,10 @@ describe('seed data audit', () => {
     expect(auditSourceRefs('Test row', ['reg-mb-official-rule'])).toEqual([]);
   });
 
-  it('keeps the current Reg M-B allowlist traceable to catalog rows', () => {
-    expect(regMaPokemonAllowlistExpectedCount).toBe(235);
+  it('keeps the current-rule allowlist traceable to catalog rows', () => {
+    // 262 = the official M-C Eligible Pokemon payload row count (235 M-B rows + 28 M-C rows - the
+    // retired reg-ma-0925-000 Maushold row, which M-C re-lists as 0925-001).
+    expect(regMaPokemonAllowlistExpectedCount).toBe(262);
     expect(regMaPokemonAllowlist).toHaveLength(regMaPokemonAllowlistExpectedCount);
     expect(regMaPokemonAllowlist).toEqual(
       expect.arrayContaining([

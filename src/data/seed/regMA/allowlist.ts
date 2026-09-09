@@ -1,8 +1,20 @@
 import type { EligiblePokemon } from '../../../types';
 
-export const regMaPokemonAllowlistExpectedCount = 235;
+// HAND-MAINTAINED since M-B. `scripts/generate-regma-allowlist.mjs` is an M-A-only historical
+// generator and refuses to run against this file; append new regulations' rows by hand.
+//
+// Rows are the *current rule's* eligible pool, one per official `championsFormId`, kept in
+// ascending form-id order within each `reg-m?-` block. The M-C block was diffed row-by-row
+// against the official M-C Eligible Pokemon endpoint (262 rows, re-fetched live 2026-09-09):
+// +28 rows vs the 235 M-B rows, and `reg-ma-0925-000` (Maushold) retired because official M-C
+// lists Maushold under `0925-001` instead — see the reviewNotes on `reg-mc-0925-001`.
+//
+// Every surviving row was confirmed present in that official 262-row payload, which is why they
+// all now cite `reg-mc-official-eligible-pokemon`. Per-row `reviewNotes` still describe each
+// row's original M-A / M-B import provenance and were deliberately left unrewritten.
+export const regMaPokemonAllowlistExpectedCount = 262;
 
-const officialEligiblePokemonRefs = ['reg-mb-official-eligible-pokemon', 'manual-seed-review'];
+const officialEligiblePokemonRefs = ['reg-mc-official-eligible-pokemon', 'manual-seed-review'];
 
 export const regMaPokemonAllowlist: EligiblePokemon[] = [
   {
@@ -1816,15 +1828,9 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     sourceRefs: officialEligiblePokemonRefs,
     reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
   },
-  {
-    id: 'reg-ma-0925-000',
-    championsFormId: '0925-000',
-    nationalDexNo: 925,
-    englishName: 'Maushold',
-    verificationStatus: 'manual-review',
-    sourceRefs: officialEligiblePokemonRefs,
-    reviewNotes: 'Carried forward from the prior official Eligible Pokemon page and reconciled against PokéBase M-B regulation tags. This row remains manual-review until the official M-B eligible endpoint is exposed.',
-  },
+  // `reg-ma-0925-000` (Maushold, Family of Three) was retired here at the M-C rollover: the
+  // official M-C pool lists Maushold under `0925-001` (Family of Four) instead. Replacement row
+  // is `reg-mc-0925-001`, which carries the evidence for the form-index reading.
   {
     id: 'reg-ma-0934-000',
     championsFormId: '0934-000',
@@ -2179,5 +2185,299 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
     verificationStatus: 'manual-review',
     sourceRefs: officialEligiblePokemonRefs,
     reviewNotes: 'Imported from PokéBase Champions M-B regulation tags while the official M-B eligible page is not yet exposed through the previous web-view URL.',
+  },
+  // ── Regulation M-C additions (28 rows) ──────────────────────────────────────────────────────
+  // Taken from the official M-C Eligible Pokemon endpoint, which is the legality source (PokéBase
+  // M-C tags are incomplete and must not be used for legality). `englishName` is the payload
+  // string verbatim, including its typographic apostrophe (U+2019) — not re-escaped, so the
+  // catalog batch generator's allowlist parser keeps reading these names intact.
+  // `pokemonId` is the PokeAPI canonical name, which is both the catalog id convention in
+  // catalog-forms.ts (`raichu-alola`, `gourgeist-average`, ...) and the id
+  // scripts/generate-catalog-batch.mjs derives for base forms (`poke.name` from
+  // /pokemon/<nationalDexNo>). Catalog rows for these ids do not exist yet (Task 8).
+  {
+    id: 'reg-mc-0040-000',
+    pokemonId: 'wigglytuff',
+    championsFormId: '0040-000',
+    nationalDexNo: 40,
+    englishName: 'Wigglytuff',
+    verificationStatus: 'manual-review',
+    sourceRefs: officialEligiblePokemonRefs,
+    reviewNotes: 'New in Regulation M-C. Imported from the official M-C Eligible Pokemon endpoint (262 rows, re-fetched live 2026-09-09). Remains manual-review until the catalog row is authored and cross-checked.',
+  },
+  {
+    id: 'reg-mc-0053-000',
+    pokemonId: 'persian',
+    championsFormId: '0053-000',
+    nationalDexNo: 53,
+    englishName: 'Persian',
+    verificationStatus: 'manual-review',
+    sourceRefs: officialEligiblePokemonRefs,
+    reviewNotes: 'New in Regulation M-C. Imported from the official M-C Eligible Pokemon endpoint (262 rows, re-fetched live 2026-09-09). Remains manual-review until the catalog row is authored and cross-checked.',
+  },
+  {
+    id: 'reg-mc-0053-001',
+    pokemonId: 'persian-alola',
+    championsFormId: '0053-001',
+    nationalDexNo: 53,
+    englishName: 'Persian (Alolan Form)',
+    formName: 'Alolan Form',
+    verificationStatus: 'manual-review',
+    sourceRefs: officialEligiblePokemonRefs,
+    reviewNotes: 'New in Regulation M-C. Imported from the official M-C Eligible Pokemon endpoint (262 rows, re-fetched live 2026-09-09). Remains manual-review until the catalog row is authored and cross-checked.',
+  },
+  {
+    id: 'reg-mc-0083-000',
+    pokemonId: 'farfetchd',
+    championsFormId: '0083-000',
+    nationalDexNo: 83,
+    englishName: 'Farfetch’d',
+    verificationStatus: 'manual-review',
+    sourceRefs: officialEligiblePokemonRefs,
+    reviewNotes: 'New in Regulation M-C. Imported from the official M-C Eligible Pokemon endpoint (262 rows, re-fetched live 2026-09-09). Remains manual-review until the catalog row is authored and cross-checked.',
+  },
+  {
+    id: 'reg-mc-0122-000',
+    pokemonId: 'mr-mime',
+    championsFormId: '0122-000',
+    nationalDexNo: 122,
+    englishName: 'Mr. Mime',
+    verificationStatus: 'manual-review',
+    sourceRefs: officialEligiblePokemonRefs,
+    reviewNotes: 'New in Regulation M-C. Imported from the official M-C Eligible Pokemon endpoint (262 rows, re-fetched live 2026-09-09). Remains manual-review until the catalog row is authored and cross-checked.',
+  },
+  {
+    id: 'reg-mc-0317-000',
+    pokemonId: 'swalot',
+    championsFormId: '0317-000',
+    nationalDexNo: 317,
+    englishName: 'Swalot',
+    verificationStatus: 'manual-review',
+    sourceRefs: officialEligiblePokemonRefs,
+    reviewNotes: 'New in Regulation M-C. Imported from the official M-C Eligible Pokemon endpoint (262 rows, re-fetched live 2026-09-09). Remains manual-review until the catalog row is authored and cross-checked.',
+  },
+  {
+    id: 'reg-mc-0373-000',
+    pokemonId: 'salamence',
+    championsFormId: '0373-000',
+    nationalDexNo: 373,
+    englishName: 'Salamence',
+    verificationStatus: 'manual-review',
+    sourceRefs: officialEligiblePokemonRefs,
+    reviewNotes: 'New in Regulation M-C. Imported from the official M-C Eligible Pokemon endpoint (262 rows, re-fetched live 2026-09-09). Parent of the newly allowed Mega Salamence, so Task 8 must add both the base row and the Mega form. Remains manual-review until the catalog row is authored and cross-checked.',
+  },
+  {
+    id: 'reg-mc-0673-000',
+    pokemonId: 'gogoat',
+    championsFormId: '0673-000',
+    nationalDexNo: 673,
+    englishName: 'Gogoat',
+    verificationStatus: 'manual-review',
+    sourceRefs: officialEligiblePokemonRefs,
+    reviewNotes: 'New in Regulation M-C. Imported from the official M-C Eligible Pokemon endpoint (262 rows, re-fetched live 2026-09-09). Remains manual-review until the catalog row is authored and cross-checked.',
+  },
+  {
+    id: 'reg-mc-0768-000',
+    pokemonId: 'golisopod',
+    championsFormId: '0768-000',
+    nationalDexNo: 768,
+    englishName: 'Golisopod',
+    verificationStatus: 'manual-review',
+    sourceRefs: officialEligiblePokemonRefs,
+    reviewNotes: 'New in Regulation M-C. Imported from the official M-C Eligible Pokemon endpoint (262 rows, re-fetched live 2026-09-09). Parent of the newly allowed Mega Golisopod, so Task 8 must add both the base row and the Mega form. Remains manual-review until the catalog row is authored and cross-checked.',
+  },
+  {
+    id: 'reg-mc-0812-000',
+    pokemonId: 'rillaboom',
+    championsFormId: '0812-000',
+    nationalDexNo: 812,
+    englishName: 'Rillaboom',
+    verificationStatus: 'manual-review',
+    sourceRefs: officialEligiblePokemonRefs,
+    reviewNotes: 'New in Regulation M-C. Imported from the official M-C Eligible Pokemon endpoint (262 rows, re-fetched live 2026-09-09). Remains manual-review until the catalog row is authored and cross-checked.',
+  },
+  {
+    id: 'reg-mc-0815-000',
+    pokemonId: 'cinderace',
+    championsFormId: '0815-000',
+    nationalDexNo: 815,
+    englishName: 'Cinderace',
+    verificationStatus: 'manual-review',
+    sourceRefs: officialEligiblePokemonRefs,
+    reviewNotes: 'New in Regulation M-C. Imported from the official M-C Eligible Pokemon endpoint (262 rows, re-fetched live 2026-09-09). Remains manual-review until the catalog row is authored and cross-checked.',
+  },
+  {
+    id: 'reg-mc-0818-000',
+    pokemonId: 'inteleon',
+    championsFormId: '0818-000',
+    nationalDexNo: 818,
+    englishName: 'Inteleon',
+    verificationStatus: 'manual-review',
+    sourceRefs: officialEligiblePokemonRefs,
+    reviewNotes: 'New in Regulation M-C. Imported from the official M-C Eligible Pokemon endpoint (262 rows, re-fetched live 2026-09-09). Remains manual-review until the catalog row is authored and cross-checked.',
+  },
+  {
+    id: 'reg-mc-0828-000',
+    pokemonId: 'thievul',
+    championsFormId: '0828-000',
+    nationalDexNo: 828,
+    englishName: 'Thievul',
+    verificationStatus: 'manual-review',
+    sourceRefs: officialEligiblePokemonRefs,
+    reviewNotes: 'New in Regulation M-C. Imported from the official M-C Eligible Pokemon endpoint (262 rows, re-fetched live 2026-09-09). Remains manual-review until the catalog row is authored and cross-checked.',
+  },
+  {
+    id: 'reg-mc-0849-000',
+    pokemonId: 'toxtricity-amped',
+    championsFormId: '0849-000',
+    nationalDexNo: 849,
+    englishName: 'Toxtricity (Amped Form)',
+    formName: 'Amped Form',
+    verificationStatus: 'manual-review',
+    sourceRefs: officialEligiblePokemonRefs,
+    reviewNotes: 'New in Regulation M-C. Imported from the official M-C Eligible Pokemon endpoint (262 rows, re-fetched live 2026-09-09). Both Toxtricity forms are legal; Amped is the PokeAPI default variety (`toxtricity-amped`). Remains manual-review until the catalog row is authored and cross-checked.',
+  },
+  {
+    id: 'reg-mc-0849-001',
+    pokemonId: 'toxtricity-low-key',
+    championsFormId: '0849-001',
+    nationalDexNo: 849,
+    englishName: 'Toxtricity (Low Key Form)',
+    formName: 'Low Key Form',
+    verificationStatus: 'manual-review',
+    sourceRefs: officialEligiblePokemonRefs,
+    reviewNotes: 'New in Regulation M-C. Imported from the official M-C Eligible Pokemon endpoint (262 rows, re-fetched live 2026-09-09). Remains manual-review until the catalog row is authored and cross-checked.',
+  },
+  {
+    id: 'reg-mc-0853-000',
+    pokemonId: 'grapploct',
+    championsFormId: '0853-000',
+    nationalDexNo: 853,
+    englishName: 'Grapploct',
+    verificationStatus: 'manual-review',
+    sourceRefs: officialEligiblePokemonRefs,
+    reviewNotes: 'New in Regulation M-C. Imported from the official M-C Eligible Pokemon endpoint (262 rows, re-fetched live 2026-09-09). Remains manual-review until the catalog row is authored and cross-checked.',
+  },
+  {
+    id: 'reg-mc-0863-000',
+    pokemonId: 'perrserker',
+    championsFormId: '0863-000',
+    nationalDexNo: 863,
+    englishName: 'Perrserker',
+    verificationStatus: 'manual-review',
+    sourceRefs: officialEligiblePokemonRefs,
+    reviewNotes: 'New in Regulation M-C. Imported from the official M-C Eligible Pokemon endpoint (262 rows, re-fetched live 2026-09-09). Remains manual-review until the catalog row is authored and cross-checked.',
+  },
+  {
+    id: 'reg-mc-0865-000',
+    pokemonId: 'sirfetchd',
+    championsFormId: '0865-000',
+    nationalDexNo: 865,
+    englishName: 'Sirfetch’d',
+    verificationStatus: 'manual-review',
+    sourceRefs: officialEligiblePokemonRefs,
+    reviewNotes: 'New in Regulation M-C. Imported from the official M-C Eligible Pokemon endpoint (262 rows, re-fetched live 2026-09-09). Remains manual-review until the catalog row is authored and cross-checked.',
+  },
+  {
+    id: 'reg-mc-0871-000',
+    pokemonId: 'pincurchin',
+    championsFormId: '0871-000',
+    nationalDexNo: 871,
+    englishName: 'Pincurchin',
+    verificationStatus: 'manual-review',
+    sourceRefs: officialEligiblePokemonRefs,
+    reviewNotes: 'New in Regulation M-C. Imported from the official M-C Eligible Pokemon endpoint (262 rows, re-fetched live 2026-09-09). Remains manual-review until the catalog row is authored and cross-checked.',
+  },
+  {
+    id: 'reg-mc-0876-000',
+    pokemonId: 'indeedee-male',
+    championsFormId: '0876-000',
+    nationalDexNo: 876,
+    englishName: 'Indeedee (Male)',
+    formName: 'Male',
+    verificationStatus: 'manual-review',
+    sourceRefs: officialEligiblePokemonRefs,
+    reviewNotes: 'New in Regulation M-C. Imported from the official M-C Eligible Pokemon endpoint (262 rows, re-fetched live 2026-09-09). Both sexes are separate forms with different stats and abilities, same as the existing Meowstic / Basculegion rows. Remains manual-review until the catalog row is authored and cross-checked.',
+  },
+  {
+    id: 'reg-mc-0876-001',
+    pokemonId: 'indeedee-female',
+    championsFormId: '0876-001',
+    nationalDexNo: 876,
+    englishName: 'Indeedee (Female)',
+    formName: 'Female',
+    verificationStatus: 'manual-review',
+    sourceRefs: officialEligiblePokemonRefs,
+    reviewNotes: 'New in Regulation M-C. Imported from the official M-C Eligible Pokemon endpoint (262 rows, re-fetched live 2026-09-09). Remains manual-review until the catalog row is authored and cross-checked.',
+  },
+  {
+    id: 'reg-mc-0923-000',
+    pokemonId: 'pawmot',
+    championsFormId: '0923-000',
+    nationalDexNo: 923,
+    englishName: 'Pawmot',
+    verificationStatus: 'manual-review',
+    sourceRefs: officialEligiblePokemonRefs,
+    reviewNotes: 'New in Regulation M-C. Imported from the official M-C Eligible Pokemon endpoint (262 rows, re-fetched live 2026-09-09). No community M-C list mentions Pawmot — it is in the official payload, which is authoritative here. Remains manual-review until the catalog row is authored and cross-checked.',
+  },
+  {
+    id: 'reg-mc-0925-001',
+    pokemonId: 'maushold-family-of-four',
+    championsFormId: '0925-001',
+    nationalDexNo: 925,
+    englishName: 'Maushold',
+    verificationStatus: 'manual-review',
+    sourceRefs: officialEligiblePokemonRefs,
+    reviewNotes: 'Replaces the retired `reg-ma-0925-000` row: M-A/M-B listed Maushold as `0925-000` (the M-A endpoint still does) and official M-C lists only `0925-001`, so this is a form-id migration, not a new species. Champions form indexes are the in-game 0-based form indexes — provable from this same payload, where Gourgeist runs Average/Small/Large/Jumbo = 000/001/002/003, Lycanroc runs Midday/Midnight/Dusk = 000/001/002, and Galarian Slowbro is 002 because 001 is Mega Slowbro. On that scale 0925-000 is Family of Three and 0925-001 is Family of Four (PokeAPI form_order: family-of-three 1, family-of-four 2; @smogon/calc Gen 9 has base `Maushold` = Family of Three plus `Maushold-Four`). The local catalog row is `maushold-family-of-four`, so the catalog was previously mapped to the wrong family form for M-A/M-B and is now correct for M-C; the Family of Three form is not legal in M-C and has no catalog row. Remains manual-review.',
+  },
+  {
+    id: 'reg-mc-0930-000',
+    pokemonId: 'arboliva',
+    championsFormId: '0930-000',
+    nationalDexNo: 930,
+    englishName: 'Arboliva',
+    verificationStatus: 'manual-review',
+    sourceRefs: officialEligiblePokemonRefs,
+    reviewNotes: 'New in Regulation M-C. Imported from the official M-C Eligible Pokemon endpoint (262 rows, re-fetched live 2026-09-09). Remains manual-review until the catalog row is authored and cross-checked.',
+  },
+  {
+    id: 'reg-mc-0931-000',
+    pokemonId: 'squawkabilly-green-plumage',
+    championsFormId: '0931-000',
+    nationalDexNo: 931,
+    englishName: 'Squawkabilly',
+    verificationStatus: 'manual-review',
+    sourceRefs: officialEligiblePokemonRefs,
+    reviewNotes: 'New in Regulation M-C. Official M-C lists exactly two Squawkabilly forms, `0931-000` and `0931-002`, both under the bare name "Squawkabilly" (community claims of all four plumages are wrong). By the in-game 0-based form index that this payload uses, 000 is Green Plumage and 002 is Yellow Plumage (PokeAPI form_order: green 1, blue 2, yellow 3, white 4; species varieties in the same order). Blue (001) and White (003) are NOT legal. Remains manual-review until the catalog row is authored and cross-checked.',
+  },
+  {
+    id: 'reg-mc-0931-002',
+    pokemonId: 'squawkabilly-yellow-plumage',
+    championsFormId: '0931-002',
+    nationalDexNo: 931,
+    englishName: 'Squawkabilly',
+    verificationStatus: 'manual-review',
+    sourceRefs: officialEligiblePokemonRefs,
+    reviewNotes: 'New in Regulation M-C. Yellow Plumage — see the reviewNotes on `reg-mc-0931-000` for how the form index was resolved. All four plumages share base stats, so the forms differ only by ability and artwork. The official payload gives no parenthesised form name, so `formName` is intentionally absent; note that this makes both Squawkabilly rows look like base forms to scripts/generate-catalog-batch.mjs, which would emit the PokeAPI default (green plumage) twice — these two rows need hand-authored catalog entries. Remains manual-review.',
+  },
+  {
+    id: 'reg-mc-0943-000',
+    pokemonId: 'mabosstiff',
+    championsFormId: '0943-000',
+    nationalDexNo: 943,
+    englishName: 'Mabosstiff',
+    verificationStatus: 'manual-review',
+    sourceRefs: officialEligiblePokemonRefs,
+    reviewNotes: 'New in Regulation M-C. Imported from the official M-C Eligible Pokemon endpoint (262 rows, re-fetched live 2026-09-09). Remains manual-review until the catalog row is authored and cross-checked.',
+  },
+  {
+    id: 'reg-mc-0998-000',
+    pokemonId: 'baxcalibur',
+    championsFormId: '0998-000',
+    nationalDexNo: 998,
+    englishName: 'Baxcalibur',
+    verificationStatus: 'manual-review',
+    sourceRefs: officialEligiblePokemonRefs,
+    reviewNotes: 'New in Regulation M-C. Imported from the official M-C Eligible Pokemon endpoint (262 rows, re-fetched live 2026-09-09). Parent of the newly allowed Mega Baxcalibur, so Task 8 must add both the base row and the Mega form. Remains manual-review until the catalog row is authored and cross-checked.',
   },
 ];
