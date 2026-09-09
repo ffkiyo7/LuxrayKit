@@ -201,7 +201,7 @@ main.tsx
 
 手写 SW，无 Workbox。install 预缓存 app shell + 静态环境快照；同源 GET 走缓存优先 + 后台更新；`/api/*` **永不**读写离线缓存。
 
-- **道具图标预缓存表是构建产物**：`vite.config.ts` 的 `luxraykit-precache-manifest` 插件在 `closeBundle` 调 `scripts/precache-manifest.mjs`，从道具 catalog 的 `iconRef` 写出 `dist/precache-manifest.json`（`{ generatedAt, itemIcons }`，当前 148 条）；SW 在 install 时 fetch 它再逐个 `cache.add`（单个图标失败、manifest 缺失或无法解析都不阻塞安装）。**改道具不用改 `sw.js`**——那里曾经是手写数组，每次加道具都会漂移。
+- **道具图标预缓存表是构建产物**：`vite.config.ts` 的 `luxraykit-precache-manifest` 插件在 `closeBundle` 调 `scripts/precache-manifest.mjs`，从道具 catalog 的 `iconRef` 写出 `dist/precache-manifest.json`（`{ generatedAt, itemIcons }`，当前 166 条）；SW 在 install 时 fetch 它再逐个 `cache.add`（单个图标失败、manifest 缺失或无法解析都不阻塞安装）。**改道具不用改 `sw.js`**——那里曾经是手写数组，每次加道具都会漂移。
 - **`CACHE_NAME` 当前 `champions-tool-v8`**，改版本要同步 `docs/qa/PWA_OFFLINE_CHECKLIST.md`。
 - **新版本提示**：SW 保持 `skipWaiting` + `clients.claim`，部署会在打开着的标签页下面换掉 controller，而页面仍跑旧 chunk。`src/main.tsx` 监听 `controllerchange`，**仅当页面此前已有 controller**（首次安装不提示）时派发 `luxraykit:service-worker-updated`，由 `components/ServiceWorkerUpdateToast.tsx` 渲染刷新 toast。用 CustomEvent 是为了让注册侧保持几行纯 DOM，不进 `AppShell` 的 state。
 - **CSP**：`public/_headers` 的 `Content-Security-Policy` 以同源为主，两处刻意放宽：`style-src 'unsafe-inline'`（React 写 inline style 属性）与 Google Fonts 两个域名（`src/styles.css` 首行远程 `@import` DM Sans，Vite 无法内联）。`_headers` **只在 Cloudflare 生效**，`vite preview` 与 Playwright 都看不到它——改动后只能上线后在生产 DevTools 人工核对。
@@ -528,7 +528,7 @@ npm run data:regma:moves                # 重生成 move-catalog.ts（learnset +
 npm run data:regma:move-ids             # 从 move-catalog.ts 派生 move-ids.ts（只含 id 数组，不联网）
 npm run data:regma:move-ids:check       # 只校验 move-ids.ts 是否与 catalog 一致
 npm run data:regma:allowlist            # ⚠️ M-A 历史脚本，见下方说明；当前仓库状态下会安全拒绝执行
-npm run data:items:audit                # 只读核验 148 条当前规则道具的中英文名称、类别与本地图片
+npm run data:items:audit                # 只读核验 166 条当前规则道具的中英文名称、类别与本地图片
 npm run data:items:refresh              # 仅用来源图刷新不匹配的本地道具图片
 ```
 
