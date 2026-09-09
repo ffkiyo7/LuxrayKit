@@ -1,14 +1,32 @@
 import type { DataSourceManifest, DataVersion, RuleSet, UserPreference } from '../../../types';
 
+/**
+ * Historical M-A official Eligible Pokemon web-view endpoint. It still serves the original
+ * 213-row M-A payload, and `reg-ma-official-eligible-pokemon` (cited by older generated catalog
+ * batches) points at it — do NOT repoint this at a newer regulation. Each regulation gets its
+ * own constant below.
+ */
 export const officialEligiblePokemonUrl = 'https://web-view.app.pokemonchampions.jp/battle/pages/events/rs177501629259kmzbny/en/pokemon.html';
+/** Official M-C Eligible Pokemon web-view endpoint (262 rows, verified 2026-09-09). */
+export const officialEligiblePokemonUrlMC = 'https://web-view.app.pokemonchampions.jp/battle/pages/events/rs178713870219xeaaio/en/pokemon.html';
+/** Official Regulation Set M-C announcement (duration, mechanics, held items, timers). */
+export const regulationMcAnnouncementUrl = 'https://news.pokemon-home.com/en/page/816.html';
 export const pokebaseChampionsPokemonUrl = 'https://pokebase.app/pokemon-champions/pokemon';
 
 export const currentRuleSet: RuleSet = {
-  id: 'reg-mb',
-  name: 'Regulation Set M-B',
-  displayName: 'Pokemon Champions Regulation Set M-B',
-  startAt: '2026-06-17T02:00:00.000Z',
-  endAt: '2026-09-09T01:59:00.000Z',
+  id: 'reg-mc',
+  name: 'Regulation Set M-C',
+  displayName: 'Pokemon Champions Regulation Set M-C',
+  // Duration is quoted verbatim from the official M-C announcement (regulationMcAnnouncementUrl):
+  // "Wednesday, September 9, 2026, at 02:00 UTC to Wednesday, December 2, 2026, at 01:59 UTC".
+  startAt: '2026-09-09T02:00:00.000Z',
+  endAt: '2026-12-02T01:59:00.000Z',
+  // Battle parameters were re-read off the M-C announcement rather than copied from M-B, and are
+  // identical to M-B: "You can use Mega Evolution only one time per battle", "Duplicate held
+  // items are not allowed", "Total Time: 20 minutes / Player Time: 7 minutes / Turn Time: 45
+  // seconds / Preview Time: 90 seconds". `battleType` is the app's tracked VGC format and is NOT
+  // restated by the regulation announcement (Ranked Battles itself offers both Single and Double
+  // Battle), so it carries over from M-B unchanged.
   battleType: 'doubles',
   allowMega: true,
   megaLimitPerBattle: 1,
@@ -20,20 +38,27 @@ export const currentRuleSet: RuleSet = {
     previewTimeSeconds: 90,
   },
   officialSourceUrl: 'https://champions.pokemon.com/en-us/',
-  dataVersionId: 'dv-reg-mb-seed-0.3.0',
+  dataVersionId: 'dv-reg-mc-seed-0.4.0',
   status: 'current',
 };
 
 export const currentDataVersion: DataVersion = {
-  id: 'dv-reg-mb-seed-0.3.0',
+  id: 'dv-reg-mc-seed-0.4.0',
   ruleSetId: currentRuleSet.id,
-  versionName: 'v0.3.0-mb-seed',
-  updatedAt: '2026-06-17T02:00:00.000Z',
-  sourceSummary: 'M-B seed data joined from current PokéBase Champions pages, PokeAPI structured data, and local manual review where the prior official eligible endpoint has not exposed M-B rows.',
-  sourceUrls: [currentRuleSet.officialSourceUrl, pokebaseChampionsPokemonUrl, officialEligiblePokemonUrl],
+  versionName: 'v0.4.0-mc-seed',
+  updatedAt: '2026-09-09T02:00:00.000Z',
+  sourceSummary: 'M-C seed data joined from the official M-C Eligible Pokemon endpoint (262 rows), the official M-C regulation announcement, current PokéBase Champions pages, PokeAPI structured data, and local manual review.',
+  sourceUrls: [currentRuleSet.officialSourceUrl, regulationMcAnnouncementUrl, officialEligiblePokemonUrlMC, pokebaseChampionsPokemonUrl],
   verificationStatus: 'manual-review',
-  notes: 'M-B catalog rows are structured for validation and UI flow. Do not treat catalog legality, item legality, learnsets, or damage output as final battle guidance until official endpoints are cross-checked.',
+  notes: 'M-C catalog rows are structured for validation and UI flow. Do not treat catalog legality, item legality, learnsets, or damage output as final battle guidance until official endpoints are cross-checked.',
 };
+
+/**
+ * Retrieval timestamp for the M-B-era source entries below. Frozen as a literal so bumping
+ * `currentDataVersion.updatedAt` at a rollover does not silently re-date historical provenance
+ * (it used to be `currentDataVersion.updatedAt`, which was the M-B data version timestamp).
+ */
+const mbSourcesRetrievedAt = '2026-06-17T02:00:00.000Z';
 
 export const defaultPreferences: UserPreference = {
   language: 'zh-CN',
@@ -52,11 +77,58 @@ export const dataSourceManifest: DataSourceManifest = {
   mode: 'versioned-seed',
   sources: [
     {
+      id: 'reg-mc-official-rule',
+      url: regulationMcAnnouncementUrl,
+      sourceType: 'official',
+      licenseRisk: 'low',
+      retrievedAt: currentDataVersion.updatedAt,
+      sourceVersion: 'regulation-set-m-c',
+      fieldsUsed: [
+        'ruleSet.startAt',
+        'ruleSet.endAt',
+        'ruleSet.allowMega',
+        'ruleSet.megaLimitPerBattle',
+        'ruleSet.duplicateHeldItemsAllowed',
+        'ruleSet.timers',
+      ],
+      notes: 'Official Regulation Set M-C announcement. Duration, Mega limit (once per battle), duplicate-held-item ban, and the 20/7/45/90 timers were read off this page directly, not copied from M-B; they happen to be identical to M-B. `ruleSet.battleType` is deliberately NOT listed: the announcement does not restate the battle format.',
+    },
+    {
+      id: 'reg-mc-official-eligible-pokemon',
+      url: officialEligiblePokemonUrlMC,
+      sourceType: 'official',
+      licenseRisk: 'medium',
+      retrievedAt: currentDataVersion.updatedAt,
+      sourceVersion: 'row-count-262',
+      fieldsUsed: ['eligiblePokemon.championsFormId', 'eligiblePokemon.nationalDexNo', 'eligiblePokemon.englishName'],
+      notes: 'Official M-C Eligible Pokemon web-view page linked from the M-C announcement, same `const pokemons = [...]` payload shape as the M-A endpoint. Re-fetched live on 2026-09-09: 262 rows, diffed row-by-row against the local allowlist (+28 / -1 vs the 235 M-B rows). This — not PokéBase regulation tags — is the legality source for M-C.',
+    },
+    {
+      id: 'reg-mc-official-mega-list',
+      url: regulationMcAnnouncementUrl,
+      sourceType: 'official',
+      licenseRisk: 'low',
+      retrievedAt: currentDataVersion.updatedAt,
+      sourceVersion: 'mega-count-6',
+      fieldsUsed: ['megaEvolution.englishName', 'megaEvolution.legalInCurrentRule'],
+      notes: 'The M-C announcement names the 6 newly allowed Mega Evolutions verbatim: Mega Absol Z, Mega Salamence, Mega Garchomp Z, Mega Lucario Z, Mega Golisopod, Mega Baxcalibur. `mega-count-6` is that new-in-M-C count, not the total legal Mega pool.',
+    },
+    {
+      id: 'pokebase-champions-pokemon-mc',
+      url: pokebaseChampionsPokemonUrl,
+      sourceType: 'community',
+      licenseRisk: 'high',
+      retrievedAt: currentDataVersion.updatedAt,
+      sourceVersion: 'regulation-set-m-c',
+      fieldsUsed: ['pokemon.types', 'pokemon.baseStats', 'pokemon.abilities', 'pokemon.moves'],
+      notes: 'PokéBase Champions pages are used only to fill stats/types/abilities/learnsets for M-C rows. PokéBase M-C regulation tags are incomplete (tagged on 3 Pokemon as of 2026-09-09) and must never be used as the legality source — see reg-mc-official-eligible-pokemon.',
+    },
+    {
       id: 'reg-mb-official-rule',
       url: currentRuleSet.officialSourceUrl,
       sourceType: 'official',
       licenseRisk: 'low',
-      retrievedAt: currentDataVersion.updatedAt,
+      retrievedAt: mbSourcesRetrievedAt,
       fieldsUsed: [
         'ruleSet.startAt',
         'ruleSet.endAt',
@@ -66,14 +138,14 @@ export const dataSourceManifest: DataSourceManifest = {
         'ruleSet.duplicateHeldItemsAllowed',
         'ruleSet.timers',
       ],
-      notes: 'Current active rule metadata for Pokemon Champions Regulation Set M-B. Exact local start/end times are tracked from the season rollover and remain manual-review until a dedicated official M-B announcement URL is captured.',
+      notes: 'Historical rule metadata for Regulation Set M-B, retained because existing catalog rows still cite this sourceRef. M-B start/end times were tracked from the season rollover rather than a dedicated announcement URL; the current rule is sourced from reg-mc-official-rule.',
     },
     {
       id: 'manual-seed-review',
       url: 'local://src/data/seed/regMA/catalog.ts',
       sourceType: 'manual-observation',
       licenseRisk: 'medium',
-      retrievedAt: currentDataVersion.updatedAt,
+      retrievedAt: mbSourcesRetrievedAt,
       sourcePath: 'src/data/seed/regMA/catalog.ts',
       fieldsUsed: ['pokemon', 'forms', 'abilities', 'moves', 'items', 'learnsets', 'baseStats'],
       notes: 'Hand-authored MVP seed data for UI validation. Rows with this ref must stay needs-review.',
@@ -83,7 +155,7 @@ export const dataSourceManifest: DataSourceManifest = {
       url: pokebaseChampionsPokemonUrl,
       sourceType: 'community',
       licenseRisk: 'high',
-      retrievedAt: currentDataVersion.updatedAt,
+      retrievedAt: mbSourcesRetrievedAt,
       sourceVersion: 'row-count-235',
       fieldsUsed: ['eligiblePokemon.championsFormId', 'eligiblePokemon.nationalDexNo', 'eligiblePokemon.englishName', 'pokemon.regulationSets'],
       notes: 'M-B eligible Pokemon are reconciled from PokéBase Champions Regulation Set M-B tags because the previous official web-view URL still exposes the prior 213-row M-A payload. Rows stay manual-review until the official M-B eligible endpoint is captured.',
@@ -93,7 +165,7 @@ export const dataSourceManifest: DataSourceManifest = {
       url: pokebaseChampionsPokemonUrl,
       sourceType: 'community',
       licenseRisk: 'high',
-      retrievedAt: currentDataVersion.updatedAt,
+      retrievedAt: mbSourcesRetrievedAt,
       sourceVersion: 'regulation-set-m-b',
       fieldsUsed: ['pokemon.types', 'pokemon.baseStats', 'pokemon.abilities', 'pokemon.moves', 'pokemon.regulationSets'],
       notes: 'PokéBase Champions pages currently include Regulation Set M-B rows and were used to seed the 22 new base Pokemon and 16 M-B Mega forms.',
@@ -123,7 +195,7 @@ export const dataSourceManifest: DataSourceManifest = {
       url: pokebaseChampionsPokemonUrl,
       sourceType: 'community',
       licenseRisk: 'high',
-      retrievedAt: currentDataVersion.updatedAt,
+      retrievedAt: mbSourcesRetrievedAt,
       sourceVersion: 'mega-count-75',
       fieldsUsed: ['megaEvolution.englishName', 'megaEvolution.legalInCurrentRule', 'pokemon.regulationSets'],
       notes: 'M-B Mega list is derived from PokéBase Champions Regulation Set M-B tags until a dedicated official M-B Mega list URL is captured.',
@@ -181,7 +253,7 @@ export const dataSourceManifest: DataSourceManifest = {
       url: 'https://github.com/PokeAPI/sprites/tree/master/sprites/items',
       sourceType: 'community',
       licenseRisk: 'high',
-      retrievedAt: currentDataVersion.updatedAt,
+      retrievedAt: mbSourcesRetrievedAt,
       sourcePath: 'scripts/generate-item-icons.mjs',
       fieldsUsed: ['item.iconRef'],
       notes: 'Canonical item sprites keyed by item ID. Used for tree berries after the community Champions source showed mismapped berry artwork; rows remain manual-review.',
@@ -191,7 +263,7 @@ export const dataSourceManifest: DataSourceManifest = {
       url: 'https://pokeapi.co/api/v2/item/',
       sourceType: 'community',
       licenseRisk: 'medium',
-      retrievedAt: currentDataVersion.updatedAt,
+      retrievedAt: mbSourcesRetrievedAt,
       sourcePath: 'scripts/audit-item-catalog.mjs',
       fieldsUsed: ['item.chineseName'],
       notes: 'PokeAPI zh-hans item names are used to audit held-item and berry identity. Fairy Feather is cross-checked manually because PokeAPI currently has no zh-hans name for that item.',
@@ -248,7 +320,7 @@ export const dataSourceManifest: DataSourceManifest = {
       url: 'https://pokebase.app/pokemon-champions/pokemon',
       sourceType: 'community',
       licenseRisk: 'high',
-      retrievedAt: currentDataVersion.updatedAt,
+      retrievedAt: mbSourcesRetrievedAt,
       sourcePath: 'src/data/seed/regMA/mega-catalog.ts',
       fieldsUsed: ['megaForms.baseStats', 'megaForms.types', 'megaForms.abilities', 'megaForms.iconRef', 'abilities.effectSummary'],
       notes: 'PokéBase Champions Pokemon pages used to fill Champions-added Mega forms, including local snapshots of their form artwork. Ability text for Champions-only effects is translated from page descriptions and remains pending battle-mechanics verification.',
@@ -258,7 +330,7 @@ export const dataSourceManifest: DataSourceManifest = {
       url: 'https://pokebase.app/pokemon-champions/items',
       sourceType: 'community',
       licenseRisk: 'high',
-      retrievedAt: currentDataVersion.updatedAt,
+      retrievedAt: mbSourcesRetrievedAt,
       sourcePath: 'scripts/generate-item-icons.mjs',
       fieldsUsed: ['item.iconRef', 'item.englishName', 'item.effectSummary'],
       notes: 'Current-rule item names, categories, descriptions, and non-berry icon snapshots are reviewed against PokéBase Champions item pages. New M-B rows remain manual-review where PokéBase or official item pages are incomplete.',
@@ -268,7 +340,7 @@ export const dataSourceManifest: DataSourceManifest = {
       url: 'https://pokebase.app/pokemon-champions/pokemon',
       sourceType: 'community',
       licenseRisk: 'high',
-      retrievedAt: currentDataVersion.updatedAt,
+      retrievedAt: mbSourcesRetrievedAt,
       sourcePath: 'scripts/generate-champions-moves.mjs',
       fieldsUsed: ['moves.id', 'moves.englishName', 'moves.type', 'moves.category', 'moves.power', 'moves.accuracy', 'moves.pp', 'moves.learnableByPokemonIds'],
       notes: 'PokéBase Champions Pokemon Available Moves pages are the current M-B learnset source for the local assistant. Rows remain community-sourced and should be re-generated when PokéBase updates.',
