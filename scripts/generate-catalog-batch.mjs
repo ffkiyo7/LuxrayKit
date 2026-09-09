@@ -114,8 +114,6 @@ if (args.batchNumber === undefined) {
 console.log(`Batch size: ${BATCH_SIZE === Number.POSITIVE_INFINITY ? 'all remaining' : BATCH_SIZE}`);
 console.log(`Source refs: ${batchSourceRefs.join(', ')}`);
 
-const artwork = (n) => `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${n}.png`;
-
 await mkdir(CACHE_DIR, { recursive: true });
 
 // ── Cache helpers ──────────────────────────────────────────────
@@ -223,12 +221,71 @@ async function getExistingIds() {
 
 // ── PokeAPI data fetching ──────────────────────────────────────
 
-async function fetchPokemonData(nationalDexNo) {
+/**
+ * Fetch a row's PokeAPI data.
+ *
+ * Rows that carry a `pokemonId` are fetched through `/pokemon/<pokemonId>/` and keep that id.
+ * Fetching by dex number (the only thing this script used to do) resolves to the *default*
+ * variety, so a non-default form row such as `persian-alola` or `squawkabilly-yellow-plumage`
+ * would silently come back as the default Persian / green-plumage Squawkabilly, and two form rows
+ * of the same species would be emitted as duplicate default rows. The species endpoint stays keyed
+ * on the dex number because alternate forms share their species' localized names.
+ */
+async function fetchPokemonData(entry) {
+  const pokemonKey = entry.pokemonId ?? entry.nationalDexNo;
   const [poke, species] = await Promise.all([
-    pokeapi(`/pokemon/${nationalDexNo}/`),
-    pokeapi(`/pokemon-species/${nationalDexNo}/`),
+    pokeapi(`/pokemon/${pokemonKey}/`),
+    pokeapi(`/pokemon-species/${entry.nationalDexNo}/`),
   ]);
-  return { poke, species };
+  if (entry.pokemonId && poke.name !== entry.pokemonId) {
+    throw new Error(
+      `Allowlist row ${entry.id} declares pokemonId "${entry.pokemonId}" but /pokemon/${pokemonKey}/ returned "${poke.name}".`,
+    );
+  }
+  if (poke.species?.name && species.name && poke.species.name !== species.name) {
+    throw new Error(
+      `Allowlist row ${entry.id}: /pokemon/${pokemonKey}/ belongs to species "${poke.species.name}" but nationalDexNo ${entry.nationalDexNo} is species "${species.name}".`,
+    );
+  }
+
+  // Form-specific localized names, used to disambiguate same-species form rows. Default forms
+  // have no `form_names`, so this is a no-op for them.
+  let form;
+  if (entry.pokemonId) {
+    try {
+      form = await pokeapi(`/pokemon-form/${entry.pokemonId}/`);
+    } catch {
+      form = undefined;
+    }
+  }
+  return { poke, species, form };
+}
+
+/**
+ * Chinese names PokeAPI cannot supply, keyed by catalog id. Same role (and same manual-verification
+ * caveat) as the ZH_FALLBACKS table in scripts/generate-form-catalog.mjs: PokeAPI has no `zh-hans`
+ * entry in these forms' `form_names`, so without an override both Squawkabilly plumages would get
+ * the bare species name `怒鹦哥` and be indistinguishable in the Dex.
+ */
+const ZH_FALLBACKS = {
+  'squawkabilly-green-plumage': '怒鹦哥（绿羽毛的样子）',
+  'squawkabilly-yellow-plumage': '怒鹦哥（黄羽毛的样子）',
+};
+
+/**
+ * Chinese display name. Mirrors scripts/generate-form-catalog.mjs so form rows produced here read
+ * the same as the ones in catalog-forms.ts (`雷丘（阿罗拉的样子）`, `南瓜怪人（特大）`, ...).
+ */
+function buildChineseName(speciesZhName, formNameZh, pokemonId) {
+  if (ZH_FALLBACKS[pokemonId]) return ZH_FALLBACKS[pokemonId];
+  if (!formNameZh) return speciesZhName;
+  if (formNameZh === `${speciesZhName}的样子`) return speciesZhName;
+  if (formNameZh.includes(speciesZhName)) return formNameZh;
+  if (/[的样子模樣]/.test(formNameZh)) {
+    const suffix = formNameZh.replace(/的样子$/, '');
+    return `${speciesZhName}（${suffix}的样子）`;
+  }
+  return `${speciesZhName}（${formNameZh}）`;
 }
 
 function extractBaseStats(poke) {
@@ -409,12 +466,19 @@ async function main() {
   const { pokemonIds: existingPokeIds, abilityIds: existingAbilityIds, moveIds: existingMoveIds, existingDexNos } = await getExistingIds();
   console.log(`Existing catalog: ${existingPokeIds.size} pokemon (${existingDexNos.size} unique dex), ${existingAbilityIds.size} abilities, ${existingMoveIds.size} moves`);
 
-  // Select batch: base-form entries not yet in catalog (check by nationalDexNo and pokemonId)
+  // Select batch: rows whose catalog id is still missing.
+  //
+  // A row that declares `pokemonId` names its catalog id outright, so membership is decided on that
+  // id alone — never on the dex number. Deciding by dex number would drop every non-default form
+  // row (`persian-alola` shares dex 53 with `persian`) and would also drop a form row whose sibling
+  // lands in the same batch. Rows without `pokemonId` are legacy M-A rows whose id is only knowable
+  // after a PokeAPI fetch, so they keep the original dex-number heuristic, including the
+  // `formName` skip that kept unmapped form rows out (those are handled by
+  // scripts/generate-form-catalog.mjs).
   const candidates = allowlist.filter((e) => {
+    if (e.pokemonId) return !existingPokeIds.has(e.pokemonId);
     if (e.formName) return false;
-    if (existingDexNos.has(e.nationalDexNo)) return false;
-    if (e.pokemonId && existingPokeIds.has(e.pokemonId)) return false;
-    return true;
+    return !existingDexNos.has(e.nationalDexNo);
   });
   const batch = candidates.slice(0, BATCH_SIZE);
 
@@ -434,10 +498,14 @@ async function main() {
 
     try {
       console.log(`${pct} #${dexNo} ${entry.englishName}...`);
-      const { poke, species } = await fetchPokemonData(dexNo);
+      const { poke, species, form } = await fetchPokemonData(entry);
 
       const pokemonId = poke.name; // PokeAPI canonical lowercase id
-      const zhName = findName(species.names, 'zh-hans') || entry.englishName;
+      const speciesZhName = findName(species.names, 'zh-hans');
+      const zhName =
+        buildChineseName(speciesZhName, findName(form?.form_names, 'zh-hans'), pokemonId) ||
+        speciesZhName ||
+        entry.englishName;
       const jaName = findName(species.names, 'ja-hrkt') || findName(species.names, 'ja') || '';
       const types = poke.types.map((t) => mapType(t.type.name));
       const baseStats = extractBaseStats(poke);
@@ -480,7 +548,11 @@ async function main() {
         chineseName: zhName,
         englishName: entry.englishName,
         japaneseName: jaName,
-        iconRef: artwork(dexNo),
+        // Sprite id, not dex number: alternate forms have their own PokeAPI numeric id (and their
+        // own official artwork), which is also the file name convention under
+        // public/assets/pokemon/thumbs/ for the rows in catalog-forms.ts. For a default form
+        // poke.id === nationalDexNo, so base rows are unchanged.
+        spriteId: poke.id,
         types,
         baseStats,
         legalInCurrentRule: true,
@@ -550,7 +622,12 @@ async function main() {
   lines.push("import type { Ability, Pokemon } from '../../../types';");
   lines.push('');
   lines.push(`const batchRefs = [${batchSourceRefs.map((ref) => `'${escapeStr(ref)}'`).join(', ')}];`);
-  lines.push(`const artwork = (n: number) => \`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/\${n}.png\`;`);
+  // Local sprite path, matching catalog-batch-001..006 and catalog.ts. dataAudit requires every
+  // `iconRef` to be a `/assets/pokemon/thumbs/` path (catalog.ts derives `artworkRef` from it by
+  // swapping the directory), so a remote URL here would fail the audit; the PNGs themselves are
+  // produced by scripts/generate-pokemon-icons.mjs, which discovers these sprite ids from the
+  // generated files.
+  lines.push(`const artwork = (n: number) => \`/assets/pokemon/thumbs/\${n}.png\`;`);
   lines.push('');
 
   // Abilities
@@ -579,7 +656,7 @@ async function main() {
     lines.push(`    chineseName: '${escapeStr(p.chineseName)}',`);
     lines.push(`    englishName: '${escapeStr(p.englishName)}',`);
     lines.push(`    japaneseName: '${escapeStr(p.japaneseName)}',`);
-    lines.push(`    iconRef: artwork(${p.nationalDexNo}),`);
+    lines.push(`    iconRef: artwork(${p.spriteId}),`);
     lines.push(`    types: [${p.types.map((t) => `'${t}'`).join(', ')}],`);
     lines.push(`    baseStats: { hp: ${p.baseStats.hp}, attack: ${p.baseStats.attack}, defense: ${p.baseStats.defense}, specialAttack: ${p.baseStats.specialAttack}, specialDefense: ${p.baseStats.specialDefense}, speed: ${p.baseStats.speed} },`);
     lines.push(`    legalInCurrentRule: true,`);
@@ -630,9 +707,11 @@ async function main() {
     (line) => `${line}\nimport { pokemonBatch${pad(BATCH_NUMBER)}, abilitiesBatch${pad(BATCH_NUMBER)} } from './${batchFileName(BATCH_NUMBER).replace(/\.ts$/, '')}';`,
   );
 
-  // Spread batch abilities / pokemon into their arrays.
+  // Spread batch abilities / pokemon into their arrays. `abilityRows` is the raw array that
+  // `export const abilities` is derived from (it re-maps `pokemonIds`), so the spread belongs there,
+  // not on the export.
   for (const [anchor, spread] of [
-    ['export const abilities: Ability[] = [', `...abilitiesBatch${pad(BATCH_NUMBER)},`],
+    ['const abilityRows: Ability[] = [', `...abilitiesBatch${pad(BATCH_NUMBER)},`],
     ['export const pokemon: Pokemon[] = [', `...pokemonBatch${pad(BATCH_NUMBER)},`],
   ]) {
     if (!catalog.includes(anchor)) {

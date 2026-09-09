@@ -1,4 +1,5 @@
 import type { Ability, Item, Pokemon, PokemonForm } from '../../../types';
+import { pokemonBatch007, abilitiesBatch007 } from './catalog-batch-007';
 import { pokemonBatch006, abilitiesBatch006 } from './catalog-batch-006';
 import { pokemonBatch005, abilitiesBatch005 } from './catalog-batch-005';
 import { pokemonBatch004, abilitiesBatch004 } from './catalog-batch-004';
@@ -85,6 +86,7 @@ const artwork = (nationalDexNo: number) => `/assets/pokemon/thumbs/${nationalDex
 const formArtwork = (formSpriteId: number) => artwork(formSpriteId);
 
 const abilityRows: Ability[] = [
+  ...abilitiesBatch007,
   ...abilitiesBatch006,
   ...abilitiesBatch005,
   ...abilitiesBatch004,
@@ -615,6 +617,7 @@ export const items: Item[] = [
 ];
 
 export const pokemon: Pokemon[] = [
+  ...pokemonBatch007,
   ...pokemonBatch006,
   ...pokemonBatch005,
   ...pokemonBatch004,
