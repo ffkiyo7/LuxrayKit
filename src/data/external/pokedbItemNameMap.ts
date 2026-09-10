@@ -1,15 +1,15 @@
 // PokeDB reports held items by Japanese name, so every catalog item needs an entry here or the
 // Worker's zero-tolerance audit goes degraded (`dataAudit.test.ts` gates the Mega Stones).
 //
-// Reg M-C (2026-09-09) caveat on provenance: PokeDB has **not** published M-C yet — its latest
-// season is still M-5 (`/pokemon/list?season=5`; `season=6` 404s), so the 18 items M-C adds do not
-// appear on PokeDB at all and their strings could not be read off it. They come from PokeAPI `ja`
-// names instead, which is the same orthography PokeDB uses (verified against a live PokeDB detail
-// page: こだわりスカーフ / いのちのたま / オボンのみ all match PokeAPI verbatim).
-// The six new Mega Stone names are the one genuine inference: PokeDB shows no Z stone yet, so they
-// follow the established `<日本語種族名> + ナイト` pattern with the X/Y suffix convention extended to
-// Z. Both the full-width and half-width Z are mapped, the same defensive doubling this file already
-// uses for ジジーロンナイト / ジジーロナイト. Re-verify once season M-6 is live on PokeDB.
+// Reg M-C provenance: the M-C strings were originally taken from PokeAPI `ja` names (same
+// orthography PokeDB uses) while PokeDB was still on season M-5. Season M-6 went live on
+// 2026-09-09 and all six new Mega Stone names have since been read off PokeDB verbatim
+// (`/pokemon/show/<key>?season=6`), so they are no longer inferred:
+//   アブソルナイトＺ   0359-00   ガブリアスナイトＺ 0445-00   ルカリオナイトＺ   0448-00
+//   ボーマンダナイト   0373-00   グソクムシャナイト 0768-00   セグレイブナイト   0998-00
+// PokeDB writes all three Z stones with the FULL-WIDTH Ｚ (the same convention as
+// リザードナイトＸ / Ｙ). The half-width `Z` rows below are kept as defensive aliases only — the
+// same doubling this file already uses for ジジーロンナイト / ジジーロナイト.
 export const pokedbItemNameToId: Record<string, string> = {
   くろおび: 'black-belt',
   くろいメガネ: 'black-glasses',
@@ -173,7 +173,7 @@ export const pokedbItemNameToId: Record<string, string> = {
   バンギラスナイト: 'tyranitarite',
   フシギバナイト: 'venusaurite',
   ウツボットナイト: 'victreebelite',
-  // Reg M-C Mega Stones (pattern-inferred — see the file header)
+  // Reg M-C Mega Stones (read off PokeDB season M-6 — see the file header)
   アブソルナイトＺ: 'absolite-z',
   アブソルナイトZ: 'absolite-z',
   ガブリアスナイトＺ: 'garchompite-z',

@@ -10,6 +10,16 @@
 // ability for each Z form (Magic Bounce / Sand Force / Adaptability instead of Sharpness / Levitate /
 // Aura Guard), so it was not used for abilities.
 //
+// 2026-09-10: PokeDB published season M-6, whose Pokémon detail pages embed the per-form payload
+// (`display_name` + `abilities[].ability_key`). Every ability below has since been read off it
+// directly, so the abilities are no longer single-sourced:
+//   0359-02 メガアブソルＺ    292 きれあじ      sharpness
+//   0445-02 メガガブリアスＺ   26 ふゆう        levitate
+//   0448-02 メガルカリオＺ    317 はどうのぼうご aura-guard
+//   0373-01 メガボーマンダ    184 スカイスキン   aerilate
+//   0768-01 メガグソクムシャ  181 かたいツメ     tough-claws
+//   0998-01 メガセグレイブ    270 ねつこうかん   thermal-exchange
+//
 // Per-form verification notes (types and stats agree across all three sources for all six):
 // - mega-absol-z      PokéBase + Bulbapedia agree: Dark/Ghost, Sharpness.
 // - mega-garchomp-z   Mono-Dragon (the parent's Ground is dropped, which is what makes Levitate
@@ -17,14 +27,13 @@
 //                     claims Dragon/Ground — treated as that site's error, not a real conflict.
 // - mega-lucario-z    PokéBase + Bulbapedia agree: Fighting/Steel, Aura Guard (signature).
 // - mega-salamence    PokéBase + Bulbapedia agree: Dragon/Flying, Aerilate.
-// - mega-golisopod    ⚠️ THE ONE CONTESTED FIELD. PokéBase lists NO ability for this form (empty
-//                     `abilities`). Bug/Steel and the stats are three-way confirmed. The ability is
-//                     Bulbapedia-only: `abilitym=Tough Claws` on its Golisopod page plus the Tough
-//                     Claws ability page's `Ability/entry|0768|form=-Mega`. Both PokémonDB and
-//                     @smogon/calc instead report Emergency Exit — which is the *base* form's ability,
-//                     i.e. the same slot-0 inheritance artefact that makes @smogon/calc wrong about all
-//                     three Z Megas, so neither is treated as a real contradiction. `tough-claws` is
-//                     taken as the best-supported value; re-verify in game.
+// - mega-golisopod    Was the one contested field: PokéBase lists NO ability for this form, and both
+//                     PokémonDB and @smogon/calc report Emergency Exit — the *base* form's ability,
+//                     i.e. the same slot-0 inheritance artefact that makes @smogon/calc wrong about
+//                     all three Z Megas. Only Bulbapedia backed Tough Claws (`abilitym=Tough Claws`
+//                     plus `Ability/entry|0768|form=-Mega`). SETTLED 2026-09-10: PokeDB M-6 gives
+//                     0768-01 メガグソクムシャ ability_key 181 かたいツメ = Tough Claws. Bug/Steel
+//                     and the stats stay three-way confirmed.
 // - mega-baxcalibur   PokéBase also lists no ability, but `thermal-exchange` is corroborated twice:
 //                     Bulbapedia (`abilitym=Thermal Exchange` + `Ability/entry|0998|form=-Mega`) and
 //                     @smogon/calc's Baxcalibur-Mega entry. Not the base form's ability, so it is not
