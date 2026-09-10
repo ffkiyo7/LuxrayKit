@@ -8,9 +8,15 @@
 > **进度（2026-09-09）**：阶段 B 的 **Task 7 / 8 / 9 已落地**，合并为一个 Draft PR #68（https://github.com/ffkiyo7/LuxrayKit/pull/68），分支 `feat/reg-mc-rollout`。Task 10 未开工、另开 PR。
 > - **Task 7**：`currentRuleSet` → `reg-mc`（窗口 `2026-09-09T02:00Z → 2026-12-02T01:59Z`，战斗参数逐项对照官方公告确认、与 M-B 一致），`dataVersionId` 升到 `dv-reg-mc-seed-0.4.0`，`regulationSchedule` 补 M-C 窗口，`seasonSchedule` 补 **Season M-6**（公告已出，故可入表）。
 > - **Task 8**：allowlist 235 → **262**，与官方端点**实时重抓后零差异**（official-not-local / local-not-official 均为空）。catalog 行 235 → 262（`catalog-batch-007`，27 行）、Mega 75 → **81**（新建 `mega-catalog-mc.ts`）、可选道具 148 → **166**（held-item 45→57）、招式 545 → **566**、特性 198 → **214**、form 行 32 → **39**、`physicalMetrics` 186 → **231**。新增 `scripts/generate-physical-metrics.mjs` 与 `scripts/update-mc-assets.mjs`；修掉 `generate-catalog-batch` / `generate-ability-effects` / `generate-champions-moves` / `generate-item-icons` / `audit-item-catalog` 五个脚本的既有破损，以及 `catalog.ts` Mega 合并循环会**静默丢掉 `mega-garchomp-z`** 的 bug（只填空数组 → 改为追加 + 按 form id 去重）。
-> - **Task 9**：趣味知识快照重生成（150 条 / `reg-mc`，首页知识区不再空白）、速度线快照与静态环境兜底重跑（**PokeDB 仍只到 Season M-5，`?season=6` 404**，所以 `battles.*.season` 停在 M-5、`teamSamples` 为 M-4，且快照里一个 Mega Z 切片都没出现 —— `speedTier.test.ts` 的占位守卫因此保持原样）、道具审计 166/166、`worker:app:types` 零 diff、`worker:environment:check` dry-run 通过。**零容忍审计两个规则全零**，`pokedb:<key>` 哨兵占位行已消失。
+> - **Task 9**：趣味知识快照重生成（150 条 / `reg-mc`，首页知识区不再空白）、速度线快照与静态环境兜底重跑、道具审计 166/166、`worker:app:types` 零 diff、`worker:environment:check` dry-run 通过。**零容忍审计两个规则全零**，`pokedb:<key>` 哨兵占位行已消失。（首次落地时 PokeDB 仍只到 Season M-5，`battles.*.season` 停在 M-5；已由下面 2026-09-10 的 M-6 复跑取代。）
 > - **§6.1 的 Maushold 悬念已解**：Champions form index 是游戏内 0-based 序号，`0925-001` = Family of Four，所以 M-A/M-B 一直把合法性挂在错误的家族形态上；按形态 id 迁移处理，不删 catalog 行。
-> - **未完成 / 待验**：Mega 具甲武者特性（Tough Claws vs Emergency Exit）待入游戏核实；6 块 Mega 石日文名为推断值、`aura-guard` 的 PokeDB resource key 故意留空 —— 两者都等 PokeDB 上线 M-6 后复核（即 Task 9 验收边界里「M-C 开赛后跑一次真实刷新」那条，**尚未满足**）。
+>
+> **进度（2026-09-10）：PokeDB 已上线 Season M-6，三项待验全部核实。**
+> - ✅ **6 块 Mega 石日文名**：逐页读 `/pokemon/show/<key>?season=6`，与推断值**逐字相同**；三块 Z 石一律全角 Ｚ。半角 Z 行留作防御性别名。
+> - ✅ **`aura-guard` 的 PokeDB resource key = 317**：来自 `0448-02`（メガルカリオＺ）形态 payload 的 `ability_key`，属 PokeDB 自有扩展号段（与表内 309–311 同源），已补进 `pokedbResourceKeyMap.ts`。
+> - ✅ **Mega 具甲武者特性 = Tough Claws**：`0768-01`（メガグソクムシャ）`ability_key: 181` / `かたいツメ`，与 Bulbapedia 一致，落库值不变；PokémonDB / `@smogon/calc` 的 Emergency Exit 确认为 slot-0 继承假象。同源核实其余五个 Mega 特性。
+> - ✅ **Task 9 验收边界「M-C 开赛后跑一次真实刷新」已满足**：`battles.*.season` → **M-6**、`speedTierSeason` → **6**，零容忍审计仍两规则全零。复跑另修三处真实缺口：补 6 个招式键 + 4 个特性键（均为主线资源，日文名与 PokeAPI 同号条目逐个对上）；`/trainer/list` 对 M-5 / M-6 都报 0件，`update-pokedb-environment.mjs` 改为默认赛季无队伍时向前回溯（样本仍取回 M-4 的 24 + 24）；`ストリンダー (ロー)` / `イエッサン (メス)` 因与本体同名而掉出速度线，`speedTier.ts` 加显式 `CATALOG_FORM_ALIASES`（`849-01` / `876-01`）。
+> - 🎮 **`speedTier.test.ts` 的 Mega Z 占位守卫暂不替换**：M-6 是真 M-C 赛季，但 PokeDB 速度线至今没有任何 Mega Z 切片（`'151'` 档位为 0），守卫这次在真数据上成立；已改注释说明，等 PokeDB 开始列 Z Mega 再换 resolution 检查。
 >
 > **进度（2026-09-02）**：阶段 A（Task 1–6）**已合并上线**——PR #59（https://github.com/ffkiyo7/LuxrayKit/pull/59），merge commit `9101dca`，6 个 commit（`fb07d7a` T1 · `6692def` T2 · `27b12e9` T4 · `cc0a035` T5 · `4760b8b` T6 · `677e06b` T3）。CI 三项全过，含 `visual` 门禁一次通过、基线未重建。`npm test` 362 通过、`npm run build` 通过。与本文的三处已接受偏离：
 > - T2：`environmentDatasetSeed.ts` 的 2 条开发样例（无 season 无 regulation）从 M-A 变为未分类；335 条真实 VGCPastes 样本分类零变化（M-A 文件 99 条改为加载时按来源文件显式打标签）。
@@ -309,7 +315,7 @@
 **允许改动 / 需重生成**
 - 首页趣味知识快照（`npm run data:pokemon-facts`）—— 不做的话首页知识区直接空白（`pokemonFacts.ts:37`）。
 - 速度线静态快照 `src/data/speedTiers.ts`（`npm run data:pokedb:speed`）。
-- 静态环境兜底 `public/data/pokedb/reg-ma-environment.json`（`npm run data:pokedb:environment`）—— 当前 `battles.*.season` 停在 M-4，`teamSamples` 停在 M-3。脚本会自动探测 PokeDB 最新赛季（`detectLatestPokeDbSeason`），高分队样本默认取**上一个已结束赛季**（可用 `POKEDB_SAMPLE_SEASON` 固定），所以这里没有赛季硬编码要改，只需重跑。
+- 静态环境兜底 `public/data/pokedb/reg-ma-environment.json`（`npm run data:pokedb:environment`）。脚本会自动探测 PokeDB 最新赛季（`detectLatestPokeDbSeason`），高分队样本默认取**上一个已结束赛季**、该赛季没有公开队伍时继续往前回溯（可用 `POKEDB_SAMPLE_SEASON` 固定），所以这里没有赛季硬编码要改，只需重跑。**已于 2026-09-10 对 M-6 跑过**：`battles.*.season` = M-6，`teamSamples` 取自 M-4（M-5 / M-6 的 `/trainer/list` 都是 0件）。
 - 道具审计 `npm run data:items:audit`。
 - Worker catalog bundle 与类型声明（`npm run worker:app:types` / `worker:environment:check`）。
 - `src/data/environmentDatasetSeed.ts` 如含规则相关字段一并核对。
@@ -318,7 +324,7 @@
 - `npm run data:pokemon-facts:check` 通过（CI 有这道门禁）。
 - `npm run worker:environment:check`（wrangler dry-run）通过。
 - 静态兜底 JSON 的 `battles.*.season` 已推进到当时的实际赛季（该 JSON **没有** `ruleSetId` 字段，`battles.*.rule` 是 `singles` / `doubles`，不要拿它核对规则）。`ruleSetId === currentRuleSet.id` 这条校验属于首页趣味知识快照，由 `data:pokemon-facts:check` 覆盖。
-- **M-C 开赛后**跑一次真实 PokeDB 环境刷新，确认**全部新增宝可梦、Z Mega 与新道具**（以最终清单为准，不是已公布的 5 个）**没有被零容忍审计剔除**（`workerStatus` 应为正常而非 degraded）。这一步必须在真实数据上验证，本地 fixture 不算数。
+- ✅ **M-C 开赛后**跑一次真实 PokeDB 环境刷新，确认**全部新增宝可梦、Z Mega 与新道具**（以最终清单为准，不是已公布的 5 个）**没有被零容忍审计剔除**（`workerStatus` 应为正常而非 degraded）。这一步必须在真实数据上验证，本地 fixture 不算数。**2026-09-10 已在 Season M-6 真实数据上完成**：unknown Pokemon / items / moves / abilities / natures 两个规则全零。
 - 视觉基线：数据刷新**不应当**要求重建基线（视觉用例吃冻结 fixture）。若被要求重建，先查是不是 Task 1 的时间轴或 header 文案出了问题。
 
 ---
