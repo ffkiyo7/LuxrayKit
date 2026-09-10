@@ -258,12 +258,12 @@ describe('speed tier grouping', () => {
     });
   });
 
-  // ⚠️ Reg M-C: `npm run data:pokedb:speed` was re-run on 2026-09-09 and PokeDB is still publishing
-  // Season M-5 (`speedTierSeason === 5`) — no M-6 board exists yet — so the regenerated snapshot still
-  // carries zero Mega Z chips and this guard still holds. It becomes wrong on the first refresh against
-  // a season that has M-C in it: the Z Megas are released and catalogued now, so their chips will be
-  // legitimate data rather than placeholders and the 151 tier will no longer be empty. Replace both
-  // assertions with the resolution check above at that point.
+  // ⚠️ Reg M-C: re-run on 2026-09-10 against the live M-6 board (`speedTierSeason === 6`), the first
+  // season that actually is M-C. PokeDB still publishes NO Mega Z chip on the speed board — the '151'
+  // tier code does not appear in either rule's snapshot — so the guard holds on real M-C data rather
+  // than by absence of the season. It only becomes wrong once PokeDB starts listing the Z Megas: their
+  // chips would then be legitimate data instead of unreleased placeholders. Replace both assertions
+  // with the resolution check above at that point.
   it('does not ship Mega Z placeholder references in the generated speed snapshot', () => {
     const placeholderNames = speedTierSnapshots
       .flatMap((snapshot) => snapshot.tiers)

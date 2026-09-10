@@ -61,37 +61,54 @@ type CatalogMatch = { id: string; pokemonId: string; chineseName: string; iconRe
 
 let nameIndex: Map<string, CatalogMatch> | undefined;
 let dexIndex: Map<number, CatalogMatch> | undefined;
+let idIndex: Map<string, CatalogMatch> | undefined;
 
 // These PokeDB form codes are intentionally represented by the base catalog row
 // in LuxrayKit. Keep the list explicit so unknown future forms never become
 // misleading base-species avatars by accident.
 const CATALOG_BACKED_FORM_FALLBACKS = new Set(['670-05']); // Floette-Eternal
 
+// PokeDB form codes whose chip name cannot be matched by name. Reg M-C added two species whose
+// gender/mood variants are separate top-level catalog rows sharing one Japanese name, so the name
+// index only ever holds the first of each pair while PokeDB disambiguates in the chip label
+// (ストリンダー (ハイ) / (ロー), イエッサン (オス) / (メス)). The `-00` chips still fall back by dex to
+// the right row; these are the `-01` partners, which must not fall back (Indeedee-F has its own base
+// speed, so borrowing the male row would put the chip on the wrong tier).
+const CATALOG_FORM_ALIASES: Record<string, string> = {
+  '849-01': 'toxtricity-low-key',
+  '876-01': 'indeedee-female',
+};
+
 const buildIndices = () => {
   const byName = new Map<string, CatalogMatch>();
   const byDex = new Map<number, CatalogMatch>();
+  const byId = new Map<string, CatalogMatch>();
   for (const entry of pokemon) {
     const base: CatalogMatch = { id: entry.id, pokemonId: entry.id, chineseName: entry.chineseName, iconRef: entry.iconRef };
     if (!byDex.has(entry.nationalDexNo)) byDex.set(entry.nationalDexNo, base);
+    byId.set(entry.id, base);
     const key = normalizeJapaneseName(entry.japaneseName);
     if (key && !byName.has(key)) byName.set(key, base);
     for (const form of [...entry.forms, ...entry.megaForms]) {
       const formKey = normalizeJapaneseName(form.japaneseName);
-      if (formKey && !byName.has(formKey)) {
-        byName.set(formKey, { id: form.id, pokemonId: entry.id, chineseName: form.chineseName, iconRef: form.iconRef });
-      }
+      const formMatch = { id: form.id, pokemonId: entry.id, chineseName: form.chineseName, iconRef: form.iconRef };
+      byId.set(form.id, formMatch);
+      if (formKey && !byName.has(formKey)) byName.set(formKey, formMatch);
     }
   }
   nameIndex = byName;
   dexIndex = byDex;
+  idIndex = byId;
 };
 
 export const resolveTierPokemon = (ref: RawTierPokemon): ResolvedTierPokemon => {
-  if (!nameIndex || !dexIndex) buildIndices();
+  if (!nameIndex || !dexIndex || !idIndex) buildIndices();
   const key = `${ref.dexNo}-${ref.form}`;
+  const aliasId = CATALOG_FORM_ALIASES[key];
+  const aliasMatch = aliasId ? idIndex?.get(aliasId) : undefined;
   const nameMatch = nameIndex?.get(normalizeJapaneseName(ref.japaneseName));
   const canUseDexFallback = ref.form === '00' || CATALOG_BACKED_FORM_FALLBACKS.has(key);
-  const match = nameMatch ?? (canUseDexFallback ? dexIndex?.get(ref.dexNo) : undefined);
+  const match = aliasMatch ?? nameMatch ?? (canUseDexFallback ? dexIndex?.get(ref.dexNo) : undefined);
   if (match) return { key, id: match.id, pokemonId: match.pokemonId, displayName: match.chineseName, iconRef: match.iconRef, matched: true };
   return { key, displayName: ref.japaneseName, matched: false };
 };
