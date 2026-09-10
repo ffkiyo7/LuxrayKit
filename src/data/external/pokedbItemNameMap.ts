@@ -1,3 +1,15 @@
+// PokeDB reports held items by Japanese name, so every catalog item needs an entry here or the
+// Worker's zero-tolerance audit goes degraded (`dataAudit.test.ts` gates the Mega Stones).
+//
+// Reg M-C provenance: the M-C strings were originally taken from PokeAPI `ja` names (same
+// orthography PokeDB uses) while PokeDB was still on season M-5. Season M-6 went live on
+// 2026-09-09 and all six new Mega Stone names have since been read off PokeDB verbatim
+// (`/pokemon/show/<key>?season=6`), so they are no longer inferred:
+//   アブソルナイトＺ   0359-00   ガブリアスナイトＺ 0445-00   ルカリオナイトＺ   0448-00
+//   ボーマンダナイト   0373-00   グソクムシャナイト 0768-00   セグレイブナイト   0998-00
+// PokeDB writes all three Z stones with the FULL-WIDTH Ｚ (the same convention as
+// リザードナイトＸ / Ｙ). The half-width `Z` rows below are kept as defensive aliases only — the
+// same doubling this file already uses for ジジーロンナイト / ジジーロナイト.
 export const pokedbItemNameToId: Record<string, string> = {
   くろおび: 'black-belt',
   くろいメガネ: 'black-glasses',
@@ -44,6 +56,19 @@ export const pokedbItemNameToId: Record<string, string> = {
   しろいハーブ: 'white-herb',
   ものしりメガネ: 'wise-glasses',
   フォーカスレンズ: 'zoom-lens',
+  // Reg M-C held items
+  ながねぎ: 'leek',
+  ゴツゴツメット: 'rocky-helmet',
+  ふうせん: 'air-balloon',
+  レッドカード: 'red-card',
+  しめつけバンド: 'binding-band',
+  だっしゅつボタン: 'eject-button',
+  ノーマルジュエル: 'normal-gem',
+  グランドコート: 'terrain-extender',
+  エレキシード: 'electric-seed',
+  サイコシード: 'psychic-seed',
+  ミストシード: 'misty-seed',
+  グラスシード: 'grassy-seed',
   ナナシのみ: 'aspear-berry',
   リリバのみ: 'babiri-berry',
   ヨロギのみ: 'charti-berry',
@@ -148,4 +173,14 @@ export const pokedbItemNameToId: Record<string, string> = {
   バンギラスナイト: 'tyranitarite',
   フシギバナイト: 'venusaurite',
   ウツボットナイト: 'victreebelite',
+  // Reg M-C Mega Stones (read off PokeDB season M-6 — see the file header)
+  アブソルナイトＺ: 'absolite-z',
+  アブソルナイトZ: 'absolite-z',
+  ガブリアスナイトＺ: 'garchompite-z',
+  ガブリアスナイトZ: 'garchompite-z',
+  ルカリオナイトＺ: 'lucarionite-z',
+  ルカリオナイトZ: 'lucarionite-z',
+  ボーマンダナイト: 'salamencite',
+  グソクムシャナイト: 'golisopite',
+  セグレイブナイト: 'baxcalibrite',
 };

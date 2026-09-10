@@ -5,12 +5,27 @@
 > 输入：Codex 的接入 spike 结论 + 本文档作者在本地逐条核对的结果（§0）。
 > 执行者：Codex。**本文不含实现代码**，只给顺序、边界、允许改动的文件和验收判据。
 >
+> **进度（2026-09-09）**：阶段 B 的 **Task 7 / 8 / 9 已落地**，合并为一个 Draft PR #68（https://github.com/ffkiyo7/LuxrayKit/pull/68），分支 `feat/reg-mc-rollout`。Task 10 未开工、另开 PR。
+> - **Task 7**：`currentRuleSet` → `reg-mc`（窗口 `2026-09-09T02:00Z → 2026-12-02T01:59Z`，战斗参数逐项对照官方公告确认、与 M-B 一致），`dataVersionId` 升到 `dv-reg-mc-seed-0.4.0`，`regulationSchedule` 补 M-C 窗口，`seasonSchedule` 补 **Season M-6**（公告已出，故可入表）。
+> - **Task 8**：allowlist 235 → **262**，与官方端点**实时重抓后零差异**（official-not-local / local-not-official 均为空）。catalog 行 235 → 262（`catalog-batch-007`，27 行）、Mega 75 → **81**（新建 `mega-catalog-mc.ts`）、可选道具 148 → **166**（held-item 45→57）、招式 545 → **566**、特性 198 → **214**、form 行 32 → **39**、`physicalMetrics` 186 → **231**。新增 `scripts/generate-physical-metrics.mjs` 与 `scripts/update-mc-assets.mjs`；修掉 `generate-catalog-batch` / `generate-ability-effects` / `generate-champions-moves` / `generate-item-icons` / `audit-item-catalog` 五个脚本的既有破损，以及 `catalog.ts` Mega 合并循环会**静默丢掉 `mega-garchomp-z`** 的 bug（只填空数组 → 改为追加 + 按 form id 去重）。
+> - **Task 9**：趣味知识快照重生成（150 条 / `reg-mc`，首页知识区不再空白）、速度线快照与静态环境兜底重跑、道具审计 166/166、`worker:app:types` 零 diff、`worker:environment:check` dry-run 通过。**零容忍审计两个规则全零**，`pokedb:<key>` 哨兵占位行已消失。（首次落地时 PokeDB 仍只到 Season M-5，`battles.*.season` 停在 M-5；已由下面 2026-09-10 的 M-6 复跑取代。）
+> - **§6.1 的 Maushold 悬念已解**：Champions form index 是游戏内 0-based 序号，`0925-001` = Family of Four，所以 M-A/M-B 一直把合法性挂在错误的家族形态上；按形态 id 迁移处理，不删 catalog 行。
+>
+> **进度（2026-09-10）：PokeDB 已上线 Season M-6，三项待验全部核实。**
+> - ✅ **6 块 Mega 石日文名**：逐页读 `/pokemon/show/<key>?season=6`，与推断值**逐字相同**；三块 Z 石一律全角 Ｚ。半角 Z 行留作防御性别名。
+> - ✅ **`aura-guard` 的 PokeDB resource key = 317**：来自 `0448-02`（メガルカリオＺ）形态 payload 的 `ability_key`，属 PokeDB 自有扩展号段（与表内 309–311 同源），已补进 `pokedbResourceKeyMap.ts`。
+> - ✅ **Mega 具甲武者特性 = Tough Claws**：`0768-01`（メガグソクムシャ）`ability_key: 181` / `かたいツメ`，与 Bulbapedia 一致，落库值不变；PokémonDB / `@smogon/calc` 的 Emergency Exit 确认为 slot-0 继承假象。同源核实其余五个 Mega 特性。
+> - ✅ **Task 9 验收边界「M-C 开赛后跑一次真实刷新」已满足**：`battles.*.season` → **M-6**、`speedTierSeason` → **6**，零容忍审计仍两规则全零。复跑另修三处真实缺口：补 6 个招式键 + 4 个特性键（均为主线资源，日文名与 PokeAPI 同号条目逐个对上）；`/trainer/list` 对 M-5 / M-6 都报 0件，`update-pokedb-environment.mjs` 改为默认赛季无队伍时向前回溯（样本仍取回 M-4 的 24 + 24）；`ストリンダー (ロー)` / `イエッサン (メス)` 因与本体同名而掉出速度线，`speedTier.ts` 加显式 `CATALOG_FORM_ALIASES`（`849-01` / `876-01`）。
+> - 🎮 **`speedTier.test.ts` 的 Mega Z 占位守卫暂不替换**：M-6 是真 M-C 赛季，但 PokeDB 速度线至今没有任何 Mega Z 切片（`'151'` 档位为 0），守卫这次在真数据上成立；已改注释说明，等 PokeDB 开始列 Z Mega 再换 resolution 检查。
+>
 > **进度（2026-09-02）**：阶段 A（Task 1–6）**已合并上线**——PR #59（https://github.com/ffkiyo7/LuxrayKit/pull/59），merge commit `9101dca`，6 个 commit（`fb07d7a` T1 · `6692def` T2 · `27b12e9` T4 · `cc0a035` T5 · `4760b8b` T6 · `677e06b` T3）。CI 三项全过，含 `visual` 门禁一次通过、基线未重建。`npm test` 362 通过、`npm run build` 通过。与本文的三处已接受偏离：
 > - T2：`environmentDatasetSeed.ts` 的 2 条开发样例（无 season 无 regulation）从 M-A 变为未分类；335 条真实 VGCPastes 样本分类零变化（M-A 文件 99 条改为加载时按来源文件显式打标签）。
 > - T3：未做完整网络重跑（单页抓取约 17 秒、总计 70 分钟以上，且 learnset 半边注定丢弃）。`makesContact` 由与新脚本同一函数的一次性后处理写入，545 条已逐条与 dex 复核一致；翻转 122 条（119 F→T、3 T→F：`aura-wheel` / `bone-rush` / `icicle-crash`）。脚本本身的端到端重跑留到阶段 B Task 8 一并验证。
 > - T6：额外改了 `index.html` 的 meta description（与 manifest 同一处硬编码）。
 >
 > 阶段 B 仍受 §1 门禁约束。`dataAudit.test.ts` 写死的 Mega 总数 75 会在 Task 8 加数据时变红，属预期，届时按实际数量更新。
+>
+> **进度（2026-09-09）：⛔ 门禁已解除——官方 M-C 完整名单已公布并核实，阶段 B 可开工。** 核实结果与修订后的规模见 §6，执行顺序仍按 Task 7 → 8 → 9 → 10。
 >
 > **进度（2026-09-07）**：**软着陆已落地**（PR #61 `feat/mc-soft-landing`，不在本文的 Task 编号内）：`regulationSchedule` 追加 M-C 窗口（`currentRuleSet` 未动，M-6 未加）；schedule 与 catalog 规则不一致时环境首页显示「图鉴更新中」提示；PokeDB 榜单里 catalog 查不到的宝可梦保留为 `pokedb:<key>` 哨兵占位行而不再整行剔除（Worker 零容忍审计契约不变，`workerStatus` 仍会 degraded 提醒补映射）。这只保证开赛后**不跳号、不错标规则**，阶段 B 的数据落地边界不变。
 
@@ -300,7 +315,7 @@
 **允许改动 / 需重生成**
 - 首页趣味知识快照（`npm run data:pokemon-facts`）—— 不做的话首页知识区直接空白（`pokemonFacts.ts:37`）。
 - 速度线静态快照 `src/data/speedTiers.ts`（`npm run data:pokedb:speed`）。
-- 静态环境兜底 `public/data/pokedb/reg-ma-environment.json`（`npm run data:pokedb:environment`）—— 当前 `battles.*.season` 停在 M-4，`teamSamples` 停在 M-3。脚本会自动探测 PokeDB 最新赛季（`detectLatestPokeDbSeason`），高分队样本默认取**上一个已结束赛季**（可用 `POKEDB_SAMPLE_SEASON` 固定），所以这里没有赛季硬编码要改，只需重跑。
+- 静态环境兜底 `public/data/pokedb/reg-ma-environment.json`（`npm run data:pokedb:environment`）。脚本会自动探测 PokeDB 最新赛季（`detectLatestPokeDbSeason`），高分队样本默认取**上一个已结束赛季**、该赛季没有公开队伍时继续往前回溯（可用 `POKEDB_SAMPLE_SEASON` 固定），所以这里没有赛季硬编码要改，只需重跑。**已于 2026-09-10 对 M-6 跑过**：`battles.*.season` = M-6，`teamSamples` 取自 M-4（M-5 / M-6 的 `/trainer/list` 都是 0件）。
 - 道具审计 `npm run data:items:audit`。
 - Worker catalog bundle 与类型声明（`npm run worker:app:types` / `worker:environment:check`）。
 - `src/data/environmentDatasetSeed.ts` 如含规则相关字段一并核对。
@@ -309,7 +324,7 @@
 - `npm run data:pokemon-facts:check` 通过（CI 有这道门禁）。
 - `npm run worker:environment:check`（wrangler dry-run）通过。
 - 静态兜底 JSON 的 `battles.*.season` 已推进到当时的实际赛季（该 JSON **没有** `ruleSetId` 字段，`battles.*.rule` 是 `singles` / `doubles`，不要拿它核对规则）。`ruleSetId === currentRuleSet.id` 这条校验属于首页趣味知识快照，由 `data:pokemon-facts:check` 覆盖。
-- **M-C 开赛后**跑一次真实 PokeDB 环境刷新，确认**全部新增宝可梦、Z Mega 与新道具**（以最终清单为准，不是已公布的 5 个）**没有被零容忍审计剔除**（`workerStatus` 应为正常而非 degraded）。这一步必须在真实数据上验证，本地 fixture 不算数。
+- ✅ **M-C 开赛后**跑一次真实 PokeDB 环境刷新，确认**全部新增宝可梦、Z Mega 与新道具**（以最终清单为准，不是已公布的 5 个）**没有被零容忍审计剔除**（`workerStatus` 应为正常而非 degraded）。这一步必须在真实数据上验证，本地 fixture 不算数。**2026-09-10 已在 Season M-6 真实数据上完成**：unknown Pokemon / items / moves / abilities / natures 两个规则全零。
 - 视觉基线：数据刷新**不应当**要求重建基线（视觉用例吃冻结 fixture）。若被要求重建，先查是不是 Task 1 的时间轴或 header 文案出了问题。
 
 ---
@@ -378,8 +393,61 @@
 
 | 内容 | 链接 |
 | --- | --- |
-| Regulation Set M-C 公告（起止时间、新增内容、完整清单待公布） | https://news.pokemon-home.com/en/page/816.html |
+| Regulation Set M-C 公告（起止时间、新增内容） | https://news.pokemon-home.com/en/page/816.html |
+| **官方 M-C Eligible Pokémon 端点**（公告页内链，payload 262 行，`const pokemons = [...]` 与 M-A 端点同结构） | https://web-view.app.pokemonchampions.jp/battle/pages/events/rs178713870219xeaaio/en/pokemon.html |
 | Regulation Set M-B 延期至 2026-09-09 | https://champions-news.pokemon-home.com/en/page/776.html |
 | Ranked Battles Season M-5（结束时间 2026-09-09 01:59 UTC） | https://champions-news.pokemon-home.com/en/page/803.html |
 | PokéBase Champions 宝可梦数据（预备参考，非合法池依据） | https://pokebase.app/pokemon-champions/pokemon |
-| PokéBase Champions 道具数据（尚无 Z Mega Stone） | https://pokebase.app/pokemon-champions/items |
+| PokéBase Champions 道具数据（2026-09-09 已含 6 块新 Mega 石与 12 个新持有物） | https://pokebase.app/pokemon-champions/items |
+| PokéBase 新 Mega 页（slug 形如 `absol-mega-z` / `salamence-mega`，`mega-absol-z` 是 404 壳页） | https://pokebase.app/pokemon-champions/pokemon/absol-mega-z |
+
+---
+
+## 6. 官方名单核实与阶段 B 规模重估（2026-09-09）
+
+> 核实方法：直接抓官方 M-C Eligible Pokémon 端点（§5），按 `championsFormId` 与本地 `allowlist.ts` 逐行差分；道具与 Mega 数据用 PokéBase 交叉核对。原始 payload 存在会话 scratchpad（`mc_official_rows.json`），Task 8 开工时重新抓一次，不要用缓存。
+
+### 6.1 宝可梦：官方 262 行 vs 本地 235 行
+
+- **新增 28 行**（官方有、本地无），全部在本地 catalog 里**零命中**（连本体行都没有）：
+  Wigglytuff（0040）、Persian（0053-000）、Persian (Alolan Form)（0053-001）、Farfetch'd（0083）、Mr. Mime（0122）、Swalot（0317）、Salamence（0373）、Gogoat（0673）、Golisopod（0768）、Rillaboom（0812）、Cinderace（0815）、Inteleon（0818）、Thievul（0828）、Toxtricity (Amped Form)（0849-000）、Toxtricity (Low Key Form)（0849-001）、Grapploct（0853）、Perrserker（0863）、Sirfetch'd（0865）、Pincurchin（0871）、Indeedee (Male)（0876-000）、Indeedee (Female)（0876-001）、**Pawmot（0923）**、**Maushold（0925-001）**、Arboliva（0930）、Squawkabilly（0931-000）、Squawkabilly（0931-002）、Mabosstiff（0943）、Baxcalibur（0998）。
+- **本地多 1 行**：`reg-ma-0925-000` Maushold。官方 M-C 表里 Maushold 只剩 `0925-001`，本地 catalog 行是 `maushold-family-of-four`。⚠️ 这是**形态 id 迁移**而不是删除：需先确认 `-000` / `-001` 各对应哪个家族形态，再决定是改 allowlist 的 `championsFormId` 还是新增一行；不要机械地删旧行。
+- 名称零冲突（官方用弯引号 `’`，本地用 `\'`，属同名）。
+- ⚠️ **社区名单不可信**：各站宣称的「24 只」「34 只」「Squawkabilly 四色」全部与官方不符——官方只放了 Squawkabilly 两个形态（`000` / `002`，需确认对应哪两种羽色），且 **Pawmot 与 Maushold 换形态**没有任何社区来源提到。PokéBase 的 M-C 标签目前只打在 Absol / Garchomp / Lucario 三只上，**不能**拿它当合法池依据。
+- 新增本体去重后 **23 个物种 + 1 个 Maushold 形态**；按 §0.2 第 6 条，身高体重按 dex 号补 23 条（Persian 两形态同号只补一条）。
+
+### 6.2 Mega：官方新增 6 个（本地 75 → 81）
+
+| 形态 | 父级 | 本地父级状态 | PokéBase 种族值（已核，合计 = 本体 +100） |
+| --- | --- | --- | --- |
+| Mega Absol Z | absol | 已有本体 + 普通 Mega（M-A 表） | 65/154/60/75/60/151 |
+| Mega Garchomp Z | garchomp | 已有本体 + 普通 Mega（M-A 表） | 108/130/85/141/85/151 |
+| Mega Lucario Z | lucario | 已有本体 + 普通 Mega（M-A 表） | 70/100/70/164/70/151 |
+| Mega Salamence | salamence | **本体也缺** | 95/145/130/120/90/120 |
+| Mega Golisopod | golisopod | **本体也缺** | 75/150/175/70/120/40 |
+| Mega Baxcalibur | baxcalibur | **本体也缺** | 115/175/117/105/101/87 |
+
+- 三个 Z Mega 与既有普通 Mega **同父级共存**，正是 Task 4 的 `mergeMegaFormsByParentId` 防的那种情况；Task 8 的回归确认（普通 Mega 阿勃梭鲁 / 路卡利欧 / 烈咬陆鲨仍可选）必须做。
+- 属性与特性本次未从 PokéBase 结构化取出（页面里是引用而非内联），Task 8 落数据时逐个页面人工核对。已知 Baxcalibur 页含 Thermal Exchange / Glaive Rush，Golisopod 页含 Emergency Exit / First Impression。
+
+### 6.3 道具：PokéBase 首页 28 个里有 18 个本地缺失（本地 147/148 → 至少 165）
+
+- **6 块 Mega 石**（以 PokéBase slug 为准，社区拼写混乱）：`absolite-z` Absolite Z、`garchompite-z` Garchompite Z、`lucarionite-z` Lucarionite Z、`salamencite` Salamencite、`golisopite` **Golisopite**（不是 Golisopodite）、`baxcalibrite` **Baxcalibrite**（不是 Baxcaliburite）。
+- **12 个持有物**：Leek、Rocky Helmet、Air Balloon、Red Card、Binding Band、Eject Button、Normal Gem、Terrain Extender、Electric Seed、Psychic Seed、Misty Seed、Grassy Seed。
+- ⚠️ 只核了 PokéBase 首页内嵌的 28 条（Next.js 分页），**未做全量道具差分**；MetaVGC 称 M-C 合法道具 154 个，与「147 + 18」对不上，Task 8 要翻完 PokéBase 全部道具页再定数。
+- 每个新道具都要补 `pokedbItemNameMap.ts` 的日文名（手写，见 `AGENTS.md` §5 例外），否则 Worker 审计 degraded；Mega 石另受 `dataAudit.test.ts` 门禁。Terrain Extender / 四种 Seed 的效果与草场地形联动，属 Task 10 输入。
+
+### 6.4 招式 / 特性缺口（粗筛，非全量）
+
+- 招式缺：`drum-beating`、`glaive-rush`、`pyro-ball`、`snipe-shot`、`court-change`、`overdrive`、`octolock`、`zing-zap`、`double-shock`、`revival-blessing`、`thunderous-kick`（各新物种专属招基本全缺）。全量以 `data:regma:moves` 重跑后的 learnset 差分为准。
+- 特性缺：`grassy-surge`、`libero`、`thermal-exchange`、`aura-guard`、`emergency-exit`、`aerilate`、`punk-rock`、`psychic-surge`、`stakeout`、`steely-spirit`、`seed-sower`、`dancer`、`rattled`（已在库可复用：`sniper` / `own-tempo` / `iron-fist` / `competitive` / `intimidate` / `moxie` / `technician` 等）。
+
+### 6.5 规模结论与顺序
+
+原计划按「2 只 + 3 Mega」估，实际 **28 行宝可梦 + 6 Mega + ≥18 道具 + 十余招式 / 特性 + 约 30 张立绘**，是 M-B（22 只 + 16 Mega）的同量级偏大。因此：
+
+1. **Task 5 改造后的批次生成器是主路径**，不手写 catalog；建议 `catalog-batch-007`（本体）一批，Mega 走新建 `mega-catalog-mc.ts`。
+2. **Task 7–9 仍合并为一个 PR**；Task 8 内部再按「allowlist + 本体 catalog」→「Mega + 道具」→「立绘 + 映射」三步自检 `npm test`。
+3. `dataAudit.test.ts` 需同步的硬编码：pokemon 235 → 262、Mega 75 → 81、item 148 → 实际值、abilities 198 / moves 545 → 实际值。
+4. **规则元数据可直接抄官方**：战斗参数（Mega 每场一次、禁重复持有物、20/7/45/90 计时）与 M-B 完全一致，已对照 §5 公告。
+5. 现状：今天（2026-09-09）M-C 已开赛，`isRegulationRolloverDue()` 已为 `true`，环境首页在显示「图鉴更新中」软着陆提示；PokeDB 榜单里新宝可梦以 `pokedb:<key>` 哨兵占位。这是预期，Task 7–9 合并即消除。

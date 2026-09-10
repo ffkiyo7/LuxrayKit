@@ -1,7 +1,7 @@
 import type { Move } from '../../../types';
 
 // Auto-generated from PokéBase Champions Pokémon available-move pages.
-// Generated: 2026-06-17T16:55:10.760Z
+// Generated: 2026-09-09T07:19:53.266Z
 // Source: https://pokebase.app/pokemon-champions/pokemon
 
 const moveSourceRefs = ['pokebase-champions-learnsets', 'pokeapi-move-data', 'pokemon-zh-dataset-move-text'];
@@ -36,7 +36,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '通过细胞的变化进行液化，从而大幅提高自己的防御。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['vaporeon', 'reuniclus', 'vanilluxe', 'chandelure', 'dragalge', 'goodra', 'alcremie', 'glimmora'],
+    learnableByPokemonIds: ['vaporeon', 'swalot', 'reuniclus', 'vanilluxe', 'chandelure', 'dragalge', 'goodra', 'alcremie', 'glimmora'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -53,7 +53,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '喷出能溶化对手的液体进行攻击。会大幅降低对手的特防。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['venusaur', 'arbok', 'vileplume', 'victreebel', 'slowbro', 'slowbro-galar', 'gengar', 'ariados', 'slowking', 'slowking-galar', 'qwilfish', 'toxicroak', 'scolipede', 'scrafty', 'garbodor', 'eelektross', 'dragalge', 'goodra', 'goodra-hisui', 'toxapex', 'salazzle', 'flapple', 'sneasler', 'overqwil', 'armarouge', 'bellibolt', 'glimmora'],
+    learnableByPokemonIds: ['venusaur', 'arbok', 'vileplume', 'victreebel', 'slowbro', 'slowbro-galar', 'gengar', 'ariados', 'slowking', 'slowking-galar', 'qwilfish', 'swalot', 'toxicroak', 'scolipede', 'scrafty', 'garbodor', 'eelektross', 'dragalge', 'goodra', 'goodra-hisui', 'toxapex', 'salazzle', 'flapple', 'toxtricity-amped', 'toxtricity-low-key', 'sneasler', 'overqwil', 'armarouge', 'bellibolt', 'glimmora'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -70,7 +70,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '轻巧地攻击对手。自己没有携带道具时，会给予较大的伤害。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['charizard', 'beedrill', 'scizor', 'sceptile', 'blaziken', 'pelipper', 'altaria', 'infernape', 'staraptor', 'lopunny', 'gliscor', 'simisage', 'simisear', 'simipour', 'emolga', 'eelektross', 'hydreigon', 'volcarona', 'greninja', 'talonflame', 'vivillon', 'pyroar', 'hawlucha', 'noivern', 'decidueye', 'incineroar', 'primarina', 'toucannon', 'salazzle', 'tsareena', 'passimian', 'flapple', 'dragapult', 'kleavor', 'sneasler', 'meowscarada', 'quaquaval', 'palafin-zero', 'annihilape'],
+    learnableByPokemonIds: ['charizard', 'beedrill', 'farfetchd', 'scizor', 'sceptile', 'blaziken', 'pelipper', 'altaria', 'infernape', 'staraptor', 'lopunny', 'gliscor', 'simisage', 'simisear', 'simipour', 'emolga', 'eelektross', 'hydreigon', 'volcarona', 'greninja', 'talonflame', 'vivillon', 'pyroar', 'hawlucha', 'noivern', 'decidueye', 'incineroar', 'primarina', 'toucannon', 'salazzle', 'tsareena', 'passimian', 'rillaboom', 'cinderace', 'inteleon', 'thievul', 'flapple', 'dragapult', 'kleavor', 'sneasler', 'meowscarada', 'quaquaval', 'palafin-zero', 'annihilape'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -85,7 +85,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '通过点穴让身体舒筋活络。大幅提高某１项能力。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['qwilfish', 'medicham', 'malamar', 'tsareena', 'overqwil'],
+    learnableByPokemonIds: ['qwilfish', 'medicham', 'malamar', 'tsareena', 'pincurchin', 'overqwil'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -101,7 +101,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '以敏捷的动作戏弄对手后进行切斩。攻击必定会命中。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['charizard', 'beedrill', 'pidgeot', 'arcanine', 'arcanine-hisui', 'pinsir', 'aerodactyl', 'dragonite', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'scizor', 'heracross', 'skarmory', 'tyranitar', 'sceptile', 'blaziken', 'pelipper', 'sableye', 'medicham', 'altaria', 'absol', 'metagross', 'infernape', 'empoleon', 'staraptor', 'garchomp', 'lucario', 'toxicroak', 'weavile', 'leafeon', 'gliscor', 'gallade', 'serperior', 'samurott', 'samurott-hisui', 'excadrill', 'krookodile', 'zoroark', 'zoroark-hisui', 'beartic', 'chesnaught', 'greninja', 'talonflame', 'aegislash-shield', 'malamar', 'hawlucha', 'noivern', 'decidueye', 'decidueye-hisui', 'incineroar', 'toucannon', 'kommo-o', 'corviknight', 'flapple', 'kleavor', 'sneasler', 'meowscarada', 'quaquaval', 'maushold-family-of-four', 'espathra', 'kingambit'],
+    learnableByPokemonIds: ['charizard', 'beedrill', 'pidgeot', 'persian', 'persian-alola', 'arcanine', 'arcanine-hisui', 'farfetchd', 'pinsir', 'aerodactyl', 'dragonite', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'scizor', 'heracross', 'skarmory', 'tyranitar', 'sceptile', 'blaziken', 'pelipper', 'sableye', 'medicham', 'altaria', 'absol', 'salamence', 'metagross', 'infernape', 'empoleon', 'staraptor', 'garchomp', 'lucario', 'toxicroak', 'weavile', 'leafeon', 'gliscor', 'gallade', 'serperior', 'samurott', 'samurott-hisui', 'excadrill', 'krookodile', 'zoroark', 'zoroark-hisui', 'beartic', 'chesnaught', 'greninja', 'talonflame', 'gogoat', 'aegislash-shield', 'malamar', 'hawlucha', 'noivern', 'decidueye', 'decidueye-hisui', 'incineroar', 'toucannon', 'kommo-o', 'corviknight', 'flapple', 'perrserker', 'sirfetchd', 'kleavor', 'sneasler', 'meowscarada', 'quaquaval', 'maushold-family-of-four', 'squawkabilly-green-plumage', 'squawkabilly-yellow-plumage', 'espathra', 'kingambit', 'baxcalibur'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -116,7 +116,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '支援我方或对手的行动，使其紧接着此招式之后行动。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['clefable', 'vileplume', 'ampharos', 'lopunny', 'watchog', 'audino', 'aegislash-shield', 'aromatisse', 'slurpuff', 'oranguru', 'mimikyu-disguised', 'hatterene', 'mr-rime'],
+    learnableByPokemonIds: ['clefable', 'vileplume', 'ampharos', 'lopunny', 'watchog', 'audino', 'aegislash-shield', 'aromatisse', 'slurpuff', 'oranguru', 'mimikyu-disguised', 'hatterene', 'mr-rime', 'indeedee-female', 'indeedee-male'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -131,7 +131,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '让身体放松变得轻盈，以便高速移动。大幅提高自己的速度。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['beedrill', 'pidgeot', 'pikachu', 'raichu', 'raichu-alola', 'ninetales', 'ninetales-alola', 'arcanine', 'arcanine-hisui', 'starmie', 'jolteon', 'aerodactyl', 'dragonite', 'feraligatr', 'ariados', 'ampharos', 'qwilfish', 'scizor', 'skarmory', 'sceptile', 'blaziken', 'pelipper', 'medicham', 'manectric', 'sharpedo', 'altaria', 'metagross', 'infernape', 'empoleon', 'staraptor', 'luxray', 'lopunny', 'lucario', 'weavile', 'gliscor', 'gallade', 'scolipede', 'zoroark', 'zoroark-hisui', 'emolga', 'delphox', 'diggersby', 'talonflame', 'heliolisk', 'hawlucha', 'dedenne', 'noivern', 'lycanroc-midday', 'salazzle', 'corviknight', 'hatterene', 'falinks', 'morpeko-full-belly', 'dragapult', 'wyrdeer', 'kleavor', 'basculegion-female', 'basculegion-male', 'sneasler', 'overqwil', 'meowscarada', 'quaquaval', 'maushold-family-of-four', 'espathra', 'palafin-zero', 'farigiraf'],
+    learnableByPokemonIds: ['beedrill', 'pidgeot', 'pikachu', 'raichu', 'raichu-alola', 'ninetales', 'ninetales-alola', 'persian', 'persian-alola', 'arcanine', 'arcanine-hisui', 'farfetchd', 'starmie', 'jolteon', 'aerodactyl', 'dragonite', 'feraligatr', 'ariados', 'ampharos', 'qwilfish', 'scizor', 'skarmory', 'sceptile', 'blaziken', 'pelipper', 'medicham', 'manectric', 'sharpedo', 'altaria', 'metagross', 'infernape', 'empoleon', 'staraptor', 'luxray', 'lopunny', 'lucario', 'weavile', 'gliscor', 'gallade', 'scolipede', 'zoroark', 'zoroark-hisui', 'emolga', 'delphox', 'diggersby', 'talonflame', 'heliolisk', 'hawlucha', 'dedenne', 'noivern', 'lycanroc-midday', 'salazzle', 'golisopod', 'cinderace', 'inteleon', 'corviknight', 'thievul', 'hatterene', 'falinks', 'morpeko-full-belly', 'dragapult', 'wyrdeer', 'kleavor', 'basculegion-female', 'basculegion-male', 'sneasler', 'overqwil', 'meowscarada', 'quaquaval', 'pawmot', 'maushold-family-of-four', 'espathra', 'palafin-zero', 'farigiraf'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -148,7 +148,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用锐利的风切斩对手进行攻击。容易击中要害。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['charizard', 'beedrill', 'dragonite', 'scizor', 'skarmory', 'pelipper', 'empoleon', 'staraptor', 'volcarona', 'talonflame', 'vivillon', 'noivern', 'decidueye', 'decidueye-hisui', 'toucannon', 'corviknight', 'kleavor', 'quaquaval'],
+    learnableByPokemonIds: ['charizard', 'beedrill', 'farfetchd', 'dragonite', 'scizor', 'skarmory', 'pelipper', 'empoleon', 'staraptor', 'volcarona', 'talonflame', 'vivillon', 'noivern', 'decidueye', 'decidueye-hisui', 'toucannon', 'inteleon', 'corviknight', 'kleavor', 'quaquaval', 'squawkabilly-green-plumage', 'squawkabilly-yellow-plumage'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -165,7 +165,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用连天空也能劈开的空气之刃进行攻击。有时会使对手畏缩。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['charizard', 'pidgeot', 'clefable', 'dragonite', 'scizor', 'skarmory', 'pelipper', 'absol', 'empoleon', 'staraptor', 'gallade', 'rotom', 'rotom-fan', 'samurott', 'samurott-hisui', 'emolga', 'volcarona', 'talonflame', 'vivillon', 'aegislash-shield', 'hawlucha', 'noivern', 'decidueye', 'decidueye-hisui', 'toucannon', 'corviknight', 'flapple', 'kleavor', 'quaquaval', 'kingambit'],
+    learnableByPokemonIds: ['charizard', 'pidgeot', 'clefable', 'farfetchd', 'dragonite', 'scizor', 'skarmory', 'pelipper', 'absol', 'salamence', 'empoleon', 'staraptor', 'gallade', 'rotom', 'rotom-fan', 'samurott', 'samurott-hisui', 'emolga', 'volcarona', 'talonflame', 'vivillon', 'aegislash-shield', 'hawlucha', 'noivern', 'decidueye', 'decidueye-hisui', 'toucannon', 'inteleon', 'corviknight', 'flapple', 'kleavor', 'quaquaval', 'squawkabilly-green-plumage', 'squawkabilly-yellow-plumage', 'kingambit'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -182,7 +182,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用天使般的歌声攻击对手。会让此回合内能力有提高的宝可梦陷入混乱状态。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'clefable', 'vaporeon', 'jolteon', 'flareon', 'azumarill', 'espeon', 'umbreon', 'gardevoir', 'altaria', 'milotic', 'leafeon', 'glaceon', 'gallade', 'floette', 'florges', 'meowstic-female', 'meowstic-male', 'aromatisse', 'sylveon', 'primarina', 'alcremie', 'skeledirge'],
+    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'clefable', 'wigglytuff', 'vaporeon', 'jolteon', 'flareon', 'azumarill', 'espeon', 'umbreon', 'gardevoir', 'altaria', 'milotic', 'leafeon', 'glaceon', 'gallade', 'floette', 'florges', 'meowstic-female', 'meowstic-male', 'aromatisse', 'sylveon', 'primarina', 'alcremie', 'skeledirge', 'arboliva'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -197,7 +197,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '用神奇的力量瞬间移动，互换自己和同伴所在的位置。连续使出则容易失败。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['alakazam', 'starmie', 'chimecho', 'spiritomb', 'musharna', 'audino', 'cofagrigus', 'reuniclus', 'vanilluxe', 'aromatisse', 'heliolisk', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'polteageist', 'mr-rime', 'runerigus', 'meowscarada', 'armarouge', 'ceruledge', 'espathra', 'houndstone', 'farigiraf'],
+    learnableByPokemonIds: ['alakazam', 'starmie', 'mr-mime', 'chimecho', 'spiritomb', 'musharna', 'audino', 'cofagrigus', 'reuniclus', 'vanilluxe', 'aromatisse', 'heliolisk', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'polteageist', 'mr-rime', 'runerigus', 'meowscarada', 'armarouge', 'ceruledge', 'espathra', 'houndstone', 'farigiraf'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -212,7 +212,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '将头脑清空，瞬间忘记某事，从而大幅提高自己的特防。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['venusaur', 'clefable', 'slowbro', 'slowbro-galar', 'snorlax', 'azumarill', 'politoed', 'slowking', 'slowking-galar', 'swampert', 'camerupt', 'torkoal', 'castform', 'torterra', 'hippowdon', 'mamoswine', 'simisear', 'musharna', 'audino', 'scrafty', 'garbodor', 'volcarona', 'slurpuff', 'primarina', 'crabominable', 'drampa', 'appletun', 'runerigus', 'farigiraf'],
+    learnableByPokemonIds: ['venusaur', 'clefable', 'wigglytuff', 'persian', 'persian-alola', 'slowbro', 'slowbro-galar', 'snorlax', 'azumarill', 'politoed', 'slowking', 'slowking-galar', 'swampert', 'swalot', 'camerupt', 'torkoal', 'castform', 'torterra', 'hippowdon', 'mamoswine', 'simisear', 'musharna', 'audino', 'scrafty', 'garbodor', 'volcarona', 'slurpuff', 'primarina', 'crabominable', 'drampa', 'appletun', 'perrserker', 'runerigus', 'farigiraf'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -238,7 +238,7 @@ export const championsMoves: Move[] = [
     englishName: 'Apple Acid',
     type: 'Grass',
     category: 'Special',
-    power: 80,
+    power: 90,
     accuracy: 100,
     pp: 10,
     targetScope: '单体',
@@ -280,7 +280,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '以迅雷不及掩耳之势扑向对手。必定能够先制攻击。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['blastoise', 'starmie', 'tauros', 'tauros-paldea-aqua-breed', 'dragonite', 'feraligatr', 'azumarill', 'qwilfish', 'sharpedo', 'empoleon', 'samurott', 'samurott-hisui', 'beartic', 'clawitzer', 'primarina', 'basculegion-female', 'basculegion-male', 'overqwil', 'quaquaval', 'palafin-zero'],
+    learnableByPokemonIds: ['blastoise', 'starmie', 'tauros', 'tauros-paldea-aqua-breed', 'dragonite', 'feraligatr', 'azumarill', 'qwilfish', 'sharpedo', 'empoleon', 'samurott', 'samurott-hisui', 'beartic', 'clawitzer', 'primarina', 'golisopod', 'inteleon', 'basculegion-female', 'basculegion-male', 'overqwil', 'quaquaval', 'palafin-zero'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -295,7 +295,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '在自己身体的周围覆盖用水制造的幕。每回合回复ＨＰ。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['blastoise', 'vaporeon', 'azumarill', 'swampert', 'pelipper', 'milotic', 'empoleon', 'simipour', 'primarina', 'araquanid'],
+    learnableByPokemonIds: ['blastoise', 'vaporeon', 'azumarill', 'swampert', 'pelipper', 'milotic', 'empoleon', 'simipour', 'primarina', 'araquanid', 'inteleon'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -329,7 +329,24 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '如惊涛骇浪般挥动大尾巴攻击对手。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['blastoise', 'gyarados', 'dragonite', 'feraligatr', 'azumarill', 'qwilfish', 'milotic', 'samurott', 'samurott-hisui', 'krookodile', 'dragalge', 'clawitzer', 'goodra', 'overqwil', 'palafin-zero'],
+    learnableByPokemonIds: ['blastoise', 'gyarados', 'dragonite', 'feraligatr', 'azumarill', 'qwilfish', 'milotic', 'samurott', 'samurott-hisui', 'krookodile', 'dragalge', 'clawitzer', 'goodra', 'overqwil', 'palafin-zero', 'baxcalibur'],
+    sourceRefs: moveSourceRefs,
+  },
+  {
+    id: 'arm-thrust',
+    chineseName: '猛推',
+    englishName: 'Arm Thrust',
+    type: 'Fighting',
+    category: 'Physical',
+    power: 15,
+    accuracy: 100,
+    pp: 20,
+    targetScope: '单体',
+    makesContact: true,
+    affectedByProtect: true,
+    effectSummary: '用张开着的双手猛推对手进行攻击。连续攻击２～５次。',
+    legalInCurrentRule: true,
+    learnableByPokemonIds: ['pawmot'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -378,7 +395,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '如果此回合内对手已经受到伤害的话，招式威力会变成２倍。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['beedrill', 'machamp', 'kangaskhan', 'tauros', 'tauros-paldea-combat-breed', 'aerodactyl', 'ariados', 'umbreon', 'qwilfish', 'scizor', 'heracross', 'skarmory', 'tyranitar', 'sceptile', 'blaziken', 'mawile', 'sharpedo', 'absol', 'rampardos', 'lopunny', 'toxicroak', 'weavile', 'gliscor', 'emboar', 'samurott', 'samurott-hisui', 'watchog', 'liepard', 'scolipede', 'krookodile', 'scrafty', 'zoroark', 'zoroark-hisui', 'beartic', 'hydreigon', 'barbaracle', 'tyrantrum', 'hawlucha', 'goodra', 'incineroar', 'lycanroc-midday', 'passimian', 'corviknight', 'grimmsnarl', 'falinks', 'morpeko-full-belly', 'dragapult', 'annihilape', 'farigiraf', 'kingambit'],
+    learnableByPokemonIds: ['beedrill', 'persian', 'persian-alola', 'machamp', 'kangaskhan', 'tauros', 'tauros-paldea-combat-breed', 'aerodactyl', 'ariados', 'umbreon', 'qwilfish', 'scizor', 'heracross', 'skarmory', 'tyranitar', 'sceptile', 'blaziken', 'mawile', 'sharpedo', 'absol', 'rampardos', 'lopunny', 'toxicroak', 'weavile', 'gliscor', 'emboar', 'samurott', 'samurott-hisui', 'watchog', 'liepard', 'scolipede', 'krookodile', 'scrafty', 'zoroark', 'zoroark-hisui', 'beartic', 'hydreigon', 'barbaracle', 'tyrantrum', 'hawlucha', 'goodra', 'incineroar', 'lycanroc-midday', 'passimian', 'golisopod', 'rillaboom', 'cinderace', 'corviknight', 'thievul', 'grimmsnarl', 'perrserker', 'sirfetchd', 'falinks', 'pincurchin', 'morpeko-full-belly', 'dragapult', 'annihilape', 'farigiraf', 'kingambit'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -411,7 +428,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '♂诱惑♀或♀诱惑♂，让对手着迷。对手将很难使出招式。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['beedrill', 'pidgeot', 'ninetales', 'ninetales-alola', 'vileplume', 'alakazam', 'machamp', 'kangaskhan', 'pinsir', 'aerodactyl', 'snorlax', 'politoed', 'steelix', 'mawile', 'aggron', 'manectric', 'sharpedo', 'milotic', 'castform', 'absol', 'torterra', 'infernape', 'empoleon', 'roserade', 'rampardos', 'bastiodon', 'lopunny', 'gliscor', 'mamoswine', 'serperior', 'watchog', 'liepard', 'simisage', 'simisear', 'simipour', 'musharna', 'audino', 'conkeldurr', 'scolipede', 'whimsicott', 'cofagrigus', 'garbodor', 'reuniclus', 'vanilluxe', 'emolga', 'stunfisk', 'stunfisk-galar', 'diggersby', 'pangoro', 'furfrou', 'aegislash-shield', 'aromatisse', 'slurpuff', 'barbaracle', 'heliolisk', 'tyrantrum', 'aurorus', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'incineroar', 'primarina', 'toucannon', 'araquanid', 'mimikyu-disguised', 'drampa', 'kommo-o', 'mr-rime', 'runerigus', 'alcremie', 'morpeko-full-belly'],
+    learnableByPokemonIds: ['beedrill', 'pidgeot', 'ninetales', 'ninetales-alola', 'vileplume', 'alakazam', 'machamp', 'farfetchd', 'kangaskhan', 'mr-mime', 'pinsir', 'aerodactyl', 'snorlax', 'politoed', 'steelix', 'mawile', 'aggron', 'manectric', 'sharpedo', 'milotic', 'castform', 'absol', 'torterra', 'infernape', 'empoleon', 'roserade', 'rampardos', 'bastiodon', 'lopunny', 'gliscor', 'mamoswine', 'serperior', 'watchog', 'liepard', 'simisage', 'simisear', 'simipour', 'musharna', 'audino', 'conkeldurr', 'scolipede', 'whimsicott', 'cofagrigus', 'garbodor', 'reuniclus', 'vanilluxe', 'emolga', 'stunfisk', 'stunfisk-galar', 'diggersby', 'pangoro', 'furfrou', 'aegislash-shield', 'aromatisse', 'slurpuff', 'barbaracle', 'heliolisk', 'tyrantrum', 'aurorus', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'incineroar', 'primarina', 'toucannon', 'araquanid', 'golisopod', 'mimikyu-disguised', 'drampa', 'kommo-o', 'thievul', 'grapploct', 'sirfetchd', 'mr-rime', 'runerigus', 'alcremie', 'morpeko-full-belly'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -491,7 +508,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '如果受到对手的招式攻击，就能给予该对手２倍威力的攻击。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['blastoise', 'ninetales', 'ninetales-alola', 'slowbro', 'slowbro-galar', 'kangaskhan', 'starmie', 'gyarados', 'feraligatr', 'slowking', 'slowking-galar', 'tyranitar', 'swampert', 'aggron', 'sharpedo', 'milotic', 'castform', 'glalie', 'empoleon', 'rampardos', 'bastiodon', 'abomasnow', 'weavile', 'rhyperior', 'glaceon', 'mamoswine', 'froslass', 'samurott', 'samurott-hisui', 'vanilluxe', 'beartic', 'aurorus', 'avalugg', 'avalugg-hisui', 'crabominable', 'mr-rime', 'garganacl'],
+    learnableByPokemonIds: ['blastoise', 'ninetales', 'ninetales-alola', 'slowbro', 'slowbro-galar', 'kangaskhan', 'starmie', 'gyarados', 'feraligatr', 'slowking', 'slowking-galar', 'tyranitar', 'swampert', 'aggron', 'sharpedo', 'milotic', 'castform', 'glalie', 'empoleon', 'rampardos', 'bastiodon', 'abomasnow', 'weavile', 'rhyperior', 'glaceon', 'mamoswine', 'froslass', 'samurott', 'samurott-hisui', 'vanilluxe', 'beartic', 'aurorus', 'avalugg', 'avalugg-hisui', 'crabominable', 'mr-rime', 'garganacl', 'baxcalibur'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -571,7 +588,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '和后备宝可梦进行替换。换上的宝可梦能直接继承其能力的变化。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['beedrill', 'clefable', 'ninetales', 'ninetales-alola', 'vaporeon', 'jolteon', 'flareon', 'ariados', 'espeon', 'umbreon', 'scizor', 'blaziken', 'mawile', 'medicham', 'chimecho', 'absol', 'lopunny', 'toxicroak', 'weavile', 'leafeon', 'glaceon', 'gliscor', 'watchog', 'liepard', 'scolipede', 'emolga', 'floette', 'florges', 'meowstic-female', 'meowstic-male', 'malamar', 'sylveon', 'hawlucha', 'decidueye', 'decidueye-hisui', 'incineroar', 'passimian', 'polteageist', 'hatterene', 'mr-rime', 'morpeko-full-belly', 'dragapult', 'kleavor', 'quaquaval', 'espathra', 'farigiraf'],
+    learnableByPokemonIds: ['beedrill', 'clefable', 'ninetales', 'ninetales-alola', 'wigglytuff', 'farfetchd', 'mr-mime', 'vaporeon', 'jolteon', 'flareon', 'ariados', 'espeon', 'umbreon', 'scizor', 'blaziken', 'mawile', 'medicham', 'chimecho', 'absol', 'lopunny', 'toxicroak', 'weavile', 'leafeon', 'glaceon', 'gliscor', 'watchog', 'liepard', 'scolipede', 'emolga', 'floette', 'florges', 'meowstic-female', 'meowstic-male', 'malamar', 'sylveon', 'hawlucha', 'decidueye', 'decidueye-hisui', 'incineroar', 'passimian', 'cinderace', 'inteleon', 'thievul', 'polteageist', 'hatterene', 'perrserker', 'mr-rime', 'morpeko-full-belly', 'dragapult', 'kleavor', 'quaquaval', 'pawmot', 'espathra', 'farigiraf'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -580,7 +597,7 @@ export const championsMoves: Move[] = [
     englishName: 'Beak Blast',
     type: 'Flying',
     category: 'Physical',
-    power: 100,
+    power: 120,
     accuracy: 100,
     pp: 15,
     targetScope: '单体',
@@ -604,7 +621,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '我方全员进行攻击。同行的宝可梦越多，招式的攻击次数越多。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['charizard', 'arbok', 'kangaskhan', 'houndoom', 'weavile', 'whimsicott', 'krookodile', 'scrafty', 'vanilluxe', 'hydreigon', 'pangoro', 'barbaracle', 'salazzle', 'passimian', 'mimikyu-disguised', 'falinks', 'dragapult', 'maushold-family-of-four', 'annihilape', 'farigiraf'],
+    learnableByPokemonIds: ['charizard', 'arbok', 'kangaskhan', 'houndoom', 'weavile', 'whimsicott', 'krookodile', 'scrafty', 'vanilluxe', 'hydreigon', 'pangoro', 'barbaracle', 'salazzle', 'passimian', 'mimikyu-disguised', 'thievul', 'falinks', 'dragapult', 'maushold-family-of-four', 'annihilape', 'farigiraf'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -621,7 +638,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '朝着对手打嗝，并给予伤害。如果不吃树果则无法使出。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['arbok', 'slowbro', 'slowbro-galar', 'snorlax', 'slowking', 'slowking-galar', 'toxicroak', 'simisage', 'simisear', 'simipour', 'garbodor', 'hydreigon', 'salazzle', 'sandaconda', 'skeledirge'],
+    learnableByPokemonIds: ['arbok', 'slowbro', 'slowbro-galar', 'snorlax', 'slowking', 'slowking-galar', 'swalot', 'toxicroak', 'simisage', 'simisear', 'simipour', 'garbodor', 'hydreigon', 'salazzle', 'sandaconda', 'toxtricity-amped', 'toxtricity-low-key', 'skeledirge'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -653,7 +670,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '使用长长的身体或藤蔓等，在４～５回合内绑紧对手进行攻击。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['pinsir', 'steelix', 'stunfisk', 'stunfisk-galar'],
+    learnableByPokemonIds: ['pinsir', 'steelix', 'stunfisk', 'stunfisk-galar', 'inteleon', 'grapploct'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -670,7 +687,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用尖锐的牙咬住对手进行攻击。有时会使对手畏缩。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['charizard', 'blastoise', 'arbok', 'arcanine', 'arcanine-hisui', 'kangaskhan', 'gyarados', 'vaporeon', 'jolteon', 'flareon', 'aerodactyl', 'snorlax', 'feraligatr', 'espeon', 'umbreon', 'houndoom', 'tyranitar', 'swampert', 'mawile', 'manectric', 'sharpedo', 'absol', 'glalie', 'torterra', 'luxray', 'garchomp', 'lucario', 'hippowdon', 'weavile', 'leafeon', 'glaceon', 'mamoswine', 'froslass', 'watchog', 'liepard', 'simisage', 'simisear', 'simipour', 'scolipede', 'krookodile', 'hydreigon', 'chesnaught', 'furfrou', 'tyrantrum', 'sylveon', 'avalugg', 'avalugg-hisui', 'noivern', 'incineroar', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'toxapex', 'araquanid', 'grimmsnarl', 'morpeko-full-belly', 'dragapult', 'wyrdeer', 'basculegion-female', 'basculegion-male', 'overqwil', 'meowscarada', 'skeledirge', 'scovillain', 'houndstone'],
+    learnableByPokemonIds: ['charizard', 'blastoise', 'arbok', 'persian', 'persian-alola', 'arcanine', 'arcanine-hisui', 'kangaskhan', 'gyarados', 'vaporeon', 'jolteon', 'flareon', 'aerodactyl', 'snorlax', 'feraligatr', 'espeon', 'umbreon', 'houndoom', 'tyranitar', 'swampert', 'mawile', 'manectric', 'sharpedo', 'absol', 'glalie', 'salamence', 'torterra', 'luxray', 'garchomp', 'lucario', 'hippowdon', 'weavile', 'leafeon', 'glaceon', 'mamoswine', 'froslass', 'watchog', 'liepard', 'simisage', 'simisear', 'simipour', 'scolipede', 'krookodile', 'hydreigon', 'chesnaught', 'furfrou', 'tyrantrum', 'sylveon', 'avalugg', 'avalugg-hisui', 'noivern', 'incineroar', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'toxapex', 'araquanid', 'grimmsnarl', 'perrserker', 'morpeko-full-belly', 'dragapult', 'wyrdeer', 'basculegion-female', 'basculegion-male', 'overqwil', 'meowscarada', 'skeledirge', 'pawmot', 'mabosstiff', 'scovillain', 'houndstone', 'baxcalibur'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -721,7 +738,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用爆炸的火焰烧尽对手进行攻击。下一回合自己将无法动弹。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['charizard', 'typhlosion', 'typhlosion-hisui', 'blaziken', 'infernape', 'emboar', 'delphox', 'incineroar', 'skeledirge'],
+    learnableByPokemonIds: ['charizard', 'typhlosion', 'typhlosion-hisui', 'blaziken', 'infernape', 'emboar', 'delphox', 'incineroar', 'cinderace', 'skeledirge'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -738,7 +755,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '攻击对手后，有时会使其陷入灼伤状态。也容易击中要害。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['blaziken', 'medicham', 'infernape', 'staraptor', 'lucario', 'simisear', 'talonflame', 'incineroar'],
+    learnableByPokemonIds: ['blaziken', 'medicham', 'infernape', 'staraptor', 'lucario', 'simisear', 'talonflame', 'incineroar', 'cinderace'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -755,7 +772,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '将猛烈的暴风雪刮向对手进行攻击。有时会让对手陷入冰冻状态。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['blastoise', 'clefable', 'ninetales', 'ninetales-alola', 'slowbro', 'slowbro-galar', 'kangaskhan', 'starmie', 'tauros', 'gyarados', 'vaporeon', 'snorlax', 'dragonite', 'feraligatr', 'azumarill', 'politoed', 'slowking', 'slowking-galar', 'qwilfish', 'tyranitar', 'swampert', 'pelipper', 'aggron', 'sharpedo', 'milotic', 'castform', 'absol', 'glalie', 'empoleon', 'rampardos', 'bastiodon', 'lopunny', 'abomasnow', 'weavile', 'rhyperior', 'glaceon', 'mamoswine', 'froslass', 'rotom', 'rotom-frost', 'samurott', 'samurott-hisui', 'simipour', 'audino', 'vanilluxe', 'beartic', 'greninja', 'barbaracle', 'clawitzer', 'aurorus', 'goodra', 'goodra-hisui', 'avalugg', 'avalugg-hisui', 'primarina', 'crabominable', 'toxapex', 'araquanid', 'drampa', 'mr-rime', 'basculegion-female', 'basculegion-male', 'overqwil', 'palafin-zero'],
+    learnableByPokemonIds: ['blastoise', 'clefable', 'ninetales', 'ninetales-alola', 'wigglytuff', 'slowbro', 'slowbro-galar', 'kangaskhan', 'starmie', 'tauros', 'gyarados', 'vaporeon', 'snorlax', 'dragonite', 'feraligatr', 'azumarill', 'politoed', 'slowking', 'slowking-galar', 'qwilfish', 'tyranitar', 'swampert', 'pelipper', 'aggron', 'sharpedo', 'milotic', 'castform', 'absol', 'glalie', 'empoleon', 'rampardos', 'bastiodon', 'lopunny', 'abomasnow', 'weavile', 'rhyperior', 'glaceon', 'mamoswine', 'froslass', 'rotom', 'rotom-frost', 'samurott', 'samurott-hisui', 'simipour', 'audino', 'vanilluxe', 'beartic', 'greninja', 'barbaracle', 'clawitzer', 'aurorus', 'goodra', 'goodra-hisui', 'avalugg', 'avalugg-hisui', 'primarina', 'crabominable', 'toxapex', 'araquanid', 'golisopod', 'drampa', 'inteleon', 'mr-rime', 'basculegion-female', 'basculegion-male', 'overqwil', 'palafin-zero', 'baxcalibur'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -787,7 +804,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用身体撞向对手进行攻击。防御越高，给予的伤害就越高。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['blastoise', 'slowbro', 'slowbro-galar', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'snorlax', 'dragonite', 'meganium', 'forretress', 'steelix', 'skarmory', 'tyranitar', 'swampert', 'aggron', 'camerupt', 'torkoal', 'metagross', 'torterra', 'rampardos', 'bastiodon', 'hippowdon', 'abomasnow', 'rhyperior', 'mamoswine', 'emboar', 'cofagrigus', 'garbodor', 'eelektross', 'beartic', 'golurk', 'chesnaught', 'hawlucha', 'goodra', 'goodra-hisui', 'avalugg', 'avalugg-hisui', 'crabominable', 'mudsdale', 'kommo-o', 'corviknight', 'appletun', 'sandaconda', 'grimmsnarl', 'runerigus', 'falinks', 'garganacl', 'orthworm', 'houndstone', 'hydrapple'],
+    learnableByPokemonIds: ['blastoise', 'wigglytuff', 'slowbro', 'slowbro-galar', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'snorlax', 'dragonite', 'meganium', 'forretress', 'steelix', 'skarmory', 'tyranitar', 'swampert', 'aggron', 'swalot', 'camerupt', 'torkoal', 'metagross', 'torterra', 'rampardos', 'bastiodon', 'hippowdon', 'abomasnow', 'rhyperior', 'mamoswine', 'emboar', 'cofagrigus', 'garbodor', 'eelektross', 'beartic', 'golurk', 'chesnaught', 'hawlucha', 'goodra', 'goodra-hisui', 'avalugg', 'avalugg-hisui', 'crabominable', 'mudsdale', 'kommo-o', 'rillaboom', 'corviknight', 'appletun', 'sandaconda', 'grimmsnarl', 'runerigus', 'falinks', 'pawmot', 'garganacl', 'orthworm', 'houndstone', 'baxcalibur', 'hydrapple'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -804,7 +821,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用整个身体压住对手进行攻击。有时会让对手陷入麻痹状态。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['venusaur', 'charizard', 'blastoise', 'arbok', 'pikachu', 'raichu', 'raichu-alola', 'clefable', 'ninetales', 'ninetales-alola', 'vileplume', 'arcanine', 'arcanine-hisui', 'alakazam', 'machamp', 'victreebel', 'slowbro', 'slowbro-galar', 'gengar', 'kangaskhan', 'pinsir', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'vaporeon', 'jolteon', 'flareon', 'snorlax', 'dragonite', 'meganium', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'ariados', 'ampharos', 'azumarill', 'politoed', 'espeon', 'umbreon', 'slowking', 'slowking-galar', 'forretress', 'steelix', 'heracross', 'houndoom', 'tyranitar', 'sceptile', 'blaziken', 'swampert', 'pelipper', 'gardevoir', 'sableye', 'mawile', 'aggron', 'medicham', 'manectric', 'camerupt', 'torkoal', 'altaria', 'milotic', 'castform', 'absol', 'glalie', 'metagross', 'torterra', 'infernape', 'empoleon', 'luxray', 'roserade', 'rampardos', 'bastiodon', 'spiritomb', 'garchomp', 'lucario', 'hippowdon', 'abomasnow', 'rhyperior', 'leafeon', 'glaceon', 'mamoswine', 'gallade', 'froslass', 'serperior', 'emboar', 'samurott', 'samurott-hisui', 'excadrill', 'audino', 'conkeldurr', 'krookodile', 'scrafty', 'garbodor', 'zoroark', 'zoroark-hisui', 'reuniclus', 'eelektross', 'beartic', 'golurk', 'hydreigon', 'volcarona', 'chesnaught', 'diggersby', 'pyroar', 'pangoro', 'clawitzer', 'tyrantrum', 'aurorus', 'sylveon', 'hawlucha', 'goodra', 'goodra-hisui', 'avalugg', 'avalugg-hisui', 'noivern', 'incineroar', 'primarina', 'crabominable', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'toxapex', 'mudsdale', 'araquanid', 'salazzle', 'oranguru', 'passimian', 'drampa', 'kommo-o', 'corviknight', 'appletun', 'sandaconda', 'grimmsnarl', 'mr-rime', 'falinks', 'dragapult', 'wyrdeer', 'skeledirge', 'garganacl', 'espathra', 'palafin-zero', 'orthworm', 'annihilape', 'farigiraf', 'archaludon', 'hydrapple'],
+    learnableByPokemonIds: ['venusaur', 'charizard', 'blastoise', 'arbok', 'pikachu', 'raichu', 'raichu-alola', 'clefable', 'ninetales', 'ninetales-alola', 'wigglytuff', 'vileplume', 'persian', 'persian-alola', 'arcanine', 'arcanine-hisui', 'alakazam', 'machamp', 'victreebel', 'slowbro', 'slowbro-galar', 'farfetchd', 'gengar', 'kangaskhan', 'mr-mime', 'pinsir', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'vaporeon', 'jolteon', 'flareon', 'snorlax', 'dragonite', 'meganium', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'ariados', 'ampharos', 'azumarill', 'politoed', 'espeon', 'umbreon', 'slowking', 'slowking-galar', 'forretress', 'steelix', 'heracross', 'houndoom', 'tyranitar', 'sceptile', 'blaziken', 'swampert', 'pelipper', 'gardevoir', 'sableye', 'mawile', 'aggron', 'medicham', 'manectric', 'swalot', 'camerupt', 'torkoal', 'altaria', 'milotic', 'castform', 'absol', 'glalie', 'salamence', 'metagross', 'torterra', 'infernape', 'empoleon', 'luxray', 'roserade', 'rampardos', 'bastiodon', 'spiritomb', 'garchomp', 'lucario', 'hippowdon', 'abomasnow', 'rhyperior', 'leafeon', 'glaceon', 'mamoswine', 'gallade', 'froslass', 'serperior', 'emboar', 'samurott', 'samurott-hisui', 'excadrill', 'audino', 'conkeldurr', 'krookodile', 'scrafty', 'garbodor', 'zoroark', 'zoroark-hisui', 'reuniclus', 'eelektross', 'beartic', 'golurk', 'hydreigon', 'volcarona', 'chesnaught', 'diggersby', 'pyroar', 'gogoat', 'pangoro', 'clawitzer', 'tyrantrum', 'aurorus', 'sylveon', 'hawlucha', 'goodra', 'goodra-hisui', 'avalugg', 'avalugg-hisui', 'noivern', 'incineroar', 'primarina', 'crabominable', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'toxapex', 'mudsdale', 'araquanid', 'salazzle', 'oranguru', 'passimian', 'drampa', 'kommo-o', 'rillaboom', 'corviknight', 'appletun', 'sandaconda', 'grapploct', 'grimmsnarl', 'perrserker', 'sirfetchd', 'mr-rime', 'falinks', 'pincurchin', 'indeedee-female', 'indeedee-male', 'dragapult', 'wyrdeer', 'skeledirge', 'garganacl', 'mabosstiff', 'espathra', 'palafin-zero', 'orthworm', 'annihilape', 'farigiraf', 'baxcalibur', 'archaludon', 'hydrapple'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -813,7 +830,7 @@ export const championsMoves: Move[] = [
     englishName: 'Bone Rush',
     type: 'Ground',
     category: 'Physical',
-    power: 25,
+    power: 30,
     accuracy: 90,
     pp: 10,
     targetScope: '单体',
@@ -838,7 +855,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '通过震耳欲聋的爆炸声产生的破坏力，攻击自己周围所有的宝可梦。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['chimecho', 'noivern', 'toucannon', 'kommo-o'],
+    learnableByPokemonIds: ['chimecho', 'noivern', 'toucannon', 'kommo-o', 'rillaboom', 'toxtricity-amped', 'toxtricity-low-key'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -855,7 +872,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '弹跳到高高的空中，第２回合攻击对手。有时会让对手陷入麻痹状态。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['clefable', 'gyarados', 'ariados', 'azumarill', 'politoed', 'blaziken', 'sharpedo', 'absol', 'lopunny', 'toxicroak', 'zoroark', 'zoroark-hisui', 'eelektross', 'stunfisk', 'stunfisk-galar', 'greninja', 'diggersby', 'clawitzer', 'hawlucha', 'tsareena'],
+    learnableByPokemonIds: ['clefable', 'wigglytuff', 'gyarados', 'ariados', 'azumarill', 'politoed', 'blaziken', 'sharpedo', 'absol', 'lopunny', 'toxicroak', 'zoroark', 'zoroark-hisui', 'eelektross', 'stunfisk', 'stunfisk-galar', 'greninja', 'diggersby', 'clawitzer', 'hawlucha', 'tsareena', 'cinderace', 'inteleon'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -872,7 +889,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '收拢翅膀，通过低空飞行突击对手。自己也会受到不小的伤害。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['pidgeot', 'skarmory', 'blaziken', 'pelipper', 'altaria', 'staraptor', 'talonflame', 'hawlucha', 'decidueye', 'decidueye-hisui', 'toucannon', 'corviknight', 'quaquaval', 'espathra'],
+    learnableByPokemonIds: ['pidgeot', 'farfetchd', 'skarmory', 'blaziken', 'pelipper', 'altaria', 'staraptor', 'talonflame', 'hawlucha', 'decidueye', 'decidueye-hisui', 'toucannon', 'corviknight', 'sirfetchd', 'quaquaval', 'squawkabilly-green-plumage', 'squawkabilly-yellow-plumage', 'espathra'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -889,7 +906,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用坚韧的尾巴猛扫对手进行攻击，从而降低对手的攻击。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['charizard', 'arbok', 'dragonite', 'feraligatr', 'ampharos', 'steelix', 'tyranitar', 'sceptile', 'altaria', 'milotic', 'rampardos', 'garchomp', 'rhyperior', 'gliscor', 'serperior', 'krookodile', 'hydreigon', 'heliolisk', 'tyrantrum', 'goodra', 'goodra-hisui', 'noivern', 'salazzle', 'drampa', 'kommo-o', 'dragapult', 'archaludon', 'hydrapple'],
+    learnableByPokemonIds: ['charizard', 'arbok', 'dragonite', 'feraligatr', 'ampharos', 'steelix', 'tyranitar', 'sceptile', 'altaria', 'milotic', 'salamence', 'rampardos', 'garchomp', 'rhyperior', 'gliscor', 'serperior', 'krookodile', 'hydreigon', 'heliolisk', 'tyrantrum', 'goodra', 'goodra-hisui', 'noivern', 'salazzle', 'drampa', 'kommo-o', 'inteleon', 'dragapult', 'baxcalibur', 'archaludon', 'hydrapple'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -906,7 +923,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '将手刀猛烈地挥下攻击对手。还可以破坏光墙和反射壁等。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['charizard', 'blastoise', 'beedrill', 'pikachu', 'raichu', 'raichu-alola', 'clefable', 'machamp', 'slowbro', 'slowbro-galar', 'gengar', 'kangaskhan', 'pinsir', 'snorlax', 'dragonite', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'ampharos', 'azumarill', 'politoed', 'slowking', 'slowking-galar', 'scizor', 'heracross', 'tyranitar', 'sceptile', 'blaziken', 'swampert', 'sableye', 'mawile', 'aggron', 'medicham', 'metagross', 'infernape', 'empoleon', 'staraptor', 'rampardos', 'garchomp', 'lucario', 'toxicroak', 'abomasnow', 'weavile', 'rhyperior', 'gliscor', 'gallade', 'emboar', 'samurott', 'samurott-hisui', 'simisage', 'simisear', 'simipour', 'excadrill', 'conkeldurr', 'krookodile', 'scrafty', 'zoroark', 'zoroark-hisui', 'eelektross', 'beartic', 'golurk', 'chesnaught', 'greninja', 'diggersby', 'pangoro', 'aegislash-shield', 'barbaracle', 'tyrantrum', 'hawlucha', 'noivern', 'decidueye', 'decidueye-hisui', 'incineroar', 'toucannon', 'crabominable', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'oranguru', 'passimian', 'kommo-o', 'grimmsnarl', 'mr-rime', 'falinks', 'morpeko-full-belly', 'kleavor', 'sneasler', 'meowscarada', 'quaquaval', 'garganacl', 'ceruledge', 'tinkaton', 'annihilape', 'kingambit', 'archaludon'],
+    learnableByPokemonIds: ['charizard', 'blastoise', 'beedrill', 'pikachu', 'raichu', 'raichu-alola', 'clefable', 'wigglytuff', 'machamp', 'slowbro', 'slowbro-galar', 'gengar', 'kangaskhan', 'mr-mime', 'pinsir', 'snorlax', 'dragonite', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'ampharos', 'azumarill', 'politoed', 'slowking', 'slowking-galar', 'scizor', 'heracross', 'tyranitar', 'sceptile', 'blaziken', 'swampert', 'sableye', 'mawile', 'aggron', 'medicham', 'swalot', 'salamence', 'metagross', 'infernape', 'empoleon', 'staraptor', 'rampardos', 'garchomp', 'lucario', 'toxicroak', 'abomasnow', 'weavile', 'rhyperior', 'gliscor', 'gallade', 'emboar', 'samurott', 'samurott-hisui', 'simisage', 'simisear', 'simipour', 'excadrill', 'conkeldurr', 'krookodile', 'scrafty', 'zoroark', 'zoroark-hisui', 'eelektross', 'beartic', 'golurk', 'chesnaught', 'greninja', 'diggersby', 'gogoat', 'pangoro', 'aegislash-shield', 'barbaracle', 'tyrantrum', 'hawlucha', 'noivern', 'decidueye', 'decidueye-hisui', 'incineroar', 'toucannon', 'crabominable', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'oranguru', 'passimian', 'golisopod', 'kommo-o', 'rillaboom', 'toxtricity-amped', 'toxtricity-low-key', 'grapploct', 'grimmsnarl', 'perrserker', 'sirfetchd', 'mr-rime', 'falinks', 'morpeko-full-belly', 'kleavor', 'sneasler', 'meowscarada', 'quaquaval', 'pawmot', 'garganacl', 'ceruledge', 'tinkaton', 'annihilape', 'kingambit', 'baxcalibur', 'archaludon'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -923,7 +940,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用自己的身体狂舞挥打，给予对手伤害。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['charizard', 'beedrill', 'arbok', 'raichu', 'machamp', 'pinsir', 'gyarados', 'aerodactyl', 'dragonite', 'feraligatr', 'ampharos', 'azumarill', 'steelix', 'scizor', 'heracross', 'tyranitar', 'sceptile', 'mawile', 'aggron', 'milotic', 'absol', 'metagross', 'lopunny', 'garchomp', 'rhyperior', 'gliscor', 'serperior', 'excadrill', 'conkeldurr', 'krookodile', 'hydreigon', 'greninja', 'diggersby', 'pangoro', 'aegislash-shield', 'malamar', 'barbaracle', 'heliolisk', 'tyrantrum', 'goodra', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'incineroar', 'crabominable', 'passimian', 'kommo-o', 'sandaconda', 'hatterene', 'runerigus', 'kleavor', 'tinkaton'],
+    learnableByPokemonIds: ['charizard', 'beedrill', 'arbok', 'raichu', 'machamp', 'farfetchd', 'pinsir', 'gyarados', 'aerodactyl', 'dragonite', 'feraligatr', 'ampharos', 'azumarill', 'steelix', 'scizor', 'heracross', 'tyranitar', 'sceptile', 'mawile', 'aggron', 'milotic', 'absol', 'salamence', 'metagross', 'lopunny', 'garchomp', 'rhyperior', 'gliscor', 'serperior', 'excadrill', 'conkeldurr', 'krookodile', 'hydreigon', 'greninja', 'diggersby', 'pangoro', 'aegislash-shield', 'malamar', 'barbaracle', 'heliolisk', 'tyrantrum', 'goodra', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'incineroar', 'crabominable', 'passimian', 'kommo-o', 'rillaboom', 'sandaconda', 'grapploct', 'hatterene', 'sirfetchd', 'runerigus', 'kleavor', 'tinkaton'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -940,7 +957,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '咬住进行攻击。当对手携带树果时，可以食用并获得其效果。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['beedrill', 'victreebel', 'pinsir', 'ariados', 'forretress', 'scizor', 'heracross', 'scolipede', 'volcarona', 'vivillon', 'araquanid', 'kleavor', 'hydrapple'],
+    learnableByPokemonIds: ['beedrill', 'victreebel', 'pinsir', 'ariados', 'forretress', 'scizor', 'heracross', 'scolipede', 'volcarona', 'vivillon', 'araquanid', 'golisopod', 'kleavor', 'hydrapple'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -957,7 +974,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '利用振动发出音波进行攻击。有时会降低对手的特防。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['beedrill', 'ariados', 'forretress', 'scizor', 'heracross', 'volcarona', 'vivillon', 'araquanid', 'kleavor'],
+    learnableByPokemonIds: ['beedrill', 'ariados', 'forretress', 'scizor', 'heracross', 'volcarona', 'vivillon', 'araquanid', 'golisopod', 'kleavor'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -972,7 +989,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '使出全身力气绷紧肌肉，从而提高自己的攻击和防御。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['machamp', 'starmie', 'pinsir', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'heracross', 'blaziken', 'swampert', 'sableye', 'medicham', 'infernape', 'staraptor', 'lucario', 'toxicroak', 'gallade', 'emboar', 'conkeldurr', 'krookodile', 'scrafty', 'eelektross', 'beartic', 'chesnaught', 'diggersby', 'talonflame', 'pangoro', 'barbaracle', 'hawlucha', 'decidueye', 'decidueye-hisui', 'incineroar', 'crabominable', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'passimian', 'mimikyu-disguised', 'kommo-o', 'corviknight', 'grimmsnarl', 'falinks', 'sneasler', 'quaquaval', 'ceruledge', 'palafin-zero', 'annihilape'],
+    learnableByPokemonIds: ['machamp', 'starmie', 'pinsir', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'heracross', 'blaziken', 'swampert', 'sableye', 'medicham', 'infernape', 'staraptor', 'lucario', 'toxicroak', 'gallade', 'emboar', 'conkeldurr', 'krookodile', 'scrafty', 'eelektross', 'beartic', 'chesnaught', 'diggersby', 'talonflame', 'gogoat', 'pangoro', 'barbaracle', 'hawlucha', 'decidueye', 'decidueye-hisui', 'incineroar', 'crabominable', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'passimian', 'golisopod', 'mimikyu-disguised', 'kommo-o', 'rillaboom', 'cinderace', 'corviknight', 'grapploct', 'grimmsnarl', 'perrserker', 'falinks', 'sneasler', 'quaquaval', 'pawmot', 'ceruledge', 'palafin-zero', 'annihilape'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -989,7 +1006,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用力踩踏地面并攻击自己周围所有的宝可梦。会降低对方的速度。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['venusaur', 'charizard', 'blastoise', 'arbok', 'arcanine', 'arcanine-hisui', 'machamp', 'slowbro', 'slowbro-galar', 'kangaskhan', 'pinsir', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'aerodactyl', 'snorlax', 'dragonite', 'meganium', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'ampharos', 'azumarill', 'politoed', 'slowking', 'slowking-galar', 'forretress', 'steelix', 'heracross', 'tyranitar', 'sceptile', 'blaziken', 'swampert', 'aggron', 'sharpedo', 'camerupt', 'torkoal', 'altaria', 'milotic', 'glalie', 'metagross', 'torterra', 'infernape', 'empoleon', 'rampardos', 'bastiodon', 'garchomp', 'lucario', 'hippowdon', 'toxicroak', 'abomasnow', 'rhyperior', 'gliscor', 'mamoswine', 'gallade', 'emboar', 'samurott', 'samurott-hisui', 'excadrill', 'conkeldurr', 'scolipede', 'krookodile', 'eelektross', 'beartic', 'stunfisk', 'stunfisk-galar', 'golurk', 'hydreigon', 'chesnaught', 'diggersby', 'pyroar', 'pangoro', 'barbaracle', 'heliolisk', 'tyrantrum', 'aurorus', 'goodra', 'goodra-hisui', 'trevenant', 'avalugg', 'avalugg-hisui', 'incineroar', 'crabominable', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'mudsdale', 'oranguru', 'passimian', 'drampa', 'kommo-o', 'appletun', 'sandaconda', 'runerigus', 'wyrdeer', 'garganacl', 'tinkaton', 'orthworm', 'houndstone', 'annihilape', 'farigiraf'],
+    learnableByPokemonIds: ['venusaur', 'charizard', 'blastoise', 'arbok', 'arcanine', 'arcanine-hisui', 'machamp', 'slowbro', 'slowbro-galar', 'kangaskhan', 'pinsir', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'aerodactyl', 'snorlax', 'dragonite', 'meganium', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'ampharos', 'azumarill', 'politoed', 'slowking', 'slowking-galar', 'forretress', 'steelix', 'heracross', 'tyranitar', 'sceptile', 'blaziken', 'swampert', 'aggron', 'swalot', 'sharpedo', 'camerupt', 'torkoal', 'altaria', 'milotic', 'glalie', 'salamence', 'metagross', 'torterra', 'infernape', 'empoleon', 'rampardos', 'bastiodon', 'garchomp', 'lucario', 'hippowdon', 'toxicroak', 'abomasnow', 'rhyperior', 'gliscor', 'mamoswine', 'gallade', 'emboar', 'samurott', 'samurott-hisui', 'excadrill', 'conkeldurr', 'scolipede', 'krookodile', 'eelektross', 'beartic', 'stunfisk', 'stunfisk-galar', 'golurk', 'hydreigon', 'chesnaught', 'diggersby', 'pyroar', 'gogoat', 'pangoro', 'barbaracle', 'heliolisk', 'tyrantrum', 'aurorus', 'goodra', 'goodra-hisui', 'trevenant', 'avalugg', 'avalugg-hisui', 'incineroar', 'crabominable', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'mudsdale', 'oranguru', 'passimian', 'drampa', 'kommo-o', 'rillaboom', 'appletun', 'sandaconda', 'runerigus', 'wyrdeer', 'garganacl', 'tinkaton', 'orthworm', 'houndstone', 'annihilape', 'farigiraf', 'baxcalibur'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -1023,7 +1040,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '向对手猛烈地发射种子进行攻击。连续攻击２～５次。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['venusaur', 'vileplume', 'victreebel', 'meganium', 'heracross', 'sceptile', 'torterra', 'roserade', 'abomasnow', 'leafeon', 'serperior', 'watchog', 'simisage', 'chesnaught', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'decidueye', 'decidueye-hisui', 'toucannon', 'tsareena', 'flapple', 'appletun', 'morpeko-full-belly', 'meowscarada', 'maushold-family-of-four', 'scovillain', 'hydrapple'],
+    learnableByPokemonIds: ['venusaur', 'vileplume', 'victreebel', 'meganium', 'heracross', 'sceptile', 'swalot', 'torterra', 'roserade', 'abomasnow', 'leafeon', 'serperior', 'watchog', 'simisage', 'chesnaught', 'gogoat', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'decidueye', 'decidueye-hisui', 'toucannon', 'tsareena', 'rillaboom', 'flapple', 'appletun', 'morpeko-full-belly', 'meowscarada', 'maushold-family-of-four', 'arboliva', 'scovillain', 'hydrapple'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -1057,7 +1074,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用嫉妒的能量攻击对手。会让在该回合内能力有所提高的宝可梦陷入灼伤状态。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['ninetales', 'flareon', 'typhlosion', 'typhlosion-hisui', 'houndoom', 'camerupt', 'torkoal', 'banette', 'infernape', 'spiritomb', 'liepard', 'simisear', 'zoroark', 'zoroark-hisui', 'chandelure', 'delphox', 'pyroar', 'trevenant', 'incineroar', 'salazzle', 'mimikyu-disguised', 'grimmsnarl', 'scovillain'],
+    learnableByPokemonIds: ['ninetales', 'flareon', 'typhlosion', 'typhlosion-hisui', 'houndoom', 'camerupt', 'torkoal', 'banette', 'infernape', 'spiritomb', 'liepard', 'simisear', 'zoroark', 'zoroark-hisui', 'chandelure', 'delphox', 'pyroar', 'trevenant', 'incineroar', 'salazzle', 'mimikyu-disguised', 'cinderace', 'thievul', 'grimmsnarl', 'scovillain'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -1072,7 +1089,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '静心凝神，从而提高自己的特攻和特防。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['raichu-alola', 'clefable', 'ninetales', 'ninetales-alola', 'alakazam', 'slowbro', 'slowbro-galar', 'vaporeon', 'jolteon', 'flareon', 'typhlosion', 'typhlosion-hisui', 'espeon', 'umbreon', 'slowking', 'slowking-galar', 'gardevoir', 'sableye', 'medicham', 'banette', 'chimecho', 'absol', 'infernape', 'spiritomb', 'lucario', 'weavile', 'leafeon', 'glaceon', 'gallade', 'serperior', 'musharna', 'audino', 'cofagrigus', 'zoroark', 'zoroark-hisui', 'reuniclus', 'chandelure', 'volcarona', 'delphox', 'vivillon', 'floette', 'florges', 'meowstic-female', 'meowstic-male', 'aromatisse', 'slurpuff', 'malamar', 'aurorus', 'sylveon', 'klefki', 'trevenant', 'primarina', 'oranguru', 'drampa', 'polteageist', 'hatterene', 'mr-rime', 'runerigus', 'alcremie', 'wyrdeer', 'sneasler', 'armarouge', 'espathra', 'farigiraf', 'sinistcha'],
+    learnableByPokemonIds: ['raichu-alola', 'clefable', 'ninetales', 'ninetales-alola', 'wigglytuff', 'alakazam', 'slowbro', 'slowbro-galar', 'mr-mime', 'vaporeon', 'jolteon', 'flareon', 'typhlosion', 'typhlosion-hisui', 'espeon', 'umbreon', 'slowking', 'slowking-galar', 'gardevoir', 'sableye', 'medicham', 'banette', 'chimecho', 'absol', 'infernape', 'spiritomb', 'lucario', 'weavile', 'leafeon', 'glaceon', 'gallade', 'serperior', 'musharna', 'audino', 'cofagrigus', 'zoroark', 'zoroark-hisui', 'reuniclus', 'chandelure', 'volcarona', 'delphox', 'vivillon', 'floette', 'florges', 'meowstic-female', 'meowstic-male', 'aromatisse', 'slurpuff', 'malamar', 'aurorus', 'sylveon', 'klefki', 'trevenant', 'primarina', 'oranguru', 'drampa', 'polteageist', 'hatterene', 'mr-rime', 'runerigus', 'alcremie', 'indeedee-female', 'indeedee-male', 'wyrdeer', 'sneasler', 'armarouge', 'espathra', 'farigiraf', 'sinistcha'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -1104,7 +1121,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '变为充电状态，提高下次使出的电属性的招式威力。自己的特防也会提高。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'jolteon', 'ampharos', 'manectric', 'luxray', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'emolga', 'eelektross', 'stunfisk', 'heliolisk', 'dedenne', 'morpeko-full-belly', 'bellibolt'],
+    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'jolteon', 'ampharos', 'manectric', 'luxray', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'emolga', 'eelektross', 'stunfisk', 'heliolisk', 'dedenne', 'toxtricity-amped', 'toxtricity-low-key', 'pincurchin', 'morpeko-full-belly', 'pawmot', 'bellibolt'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -1121,7 +1138,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '向对手发射电击光束。由于蓄满电流，有时会提高自己的特攻。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'clefable', 'starmie', 'jolteon', 'ampharos', 'gardevoir', 'manectric', 'banette', 'chimecho', 'luxray', 'gallade', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'musharna', 'emolga', 'eelektross', 'golurk', 'meowstic-female', 'meowstic-male', 'heliolisk', 'dedenne', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'oranguru', 'mimikyu-disguised', 'morpeko-full-belly', 'wyrdeer', 'bellibolt', 'farigiraf', 'gholdengo'],
+    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'clefable', 'starmie', 'mr-mime', 'jolteon', 'ampharos', 'gardevoir', 'manectric', 'banette', 'chimecho', 'luxray', 'gallade', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'musharna', 'emolga', 'eelektross', 'golurk', 'meowstic-female', 'meowstic-male', 'heliolisk', 'dedenne', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'oranguru', 'mimikyu-disguised', 'toxtricity-amped', 'toxtricity-low-key', 'pincurchin', 'morpeko-full-belly', 'wyrdeer', 'pawmot', 'bellibolt', 'farigiraf', 'gholdengo'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -1137,7 +1154,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '可爱地凝视，诱使对手疏忽大意，从而大幅降低对手的攻击。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['venusaur', 'pikachu', 'raichu', 'raichu-alola', 'clefable', 'ninetales', 'ninetales-alola', 'vileplume', 'arcanine', 'vaporeon', 'jolteon', 'flareon', 'snorlax', 'meganium', 'azumarill', 'espeon', 'umbreon', 'gardevoir', 'mawile', 'camerupt', 'chimecho', 'empoleon', 'roserade', 'lopunny', 'leafeon', 'glaceon', 'mamoswine', 'gallade', 'froslass', 'liepard', 'musharna', 'whimsicott', 'reuniclus', 'emolga', 'beartic', 'delphox', 'floette', 'florges', 'furfrou', 'meowstic-female', 'meowstic-male', 'aromatisse', 'slurpuff', 'tyrantrum', 'sylveon', 'dedenne', 'goodra', 'goodra-hisui', 'primarina', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'tsareena', 'mimikyu-disguised', 'hatterene', 'mr-rime', 'alcremie', 'meowscarada', 'maushold-family-of-four', 'palafin-zero', 'houndstone'],
+    learnableByPokemonIds: ['venusaur', 'pikachu', 'raichu', 'raichu-alola', 'clefable', 'ninetales', 'ninetales-alola', 'wigglytuff', 'vileplume', 'persian', 'persian-alola', 'arcanine', 'mr-mime', 'vaporeon', 'jolteon', 'flareon', 'snorlax', 'meganium', 'azumarill', 'espeon', 'umbreon', 'gardevoir', 'mawile', 'camerupt', 'chimecho', 'empoleon', 'roserade', 'lopunny', 'leafeon', 'glaceon', 'mamoswine', 'gallade', 'froslass', 'liepard', 'musharna', 'whimsicott', 'reuniclus', 'emolga', 'beartic', 'delphox', 'floette', 'florges', 'furfrou', 'meowstic-female', 'meowstic-male', 'aromatisse', 'slurpuff', 'tyrantrum', 'sylveon', 'dedenne', 'goodra', 'goodra-hisui', 'primarina', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'tsareena', 'mimikyu-disguised', 'toxtricity-amped', 'toxtricity-low-key', 'hatterene', 'perrserker', 'mr-rime', 'alcremie', 'meowscarada', 'pawmot', 'maushold-family-of-four', 'arboliva', 'palafin-zero', 'houndstone'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -1154,7 +1171,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '泼洒冰冷得足以让对手失去活力的水进行攻击。会降低对手的攻击。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['blastoise', 'clefable', 'ninetales', 'ninetales-alola', 'slowbro', 'slowbro-galar', 'starmie', 'tauros', 'tauros-paldea-aqua-breed', 'gyarados', 'vaporeon', 'snorlax', 'dragonite', 'feraligatr', 'azumarill', 'politoed', 'slowking', 'slowking-galar', 'qwilfish', 'swampert', 'pelipper', 'sharpedo', 'milotic', 'castform', 'glalie', 'empoleon', 'toxicroak', 'abomasnow', 'weavile', 'glaceon', 'froslass', 'samurott', 'samurott-hisui', 'simipour', 'audino', 'vanilluxe', 'beartic', 'greninja', 'floette', 'florges', 'barbaracle', 'dragalge', 'clawitzer', 'aurorus', 'goodra', 'goodra-hisui', 'avalugg', 'avalugg-hisui', 'primarina', 'crabominable', 'toxapex', 'araquanid', 'oranguru', 'passimian', 'grimmsnarl', 'mr-rime', 'basculegion-female', 'basculegion-male', 'overqwil', 'meowscarada', 'quaquaval', 'maushold-family-of-four', 'bellibolt', 'palafin-zero'],
+    learnableByPokemonIds: ['blastoise', 'clefable', 'ninetales', 'ninetales-alola', 'wigglytuff', 'persian', 'persian-alola', 'slowbro', 'slowbro-galar', 'starmie', 'tauros', 'tauros-paldea-aqua-breed', 'gyarados', 'vaporeon', 'snorlax', 'dragonite', 'feraligatr', 'azumarill', 'politoed', 'slowking', 'slowking-galar', 'qwilfish', 'swampert', 'pelipper', 'sharpedo', 'milotic', 'castform', 'glalie', 'empoleon', 'toxicroak', 'abomasnow', 'weavile', 'glaceon', 'froslass', 'samurott', 'samurott-hisui', 'simipour', 'audino', 'vanilluxe', 'beartic', 'greninja', 'floette', 'florges', 'barbaracle', 'dragalge', 'clawitzer', 'aurorus', 'goodra', 'goodra-hisui', 'avalugg', 'avalugg-hisui', 'primarina', 'crabominable', 'toxapex', 'araquanid', 'oranguru', 'passimian', 'golisopod', 'inteleon', 'grapploct', 'grimmsnarl', 'perrserker', 'mr-rime', 'pincurchin', 'basculegion-female', 'basculegion-male', 'overqwil', 'meowscarada', 'quaquaval', 'maushold-family-of-four', 'bellibolt', 'palafin-zero'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -1187,7 +1204,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '扔飞对手，强制拉后备宝可梦上场。如果对手为野生宝可梦，战斗将直接结束。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['kangaskhan', 'pinsir', 'heracross', 'lopunny', 'lucario', 'pangoro'],
+    learnableByPokemonIds: ['kangaskhan', 'pinsir', 'heracross', 'lopunny', 'lucario', 'pangoro', 'grapploct'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -1236,7 +1253,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '向对手投掷特殊的泥块进行攻击。使其能力变回原点。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['victreebel', 'gengar', 'torkoal', 'garbodor', 'chandelure', 'armarouge', 'ceruledge'],
+    learnableByPokemonIds: ['victreebel', 'gengar', 'swalot', 'torkoal', 'garbodor', 'chandelure', 'armarouge', 'ceruledge'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -1253,7 +1270,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '放弃守护，向对手的怀里突击。自己的防御和特防会降低。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['arcanine', 'arcanine-hisui', 'machamp', 'pinsir', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'scizor', 'heracross', 'blaziken', 'medicham', 'sharpedo', 'absol', 'infernape', 'staraptor', 'lopunny', 'lucario', 'toxicroak', 'gallade', 'emboar', 'conkeldurr', 'krookodile', 'scrafty', 'eelektross', 'beartic', 'golurk', 'chesnaught', 'pangoro', 'aegislash-shield', 'barbaracle', 'tyrantrum', 'hawlucha', 'decidueye', 'decidueye-hisui', 'incineroar', 'crabominable', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'mudsdale', 'passimian', 'kommo-o', 'falinks', 'kleavor', 'sneasler', 'quaquaval', 'ceruledge', 'palafin-zero', 'annihilape'],
+    learnableByPokemonIds: ['arcanine', 'arcanine-hisui', 'machamp', 'farfetchd', 'pinsir', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'scizor', 'heracross', 'blaziken', 'medicham', 'sharpedo', 'absol', 'infernape', 'staraptor', 'lopunny', 'lucario', 'toxicroak', 'gallade', 'emboar', 'conkeldurr', 'krookodile', 'scrafty', 'eelektross', 'beartic', 'golurk', 'chesnaught', 'pangoro', 'aegislash-shield', 'barbaracle', 'tyrantrum', 'hawlucha', 'decidueye', 'decidueye-hisui', 'incineroar', 'crabominable', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'mudsdale', 'passimian', 'golisopod', 'kommo-o', 'grapploct', 'perrserker', 'sirfetchd', 'falinks', 'kleavor', 'sneasler', 'quaquaval', 'pawmot', 'ceruledge', 'palafin-zero', 'annihilape'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -1268,7 +1285,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '通过进行正确合理的指导，提高我方全员的攻击和防御。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['machamp', 'heracross', 'blaziken', 'medicham', 'infernape', 'lucario', 'toxicroak', 'gallade', 'emboar', 'conkeldurr', 'scrafty', 'chesnaught', 'pangoro', 'hawlucha', 'decidueye', 'decidueye-hisui', 'crabominable', 'passimian', 'kommo-o', 'falinks', 'sneasler', 'quaquaval', 'annihilape'],
+    learnableByPokemonIds: ['machamp', 'heracross', 'blaziken', 'medicham', 'infernape', 'lucario', 'toxicroak', 'gallade', 'emboar', 'conkeldurr', 'scrafty', 'chesnaught', 'pangoro', 'hawlucha', 'decidueye', 'decidueye-hisui', 'crabominable', 'passimian', 'kommo-o', 'cinderace', 'grapploct', 'sirfetchd', 'falinks', 'sneasler', 'quaquaval', 'pawmot', 'annihilape'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -1300,7 +1317,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '使出招式前，将最后受到的招式的伤害大力返还给对手。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['houndoom', 'zoroark', 'zoroark-hisui', 'pangoro'],
+    learnableByPokemonIds: ['houndoom', 'zoroark', 'zoroark-hisui', 'pangoro', 'mabosstiff'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -1331,7 +1348,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '显示奇怪的光，扰乱对手。使对手混乱。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['ninetales', 'ninetales-alola', 'gengar', 'starmie', 'typhlosion', 'typhlosion-hisui', 'ampharos', 'espeon', 'umbreon', 'gardevoir', 'sableye', 'milotic', 'banette', 'absol', 'luxray', 'spiritomb', 'gallade', 'froslass', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'watchog', 'cofagrigus', 'zoroark', 'zoroark-hisui', 'reuniclus', 'eelektross', 'chandelure', 'golurk', 'delphox', 'vivillon', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'decidueye', 'decidueye-hisui', 'mimikyu-disguised', 'polteageist', 'mr-rime', 'runerigus', 'dragapult', 'wyrdeer', 'basculegion-female', 'basculegion-male', 'armarouge', 'ceruledge', 'bellibolt', 'espathra', 'glimmora', 'houndstone', 'farigiraf', 'gholdengo'],
+    learnableByPokemonIds: ['ninetales', 'ninetales-alola', 'gengar', 'starmie', 'mr-mime', 'typhlosion', 'typhlosion-hisui', 'ampharos', 'espeon', 'umbreon', 'gardevoir', 'sableye', 'milotic', 'banette', 'absol', 'luxray', 'spiritomb', 'gallade', 'froslass', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'watchog', 'cofagrigus', 'zoroark', 'zoroark-hisui', 'reuniclus', 'eelektross', 'chandelure', 'golurk', 'delphox', 'vivillon', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'decidueye', 'decidueye-hisui', 'mimikyu-disguised', 'polteageist', 'mr-rime', 'runerigus', 'dragapult', 'wyrdeer', 'basculegion-female', 'basculegion-male', 'armarouge', 'ceruledge', 'bellibolt', 'espathra', 'glimmora', 'houndstone', 'farigiraf', 'gholdengo'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -1346,7 +1363,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '模仿对手刚才使出的招式，并使出相同招式。如果对手还没出招则会失败。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['clefable', 'vaporeon', 'jolteon', 'flareon', 'azumarill', 'espeon', 'umbreon', 'lopunny', 'lucario', 'leafeon', 'glaceon', 'samurott', 'samurott-hisui', 'liepard', 'delphox', 'floette', 'florges', 'slurpuff', 'sylveon', 'mimikyu-disguised', 'mr-rime', 'meowscarada', 'maushold-family-of-four'],
+    learnableByPokemonIds: ['clefable', 'wigglytuff', 'mr-mime', 'vaporeon', 'jolteon', 'flareon', 'azumarill', 'espeon', 'umbreon', 'lopunny', 'lucario', 'leafeon', 'glaceon', 'samurott', 'samurott-hisui', 'liepard', 'delphox', 'floette', 'florges', 'slurpuff', 'sylveon', 'mimikyu-disguised', 'mr-rime', 'meowscarada', 'maushold-family-of-four', 'squawkabilly-green-plumage', 'squawkabilly-yellow-plumage'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -1362,7 +1379,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用具有强酸性的气体包裹住自己周围所有的宝可梦，并融化其所携带的道具。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['vileplume', 'gengar', 'toxicroak', 'garbodor', 'salazzle'],
+    learnableByPokemonIds: ['vileplume', 'gengar', 'swalot', 'toxicroak', 'garbodor', 'salazzle'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -1424,7 +1441,23 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '从对手那里受到物理攻击的伤害将以２倍返还给同一个对手。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['charizard', 'machamp', 'kangaskhan', 'snorlax', 'meganium', 'feraligatr', 'forretress', 'scizor', 'heracross', 'houndoom', 'blaziken', 'swampert', 'medicham', 'infernape', 'bastiodon', 'lucario', 'toxicroak', 'weavile', 'rhyperior', 'gliscor', 'conkeldurr', 'krookodile', 'scrafty', 'zoroark', 'stunfisk', 'stunfisk-galar', 'greninja', 'goodra', 'goodra-hisui', 'lycanroc-dusk', 'lycanroc-midnight', 'mudsdale', 'passimian', 'kommo-o', 'falinks', 'kleavor', 'sneasler', 'quaquaval', 'annihilape'],
+    learnableByPokemonIds: ['charizard', 'machamp', 'kangaskhan', 'snorlax', 'meganium', 'feraligatr', 'forretress', 'scizor', 'heracross', 'houndoom', 'blaziken', 'swampert', 'medicham', 'infernape', 'bastiodon', 'lucario', 'toxicroak', 'weavile', 'rhyperior', 'gliscor', 'conkeldurr', 'krookodile', 'scrafty', 'zoroark', 'stunfisk', 'stunfisk-galar', 'greninja', 'goodra', 'goodra-hisui', 'lycanroc-dusk', 'lycanroc-midnight', 'mudsdale', 'passimian', 'kommo-o', 'cinderace', 'sirfetchd', 'falinks', 'kleavor', 'sneasler', 'quaquaval', 'annihilape'],
+    sourceRefs: moveSourceRefs,
+  },
+  {
+    id: 'court-change',
+    chineseName: '换场',
+    englishName: 'Court Change',
+    type: 'Normal',
+    category: 'Status',
+    accuracy: 100,
+    pp: 10,
+    targetScope: '全场',
+    makesContact: false,
+    affectedByProtect: false,
+    effectSummary: '用神奇的力量交换双方的场地效果。',
+    legalInCurrentRule: true,
+    learnableByPokemonIds: ['cinderace'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -1441,7 +1474,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '一边可爱地撒娇，一边靠近对手进行攻击，还能夺取对手携带的道具。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['arcanine', 'arcanine-hisui', 'vaporeon', 'jolteon', 'flareon', 'snorlax', 'typhlosion', 'typhlosion-hisui', 'espeon', 'umbreon', 'leafeon', 'glaceon', 'liepard', 'emolga', 'meowstic-female', 'meowstic-male', 'sylveon', 'dedenne', 'mimikyu-disguised', 'tinkaton'],
+    learnableByPokemonIds: ['wigglytuff', 'persian', 'persian-alola', 'arcanine', 'arcanine-hisui', 'farfetchd', 'vaporeon', 'jolteon', 'flareon', 'snorlax', 'typhlosion', 'typhlosion-hisui', 'espeon', 'umbreon', 'leafeon', 'glaceon', 'liepard', 'emolga', 'meowstic-female', 'meowstic-male', 'sylveon', 'dedenne', 'mimikyu-disguised', 'perrserker', 'sirfetchd', 'tinkaton'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -1509,7 +1542,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用利牙咬碎对手进行攻击。有时会降低对手的防御。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['charizard', 'blastoise', 'arbok', 'arcanine', 'arcanine-hisui', 'kangaskhan', 'gyarados', 'aerodactyl', 'snorlax', 'feraligatr', 'umbreon', 'steelix', 'qwilfish', 'houndoom', 'tyranitar', 'sceptile', 'mawile', 'aggron', 'manectric', 'sharpedo', 'glalie', 'torterra', 'luxray', 'rampardos', 'garchomp', 'lucario', 'hippowdon', 'rhyperior', 'gliscor', 'froslass', 'watchog', 'liepard', 'simisage', 'simisear', 'simipour', 'krookodile', 'scrafty', 'zoroark', 'zoroark-hisui', 'eelektross', 'beartic', 'stunfisk', 'stunfisk-galar', 'hydreigon', 'chesnaught', 'pyroar', 'pangoro', 'furfrou', 'tyrantrum', 'avalugg', 'avalugg-hisui', 'incineroar', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'araquanid', 'grimmsnarl', 'morpeko-full-belly', 'basculegion-female', 'basculegion-male', 'overqwil', 'skeledirge', 'maushold-family-of-four', 'scovillain', 'houndstone', 'farigiraf'],
+    learnableByPokemonIds: ['charizard', 'blastoise', 'arbok', 'arcanine', 'arcanine-hisui', 'kangaskhan', 'gyarados', 'aerodactyl', 'snorlax', 'feraligatr', 'umbreon', 'steelix', 'qwilfish', 'houndoom', 'tyranitar', 'sceptile', 'mawile', 'aggron', 'manectric', 'sharpedo', 'glalie', 'salamence', 'torterra', 'luxray', 'rampardos', 'garchomp', 'lucario', 'hippowdon', 'rhyperior', 'gliscor', 'froslass', 'watchog', 'liepard', 'simisage', 'simisear', 'simipour', 'krookodile', 'scrafty', 'zoroark', 'zoroark-hisui', 'eelektross', 'beartic', 'stunfisk', 'stunfisk-galar', 'hydreigon', 'chesnaught', 'pyroar', 'pangoro', 'furfrou', 'tyrantrum', 'avalugg', 'avalugg-hisui', 'incineroar', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'araquanid', 'thievul', 'grimmsnarl', 'perrserker', 'morpeko-full-belly', 'basculegion-female', 'basculegion-male', 'overqwil', 'skeledirge', 'pawmot', 'maushold-family-of-four', 'mabosstiff', 'scovillain', 'houndstone', 'farigiraf', 'baxcalibur'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -1541,7 +1574,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '使用该招式的宝可梦，其属性是幽灵属性或其他属性时，效果会不一样。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['venusaur', 'arcanine', 'slowbro', 'slowbro-galar', 'gengar', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'vaporeon', 'jolteon', 'flareon', 'aerodactyl', 'snorlax', 'meganium', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'espeon', 'umbreon', 'slowking', 'slowking-galar', 'forretress', 'steelix', 'qwilfish', 'scizor', 'heracross', 'skarmory', 'tyranitar', 'blaziken', 'swampert', 'aggron', 'manectric', 'camerupt', 'torkoal', 'banette', 'chimecho', 'absol', 'torterra', 'rampardos', 'bastiodon', 'spiritomb', 'hippowdon', 'abomasnow', 'rhyperior', 'leafeon', 'glaceon', 'mamoswine', 'froslass', 'emboar', 'musharna', 'excadrill', 'conkeldurr', 'krookodile', 'scrafty', 'cofagrigus', 'garbodor', 'zoroark', 'zoroark-hisui', 'chandelure', 'beartic', 'stunfisk', 'stunfisk-galar', 'golurk', 'chesnaught', 'tyrantrum', 'sylveon', 'goodra', 'goodra-hisui', 'trevenant', 'avalugg', 'avalugg-hisui', 'decidueye', 'mudsdale', 'passimian', 'mimikyu-disguised', 'corviknight', 'appletun', 'polteageist', 'runerigus', 'dragapult', 'wyrdeer', 'overqwil', 'skeledirge', 'garganacl', 'ceruledge', 'orthworm', 'annihilape', 'farigiraf', 'sinistcha', 'hydrapple'],
+    learnableByPokemonIds: ['venusaur', 'arcanine', 'slowbro', 'slowbro-galar', 'farfetchd', 'gengar', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'vaporeon', 'jolteon', 'flareon', 'aerodactyl', 'snorlax', 'meganium', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'espeon', 'umbreon', 'slowking', 'slowking-galar', 'forretress', 'steelix', 'qwilfish', 'scizor', 'heracross', 'skarmory', 'tyranitar', 'blaziken', 'swampert', 'aggron', 'manectric', 'swalot', 'camerupt', 'torkoal', 'banette', 'chimecho', 'absol', 'torterra', 'rampardos', 'bastiodon', 'spiritomb', 'hippowdon', 'abomasnow', 'rhyperior', 'leafeon', 'glaceon', 'mamoswine', 'froslass', 'emboar', 'musharna', 'excadrill', 'conkeldurr', 'krookodile', 'scrafty', 'cofagrigus', 'garbodor', 'zoroark', 'zoroark-hisui', 'chandelure', 'beartic', 'stunfisk', 'stunfisk-galar', 'golurk', 'chesnaught', 'tyrantrum', 'sylveon', 'goodra', 'goodra-hisui', 'trevenant', 'avalugg', 'avalugg-hisui', 'decidueye', 'mudsdale', 'passimian', 'mimikyu-disguised', 'corviknight', 'appletun', 'polteageist', 'perrserker', 'sirfetchd', 'runerigus', 'pincurchin', 'dragapult', 'wyrdeer', 'overqwil', 'skeledirge', 'garganacl', 'ceruledge', 'mabosstiff', 'orthworm', 'annihilape', 'farigiraf', 'sinistcha', 'hydrapple'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -1575,7 +1608,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '从体内发出充满恶意的恐怖气场。有时会使对手畏缩。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['blastoise', 'arbok', 'ninetales', 'ninetales-alola', 'gengar', 'gyarados', 'umbreon', 'steelix', 'skarmory', 'houndoom', 'tyranitar', 'sableye', 'mawile', 'aggron', 'sharpedo', 'banette', 'absol', 'glalie', 'spiritomb', 'lucario', 'toxicroak', 'weavile', 'gliscor', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'samurott', 'samurott-hisui', 'liepard', 'krookodile', 'scrafty', 'cofagrigus', 'garbodor', 'zoroark', 'zoroark-hisui', 'chandelure', 'hydreigon', 'greninja', 'pyroar', 'pangoro', 'furfrou', 'meowstic-female', 'meowstic-male', 'malamar', 'clawitzer', 'heliolisk', 'tyrantrum', 'aurorus', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'noivern', 'incineroar', 'mimikyu-disguised', 'polteageist', 'hatterene', 'grimmsnarl', 'runerigus', 'morpeko-full-belly', 'overqwil', 'meowscarada', 'armarouge', 'kingambit', 'archaludon'],
+    learnableByPokemonIds: ['blastoise', 'arbok', 'ninetales', 'ninetales-alola', 'wigglytuff', 'persian', 'persian-alola', 'gengar', 'gyarados', 'umbreon', 'steelix', 'skarmory', 'houndoom', 'tyranitar', 'sableye', 'mawile', 'aggron', 'sharpedo', 'banette', 'absol', 'glalie', 'spiritomb', 'lucario', 'toxicroak', 'weavile', 'gliscor', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'samurott', 'samurott-hisui', 'liepard', 'krookodile', 'scrafty', 'cofagrigus', 'garbodor', 'zoroark', 'zoroark-hisui', 'chandelure', 'hydreigon', 'greninja', 'pyroar', 'pangoro', 'furfrou', 'meowstic-female', 'meowstic-male', 'malamar', 'clawitzer', 'heliolisk', 'tyrantrum', 'aurorus', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'noivern', 'incineroar', 'golisopod', 'mimikyu-disguised', 'inteleon', 'thievul', 'polteageist', 'hatterene', 'grimmsnarl', 'perrserker', 'runerigus', 'morpeko-full-belly', 'overqwil', 'meowscarada', 'armarouge', 'mabosstiff', 'kingambit', 'archaludon'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -1609,7 +1642,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '向对手发射强光，并给予伤害。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['raichu', 'raichu-alola', 'clefable', 'ninetales', 'ninetales-alola', 'vileplume', 'alakazam', 'gengar', 'starmie', 'meganium', 'ampharos', 'espeon', 'gardevoir', 'sableye', 'altaria', 'banette', 'chimecho', 'roserade', 'gallade', 'musharna', 'audino', 'whimsicott', 'delphox', 'floette', 'florges', 'aromatisse', 'slurpuff', 'sylveon', 'dedenne', 'klefki', 'primarina', 'tsareena', 'mimikyu-disguised', 'hatterene', 'grimmsnarl', 'mr-rime', 'alcremie', 'espathra', 'glimmora', 'farigiraf', 'gholdengo'],
+    learnableByPokemonIds: ['raichu', 'raichu-alola', 'clefable', 'ninetales', 'ninetales-alola', 'wigglytuff', 'vileplume', 'alakazam', 'gengar', 'starmie', 'mr-mime', 'meganium', 'ampharos', 'espeon', 'gardevoir', 'sableye', 'altaria', 'banette', 'chimecho', 'roserade', 'gallade', 'musharna', 'audino', 'whimsicott', 'delphox', 'floette', 'florges', 'aromatisse', 'slurpuff', 'sylveon', 'dedenne', 'klefki', 'primarina', 'tsareena', 'mimikyu-disguised', 'hatterene', 'grimmsnarl', 'mr-rime', 'alcremie', 'indeedee-female', 'indeedee-male', 'arboliva', 'espathra', 'glimmora', 'farigiraf', 'gholdengo'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -1639,7 +1672,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用强风吹开对手的反射壁或光墙等。也会降低对手的闪避率。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['scizor', 'altaria', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'conkeldurr', 'emolga', 'talonflame', 'hawlucha', 'noivern', 'decidueye', 'decidueye-hisui', 'corviknight', 'kleavor'],
+    learnableByPokemonIds: ['scizor', 'altaria', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'conkeldurr', 'emolga', 'talonflame', 'hawlucha', 'noivern', 'decidueye', 'decidueye-hisui', 'corviknight', 'sirfetchd', 'kleavor'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -1654,7 +1687,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '使出招式后，当受到对手攻击陷入昏厥时，对手也会一同昏厥。连续使出则会失败。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['gengar', 'qwilfish', 'houndoom', 'gardevoir', 'sharpedo', 'banette', 'spiritomb', 'gallade', 'froslass', 'cofagrigus', 'malamar', 'trevenant', 'mimikyu-disguised', 'runerigus', 'overqwil', 'armarouge', 'ceruledge', 'houndstone'],
+    learnableByPokemonIds: ['gengar', 'qwilfish', 'houndoom', 'gardevoir', 'swalot', 'sharpedo', 'banette', 'spiritomb', 'gallade', 'froslass', 'cofagrigus', 'malamar', 'trevenant', 'mimikyu-disguised', 'runerigus', 'overqwil', 'armarouge', 'ceruledge', 'mabosstiff', 'houndstone'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -1669,7 +1702,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '完全抵挡对手的攻击。连续使出则容易失败。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['machamp', 'pinsir', 'vaporeon', 'jolteon', 'flareon', 'espeon', 'umbreon', 'heracross', 'sceptile', 'blaziken', 'sableye', 'medicham', 'absol', 'lucario', 'leafeon', 'glaceon', 'samurott', 'samurott-hisui', 'watchog', 'conkeldurr', 'scrafty', 'zoroark', 'zoroark-hisui', 'pangoro', 'sylveon', 'hawlucha', 'quaquaval'],
+    learnableByPokemonIds: ['machamp', 'pinsir', 'vaporeon', 'jolteon', 'flareon', 'espeon', 'umbreon', 'heracross', 'sceptile', 'blaziken', 'sableye', 'medicham', 'absol', 'lucario', 'leafeon', 'glaceon', 'samurott', 'samurott-hisui', 'watchog', 'conkeldurr', 'scrafty', 'zoroark', 'zoroark-hisui', 'pangoro', 'sylveon', 'hawlucha', 'grapploct', 'sirfetchd', 'quaquaval'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -1686,7 +1719,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '第１回合钻入地底，第２回合攻击对手。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['charizard', 'blastoise', 'arbok', 'pikachu', 'raichu', 'raichu-alola', 'clefable', 'ninetales', 'ninetales-alola', 'arcanine', 'arcanine-hisui', 'machamp', 'slowbro', 'slowbro-galar', 'kangaskhan', 'pinsir', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'vaporeon', 'jolteon', 'flareon', 'snorlax', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'ariados', 'ampharos', 'azumarill', 'politoed', 'espeon', 'umbreon', 'slowking', 'slowking-galar', 'forretress', 'steelix', 'heracross', 'tyranitar', 'sceptile', 'blaziken', 'swampert', 'sableye', 'aggron', 'camerupt', 'infernape', 'empoleon', 'rampardos', 'bastiodon', 'lopunny', 'garchomp', 'lucario', 'hippowdon', 'toxicroak', 'weavile', 'rhyperior', 'leafeon', 'glaceon', 'gliscor', 'mamoswine', 'emboar', 'samurott', 'samurott-hisui', 'watchog', 'simisage', 'simisear', 'simipour', 'excadrill', 'audino', 'conkeldurr', 'scolipede', 'krookodile', 'scrafty', 'zoroark', 'zoroark-hisui', 'beartic', 'stunfisk', 'stunfisk-galar', 'golurk', 'chesnaught', 'greninja', 'diggersby', 'pyroar', 'pangoro', 'furfrou', 'meowstic-female', 'meowstic-male', 'barbaracle', 'heliolisk', 'tyrantrum', 'sylveon', 'hawlucha', 'dedenne', 'trevenant', 'avalugg', 'avalugg-hisui', 'crabominable', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'sandaconda', 'wyrdeer', 'sneasler', 'skeledirge', 'maushold-family-of-four', 'garganacl', 'orthworm', 'houndstone', 'annihilape', 'kingambit'],
+    learnableByPokemonIds: ['charizard', 'blastoise', 'arbok', 'pikachu', 'raichu', 'raichu-alola', 'clefable', 'ninetales', 'ninetales-alola', 'wigglytuff', 'persian', 'persian-alola', 'arcanine', 'arcanine-hisui', 'machamp', 'slowbro', 'slowbro-galar', 'kangaskhan', 'pinsir', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'vaporeon', 'jolteon', 'flareon', 'snorlax', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'ariados', 'ampharos', 'azumarill', 'politoed', 'espeon', 'umbreon', 'slowking', 'slowking-galar', 'forretress', 'steelix', 'heracross', 'tyranitar', 'sceptile', 'blaziken', 'swampert', 'sableye', 'aggron', 'camerupt', 'infernape', 'empoleon', 'rampardos', 'bastiodon', 'lopunny', 'garchomp', 'lucario', 'hippowdon', 'toxicroak', 'weavile', 'rhyperior', 'leafeon', 'glaceon', 'gliscor', 'mamoswine', 'emboar', 'samurott', 'samurott-hisui', 'watchog', 'simisage', 'simisear', 'simipour', 'excadrill', 'audino', 'conkeldurr', 'scolipede', 'krookodile', 'scrafty', 'zoroark', 'zoroark-hisui', 'beartic', 'stunfisk', 'stunfisk-galar', 'golurk', 'chesnaught', 'greninja', 'diggersby', 'pyroar', 'gogoat', 'pangoro', 'furfrou', 'meowstic-female', 'meowstic-male', 'barbaracle', 'heliolisk', 'tyrantrum', 'sylveon', 'hawlucha', 'dedenne', 'trevenant', 'avalugg', 'avalugg-hisui', 'crabominable', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'thievul', 'sandaconda', 'grapploct', 'perrserker', 'wyrdeer', 'sneasler', 'skeledirge', 'pawmot', 'maushold-family-of-four', 'garganacl', 'mabosstiff', 'orthworm', 'houndstone', 'annihilape', 'kingambit', 'baxcalibur'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -1719,7 +1752,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '阻碍对手行动，之前使出的招式将在４回合内无法使用。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['ninetales', 'ninetales-alola', 'alakazam', 'slowbro', 'slowbro-galar', 'gengar', 'kangaskhan', 'ariados', 'slowking', 'slowking-galar', 'gardevoir', 'sableye', 'banette', 'chimecho', 'glalie', 'spiritomb', 'gallade', 'froslass', 'cofagrigus', 'aromatisse', 'malamar', 'trevenant', 'salazzle', 'runerigus', 'dragapult', 'wyrdeer', 'armarouge', 'ceruledge', 'houndstone'],
+    learnableByPokemonIds: ['ninetales', 'ninetales-alola', 'wigglytuff', 'alakazam', 'slowbro', 'slowbro-galar', 'gengar', 'kangaskhan', 'ariados', 'slowking', 'slowking-galar', 'gardevoir', 'sableye', 'banette', 'chimecho', 'glalie', 'spiritomb', 'gallade', 'froslass', 'cofagrigus', 'aromatisse', 'malamar', 'trevenant', 'salazzle', 'runerigus', 'dragapult', 'wyrdeer', 'armarouge', 'ceruledge', 'houndstone'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -1752,7 +1785,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用耀眼的电击攻击自己周围所有的宝可梦。有时会陷入麻痹状态。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'jolteon', 'ampharos', 'manectric', 'luxray', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'emolga', 'eelektross', 'stunfisk', 'heliolisk', 'aurorus', 'dedenne', 'bellibolt'],
+    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'jolteon', 'ampharos', 'manectric', 'luxray', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'emolga', 'eelektross', 'stunfisk', 'heliolisk', 'aurorus', 'dedenne', 'toxtricity-amped', 'toxtricity-low-key', 'pincurchin', 'pawmot', 'bellibolt'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -1769,7 +1802,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '第１回合潜入水中，第２回合浮上来进行攻击。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['blastoise', 'slowbro', 'slowbro-galar', 'starmie', 'gyarados', 'vaporeon', 'dragonite', 'feraligatr', 'azumarill', 'politoed', 'slowking', 'slowking-galar', 'qwilfish', 'swampert', 'sharpedo', 'milotic', 'empoleon', 'samurott', 'samurott-hisui', 'simipour', 'beartic', 'greninja', 'barbaracle', 'dragalge', 'clawitzer', 'primarina', 'araquanid', 'dragapult', 'palafin-zero'],
+    learnableByPokemonIds: ['blastoise', 'slowbro', 'slowbro-galar', 'starmie', 'gyarados', 'vaporeon', 'dragonite', 'feraligatr', 'azumarill', 'politoed', 'slowking', 'slowking-galar', 'qwilfish', 'swampert', 'sharpedo', 'milotic', 'empoleon', 'samurott', 'samurott-hisui', 'simipour', 'beartic', 'greninja', 'barbaracle', 'dragalge', 'clawitzer', 'primarina', 'araquanid', 'golisopod', 'inteleon', 'grapploct', 'dragapult', 'palafin-zero'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -1786,7 +1819,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '拼命地猛撞向对手进行攻击。自己也会受到不小的伤害。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['venusaur', 'charizard', 'blastoise', 'beedrill', 'arbok', 'clefable', 'ninetales', 'ninetales-alola', 'arcanine', 'arcanine-hisui', 'machamp', 'slowbro', 'slowbro-galar', 'kangaskhan', 'starmie', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'vaporeon', 'jolteon', 'flareon', 'snorlax', 'meganium', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'ampharos', 'azumarill', 'politoed', 'espeon', 'umbreon', 'forretress', 'steelix', 'qwilfish', 'scizor', 'heracross', 'houndoom', 'tyranitar', 'sceptile', 'blaziken', 'swampert', 'mawile', 'aggron', 'sharpedo', 'camerupt', 'torkoal', 'altaria', 'milotic', 'chimecho', 'absol', 'metagross', 'torterra', 'infernape', 'empoleon', 'staraptor', 'luxray', 'rampardos', 'bastiodon', 'garchomp', 'hippowdon', 'abomasnow', 'rhyperior', 'leafeon', 'glaceon', 'gliscor', 'mamoswine', 'serperior', 'emboar', 'watchog', 'excadrill', 'audino', 'conkeldurr', 'scolipede', 'krookodile', 'scrafty', 'beartic', 'golurk', 'volcarona', 'chesnaught', 'talonflame', 'pyroar', 'furfrou', 'sylveon', 'avalugg', 'avalugg-hisui', 'noivern', 'incineroar', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'mudsdale', 'passimian', 'kommo-o', 'corviknight', 'morpeko-full-belly', 'dragapult', 'wyrdeer', 'kleavor', 'basculegion-female', 'basculegion-male', 'overqwil', 'maushold-family-of-four', 'garganacl', 'espathra', 'orthworm', 'houndstone', 'annihilape', 'farigiraf', 'archaludon', 'hydrapple'],
+    learnableByPokemonIds: ['venusaur', 'charizard', 'blastoise', 'beedrill', 'arbok', 'clefable', 'ninetales', 'ninetales-alola', 'wigglytuff', 'persian', 'persian-alola', 'arcanine', 'arcanine-hisui', 'machamp', 'slowbro', 'slowbro-galar', 'kangaskhan', 'starmie', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'vaporeon', 'jolteon', 'flareon', 'snorlax', 'meganium', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'ampharos', 'azumarill', 'politoed', 'espeon', 'umbreon', 'forretress', 'steelix', 'qwilfish', 'scizor', 'heracross', 'houndoom', 'tyranitar', 'sceptile', 'blaziken', 'swampert', 'mawile', 'aggron', 'swalot', 'sharpedo', 'camerupt', 'torkoal', 'altaria', 'milotic', 'chimecho', 'absol', 'salamence', 'metagross', 'torterra', 'infernape', 'empoleon', 'staraptor', 'luxray', 'rampardos', 'bastiodon', 'garchomp', 'hippowdon', 'abomasnow', 'rhyperior', 'leafeon', 'glaceon', 'gliscor', 'mamoswine', 'serperior', 'emboar', 'watchog', 'excadrill', 'audino', 'conkeldurr', 'scolipede', 'krookodile', 'scrafty', 'beartic', 'golurk', 'volcarona', 'chesnaught', 'talonflame', 'pyroar', 'gogoat', 'furfrou', 'sylveon', 'avalugg', 'avalugg-hisui', 'noivern', 'incineroar', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'mudsdale', 'passimian', 'kommo-o', 'rillaboom', 'cinderace', 'corviknight', 'perrserker', 'sirfetchd', 'morpeko-full-belly', 'dragapult', 'wyrdeer', 'kleavor', 'basculegion-female', 'basculegion-male', 'overqwil', 'pawmot', 'maushold-family-of-four', 'squawkabilly-green-plumage', 'squawkabilly-yellow-plumage', 'garganacl', 'mabosstiff', 'espathra', 'orthworm', 'houndstone', 'annihilape', 'farigiraf', 'baxcalibur', 'archaludon', 'hydrapple'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -1803,7 +1836,24 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '使用尾巴等拍打对手进行攻击。连续２次给予伤害。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['beedrill', 'kangaskhan', 'pinsir', 'scizor', 'lopunny', 'weavile', 'mamoswine', 'scolipede', 'hydreigon', 'malamar', 'barbaracle', 'falinks', 'dragapult', 'kleavor', 'sneasler', 'quaquaval', 'maushold-family-of-four', 'scovillain', 'palafin-zero', 'farigiraf', 'hydrapple'],
+    learnableByPokemonIds: ['beedrill', 'kangaskhan', 'pinsir', 'scizor', 'lopunny', 'weavile', 'mamoswine', 'scolipede', 'hydreigon', 'malamar', 'barbaracle', 'golisopod', 'rillaboom', 'falinks', 'dragapult', 'kleavor', 'sneasler', 'quaquaval', 'maushold-family-of-four', 'scovillain', 'palafin-zero', 'farigiraf', 'hydrapple'],
+    sourceRefs: moveSourceRefs,
+  },
+  {
+    id: 'double-shock',
+    chineseName: '电光双击',
+    englishName: 'Double Shock',
+    type: 'Electric',
+    category: 'Physical',
+    power: 120,
+    accuracy: 100,
+    pp: 5,
+    targetScope: '单体',
+    makesContact: true,
+    affectedByProtect: true,
+    effectSummary: '将全身所有的电力放出，给予对手大大的伤害。自己的电属性将会消失。',
+    legalInCurrentRule: true,
+    learnableByPokemonIds: ['pawmot'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -1818,7 +1868,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '通过快速移动来制造分身，扰乱对手，从而提高闪避率。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'alakazam', 'scizor', 'sceptile', 'gardevoir', 'absol', 'glalie', 'staraptor', 'gallade', 'froslass', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'liepard', 'musharna', 'emolga', 'chandelure', 'delphox', 'greninja', 'aegislash-shield', 'malamar', 'dragalge', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'noivern', 'decidueye', 'decidueye-hisui', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'mimikyu-disguised', 'dragapult', 'kleavor', 'meowscarada'],
+    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'persian', 'persian-alola', 'alakazam', 'scizor', 'sceptile', 'gardevoir', 'absol', 'glalie', 'staraptor', 'gallade', 'froslass', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'liepard', 'musharna', 'emolga', 'chandelure', 'delphox', 'greninja', 'aegislash-shield', 'malamar', 'dragalge', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'noivern', 'decidueye', 'decidueye-hisui', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'mimikyu-disguised', 'inteleon', 'thievul', 'dragapult', 'kleavor', 'meowscarada'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -1835,7 +1885,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '从天空中向对手落下陨石。使用之后因为反作用力，自己的特攻会大幅降低。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['dragonite', 'altaria', 'garchomp', 'hydreigon', 'dragalge', 'tyrantrum', 'goodra', 'goodra-hisui', 'noivern', 'drampa', 'kommo-o', 'flapple', 'appletun', 'dragapult', 'archaludon', 'hydrapple'],
+    learnableByPokemonIds: ['dragonite', 'altaria', 'salamence', 'garchomp', 'hydreigon', 'dragalge', 'tyrantrum', 'goodra', 'goodra-hisui', 'noivern', 'drampa', 'kommo-o', 'flapple', 'appletun', 'dragapult', 'baxcalibur', 'archaludon', 'hydrapple'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -1852,7 +1902,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '以龙之鼓舞提高士气，让我方的招式变得容易击中要害。对龙属性的鼓舞效果会更强。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['charizard', 'gyarados', 'dragonite', 'ampharos', 'sceptile', 'altaria', 'milotic', 'rampardos', 'garchomp', 'hydreigon', 'tyrantrum', 'goodra', 'goodra-hisui', 'noivern', 'salazzle', 'drampa', 'kommo-o', 'dragapult', 'archaludon', 'hydrapple'],
+    learnableByPokemonIds: ['charizard', 'gyarados', 'dragonite', 'ampharos', 'sceptile', 'altaria', 'milotic', 'salamence', 'rampardos', 'garchomp', 'hydreigon', 'tyrantrum', 'goodra', 'goodra-hisui', 'noivern', 'salazzle', 'drampa', 'kommo-o', 'dragapult', 'baxcalibur', 'archaludon', 'hydrapple'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -1869,7 +1919,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用尖锐的巨爪劈开对手进行攻击。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['charizard', 'aerodactyl', 'dragonite', 'feraligatr', 'tyranitar', 'sceptile', 'aggron', 'altaria', 'rampardos', 'garchomp', 'krookodile', 'scrafty', 'eelektross', 'chesnaught', 'pangoro', 'barbaracle', 'tyrantrum', 'goodra', 'goodra-hisui', 'noivern', 'salazzle', 'drampa', 'kommo-o', 'dragapult', 'ceruledge', 'archaludon'],
+    learnableByPokemonIds: ['charizard', 'aerodactyl', 'dragonite', 'feraligatr', 'tyranitar', 'sceptile', 'aggron', 'altaria', 'salamence', 'rampardos', 'garchomp', 'krookodile', 'scrafty', 'eelektross', 'chesnaught', 'pangoro', 'barbaracle', 'tyrantrum', 'goodra', 'goodra-hisui', 'noivern', 'salazzle', 'drampa', 'kommo-o', 'dragapult', 'ceruledge', 'baxcalibur', 'archaludon'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -1884,7 +1934,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '激烈地跳起神秘且强有力的舞蹈。从而提高自己的攻击和速度。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['charizard', 'gyarados', 'aerodactyl', 'dragonite', 'feraligatr', 'steelix', 'tyranitar', 'sceptile', 'altaria', 'milotic', 'scrafty', 'hydreigon', 'tyrantrum', 'noivern', 'salazzle', 'drampa', 'kommo-o', 'flapple', 'dragapult'],
+    learnableByPokemonIds: ['charizard', 'gyarados', 'aerodactyl', 'dragonite', 'feraligatr', 'steelix', 'tyranitar', 'sceptile', 'altaria', 'milotic', 'salamence', 'scrafty', 'hydreigon', 'tyrantrum', 'noivern', 'salazzle', 'drampa', 'kommo-o', 'flapple', 'dragapult', 'baxcalibur'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -1918,7 +1968,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '从大大的口中掀起冲击波攻击对手。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['charizard', 'blastoise', 'arcanine', 'arcanine-hisui', 'gyarados', 'aerodactyl', 'dragonite', 'feraligatr', 'ampharos', 'steelix', 'tyranitar', 'sceptile', 'aggron', 'altaria', 'milotic', 'rampardos', 'garchomp', 'lucario', 'rhyperior', 'serperior', 'krookodile', 'scrafty', 'eelektross', 'hydreigon', 'dragalge', 'clawitzer', 'heliolisk', 'tyrantrum', 'goodra', 'goodra-hisui', 'noivern', 'salazzle', 'drampa', 'kommo-o', 'flapple', 'appletun', 'runerigus', 'dragapult', 'armarouge', 'archaludon', 'hydrapple'],
+    learnableByPokemonIds: ['charizard', 'blastoise', 'arcanine', 'arcanine-hisui', 'gyarados', 'aerodactyl', 'dragonite', 'feraligatr', 'ampharos', 'steelix', 'tyranitar', 'sceptile', 'aggron', 'altaria', 'milotic', 'salamence', 'rampardos', 'garchomp', 'lucario', 'rhyperior', 'serperior', 'krookodile', 'scrafty', 'eelektross', 'hydreigon', 'dragalge', 'clawitzer', 'heliolisk', 'tyrantrum', 'goodra', 'goodra-hisui', 'noivern', 'salazzle', 'drampa', 'kommo-o', 'flapple', 'appletun', 'runerigus', 'dragapult', 'armarouge', 'baxcalibur', 'archaludon', 'hydrapple'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -1935,7 +1985,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '释放出骇人的杀气，一边威慑一边撞击对手。有时会使对手畏缩。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['charizard', 'gyarados', 'dragonite', 'sceptile', 'aggron', 'altaria', 'garchomp', 'rhyperior', 'hydreigon', 'heliolisk', 'noivern', 'drampa', 'flapple', 'sandaconda', 'dragapult'],
+    learnableByPokemonIds: ['charizard', 'gyarados', 'dragonite', 'sceptile', 'aggron', 'altaria', 'salamence', 'garchomp', 'rhyperior', 'hydreigon', 'heliolisk', 'noivern', 'drampa', 'flapple', 'sandaconda', 'dragapult', 'baxcalibur'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -1952,7 +2002,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '弹飞对手，强制拉后备宝可梦上场。如果对手为野生宝可梦，战斗将直接结束。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['charizard', 'arbok', 'gyarados', 'dragonite', 'meganium', 'feraligatr', 'ampharos', 'steelix', 'tyranitar', 'sceptile', 'milotic', 'rampardos', 'garchomp', 'rhyperior', 'serperior', 'krookodile', 'scrafty', 'eelektross', 'hydreigon', 'dragalge', 'heliolisk', 'tyrantrum', 'goodra', 'goodra-hisui', 'noivern', 'salazzle', 'kommo-o', 'appletun', 'dragapult', 'archaludon', 'hydrapple'],
+    learnableByPokemonIds: ['charizard', 'arbok', 'gyarados', 'dragonite', 'meganium', 'feraligatr', 'ampharos', 'steelix', 'tyranitar', 'sceptile', 'milotic', 'salamence', 'rampardos', 'garchomp', 'rhyperior', 'serperior', 'krookodile', 'scrafty', 'eelektross', 'hydreigon', 'dragalge', 'heliolisk', 'tyrantrum', 'goodra', 'goodra-hisui', 'noivern', 'salazzle', 'kommo-o', 'appletun', 'dragapult', 'baxcalibur', 'archaludon', 'hydrapple'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -1969,7 +2019,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用拳头吸取对手的力量。可以回复给予对手伤害的一半ＨＰ。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['raichu', 'clefable', 'alakazam', 'machamp', 'slowbro', 'slowbro-galar', 'gengar', 'kangaskhan', 'slowking', 'slowking-galar', 'sceptile', 'sableye', 'medicham', 'infernape', 'lopunny', 'lucario', 'toxicroak', 'gallade', 'emboar', 'audino', 'conkeldurr', 'scrafty', 'garbodor', 'reuniclus', 'eelektross', 'golurk', 'chesnaught', 'pangoro', 'aromatisse', 'slurpuff', 'hawlucha', 'trevenant', 'incineroar', 'crabominable', 'passimian', 'mimikyu-disguised', 'kommo-o', 'grimmsnarl', 'mr-rime', 'alcremie', 'palafin-zero', 'annihilape'],
+    learnableByPokemonIds: ['raichu', 'clefable', 'wigglytuff', 'alakazam', 'machamp', 'slowbro', 'slowbro-galar', 'gengar', 'kangaskhan', 'mr-mime', 'slowking', 'slowking-galar', 'sceptile', 'sableye', 'medicham', 'infernape', 'lopunny', 'lucario', 'toxicroak', 'gallade', 'emboar', 'audino', 'conkeldurr', 'scrafty', 'garbodor', 'reuniclus', 'eelektross', 'golurk', 'chesnaught', 'pangoro', 'aromatisse', 'slurpuff', 'hawlucha', 'trevenant', 'incineroar', 'crabominable', 'passimian', 'mimikyu-disguised', 'kommo-o', 'rillaboom', 'toxtricity-amped', 'toxtricity-low-key', 'grapploct', 'grimmsnarl', 'mr-rime', 'alcremie', 'indeedee-female', 'indeedee-male', 'palafin-zero', 'annihilape'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -1986,7 +2036,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用一个吻吸取对手的ＨＰ。回复给予对手伤害的一半以上的ＨＰ。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'clefable', 'ninetales', 'ninetales-alola', 'azumarill', 'espeon', 'gardevoir', 'mawile', 'milotic', 'chimecho', 'lopunny', 'gallade', 'froslass', 'audino', 'vivillon', 'floette', 'florges', 'aromatisse', 'slurpuff', 'sylveon', 'dedenne', 'klefki', 'primarina', 'tsareena', 'mimikyu-disguised', 'hatterene', 'grimmsnarl', 'alcremie', 'tinkaton', 'palafin-zero'],
+    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'clefable', 'ninetales', 'ninetales-alola', 'wigglytuff', 'azumarill', 'espeon', 'gardevoir', 'mawile', 'milotic', 'chimecho', 'lopunny', 'gallade', 'froslass', 'audino', 'vivillon', 'floette', 'florges', 'aromatisse', 'slurpuff', 'sylveon', 'dedenne', 'klefki', 'primarina', 'tsareena', 'mimikyu-disguised', 'hatterene', 'grimmsnarl', 'alcremie', 'indeedee-female', 'indeedee-male', 'tinkaton', 'palafin-zero'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -2037,7 +2087,24 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '像钢钻一样，一边旋转身体一边撞击对手。容易击中要害。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['beedrill', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'forretress', 'steelix', 'skarmory', 'rhyperior', 'samurott', 'samurott-hisui', 'excadrill', 'lycanroc-dusk', 'lycanroc-midday', 'sandaconda'],
+    learnableByPokemonIds: ['beedrill', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'forretress', 'steelix', 'skarmory', 'rhyperior', 'samurott', 'samurott-hisui', 'excadrill', 'lycanroc-dusk', 'lycanroc-midday', 'golisopod', 'sandaconda'],
+    sourceRefs: moveSourceRefs,
+  },
+  {
+    id: 'drum-beating',
+    chineseName: '鼓击',
+    englishName: 'Drum Beating',
+    type: 'Grass',
+    category: 'Physical',
+    power: 80,
+    accuracy: 100,
+    pp: 10,
+    targetScope: '单体',
+    makesContact: false,
+    affectedByProtect: true,
+    effectSummary: '用鼓点来控制鼓的根部进行攻击，从而降低对手的速度。',
+    legalInCurrentRule: true,
+    learnableByPokemonIds: ['rillaboom'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -2054,7 +2121,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '将翅膀撞向对手进行攻击。连续２次给予伤害。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['beedrill', 'pidgeot', 'clefable', 'aerodactyl', 'scizor', 'skarmory', 'pelipper', 'altaria', 'empoleon', 'staraptor', 'gliscor', 'emolga', 'hydreigon', 'volcarona', 'talonflame', 'hawlucha', 'noivern', 'decidueye', 'decidueye-hisui', 'toucannon', 'corviknight', 'flapple', 'kleavor'],
+    learnableByPokemonIds: ['beedrill', 'pidgeot', 'clefable', 'farfetchd', 'aerodactyl', 'scizor', 'skarmory', 'pelipper', 'altaria', 'salamence', 'empoleon', 'staraptor', 'gliscor', 'emolga', 'hydreigon', 'volcarona', 'talonflame', 'hawlucha', 'noivern', 'decidueye', 'decidueye-hisui', 'toucannon', 'corviknight', 'flapple', 'sirfetchd', 'kleavor', 'squawkabilly-green-plumage', 'squawkabilly-yellow-plumage'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -2088,7 +2155,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '向对手脚下释放出大地之力。有时会降低对手的特防。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['venusaur', 'aerodactyl', 'meganium', 'politoed', 'forretress', 'steelix', 'tyranitar', 'sceptile', 'swampert', 'aggron', 'camerupt', 'torkoal', 'torterra', 'rampardos', 'bastiodon', 'garchomp', 'hippowdon', 'abomasnow', 'rhyperior', 'gliscor', 'mamoswine', 'excadrill', 'krookodile', 'stunfisk', 'stunfisk-galar', 'golurk', 'hydreigon', 'diggersby', 'barbaracle', 'tyrantrum', 'aurorus', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'mudsdale', 'drampa', 'sandaconda', 'runerigus', 'wyrdeer', 'skeledirge', 'garganacl', 'orthworm', 'glimmora', 'hydrapple'],
+    learnableByPokemonIds: ['venusaur', 'aerodactyl', 'meganium', 'politoed', 'forretress', 'steelix', 'tyranitar', 'sceptile', 'swampert', 'aggron', 'camerupt', 'torkoal', 'torterra', 'rampardos', 'bastiodon', 'garchomp', 'hippowdon', 'abomasnow', 'rhyperior', 'gliscor', 'mamoswine', 'excadrill', 'krookodile', 'stunfisk', 'stunfisk-galar', 'golurk', 'hydreigon', 'diggersby', 'barbaracle', 'tyrantrum', 'aurorus', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'mudsdale', 'drampa', 'rillaboom', 'sandaconda', 'runerigus', 'wyrdeer', 'skeledirge', 'arboliva', 'garganacl', 'orthworm', 'glimmora', 'hydrapple'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -2105,7 +2172,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '利用地震的冲击，攻击自己周围所有的宝可梦。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['venusaur', 'charizard', 'blastoise', 'arbok', 'machamp', 'slowbro', 'slowbro-galar', 'kangaskhan', 'pinsir', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'aerodactyl', 'snorlax', 'dragonite', 'meganium', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'politoed', 'slowking', 'slowking-galar', 'forretress', 'steelix', 'heracross', 'tyranitar', 'sceptile', 'blaziken', 'swampert', 'aggron', 'sharpedo', 'camerupt', 'torkoal', 'altaria', 'glalie', 'metagross', 'torterra', 'infernape', 'empoleon', 'rampardos', 'bastiodon', 'garchomp', 'lucario', 'hippowdon', 'toxicroak', 'abomasnow', 'rhyperior', 'gliscor', 'mamoswine', 'gallade', 'emboar', 'excadrill', 'conkeldurr', 'scolipede', 'krookodile', 'beartic', 'stunfisk', 'stunfisk-galar', 'golurk', 'hydreigon', 'chesnaught', 'diggersby', 'pangoro', 'barbaracle', 'tyrantrum', 'aurorus', 'goodra', 'goodra-hisui', 'trevenant', 'avalugg', 'avalugg-hisui', 'incineroar', 'crabominable', 'mudsdale', 'oranguru', 'passimian', 'drampa', 'kommo-o', 'appletun', 'sandaconda', 'runerigus', 'wyrdeer', 'skeledirge', 'garganacl', 'orthworm', 'annihilape', 'farigiraf', 'archaludon', 'hydrapple'],
+    learnableByPokemonIds: ['venusaur', 'charizard', 'blastoise', 'arbok', 'machamp', 'slowbro', 'slowbro-galar', 'kangaskhan', 'pinsir', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'aerodactyl', 'snorlax', 'dragonite', 'meganium', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'politoed', 'slowking', 'slowking-galar', 'forretress', 'steelix', 'heracross', 'tyranitar', 'sceptile', 'blaziken', 'swampert', 'aggron', 'swalot', 'sharpedo', 'camerupt', 'torkoal', 'altaria', 'glalie', 'salamence', 'metagross', 'torterra', 'infernape', 'empoleon', 'rampardos', 'bastiodon', 'garchomp', 'lucario', 'hippowdon', 'toxicroak', 'abomasnow', 'rhyperior', 'gliscor', 'mamoswine', 'gallade', 'emboar', 'excadrill', 'conkeldurr', 'scolipede', 'krookodile', 'beartic', 'stunfisk', 'stunfisk-galar', 'golurk', 'hydreigon', 'chesnaught', 'diggersby', 'gogoat', 'pangoro', 'barbaracle', 'tyrantrum', 'aurorus', 'goodra', 'goodra-hisui', 'trevenant', 'avalugg', 'avalugg-hisui', 'incineroar', 'crabominable', 'mudsdale', 'oranguru', 'passimian', 'drampa', 'kommo-o', 'rillaboom', 'appletun', 'sandaconda', 'runerigus', 'wyrdeer', 'skeledirge', 'garganacl', 'orthworm', 'annihilape', 'farigiraf', 'baxcalibur', 'archaludon', 'hydrapple'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -2138,7 +2205,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '从身体放射出怪异电波，让对手沐浴其中，从而大幅降低其特攻。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'jolteon', 'ampharos', 'manectric', 'luxray', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'emolga', 'eelektross', 'stunfisk', 'heliolisk', 'dedenne', 'morpeko-full-belly', 'bellibolt'],
+    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'jolteon', 'ampharos', 'manectric', 'luxray', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'emolga', 'eelektross', 'stunfisk', 'heliolisk', 'dedenne', 'toxtricity-amped', 'toxtricity-low-key', 'morpeko-full-belly', 'pawmot', 'bellibolt'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -2170,7 +2237,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '在５回合内变成电气场地。地面上的宝可梦将无法入眠。电属性的招式威力还会提高。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'jolteon', 'ampharos', 'manectric', 'luxray', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'eelektross', 'stunfisk', 'heliolisk', 'dedenne', 'morpeko-full-belly', 'bellibolt'],
+    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'jolteon', 'ampharos', 'manectric', 'luxray', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'eelektross', 'stunfisk', 'heliolisk', 'dedenne', 'toxtricity-amped', 'toxtricity-low-key', 'pincurchin', 'morpeko-full-belly', 'pawmot', 'bellibolt'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -2201,7 +2268,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用电气团撞向对手。自己比对手速度越快，威力越大。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'jolteon', 'ampharos', 'manectric', 'luxray', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'emolga', 'eelektross', 'heliolisk', 'dedenne', 'morpeko-full-belly', 'bellibolt', 'gholdengo'],
+    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'jolteon', 'ampharos', 'manectric', 'luxray', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'emolga', 'eelektross', 'heliolisk', 'dedenne', 'cinderace', 'toxtricity-amped', 'toxtricity-low-key', 'pincurchin', 'morpeko-full-belly', 'pawmot', 'bellibolt', 'gholdengo'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -2235,7 +2302,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用电网捉住对手进行攻击。会降低对手的速度。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['beedrill', 'pikachu', 'raichu', 'raichu-alola', 'jolteon', 'ariados', 'ampharos', 'luxray', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'emolga', 'eelektross', 'stunfisk', 'heliolisk', 'dedenne', 'passimian', 'morpeko-full-belly', 'bellibolt'],
+    learnableByPokemonIds: ['beedrill', 'pikachu', 'raichu', 'raichu-alola', 'jolteon', 'ariados', 'ampharos', 'luxray', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'emolga', 'eelektross', 'stunfisk', 'heliolisk', 'dedenne', 'passimian', 'toxtricity-amped', 'toxtricity-low-key', 'pincurchin', 'morpeko-full-belly', 'pawmot', 'bellibolt'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -2267,7 +2334,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '让对手接受再来一次，连续３次使出最后使用的招式。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'clefable', 'ninetales', 'ninetales-alola', 'alakazam', 'machamp', 'victreebel', 'snorlax', 'meganium', 'azumarill', 'politoed', 'gardevoir', 'sableye', 'banette', 'chimecho', 'infernape', 'lopunny', 'toxicroak', 'gallade', 'samurott', 'samurott-hisui', 'liepard', 'audino', 'whimsicott', 'scrafty', 'zoroark', 'reuniclus', 'emolga', 'beartic', 'delphox', 'aromatisse', 'aurorus', 'hawlucha', 'primarina', 'toucannon', 'salazzle', 'oranguru', 'mr-rime', 'alcremie', 'skeledirge', 'quaquaval', 'maushold-family-of-four', 'tinkaton', 'palafin-zero', 'annihilape'],
+    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'clefable', 'ninetales', 'ninetales-alola', 'wigglytuff', 'alakazam', 'machamp', 'victreebel', 'mr-mime', 'snorlax', 'meganium', 'azumarill', 'politoed', 'gardevoir', 'sableye', 'swalot', 'banette', 'chimecho', 'infernape', 'lopunny', 'toxicroak', 'gallade', 'samurott', 'samurott-hisui', 'liepard', 'audino', 'whimsicott', 'scrafty', 'zoroark', 'reuniclus', 'emolga', 'beartic', 'delphox', 'aromatisse', 'aurorus', 'hawlucha', 'primarina', 'toucannon', 'salazzle', 'oranguru', 'toxtricity-amped', 'toxtricity-low-key', 'mr-rime', 'alcremie', 'indeedee-female', 'indeedee-male', 'skeledirge', 'quaquaval', 'pawmot', 'maushold-family-of-four', 'arboliva', 'tinkaton', 'palafin-zero', 'annihilape'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -2283,7 +2350,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '给予伤害，使对手的ＨＰ变得和自己的ＨＰ一样。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['beedrill', 'pikachu', 'raichu', 'raichu-alola', 'clefable', 'kangaskhan', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'flareon', 'meganium', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'ampharos', 'politoed', 'heracross', 'houndoom', 'sceptile', 'swampert', 'aggron', 'camerupt', 'altaria', 'infernape', 'staraptor', 'rampardos', 'rhyperior', 'mamoswine', 'emboar', 'whimsicott', 'krookodile', 'scrafty', 'reuniclus', 'beartic', 'chesnaught', 'pyroar', 'floette', 'florges', 'furfrou', 'slurpuff', 'hawlucha', 'dedenne', 'incineroar', 'toucannon', 'crabominable', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'mudsdale', 'araquanid', 'salazzle', 'tsareena', 'oranguru', 'kommo-o', 'flapple', 'sandaconda', 'alcremie', 'falinks', 'morpeko-full-belly', 'basculegion-female', 'basculegion-male', 'quaquaval', 'scovillain', 'tinkaton', 'palafin-zero', 'houndstone', 'annihilape', 'farigiraf'],
+    learnableByPokemonIds: ['beedrill', 'pikachu', 'raichu', 'raichu-alola', 'clefable', 'wigglytuff', 'persian', 'persian-alola', 'kangaskhan', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'flareon', 'meganium', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'ampharos', 'politoed', 'heracross', 'houndoom', 'sceptile', 'swampert', 'aggron', 'camerupt', 'altaria', 'infernape', 'staraptor', 'rampardos', 'rhyperior', 'mamoswine', 'emboar', 'whimsicott', 'krookodile', 'scrafty', 'reuniclus', 'beartic', 'chesnaught', 'pyroar', 'floette', 'florges', 'gogoat', 'furfrou', 'slurpuff', 'hawlucha', 'dedenne', 'incineroar', 'toucannon', 'crabominable', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'mudsdale', 'araquanid', 'salazzle', 'tsareena', 'oranguru', 'kommo-o', 'rillaboom', 'flapple', 'sandaconda', 'toxtricity-amped', 'toxtricity-low-key', 'perrserker', 'alcremie', 'falinks', 'morpeko-full-belly', 'basculegion-female', 'basculegion-male', 'quaquaval', 'squawkabilly-green-plumage', 'squawkabilly-yellow-plumage', 'mabosstiff', 'scovillain', 'tinkaton', 'palafin-zero', 'houndstone', 'annihilape', 'farigiraf'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -2298,7 +2365,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '即使受到攻击，也至少会留下１ＨＰ。连续使出则容易失败。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['venusaur', 'charizard', 'blastoise', 'beedrill', 'pidgeot', 'arbok', 'pikachu', 'raichu', 'raichu-alola', 'clefable', 'ninetales', 'ninetales-alola', 'vileplume', 'arcanine', 'arcanine-hisui', 'alakazam', 'machamp', 'victreebel', 'slowbro', 'slowbro-galar', 'gengar', 'kangaskhan', 'starmie', 'pinsir', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'vaporeon', 'jolteon', 'flareon', 'aerodactyl', 'snorlax', 'dragonite', 'meganium', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'ariados', 'ampharos', 'azumarill', 'politoed', 'espeon', 'umbreon', 'slowking', 'slowking-galar', 'forretress', 'steelix', 'qwilfish', 'scizor', 'heracross', 'skarmory', 'houndoom', 'tyranitar', 'sceptile', 'blaziken', 'swampert', 'pelipper', 'gardevoir', 'sableye', 'mawile', 'aggron', 'medicham', 'manectric', 'sharpedo', 'camerupt', 'torkoal', 'altaria', 'milotic', 'castform', 'banette', 'chimecho', 'absol', 'glalie', 'metagross', 'torterra', 'infernape', 'empoleon', 'staraptor', 'luxray', 'roserade', 'rampardos', 'bastiodon', 'lopunny', 'spiritomb', 'garchomp', 'lucario', 'hippowdon', 'toxicroak', 'abomasnow', 'weavile', 'rhyperior', 'leafeon', 'glaceon', 'gliscor', 'mamoswine', 'gallade', 'froslass', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'serperior', 'emboar', 'samurott', 'samurott-hisui', 'watchog', 'liepard', 'simisage', 'simisear', 'simipour', 'musharna', 'excadrill', 'audino', 'conkeldurr', 'scolipede', 'whimsicott', 'krookodile', 'scrafty', 'cofagrigus', 'garbodor', 'zoroark', 'zoroark-hisui', 'reuniclus', 'vanilluxe', 'emolga', 'eelektross', 'chandelure', 'beartic', 'stunfisk', 'stunfisk-galar', 'golurk', 'hydreigon', 'volcarona', 'chesnaught', 'delphox', 'greninja', 'diggersby', 'talonflame', 'vivillon', 'pyroar', 'floette', 'florges', 'pangoro', 'furfrou', 'meowstic-female', 'meowstic-male', 'aegislash-shield', 'aromatisse', 'slurpuff', 'malamar', 'barbaracle', 'dragalge', 'clawitzer', 'heliolisk', 'tyrantrum', 'aurorus', 'sylveon', 'hawlucha', 'dedenne', 'goodra', 'goodra-hisui', 'klefki', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'avalugg', 'avalugg-hisui', 'noivern', 'decidueye', 'decidueye-hisui', 'incineroar', 'primarina', 'toucannon', 'crabominable', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'toxapex', 'mudsdale', 'araquanid', 'salazzle', 'tsareena', 'oranguru', 'passimian', 'mimikyu-disguised', 'drampa', 'kommo-o', 'corviknight', 'flapple', 'appletun', 'sandaconda', 'polteageist', 'hatterene', 'grimmsnarl', 'mr-rime', 'runerigus', 'alcremie', 'falinks', 'morpeko-full-belly', 'dragapult', 'wyrdeer', 'kleavor', 'basculegion-female', 'basculegion-male', 'sneasler', 'overqwil', 'meowscarada', 'skeledirge', 'quaquaval', 'maushold-family-of-four', 'garganacl', 'armarouge', 'ceruledge', 'bellibolt', 'scovillain', 'espathra', 'tinkaton', 'palafin-zero', 'orthworm', 'glimmora', 'houndstone', 'annihilape', 'farigiraf', 'kingambit', 'gholdengo', 'sinistcha', 'archaludon', 'hydrapple'],
+    learnableByPokemonIds: ['venusaur', 'charizard', 'blastoise', 'beedrill', 'pidgeot', 'arbok', 'pikachu', 'raichu', 'raichu-alola', 'clefable', 'ninetales', 'ninetales-alola', 'wigglytuff', 'vileplume', 'persian', 'persian-alola', 'arcanine', 'arcanine-hisui', 'alakazam', 'machamp', 'victreebel', 'slowbro', 'slowbro-galar', 'farfetchd', 'gengar', 'kangaskhan', 'starmie', 'mr-mime', 'pinsir', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'vaporeon', 'jolteon', 'flareon', 'aerodactyl', 'snorlax', 'dragonite', 'meganium', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'ariados', 'ampharos', 'azumarill', 'politoed', 'espeon', 'umbreon', 'slowking', 'slowking-galar', 'forretress', 'steelix', 'qwilfish', 'scizor', 'heracross', 'skarmory', 'houndoom', 'tyranitar', 'sceptile', 'blaziken', 'swampert', 'pelipper', 'gardevoir', 'sableye', 'mawile', 'aggron', 'medicham', 'manectric', 'swalot', 'sharpedo', 'camerupt', 'torkoal', 'altaria', 'milotic', 'castform', 'banette', 'chimecho', 'absol', 'glalie', 'salamence', 'metagross', 'torterra', 'infernape', 'empoleon', 'staraptor', 'luxray', 'roserade', 'rampardos', 'bastiodon', 'lopunny', 'spiritomb', 'garchomp', 'lucario', 'hippowdon', 'toxicroak', 'abomasnow', 'weavile', 'rhyperior', 'leafeon', 'glaceon', 'gliscor', 'mamoswine', 'gallade', 'froslass', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'serperior', 'emboar', 'samurott', 'samurott-hisui', 'watchog', 'liepard', 'simisage', 'simisear', 'simipour', 'musharna', 'excadrill', 'audino', 'conkeldurr', 'scolipede', 'whimsicott', 'krookodile', 'scrafty', 'cofagrigus', 'garbodor', 'zoroark', 'zoroark-hisui', 'reuniclus', 'vanilluxe', 'emolga', 'eelektross', 'chandelure', 'beartic', 'stunfisk', 'stunfisk-galar', 'golurk', 'hydreigon', 'volcarona', 'chesnaught', 'delphox', 'greninja', 'diggersby', 'talonflame', 'vivillon', 'pyroar', 'floette', 'florges', 'gogoat', 'pangoro', 'furfrou', 'meowstic-female', 'meowstic-male', 'aegislash-shield', 'aromatisse', 'slurpuff', 'malamar', 'barbaracle', 'dragalge', 'clawitzer', 'heliolisk', 'tyrantrum', 'aurorus', 'sylveon', 'hawlucha', 'dedenne', 'goodra', 'goodra-hisui', 'klefki', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'avalugg', 'avalugg-hisui', 'noivern', 'decidueye', 'decidueye-hisui', 'incineroar', 'primarina', 'toucannon', 'crabominable', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'toxapex', 'mudsdale', 'araquanid', 'salazzle', 'tsareena', 'oranguru', 'passimian', 'golisopod', 'mimikyu-disguised', 'drampa', 'kommo-o', 'rillaboom', 'cinderace', 'inteleon', 'corviknight', 'thievul', 'flapple', 'appletun', 'sandaconda', 'toxtricity-amped', 'toxtricity-low-key', 'grapploct', 'polteageist', 'hatterene', 'grimmsnarl', 'perrserker', 'sirfetchd', 'mr-rime', 'runerigus', 'alcremie', 'falinks', 'pincurchin', 'indeedee-female', 'indeedee-male', 'morpeko-full-belly', 'dragapult', 'wyrdeer', 'kleavor', 'basculegion-female', 'basculegion-male', 'sneasler', 'overqwil', 'meowscarada', 'skeledirge', 'quaquaval', 'pawmot', 'maushold-family-of-four', 'arboliva', 'squawkabilly-green-plumage', 'squawkabilly-yellow-plumage', 'garganacl', 'armarouge', 'ceruledge', 'bellibolt', 'mabosstiff', 'scovillain', 'espathra', 'tinkaton', 'palafin-zero', 'orthworm', 'glimmora', 'houndstone', 'annihilape', 'farigiraf', 'kingambit', 'baxcalibur', 'gholdengo', 'sinistcha', 'archaludon', 'hydrapple'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -2315,7 +2382,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '发射从自然收集的生命力量。有时会降低对手的特防。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['venusaur', 'ninetales', 'vileplume', 'alakazam', 'victreebel', 'gengar', 'meganium', 'sceptile', 'gardevoir', 'sableye', 'medicham', 'castform', 'chimecho', 'torterra', 'roserade', 'abomasnow', 'leafeon', 'gallade', 'serperior', 'simisage', 'musharna', 'whimsicott', 'cofagrigus', 'reuniclus', 'emolga', 'chandelure', 'chesnaught', 'vivillon', 'floette', 'florges', 'meowstic-female', 'meowstic-male', 'aromatisse', 'slurpuff', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'decidueye', 'decidueye-hisui', 'primarina', 'tsareena', 'oranguru', 'passimian', 'drampa', 'flapple', 'appletun', 'mr-rime', 'runerigus', 'alcremie', 'wyrdeer', 'meowscarada', 'armarouge', 'scovillain', 'espathra', 'glimmora', 'farigiraf', 'sinistcha', 'hydrapple'],
+    learnableByPokemonIds: ['venusaur', 'ninetales', 'wigglytuff', 'vileplume', 'alakazam', 'victreebel', 'gengar', 'mr-mime', 'meganium', 'sceptile', 'gardevoir', 'sableye', 'medicham', 'castform', 'chimecho', 'torterra', 'roserade', 'abomasnow', 'leafeon', 'gallade', 'serperior', 'simisage', 'musharna', 'whimsicott', 'cofagrigus', 'reuniclus', 'emolga', 'chandelure', 'chesnaught', 'vivillon', 'floette', 'florges', 'gogoat', 'meowstic-female', 'meowstic-male', 'aromatisse', 'slurpuff', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'decidueye', 'decidueye-hisui', 'primarina', 'tsareena', 'oranguru', 'passimian', 'drampa', 'rillaboom', 'flapple', 'appletun', 'mr-rime', 'runerigus', 'alcremie', 'indeedee-female', 'indeedee-male', 'wyrdeer', 'meowscarada', 'arboliva', 'armarouge', 'scovillain', 'espathra', 'glimmora', 'farigiraf', 'sinistcha', 'hydrapple'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -2331,7 +2398,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用神奇的节奏跳舞。使对手模仿自己的动作，从而将特性变成一样。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['lopunny', 'audino', 'pyroar', 'pangoro', 'clawitzer', 'hawlucha', 'dedenne', 'araquanid', 'alcremie'],
+    learnableByPokemonIds: ['lopunny', 'audino', 'pyroar', 'pangoro', 'clawitzer', 'hawlucha', 'dedenne', 'araquanid', 'alcremie', 'pawmot'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -2365,7 +2432,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '利用精神力量攻击对手。在精神场地上威力会有所提高，能对所有对手造成伤害。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['raichu-alola', 'alakazam', 'slowbro', 'slowbro-galar', 'starmie', 'espeon', 'slowking', 'slowking-galar', 'gardevoir', 'medicham', 'chimecho', 'metagross', 'gallade', 'musharna', 'reuniclus', 'delphox', 'meowstic-female', 'meowstic-male', 'malamar', 'oranguru', 'hatterene', 'mr-rime', 'wyrdeer', 'armarouge', 'espathra', 'farigiraf'],
+    learnableByPokemonIds: ['raichu-alola', 'wigglytuff', 'alakazam', 'slowbro', 'slowbro-galar', 'starmie', 'mr-mime', 'espeon', 'slowking', 'slowking-galar', 'gardevoir', 'medicham', 'chimecho', 'metagross', 'gallade', 'musharna', 'reuniclus', 'delphox', 'meowstic-female', 'meowstic-male', 'malamar', 'oranguru', 'hatterene', 'mr-rime', 'indeedee-female', 'indeedee-male', 'wyrdeer', 'armarouge', 'espathra', 'farigiraf'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -2399,7 +2466,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '发出看不见的神奇力量进行攻击。有时会使对手畏缩。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['ninetales', 'ninetales-alola', 'typhlosion', 'typhlosion-hisui', 'chimecho', 'roserade', 'zoroark', 'zoroark-hisui', 'greninja', 'meowstic-female', 'oranguru', 'drampa', 'wyrdeer'],
+    learnableByPokemonIds: ['ninetales', 'ninetales-alola', 'typhlosion', 'typhlosion-hisui', 'chimecho', 'roserade', 'zoroark', 'zoroark-hisui', 'greninja', 'meowstic-female', 'oranguru', 'drampa', 'indeedee-female', 'indeedee-male', 'wyrdeer'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -2433,7 +2500,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '当自己处于中毒、麻痹、灼伤状态时，向对手使出此招式的话，威力会变成２倍。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['venusaur', 'charizard', 'blastoise', 'beedrill', 'pidgeot', 'arbok', 'pikachu', 'raichu', 'raichu-alola', 'clefable', 'ninetales', 'ninetales-alola', 'vileplume', 'arcanine', 'arcanine-hisui', 'alakazam', 'machamp', 'victreebel', 'slowbro', 'slowbro-galar', 'gengar', 'kangaskhan', 'starmie', 'pinsir', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'vaporeon', 'jolteon', 'flareon', 'aerodactyl', 'snorlax', 'dragonite', 'meganium', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'ariados', 'ampharos', 'azumarill', 'politoed', 'espeon', 'umbreon', 'slowking', 'slowking-galar', 'forretress', 'steelix', 'qwilfish', 'scizor', 'heracross', 'skarmory', 'houndoom', 'tyranitar', 'sceptile', 'blaziken', 'swampert', 'pelipper', 'gardevoir', 'sableye', 'mawile', 'aggron', 'medicham', 'manectric', 'sharpedo', 'camerupt', 'torkoal', 'altaria', 'milotic', 'castform', 'banette', 'chimecho', 'absol', 'glalie', 'metagross', 'torterra', 'infernape', 'empoleon', 'staraptor', 'luxray', 'roserade', 'rampardos', 'bastiodon', 'lopunny', 'spiritomb', 'garchomp', 'lucario', 'hippowdon', 'toxicroak', 'abomasnow', 'weavile', 'rhyperior', 'leafeon', 'glaceon', 'gliscor', 'mamoswine', 'gallade', 'froslass', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'serperior', 'emboar', 'samurott', 'samurott-hisui', 'watchog', 'liepard', 'simisage', 'simisear', 'simipour', 'musharna', 'excadrill', 'audino', 'conkeldurr', 'scolipede', 'whimsicott', 'krookodile', 'scrafty', 'cofagrigus', 'garbodor', 'zoroark', 'zoroark-hisui', 'reuniclus', 'vanilluxe', 'emolga', 'eelektross', 'chandelure', 'beartic', 'stunfisk', 'stunfisk-galar', 'golurk', 'hydreigon', 'volcarona', 'chesnaught', 'delphox', 'greninja', 'diggersby', 'talonflame', 'vivillon', 'pyroar', 'floette', 'florges', 'pangoro', 'furfrou', 'meowstic-female', 'meowstic-male', 'aegislash-shield', 'aromatisse', 'slurpuff', 'malamar', 'barbaracle', 'dragalge', 'clawitzer', 'heliolisk', 'tyrantrum', 'aurorus', 'sylveon', 'hawlucha', 'dedenne', 'goodra', 'goodra-hisui', 'klefki', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'avalugg', 'avalugg-hisui', 'noivern', 'decidueye', 'decidueye-hisui', 'incineroar', 'primarina', 'toucannon', 'crabominable', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'toxapex', 'mudsdale', 'araquanid', 'salazzle', 'tsareena', 'oranguru', 'passimian', 'mimikyu-disguised', 'drampa', 'kommo-o', 'corviknight', 'flapple', 'appletun', 'sandaconda', 'polteageist', 'hatterene', 'grimmsnarl', 'mr-rime', 'runerigus', 'alcremie', 'falinks', 'morpeko-full-belly', 'dragapult', 'wyrdeer', 'kleavor', 'basculegion-female', 'basculegion-male', 'sneasler', 'overqwil', 'meowscarada', 'skeledirge', 'quaquaval', 'maushold-family-of-four', 'garganacl', 'armarouge', 'ceruledge', 'scovillain', 'espathra', 'tinkaton', 'palafin-zero', 'orthworm', 'glimmora', 'houndstone', 'annihilape', 'farigiraf', 'kingambit', 'archaludon', 'hydrapple'],
+    learnableByPokemonIds: ['venusaur', 'charizard', 'blastoise', 'beedrill', 'pidgeot', 'arbok', 'pikachu', 'raichu', 'raichu-alola', 'clefable', 'ninetales', 'ninetales-alola', 'wigglytuff', 'vileplume', 'persian', 'persian-alola', 'arcanine', 'arcanine-hisui', 'alakazam', 'machamp', 'victreebel', 'slowbro', 'slowbro-galar', 'farfetchd', 'gengar', 'kangaskhan', 'starmie', 'mr-mime', 'pinsir', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'vaporeon', 'jolteon', 'flareon', 'aerodactyl', 'snorlax', 'dragonite', 'meganium', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'ariados', 'ampharos', 'azumarill', 'politoed', 'espeon', 'umbreon', 'slowking', 'slowking-galar', 'forretress', 'steelix', 'qwilfish', 'scizor', 'heracross', 'skarmory', 'houndoom', 'tyranitar', 'sceptile', 'blaziken', 'swampert', 'pelipper', 'gardevoir', 'sableye', 'mawile', 'aggron', 'medicham', 'manectric', 'swalot', 'sharpedo', 'camerupt', 'torkoal', 'altaria', 'milotic', 'castform', 'banette', 'chimecho', 'absol', 'glalie', 'salamence', 'metagross', 'torterra', 'infernape', 'empoleon', 'staraptor', 'luxray', 'roserade', 'rampardos', 'bastiodon', 'lopunny', 'spiritomb', 'garchomp', 'lucario', 'hippowdon', 'toxicroak', 'abomasnow', 'weavile', 'rhyperior', 'leafeon', 'glaceon', 'gliscor', 'mamoswine', 'gallade', 'froslass', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'serperior', 'emboar', 'samurott', 'samurott-hisui', 'watchog', 'liepard', 'simisage', 'simisear', 'simipour', 'musharna', 'excadrill', 'audino', 'conkeldurr', 'scolipede', 'whimsicott', 'krookodile', 'scrafty', 'cofagrigus', 'garbodor', 'zoroark', 'zoroark-hisui', 'reuniclus', 'vanilluxe', 'emolga', 'eelektross', 'chandelure', 'beartic', 'stunfisk', 'stunfisk-galar', 'golurk', 'hydreigon', 'volcarona', 'chesnaught', 'delphox', 'greninja', 'diggersby', 'talonflame', 'vivillon', 'pyroar', 'floette', 'florges', 'gogoat', 'pangoro', 'furfrou', 'meowstic-female', 'meowstic-male', 'aegislash-shield', 'aromatisse', 'slurpuff', 'malamar', 'barbaracle', 'dragalge', 'clawitzer', 'heliolisk', 'tyrantrum', 'aurorus', 'sylveon', 'hawlucha', 'dedenne', 'goodra', 'goodra-hisui', 'klefki', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'avalugg', 'avalugg-hisui', 'noivern', 'decidueye', 'decidueye-hisui', 'incineroar', 'primarina', 'toucannon', 'crabominable', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'toxapex', 'mudsdale', 'araquanid', 'salazzle', 'tsareena', 'oranguru', 'passimian', 'golisopod', 'mimikyu-disguised', 'drampa', 'kommo-o', 'rillaboom', 'cinderace', 'inteleon', 'corviknight', 'thievul', 'flapple', 'appletun', 'sandaconda', 'toxtricity-amped', 'toxtricity-low-key', 'grapploct', 'polteageist', 'hatterene', 'grimmsnarl', 'perrserker', 'sirfetchd', 'mr-rime', 'runerigus', 'alcremie', 'falinks', 'pincurchin', 'indeedee-female', 'indeedee-male', 'morpeko-full-belly', 'dragapult', 'wyrdeer', 'kleavor', 'basculegion-female', 'basculegion-male', 'sneasler', 'overqwil', 'meowscarada', 'skeledirge', 'quaquaval', 'pawmot', 'maushold-family-of-four', 'arboliva', 'squawkabilly-green-plumage', 'squawkabilly-yellow-plumage', 'garganacl', 'armarouge', 'ceruledge', 'mabosstiff', 'scovillain', 'espathra', 'tinkaton', 'palafin-zero', 'orthworm', 'glimmora', 'houndstone', 'annihilape', 'farigiraf', 'kingambit', 'baxcalibur', 'archaludon', 'hydrapple'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -2465,7 +2532,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '进行先制攻击，使对手畏缩。要在出场后立刻使出才能成功。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['blastoise', 'pikachu', 'raichu', 'raichu-alola', 'kangaskhan', 'sableye', 'medicham', 'infernape', 'lopunny', 'toxicroak', 'weavile', 'liepard', 'simisage', 'simisear', 'simipour', 'scrafty', 'meowstic-female', 'meowstic-male', 'incineroar', 'salazzle', 'grimmsnarl', 'mr-rime', 'morpeko-full-belly', 'sneasler', 'tinkaton'],
+    learnableByPokemonIds: ['blastoise', 'pikachu', 'raichu', 'raichu-alola', 'persian', 'persian-alola', 'kangaskhan', 'mr-mime', 'sableye', 'medicham', 'infernape', 'lopunny', 'toxicroak', 'weavile', 'liepard', 'simisage', 'simisear', 'simipour', 'scrafty', 'meowstic-female', 'meowstic-male', 'incineroar', 'salazzle', 'rillaboom', 'grimmsnarl', 'perrserker', 'mr-rime', 'indeedee-female', 'indeedee-male', 'morpeko-full-belly', 'sneasler', 'tinkaton'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -2481,7 +2548,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '装哭流泪。使对手不知所措，从而大幅降低对手的特防。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'clefable', 'ninetales', 'ninetales-alola', 'vaporeon', 'jolteon', 'flareon', 'meganium', 'feraligatr', 'azumarill', 'espeon', 'umbreon', 'mawile', 'chimecho', 'glalie', 'infernape', 'luxray', 'lopunny', 'weavile', 'leafeon', 'glaceon', 'froslass', 'liepard', 'whimsicott', 'scrafty', 'cofagrigus', 'zoroark', 'zoroark-hisui', 'meowstic-female', 'meowstic-male', 'aromatisse', 'slurpuff', 'malamar', 'sylveon', 'salazzle', 'corviknight', 'grimmsnarl', 'mr-rime', 'runerigus', 'alcremie', 'morpeko-full-belly', 'meowscarada', 'maushold-family-of-four', 'tinkaton'],
+    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'clefable', 'ninetales', 'ninetales-alola', 'wigglytuff', 'persian', 'persian-alola', 'vaporeon', 'jolteon', 'flareon', 'meganium', 'feraligatr', 'azumarill', 'espeon', 'umbreon', 'mawile', 'chimecho', 'glalie', 'infernape', 'luxray', 'lopunny', 'weavile', 'leafeon', 'glaceon', 'froslass', 'liepard', 'whimsicott', 'scrafty', 'cofagrigus', 'zoroark', 'zoroark-hisui', 'meowstic-female', 'meowstic-male', 'aromatisse', 'slurpuff', 'malamar', 'sylveon', 'salazzle', 'corviknight', 'thievul', 'grimmsnarl', 'perrserker', 'mr-rime', 'runerigus', 'alcremie', 'morpeko-full-belly', 'meowscarada', 'maushold-family-of-four', 'squawkabilly-green-plumage', 'squawkabilly-yellow-plumage', 'mabosstiff', 'tinkaton'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -2514,7 +2581,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '撒出羽毛，笼罩在对手的周围。大幅降低对手的攻击。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['pidgeot', 'blaziken', 'pelipper', 'altaria', 'empoleon', 'staraptor', 'talonflame', 'hawlucha', 'decidueye', 'decidueye-hisui', 'toucannon', 'corviknight', 'quaquaval', 'espathra'],
+    learnableByPokemonIds: ['pidgeot', 'farfetchd', 'blaziken', 'pelipper', 'altaria', 'empoleon', 'staraptor', 'talonflame', 'hawlucha', 'decidueye', 'decidueye-hisui', 'toucannon', 'corviknight', 'sirfetchd', 'quaquaval', 'squawkabilly-green-plumage', 'squawkabilly-yellow-plumage', 'espathra'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -2531,7 +2598,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '能够攻击正在使用守住或看穿等招式的对手。解除其守护效果。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'pinsir', 'scizor', 'heracross', 'skarmory', 'houndoom', 'blaziken', 'sableye', 'medicham', 'absol', 'infernape', 'lucario', 'toxicroak', 'weavile', 'gliscor', 'gallade', 'chesnaught', 'talonflame', 'hawlucha', 'goodra', 'goodra-hisui', 'passimian', 'kleavor', 'sneasler', 'tinkaton'],
+    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'persian', 'persian-alola', 'farfetchd', 'pinsir', 'scizor', 'heracross', 'skarmory', 'houndoom', 'blaziken', 'sableye', 'medicham', 'absol', 'infernape', 'lucario', 'toxicroak', 'weavile', 'gliscor', 'gallade', 'chesnaught', 'talonflame', 'hawlucha', 'goodra', 'goodra-hisui', 'passimian', 'cinderace', 'grapploct', 'sirfetchd', 'kleavor', 'sneasler', 'tinkaton'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -2564,7 +2631,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '如果使用此招式打倒对手，攻击会巨幅提高。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['beedrill', 'ariados', 'qwilfish', 'overqwil'],
+    learnableByPokemonIds: ['beedrill', 'ariados', 'qwilfish', 'inteleon', 'overqwil'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -2614,7 +2681,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '拼命攻击对手。虽然自己陷入昏厥，但会给予对手和自己目前ＨＰ等量的伤害。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['staraptor', 'lucario'],
+    learnableByPokemonIds: ['farfetchd', 'staraptor', 'lucario', 'sirfetchd', 'squawkabilly-green-plumage', 'squawkabilly-yellow-plumage'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -2631,7 +2698,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用大字形状的火焰烧尽对手。有时会让对手陷入灼伤状态。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['charizard', 'clefable', 'ninetales', 'arcanine', 'arcanine-hisui', 'machamp', 'slowbro', 'slowbro-galar', 'kangaskhan', 'tauros', 'tauros-paldea-blaze-breed', 'gyarados', 'flareon', 'aerodactyl', 'snorlax', 'dragonite', 'typhlosion', 'typhlosion-hisui', 'slowking', 'slowking-galar', 'houndoom', 'tyranitar', 'blaziken', 'mawile', 'aggron', 'camerupt', 'torkoal', 'altaria', 'castform', 'absol', 'infernape', 'rampardos', 'bastiodon', 'garchomp', 'rhyperior', 'emboar', 'simisear', 'audino', 'chandelure', 'hydreigon', 'volcarona', 'delphox', 'talonflame', 'pyroar', 'goodra', 'goodra-hisui', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'incineroar', 'salazzle', 'drampa', 'dragapult', 'skeledirge', 'armarouge', 'ceruledge', 'scovillain'],
+    learnableByPokemonIds: ['charizard', 'clefable', 'ninetales', 'wigglytuff', 'arcanine', 'arcanine-hisui', 'machamp', 'slowbro', 'slowbro-galar', 'kangaskhan', 'tauros', 'tauros-paldea-blaze-breed', 'gyarados', 'flareon', 'aerodactyl', 'snorlax', 'dragonite', 'typhlosion', 'typhlosion-hisui', 'slowking', 'slowking-galar', 'houndoom', 'tyranitar', 'blaziken', 'mawile', 'aggron', 'camerupt', 'torkoal', 'altaria', 'castform', 'absol', 'salamence', 'infernape', 'rampardos', 'bastiodon', 'garchomp', 'rhyperior', 'emboar', 'simisear', 'audino', 'chandelure', 'hydreigon', 'volcarona', 'delphox', 'talonflame', 'pyroar', 'goodra', 'goodra-hisui', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'incineroar', 'salazzle', 'drampa', 'cinderace', 'dragapult', 'skeledirge', 'armarouge', 'ceruledge', 'scovillain'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -2648,7 +2715,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用覆盖着火焰的牙齿咬住对手。有时会使对手畏缩或陷入灼伤状态。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['charizard', 'arbok', 'arcanine', 'arcanine-hisui', 'flareon', 'aerodactyl', 'typhlosion', 'typhlosion-hisui', 'steelix', 'houndoom', 'tyranitar', 'mawile', 'manectric', 'luxray', 'garchomp', 'hippowdon', 'rhyperior', 'gliscor', 'liepard', 'krookodile', 'hydreigon', 'pyroar', 'furfrou', 'tyrantrum', 'incineroar', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'salazzle', 'sandaconda', 'morpeko-full-belly', 'skeledirge', 'scovillain', 'houndstone'],
+    learnableByPokemonIds: ['charizard', 'arbok', 'arcanine', 'arcanine-hisui', 'flareon', 'aerodactyl', 'typhlosion', 'typhlosion-hisui', 'steelix', 'houndoom', 'tyranitar', 'mawile', 'manectric', 'salamence', 'luxray', 'garchomp', 'hippowdon', 'rhyperior', 'gliscor', 'liepard', 'krookodile', 'hydreigon', 'pyroar', 'furfrou', 'tyrantrum', 'incineroar', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'salazzle', 'cinderace', 'thievul', 'sandaconda', 'morpeko-full-belly', 'skeledirge', 'mabosstiff', 'scovillain', 'houndstone'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -2657,7 +2724,7 @@ export const championsMoves: Move[] = [
     englishName: 'Fire Lash',
     type: 'Fire',
     category: 'Physical',
-    power: 80,
+    power: 90,
     accuracy: 100,
     pp: 15,
     targetScope: '单体',
@@ -2682,7 +2749,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用充满火焰的拳头攻击对手。有时会让对手陷入灼伤状态。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['charizard', 'clefable', 'alakazam', 'machamp', 'gengar', 'kangaskhan', 'snorlax', 'dragonite', 'typhlosion', 'typhlosion-hisui', 'ampharos', 'slowking', 'slowking-galar', 'tyranitar', 'blaziken', 'gardevoir', 'sableye', 'aggron', 'medicham', 'infernape', 'rampardos', 'lopunny', 'rhyperior', 'gallade', 'emboar', 'watchog', 'simisear', 'audino', 'conkeldurr', 'scrafty', 'reuniclus', 'eelektross', 'golurk', 'delphox', 'diggersby', 'pangoro', 'heliolisk', 'hawlucha', 'goodra', 'goodra-hisui', 'incineroar', 'lycanroc-midnight', 'kommo-o', 'grimmsnarl', 'sneasler', 'garganacl', 'annihilape'],
+    learnableByPokemonIds: ['charizard', 'clefable', 'wigglytuff', 'alakazam', 'machamp', 'gengar', 'kangaskhan', 'mr-mime', 'snorlax', 'dragonite', 'typhlosion', 'typhlosion-hisui', 'ampharos', 'slowking', 'slowking-galar', 'tyranitar', 'blaziken', 'gardevoir', 'sableye', 'aggron', 'medicham', 'swalot', 'infernape', 'rampardos', 'lopunny', 'rhyperior', 'gallade', 'emboar', 'watchog', 'simisear', 'audino', 'conkeldurr', 'scrafty', 'reuniclus', 'eelektross', 'golurk', 'delphox', 'diggersby', 'pangoro', 'heliolisk', 'hawlucha', 'goodra', 'goodra-hisui', 'incineroar', 'lycanroc-midnight', 'kommo-o', 'cinderace', 'toxtricity-amped', 'toxtricity-low-key', 'grimmsnarl', 'sneasler', 'pawmot', 'garganacl', 'annihilape'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -2699,7 +2766,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '将对手困在激烈的火焰旋涡中，在４～５回合内进行攻击。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['charizard', 'ninetales', 'arcanine', 'arcanine-hisui', 'tauros', 'tauros-paldea-blaze-breed', 'flareon', 'dragonite', 'typhlosion', 'typhlosion-hisui', 'houndoom', 'blaziken', 'camerupt', 'torkoal', 'altaria', 'infernape', 'emboar', 'simisear', 'chandelure', 'hydreigon', 'volcarona', 'delphox', 'talonflame', 'pyroar', 'incineroar', 'skeledirge', 'armarouge', 'ceruledge', 'scovillain'],
+    learnableByPokemonIds: ['charizard', 'ninetales', 'arcanine', 'arcanine-hisui', 'tauros', 'tauros-paldea-blaze-breed', 'flareon', 'dragonite', 'typhlosion', 'typhlosion-hisui', 'houndoom', 'blaziken', 'camerupt', 'torkoal', 'altaria', 'salamence', 'infernape', 'emboar', 'simisear', 'chandelure', 'hydreigon', 'volcarona', 'delphox', 'talonflame', 'pyroar', 'incineroar', 'cinderace', 'skeledirge', 'armarouge', 'ceruledge', 'scovillain'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -2716,7 +2783,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '威力很高的招式，但只有在出场战斗时，立刻使出才能成功。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['ariados', 'falinks'],
+    learnableByPokemonIds: ['farfetchd', 'ariados', 'golisopod', 'thievul', 'sirfetchd', 'falinks'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -2748,7 +2815,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '抓狂般乱打进行攻击。自己的ＨＰ越少，招式的威力越大。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['blastoise', 'pikachu', 'raichu', 'raichu-alola', 'ninetales', 'ninetales-alola', 'vileplume', 'pinsir', 'gyarados', 'vaporeon', 'jolteon', 'flareon', 'snorlax', 'meganium', 'feraligatr', 'espeon', 'umbreon', 'forretress', 'steelix', 'qwilfish', 'heracross', 'torkoal', 'milotic', 'lopunny', 'leafeon', 'glaceon', 'mamoswine', 'beartic', 'stunfisk', 'stunfisk-galar', 'diggersby', 'talonflame', 'aromatisse', 'clawitzer', 'sylveon', 'goodra', 'goodra-hisui', 'tsareena', 'basculegion-female', 'basculegion-male', 'overqwil', 'bellibolt'],
+    learnableByPokemonIds: ['blastoise', 'pikachu', 'raichu', 'raichu-alola', 'ninetales', 'ninetales-alola', 'vileplume', 'persian', 'persian-alola', 'farfetchd', 'pinsir', 'gyarados', 'vaporeon', 'jolteon', 'flareon', 'snorlax', 'meganium', 'feraligatr', 'espeon', 'umbreon', 'forretress', 'steelix', 'qwilfish', 'heracross', 'torkoal', 'milotic', 'lopunny', 'leafeon', 'glaceon', 'mamoswine', 'beartic', 'stunfisk', 'stunfisk-galar', 'diggersby', 'talonflame', 'aromatisse', 'clawitzer', 'sylveon', 'goodra', 'goodra-hisui', 'tsareena', 'toxtricity-amped', 'toxtricity-low-key', 'perrserker', 'sirfetchd', 'basculegion-female', 'basculegion-male', 'overqwil', 'arboliva', 'bellibolt'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -2765,7 +2832,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '让火焰覆盖全身，攻击对手。积蓄力量来提高自己的速度。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['charizard', 'ninetales', 'arcanine', 'arcanine-hisui', 'tauros', 'tauros-paldea-blaze-breed', 'flareon', 'typhlosion', 'typhlosion-hisui', 'houndoom', 'blaziken', 'camerupt', 'torkoal', 'infernape', 'emboar', 'simisear', 'chandelure', 'volcarona', 'delphox', 'talonflame', 'pyroar', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'incineroar', 'toucannon', 'salazzle', 'skeledirge', 'armarouge', 'ceruledge'],
+    learnableByPokemonIds: ['charizard', 'ninetales', 'arcanine', 'arcanine-hisui', 'tauros', 'tauros-paldea-blaze-breed', 'flareon', 'typhlosion', 'typhlosion-hisui', 'houndoom', 'blaziken', 'camerupt', 'torkoal', 'infernape', 'emboar', 'simisear', 'chandelure', 'volcarona', 'delphox', 'talonflame', 'pyroar', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'incineroar', 'toucannon', 'salazzle', 'cinderace', 'skeledirge', 'armarouge', 'ceruledge'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -2782,7 +2849,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '向对手发射烈焰进行攻击。有时会让对手陷入灼伤状态。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['charizard', 'clefable', 'ninetales', 'arcanine', 'arcanine-hisui', 'machamp', 'slowbro', 'slowbro-galar', 'kangaskhan', 'tauros', 'tauros-paldea-blaze-breed', 'gyarados', 'flareon', 'aerodactyl', 'snorlax', 'dragonite', 'typhlosion', 'typhlosion-hisui', 'slowking', 'slowking-galar', 'houndoom', 'tyranitar', 'blaziken', 'mawile', 'aggron', 'manectric', 'camerupt', 'torkoal', 'altaria', 'castform', 'absol', 'infernape', 'rampardos', 'bastiodon', 'garchomp', 'rhyperior', 'emboar', 'watchog', 'simisear', 'audino', 'zoroark', 'zoroark-hisui', 'eelektross', 'chandelure', 'hydreigon', 'volcarona', 'delphox', 'talonflame', 'pyroar', 'slurpuff', 'malamar', 'goodra', 'goodra-hisui', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'noivern', 'incineroar', 'salazzle', 'drampa', 'kommo-o', 'dragapult', 'skeledirge', 'armarouge', 'ceruledge', 'scovillain'],
+    learnableByPokemonIds: ['charizard', 'clefable', 'ninetales', 'wigglytuff', 'arcanine', 'arcanine-hisui', 'machamp', 'slowbro', 'slowbro-galar', 'kangaskhan', 'tauros', 'tauros-paldea-blaze-breed', 'gyarados', 'flareon', 'aerodactyl', 'snorlax', 'dragonite', 'typhlosion', 'typhlosion-hisui', 'slowking', 'slowking-galar', 'houndoom', 'tyranitar', 'blaziken', 'mawile', 'aggron', 'manectric', 'camerupt', 'torkoal', 'altaria', 'castform', 'absol', 'salamence', 'infernape', 'rampardos', 'bastiodon', 'garchomp', 'rhyperior', 'emboar', 'watchog', 'simisear', 'audino', 'zoroark', 'zoroark-hisui', 'eelektross', 'chandelure', 'hydreigon', 'volcarona', 'delphox', 'talonflame', 'pyroar', 'slurpuff', 'malamar', 'goodra', 'goodra-hisui', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'noivern', 'incineroar', 'salazzle', 'drampa', 'kommo-o', 'cinderace', 'dragapult', 'skeledirge', 'armarouge', 'ceruledge', 'scovillain'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -2799,7 +2866,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '让火焰覆盖全身猛撞向对手。自己也会受到不小的伤害。有时会让对手陷入灼伤状态。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['charizard', 'ninetales', 'arcanine', 'arcanine-hisui', 'tauros', 'tauros-paldea-blaze-breed', 'flareon', 'typhlosion', 'typhlosion-hisui', 'houndoom', 'blaziken', 'camerupt', 'torkoal', 'infernape', 'emboar', 'simisear', 'chandelure', 'volcarona', 'delphox', 'talonflame', 'pyroar', 'incineroar', 'salazzle', 'skeledirge', 'armarouge', 'ceruledge', 'scovillain'],
+    learnableByPokemonIds: ['charizard', 'ninetales', 'arcanine', 'arcanine-hisui', 'tauros', 'tauros-paldea-blaze-breed', 'flareon', 'typhlosion', 'typhlosion-hisui', 'houndoom', 'blaziken', 'camerupt', 'torkoal', 'infernape', 'emboar', 'simisear', 'chandelure', 'volcarona', 'delphox', 'talonflame', 'pyroar', 'incineroar', 'salazzle', 'cinderace', 'skeledirge', 'armarouge', 'ceruledge', 'scovillain'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -2832,7 +2899,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '将身体的光芒聚集在一点释放出去。有时会降低对手的特防。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['blastoise', 'starmie', 'forretress', 'steelix', 'scizor', 'skarmory', 'mawile', 'aggron', 'camerupt', 'chimecho', 'metagross', 'empoleon', 'bastiodon', 'lucario', 'rhyperior', 'reuniclus', 'vanilluxe', 'eelektross', 'stunfisk', 'stunfisk-galar', 'golurk', 'hydreigon', 'aegislash-shield', 'aromatisse', 'clawitzer', 'aurorus', 'goodra', 'goodra-hisui', 'klefki', 'avalugg', 'toucannon', 'kommo-o', 'corviknight', 'garganacl', 'armarouge', 'espathra', 'tinkaton', 'orthworm', 'glimmora', 'kingambit', 'gholdengo', 'archaludon'],
+    learnableByPokemonIds: ['blastoise', 'starmie', 'forretress', 'steelix', 'scizor', 'skarmory', 'mawile', 'aggron', 'camerupt', 'chimecho', 'metagross', 'empoleon', 'bastiodon', 'lucario', 'rhyperior', 'reuniclus', 'vanilluxe', 'eelektross', 'stunfisk', 'stunfisk-galar', 'golurk', 'hydreigon', 'aegislash-shield', 'aromatisse', 'clawitzer', 'aurorus', 'goodra', 'goodra-hisui', 'klefki', 'avalugg', 'toucannon', 'kommo-o', 'corviknight', 'perrserker', 'garganacl', 'armarouge', 'espathra', 'tinkaton', 'orthworm', 'glimmora', 'kingambit', 'gholdengo', 'archaludon'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -2848,7 +2915,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '吹捧对手，使其混乱。同时还会提高对手的特攻。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['feraligatr', 'ampharos', 'sableye', 'lopunny', 'toxicroak', 'grimmsnarl', 'morpeko-full-belly', 'tinkaton'],
+    learnableByPokemonIds: ['feraligatr', 'ampharos', 'sableye', 'lopunny', 'toxicroak', 'grimmsnarl', 'morpeko-full-belly', 'squawkabilly-green-plumage', 'squawkabilly-yellow-plumage', 'tinkaton'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -2864,7 +2931,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '快速投掷携带的道具进行攻击。根据道具不同，威力和效果会改变。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['charizard', 'blastoise', 'pikachu', 'raichu', 'raichu-alola', 'clefable', 'vileplume', 'alakazam', 'machamp', 'slowbro', 'slowbro-galar', 'gengar', 'kangaskhan', 'pinsir', 'snorlax', 'dragonite', 'typhlosion', 'feraligatr', 'ampharos', 'azumarill', 'politoed', 'slowking', 'slowking-galar', 'scizor', 'heracross', 'tyranitar', 'sceptile', 'blaziken', 'swampert', 'pelipper', 'gardevoir', 'sableye', 'mawile', 'aggron', 'medicham', 'banette', 'infernape', 'empoleon', 'rampardos', 'lopunny', 'garchomp', 'lucario', 'toxicroak', 'abomasnow', 'weavile', 'rhyperior', 'gliscor', 'gallade', 'froslass', 'emboar', 'samurott', 'samurott-hisui', 'watchog', 'simisage', 'simisear', 'simipour', 'excadrill', 'audino', 'conkeldurr', 'whimsicott', 'krookodile', 'scrafty', 'garbodor', 'zoroark', 'zoroark-hisui', 'reuniclus', 'emolga', 'beartic', 'golurk', 'chesnaught', 'greninja', 'diggersby', 'pangoro', 'malamar', 'barbaracle', 'hawlucha', 'dedenne', 'incineroar', 'crabominable', 'lycanroc-midnight', 'salazzle', 'tsareena', 'oranguru', 'passimian', 'mimikyu-disguised', 'drampa', 'kommo-o', 'grimmsnarl', 'mr-rime', 'alcremie', 'morpeko-full-belly', 'sneasler', 'meowscarada', 'quaquaval', 'garganacl', 'armarouge', 'ceruledge', 'tinkaton', 'palafin-zero', 'annihilape', 'kingambit', 'gholdengo'],
+    learnableByPokemonIds: ['charizard', 'blastoise', 'pikachu', 'raichu', 'raichu-alola', 'clefable', 'wigglytuff', 'vileplume', 'alakazam', 'machamp', 'slowbro', 'slowbro-galar', 'gengar', 'kangaskhan', 'mr-mime', 'pinsir', 'snorlax', 'dragonite', 'typhlosion', 'feraligatr', 'ampharos', 'azumarill', 'politoed', 'slowking', 'slowking-galar', 'scizor', 'heracross', 'tyranitar', 'sceptile', 'blaziken', 'swampert', 'pelipper', 'gardevoir', 'sableye', 'mawile', 'aggron', 'medicham', 'swalot', 'banette', 'infernape', 'empoleon', 'rampardos', 'lopunny', 'garchomp', 'lucario', 'toxicroak', 'abomasnow', 'weavile', 'rhyperior', 'gliscor', 'gallade', 'froslass', 'emboar', 'samurott', 'samurott-hisui', 'watchog', 'simisage', 'simisear', 'simipour', 'excadrill', 'audino', 'conkeldurr', 'whimsicott', 'krookodile', 'scrafty', 'garbodor', 'zoroark', 'zoroark-hisui', 'reuniclus', 'emolga', 'beartic', 'golurk', 'chesnaught', 'greninja', 'diggersby', 'pangoro', 'malamar', 'barbaracle', 'hawlucha', 'dedenne', 'incineroar', 'crabominable', 'lycanroc-midnight', 'salazzle', 'tsareena', 'oranguru', 'passimian', 'golisopod', 'mimikyu-disguised', 'drampa', 'kommo-o', 'rillaboom', 'cinderace', 'inteleon', 'toxtricity-amped', 'toxtricity-low-key', 'grimmsnarl', 'perrserker', 'mr-rime', 'alcremie', 'morpeko-full-belly', 'sneasler', 'meowscarada', 'quaquaval', 'pawmot', 'arboliva', 'garganacl', 'armarouge', 'ceruledge', 'tinkaton', 'palafin-zero', 'annihilape', 'kingambit', 'gholdengo'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -2881,7 +2948,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '在攻击之后急速返回，和后备宝可梦进行替换。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['blastoise', 'starmie', 'vaporeon', 'feraligatr', 'qwilfish', 'swampert', 'sharpedo', 'milotic', 'empoleon', 'samurott', 'samurott-hisui', 'simipour', 'greninja', 'dragalge', 'clawitzer', 'primarina', 'basculegion-female', 'basculegion-male', 'quaquaval', 'palafin-zero'],
+    learnableByPokemonIds: ['blastoise', 'starmie', 'vaporeon', 'feraligatr', 'qwilfish', 'swampert', 'sharpedo', 'milotic', 'empoleon', 'samurott', 'samurott-hisui', 'simipour', 'greninja', 'dragalge', 'clawitzer', 'primarina', 'inteleon', 'basculegion-female', 'basculegion-male', 'quaquaval', 'palafin-zero'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -2914,7 +2981,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '第１回合飞上天空，第２回合攻击对手。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['charizard', 'pidgeot', 'aerodactyl', 'dragonite', 'skarmory', 'pelipper', 'altaria', 'staraptor', 'golurk', 'hydreigon', 'volcarona', 'talonflame', 'hawlucha', 'noivern', 'toucannon', 'drampa', 'corviknight', 'flapple', 'dragapult'],
+    learnableByPokemonIds: ['charizard', 'pidgeot', 'farfetchd', 'aerodactyl', 'dragonite', 'skarmory', 'pelipper', 'altaria', 'salamence', 'staraptor', 'golurk', 'hydreigon', 'volcarona', 'talonflame', 'hawlucha', 'noivern', 'toucannon', 'drampa', 'corviknight', 'flapple', 'dragapult', 'squawkabilly-green-plumage', 'squawkabilly-yellow-plumage'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -2948,7 +3015,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '提高气势，释放出全部力量。有时会降低对手的特防。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['charizard', 'blastoise', 'raichu', 'raichu-alola', 'clefable', 'alakazam', 'machamp', 'slowbro', 'slowbro-galar', 'gengar', 'kangaskhan', 'pinsir', 'snorlax', 'dragonite', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'ampharos', 'azumarill', 'politoed', 'slowking', 'slowking-galar', 'heracross', 'tyranitar', 'sceptile', 'blaziken', 'swampert', 'gardevoir', 'mawile', 'aggron', 'medicham', 'infernape', 'staraptor', 'rampardos', 'lopunny', 'lucario', 'toxicroak', 'abomasnow', 'weavile', 'rhyperior', 'gallade', 'emboar', 'watchog', 'simisage', 'simisear', 'simipour', 'excadrill', 'conkeldurr', 'krookodile', 'scrafty', 'garbodor', 'zoroark', 'zoroark-hisui', 'reuniclus', 'beartic', 'golurk', 'hydreigon', 'chesnaught', 'delphox', 'pangoro', 'barbaracle', 'dragalge', 'clawitzer', 'heliolisk', 'hawlucha', 'goodra', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'noivern', 'decidueye', 'decidueye-hisui', 'incineroar', 'crabominable', 'mudsdale', 'oranguru', 'passimian', 'drampa', 'kommo-o', 'grimmsnarl', 'mr-rime', 'falinks', 'sneasler', 'armarouge', 'palafin-zero', 'annihilape', 'kingambit', 'gholdengo'],
+    learnableByPokemonIds: ['charizard', 'blastoise', 'raichu', 'raichu-alola', 'clefable', 'wigglytuff', 'alakazam', 'machamp', 'slowbro', 'slowbro-galar', 'gengar', 'kangaskhan', 'mr-mime', 'pinsir', 'snorlax', 'dragonite', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'ampharos', 'azumarill', 'politoed', 'slowking', 'slowking-galar', 'heracross', 'tyranitar', 'sceptile', 'blaziken', 'swampert', 'gardevoir', 'mawile', 'aggron', 'medicham', 'infernape', 'staraptor', 'rampardos', 'lopunny', 'lucario', 'toxicroak', 'abomasnow', 'weavile', 'rhyperior', 'gallade', 'emboar', 'watchog', 'simisage', 'simisear', 'simipour', 'excadrill', 'conkeldurr', 'krookodile', 'scrafty', 'garbodor', 'zoroark', 'zoroark-hisui', 'reuniclus', 'beartic', 'golurk', 'hydreigon', 'chesnaught', 'delphox', 'pangoro', 'barbaracle', 'dragalge', 'clawitzer', 'heliolisk', 'hawlucha', 'goodra', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'noivern', 'decidueye', 'decidueye-hisui', 'incineroar', 'crabominable', 'mudsdale', 'oranguru', 'passimian', 'golisopod', 'drampa', 'kommo-o', 'rillaboom', 'cinderace', 'grapploct', 'grimmsnarl', 'mr-rime', 'falinks', 'sneasler', 'pawmot', 'armarouge', 'palafin-zero', 'annihilape', 'kingambit', 'gholdengo'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -2963,7 +3030,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '深深地吸口气，集中精神。自己的攻击会变得容易击中要害。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['beedrill', 'machamp', 'kangaskhan', 'pinsir', 'vaporeon', 'jolteon', 'flareon', 'ariados', 'espeon', 'umbreon', 'scizor', 'tyranitar', 'blaziken', 'sharpedo', 'camerupt', 'absol', 'infernape', 'rampardos', 'bastiodon', 'lucario', 'leafeon', 'glaceon', 'emboar', 'samurott', 'samurott-hisui', 'watchog', 'conkeldurr', 'krookodile', 'hydreigon', 'pangoro', 'sylveon', 'lycanroc-dusk', 'passimian', 'corviknight', 'flapple', 'grimmsnarl', 'falinks', 'kleavor', 'quaquaval', 'palafin-zero', 'annihilape', 'archaludon'],
+    learnableByPokemonIds: ['beedrill', 'machamp', 'farfetchd', 'kangaskhan', 'pinsir', 'vaporeon', 'jolteon', 'flareon', 'ariados', 'espeon', 'umbreon', 'scizor', 'tyranitar', 'blaziken', 'sharpedo', 'camerupt', 'absol', 'salamence', 'infernape', 'rampardos', 'bastiodon', 'lucario', 'leafeon', 'glaceon', 'emboar', 'samurott', 'samurott-hisui', 'watchog', 'conkeldurr', 'krookodile', 'hydreigon', 'pangoro', 'sylveon', 'lycanroc-dusk', 'passimian', 'rillaboom', 'cinderace', 'inteleon', 'corviknight', 'flapple', 'grimmsnarl', 'sirfetchd', 'falinks', 'kleavor', 'quaquaval', 'mabosstiff', 'palafin-zero', 'annihilape', 'baxcalibur', 'archaludon'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -2980,7 +3047,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '集中精神出拳。在招式使出前若受到攻击则会失败。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['charizard', 'blastoise', 'pikachu', 'raichu', 'raichu-alola', 'clefable', 'slowbro', 'gengar', 'snorlax', 'dragonite', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'ampharos', 'azumarill', 'politoed', 'slowking', 'heracross', 'tyranitar', 'sceptile', 'blaziken', 'swampert', 'sableye', 'medicham', 'metagross', 'infernape', 'rampardos', 'lopunny', 'lucario', 'toxicroak', 'abomasnow', 'weavile', 'rhyperior', 'gallade', 'emboar', 'conkeldurr', 'krookodile', 'scrafty', 'zoroark', 'zoroark-hisui', 'reuniclus', 'eelektross', 'beartic', 'golurk', 'chesnaught', 'hawlucha', 'goodra', 'decidueye', 'decidueye-hisui', 'incineroar', 'crabominable', 'lycanroc-midnight', 'passimian', 'kommo-o', 'grimmsnarl', 'sneasler', 'garganacl', 'palafin-zero', 'annihilape', 'gholdengo'],
+    learnableByPokemonIds: ['charizard', 'blastoise', 'pikachu', 'raichu', 'raichu-alola', 'clefable', 'wigglytuff', 'slowbro', 'gengar', 'snorlax', 'dragonite', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'ampharos', 'azumarill', 'politoed', 'slowking', 'heracross', 'tyranitar', 'sceptile', 'blaziken', 'swampert', 'sableye', 'medicham', 'metagross', 'infernape', 'rampardos', 'lopunny', 'lucario', 'toxicroak', 'abomasnow', 'weavile', 'rhyperior', 'gallade', 'emboar', 'conkeldurr', 'krookodile', 'scrafty', 'zoroark', 'zoroark-hisui', 'reuniclus', 'eelektross', 'beartic', 'golurk', 'chesnaught', 'hawlucha', 'goodra', 'decidueye', 'decidueye-hisui', 'incineroar', 'crabominable', 'lycanroc-midnight', 'passimian', 'kommo-o', 'rillaboom', 'grimmsnarl', 'sneasler', 'pawmot', 'garganacl', 'palafin-zero', 'annihilape', 'gholdengo'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -3012,7 +3079,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '利用对手的力量进行攻击。正和自己战斗的对手，其攻击越高，伤害越大。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['ninetales', 'ninetales-alola', 'alakazam', 'slowbro', 'slowbro-galar', 'gengar', 'ariados', 'umbreon', 'slowking', 'slowking-galar', 'houndoom', 'tyranitar', 'sableye', 'mawile', 'banette', 'absol', 'glalie', 'bastiodon', 'spiritomb', 'toxicroak', 'weavile', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'liepard', 'krookodile', 'scrafty', 'zoroark', 'zoroark-hisui', 'stunfisk', 'stunfisk-galar', 'delphox', 'diggersby', 'pangoro', 'malamar', 'klefki', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'lycanroc-midnight', 'salazzle', 'oranguru', 'polteageist', 'grimmsnarl', 'mr-rime', 'morpeko-full-belly', 'meowscarada', 'espathra', 'tinkaton', 'farigiraf', 'kingambit', 'sinistcha', 'archaludon'],
+    learnableByPokemonIds: ['ninetales', 'ninetales-alola', 'persian', 'persian-alola', 'alakazam', 'slowbro', 'slowbro-galar', 'gengar', 'mr-mime', 'ariados', 'umbreon', 'slowking', 'slowking-galar', 'houndoom', 'tyranitar', 'sableye', 'mawile', 'banette', 'absol', 'glalie', 'bastiodon', 'spiritomb', 'toxicroak', 'weavile', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'liepard', 'krookodile', 'scrafty', 'zoroark', 'zoroark-hisui', 'stunfisk', 'stunfisk-galar', 'delphox', 'diggersby', 'pangoro', 'malamar', 'klefki', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'lycanroc-midnight', 'salazzle', 'oranguru', 'thievul', 'polteageist', 'grimmsnarl', 'perrserker', 'mr-rime', 'morpeko-full-belly', 'meowscarada', 'squawkabilly-green-plumage', 'squawkabilly-yellow-plumage', 'espathra', 'tinkaton', 'farigiraf', 'kingambit', 'sinistcha', 'archaludon'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -3029,7 +3096,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '急剧冷冻对手，有时会让对手陷入冰冻状态。对于水属性宝可梦也是效果绝佳。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['ninetales', 'ninetales-alola', 'glalie', 'glaceon', 'mamoswine', 'vanilluxe', 'aurorus', 'mr-rime'],
+    learnableByPokemonIds: ['ninetales', 'ninetales-alola', 'glalie', 'glaceon', 'mamoswine', 'vanilluxe', 'aurorus', 'mr-rime', 'baxcalibur'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -3046,7 +3113,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用大树摔打对手进行攻击。下一回合自己将无法动弹。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['venusaur', 'meganium', 'sceptile', 'torterra', 'serperior', 'chesnaught', 'decidueye', 'decidueye-hisui', 'meowscarada'],
+    learnableByPokemonIds: ['venusaur', 'meganium', 'sceptile', 'torterra', 'serperior', 'chesnaught', 'decidueye', 'decidueye-hisui', 'rillaboom', 'meowscarada'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -3063,7 +3130,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '将冰冷的气息吹向对手进行攻击。必定会击中要害。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['glalie', 'abomasnow', 'glaceon', 'froslass', 'vanilluxe', 'beartic', 'avalugg', 'mr-rime'],
+    learnableByPokemonIds: ['glalie', 'abomasnow', 'glaceon', 'froslass', 'vanilluxe', 'beartic', 'avalugg', 'mr-rime', 'baxcalibur'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -3080,6 +3147,23 @@ export const championsMoves: Move[] = [
     effectSummary: '为了发泄不满而全力攻击对手。亲密度越低，威力越大。',
     legalInCurrentRule: true,
     learnableByPokemonIds: ['rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'aegislash-shield', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'mimikyu-disguised'],
+    sourceRefs: moveSourceRefs,
+  },
+  {
+    id: 'fury-attack',
+    chineseName: '乱击',
+    englishName: 'Fury Attack',
+    type: 'Normal',
+    category: 'Physical',
+    power: 15,
+    accuracy: 85,
+    pp: 20,
+    targetScope: '单体',
+    makesContact: true,
+    affectedByProtect: true,
+    effectSummary: '用角或喙刺向对手进行攻击。连续攻击２～５次。',
+    legalInCurrentRule: true,
+    learnableByPokemonIds: ['squawkabilly-green-plumage', 'squawkabilly-yellow-plumage'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -3113,7 +3197,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '在使用招式２回合后，向对手发送一团念力进行攻击。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['clefable', 'alakazam', 'slowbro', 'slowbro-galar', 'azumarill', 'espeon', 'slowking', 'slowking-galar', 'gardevoir', 'castform', 'chimecho', 'absol', 'metagross', 'gallade', 'musharna', 'reuniclus', 'delphox', 'meowstic-female', 'malamar', 'klefki', 'oranguru', 'hatterene', 'mr-rime', 'wyrdeer', 'farigiraf'],
+    learnableByPokemonIds: ['clefable', 'alakazam', 'slowbro', 'slowbro-galar', 'mr-mime', 'azumarill', 'espeon', 'slowking', 'slowking-galar', 'gardevoir', 'castform', 'chimecho', 'absol', 'metagross', 'gallade', 'musharna', 'reuniclus', 'delphox', 'meowstic-female', 'malamar', 'klefki', 'oranguru', 'hatterene', 'mr-rime', 'indeedee-female', 'indeedee-male', 'wyrdeer', 'farigiraf'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -3129,7 +3213,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '将胃液吐向对手的身体。沾上的胃液会消除对手的特性效果。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['arbok', 'victreebel', 'snorlax', 'serperior', 'eelektross'],
+    learnableByPokemonIds: ['arbok', 'victreebel', 'snorlax', 'swalot', 'serperior', 'eelektross'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -3146,7 +3230,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '吸取对手的养分进行攻击。可以回复给予对手伤害的一半ＨＰ。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['venusaur', 'beedrill', 'arbok', 'vileplume', 'victreebel', 'gengar', 'meganium', 'ariados', 'forretress', 'sceptile', 'sableye', 'torterra', 'roserade', 'abomasnow', 'leafeon', 'serperior', 'simisage', 'whimsicott', 'cofagrigus', 'garbodor', 'eelektross', 'volcarona', 'chesnaught', 'vivillon', 'floette', 'florges', 'goodra', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'decidueye', 'decidueye-hisui', 'araquanid', 'tsareena', 'mimikyu-disguised', 'flapple', 'appletun', 'polteageist', 'hatterene', 'runerigus', 'alcremie', 'meowscarada', 'scovillain', 'sinistcha', 'hydrapple'],
+    learnableByPokemonIds: ['venusaur', 'beedrill', 'arbok', 'vileplume', 'victreebel', 'gengar', 'meganium', 'ariados', 'forretress', 'sceptile', 'sableye', 'swalot', 'torterra', 'roserade', 'abomasnow', 'leafeon', 'serperior', 'simisage', 'whimsicott', 'cofagrigus', 'garbodor', 'eelektross', 'volcarona', 'chesnaught', 'vivillon', 'floette', 'florges', 'gogoat', 'goodra', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'decidueye', 'decidueye-hisui', 'araquanid', 'tsareena', 'mimikyu-disguised', 'rillaboom', 'flapple', 'appletun', 'polteageist', 'hatterene', 'runerigus', 'alcremie', 'meowscarada', 'arboliva', 'scovillain', 'sinistcha', 'hydrapple'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -3163,7 +3247,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '使出自己浑身力量突击对手。下一回合自己将无法动弹。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['venusaur', 'charizard', 'blastoise', 'beedrill', 'pidgeot', 'arbok', 'raichu', 'raichu-alola', 'clefable', 'ninetales', 'ninetales-alola', 'vileplume', 'arcanine', 'arcanine-hisui', 'alakazam', 'machamp', 'victreebel', 'slowbro', 'slowbro-galar', 'gengar', 'kangaskhan', 'starmie', 'pinsir', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'vaporeon', 'jolteon', 'flareon', 'aerodactyl', 'snorlax', 'dragonite', 'meganium', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'ariados', 'ampharos', 'azumarill', 'politoed', 'espeon', 'umbreon', 'slowking', 'slowking-galar', 'forretress', 'steelix', 'qwilfish', 'scizor', 'heracross', 'skarmory', 'houndoom', 'tyranitar', 'sceptile', 'blaziken', 'swampert', 'pelipper', 'gardevoir', 'sableye', 'mawile', 'aggron', 'medicham', 'manectric', 'sharpedo', 'camerupt', 'torkoal', 'altaria', 'milotic', 'banette', 'absol', 'glalie', 'metagross', 'torterra', 'infernape', 'empoleon', 'staraptor', 'luxray', 'roserade', 'rampardos', 'bastiodon', 'lopunny', 'spiritomb', 'garchomp', 'lucario', 'hippowdon', 'toxicroak', 'abomasnow', 'weavile', 'rhyperior', 'leafeon', 'glaceon', 'gliscor', 'mamoswine', 'gallade', 'froslass', 'serperior', 'emboar', 'samurott', 'samurott-hisui', 'watchog', 'liepard', 'simisage', 'simisear', 'simipour', 'musharna', 'excadrill', 'audino', 'conkeldurr', 'scolipede', 'whimsicott', 'krookodile', 'scrafty', 'cofagrigus', 'garbodor', 'zoroark', 'zoroark-hisui', 'reuniclus', 'vanilluxe', 'eelektross', 'chandelure', 'beartic', 'golurk', 'hydreigon', 'volcarona', 'chesnaught', 'delphox', 'greninja', 'diggersby', 'talonflame', 'vivillon', 'pyroar', 'florges', 'pangoro', 'furfrou', 'meowstic-female', 'meowstic-male', 'aegislash-shield', 'aromatisse', 'slurpuff', 'malamar', 'barbaracle', 'dragalge', 'clawitzer', 'heliolisk', 'tyrantrum', 'aurorus', 'sylveon', 'hawlucha', 'dedenne', 'goodra', 'goodra-hisui', 'klefki', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'avalugg', 'avalugg-hisui', 'noivern', 'decidueye', 'decidueye-hisui', 'incineroar', 'primarina', 'toucannon', 'crabominable', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'toxapex', 'mudsdale', 'araquanid', 'salazzle', 'tsareena', 'oranguru', 'passimian', 'mimikyu-disguised', 'drampa', 'kommo-o', 'corviknight', 'flapple', 'appletun', 'sandaconda', 'polteageist', 'hatterene', 'grimmsnarl', 'mr-rime', 'runerigus', 'alcremie', 'falinks', 'dragapult', 'wyrdeer', 'kleavor', 'basculegion-female', 'basculegion-male', 'sneasler', 'overqwil', 'meowscarada', 'skeledirge', 'quaquaval', 'maushold-family-of-four', 'garganacl', 'ceruledge', 'bellibolt', 'scovillain', 'espathra', 'palafin-zero', 'orthworm', 'glimmora', 'houndstone', 'annihilape', 'farigiraf', 'kingambit', 'gholdengo', 'archaludon', 'hydrapple'],
+    learnableByPokemonIds: ['venusaur', 'charizard', 'blastoise', 'beedrill', 'pidgeot', 'arbok', 'raichu', 'raichu-alola', 'clefable', 'ninetales', 'ninetales-alola', 'wigglytuff', 'vileplume', 'persian', 'persian-alola', 'arcanine', 'arcanine-hisui', 'alakazam', 'machamp', 'victreebel', 'slowbro', 'slowbro-galar', 'gengar', 'kangaskhan', 'starmie', 'mr-mime', 'pinsir', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'vaporeon', 'jolteon', 'flareon', 'aerodactyl', 'snorlax', 'dragonite', 'meganium', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'ariados', 'ampharos', 'azumarill', 'politoed', 'espeon', 'umbreon', 'slowking', 'slowking-galar', 'forretress', 'steelix', 'qwilfish', 'scizor', 'heracross', 'skarmory', 'houndoom', 'tyranitar', 'sceptile', 'blaziken', 'swampert', 'pelipper', 'gardevoir', 'sableye', 'mawile', 'aggron', 'medicham', 'manectric', 'swalot', 'sharpedo', 'camerupt', 'torkoal', 'altaria', 'milotic', 'banette', 'absol', 'glalie', 'salamence', 'metagross', 'torterra', 'infernape', 'empoleon', 'staraptor', 'luxray', 'roserade', 'rampardos', 'bastiodon', 'lopunny', 'spiritomb', 'garchomp', 'lucario', 'hippowdon', 'toxicroak', 'abomasnow', 'weavile', 'rhyperior', 'leafeon', 'glaceon', 'gliscor', 'mamoswine', 'gallade', 'froslass', 'serperior', 'emboar', 'samurott', 'samurott-hisui', 'watchog', 'liepard', 'simisage', 'simisear', 'simipour', 'musharna', 'excadrill', 'audino', 'conkeldurr', 'scolipede', 'whimsicott', 'krookodile', 'scrafty', 'cofagrigus', 'garbodor', 'zoroark', 'zoroark-hisui', 'reuniclus', 'vanilluxe', 'eelektross', 'chandelure', 'beartic', 'golurk', 'hydreigon', 'volcarona', 'chesnaught', 'delphox', 'greninja', 'diggersby', 'talonflame', 'vivillon', 'pyroar', 'florges', 'gogoat', 'pangoro', 'furfrou', 'meowstic-female', 'meowstic-male', 'aegislash-shield', 'aromatisse', 'slurpuff', 'malamar', 'barbaracle', 'dragalge', 'clawitzer', 'heliolisk', 'tyrantrum', 'aurorus', 'sylveon', 'hawlucha', 'dedenne', 'goodra', 'goodra-hisui', 'klefki', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'avalugg', 'avalugg-hisui', 'noivern', 'decidueye', 'decidueye-hisui', 'incineroar', 'primarina', 'toucannon', 'crabominable', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'toxapex', 'mudsdale', 'araquanid', 'salazzle', 'tsareena', 'oranguru', 'passimian', 'golisopod', 'mimikyu-disguised', 'drampa', 'kommo-o', 'rillaboom', 'cinderace', 'inteleon', 'corviknight', 'thievul', 'flapple', 'appletun', 'sandaconda', 'toxtricity-amped', 'toxtricity-low-key', 'grapploct', 'polteageist', 'hatterene', 'grimmsnarl', 'perrserker', 'mr-rime', 'runerigus', 'alcremie', 'falinks', 'pincurchin', 'dragapult', 'wyrdeer', 'kleavor', 'basculegion-female', 'basculegion-male', 'sneasler', 'overqwil', 'meowscarada', 'skeledirge', 'quaquaval', 'pawmot', 'maushold-family-of-four', 'arboliva', 'squawkabilly-green-plumage', 'squawkabilly-yellow-plumage', 'garganacl', 'ceruledge', 'bellibolt', 'mabosstiff', 'scovillain', 'espathra', 'palafin-zero', 'orthworm', 'glimmora', 'houndstone', 'annihilape', 'farigiraf', 'kingambit', 'baxcalibur', 'gholdengo', 'archaludon', 'hydrapple'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -3181,6 +3265,23 @@ export const championsMoves: Move[] = [
     effectSummary: '连同身体转起巨大的锤子进行攻击。这个招式无法连续使出２次。',
     legalInCurrentRule: true,
     learnableByPokemonIds: ['tinkaton'],
+    sourceRefs: moveSourceRefs,
+  },
+  {
+    id: 'glaive-rush',
+    chineseName: '巨剑突击',
+    englishName: 'Glaive Rush',
+    type: 'Dragon',
+    category: 'Physical',
+    power: 120,
+    accuracy: 100,
+    pp: 5,
+    targetScope: '单体',
+    makesContact: true,
+    affectedByProtect: true,
+    effectSummary: '有勇无谋的舍身突击。使出招式后，对手的攻击必定会命中，且伤害会变成２倍。',
+    legalInCurrentRule: true,
+    learnableByPokemonIds: ['baxcalibur'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -3212,7 +3313,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用草缠住并绊倒对手。对手越重，威力越大。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['venusaur', 'pikachu', 'raichu', 'raichu-alola', 'clefable', 'vileplume', 'alakazam', 'victreebel', 'slowbro', 'slowbro-galar', 'starmie', 'meganium', 'azumarill', 'espeon', 'slowking', 'slowking-galar', 'sceptile', 'gardevoir', 'mawile', 'medicham', 'chimecho', 'metagross', 'torterra', 'infernape', 'empoleon', 'roserade', 'lopunny', 'abomasnow', 'leafeon', 'gallade', 'serperior', 'emboar', 'samurott', 'samurott-hisui', 'watchog', 'liepard', 'simisage', 'simisear', 'simipour', 'audino', 'conkeldurr', 'whimsicott', 'krookodile', 'scrafty', 'cofagrigus', 'zoroark', 'zoroark-hisui', 'reuniclus', 'eelektross', 'beartic', 'golurk', 'chesnaught', 'delphox', 'greninja', 'diggersby', 'floette', 'florges', 'pangoro', 'furfrou', 'barbaracle', 'heliolisk', 'hawlucha', 'dedenne', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'decidueye', 'decidueye-hisui', 'tsareena', 'passimian', 'drampa', 'flapple', 'appletun', 'mr-rime', 'runerigus', 'sneasler', 'meowscarada', 'maushold-family-of-four', 'scovillain', 'palafin-zero', 'farigiraf', 'kingambit', 'hydrapple'],
+    learnableByPokemonIds: ['venusaur', 'pikachu', 'raichu', 'raichu-alola', 'clefable', 'wigglytuff', 'vileplume', 'alakazam', 'victreebel', 'slowbro', 'slowbro-galar', 'starmie', 'mr-mime', 'meganium', 'azumarill', 'espeon', 'slowking', 'slowking-galar', 'sceptile', 'gardevoir', 'mawile', 'medicham', 'chimecho', 'metagross', 'torterra', 'infernape', 'empoleon', 'roserade', 'lopunny', 'abomasnow', 'leafeon', 'gallade', 'serperior', 'emboar', 'samurott', 'samurott-hisui', 'watchog', 'liepard', 'simisage', 'simisear', 'simipour', 'audino', 'conkeldurr', 'whimsicott', 'krookodile', 'scrafty', 'cofagrigus', 'zoroark', 'zoroark-hisui', 'reuniclus', 'eelektross', 'beartic', 'golurk', 'chesnaught', 'delphox', 'greninja', 'diggersby', 'floette', 'florges', 'gogoat', 'pangoro', 'furfrou', 'barbaracle', 'heliolisk', 'hawlucha', 'dedenne', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'decidueye', 'decidueye-hisui', 'tsareena', 'passimian', 'drampa', 'rillaboom', 'thievul', 'flapple', 'appletun', 'mr-rime', 'runerigus', 'sneasler', 'meowscarada', 'pawmot', 'maushold-family-of-four', 'arboliva', 'scovillain', 'palafin-zero', 'farigiraf', 'kingambit', 'hydrapple'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -3229,7 +3330,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '仿佛在地面上滑行般地攻击对手。在青草场地上，必定能够先制攻击。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['venusaur', 'vileplume', 'victreebel', 'meganium', 'sceptile', 'torterra', 'roserade', 'abomasnow', 'leafeon', 'serperior', 'simisage', 'whimsicott', 'chesnaught', 'florges', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'decidueye', 'decidueye-hisui', 'tsareena', 'flapple', 'appletun', 'meowscarada', 'scovillain', 'hydrapple'],
+    learnableByPokemonIds: ['venusaur', 'vileplume', 'victreebel', 'meganium', 'sceptile', 'torterra', 'roserade', 'abomasnow', 'leafeon', 'serperior', 'simisage', 'whimsicott', 'chesnaught', 'florges', 'gogoat', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'decidueye', 'decidueye-hisui', 'tsareena', 'rillaboom', 'flapple', 'appletun', 'sirfetchd', 'meowscarada', 'scovillain', 'hydrapple'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -3244,7 +3345,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '在５回合内变成青草场地。地面上的宝可梦每回合都能回复。草属性的招式威力还会提高。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['venusaur', 'vileplume', 'meganium', 'sceptile', 'torterra', 'roserade', 'serperior', 'whimsicott', 'chesnaught', 'floette', 'florges', 'trevenant', 'decidueye', 'decidueye-hisui', 'tsareena', 'flapple', 'appletun', 'meowscarada', 'scovillain', 'sinistcha', 'hydrapple'],
+    learnableByPokemonIds: ['venusaur', 'vileplume', 'meganium', 'sceptile', 'torterra', 'roserade', 'serperior', 'whimsicott', 'chesnaught', 'floette', 'florges', 'gogoat', 'trevenant', 'decidueye', 'decidueye-hisui', 'tsareena', 'rillaboom', 'flapple', 'appletun', 'meowscarada', 'arboliva', 'scovillain', 'sinistcha', 'hydrapple'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -3253,7 +3354,7 @@ export const championsMoves: Move[] = [
     englishName: 'Grav Apple',
     type: 'Grass',
     category: 'Physical',
-    power: 80,
+    power: 90,
     accuracy: 100,
     pp: 10,
     targetScope: '单体',
@@ -3276,7 +3377,23 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '在５回合内，飘浮特性和飞行属性的宝可梦会被地面属性的招式击中。飞向空中的招式也将无法使用。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['clefable', 'starmie', 'espeon', 'forretress', 'gardevoir', 'sableye', 'medicham', 'chimecho', 'metagross', 'glaceon', 'reuniclus', 'golurk', 'meowstic-female', 'meowstic-male', 'malamar', 'oranguru', 'hatterene', 'wyrdeer', 'garganacl', 'farigiraf'],
+    learnableByPokemonIds: ['clefable', 'wigglytuff', 'starmie', 'espeon', 'forretress', 'gardevoir', 'sableye', 'medicham', 'chimecho', 'metagross', 'glaceon', 'reuniclus', 'golurk', 'meowstic-female', 'meowstic-male', 'malamar', 'oranguru', 'hatterene', 'indeedee-female', 'indeedee-male', 'wyrdeer', 'garganacl', 'farigiraf'],
+    sourceRefs: moveSourceRefs,
+  },
+  {
+    id: 'growl',
+    chineseName: '叫声',
+    englishName: 'Growl',
+    type: 'Normal',
+    category: 'Status',
+    accuracy: 100,
+    pp: 40,
+    targetScope: '对手全体',
+    makesContact: false,
+    affectedByProtect: true,
+    effectSummary: '让对手听可爱的叫声，引开注意力使其疏忽，从而降低对手的攻击。',
+    legalInCurrentRule: true,
+    learnableByPokemonIds: ['pawmot', 'squawkabilly-green-plumage', 'squawkabilly-yellow-plumage'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -3291,7 +3408,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '让身体一下子长大，从而提高攻击和特攻。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['venusaur', 'vileplume', 'victreebel', 'camerupt', 'torterra', 'roserade', 'abomasnow', 'serperior', 'whimsicott', 'chesnaught', 'trevenant', 'flapple', 'appletun', 'scovillain', 'hydrapple'],
+    learnableByPokemonIds: ['venusaur', 'vileplume', 'victreebel', 'camerupt', 'torterra', 'roserade', 'abomasnow', 'serperior', 'whimsicott', 'chesnaught', 'gogoat', 'trevenant', 'rillaboom', 'flapple', 'appletun', 'arboliva', 'scovillain', 'hydrapple'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -3336,7 +3453,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '利用超能力互换自己和对手的防御以及特防的能力变化。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['alakazam', 'umbreon', 'gardevoir', 'mawile', 'medicham', 'castform', 'musharna', 'cofagrigus', 'reuniclus', 'malamar', 'hatterene', 'mr-rime', 'runerigus', 'farigiraf'],
+    learnableByPokemonIds: ['alakazam', 'mr-mime', 'umbreon', 'gardevoir', 'mawile', 'medicham', 'castform', 'musharna', 'cofagrigus', 'reuniclus', 'malamar', 'hatterene', 'mr-rime', 'runerigus', 'farigiraf'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -3369,7 +3486,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用肮脏的垃圾撞向对手进行攻击。有时会让对手陷入中毒状态。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['arbok', 'slowbro', 'slowbro-galar', 'gengar', 'snorlax', 'slowking', 'slowking-galar', 'qwilfish', 'pelipper', 'banette', 'infernape', 'toxicroak', 'gliscor', 'watchog', 'liepard', 'simisage', 'simisear', 'simipour', 'scolipede', 'krookodile', 'garbodor', 'greninja', 'diggersby', 'pangoro', 'dragalge', 'toucannon', 'crabominable', 'toxapex', 'salazzle', 'passimian', 'sneasler', 'overqwil', 'glimmora', 'annihilape'],
+    learnableByPokemonIds: ['arbok', 'persian', 'persian-alola', 'slowbro', 'slowbro-galar', 'gengar', 'snorlax', 'slowking', 'slowking-galar', 'qwilfish', 'pelipper', 'swalot', 'banette', 'infernape', 'toxicroak', 'gliscor', 'watchog', 'liepard', 'simisage', 'simisear', 'simipour', 'scolipede', 'krookodile', 'garbodor', 'greninja', 'diggersby', 'pangoro', 'dragalge', 'toucannon', 'crabominable', 'toxapex', 'salazzle', 'passimian', 'golisopod', 'cinderace', 'toxtricity-amped', 'toxtricity-low-key', 'perrserker', 'sneasler', 'overqwil', 'glimmora', 'annihilape'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -3385,7 +3502,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '让身体高速旋转并撞击对手。速度比对手越慢，威力越大。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['blastoise', 'starmie', 'typhlosion', 'typhlosion-hisui', 'forretress', 'steelix', 'qwilfish', 'sableye', 'torkoal', 'glalie', 'metagross', 'emboar', 'musharna', 'scolipede', 'reuniclus', 'golurk', 'chesnaught', 'aegislash-shield', 'aromatisse', 'goodra', 'goodra-hisui', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'avalugg', 'avalugg-hisui', 'passimian', 'appletun', 'overqwil', 'archaludon', 'hydrapple'],
+    learnableByPokemonIds: ['blastoise', 'wigglytuff', 'starmie', 'typhlosion', 'typhlosion-hisui', 'forretress', 'steelix', 'qwilfish', 'sableye', 'torkoal', 'glalie', 'metagross', 'emboar', 'musharna', 'scolipede', 'reuniclus', 'golurk', 'chesnaught', 'aegislash-shield', 'aromatisse', 'goodra', 'goodra-hisui', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'avalugg', 'avalugg-hisui', 'passimian', 'appletun', 'perrserker', 'overqwil', 'archaludon', 'hydrapple'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -3402,7 +3519,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '挥舞强力而沉重的拳头，给予对手伤害。自己的速度会降低。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['kangaskhan', 'snorlax', 'swampert', 'metagross', 'rampardos', 'rhyperior', 'emboar', 'conkeldurr', 'reuniclus', 'golurk', 'chesnaught', 'diggersby', 'pangoro', 'grimmsnarl', 'garganacl'],
+    learnableByPokemonIds: ['kangaskhan', 'snorlax', 'swampert', 'metagross', 'rampardos', 'rhyperior', 'emboar', 'conkeldurr', 'reuniclus', 'golurk', 'chesnaught', 'diggersby', 'pangoro', 'rillaboom', 'grimmsnarl', 'garganacl'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -3434,7 +3551,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '升起黑雾，将正在场上战斗的全体宝可梦的能力变回原点。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['blastoise', 'arbok', 'slowbro', 'slowbro-galar', 'gengar', 'vaporeon', 'dragonite', 'politoed', 'qwilfish', 'altaria', 'milotic', 'empoleon', 'glaceon', 'mamoswine', 'froslass', 'cofagrigus', 'garbodor', 'chandelure', 'greninja', 'dragalge', 'aurorus', 'trevenant', 'decidueye', 'decidueye-hisui', 'primarina', 'toxapex', 'mr-rime', 'runerigus', 'overqwil', 'palafin-zero'],
+    learnableByPokemonIds: ['blastoise', 'arbok', 'slowbro', 'slowbro-galar', 'gengar', 'vaporeon', 'dragonite', 'politoed', 'qwilfish', 'altaria', 'milotic', 'empoleon', 'glaceon', 'mamoswine', 'froslass', 'cofagrigus', 'garbodor', 'chandelure', 'greninja', 'dragalge', 'aurorus', 'trevenant', 'decidueye', 'decidueye-hisui', 'primarina', 'toxapex', 'inteleon', 'mr-rime', 'runerigus', 'overqwil', 'palafin-zero'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -3498,7 +3615,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '放出治愈波动，从而回复对手最大ＨＰ的一半。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['clefable', 'slowbro', 'slowbro-galar', 'meganium', 'slowking', 'slowking-galar', 'gardevoir', 'chimecho', 'lucario', 'gallade', 'audino', 'aromatisse', 'clawitzer', 'hatterene'],
+    learnableByPokemonIds: ['clefable', 'wigglytuff', 'slowbro', 'slowbro-galar', 'meganium', 'slowking', 'slowking-galar', 'gardevoir', 'chimecho', 'lucario', 'gallade', 'audino', 'aromatisse', 'clawitzer', 'hatterene'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -3513,7 +3630,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '虽然自己陷入昏厥，但可以治愈后备上场的宝可梦的异常状态以及回复ＨＰ。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['clefable', 'ninetales', 'gardevoir', 'chimecho', 'lopunny', 'musharna', 'audino', 'hatterene'],
+    learnableByPokemonIds: ['clefable', 'ninetales', 'gardevoir', 'chimecho', 'lopunny', 'musharna', 'audino', 'hatterene', 'indeedee-female', 'indeedee-male'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -3546,7 +3663,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '将炎热的气息吹向对手进行攻击。有时会让对手陷入灼伤状态。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['charizard', 'pidgeot', 'ninetales', 'arcanine', 'arcanine-hisui', 'flareon', 'aerodactyl', 'dragonite', 'typhlosion', 'typhlosion-hisui', 'houndoom', 'blaziken', 'camerupt', 'torkoal', 'altaria', 'infernape', 'staraptor', 'emboar', 'simisear', 'chandelure', 'hydreigon', 'volcarona', 'delphox', 'talonflame', 'pyroar', 'noivern', 'incineroar', 'toucannon', 'salazzle', 'drampa', 'skeledirge', 'armarouge', 'ceruledge'],
+    learnableByPokemonIds: ['charizard', 'pidgeot', 'ninetales', 'arcanine', 'arcanine-hisui', 'farfetchd', 'flareon', 'aerodactyl', 'dragonite', 'typhlosion', 'typhlosion-hisui', 'houndoom', 'blaziken', 'camerupt', 'torkoal', 'altaria', 'salamence', 'infernape', 'staraptor', 'emboar', 'simisear', 'chandelure', 'hydreigon', 'volcarona', 'delphox', 'talonflame', 'pyroar', 'noivern', 'incineroar', 'toucannon', 'salazzle', 'drampa', 'cinderace', 'skeledirge', 'squawkabilly-green-plumage', 'squawkabilly-yellow-plumage', 'armarouge', 'ceruledge'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -3562,7 +3679,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用沉重的身体撞向对手进行攻击。自己比对手越重，威力越大。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['machamp', 'snorlax', 'forretress', 'steelix', 'tyranitar', 'aggron', 'camerupt', 'torkoal', 'torterra', 'rampardos', 'bastiodon', 'hippowdon', 'rhyperior', 'mamoswine', 'emboar', 'eelektross', 'beartic', 'golurk', 'goodra', 'goodra-hisui', 'avalugg', 'avalugg-hisui', 'mudsdale', 'corviknight', 'flapple', 'appletun', 'garganacl', 'tinkaton', 'orthworm', 'gholdengo', 'archaludon', 'hydrapple'],
+    learnableByPokemonIds: ['machamp', 'snorlax', 'forretress', 'steelix', 'tyranitar', 'aggron', 'camerupt', 'torkoal', 'torterra', 'rampardos', 'bastiodon', 'hippowdon', 'rhyperior', 'mamoswine', 'emboar', 'eelektross', 'beartic', 'golurk', 'goodra', 'goodra-hisui', 'avalugg', 'avalugg-hisui', 'mudsdale', 'corviknight', 'flapple', 'appletun', 'perrserker', 'garganacl', 'tinkaton', 'orthworm', 'gholdengo', 'archaludon', 'hydrapple'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -3577,7 +3694,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '帮助伙伴。被帮助的宝可梦，其招式威力变得比平时大。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['venusaur', 'charizard', 'blastoise', 'pikachu', 'raichu', 'raichu-alola', 'clefable', 'ninetales', 'ninetales-alola', 'vileplume', 'arcanine', 'arcanine-hisui', 'machamp', 'slowbro', 'slowbro-galar', 'kangaskhan', 'pinsir', 'tauros', 'gyarados', 'vaporeon', 'jolteon', 'flareon', 'snorlax', 'dragonite', 'meganium', 'typhlosion', 'feraligatr', 'ampharos', 'azumarill', 'politoed', 'espeon', 'umbreon', 'slowking', 'slowking-galar', 'forretress', 'scizor', 'heracross', 'houndoom', 'tyranitar', 'sceptile', 'blaziken', 'swampert', 'pelipper', 'gardevoir', 'sableye', 'mawile', 'medicham', 'camerupt', 'torkoal', 'altaria', 'milotic', 'banette', 'chimecho', 'glalie', 'infernape', 'empoleon', 'staraptor', 'luxray', 'lopunny', 'spiritomb', 'garchomp', 'lucario', 'hippowdon', 'toxicroak', 'abomasnow', 'weavile', 'rhyperior', 'leafeon', 'glaceon', 'gallade', 'froslass', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'serperior', 'emboar', 'samurott', 'samurott-hisui', 'watchog', 'simisage', 'simisear', 'simipour', 'musharna', 'excadrill', 'audino', 'conkeldurr', 'whimsicott', 'krookodile', 'scrafty', 'zoroark', 'zoroark-hisui', 'reuniclus', 'emolga', 'golurk', 'hydreigon', 'chesnaught', 'delphox', 'greninja', 'pyroar', 'floette', 'florges', 'pangoro', 'furfrou', 'meowstic-female', 'meowstic-male', 'aromatisse', 'slurpuff', 'malamar', 'barbaracle', 'clawitzer', 'sylveon', 'hawlucha', 'dedenne', 'decidueye', 'decidueye-hisui', 'incineroar', 'primarina', 'toucannon', 'crabominable', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'salazzle', 'tsareena', 'drampa', 'kommo-o', 'appletun', 'hatterene', 'mr-rime', 'alcremie', 'falinks', 'dragapult', 'wyrdeer', 'kleavor', 'meowscarada', 'skeledirge', 'quaquaval', 'maushold-family-of-four', 'garganacl', 'armarouge', 'ceruledge', 'scovillain', 'espathra', 'tinkaton', 'palafin-zero', 'orthworm', 'houndstone', 'annihilape', 'farigiraf'],
+    learnableByPokemonIds: ['venusaur', 'charizard', 'blastoise', 'pikachu', 'raichu', 'raichu-alola', 'clefable', 'ninetales', 'ninetales-alola', 'wigglytuff', 'vileplume', 'persian', 'persian-alola', 'arcanine', 'arcanine-hisui', 'machamp', 'slowbro', 'slowbro-galar', 'farfetchd', 'kangaskhan', 'mr-mime', 'pinsir', 'tauros', 'gyarados', 'vaporeon', 'jolteon', 'flareon', 'snorlax', 'dragonite', 'meganium', 'typhlosion', 'feraligatr', 'ampharos', 'azumarill', 'politoed', 'espeon', 'umbreon', 'slowking', 'slowking-galar', 'forretress', 'scizor', 'heracross', 'houndoom', 'tyranitar', 'sceptile', 'blaziken', 'swampert', 'pelipper', 'gardevoir', 'sableye', 'mawile', 'medicham', 'swalot', 'camerupt', 'torkoal', 'altaria', 'milotic', 'banette', 'chimecho', 'glalie', 'salamence', 'infernape', 'empoleon', 'staraptor', 'luxray', 'lopunny', 'spiritomb', 'garchomp', 'lucario', 'hippowdon', 'toxicroak', 'abomasnow', 'weavile', 'rhyperior', 'leafeon', 'glaceon', 'gallade', 'froslass', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'serperior', 'emboar', 'samurott', 'samurott-hisui', 'watchog', 'simisage', 'simisear', 'simipour', 'musharna', 'excadrill', 'audino', 'conkeldurr', 'whimsicott', 'krookodile', 'scrafty', 'zoroark', 'zoroark-hisui', 'reuniclus', 'emolga', 'golurk', 'hydreigon', 'chesnaught', 'delphox', 'greninja', 'pyroar', 'floette', 'florges', 'gogoat', 'pangoro', 'furfrou', 'meowstic-female', 'meowstic-male', 'aromatisse', 'slurpuff', 'malamar', 'barbaracle', 'clawitzer', 'sylveon', 'hawlucha', 'dedenne', 'decidueye', 'decidueye-hisui', 'incineroar', 'primarina', 'toucannon', 'crabominable', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'salazzle', 'tsareena', 'drampa', 'kommo-o', 'cinderace', 'appletun', 'toxtricity-amped', 'toxtricity-low-key', 'hatterene', 'perrserker', 'sirfetchd', 'mr-rime', 'alcremie', 'falinks', 'indeedee-female', 'indeedee-male', 'dragapult', 'wyrdeer', 'kleavor', 'meowscarada', 'skeledirge', 'quaquaval', 'pawmot', 'maushold-family-of-four', 'arboliva', 'squawkabilly-green-plumage', 'squawkabilly-yellow-plumage', 'garganacl', 'armarouge', 'ceruledge', 'mabosstiff', 'scovillain', 'espathra', 'tinkaton', 'palafin-zero', 'orthworm', 'houndstone', 'annihilape', 'farigiraf', 'baxcalibur'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -3594,7 +3711,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '接二连三地进行攻击。对处于异常状态的对手给予较大的伤害。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['ninetales', 'ninetales-alola', 'gengar', 'typhlosion', 'typhlosion-hisui', 'ariados', 'slowking', 'slowking-galar', 'qwilfish', 'sableye', 'castform', 'banette', 'absol', 'glalie', 'spiritomb', 'gallade', 'froslass', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'scolipede', 'cofagrigus', 'zoroark', 'zoroark-hisui', 'eelektross', 'chandelure', 'golurk', 'delphox', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'decidueye', 'toxapex', 'mimikyu-disguised', 'polteageist', 'runerigus', 'dragapult', 'basculegion-female', 'basculegion-male', 'overqwil', 'skeledirge', 'ceruledge', 'espathra', 'houndstone', 'gholdengo', 'sinistcha'],
+    learnableByPokemonIds: ['ninetales', 'ninetales-alola', 'gengar', 'typhlosion', 'typhlosion-hisui', 'ariados', 'slowking', 'slowking-galar', 'qwilfish', 'sableye', 'castform', 'banette', 'absol', 'glalie', 'spiritomb', 'gallade', 'froslass', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'scolipede', 'cofagrigus', 'zoroark', 'zoroark-hisui', 'eelektross', 'chandelure', 'golurk', 'delphox', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'decidueye', 'toxapex', 'mimikyu-disguised', 'toxtricity-amped', 'toxtricity-low-key', 'polteageist', 'runerigus', 'pincurchin', 'dragapult', 'basculegion-female', 'basculegion-male', 'overqwil', 'skeledirge', 'ceruledge', 'espathra', 'houndstone', 'gholdengo', 'sinistcha'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -3628,7 +3745,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '使出全身力量，猛攻对手。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['machamp', 'pinsir', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'snorlax', 'steelix', 'heracross', 'tyranitar', 'swampert', 'aggron', 'camerupt', 'torterra', 'hippowdon', 'rhyperior', 'gliscor', 'mamoswine', 'emboar', 'excadrill', 'conkeldurr', 'krookodile', 'golurk', 'chesnaught', 'diggersby', 'tyrantrum', 'avalugg', 'avalugg-hisui', 'mudsdale', 'appletun', 'sandaconda', 'falinks', 'wyrdeer', 'orthworm', 'farigiraf'],
+    learnableByPokemonIds: ['machamp', 'pinsir', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'snorlax', 'steelix', 'heracross', 'tyranitar', 'swampert', 'aggron', 'camerupt', 'torterra', 'hippowdon', 'rhyperior', 'gliscor', 'mamoswine', 'emboar', 'excadrill', 'conkeldurr', 'krookodile', 'golurk', 'chesnaught', 'diggersby', 'gogoat', 'tyrantrum', 'avalugg', 'avalugg-hisui', 'mudsdale', 'rillaboom', 'appletun', 'sandaconda', 'falinks', 'wyrdeer', 'orthworm', 'farigiraf', 'baxcalibur'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -3645,7 +3762,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '跳起后用膝盖撞对手进行攻击。如果撞偏则自己会受到伤害。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['blaziken', 'medicham', 'lopunny', 'lucario', 'scrafty', 'hawlucha', 'tsareena'],
+    learnableByPokemonIds: ['blaziken', 'medicham', 'lopunny', 'lucario', 'scrafty', 'hawlucha', 'tsareena', 'cinderace'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -3693,7 +3810,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '将角刺入，吸取对手的养分。可以回复给予对手伤害的一半ＨＰ。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['trevenant'],
+    learnableByPokemonIds: ['gogoat', 'trevenant'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -3708,7 +3825,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '大声吼叫提高气势，从而提高自己和同伴的攻击。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['ninetales', 'ninetales-alola', 'arcanine', 'arcanine-hisui', 'typhlosion', 'typhlosion-hisui', 'houndoom', 'manectric', 'camerupt', 'luxray', 'lucario', 'delphox', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'houndstone'],
+    learnableByPokemonIds: ['ninetales', 'ninetales-alola', 'arcanine', 'arcanine-hisui', 'typhlosion', 'typhlosion-hisui', 'houndoom', 'manectric', 'camerupt', 'luxray', 'lucario', 'delphox', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'thievul', 'houndstone'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -3725,7 +3842,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用强烈的风席卷对手进行攻击。有时会使对手混乱。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['charizard', 'pidgeot', 'gyarados', 'aerodactyl', 'dragonite', 'skarmory', 'pelipper', 'altaria', 'castform', 'staraptor', 'whimsicott', 'volcarona', 'talonflame', 'vivillon', 'noivern', 'decidueye', 'toucannon', 'drampa', 'corviknight', 'sandaconda', 'quaquaval'],
+    learnableByPokemonIds: ['charizard', 'pidgeot', 'gyarados', 'aerodactyl', 'dragonite', 'skarmory', 'pelipper', 'altaria', 'castform', 'salamence', 'staraptor', 'whimsicott', 'volcarona', 'talonflame', 'vivillon', 'noivern', 'decidueye', 'toucannon', 'drampa', 'corviknight', 'sandaconda', 'quaquaval', 'squawkabilly-green-plumage', 'squawkabilly-yellow-plumage'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -3742,7 +3859,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '向对手喷射水炮进行攻击。下一回合自己将无法动弹。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['blastoise', 'feraligatr', 'swampert', 'empoleon', 'samurott', 'samurott-hisui', 'greninja', 'primarina', 'quaquaval'],
+    learnableByPokemonIds: ['blastoise', 'feraligatr', 'swampert', 'empoleon', 'samurott', 'samurott-hisui', 'greninja', 'primarina', 'inteleon', 'quaquaval'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -3759,7 +3876,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '向对手猛烈地喷射大量水流进行攻击。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['blastoise', 'slowbro', 'slowbro-galar', 'kangaskhan', 'starmie', 'tauros', 'tauros-paldea-aqua-breed', 'gyarados', 'vaporeon', 'snorlax', 'dragonite', 'feraligatr', 'azumarill', 'politoed', 'slowking', 'slowking-galar', 'qwilfish', 'tyranitar', 'swampert', 'pelipper', 'aggron', 'sharpedo', 'milotic', 'castform', 'empoleon', 'rhyperior', 'rotom', 'rotom-wash', 'samurott', 'samurott-hisui', 'simipour', 'hydreigon', 'greninja', 'dragalge', 'clawitzer', 'goodra', 'goodra-hisui', 'avalugg', 'primarina', 'toxapex', 'araquanid', 'drampa', 'dragapult', 'basculegion-female', 'basculegion-male', 'overqwil', 'quaquaval', 'palafin-zero', 'hydrapple'],
+    learnableByPokemonIds: ['blastoise', 'slowbro', 'slowbro-galar', 'kangaskhan', 'starmie', 'tauros', 'tauros-paldea-aqua-breed', 'gyarados', 'vaporeon', 'snorlax', 'dragonite', 'feraligatr', 'azumarill', 'politoed', 'slowking', 'slowking-galar', 'qwilfish', 'tyranitar', 'swampert', 'pelipper', 'aggron', 'sharpedo', 'milotic', 'castform', 'salamence', 'empoleon', 'rhyperior', 'rotom', 'rotom-wash', 'samurott', 'samurott-hisui', 'simipour', 'hydreigon', 'greninja', 'dragalge', 'clawitzer', 'goodra', 'goodra-hisui', 'avalugg', 'primarina', 'toxapex', 'araquanid', 'drampa', 'inteleon', 'grapploct', 'pincurchin', 'dragapult', 'basculegion-female', 'basculegion-male', 'overqwil', 'quaquaval', 'palafin-zero', 'hydrapple'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -3776,7 +3893,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '向对手发射强烈的光线进行攻击。下一回合自己将无法动弹。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['venusaur', 'charizard', 'blastoise', 'beedrill', 'pidgeot', 'arbok', 'raichu', 'raichu-alola', 'clefable', 'ninetales', 'ninetales-alola', 'vileplume', 'arcanine', 'arcanine-hisui', 'alakazam', 'machamp', 'victreebel', 'slowbro', 'slowbro-galar', 'gengar', 'kangaskhan', 'starmie', 'pinsir', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'vaporeon', 'jolteon', 'flareon', 'aerodactyl', 'snorlax', 'dragonite', 'meganium', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'ariados', 'ampharos', 'azumarill', 'politoed', 'espeon', 'umbreon', 'slowking', 'slowking-galar', 'forretress', 'steelix', 'scizor', 'heracross', 'skarmory', 'houndoom', 'tyranitar', 'sceptile', 'blaziken', 'swampert', 'pelipper', 'gardevoir', 'sableye', 'mawile', 'aggron', 'medicham', 'manectric', 'sharpedo', 'camerupt', 'torkoal', 'altaria', 'milotic', 'banette', 'absol', 'glalie', 'metagross', 'torterra', 'infernape', 'empoleon', 'staraptor', 'luxray', 'roserade', 'rampardos', 'bastiodon', 'lopunny', 'spiritomb', 'garchomp', 'lucario', 'hippowdon', 'toxicroak', 'abomasnow', 'weavile', 'rhyperior', 'leafeon', 'glaceon', 'gliscor', 'mamoswine', 'gallade', 'froslass', 'serperior', 'emboar', 'samurott', 'samurott-hisui', 'watchog', 'liepard', 'simisage', 'simisear', 'simipour', 'musharna', 'excadrill', 'audino', 'conkeldurr', 'scolipede', 'whimsicott', 'krookodile', 'scrafty', 'cofagrigus', 'garbodor', 'zoroark', 'zoroark-hisui', 'reuniclus', 'vanilluxe', 'eelektross', 'chandelure', 'beartic', 'golurk', 'hydreigon', 'volcarona', 'chesnaught', 'delphox', 'greninja', 'diggersby', 'talonflame', 'vivillon', 'pyroar', 'floette', 'florges', 'pangoro', 'meowstic-female', 'meowstic-male', 'aegislash-shield', 'aromatisse', 'slurpuff', 'malamar', 'barbaracle', 'dragalge', 'clawitzer', 'heliolisk', 'tyrantrum', 'aurorus', 'sylveon', 'hawlucha', 'dedenne', 'goodra', 'goodra-hisui', 'klefki', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'avalugg', 'avalugg-hisui', 'noivern', 'decidueye', 'decidueye-hisui', 'incineroar', 'primarina', 'toucannon', 'crabominable', 'toxapex', 'mudsdale', 'araquanid', 'salazzle', 'tsareena', 'oranguru', 'passimian', 'mimikyu-disguised', 'drampa', 'kommo-o', 'corviknight', 'flapple', 'appletun', 'sandaconda', 'polteageist', 'hatterene', 'grimmsnarl', 'mr-rime', 'runerigus', 'alcremie', 'falinks', 'dragapult', 'wyrdeer', 'kleavor', 'basculegion-female', 'basculegion-male', 'sneasler', 'overqwil', 'meowscarada', 'skeledirge', 'quaquaval', 'maushold-family-of-four', 'garganacl', 'armarouge', 'bellibolt', 'scovillain', 'espathra', 'palafin-zero', 'orthworm', 'glimmora', 'houndstone', 'annihilape', 'farigiraf', 'kingambit', 'gholdengo', 'sinistcha', 'archaludon', 'hydrapple'],
+    learnableByPokemonIds: ['venusaur', 'charizard', 'blastoise', 'beedrill', 'pidgeot', 'arbok', 'raichu', 'raichu-alola', 'clefable', 'ninetales', 'ninetales-alola', 'wigglytuff', 'vileplume', 'persian', 'persian-alola', 'arcanine', 'arcanine-hisui', 'alakazam', 'machamp', 'victreebel', 'slowbro', 'slowbro-galar', 'gengar', 'kangaskhan', 'starmie', 'mr-mime', 'pinsir', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'vaporeon', 'jolteon', 'flareon', 'aerodactyl', 'snorlax', 'dragonite', 'meganium', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'ariados', 'ampharos', 'azumarill', 'politoed', 'espeon', 'umbreon', 'slowking', 'slowking-galar', 'forretress', 'steelix', 'scizor', 'heracross', 'skarmory', 'houndoom', 'tyranitar', 'sceptile', 'blaziken', 'swampert', 'pelipper', 'gardevoir', 'sableye', 'mawile', 'aggron', 'medicham', 'manectric', 'swalot', 'sharpedo', 'camerupt', 'torkoal', 'altaria', 'milotic', 'banette', 'absol', 'glalie', 'salamence', 'metagross', 'torterra', 'infernape', 'empoleon', 'staraptor', 'luxray', 'roserade', 'rampardos', 'bastiodon', 'lopunny', 'spiritomb', 'garchomp', 'lucario', 'hippowdon', 'toxicroak', 'abomasnow', 'weavile', 'rhyperior', 'leafeon', 'glaceon', 'gliscor', 'mamoswine', 'gallade', 'froslass', 'serperior', 'emboar', 'samurott', 'samurott-hisui', 'watchog', 'liepard', 'simisage', 'simisear', 'simipour', 'musharna', 'excadrill', 'audino', 'conkeldurr', 'scolipede', 'whimsicott', 'krookodile', 'scrafty', 'cofagrigus', 'garbodor', 'zoroark', 'zoroark-hisui', 'reuniclus', 'vanilluxe', 'eelektross', 'chandelure', 'beartic', 'golurk', 'hydreigon', 'volcarona', 'chesnaught', 'delphox', 'greninja', 'diggersby', 'talonflame', 'vivillon', 'pyroar', 'floette', 'florges', 'gogoat', 'pangoro', 'meowstic-female', 'meowstic-male', 'aegislash-shield', 'aromatisse', 'slurpuff', 'malamar', 'barbaracle', 'dragalge', 'clawitzer', 'heliolisk', 'tyrantrum', 'aurorus', 'sylveon', 'hawlucha', 'dedenne', 'goodra', 'goodra-hisui', 'klefki', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'avalugg', 'avalugg-hisui', 'noivern', 'decidueye', 'decidueye-hisui', 'incineroar', 'primarina', 'toucannon', 'crabominable', 'toxapex', 'mudsdale', 'araquanid', 'salazzle', 'tsareena', 'oranguru', 'passimian', 'golisopod', 'mimikyu-disguised', 'drampa', 'kommo-o', 'rillaboom', 'cinderace', 'inteleon', 'corviknight', 'thievul', 'flapple', 'appletun', 'sandaconda', 'toxtricity-amped', 'toxtricity-low-key', 'grapploct', 'polteageist', 'hatterene', 'grimmsnarl', 'perrserker', 'mr-rime', 'runerigus', 'alcremie', 'falinks', 'pincurchin', 'dragapult', 'wyrdeer', 'kleavor', 'basculegion-female', 'basculegion-male', 'sneasler', 'overqwil', 'meowscarada', 'skeledirge', 'quaquaval', 'pawmot', 'maushold-family-of-four', 'arboliva', 'squawkabilly-green-plumage', 'squawkabilly-yellow-plumage', 'garganacl', 'armarouge', 'bellibolt', 'mabosstiff', 'scovillain', 'espathra', 'palafin-zero', 'orthworm', 'glimmora', 'houndstone', 'annihilape', 'farigiraf', 'kingambit', 'baxcalibur', 'gholdengo', 'sinistcha', 'archaludon', 'hydrapple'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -3793,7 +3910,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '给予对手又吵又响的巨大震动进行攻击。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['clefable', 'arcanine', 'arcanine-hisui', 'vaporeon', 'jolteon', 'flareon', 'snorlax', 'azumarill', 'politoed', 'espeon', 'umbreon', 'houndoom', 'gardevoir', 'manectric', 'altaria', 'chimecho', 'torterra', 'lopunny', 'hippowdon', 'leafeon', 'glaceon', 'gallade', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'liepard', 'audino', 'zoroark', 'zoroark-hisui', 'vanilluxe', 'hydreigon', 'delphox', 'pyroar', 'pangoro', 'furfrou', 'heliolisk', 'tyrantrum', 'aurorus', 'sylveon', 'noivern', 'primarina', 'toucannon', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'salazzle', 'oranguru', 'drampa', 'kommo-o', 'skeledirge', 'maushold-family-of-four', 'bellibolt', 'espathra', 'palafin-zero', 'farigiraf'],
+    learnableByPokemonIds: ['clefable', 'wigglytuff', 'persian', 'persian-alola', 'arcanine', 'arcanine-hisui', 'vaporeon', 'jolteon', 'flareon', 'snorlax', 'azumarill', 'politoed', 'espeon', 'umbreon', 'houndoom', 'gardevoir', 'manectric', 'altaria', 'chimecho', 'salamence', 'torterra', 'lopunny', 'hippowdon', 'leafeon', 'glaceon', 'gallade', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'liepard', 'audino', 'zoroark', 'zoroark-hisui', 'vanilluxe', 'hydreigon', 'delphox', 'pyroar', 'pangoro', 'furfrou', 'heliolisk', 'tyrantrum', 'aurorus', 'sylveon', 'noivern', 'primarina', 'toucannon', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'salazzle', 'oranguru', 'drampa', 'kommo-o', 'rillaboom', 'toxtricity-amped', 'toxtricity-low-key', 'perrserker', 'indeedee-female', 'indeedee-male', 'skeledirge', 'maushold-family-of-four', 'arboliva', 'squawkabilly-green-plumage', 'squawkabilly-yellow-plumage', 'bellibolt', 'mabosstiff', 'espathra', 'palafin-zero', 'farigiraf'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -3809,7 +3926,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '施以诱导睡意的暗示，让对手陷入睡眠状态。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['ninetales', 'ninetales-alola', 'gengar', 'politoed', 'gardevoir', 'milotic', 'chimecho', 'spiritomb', 'gallade', 'watchog', 'musharna', 'delphox', 'aromatisse', 'malamar', 'mr-rime', 'wyrdeer', 'espathra'],
+    learnableByPokemonIds: ['ninetales', 'ninetales-alola', 'persian', 'persian-alola', 'gengar', 'mr-mime', 'politoed', 'gardevoir', 'milotic', 'chimecho', 'spiritomb', 'gallade', 'watchog', 'musharna', 'delphox', 'aromatisse', 'malamar', 'mr-rime', 'wyrdeer', 'espathra'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -3826,7 +3943,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '向对手发射冰冻光束进行攻击。有时会让对手陷入冰冻状态。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['blastoise', 'clefable', 'ninetales', 'ninetales-alola', 'slowbro', 'slowbro-galar', 'kangaskhan', 'starmie', 'tauros', 'gyarados', 'vaporeon', 'snorlax', 'dragonite', 'feraligatr', 'azumarill', 'politoed', 'slowking', 'slowking-galar', 'qwilfish', 'tyranitar', 'swampert', 'pelipper', 'mawile', 'aggron', 'sharpedo', 'altaria', 'milotic', 'castform', 'absol', 'glalie', 'empoleon', 'rampardos', 'bastiodon', 'lopunny', 'abomasnow', 'weavile', 'rhyperior', 'glaceon', 'mamoswine', 'froslass', 'samurott', 'samurott-hisui', 'simipour', 'audino', 'vanilluxe', 'beartic', 'golurk', 'greninja', 'barbaracle', 'clawitzer', 'aurorus', 'goodra', 'goodra-hisui', 'avalugg', 'avalugg-hisui', 'primarina', 'crabominable', 'toxapex', 'araquanid', 'drampa', 'mr-rime', 'basculegion-female', 'basculegion-male', 'overqwil', 'palafin-zero'],
+    learnableByPokemonIds: ['blastoise', 'clefable', 'ninetales', 'ninetales-alola', 'wigglytuff', 'slowbro', 'slowbro-galar', 'kangaskhan', 'starmie', 'tauros', 'gyarados', 'vaporeon', 'snorlax', 'dragonite', 'feraligatr', 'azumarill', 'politoed', 'slowking', 'slowking-galar', 'qwilfish', 'tyranitar', 'swampert', 'pelipper', 'mawile', 'aggron', 'swalot', 'sharpedo', 'altaria', 'milotic', 'castform', 'absol', 'glalie', 'empoleon', 'rampardos', 'bastiodon', 'lopunny', 'abomasnow', 'weavile', 'rhyperior', 'glaceon', 'mamoswine', 'froslass', 'samurott', 'samurott-hisui', 'simipour', 'audino', 'vanilluxe', 'beartic', 'golurk', 'greninja', 'barbaracle', 'clawitzer', 'aurorus', 'goodra', 'goodra-hisui', 'avalugg', 'avalugg-hisui', 'primarina', 'crabominable', 'toxapex', 'araquanid', 'golisopod', 'drampa', 'inteleon', 'mr-rime', 'basculegion-female', 'basculegion-male', 'overqwil', 'palafin-zero', 'baxcalibur'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -3843,7 +3960,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用藏有冷气的牙齿咬住对手。有时会使对手畏缩或陷入冰冻状态。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['arbok', 'slowbro', 'gyarados', 'aerodactyl', 'feraligatr', 'steelix', 'tyranitar', 'mawile', 'manectric', 'sharpedo', 'glalie', 'luxray', 'hippowdon', 'rhyperior', 'glaceon', 'gliscor', 'mamoswine', 'froslass', 'liepard', 'beartic', 'stunfisk', 'stunfisk-galar', 'hydreigon', 'furfrou', 'tyrantrum', 'avalugg', 'avalugg-hisui', 'morpeko-full-belly', 'basculegion-female', 'basculegion-male', 'houndstone'],
+    learnableByPokemonIds: ['arbok', 'slowbro', 'gyarados', 'aerodactyl', 'feraligatr', 'steelix', 'tyranitar', 'mawile', 'manectric', 'sharpedo', 'glalie', 'luxray', 'hippowdon', 'rhyperior', 'glaceon', 'gliscor', 'mamoswine', 'froslass', 'liepard', 'beartic', 'stunfisk', 'stunfisk-galar', 'hydreigon', 'furfrou', 'tyrantrum', 'avalugg', 'avalugg-hisui', 'thievul', 'morpeko-full-belly', 'basculegion-female', 'basculegion-male', 'mabosstiff', 'houndstone', 'baxcalibur'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -3877,7 +3994,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用充满寒气的拳头攻击对手。有时会让对手陷入冰冻状态。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['blastoise', 'clefable', 'alakazam', 'machamp', 'slowbro', 'slowbro-galar', 'gengar', 'kangaskhan', 'snorlax', 'dragonite', 'feraligatr', 'ampharos', 'azumarill', 'politoed', 'slowking', 'slowking-galar', 'tyranitar', 'swampert', 'gardevoir', 'sableye', 'mawile', 'aggron', 'medicham', 'metagross', 'lopunny', 'lucario', 'toxicroak', 'abomasnow', 'weavile', 'rhyperior', 'gallade', 'froslass', 'watchog', 'simipour', 'audino', 'conkeldurr', 'scrafty', 'reuniclus', 'beartic', 'golurk', 'greninja', 'diggersby', 'pangoro', 'crabominable', 'kommo-o', 'grimmsnarl', 'mr-rime', 'garganacl', 'palafin-zero', 'annihilape'],
+    learnableByPokemonIds: ['blastoise', 'clefable', 'wigglytuff', 'alakazam', 'machamp', 'slowbro', 'slowbro-galar', 'gengar', 'kangaskhan', 'mr-mime', 'snorlax', 'dragonite', 'feraligatr', 'ampharos', 'azumarill', 'politoed', 'slowking', 'slowking-galar', 'tyranitar', 'swampert', 'gardevoir', 'sableye', 'mawile', 'aggron', 'medicham', 'swalot', 'metagross', 'lopunny', 'lucario', 'toxicroak', 'abomasnow', 'weavile', 'rhyperior', 'gallade', 'froslass', 'watchog', 'simipour', 'audino', 'conkeldurr', 'scrafty', 'reuniclus', 'beartic', 'golurk', 'greninja', 'diggersby', 'pangoro', 'crabominable', 'kommo-o', 'grapploct', 'grimmsnarl', 'mr-rime', 'pawmot', 'garganacl', 'palafin-zero', 'annihilape'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -3894,7 +4011,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '瞬间制作冰块，快速地扔向对手。必定能够先制攻击。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['ninetales', 'ninetales-alola', 'glalie', 'abomasnow', 'weavile', 'glaceon', 'mamoswine', 'froslass', 'vanilluxe', 'mr-rime'],
+    learnableByPokemonIds: ['ninetales', 'ninetales-alola', 'glalie', 'abomasnow', 'weavile', 'glaceon', 'mamoswine', 'froslass', 'vanilluxe', 'inteleon', 'mr-rime', 'baxcalibur'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -3911,7 +4028,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '脚上覆盖薄冰，旋转着撞击对手。通过旋转的动作破坏场地。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['blastoise', 'starmie', 'dragonite', 'azumarill', 'forretress', 'glalie', 'empoleon', 'abomasnow', 'weavile', 'froslass', 'vanilluxe', 'aurorus', 'goodra', 'goodra-hisui', 'avalugg', 'avalugg-hisui', 'primarina', 'crabominable', 'toxapex', 'mr-rime', 'quaquaval'],
+    learnableByPokemonIds: ['blastoise', 'wigglytuff', 'starmie', 'dragonite', 'azumarill', 'forretress', 'glalie', 'empoleon', 'abomasnow', 'weavile', 'froslass', 'vanilluxe', 'aurorus', 'goodra', 'goodra-hisui', 'avalugg', 'avalugg-hisui', 'primarina', 'crabominable', 'toxapex', 'mr-rime', 'quaquaval'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -3928,7 +4045,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用大冰柱激烈地撞向对手进行攻击。有时会使对手畏缩。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['glalie', 'weavile', 'mamoswine', 'froslass', 'vanilluxe', 'beartic', 'avalugg'],
+    learnableByPokemonIds: ['glalie', 'weavile', 'mamoswine', 'froslass', 'vanilluxe', 'beartic', 'avalugg', 'baxcalibur'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -3945,7 +4062,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '向对手发射锋利的冰柱进行攻击。连续攻击２～５次。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['ninetales', 'ninetales-alola', 'glalie', 'abomasnow', 'weavile', 'glaceon', 'mamoswine', 'froslass', 'vanilluxe', 'beartic', 'aurorus', 'avalugg', 'avalugg-hisui', 'crabominable', 'mr-rime'],
+    learnableByPokemonIds: ['ninetales', 'ninetales-alola', 'glalie', 'abomasnow', 'weavile', 'glaceon', 'mamoswine', 'froslass', 'vanilluxe', 'beartic', 'aurorus', 'avalugg', 'avalugg-hisui', 'crabominable', 'inteleon', 'mr-rime', 'baxcalibur'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -3962,7 +4079,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '将结冰的冷气吹向对手进行攻击。会降低对手的速度。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['blastoise', 'clefable', 'ninetales', 'ninetales-alola', 'slowbro', 'slowbro-galar', 'gengar', 'kangaskhan', 'starmie', 'tauros', 'gyarados', 'vaporeon', 'snorlax', 'dragonite', 'feraligatr', 'azumarill', 'politoed', 'slowking', 'slowking-galar', 'qwilfish', 'skarmory', 'tyranitar', 'swampert', 'pelipper', 'gardevoir', 'sableye', 'mawile', 'aggron', 'sharpedo', 'milotic', 'castform', 'banette', 'chimecho', 'absol', 'glalie', 'metagross', 'empoleon', 'spiritomb', 'toxicroak', 'abomasnow', 'weavile', 'rhyperior', 'glaceon', 'mamoswine', 'gallade', 'froslass', 'samurott', 'samurott-hisui', 'simipour', 'audino', 'zoroark', 'zoroark-hisui', 'vanilluxe', 'beartic', 'golurk', 'greninja', 'barbaracle', 'dragalge', 'clawitzer', 'aurorus', 'avalugg', 'avalugg-hisui', 'primarina', 'crabominable', 'toxapex', 'araquanid', 'drampa', 'mr-rime', 'basculegion-female', 'basculegion-male', 'overqwil', 'quaquaval', 'palafin-zero'],
+    learnableByPokemonIds: ['blastoise', 'clefable', 'ninetales', 'ninetales-alola', 'wigglytuff', 'persian', 'persian-alola', 'slowbro', 'slowbro-galar', 'gengar', 'kangaskhan', 'starmie', 'mr-mime', 'tauros', 'gyarados', 'vaporeon', 'snorlax', 'dragonite', 'feraligatr', 'azumarill', 'politoed', 'slowking', 'slowking-galar', 'qwilfish', 'skarmory', 'tyranitar', 'swampert', 'pelipper', 'gardevoir', 'sableye', 'mawile', 'aggron', 'sharpedo', 'milotic', 'castform', 'banette', 'chimecho', 'absol', 'glalie', 'metagross', 'empoleon', 'spiritomb', 'toxicroak', 'abomasnow', 'weavile', 'rhyperior', 'glaceon', 'mamoswine', 'gallade', 'froslass', 'samurott', 'samurott-hisui', 'simipour', 'audino', 'zoroark', 'zoroark-hisui', 'vanilluxe', 'beartic', 'golurk', 'greninja', 'barbaracle', 'dragalge', 'clawitzer', 'aurorus', 'avalugg', 'avalugg-hisui', 'primarina', 'crabominable', 'toxapex', 'araquanid', 'golisopod', 'drampa', 'inteleon', 'mr-rime', 'basculegion-female', 'basculegion-male', 'overqwil', 'quaquaval', 'palafin-zero', 'baxcalibur'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -3977,7 +4094,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '如果对手有和自己相同的招式，那么只有对手无法使用该招式。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['clefable', 'ninetales', 'ninetales-alola', 'alakazam', 'slowbro', 'slowbro-galar', 'gengar', 'espeon', 'slowking', 'slowking-galar', 'gardevoir', 'sableye', 'medicham', 'milotic', 'banette', 'chimecho', 'spiritomb', 'gallade', 'froslass', 'musharna', 'cofagrigus', 'zoroark', 'zoroark-hisui', 'reuniclus', 'vanilluxe', 'chandelure', 'golurk', 'delphox', 'meowstic-male', 'klefki', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'decidueye', 'oranguru', 'polteageist', 'hatterene', 'grimmsnarl', 'runerigus', 'alcremie', 'wyrdeer', 'skeledirge', 'farigiraf', 'sinistcha'],
+    learnableByPokemonIds: ['clefable', 'ninetales', 'ninetales-alola', 'alakazam', 'slowbro', 'slowbro-galar', 'gengar', 'espeon', 'slowking', 'slowking-galar', 'gardevoir', 'sableye', 'medicham', 'milotic', 'banette', 'chimecho', 'spiritomb', 'gallade', 'froslass', 'musharna', 'cofagrigus', 'zoroark', 'zoroark-hisui', 'reuniclus', 'vanilluxe', 'chandelure', 'golurk', 'delphox', 'meowstic-male', 'klefki', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'decidueye', 'oranguru', 'polteageist', 'hatterene', 'grimmsnarl', 'runerigus', 'alcremie', 'indeedee-female', 'indeedee-male', 'wyrdeer', 'skeledirge', 'farigiraf', 'sinistcha'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -4090,7 +4207,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '将皮肤变得坚硬如铁，从而大幅提高自己的防御。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['blastoise', 'beedrill', 'slowbro', 'slowbro-galar', 'pinsir', 'slowking', 'slowking-galar', 'forretress', 'steelix', 'scizor', 'heracross', 'skarmory', 'tyranitar', 'mawile', 'aggron', 'torkoal', 'metagross', 'torterra', 'empoleon', 'bastiodon', 'lucario', 'rhyperior', 'excadrill', 'scolipede', 'scrafty', 'cofagrigus', 'reuniclus', 'vanilluxe', 'stunfisk', 'stunfisk-galar', 'golurk', 'chesnaught', 'vivillon', 'aegislash-shield', 'barbaracle', 'tyrantrum', 'aurorus', 'klefki', 'avalugg', 'avalugg-hisui', 'crabominable', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'toxapex', 'mudsdale', 'araquanid', 'kommo-o', 'corviknight', 'flapple', 'appletun', 'sandaconda', 'mr-rime', 'runerigus', 'falinks', 'garganacl', 'armarouge', 'ceruledge', 'orthworm', 'glimmora', 'kingambit', 'sinistcha', 'archaludon'],
+    learnableByPokemonIds: ['blastoise', 'beedrill', 'slowbro', 'slowbro-galar', 'mr-mime', 'pinsir', 'slowking', 'slowking-galar', 'forretress', 'steelix', 'scizor', 'heracross', 'skarmory', 'tyranitar', 'mawile', 'aggron', 'torkoal', 'salamence', 'metagross', 'torterra', 'empoleon', 'bastiodon', 'lucario', 'rhyperior', 'excadrill', 'scolipede', 'scrafty', 'cofagrigus', 'reuniclus', 'vanilluxe', 'stunfisk', 'stunfisk-galar', 'golurk', 'chesnaught', 'vivillon', 'aegislash-shield', 'barbaracle', 'tyrantrum', 'aurorus', 'klefki', 'avalugg', 'avalugg-hisui', 'crabominable', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'toxapex', 'mudsdale', 'araquanid', 'golisopod', 'kommo-o', 'corviknight', 'flapple', 'appletun', 'sandaconda', 'perrserker', 'sirfetchd', 'mr-rime', 'runerigus', 'falinks', 'garganacl', 'armarouge', 'ceruledge', 'orthworm', 'glimmora', 'kingambit', 'sinistcha', 'archaludon'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -4107,7 +4224,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用钢铁般坚硬的头部进行攻击。有时会使对手畏缩。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['blastoise', 'arcanine', 'arcanine-hisui', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'aerodactyl', 'snorlax', 'dragonite', 'typhlosion', 'typhlosion-hisui', 'forretress', 'steelix', 'scizor', 'skarmory', 'tyranitar', 'mawile', 'aggron', 'camerupt', 'milotic', 'glalie', 'metagross', 'torterra', 'rampardos', 'bastiodon', 'garchomp', 'hippowdon', 'rhyperior', 'mamoswine', 'emboar', 'excadrill', 'krookodile', 'scrafty', 'golurk', 'chesnaught', 'diggersby', 'pangoro', 'aegislash-shield', 'tyrantrum', 'aurorus', 'hawlucha', 'goodra', 'goodra-hisui', 'avalugg', 'avalugg-hisui', 'incineroar', 'crabominable', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'mudsdale', 'passimian', 'kommo-o', 'corviknight', 'appletun', 'sandaconda', 'falinks', 'garganacl', 'ceruledge', 'palafin-zero', 'orthworm', 'farigiraf', 'kingambit', 'gholdengo', 'archaludon'],
+    learnableByPokemonIds: ['blastoise', 'arcanine', 'arcanine-hisui', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'aerodactyl', 'snorlax', 'dragonite', 'typhlosion', 'typhlosion-hisui', 'forretress', 'steelix', 'scizor', 'skarmory', 'tyranitar', 'mawile', 'aggron', 'camerupt', 'milotic', 'glalie', 'salamence', 'metagross', 'torterra', 'rampardos', 'bastiodon', 'garchomp', 'hippowdon', 'rhyperior', 'mamoswine', 'emboar', 'excadrill', 'krookodile', 'scrafty', 'golurk', 'chesnaught', 'diggersby', 'pangoro', 'aegislash-shield', 'tyrantrum', 'aurorus', 'hawlucha', 'goodra', 'goodra-hisui', 'avalugg', 'avalugg-hisui', 'incineroar', 'crabominable', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'mudsdale', 'passimian', 'golisopod', 'kommo-o', 'cinderace', 'corviknight', 'appletun', 'sandaconda', 'perrserker', 'falinks', 'garganacl', 'ceruledge', 'palafin-zero', 'orthworm', 'farigiraf', 'kingambit', 'baxcalibur', 'gholdengo', 'archaludon'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -4124,7 +4241,24 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '使用坚硬的尾巴摔打对手进行攻击。有时会降低对手的防御。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['charizard', 'blastoise', 'arbok', 'pikachu', 'raichu', 'raichu-alola', 'ninetales', 'ninetales-alola', 'arcanine', 'arcanine-hisui', 'alakazam', 'slowbro', 'slowbro-galar', 'kangaskhan', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'vaporeon', 'aerodactyl', 'dragonite', 'meganium', 'feraligatr', 'ampharos', 'azumarill', 'slowking', 'slowking-galar', 'steelix', 'houndoom', 'tyranitar', 'sceptile', 'swampert', 'aggron', 'manectric', 'milotic', 'absol', 'infernape', 'luxray', 'rampardos', 'bastiodon', 'lopunny', 'garchomp', 'lucario', 'abomasnow', 'rhyperior', 'gliscor', 'serperior', 'emboar', 'samurott', 'samurott-hisui', 'watchog', 'liepard', 'simisage', 'simisear', 'simipour', 'audino', 'scolipede', 'krookodile', 'scrafty', 'emolga', 'eelektross', 'hydreigon', 'chesnaught', 'delphox', 'diggersby', 'pyroar', 'furfrou', 'meowstic-female', 'meowstic-male', 'dragalge', 'heliolisk', 'tyrantrum', 'aurorus', 'dedenne', 'goodra', 'goodra-hisui', 'noivern', 'primarina', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'salazzle', 'passimian', 'kommo-o', 'orthworm'],
+    learnableByPokemonIds: ['charizard', 'blastoise', 'arbok', 'pikachu', 'raichu', 'raichu-alola', 'ninetales', 'ninetales-alola', 'persian', 'persian-alola', 'arcanine', 'arcanine-hisui', 'alakazam', 'slowbro', 'slowbro-galar', 'farfetchd', 'kangaskhan', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'vaporeon', 'aerodactyl', 'dragonite', 'meganium', 'feraligatr', 'ampharos', 'azumarill', 'slowking', 'slowking-galar', 'steelix', 'houndoom', 'tyranitar', 'sceptile', 'swampert', 'aggron', 'manectric', 'milotic', 'absol', 'salamence', 'infernape', 'luxray', 'rampardos', 'bastiodon', 'lopunny', 'garchomp', 'lucario', 'abomasnow', 'rhyperior', 'gliscor', 'serperior', 'emboar', 'samurott', 'samurott-hisui', 'watchog', 'liepard', 'simisage', 'simisear', 'simipour', 'audino', 'scolipede', 'krookodile', 'scrafty', 'emolga', 'eelektross', 'hydreigon', 'chesnaught', 'delphox', 'diggersby', 'pyroar', 'gogoat', 'furfrou', 'meowstic-female', 'meowstic-male', 'dragalge', 'heliolisk', 'tyrantrum', 'aurorus', 'dedenne', 'goodra', 'goodra-hisui', 'noivern', 'primarina', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'salazzle', 'passimian', 'kommo-o', 'perrserker', 'orthworm'],
+    sourceRefs: moveSourceRefs,
+  },
+  {
+    id: 'jaw-lock',
+    chineseName: '紧咬不放',
+    englishName: 'Jaw Lock',
+    type: 'Dark',
+    category: 'Physical',
+    power: 80,
+    accuracy: 100,
+    pp: 10,
+    targetScope: '单体',
+    makesContact: true,
+    affectedByProtect: true,
+    effectSummary: '使双方直到一方昏厥为止无法替换宝可梦。其中一方退场则可以解除效果。',
+    legalInCurrentRule: true,
+    learnableByPokemonIds: ['mabosstiff'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -4173,7 +4307,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '拍落对手的持有物，直到战斗结束都不能使用。对手携带道具时会增加伤害。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['venusaur', 'beedrill', 'arbok', 'pikachu', 'raichu', 'raichu-alola', 'clefable', 'machamp', 'victreebel', 'gengar', 'meganium', 'ariados', 'azumarill', 'scizor', 'heracross', 'tyranitar', 'blaziken', 'swampert', 'pelipper', 'gardevoir', 'sableye', 'mawile', 'banette', 'chimecho', 'absol', 'infernape', 'empoleon', 'toxicroak', 'weavile', 'leafeon', 'gliscor', 'mamoswine', 'gallade', 'serperior', 'emboar', 'samurott', 'samurott-hisui', 'liepard', 'conkeldurr', 'krookodile', 'scrafty', 'zoroark', 'zoroark-hisui', 'reuniclus', 'eelektross', 'golurk', 'chesnaught', 'pangoro', 'malamar', 'goodra', 'goodra-hisui', 'trevenant', 'decidueye', 'decidueye-hisui', 'toucannon', 'crabominable', 'lycanroc-midnight', 'salazzle', 'tsareena', 'oranguru', 'passimian', 'falinks', 'morpeko-full-belly', 'meowscarada', 'quaquaval', 'tinkaton'],
+    learnableByPokemonIds: ['venusaur', 'beedrill', 'arbok', 'pikachu', 'raichu', 'raichu-alola', 'clefable', 'wigglytuff', 'persian', 'persian-alola', 'machamp', 'victreebel', 'farfetchd', 'gengar', 'meganium', 'ariados', 'azumarill', 'scizor', 'heracross', 'tyranitar', 'blaziken', 'swampert', 'pelipper', 'gardevoir', 'sableye', 'mawile', 'swalot', 'banette', 'chimecho', 'absol', 'infernape', 'empoleon', 'toxicroak', 'weavile', 'leafeon', 'gliscor', 'mamoswine', 'gallade', 'serperior', 'emboar', 'samurott', 'samurott-hisui', 'liepard', 'conkeldurr', 'krookodile', 'scrafty', 'zoroark', 'zoroark-hisui', 'reuniclus', 'eelektross', 'golurk', 'chesnaught', 'pangoro', 'malamar', 'goodra', 'goodra-hisui', 'trevenant', 'decidueye', 'decidueye-hisui', 'toucannon', 'crabominable', 'lycanroc-midnight', 'salazzle', 'tsareena', 'oranguru', 'passimian', 'rillaboom', 'thievul', 'perrserker', 'sirfetchd', 'falinks', 'morpeko-full-belly', 'meowscarada', 'quaquaval', 'pawmot', 'tinkaton'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -4221,7 +4355,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '攻击对手以发泄对其感到的恼怒情绪。如果在该回合内自身能力遭到降低，招式的威力会变成２倍。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['arbok', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'feraligatr', 'umbreon', 'houndoom', 'tyranitar', 'sableye', 'camerupt', 'banette', 'infernape', 'empoleon', 'spiritomb', 'toxicroak', 'weavile', 'samurott', 'samurott-hisui', 'liepard', 'krookodile', 'scrafty', 'zoroark', 'zoroark-hisui', 'chandelure', 'stunfisk', 'stunfisk-galar', 'hydreigon', 'pangoro', 'malamar', 'tyrantrum', 'goodra', 'goodra-hisui', 'trevenant', 'incineroar', 'lycanroc-midnight', 'mudsdale', 'drampa', 'grimmsnarl', 'morpeko-full-belly', 'sneasler', 'overqwil', 'meowscarada', 'scovillain', 'annihilape', 'kingambit'],
+    learnableByPokemonIds: ['arbok', 'persian', 'persian-alola', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'feraligatr', 'umbreon', 'houndoom', 'tyranitar', 'sableye', 'camerupt', 'banette', 'infernape', 'empoleon', 'spiritomb', 'toxicroak', 'weavile', 'samurott', 'samurott-hisui', 'liepard', 'krookodile', 'scrafty', 'zoroark', 'zoroark-hisui', 'chandelure', 'stunfisk', 'stunfisk-galar', 'hydreigon', 'pangoro', 'malamar', 'tyrantrum', 'goodra', 'goodra-hisui', 'trevenant', 'incineroar', 'lycanroc-midnight', 'mudsdale', 'drampa', 'thievul', 'grimmsnarl', 'perrserker', 'morpeko-full-belly', 'sneasler', 'overqwil', 'meowscarada', 'squawkabilly-green-plumage', 'squawkabilly-yellow-plumage', 'mabosstiff', 'scovillain', 'annihilape', 'kingambit'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -4238,7 +4372,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '当战斗中已学会的招式全部使用过后，才能开始使出珍藏的招式。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['kangaskhan', 'vaporeon', 'jolteon', 'flareon', 'snorlax', 'espeon', 'umbreon', 'blaziken', 'leafeon', 'glaceon', 'audino', 'furfrou', 'sylveon', 'klefki', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'oranguru', 'mimikyu-disguised', 'sandaconda', 'alcremie', 'dragapult', 'quaquaval', 'espathra'],
+    learnableByPokemonIds: ['wigglytuff', 'persian', 'persian-alola', 'kangaskhan', 'vaporeon', 'jolteon', 'flareon', 'snorlax', 'espeon', 'umbreon', 'blaziken', 'leafeon', 'glaceon', 'audino', 'furfrou', 'sylveon', 'klefki', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'oranguru', 'mimikyu-disguised', 'sandaconda', 'alcremie', 'indeedee-female', 'indeedee-male', 'dragapult', 'quaquaval', 'espathra'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -4289,7 +4423,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '像用剑一般操纵叶片切斩对手进行攻击。容易击中要害。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['victreebel', 'meganium', 'sceptile', 'leafeon', 'gallade', 'serperior', 'decidueye', 'decidueye-hisui'],
+    learnableByPokemonIds: ['victreebel', 'farfetchd', 'meganium', 'sceptile', 'leafeon', 'gallade', 'serperior', 'gogoat', 'decidueye', 'decidueye-hisui', 'sirfetchd'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -4306,7 +4440,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用尖尖的叶片向对手卷起风暴。使用之后因为反作用力自己的特攻会大幅降低。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['venusaur', 'vileplume', 'victreebel', 'meganium', 'sceptile', 'torterra', 'roserade', 'abomasnow', 'leafeon', 'rotom', 'rotom-mow', 'serperior', 'simisage', 'chesnaught', 'trevenant', 'decidueye', 'decidueye-hisui', 'tsareena', 'flapple', 'appletun', 'meowscarada', 'scovillain', 'sinistcha', 'hydrapple'],
+    learnableByPokemonIds: ['venusaur', 'vileplume', 'victreebel', 'meganium', 'sceptile', 'torterra', 'roserade', 'abomasnow', 'leafeon', 'rotom', 'rotom-mow', 'serperior', 'simisage', 'chesnaught', 'gogoat', 'trevenant', 'decidueye', 'decidueye-hisui', 'tsareena', 'rillaboom', 'flapple', 'appletun', 'meowscarada', 'arboliva', 'scovillain', 'sinistcha', 'hydrapple'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -4323,7 +4457,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '吸取血液攻击对手。可以回复给予对手伤害的一半ＨＰ。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['arbok', 'victreebel', 'ariados', 'scolipede', 'volcarona', 'noivern', 'incineroar', 'araquanid', 'salazzle', 'mimikyu-disguised', 'grimmsnarl'],
+    learnableByPokemonIds: ['arbok', 'victreebel', 'ariados', 'scolipede', 'volcarona', 'noivern', 'incineroar', 'araquanid', 'salazzle', 'golisopod', 'mimikyu-disguised', 'grimmsnarl'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -4339,7 +4473,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '植入寄生种子后，将在每回合一点一点吸取对手的ＨＰ，从而用来回复自己的ＨＰ。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['venusaur', 'vileplume', 'meganium', 'sceptile', 'torterra', 'roserade', 'abomasnow', 'leafeon', 'serperior', 'simisage', 'whimsicott', 'chesnaught', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'flapple', 'appletun', 'meowscarada', 'scovillain'],
+    learnableByPokemonIds: ['venusaur', 'vileplume', 'meganium', 'sceptile', 'torterra', 'roserade', 'abomasnow', 'leafeon', 'serperior', 'simisage', 'whimsicott', 'chesnaught', 'gogoat', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'rillaboom', 'flapple', 'appletun', 'meowscarada', 'arboliva', 'scovillain'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -4402,7 +4536,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '利用神奇的墙壁，在５回合内减弱从对手那里受到的特殊攻击的伤害。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['venusaur', 'pikachu', 'raichu', 'raichu-alola', 'clefable', 'alakazam', 'machamp', 'slowbro', 'slowbro-galar', 'starmie', 'jolteon', 'dragonite', 'meganium', 'ampharos', 'azumarill', 'espeon', 'umbreon', 'slowking', 'slowking-galar', 'forretress', 'scizor', 'gardevoir', 'sableye', 'medicham', 'manectric', 'milotic', 'chimecho', 'glalie', 'metagross', 'torterra', 'luxray', 'gallade', 'froslass', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'serperior', 'watchog', 'musharna', 'audino', 'whimsicott', 'reuniclus', 'vanilluxe', 'emolga', 'eelektross', 'volcarona', 'delphox', 'vivillon', 'floette', 'florges', 'meowstic-female', 'meowstic-male', 'aromatisse', 'slurpuff', 'malamar', 'heliolisk', 'aurorus', 'sylveon', 'dedenne', 'klefki', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'decidueye', 'decidueye-hisui', 'primarina', 'toxapex', 'tsareena', 'oranguru', 'mimikyu-disguised', 'drampa', 'corviknight', 'appletun', 'polteageist', 'hatterene', 'grimmsnarl', 'mr-rime', 'alcremie', 'dragapult', 'wyrdeer', 'kleavor', 'armarouge', 'ceruledge', 'bellibolt', 'espathra', 'tinkaton', 'glimmora', 'farigiraf', 'gholdengo', 'archaludon'],
+    learnableByPokemonIds: ['venusaur', 'pikachu', 'raichu', 'raichu-alola', 'clefable', 'wigglytuff', 'alakazam', 'machamp', 'slowbro', 'slowbro-galar', 'starmie', 'mr-mime', 'jolteon', 'dragonite', 'meganium', 'ampharos', 'azumarill', 'espeon', 'umbreon', 'slowking', 'slowking-galar', 'forretress', 'scizor', 'gardevoir', 'sableye', 'medicham', 'manectric', 'milotic', 'chimecho', 'glalie', 'metagross', 'torterra', 'luxray', 'gallade', 'froslass', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'serperior', 'watchog', 'musharna', 'audino', 'whimsicott', 'reuniclus', 'vanilluxe', 'emolga', 'eelektross', 'volcarona', 'delphox', 'vivillon', 'floette', 'florges', 'meowstic-female', 'meowstic-male', 'aromatisse', 'slurpuff', 'malamar', 'heliolisk', 'aurorus', 'sylveon', 'dedenne', 'klefki', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'decidueye', 'decidueye-hisui', 'primarina', 'toxapex', 'tsareena', 'oranguru', 'mimikyu-disguised', 'drampa', 'inteleon', 'corviknight', 'appletun', 'polteageist', 'hatterene', 'grimmsnarl', 'mr-rime', 'alcremie', 'dragapult', 'wyrdeer', 'kleavor', 'arboliva', 'armarouge', 'ceruledge', 'bellibolt', 'espathra', 'tinkaton', 'glimmora', 'farigiraf', 'gholdengo', 'archaludon'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -4419,7 +4553,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用水之力量撞向对手进行攻击。有时会降低对手的防御。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['blastoise', 'slowbro', 'slowbro-galar', 'starmie', 'tauros', 'tauros-paldea-aqua-breed', 'vaporeon', 'feraligatr', 'azumarill', 'politoed', 'slowking', 'slowking-galar', 'qwilfish', 'swampert', 'pelipper', 'sharpedo', 'empoleon', 'garchomp', 'samurott', 'samurott-hisui', 'simipour', 'eelektross', 'beartic', 'greninja', 'malamar', 'barbaracle', 'dragalge', 'clawitzer', 'primarina', 'crabominable', 'toxapex', 'araquanid', 'basculegion-female', 'basculegion-male', 'overqwil', 'quaquaval', 'palafin-zero'],
+    learnableByPokemonIds: ['blastoise', 'slowbro', 'slowbro-galar', 'starmie', 'tauros', 'tauros-paldea-aqua-breed', 'vaporeon', 'feraligatr', 'azumarill', 'politoed', 'slowking', 'slowking-galar', 'qwilfish', 'swampert', 'pelipper', 'sharpedo', 'empoleon', 'garchomp', 'samurott', 'samurott-hisui', 'simipour', 'eelektross', 'beartic', 'greninja', 'malamar', 'barbaracle', 'dragalge', 'clawitzer', 'primarina', 'crabominable', 'toxapex', 'araquanid', 'golisopod', 'inteleon', 'grapploct', 'pincurchin', 'basculegion-female', 'basculegion-male', 'overqwil', 'quaquaval', 'palafin-zero'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -4450,7 +4584,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用力踢对手的脚，使其摔倒进行攻击。对手越重，威力越大。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['machamp', 'kangaskhan', 'dragonite', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'ampharos', 'politoed', 'heracross', 'tyranitar', 'sceptile', 'blaziken', 'swampert', 'sableye', 'aggron', 'medicham', 'infernape', 'lopunny', 'lucario', 'toxicroak', 'abomasnow', 'weavile', 'gallade', 'emboar', 'watchog', 'simisage', 'simisear', 'simipour', 'audino', 'conkeldurr', 'krookodile', 'scrafty', 'zoroark', 'zoroark-hisui', 'beartic', 'golurk', 'chesnaught', 'delphox', 'greninja', 'diggersby', 'pangoro', 'barbaracle', 'heliolisk', 'hawlucha', 'decidueye', 'decidueye-hisui', 'incineroar', 'mudsdale', 'tsareena', 'passimian', 'kommo-o', 'grimmsnarl', 'sneasler', 'meowscarada', 'quaquaval', 'maushold-family-of-four', 'espathra', 'annihilape', 'farigiraf', 'kingambit', 'gholdengo'],
+    learnableByPokemonIds: ['machamp', 'kangaskhan', 'dragonite', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'ampharos', 'politoed', 'heracross', 'tyranitar', 'sceptile', 'blaziken', 'swampert', 'sableye', 'aggron', 'medicham', 'infernape', 'lopunny', 'lucario', 'toxicroak', 'abomasnow', 'weavile', 'gallade', 'emboar', 'watchog', 'simisage', 'simisear', 'simipour', 'audino', 'conkeldurr', 'krookodile', 'scrafty', 'zoroark', 'zoroark-hisui', 'beartic', 'golurk', 'chesnaught', 'delphox', 'greninja', 'diggersby', 'pangoro', 'barbaracle', 'heliolisk', 'hawlucha', 'decidueye', 'decidueye-hisui', 'incineroar', 'mudsdale', 'tsareena', 'passimian', 'kommo-o', 'rillaboom', 'cinderace', 'grimmsnarl', 'sneasler', 'meowscarada', 'quaquaval', 'pawmot', 'maushold-family-of-four', 'espathra', 'annihilape', 'farigiraf', 'kingambit', 'gholdengo'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -4467,7 +4601,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '以敏捷的动作瞄准对手的脚进行攻击。会降低对手的速度。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['machamp', 'politoed', 'slowking', 'slowking-galar', 'sceptile', 'blaziken', 'sableye', 'medicham', 'infernape', 'lopunny', 'lucario', 'toxicroak', 'weavile', 'gallade', 'emboar', 'simisage', 'simisear', 'simipour', 'conkeldurr', 'krookodile', 'scrafty', 'zoroark', 'zoroark-hisui', 'golurk', 'chesnaught', 'greninja', 'pangoro', 'heliolisk', 'hawlucha', 'decidueye', 'decidueye-hisui', 'incineroar', 'lycanroc-midnight', 'mudsdale', 'tsareena', 'passimian', 'grimmsnarl', 'sneasler', 'meowscarada', 'quaquaval', 'maushold-family-of-four', 'annihilape', 'kingambit', 'gholdengo'],
+    learnableByPokemonIds: ['machamp', 'politoed', 'slowking', 'slowking-galar', 'sceptile', 'blaziken', 'sableye', 'medicham', 'infernape', 'lopunny', 'lucario', 'toxicroak', 'weavile', 'gallade', 'emboar', 'simisage', 'simisear', 'simipour', 'conkeldurr', 'krookodile', 'scrafty', 'zoroark', 'zoroark-hisui', 'golurk', 'chesnaught', 'greninja', 'pangoro', 'heliolisk', 'hawlucha', 'decidueye', 'decidueye-hisui', 'incineroar', 'lycanroc-midnight', 'mudsdale', 'tsareena', 'passimian', 'rillaboom', 'cinderace', 'grimmsnarl', 'sneasler', 'meowscarada', 'quaquaval', 'pawmot', 'maushold-family-of-four', 'annihilape', 'kingambit', 'gholdengo'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -4518,7 +4652,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '以迅雷不及掩耳之势出拳。必定能够先制攻击。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['infernape', 'lopunny', 'conkeldurr', 'crabominable'],
+    learnableByPokemonIds: ['infernape', 'lopunny', 'conkeldurr', 'crabominable', 'grapploct'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -4564,7 +4698,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '制造出离奇的空间。在５回合内所有宝可梦携带道具的效果都会消失。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['raichu-alola', 'alakazam', 'espeon', 'gardevoir', 'banette', 'gallade', 'delphox', 'meowstic-female', 'meowstic-male', 'klefki', 'araquanid', 'oranguru', 'mimikyu-disguised', 'hatterene', 'mr-rime', 'alcremie'],
+    learnableByPokemonIds: ['raichu-alola', 'wigglytuff', 'alakazam', 'mr-mime', 'espeon', 'gardevoir', 'banette', 'gallade', 'delphox', 'meowstic-female', 'meowstic-male', 'klefki', 'araquanid', 'oranguru', 'mimikyu-disguised', 'hatterene', 'mr-rime', 'alcremie', 'indeedee-female', 'indeedee-male'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -4660,7 +4794,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '使出力大无穷的重踢踢飞对手进行攻击。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['charizard', 'blastoise', 'pikachu', 'raichu', 'raichu-alola', 'alakazam', 'machamp', 'kangaskhan', 'dragonite', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'ampharos', 'tyranitar', 'sceptile', 'blaziken', 'swampert', 'sableye', 'mawile', 'aggron', 'medicham', 'lopunny', 'lucario', 'toxicroak', 'abomasnow', 'weavile', 'rhyperior', 'gallade', 'audino', 'conkeldurr', 'krookodile', 'scrafty', 'zoroark', 'zoroark-hisui', 'beartic', 'golurk', 'diggersby', 'pangoro', 'heliolisk', 'hawlucha', 'goodra', 'incineroar', 'lycanroc-midnight', 'mudsdale', 'tsareena', 'oranguru', 'passimian', 'kommo-o', 'grimmsnarl', 'mr-rime', 'quaquaval'],
+    learnableByPokemonIds: ['charizard', 'blastoise', 'pikachu', 'raichu', 'raichu-alola', 'wigglytuff', 'alakazam', 'machamp', 'kangaskhan', 'mr-mime', 'dragonite', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'ampharos', 'tyranitar', 'sceptile', 'blaziken', 'swampert', 'sableye', 'mawile', 'aggron', 'medicham', 'lopunny', 'lucario', 'toxicroak', 'abomasnow', 'weavile', 'rhyperior', 'gallade', 'audino', 'conkeldurr', 'krookodile', 'scrafty', 'zoroark', 'zoroark-hisui', 'beartic', 'golurk', 'diggersby', 'pangoro', 'heliolisk', 'hawlucha', 'goodra', 'incineroar', 'lycanroc-midnight', 'mudsdale', 'tsareena', 'oranguru', 'passimian', 'kommo-o', 'rillaboom', 'cinderace', 'toxtricity-amped', 'toxtricity-low-key', 'grimmsnarl', 'mr-rime', 'quaquaval'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -4677,7 +4811,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用坚硬且华丽的角狠狠地刺入对手进行攻击。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'ariados', 'heracross', 'absol', 'rhyperior', 'samurott', 'samurott-hisui', 'excadrill', 'scolipede', 'falinks', 'wyrdeer'],
+    learnableByPokemonIds: ['tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'ariados', 'heracross', 'absol', 'rhyperior', 'samurott', 'samurott-hisui', 'excadrill', 'scolipede', 'gogoat', 'falinks', 'wyrdeer'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -4693,7 +4827,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '虽然会使自己陷入昏厥，但是能够大幅降低对手的攻击和特攻。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['ninetales', 'gardevoir', 'spiritomb', 'gallade', 'whimsicott', 'cofagrigus', 'zoroark', 'zoroark-hisui', 'chandelure', 'polteageist', 'runerigus', 'glimmora', 'houndstone', 'gholdengo', 'sinistcha'],
+    learnableByPokemonIds: ['ninetales', 'gardevoir', 'spiritomb', 'gallade', 'whimsicott', 'cofagrigus', 'zoroark', 'zoroark-hisui', 'chandelure', 'polteageist', 'runerigus', 'pincurchin', 'arboliva', 'glimmora', 'houndstone', 'gholdengo', 'sinistcha'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -4709,7 +4843,24 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '使出招式前，将最后受到的招式的伤害大力返还给对手。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['sableye', 'aggron', 'bastiodon', 'rhyperior', 'orthworm', 'kingambit', 'archaludon'],
+    learnableByPokemonIds: ['sableye', 'aggron', 'bastiodon', 'rhyperior', 'perrserker', 'orthworm', 'kingambit', 'archaludon'],
+    sourceRefs: moveSourceRefs,
+  },
+  {
+    id: 'metal-claw',
+    chineseName: '金属爪',
+    englishName: 'Metal Claw',
+    type: 'Steel',
+    category: 'Physical',
+    power: 50,
+    accuracy: 95,
+    pp: 35,
+    targetScope: '单体',
+    makesContact: true,
+    affectedByProtect: true,
+    effectSummary: '用钢铁之爪劈开对手进行攻击。有时会提高自己的攻击。',
+    legalInCurrentRule: true,
+    learnableByPokemonIds: ['pawmot'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -4725,7 +4876,24 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '让对手听摩擦金属般讨厌的声音。大幅降低对手的特防。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['jolteon', 'forretress', 'skarmory', 'aggron', 'chimecho', 'empoleon', 'bastiodon', 'lucario', 'excadrill', 'stunfisk', 'stunfisk-galar', 'aegislash-shield', 'klefki', 'kommo-o', 'corviknight', 'tinkaton', 'orthworm', 'kingambit', 'gholdengo', 'archaludon'],
+    learnableByPokemonIds: ['jolteon', 'forretress', 'skarmory', 'aggron', 'chimecho', 'empoleon', 'bastiodon', 'lucario', 'excadrill', 'stunfisk', 'stunfisk-galar', 'aegislash-shield', 'klefki', 'kommo-o', 'corviknight', 'toxtricity-amped', 'toxtricity-low-key', 'perrserker', 'tinkaton', 'orthworm', 'kingambit', 'gholdengo', 'archaludon'],
+    sourceRefs: moveSourceRefs,
+  },
+  {
+    id: 'meteor-assault',
+    chineseName: '流星突击',
+    englishName: 'Meteor Assault',
+    type: 'Fighting',
+    category: 'Physical',
+    power: 150,
+    accuracy: 100,
+    pp: 5,
+    targetScope: '单体',
+    makesContact: false,
+    affectedByProtect: true,
+    effectSummary: '大力挥舞粗壮的茎进行攻击。但同时自己也会被晃晕，下一回合自己将无法动弹。',
+    legalInCurrentRule: true,
+    learnableByPokemonIds: ['sirfetchd'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -4763,6 +4931,36 @@ export const championsMoves: Move[] = [
     sourceRefs: moveSourceRefs,
   },
   {
+    id: 'metronome',
+    chineseName: '挥指',
+    englishName: 'Metronome',
+    type: 'Normal',
+    category: 'Status',
+    pp: 10,
+    targetScope: '自身',
+    makesContact: false,
+    affectedByProtect: false,
+    effectSummary: '挥动手指刺激自己的大脑，从许多的招式中随机使出１个。',
+    legalInCurrentRule: true,
+    learnableByPokemonIds: ['pawmot'],
+    sourceRefs: moveSourceRefs,
+  },
+  {
+    id: 'milk-drink',
+    chineseName: '喝牛奶',
+    englishName: 'Milk Drink',
+    type: 'Normal',
+    category: 'Status',
+    pp: 5,
+    targetScope: '自身',
+    makesContact: false,
+    affectedByProtect: false,
+    effectSummary: '回复自己最大ＨＰ的一半。',
+    legalInCurrentRule: true,
+    learnableByPokemonIds: ['gogoat'],
+    sourceRefs: moveSourceRefs,
+  },
+  {
     id: 'mimic',
     chineseName: '模仿',
     englishName: 'Mimic',
@@ -4774,7 +4972,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '可以将对手最后使用的招式，在战斗内变成自己的招式。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['mimikyu-disguised'],
+    learnableByPokemonIds: ['mimikyu-disguised', 'squawkabilly-green-plumage', 'squawkabilly-yellow-plumage'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -4805,7 +5003,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '从对手那里受到特殊攻击的伤害将以２倍返还给同一个对手。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['blastoise', 'swampert', 'milotic', 'lopunny', 'glaceon', 'serperior', 'vanilluxe', 'aurorus', 'avalugg', 'avalugg-hisui', 'araquanid', 'mr-rime', 'farigiraf', 'archaludon'],
+    learnableByPokemonIds: ['blastoise', 'swampert', 'milotic', 'lopunny', 'glaceon', 'serperior', 'vanilluxe', 'aurorus', 'avalugg', 'avalugg-hisui', 'araquanid', 'mr-rime', 'arboliva', 'farigiraf', 'archaludon'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -4837,7 +5035,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '对自己周围的所有宝可梦进行攻击，但使出后，自己会陷入昏厥。在薄雾场地上，招式威力会提高。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['clefable', 'azumarill', 'gardevoir', 'musharna', 'florges', 'aromatisse', 'slurpuff', 'sylveon', 'primarina', 'hatterene', 'alcremie'],
+    learnableByPokemonIds: ['clefable', 'wigglytuff', 'azumarill', 'gardevoir', 'musharna', 'florges', 'aromatisse', 'slurpuff', 'sylveon', 'primarina', 'hatterene', 'alcremie'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -4852,7 +5050,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '在５回合内，地面上的宝可梦不会陷入异常状态。龙属性招式的伤害也会减半。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['clefable', 'ninetales', 'ninetales-alola', 'azumarill', 'gardevoir', 'mawile', 'gallade', 'audino', 'whimsicott', 'floette', 'florges', 'meowstic-male', 'aromatisse', 'sylveon', 'dedenne', 'klefki', 'primarina', 'mimikyu-disguised', 'hatterene', 'grimmsnarl', 'mr-rime', 'alcremie', 'quaquaval'],
+    learnableByPokemonIds: ['clefable', 'ninetales', 'ninetales-alola', 'wigglytuff', 'mr-mime', 'azumarill', 'gardevoir', 'mawile', 'gallade', 'audino', 'whimsicott', 'floette', 'florges', 'meowstic-male', 'aromatisse', 'sylveon', 'dedenne', 'klefki', 'primarina', 'mimikyu-disguised', 'hatterene', 'grimmsnarl', 'mr-rime', 'alcremie', 'quaquaval'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -4869,7 +5067,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '借用月亮的力量攻击对手。有时会降低对手的特攻。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['clefable', 'ninetales', 'ninetales-alola', 'vileplume', 'gardevoir', 'altaria', 'musharna', 'whimsicott', 'floette', 'florges', 'aromatisse', 'sylveon', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'primarina'],
+    learnableByPokemonIds: ['clefable', 'ninetales', 'ninetales-alola', 'wigglytuff', 'vileplume', 'gardevoir', 'altaria', 'musharna', 'whimsicott', 'floette', 'florges', 'aromatisse', 'sylveon', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'primarina'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -4950,7 +5148,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '向对手投掷泥块进行攻击。同时降低对手的速度。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['blastoise', 'arbok', 'slowbro', 'slowbro-galar', 'feraligatr', 'azumarill', 'politoed', 'slowking', 'slowking-galar', 'qwilfish', 'houndoom', 'tyranitar', 'swampert', 'sableye', 'camerupt', 'milotic', 'torterra', 'garchomp', 'hippowdon', 'toxicroak', 'rhyperior', 'leafeon', 'glaceon', 'gliscor', 'mamoswine', 'watchog', 'excadrill', 'krookodile', 'garbodor', 'beartic', 'stunfisk', 'stunfisk-galar', 'chesnaught', 'delphox', 'greninja', 'diggersby', 'barbaracle', 'dragalge', 'clawitzer', 'aurorus', 'goodra', 'goodra-hisui', 'crabominable', 'toxapex', 'mudsdale', 'sandaconda', 'basculegion-female', 'basculegion-male', 'overqwil', 'maushold-family-of-four', 'garganacl', 'bellibolt', 'orthworm', 'glimmora', 'houndstone'],
+    learnableByPokemonIds: ['blastoise', 'arbok', 'slowbro', 'slowbro-galar', 'feraligatr', 'azumarill', 'politoed', 'slowking', 'slowking-galar', 'qwilfish', 'houndoom', 'tyranitar', 'swampert', 'sableye', 'swalot', 'camerupt', 'milotic', 'torterra', 'garchomp', 'hippowdon', 'toxicroak', 'rhyperior', 'leafeon', 'glaceon', 'gliscor', 'mamoswine', 'watchog', 'excadrill', 'krookodile', 'garbodor', 'beartic', 'stunfisk', 'stunfisk-galar', 'chesnaught', 'delphox', 'greninja', 'diggersby', 'gogoat', 'barbaracle', 'dragalge', 'clawitzer', 'aurorus', 'goodra', 'goodra-hisui', 'crabominable', 'toxapex', 'mudsdale', 'golisopod', 'rillaboom', 'cinderace', 'inteleon', 'thievul', 'sandaconda', 'grapploct', 'basculegion-female', 'basculegion-male', 'overqwil', 'maushold-family-of-four', 'garganacl', 'bellibolt', 'orthworm', 'glimmora', 'houndstone'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -4967,7 +5165,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '向对手的脸等投掷泥块进行攻击。会降低对手的命中率。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['arbok', 'vaporeon', 'jolteon', 'flareon', 'snorlax', 'meganium', 'feraligatr', 'azumarill', 'politoed', 'espeon', 'umbreon', 'houndoom', 'tyranitar', 'blaziken', 'swampert', 'sableye', 'aggron', 'camerupt', 'metagross', 'torterra', 'infernape', 'empoleon', 'rampardos', 'bastiodon', 'hippowdon', 'toxicroak', 'abomasnow', 'rhyperior', 'leafeon', 'glaceon', 'gliscor', 'mamoswine', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'emboar', 'excadrill', 'krookodile', 'beartic', 'stunfisk', 'stunfisk-galar', 'golurk', 'chesnaught', 'delphox', 'greninja', 'diggersby', 'pyroar', 'barbaracle', 'dragalge', 'clawitzer', 'heliolisk', 'sylveon', 'crabominable', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'mudsdale', 'salazzle', 'sandaconda', 'meowscarada', 'skeledirge', 'maushold-family-of-four', 'bellibolt', 'espathra', 'orthworm', 'houndstone'],
+    learnableByPokemonIds: ['arbok', 'vaporeon', 'jolteon', 'flareon', 'snorlax', 'meganium', 'feraligatr', 'azumarill', 'politoed', 'espeon', 'umbreon', 'houndoom', 'tyranitar', 'blaziken', 'swampert', 'sableye', 'aggron', 'swalot', 'camerupt', 'salamence', 'metagross', 'torterra', 'infernape', 'empoleon', 'rampardos', 'bastiodon', 'hippowdon', 'toxicroak', 'abomasnow', 'rhyperior', 'leafeon', 'glaceon', 'gliscor', 'mamoswine', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'emboar', 'excadrill', 'krookodile', 'beartic', 'stunfisk', 'stunfisk-galar', 'golurk', 'chesnaught', 'delphox', 'greninja', 'diggersby', 'pyroar', 'gogoat', 'barbaracle', 'dragalge', 'clawitzer', 'heliolisk', 'sylveon', 'crabominable', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'mudsdale', 'salazzle', 'cinderace', 'sandaconda', 'meowscarada', 'skeledirge', 'maushold-family-of-four', 'bellibolt', 'espathra', 'orthworm', 'houndstone'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -4984,7 +5182,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '向对手喷射浑浊的水进行攻击。有时会降低对手的命中率。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['blastoise', 'slowbro', 'slowbro-galar', 'gyarados', 'vaporeon', 'feraligatr', 'azumarill', 'politoed', 'slowking', 'slowking-galar', 'tyranitar', 'swampert', 'pelipper', 'milotic', 'hippowdon', 'eelektross', 'stunfisk', 'stunfisk-galar', 'barbaracle', 'dragalge', 'clawitzer', 'goodra', 'goodra-hisui', 'toxapex', 'basculegion-female', 'basculegion-male', 'bellibolt'],
+    learnableByPokemonIds: ['blastoise', 'slowbro', 'slowbro-galar', 'gyarados', 'vaporeon', 'feraligatr', 'azumarill', 'politoed', 'slowking', 'slowking-galar', 'tyranitar', 'swampert', 'pelipper', 'milotic', 'hippowdon', 'eelektross', 'stunfisk', 'stunfisk-galar', 'barbaracle', 'dragalge', 'clawitzer', 'goodra', 'goodra-hisui', 'toxapex', 'golisopod', 'inteleon', 'grapploct', 'pincurchin', 'basculegion-female', 'basculegion-male', 'bellibolt'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -5001,7 +5199,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '从口中喷出特别灼热的火焰进行攻击。降低对手的特攻。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['clefable', 'ninetales', 'typhlosion', 'typhlosion-hisui', 'gardevoir', 'gallade', 'chandelure', 'volcarona', 'delphox', 'sylveon', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'hatterene', 'alcremie', 'armarouge'],
+    learnableByPokemonIds: ['clefable', 'ninetales', 'mr-mime', 'typhlosion', 'typhlosion-hisui', 'gardevoir', 'gallade', 'chandelure', 'volcarona', 'delphox', 'sylveon', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'hatterene', 'alcremie', 'indeedee-female', 'indeedee-male', 'armarouge'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -5016,7 +5214,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '谋划诡计，激活头脑。大幅提高自己的特攻。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'ninetales', 'ninetales-alola', 'alakazam', 'slowbro', 'slowbro-galar', 'gengar', 'slowking', 'slowking-galar', 'houndoom', 'sableye', 'banette', 'infernape', 'spiritomb', 'lucario', 'toxicroak', 'weavile', 'froslass', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'watchog', 'liepard', 'simisage', 'simisear', 'simipour', 'cofagrigus', 'zoroark', 'zoroark-hisui', 'hydreigon', 'delphox', 'meowstic-female', 'meowstic-male', 'aromatisse', 'malamar', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'decidueye', 'decidueye-hisui', 'incineroar', 'salazzle', 'oranguru', 'corviknight', 'polteageist', 'grimmsnarl', 'mr-rime', 'runerigus', 'morpeko-full-belly', 'sneasler', 'meowscarada', 'farigiraf', 'gholdengo', 'sinistcha', 'hydrapple'],
+    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'ninetales', 'ninetales-alola', 'wigglytuff', 'persian', 'persian-alola', 'alakazam', 'slowbro', 'slowbro-galar', 'gengar', 'mr-mime', 'slowking', 'slowking-galar', 'houndoom', 'sableye', 'banette', 'infernape', 'spiritomb', 'lucario', 'toxicroak', 'weavile', 'froslass', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'watchog', 'liepard', 'simisage', 'simisear', 'simipour', 'cofagrigus', 'zoroark', 'zoroark-hisui', 'hydreigon', 'delphox', 'meowstic-female', 'meowstic-male', 'aromatisse', 'malamar', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'decidueye', 'decidueye-hisui', 'incineroar', 'salazzle', 'oranguru', 'corviknight', 'thievul', 'polteageist', 'grimmsnarl', 'perrserker', 'mr-rime', 'runerigus', 'morpeko-full-belly', 'sneasler', 'meowscarada', 'farigiraf', 'gholdengo', 'sinistcha', 'hydrapple'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -5097,7 +5295,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '抓住瞬间的空隙切斩对手。容易击中要害。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['ariados', 'scizor', 'heracross', 'skarmory', 'sceptile', 'blaziken', 'sableye', 'sharpedo', 'absol', 'luxray', 'weavile', 'gliscor', 'gallade', 'samurott', 'samurott-hisui', 'liepard', 'zoroark', 'beartic', 'greninja', 'pangoro', 'aegislash-shield', 'malamar', 'barbaracle', 'kleavor', 'sneasler', 'meowscarada', 'ceruledge', 'annihilape', 'kingambit', 'archaludon'],
+    learnableByPokemonIds: ['farfetchd', 'ariados', 'scizor', 'heracross', 'skarmory', 'sceptile', 'blaziken', 'sableye', 'sharpedo', 'absol', 'luxray', 'weavile', 'gliscor', 'gallade', 'samurott', 'samurott-hisui', 'liepard', 'zoroark', 'beartic', 'greninja', 'pangoro', 'aegislash-shield', 'malamar', 'barbaracle', 'golisopod', 'thievul', 'perrserker', 'sirfetchd', 'kleavor', 'sneasler', 'meowscarada', 'ceruledge', 'annihilape', 'kingambit', 'archaludon'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -5144,7 +5342,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '发出战吼威吓对手，从而降低对手的攻击和特攻。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['pyroar', 'kommo-o'],
+    learnableByPokemonIds: ['pyroar', 'kommo-o', 'rillaboom', 'toxtricity-amped', 'toxtricity-low-key'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -5161,7 +5359,23 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '将带电的脸颊蹭蹭对手进行攻击。让对手陷入麻痹状态。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'emolga', 'dedenne', 'hatterene'],
+    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'emolga', 'dedenne', 'toxtricity-amped', 'toxtricity-low-key', 'hatterene', 'pawmot'],
+    sourceRefs: moveSourceRefs,
+  },
+  {
+    id: 'octolock',
+    chineseName: '蛸固',
+    englishName: 'Octolock',
+    type: 'Fighting',
+    category: 'Status',
+    accuracy: 100,
+    pp: 15,
+    targetScope: '单体',
+    makesContact: false,
+    affectedByProtect: true,
+    effectSummary: '让对手无法逃走。对手被固定后，每回合都会降低防御和特防。',
+    legalInCurrentRule: true,
+    learnableByPokemonIds: ['grapploct'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -5195,7 +5409,24 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '在２～３回合内，乱打一气地进行攻击。大闹一番后自己会陷入混乱。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['venusaur', 'charizard', 'blastoise', 'arcanine', 'arcanine-hisui', 'kangaskhan', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'snorlax', 'dragonite', 'meganium', 'feraligatr', 'ampharos', 'tyranitar', 'sceptile', 'swampert', 'aggron', 'altaria', 'torterra', 'rampardos', 'bastiodon', 'garchomp', 'abomasnow', 'rhyperior', 'serperior', 'krookodile', 'scrafty', 'eelektross', 'hydreigon', 'pangoro', 'dragalge', 'tyrantrum', 'aurorus', 'goodra', 'goodra-hisui', 'noivern', 'incineroar', 'lycanroc-dusk', 'lycanroc-midnight', 'drampa', 'kommo-o', 'flapple', 'appletun', 'sandaconda', 'morpeko-full-belly', 'dragapult', 'basculegion-female', 'basculegion-male', 'skeledirge', 'palafin-zero', 'annihilape', 'archaludon', 'hydrapple'],
+    learnableByPokemonIds: ['venusaur', 'charizard', 'blastoise', 'arcanine', 'arcanine-hisui', 'kangaskhan', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'snorlax', 'dragonite', 'meganium', 'feraligatr', 'ampharos', 'tyranitar', 'sceptile', 'swampert', 'aggron', 'altaria', 'salamence', 'torterra', 'rampardos', 'bastiodon', 'garchomp', 'abomasnow', 'rhyperior', 'serperior', 'krookodile', 'scrafty', 'eelektross', 'hydreigon', 'pangoro', 'dragalge', 'tyrantrum', 'aurorus', 'goodra', 'goodra-hisui', 'noivern', 'incineroar', 'lycanroc-dusk', 'lycanroc-midnight', 'drampa', 'kommo-o', 'flapple', 'appletun', 'sandaconda', 'morpeko-full-belly', 'dragapult', 'basculegion-female', 'basculegion-male', 'skeledirge', 'mabosstiff', 'palafin-zero', 'annihilape', 'baxcalibur', 'archaludon', 'hydrapple'],
+    sourceRefs: moveSourceRefs,
+  },
+  {
+    id: 'overdrive',
+    chineseName: '破音',
+    englishName: 'Overdrive',
+    type: 'Electric',
+    category: 'Special',
+    power: 80,
+    accuracy: 100,
+    pp: 10,
+    targetScope: '对手全体',
+    makesContact: false,
+    affectedByProtect: true,
+    effectSummary: '奏响吉他和贝斯，释放出发出巨响的剧烈震动攻击对手。',
+    legalInCurrentRule: true,
+    learnableByPokemonIds: ['toxtricity-amped', 'toxtricity-low-key'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -5212,7 +5443,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '使出全部力量攻击对手。使用之后会因为反作用力，自己的特攻大幅降低。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['charizard', 'ninetales', 'arcanine', 'arcanine-hisui', 'tauros', 'tauros-paldea-blaze-breed', 'flareon', 'typhlosion', 'typhlosion-hisui', 'houndoom', 'blaziken', 'manectric', 'camerupt', 'torkoal', 'infernape', 'rotom', 'rotom-heat', 'emboar', 'simisear', 'chandelure', 'volcarona', 'delphox', 'talonflame', 'pyroar', 'incineroar', 'toucannon', 'salazzle', 'skeledirge', 'armarouge', 'ceruledge', 'scovillain', 'annihilape'],
+    learnableByPokemonIds: ['charizard', 'ninetales', 'arcanine', 'arcanine-hisui', 'tauros', 'tauros-paldea-blaze-breed', 'flareon', 'typhlosion', 'typhlosion-hisui', 'houndoom', 'blaziken', 'manectric', 'camerupt', 'torkoal', 'infernape', 'rotom', 'rotom-heat', 'emboar', 'simisear', 'chandelure', 'volcarona', 'delphox', 'talonflame', 'pyroar', 'incineroar', 'toucannon', 'salazzle', 'cinderace', 'skeledirge', 'armarouge', 'ceruledge', 'scovillain', 'annihilape'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -5227,7 +5458,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '将自己的ＨＰ和对手的ＨＰ相加，然后自己和对手友好地平分。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['arbok', 'ninetales', 'ninetales-alola', 'gengar', 'forretress', 'qwilfish', 'houndoom', 'gardevoir', 'sableye', 'medicham', 'banette', 'spiritomb', 'gallade', 'froslass', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'garbodor', 'zoroark', 'zoroark-hisui', 'reuniclus', 'chandelure', 'stunfisk', 'stunfisk-galar', 'chesnaught', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'toxapex', 'oranguru', 'passimian', 'mimikyu-disguised', 'polteageist', 'hatterene', 'alcremie', 'basculegion-female', 'basculegion-male', 'overqwil', 'houndstone', 'sinistcha'],
+    learnableByPokemonIds: ['arbok', 'ninetales', 'ninetales-alola', 'wigglytuff', 'persian', 'persian-alola', 'gengar', 'forretress', 'qwilfish', 'houndoom', 'gardevoir', 'sableye', 'medicham', 'swalot', 'banette', 'spiritomb', 'gallade', 'froslass', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'garbodor', 'zoroark', 'zoroark-hisui', 'reuniclus', 'chandelure', 'stunfisk', 'stunfisk-galar', 'chesnaught', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'toxapex', 'oranguru', 'passimian', 'mimikyu-disguised', 'grapploct', 'polteageist', 'hatterene', 'alcremie', 'pincurchin', 'basculegion-female', 'basculegion-male', 'overqwil', 'mabosstiff', 'houndstone', 'sinistcha'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -5260,7 +5491,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '抛下狠话威吓对手，降低攻击和特攻后，和后备宝可梦进行替换。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['pangoro', 'incineroar', 'grimmsnarl', 'morpeko-full-belly'],
+    learnableByPokemonIds: ['pangoro', 'incineroar', 'thievul', 'grimmsnarl', 'morpeko-full-belly', 'squawkabilly-green-plumage', 'squawkabilly-yellow-plumage'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -5277,7 +5508,24 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '蓄力攻击。如果能在对手之后攻击，招式的威力会变成２倍。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['beedrill', 'arbok', 'ninetales', 'ninetales-alola', 'machamp', 'gengar', 'tauros', 'gyarados', 'aerodactyl', 'umbreon', 'forretress', 'steelix', 'qwilfish', 'skarmory', 'houndoom', 'tyranitar', 'sableye', 'mawile', 'aggron', 'sharpedo', 'banette', 'absol', 'glalie', 'rampardos', 'lopunny', 'spiritomb', 'lucario', 'toxicroak', 'weavile', 'rhyperior', 'gliscor', 'froslass', 'liepard', 'simisage', 'simisear', 'simipour', 'conkeldurr', 'scolipede', 'krookodile', 'scrafty', 'cofagrigus', 'garbodor', 'zoroark', 'zoroark-hisui', 'chandelure', 'stunfisk', 'stunfisk-galar', 'hydreigon', 'chesnaught', 'diggersby', 'pyroar', 'pangoro', 'meowstic-female', 'meowstic-male', 'malamar', 'barbaracle', 'hawlucha', 'crabominable', 'lycanroc-midnight', 'toxapex', 'mudsdale', 'salazzle', 'tsareena', 'oranguru', 'passimian', 'mimikyu-disguised', 'kommo-o', 'corviknight', 'polteageist', 'mr-rime', 'runerigus', 'falinks', 'morpeko-full-belly'],
+    learnableByPokemonIds: ['beedrill', 'arbok', 'ninetales', 'ninetales-alola', 'persian', 'persian-alola', 'machamp', 'gengar', 'mr-mime', 'tauros', 'gyarados', 'aerodactyl', 'umbreon', 'forretress', 'steelix', 'qwilfish', 'skarmory', 'houndoom', 'tyranitar', 'sableye', 'mawile', 'aggron', 'sharpedo', 'banette', 'absol', 'glalie', 'rampardos', 'lopunny', 'spiritomb', 'lucario', 'toxicroak', 'weavile', 'rhyperior', 'gliscor', 'froslass', 'liepard', 'simisage', 'simisear', 'simipour', 'conkeldurr', 'scolipede', 'krookodile', 'scrafty', 'cofagrigus', 'garbodor', 'zoroark', 'zoroark-hisui', 'chandelure', 'stunfisk', 'stunfisk-galar', 'hydreigon', 'chesnaught', 'diggersby', 'pyroar', 'gogoat', 'pangoro', 'meowstic-female', 'meowstic-male', 'malamar', 'barbaracle', 'hawlucha', 'crabominable', 'lycanroc-midnight', 'toxapex', 'mudsdale', 'salazzle', 'tsareena', 'oranguru', 'passimian', 'golisopod', 'mimikyu-disguised', 'kommo-o', 'corviknight', 'toxtricity-amped', 'toxtricity-low-key', 'grapploct', 'polteageist', 'perrserker', 'mr-rime', 'runerigus', 'falinks', 'pincurchin', 'morpeko-full-belly', 'mabosstiff'],
+    sourceRefs: moveSourceRefs,
+  },
+  {
+    id: 'peck',
+    chineseName: '啄',
+    englishName: 'Peck',
+    type: 'Flying',
+    category: 'Physical',
+    power: 35,
+    accuracy: 100,
+    pp: 35,
+    targetScope: '单体',
+    makesContact: true,
+    affectedByProtect: true,
+    effectSummary: '用尖锐的喙或角刺向对手进行攻击。',
+    legalInCurrentRule: true,
+    learnableByPokemonIds: ['squawkabilly-green-plumage', 'squawkabilly-yellow-plumage'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -5292,7 +5540,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '倾听歌声的宝可梦经过３回合陷入昏厥。替换后效果消失。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['gengar', 'azumarill', 'politoed', 'altaria', 'absol', 'primarina'],
+    learnableByPokemonIds: ['wigglytuff', 'gengar', 'azumarill', 'politoed', 'altaria', 'absol', 'primarina'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -5309,7 +5557,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '猛烈地刮起飞雪般的落花，攻击周围所有的宝可梦，并给予伤害。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['venusaur', 'vileplume', 'meganium', 'roserade', 'serperior', 'floette', 'florges', 'tsareena', 'meowscarada'],
+    learnableByPokemonIds: ['venusaur', 'vileplume', 'meganium', 'roserade', 'serperior', 'floette', 'florges', 'tsareena', 'meowscarada', 'arboliva'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -5326,7 +5574,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '在２～３回合内，散落花瓣攻击对手。之后自己会陷入混乱。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['venusaur', 'vileplume', 'meganium', 'roserade', 'floette', 'florges'],
+    learnableByPokemonIds: ['venusaur', 'vileplume', 'meganium', 'roserade', 'floette', 'florges', 'arboliva'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -5360,7 +5608,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '向对手发射锐针进行攻击。连续攻击２～５次。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['beedrill', 'jolteon', 'ariados', 'forretress', 'qwilfish', 'heracross', 'roserade', 'gliscor', 'scolipede', 'chesnaught', 'toxapex', 'overqwil'],
+    learnableByPokemonIds: ['beedrill', 'jolteon', 'ariados', 'forretress', 'qwilfish', 'heracross', 'roserade', 'gliscor', 'scolipede', 'chesnaught', 'toxapex', 'golisopod', 'pincurchin', 'overqwil'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -5377,7 +5625,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '与对手嬉闹并攻击。有时会降低对手的攻击。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'clefable', 'ninetales', 'ninetales-alola', 'arcanine', 'typhlosion', 'typhlosion-hisui', 'azumarill', 'mawile', 'altaria', 'absol', 'luxray', 'lopunny', 'liepard', 'whimsicott', 'beartic', 'meowstic-female', 'meowstic-male', 'slurpuff', 'dragalge', 'tyrantrum', 'sylveon', 'dedenne', 'klefki', 'primarina', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'tsareena', 'mimikyu-disguised', 'drampa', 'hatterene', 'grimmsnarl', 'alcremie', 'meowscarada', 'maushold-family-of-four', 'tinkaton', 'houndstone'],
+    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'clefable', 'ninetales', 'ninetales-alola', 'wigglytuff', 'persian', 'persian-alola', 'arcanine', 'typhlosion', 'typhlosion-hisui', 'azumarill', 'mawile', 'altaria', 'absol', 'luxray', 'lopunny', 'liepard', 'whimsicott', 'beartic', 'gogoat', 'meowstic-female', 'meowstic-male', 'slurpuff', 'dragalge', 'tyrantrum', 'sylveon', 'dedenne', 'klefki', 'primarina', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'tsareena', 'mimikyu-disguised', 'drampa', 'thievul', 'hatterene', 'grimmsnarl', 'perrserker', 'alcremie', 'indeedee-female', 'indeedee-male', 'meowscarada', 'pawmot', 'maushold-family-of-four', 'mabosstiff', 'tinkaton', 'houndstone'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -5428,7 +5676,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用带毒的触手或手臂刺入对手。有时会让对手陷入中毒状态。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['venusaur', 'beedrill', 'arbok', 'machamp', 'victreebel', 'slowbro', 'slowbro-galar', 'gengar', 'ariados', 'slowking', 'slowking-galar', 'forretress', 'qwilfish', 'blaziken', 'swampert', 'sableye', 'medicham', 'sharpedo', 'infernape', 'roserade', 'garchomp', 'lucario', 'toxicroak', 'weavile', 'rhyperior', 'gliscor', 'gallade', 'emboar', 'excadrill', 'conkeldurr', 'scolipede', 'scrafty', 'garbodor', 'volcarona', 'chesnaught', 'pangoro', 'malamar', 'barbaracle', 'dragalge', 'hawlucha', 'trevenant', 'toxapex', 'araquanid', 'salazzle', 'kommo-o', 'falinks', 'sneasler', 'overqwil', 'ceruledge', 'annihilape', 'kingambit'],
+    learnableByPokemonIds: ['venusaur', 'beedrill', 'arbok', 'machamp', 'victreebel', 'slowbro', 'slowbro-galar', 'farfetchd', 'gengar', 'ariados', 'slowking', 'slowking-galar', 'forretress', 'qwilfish', 'blaziken', 'swampert', 'sableye', 'medicham', 'swalot', 'sharpedo', 'infernape', 'roserade', 'garchomp', 'lucario', 'toxicroak', 'weavile', 'rhyperior', 'gliscor', 'gallade', 'emboar', 'excadrill', 'conkeldurr', 'scolipede', 'scrafty', 'garbodor', 'volcarona', 'chesnaught', 'pangoro', 'malamar', 'barbaracle', 'dragalge', 'hawlucha', 'trevenant', 'toxapex', 'araquanid', 'salazzle', 'golisopod', 'kommo-o', 'toxtricity-amped', 'toxtricity-low-key', 'sirfetchd', 'falinks', 'pincurchin', 'sneasler', 'overqwil', 'ceruledge', 'annihilape', 'kingambit'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -5461,7 +5709,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '对敌人使用是会爆炸的团子。对我方使用则是给予回复的团子。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['beedrill', 'vileplume', 'meganium', 'vivillon', 'floette', 'florges', 'meowscarada', 'hydrapple'],
+    learnableByPokemonIds: ['beedrill', 'vileplume', 'meganium', 'vivillon', 'floette', 'florges', 'meowscarada', 'arboliva', 'hydrapple'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -5478,7 +5726,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '操纵对手的持有物进行攻击。当对手没有携带道具时，使出此招式时便会失败。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['gengar', 'typhlosion', 'typhlosion-hisui', 'sableye', 'banette', 'spiritomb', 'froslass', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'cofagrigus', 'zoroark', 'zoroark-hisui', 'chandelure', 'golurk', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'decidueye', 'polteageist', 'runerigus', 'skeledirge', 'ceruledge', 'houndstone', 'gholdengo', 'sinistcha'],
+    learnableByPokemonIds: ['gengar', 'typhlosion', 'typhlosion-hisui', 'sableye', 'banette', 'spiritomb', 'froslass', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'cofagrigus', 'zoroark', 'zoroark-hisui', 'chandelure', 'golurk', 'aegislash-shield', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'decidueye', 'polteageist', 'runerigus', 'skeledirge', 'ceruledge', 'houndstone', 'gholdengo', 'sinistcha'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -5512,7 +5760,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '飞扑向对手攻击。会降低对手的速度。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['beedrill', 'victreebel', 'pinsir', 'ariados', 'forretress', 'scizor', 'heracross', 'manectric', 'banette', 'lopunny', 'scolipede', 'emolga', 'volcarona', 'vivillon', 'clawitzer', 'heliolisk', 'toxapex', 'araquanid', 'mimikyu-disguised', 'flapple', 'appletun', 'dragapult', 'kleavor', 'espathra', 'tinkaton', 'hydrapple'],
+    learnableByPokemonIds: ['beedrill', 'victreebel', 'pinsir', 'ariados', 'forretress', 'scizor', 'heracross', 'manectric', 'banette', 'lopunny', 'scolipede', 'emolga', 'volcarona', 'vivillon', 'clawitzer', 'heliolisk', 'toxapex', 'araquanid', 'golisopod', 'mimikyu-disguised', 'flapple', 'appletun', 'dragapult', 'kleavor', 'squawkabilly-green-plumage', 'squawkabilly-yellow-plumage', 'espathra', 'tinkaton', 'hydrapple'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -5546,7 +5794,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '发射如宝石般闪耀的光芒攻击对手。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['arcanine', 'arcanine-hisui', 'slowbro', 'slowbro-galar', 'starmie', 'ampharos', 'espeon', 'slowking', 'slowking-galar', 'tyranitar', 'sableye', 'bastiodon', 'garchomp', 'meowscarada', 'garganacl', 'glimmora', 'gholdengo'],
+    learnableByPokemonIds: ['persian', 'persian-alola', 'arcanine', 'arcanine-hisui', 'slowbro', 'slowbro-galar', 'starmie', 'ampharos', 'espeon', 'slowking', 'slowking-galar', 'tyranitar', 'sableye', 'bastiodon', 'garchomp', 'meowscarada', 'garganacl', 'glimmora', 'gholdengo'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -5561,7 +5809,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '利用超能力将自己和对手的攻击和特攻相加，再进行平分。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['cofagrigus', 'chandelure', 'araquanid', 'mr-rime', 'runerigus'],
+    learnableByPokemonIds: ['mr-mime', 'cofagrigus', 'chandelure', 'araquanid', 'mr-rime', 'runerigus', 'indeedee-female', 'indeedee-male'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -5576,7 +5824,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '利用超能力互换自己和对手的攻击以及特攻的能力变化。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['ninetales', 'ninetales-alola', 'alakazam', 'espeon', 'gardevoir', 'medicham', 'altaria', 'musharna', 'cofagrigus', 'reuniclus', 'hatterene', 'grimmsnarl', 'mr-rime', 'runerigus', 'farigiraf'],
+    learnableByPokemonIds: ['ninetales', 'ninetales-alola', 'alakazam', 'mr-mime', 'espeon', 'gardevoir', 'medicham', 'altaria', 'musharna', 'cofagrigus', 'reuniclus', 'hatterene', 'grimmsnarl', 'mr-rime', 'runerigus', 'indeedee-female', 'indeedee-male', 'farigiraf'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -5640,7 +5888,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '完全抵挡对手的攻击。连续使出则容易失败。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['venusaur', 'charizard', 'blastoise', 'beedrill', 'pidgeot', 'arbok', 'pikachu', 'raichu', 'raichu-alola', 'clefable', 'ninetales', 'ninetales-alola', 'vileplume', 'arcanine', 'arcanine-hisui', 'alakazam', 'machamp', 'victreebel', 'slowbro', 'slowbro-galar', 'gengar', 'kangaskhan', 'starmie', 'pinsir', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'vaporeon', 'jolteon', 'flareon', 'aerodactyl', 'snorlax', 'dragonite', 'meganium', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'ariados', 'ampharos', 'azumarill', 'politoed', 'espeon', 'umbreon', 'slowking', 'slowking-galar', 'forretress', 'steelix', 'qwilfish', 'scizor', 'heracross', 'skarmory', 'houndoom', 'tyranitar', 'sceptile', 'blaziken', 'swampert', 'pelipper', 'gardevoir', 'sableye', 'mawile', 'aggron', 'medicham', 'manectric', 'sharpedo', 'camerupt', 'torkoal', 'altaria', 'milotic', 'castform', 'banette', 'chimecho', 'absol', 'glalie', 'metagross', 'torterra', 'infernape', 'empoleon', 'staraptor', 'luxray', 'roserade', 'rampardos', 'bastiodon', 'lopunny', 'spiritomb', 'garchomp', 'lucario', 'hippowdon', 'toxicroak', 'abomasnow', 'weavile', 'rhyperior', 'leafeon', 'glaceon', 'gliscor', 'mamoswine', 'gallade', 'froslass', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'serperior', 'emboar', 'samurott', 'samurott-hisui', 'watchog', 'liepard', 'simisage', 'simisear', 'simipour', 'musharna', 'excadrill', 'audino', 'conkeldurr', 'scolipede', 'whimsicott', 'krookodile', 'scrafty', 'cofagrigus', 'garbodor', 'zoroark', 'zoroark-hisui', 'reuniclus', 'vanilluxe', 'emolga', 'eelektross', 'chandelure', 'beartic', 'stunfisk', 'stunfisk-galar', 'golurk', 'hydreigon', 'volcarona', 'chesnaught', 'delphox', 'greninja', 'diggersby', 'talonflame', 'vivillon', 'pyroar', 'floette', 'florges', 'pangoro', 'furfrou', 'meowstic-female', 'meowstic-male', 'aegislash-shield', 'aromatisse', 'slurpuff', 'malamar', 'barbaracle', 'dragalge', 'clawitzer', 'heliolisk', 'tyrantrum', 'aurorus', 'sylveon', 'hawlucha', 'dedenne', 'goodra', 'goodra-hisui', 'klefki', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'avalugg', 'avalugg-hisui', 'noivern', 'decidueye', 'decidueye-hisui', 'incineroar', 'primarina', 'toucannon', 'crabominable', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'toxapex', 'mudsdale', 'araquanid', 'salazzle', 'tsareena', 'oranguru', 'passimian', 'mimikyu-disguised', 'drampa', 'kommo-o', 'corviknight', 'flapple', 'appletun', 'sandaconda', 'polteageist', 'hatterene', 'grimmsnarl', 'mr-rime', 'runerigus', 'alcremie', 'falinks', 'morpeko-full-belly', 'dragapult', 'wyrdeer', 'kleavor', 'basculegion-female', 'basculegion-male', 'sneasler', 'overqwil', 'meowscarada', 'skeledirge', 'quaquaval', 'maushold-family-of-four', 'garganacl', 'armarouge', 'ceruledge', 'bellibolt', 'scovillain', 'espathra', 'tinkaton', 'palafin-zero', 'orthworm', 'glimmora', 'houndstone', 'annihilape', 'farigiraf', 'kingambit', 'gholdengo', 'sinistcha', 'archaludon', 'hydrapple'],
+    learnableByPokemonIds: ['venusaur', 'charizard', 'blastoise', 'beedrill', 'pidgeot', 'arbok', 'pikachu', 'raichu', 'raichu-alola', 'clefable', 'ninetales', 'ninetales-alola', 'wigglytuff', 'vileplume', 'persian', 'persian-alola', 'arcanine', 'arcanine-hisui', 'alakazam', 'machamp', 'victreebel', 'slowbro', 'slowbro-galar', 'farfetchd', 'gengar', 'kangaskhan', 'starmie', 'mr-mime', 'pinsir', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'vaporeon', 'jolteon', 'flareon', 'aerodactyl', 'snorlax', 'dragonite', 'meganium', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'ariados', 'ampharos', 'azumarill', 'politoed', 'espeon', 'umbreon', 'slowking', 'slowking-galar', 'forretress', 'steelix', 'qwilfish', 'scizor', 'heracross', 'skarmory', 'houndoom', 'tyranitar', 'sceptile', 'blaziken', 'swampert', 'pelipper', 'gardevoir', 'sableye', 'mawile', 'aggron', 'medicham', 'manectric', 'swalot', 'sharpedo', 'camerupt', 'torkoal', 'altaria', 'milotic', 'castform', 'banette', 'chimecho', 'absol', 'glalie', 'salamence', 'metagross', 'torterra', 'infernape', 'empoleon', 'staraptor', 'luxray', 'roserade', 'rampardos', 'bastiodon', 'lopunny', 'spiritomb', 'garchomp', 'lucario', 'hippowdon', 'toxicroak', 'abomasnow', 'weavile', 'rhyperior', 'leafeon', 'glaceon', 'gliscor', 'mamoswine', 'gallade', 'froslass', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'serperior', 'emboar', 'samurott', 'samurott-hisui', 'watchog', 'liepard', 'simisage', 'simisear', 'simipour', 'musharna', 'excadrill', 'audino', 'conkeldurr', 'scolipede', 'whimsicott', 'krookodile', 'scrafty', 'cofagrigus', 'garbodor', 'zoroark', 'zoroark-hisui', 'reuniclus', 'vanilluxe', 'emolga', 'eelektross', 'chandelure', 'beartic', 'stunfisk', 'stunfisk-galar', 'golurk', 'hydreigon', 'volcarona', 'chesnaught', 'delphox', 'greninja', 'diggersby', 'talonflame', 'vivillon', 'pyroar', 'floette', 'florges', 'gogoat', 'pangoro', 'furfrou', 'meowstic-female', 'meowstic-male', 'aegislash-shield', 'aromatisse', 'slurpuff', 'malamar', 'barbaracle', 'dragalge', 'clawitzer', 'heliolisk', 'tyrantrum', 'aurorus', 'sylveon', 'hawlucha', 'dedenne', 'goodra', 'goodra-hisui', 'klefki', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'avalugg', 'avalugg-hisui', 'noivern', 'decidueye', 'decidueye-hisui', 'incineroar', 'primarina', 'toucannon', 'crabominable', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'toxapex', 'mudsdale', 'araquanid', 'salazzle', 'tsareena', 'oranguru', 'passimian', 'golisopod', 'mimikyu-disguised', 'drampa', 'kommo-o', 'rillaboom', 'cinderace', 'inteleon', 'corviknight', 'thievul', 'flapple', 'appletun', 'sandaconda', 'toxtricity-amped', 'toxtricity-low-key', 'grapploct', 'polteageist', 'hatterene', 'grimmsnarl', 'perrserker', 'sirfetchd', 'mr-rime', 'runerigus', 'alcremie', 'falinks', 'pincurchin', 'indeedee-female', 'indeedee-male', 'morpeko-full-belly', 'dragapult', 'wyrdeer', 'kleavor', 'basculegion-female', 'basculegion-male', 'sneasler', 'overqwil', 'meowscarada', 'skeledirge', 'quaquaval', 'pawmot', 'maushold-family-of-four', 'arboliva', 'squawkabilly-green-plumage', 'squawkabilly-yellow-plumage', 'garganacl', 'armarouge', 'ceruledge', 'bellibolt', 'mabosstiff', 'scovillain', 'espathra', 'tinkaton', 'palafin-zero', 'orthworm', 'glimmora', 'houndstone', 'annihilape', 'farigiraf', 'kingambit', 'baxcalibur', 'gholdengo', 'sinistcha', 'archaludon', 'hydrapple'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -5655,7 +5903,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '向自己施以自我暗示，将能力变化的状态变得和对手一样。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['clefable', 'ninetales', 'ninetales-alola', 'slowbro', 'gengar', 'politoed', 'espeon', 'umbreon', 'slowking', 'slowking-galar', 'gardevoir', 'sableye', 'medicham', 'milotic', 'banette', 'chimecho', 'metagross', 'infernape', 'empoleon', 'lucario', 'gallade', 'froslass', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'watchog', 'zoroark', 'zoroark-hisui', 'reuniclus', 'chandelure', 'golurk', 'hydreigon', 'delphox', 'meowstic-female', 'meowstic-male', 'aromatisse', 'malamar', 'sylveon', 'klefki', 'trevenant', 'primarina', 'toucannon', 'oranguru', 'mimikyu-disguised', 'hatterene', 'alcremie', 'falinks', 'wyrdeer', 'meowscarada', 'quaquaval', 'armarouge', 'ceruledge', 'espathra', 'palafin-zero', 'farigiraf', 'sinistcha'],
+    learnableByPokemonIds: ['clefable', 'ninetales', 'ninetales-alola', 'wigglytuff', 'persian', 'persian-alola', 'slowbro', 'gengar', 'politoed', 'espeon', 'umbreon', 'slowking', 'slowking-galar', 'gardevoir', 'sableye', 'medicham', 'milotic', 'banette', 'chimecho', 'metagross', 'infernape', 'empoleon', 'lucario', 'gallade', 'froslass', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'watchog', 'zoroark', 'zoroark-hisui', 'reuniclus', 'chandelure', 'golurk', 'hydreigon', 'delphox', 'meowstic-female', 'meowstic-male', 'aromatisse', 'malamar', 'sylveon', 'klefki', 'trevenant', 'primarina', 'toucannon', 'oranguru', 'mimikyu-disguised', 'inteleon', 'hatterene', 'alcremie', 'falinks', 'indeedee-female', 'indeedee-male', 'wyrdeer', 'meowscarada', 'quaquaval', 'arboliva', 'armarouge', 'ceruledge', 'espathra', 'palafin-zero', 'farigiraf', 'sinistcha'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -5672,7 +5920,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '向对手发送强大的念力进行攻击。有时会降低对手的特防。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['raichu-alola', 'clefable', 'alakazam', 'slowbro', 'slowbro-galar', 'gengar', 'starmie', 'politoed', 'espeon', 'umbreon', 'slowking', 'slowking-galar', 'gardevoir', 'sableye', 'medicham', 'banette', 'chimecho', 'metagross', 'spiritomb', 'lucario', 'gallade', 'froslass', 'musharna', 'audino', 'whimsicott', 'cofagrigus', 'garbodor', 'zoroark', 'zoroark-hisui', 'reuniclus', 'chandelure', 'golurk', 'volcarona', 'delphox', 'vivillon', 'floette', 'florges', 'meowstic-female', 'meowstic-male', 'aromatisse', 'slurpuff', 'malamar', 'aurorus', 'sylveon', 'klefki', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'noivern', 'primarina', 'oranguru', 'mimikyu-disguised', 'polteageist', 'hatterene', 'mr-rime', 'runerigus', 'alcremie', 'wyrdeer', 'armarouge', 'espathra', 'farigiraf', 'gholdengo'],
+    learnableByPokemonIds: ['raichu-alola', 'clefable', 'wigglytuff', 'alakazam', 'slowbro', 'slowbro-galar', 'gengar', 'starmie', 'mr-mime', 'politoed', 'espeon', 'umbreon', 'slowking', 'slowking-galar', 'gardevoir', 'sableye', 'medicham', 'banette', 'chimecho', 'metagross', 'spiritomb', 'lucario', 'gallade', 'froslass', 'musharna', 'audino', 'whimsicott', 'cofagrigus', 'garbodor', 'zoroark', 'zoroark-hisui', 'reuniclus', 'chandelure', 'golurk', 'volcarona', 'delphox', 'vivillon', 'floette', 'florges', 'meowstic-female', 'meowstic-male', 'aromatisse', 'slurpuff', 'malamar', 'aurorus', 'sylveon', 'klefki', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'noivern', 'primarina', 'oranguru', 'mimikyu-disguised', 'thievul', 'polteageist', 'hatterene', 'mr-rime', 'runerigus', 'alcremie', 'indeedee-female', 'indeedee-male', 'wyrdeer', 'armarouge', 'espathra', 'farigiraf', 'gholdengo'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -5689,7 +5937,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '利用精神力量咬住对手进行攻击。还可以破坏光墙和反射壁等。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['arbok', 'arcanine', 'arcanine-hisui', 'aerodactyl', 'feraligatr', 'ariados', 'espeon', 'steelix', 'houndoom', 'mawile', 'manectric', 'sharpedo', 'metagross', 'luxray', 'gliscor', 'liepard', 'eelektross', 'pyroar', 'furfrou', 'tyrantrum', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'morpeko-full-belly', 'dragapult', 'basculegion-female', 'basculegion-male', 'houndstone', 'farigiraf'],
+    learnableByPokemonIds: ['arbok', 'arcanine', 'arcanine-hisui', 'aerodactyl', 'feraligatr', 'ariados', 'espeon', 'steelix', 'houndoom', 'mawile', 'manectric', 'sharpedo', 'salamence', 'metagross', 'luxray', 'gliscor', 'liepard', 'eelektross', 'pyroar', 'furfrou', 'tyrantrum', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'morpeko-full-belly', 'dragapult', 'basculegion-female', 'basculegion-male', 'mabosstiff', 'houndstone', 'farigiraf'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -5706,7 +5954,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用令对手不舒服的音波进行攻击。让对手在２回合内无法通过招式、特性或携带的道具回复ＨＰ。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['raichu-alola', 'slowbro', 'gengar', 'espeon', 'slowking', 'slowking-galar', 'gardevoir', 'chimecho', 'metagross', 'reuniclus', 'delphox', 'florges', 'meowstic-female', 'meowstic-male', 'malamar', 'trevenant', 'noivern', 'primarina', 'oranguru', 'hatterene', 'wyrdeer', 'farigiraf'],
+    learnableByPokemonIds: ['raichu-alola', 'wigglytuff', 'slowbro', 'gengar', 'espeon', 'slowking', 'slowking-galar', 'gardevoir', 'chimecho', 'metagross', 'reuniclus', 'delphox', 'florges', 'meowstic-female', 'meowstic-male', 'malamar', 'trevenant', 'noivern', 'primarina', 'oranguru', 'toxtricity-amped', 'toxtricity-low-key', 'hatterene', 'indeedee-female', 'indeedee-male', 'wyrdeer', 'farigiraf'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -5721,7 +5969,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '在５回合内，地面上的宝可梦不会受到先制招式的攻击。超能力属性的招式威力会提高。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['alakazam', 'slowbro', 'slowbro-galar', 'espeon', 'slowking', 'slowking-galar', 'gardevoir', 'medicham', 'gallade', 'musharna', 'reuniclus', 'delphox', 'meowstic-female', 'meowstic-male', 'oranguru', 'hatterene', 'mr-rime', 'armarouge', 'espathra', 'farigiraf'],
+    learnableByPokemonIds: ['alakazam', 'slowbro', 'slowbro-galar', 'mr-mime', 'espeon', 'slowking', 'slowking-galar', 'gardevoir', 'medicham', 'gallade', 'musharna', 'reuniclus', 'delphox', 'meowstic-female', 'meowstic-male', 'oranguru', 'hatterene', 'mr-rime', 'indeedee-female', 'indeedee-male', 'armarouge', 'espathra', 'farigiraf'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -5747,7 +5995,7 @@ export const championsMoves: Move[] = [
     englishName: 'Psyshield Bash',
     type: 'Psychic',
     category: 'Physical',
-    power: 70,
+    power: 90,
     accuracy: 90,
     pp: 10,
     targetScope: '单体',
@@ -5772,7 +6020,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '将神奇的念波实体化攻击对手。给予物理伤害。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['raichu-alola', 'clefable', 'ninetales', 'ninetales-alola', 'alakazam', 'slowbro', 'slowbro-galar', 'starmie', 'espeon', 'slowking', 'slowking-galar', 'gardevoir', 'medicham', 'chimecho', 'metagross', 'spiritomb', 'gallade', 'musharna', 'audino', 'reuniclus', 'delphox', 'meowstic-female', 'meowstic-male', 'aromatisse', 'malamar', 'sylveon', 'klefki', 'oranguru', 'polteageist', 'hatterene', 'mr-rime', 'runerigus', 'alcremie', 'wyrdeer', 'armarouge', 'espathra', 'farigiraf', 'gholdengo'],
+    learnableByPokemonIds: ['raichu-alola', 'clefable', 'ninetales', 'ninetales-alola', 'wigglytuff', 'alakazam', 'slowbro', 'slowbro-galar', 'starmie', 'mr-mime', 'espeon', 'slowking', 'slowking-galar', 'gardevoir', 'medicham', 'chimecho', 'metagross', 'spiritomb', 'gallade', 'musharna', 'audino', 'reuniclus', 'delphox', 'meowstic-female', 'meowstic-male', 'aromatisse', 'malamar', 'sylveon', 'klefki', 'oranguru', 'polteageist', 'hatterene', 'mr-rime', 'runerigus', 'alcremie', 'indeedee-female', 'indeedee-male', 'wyrdeer', 'armarouge', 'espathra', 'farigiraf', 'gholdengo'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -5790,6 +6038,23 @@ export const championsMoves: Move[] = [
     effectSummary: '当对手替换宝可梦上场时使出此招式的话，能够以２倍的威力进行攻击。',
     legalInCurrentRule: true,
     learnableByPokemonIds: ['aegislash-shield'],
+    sourceRefs: moveSourceRefs,
+  },
+  {
+    id: 'pyro-ball',
+    chineseName: '火焰球',
+    englishName: 'Pyro Ball',
+    type: 'Fire',
+    category: 'Physical',
+    power: 120,
+    accuracy: 90,
+    pp: 5,
+    targetScope: '单体',
+    makesContact: false,
+    affectedByProtect: true,
+    effectSummary: '点燃小石子，形成火球攻击对手。有时会使对手陷入灼伤状态。',
+    legalInCurrentRule: true,
+    learnableByPokemonIds: ['cinderace'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -5822,7 +6087,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '以迅雷不及掩耳之势扑向对手。必定能够先制攻击。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['pidgeot', 'pikachu', 'raichu', 'raichu-alola', 'ninetales', 'pinsir', 'vaporeon', 'jolteon', 'flareon', 'typhlosion', 'typhlosion-hisui', 'espeon', 'umbreon', 'scizor', 'sceptile', 'blaziken', 'pelipper', 'manectric', 'absol', 'staraptor', 'luxray', 'lopunny', 'lucario', 'weavile', 'leafeon', 'glaceon', 'gliscor', 'liepard', 'emolga', 'greninja', 'diggersby', 'talonflame', 'heliolisk', 'sylveon', 'lycanroc-dusk', 'lycanroc-midday', 'passimian', 'morpeko-full-belly', 'dragapult', 'kleavor', 'sneasler', 'meowscarada', 'espathra'],
+    learnableByPokemonIds: ['pidgeot', 'pikachu', 'raichu', 'raichu-alola', 'ninetales', 'farfetchd', 'pinsir', 'vaporeon', 'jolteon', 'flareon', 'typhlosion', 'typhlosion-hisui', 'espeon', 'umbreon', 'scizor', 'sceptile', 'blaziken', 'pelipper', 'manectric', 'absol', 'staraptor', 'luxray', 'lopunny', 'lucario', 'weavile', 'leafeon', 'glaceon', 'gliscor', 'liepard', 'emolga', 'greninja', 'diggersby', 'talonflame', 'heliolisk', 'sylveon', 'lycanroc-dusk', 'lycanroc-midday', 'passimian', 'cinderace', 'thievul', 'sirfetchd', 'morpeko-full-belly', 'dragapult', 'kleavor', 'sneasler', 'meowscarada', 'pawmot', 'squawkabilly-green-plumage', 'squawkabilly-yellow-plumage', 'espathra'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -5837,7 +6102,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '守护自己和同伴，以防对手的先制攻击。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['machamp', 'scizor', 'sceptile', 'medicham', 'lucario', 'toxicroak', 'gallade', 'scrafty', 'chesnaught', 'talonflame', 'pangoro', 'meowstic-male', 'hawlucha', 'lycanroc-dusk', 'lycanroc-midday', 'passimian', 'kleavor', 'sneasler', 'ceruledge', 'kingambit'],
+    learnableByPokemonIds: ['machamp', 'mr-mime', 'scizor', 'sceptile', 'medicham', 'lucario', 'toxicroak', 'gallade', 'scrafty', 'chesnaught', 'talonflame', 'pangoro', 'meowstic-male', 'hawlucha', 'lycanroc-dusk', 'lycanroc-midday', 'passimian', 'thievul', 'sirfetchd', 'kleavor', 'sneasler', 'ceruledge', 'kingambit'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -5933,7 +6198,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '在５回合内一直降雨，从而提高水属性的招式威力。火属性的招式威力则降低。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['blastoise', 'pidgeot', 'arbok', 'pikachu', 'raichu', 'raichu-alola', 'clefable', 'ninetales', 'ninetales-alola', 'alakazam', 'machamp', 'slowbro', 'slowbro-galar', 'gengar', 'kangaskhan', 'starmie', 'pinsir', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'vaporeon', 'jolteon', 'flareon', 'aerodactyl', 'snorlax', 'dragonite', 'feraligatr', 'ampharos', 'azumarill', 'politoed', 'espeon', 'umbreon', 'slowking', 'slowking-galar', 'forretress', 'qwilfish', 'scizor', 'heracross', 'houndoom', 'tyranitar', 'swampert', 'pelipper', 'gardevoir', 'sableye', 'mawile', 'aggron', 'medicham', 'manectric', 'sharpedo', 'camerupt', 'altaria', 'milotic', 'castform', 'banette', 'chimecho', 'absol', 'glalie', 'metagross', 'empoleon', 'staraptor', 'luxray', 'roserade', 'rampardos', 'bastiodon', 'lopunny', 'spiritomb', 'garchomp', 'lucario', 'toxicroak', 'abomasnow', 'weavile', 'rhyperior', 'leafeon', 'glaceon', 'gliscor', 'mamoswine', 'gallade', 'froslass', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'samurott', 'samurott-hisui', 'watchog', 'liepard', 'simipour', 'musharna', 'audino', 'conkeldurr', 'scrafty', 'cofagrigus', 'garbodor', 'zoroark', 'zoroark-hisui', 'reuniclus', 'vanilluxe', 'emolga', 'eelektross', 'beartic', 'stunfisk', 'stunfisk-galar', 'golurk', 'hydreigon', 'volcarona', 'chesnaught', 'delphox', 'greninja', 'talonflame', 'vivillon', 'pyroar', 'floette', 'florges', 'pangoro', 'furfrou', 'meowstic-female', 'meowstic-male', 'aegislash-shield', 'aromatisse', 'slurpuff', 'malamar', 'barbaracle', 'dragalge', 'clawitzer', 'heliolisk', 'aurorus', 'sylveon', 'hawlucha', 'dedenne', 'goodra', 'goodra-hisui', 'klefki', 'trevenant', 'avalugg', 'avalugg-hisui', 'decidueye', 'decidueye-hisui', 'primarina', 'crabominable', 'toxapex', 'araquanid', 'oranguru', 'passimian', 'mimikyu-disguised', 'drampa', 'kommo-o', 'corviknight', 'appletun', 'mr-rime', 'runerigus', 'falinks', 'wyrdeer', 'kleavor', 'basculegion-female', 'basculegion-male', 'sneasler', 'overqwil', 'quaquaval', 'maushold-family-of-four', 'garganacl', 'bellibolt', 'espathra', 'palafin-zero', 'glimmora', 'houndstone', 'annihilape', 'farigiraf', 'kingambit', 'hydrapple'],
+    learnableByPokemonIds: ['blastoise', 'pidgeot', 'arbok', 'pikachu', 'raichu', 'raichu-alola', 'clefable', 'ninetales', 'ninetales-alola', 'wigglytuff', 'persian', 'persian-alola', 'alakazam', 'machamp', 'slowbro', 'slowbro-galar', 'gengar', 'kangaskhan', 'starmie', 'mr-mime', 'pinsir', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'vaporeon', 'jolteon', 'flareon', 'aerodactyl', 'snorlax', 'dragonite', 'feraligatr', 'ampharos', 'azumarill', 'politoed', 'espeon', 'umbreon', 'slowking', 'slowking-galar', 'forretress', 'qwilfish', 'scizor', 'heracross', 'houndoom', 'tyranitar', 'swampert', 'pelipper', 'gardevoir', 'sableye', 'mawile', 'aggron', 'medicham', 'manectric', 'swalot', 'sharpedo', 'camerupt', 'altaria', 'milotic', 'castform', 'banette', 'chimecho', 'absol', 'glalie', 'salamence', 'metagross', 'empoleon', 'staraptor', 'luxray', 'roserade', 'rampardos', 'bastiodon', 'lopunny', 'spiritomb', 'garchomp', 'lucario', 'toxicroak', 'abomasnow', 'weavile', 'rhyperior', 'leafeon', 'glaceon', 'gliscor', 'mamoswine', 'gallade', 'froslass', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'samurott', 'samurott-hisui', 'watchog', 'liepard', 'simipour', 'musharna', 'audino', 'conkeldurr', 'scrafty', 'cofagrigus', 'garbodor', 'zoroark', 'zoroark-hisui', 'reuniclus', 'vanilluxe', 'emolga', 'eelektross', 'beartic', 'stunfisk', 'stunfisk-galar', 'golurk', 'hydreigon', 'volcarona', 'chesnaught', 'delphox', 'greninja', 'talonflame', 'vivillon', 'pyroar', 'floette', 'florges', 'gogoat', 'pangoro', 'furfrou', 'meowstic-female', 'meowstic-male', 'aegislash-shield', 'aromatisse', 'slurpuff', 'malamar', 'barbaracle', 'dragalge', 'clawitzer', 'heliolisk', 'aurorus', 'sylveon', 'hawlucha', 'dedenne', 'goodra', 'goodra-hisui', 'klefki', 'trevenant', 'avalugg', 'avalugg-hisui', 'decidueye', 'decidueye-hisui', 'primarina', 'crabominable', 'toxapex', 'araquanid', 'oranguru', 'passimian', 'golisopod', 'mimikyu-disguised', 'drampa', 'kommo-o', 'inteleon', 'corviknight', 'appletun', 'toxtricity-amped', 'toxtricity-low-key', 'perrserker', 'mr-rime', 'runerigus', 'falinks', 'pincurchin', 'wyrdeer', 'kleavor', 'basculegion-female', 'basculegion-male', 'sneasler', 'overqwil', 'quaquaval', 'pawmot', 'maushold-family-of-four', 'garganacl', 'bellibolt', 'mabosstiff', 'espathra', 'palafin-zero', 'glimmora', 'houndstone', 'annihilape', 'farigiraf', 'kingambit', 'baxcalibur', 'hydrapple'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -5984,7 +6249,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用锋利的贝壳切斩对手进行攻击。有时会降低对手的防御。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['slowbro', 'slowbro-galar', 'slowking', 'slowking-galar', 'samurott', 'samurott-hisui', 'barbaracle'],
+    learnableByPokemonIds: ['slowbro', 'slowbro-galar', 'slowking', 'slowking-galar', 'samurott', 'samurott-hisui', 'barbaracle', 'golisopod'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -5999,7 +6264,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '让细胞再生，从而回复自己最大ＨＰ的一半。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['alakazam', 'starmie', 'sableye', 'medicham', 'milotic', 'chimecho', 'reuniclus', 'avalugg', 'avalugg-hisui', 'toxapex', 'appletun', 'alcremie', 'garganacl', 'gholdengo', 'hydrapple'],
+    learnableByPokemonIds: ['alakazam', 'starmie', 'sableye', 'medicham', 'milotic', 'chimecho', 'reuniclus', 'avalugg', 'avalugg-hisui', 'toxapex', 'appletun', 'alcremie', 'pincurchin', 'garganacl', 'gholdengo', 'hydrapple'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -6014,7 +6279,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '使战斗中已经消耗掉的自己的持有物再生，并可以再次使用。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['snorlax', 'chimecho', 'simisage', 'simisear', 'simipour', 'garbodor', 'klefki', 'flapple', 'appletun', 'mr-rime', 'hydrapple'],
+    learnableByPokemonIds: ['mr-mime', 'snorlax', 'chimecho', 'simisage', 'simisear', 'simipour', 'garbodor', 'klefki', 'flapple', 'appletun', 'mr-rime', 'hydrapple'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -6029,7 +6294,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '利用神奇的墙壁，在５回合内减弱从对手那里受到的物理攻击的伤害。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'clefable', 'alakazam', 'victreebel', 'starmie', 'meganium', 'ampharos', 'espeon', 'umbreon', 'slowking', 'forretress', 'gardevoir', 'sableye', 'medicham', 'chimecho', 'metagross', 'torterra', 'bastiodon', 'weavile', 'mamoswine', 'gallade', 'froslass', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'serperior', 'musharna', 'audino', 'reuniclus', 'golurk', 'hydreigon', 'chesnaught', 'delphox', 'meowstic-female', 'meowstic-male', 'aegislash-shield', 'aromatisse', 'malamar', 'aurorus', 'sylveon', 'klefki', 'trevenant', 'primarina', 'araquanid', 'tsareena', 'oranguru', 'corviknight', 'appletun', 'polteageist', 'hatterene', 'grimmsnarl', 'mr-rime', 'dragapult', 'wyrdeer', 'armarouge', 'ceruledge', 'bellibolt', 'espathra', 'tinkaton', 'glimmora', 'farigiraf', 'gholdengo', 'sinistcha', 'archaludon', 'hydrapple'],
+    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'clefable', 'wigglytuff', 'alakazam', 'victreebel', 'starmie', 'mr-mime', 'meganium', 'ampharos', 'espeon', 'umbreon', 'slowking', 'forretress', 'gardevoir', 'sableye', 'medicham', 'chimecho', 'metagross', 'torterra', 'bastiodon', 'weavile', 'mamoswine', 'gallade', 'froslass', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'serperior', 'musharna', 'audino', 'reuniclus', 'golurk', 'hydreigon', 'chesnaught', 'delphox', 'meowstic-female', 'meowstic-male', 'aegislash-shield', 'aromatisse', 'malamar', 'aurorus', 'sylveon', 'klefki', 'trevenant', 'primarina', 'araquanid', 'tsareena', 'oranguru', 'inteleon', 'corviknight', 'appletun', 'polteageist', 'hatterene', 'grimmsnarl', 'mr-rime', 'dragapult', 'wyrdeer', 'arboliva', 'armarouge', 'ceruledge', 'bellibolt', 'espathra', 'tinkaton', 'glimmora', 'farigiraf', 'gholdengo', 'sinistcha', 'archaludon', 'hydrapple'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -6059,7 +6324,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '连续睡上２回合。回复自己的全部ＨＰ以及治愈所有异常状态。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['venusaur', 'charizard', 'blastoise', 'beedrill', 'pidgeot', 'arbok', 'pikachu', 'raichu', 'raichu-alola', 'clefable', 'ninetales', 'ninetales-alola', 'vileplume', 'arcanine', 'arcanine-hisui', 'alakazam', 'machamp', 'victreebel', 'slowbro', 'slowbro-galar', 'gengar', 'kangaskhan', 'starmie', 'pinsir', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'vaporeon', 'jolteon', 'flareon', 'aerodactyl', 'snorlax', 'dragonite', 'meganium', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'ariados', 'ampharos', 'azumarill', 'politoed', 'espeon', 'umbreon', 'slowking', 'slowking-galar', 'forretress', 'steelix', 'qwilfish', 'scizor', 'heracross', 'skarmory', 'houndoom', 'tyranitar', 'sceptile', 'blaziken', 'swampert', 'pelipper', 'gardevoir', 'sableye', 'mawile', 'aggron', 'medicham', 'manectric', 'sharpedo', 'camerupt', 'torkoal', 'altaria', 'milotic', 'castform', 'banette', 'chimecho', 'absol', 'glalie', 'metagross', 'torterra', 'infernape', 'empoleon', 'staraptor', 'luxray', 'roserade', 'rampardos', 'bastiodon', 'lopunny', 'spiritomb', 'garchomp', 'lucario', 'hippowdon', 'toxicroak', 'abomasnow', 'weavile', 'rhyperior', 'leafeon', 'glaceon', 'gliscor', 'mamoswine', 'gallade', 'froslass', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'serperior', 'emboar', 'samurott', 'samurott-hisui', 'watchog', 'liepard', 'simisage', 'simisear', 'simipour', 'musharna', 'excadrill', 'audino', 'conkeldurr', 'scolipede', 'whimsicott', 'krookodile', 'scrafty', 'cofagrigus', 'garbodor', 'zoroark', 'zoroark-hisui', 'reuniclus', 'vanilluxe', 'emolga', 'eelektross', 'chandelure', 'beartic', 'stunfisk', 'stunfisk-galar', 'golurk', 'hydreigon', 'volcarona', 'chesnaught', 'delphox', 'greninja', 'diggersby', 'talonflame', 'vivillon', 'pyroar', 'floette', 'florges', 'pangoro', 'furfrou', 'meowstic-female', 'meowstic-male', 'aegislash-shield', 'aromatisse', 'slurpuff', 'malamar', 'barbaracle', 'dragalge', 'clawitzer', 'heliolisk', 'tyrantrum', 'aurorus', 'sylveon', 'hawlucha', 'dedenne', 'goodra', 'goodra-hisui', 'klefki', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'avalugg', 'avalugg-hisui', 'noivern', 'decidueye', 'decidueye-hisui', 'incineroar', 'primarina', 'toucannon', 'crabominable', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'toxapex', 'mudsdale', 'araquanid', 'salazzle', 'tsareena', 'oranguru', 'passimian', 'mimikyu-disguised', 'drampa', 'kommo-o', 'corviknight', 'flapple', 'appletun', 'sandaconda', 'polteageist', 'hatterene', 'grimmsnarl', 'mr-rime', 'runerigus', 'alcremie', 'falinks', 'morpeko-full-belly', 'dragapult', 'wyrdeer', 'kleavor', 'basculegion-female', 'basculegion-male', 'sneasler', 'overqwil', 'meowscarada', 'skeledirge', 'quaquaval', 'maushold-family-of-four', 'garganacl', 'armarouge', 'ceruledge', 'bellibolt', 'scovillain', 'espathra', 'tinkaton', 'palafin-zero', 'orthworm', 'glimmora', 'houndstone', 'annihilape', 'farigiraf', 'kingambit', 'gholdengo', 'sinistcha', 'archaludon', 'hydrapple'],
+    learnableByPokemonIds: ['venusaur', 'charizard', 'blastoise', 'beedrill', 'pidgeot', 'arbok', 'pikachu', 'raichu', 'raichu-alola', 'clefable', 'ninetales', 'ninetales-alola', 'wigglytuff', 'vileplume', 'persian', 'persian-alola', 'arcanine', 'arcanine-hisui', 'alakazam', 'machamp', 'victreebel', 'slowbro', 'slowbro-galar', 'farfetchd', 'gengar', 'kangaskhan', 'starmie', 'mr-mime', 'pinsir', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'vaporeon', 'jolteon', 'flareon', 'aerodactyl', 'snorlax', 'dragonite', 'meganium', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'ariados', 'ampharos', 'azumarill', 'politoed', 'espeon', 'umbreon', 'slowking', 'slowking-galar', 'forretress', 'steelix', 'qwilfish', 'scizor', 'heracross', 'skarmory', 'houndoom', 'tyranitar', 'sceptile', 'blaziken', 'swampert', 'pelipper', 'gardevoir', 'sableye', 'mawile', 'aggron', 'medicham', 'manectric', 'swalot', 'sharpedo', 'camerupt', 'torkoal', 'altaria', 'milotic', 'castform', 'banette', 'chimecho', 'absol', 'glalie', 'salamence', 'metagross', 'torterra', 'infernape', 'empoleon', 'staraptor', 'luxray', 'roserade', 'rampardos', 'bastiodon', 'lopunny', 'spiritomb', 'garchomp', 'lucario', 'hippowdon', 'toxicroak', 'abomasnow', 'weavile', 'rhyperior', 'leafeon', 'glaceon', 'gliscor', 'mamoswine', 'gallade', 'froslass', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'serperior', 'emboar', 'samurott', 'samurott-hisui', 'watchog', 'liepard', 'simisage', 'simisear', 'simipour', 'musharna', 'excadrill', 'audino', 'conkeldurr', 'scolipede', 'whimsicott', 'krookodile', 'scrafty', 'cofagrigus', 'garbodor', 'zoroark', 'zoroark-hisui', 'reuniclus', 'vanilluxe', 'emolga', 'eelektross', 'chandelure', 'beartic', 'stunfisk', 'stunfisk-galar', 'golurk', 'hydreigon', 'volcarona', 'chesnaught', 'delphox', 'greninja', 'diggersby', 'talonflame', 'vivillon', 'pyroar', 'floette', 'florges', 'gogoat', 'pangoro', 'furfrou', 'meowstic-female', 'meowstic-male', 'aegislash-shield', 'aromatisse', 'slurpuff', 'malamar', 'barbaracle', 'dragalge', 'clawitzer', 'heliolisk', 'tyrantrum', 'aurorus', 'sylveon', 'hawlucha', 'dedenne', 'goodra', 'goodra-hisui', 'klefki', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'avalugg', 'avalugg-hisui', 'noivern', 'decidueye', 'decidueye-hisui', 'incineroar', 'primarina', 'toucannon', 'crabominable', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'toxapex', 'mudsdale', 'araquanid', 'salazzle', 'tsareena', 'oranguru', 'passimian', 'golisopod', 'mimikyu-disguised', 'drampa', 'kommo-o', 'rillaboom', 'cinderace', 'inteleon', 'corviknight', 'thievul', 'flapple', 'appletun', 'sandaconda', 'toxtricity-amped', 'toxtricity-low-key', 'grapploct', 'polteageist', 'hatterene', 'grimmsnarl', 'perrserker', 'sirfetchd', 'mr-rime', 'runerigus', 'alcremie', 'falinks', 'pincurchin', 'indeedee-female', 'indeedee-male', 'morpeko-full-belly', 'dragapult', 'wyrdeer', 'kleavor', 'basculegion-female', 'basculegion-male', 'sneasler', 'overqwil', 'meowscarada', 'skeledirge', 'quaquaval', 'pawmot', 'maushold-family-of-four', 'arboliva', 'squawkabilly-green-plumage', 'squawkabilly-yellow-plumage', 'garganacl', 'armarouge', 'ceruledge', 'bellibolt', 'mabosstiff', 'scovillain', 'espathra', 'tinkaton', 'palafin-zero', 'orthworm', 'glimmora', 'houndstone', 'annihilape', 'farigiraf', 'kingambit', 'baxcalibur', 'gholdengo', 'sinistcha', 'archaludon', 'hydrapple'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -6125,7 +6390,23 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '竭尽全力进行攻击。自己的ＨＰ越少，招式的威力越大。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'arcanine', 'arcanine-hisui', 'machamp', 'kangaskhan', 'pinsir', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'typhlosion', 'typhlosion-hisui', 'forretress', 'qwilfish', 'scizor', 'heracross', 'skarmory', 'houndoom', 'blaziken', 'aggron', 'medicham', 'infernape', 'bastiodon', 'lopunny', 'lucario', 'toxicroak', 'weavile', 'rhyperior', 'mamoswine', 'gallade', 'emboar', 'conkeldurr', 'scrafty', 'beartic', 'chesnaught', 'pangoro', 'aegislash-shield', 'malamar', 'hawlucha', 'decidueye', 'decidueye-hisui', 'incineroar', 'crabominable', 'lycanroc-dusk', 'lycanroc-midnight', 'passimian', 'kommo-o', 'corviknight', 'falinks', 'morpeko-full-belly', 'kleavor', 'sneasler', 'overqwil', 'quaquaval', 'palafin-zero', 'annihilape', 'kingambit'],
+    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'arcanine', 'arcanine-hisui', 'machamp', 'kangaskhan', 'pinsir', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'typhlosion', 'typhlosion-hisui', 'forretress', 'qwilfish', 'scizor', 'heracross', 'skarmory', 'houndoom', 'blaziken', 'aggron', 'medicham', 'infernape', 'bastiodon', 'lopunny', 'lucario', 'toxicroak', 'weavile', 'rhyperior', 'mamoswine', 'gallade', 'emboar', 'conkeldurr', 'scrafty', 'beartic', 'chesnaught', 'pangoro', 'aegislash-shield', 'malamar', 'hawlucha', 'decidueye', 'decidueye-hisui', 'incineroar', 'crabominable', 'lycanroc-dusk', 'lycanroc-midnight', 'passimian', 'kommo-o', 'cinderace', 'corviknight', 'grapploct', 'falinks', 'pincurchin', 'morpeko-full-belly', 'kleavor', 'sneasler', 'overqwil', 'quaquaval', 'squawkabilly-green-plumage', 'squawkabilly-yellow-plumage', 'mabosstiff', 'palafin-zero', 'annihilape', 'kingambit'],
+    sourceRefs: moveSourceRefs,
+  },
+  {
+    id: 'revival-blessing',
+    chineseName: '复生祈祷',
+    englishName: 'Revival Blessing',
+    type: 'Normal',
+    category: 'Status',
+    power: 0,
+    pp: 1,
+    targetScope: 'fainting-pokemon',
+    makesContact: false,
+    affectedByProtect: false,
+    effectSummary: '通过以慈爱之心祈祷，让陷入昏厥的后备宝可梦以回复一半ＨＰ的状态复活。',
+    legalInCurrentRule: true,
+    learnableByPokemonIds: ['pawmot'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -6142,7 +6423,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用从地面升腾而起的电击进行攻击。当对手处于电气场地上时，招式威力会变成２倍。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'jolteon', 'ampharos', 'manectric', 'luxray', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'emolga', 'eelektross', 'heliolisk', 'dedenne', 'morpeko-full-belly'],
+    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'jolteon', 'ampharos', 'manectric', 'luxray', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'emolga', 'eelektross', 'heliolisk', 'dedenne', 'toxtricity-amped', 'toxtricity-low-key', 'pincurchin', 'morpeko-full-belly'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -6157,7 +6438,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '放走对手，强制拉后备宝可梦上场。如果对手为野生宝可梦，战斗将直接结束。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['venusaur', 'charizard', 'blastoise', 'ninetales', 'ninetales-alola', 'arcanine', 'arcanine-hisui', 'gyarados', 'vaporeon', 'jolteon', 'flareon', 'aerodactyl', 'dragonite', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'ampharos', 'espeon', 'umbreon', 'skarmory', 'houndoom', 'tyranitar', 'sceptile', 'blaziken', 'swampert', 'aggron', 'manectric', 'camerupt', 'altaria', 'torterra', 'infernape', 'empoleon', 'luxray', 'rampardos', 'bastiodon', 'lucario', 'hippowdon', 'rhyperior', 'leafeon', 'glaceon', 'mamoswine', 'emboar', 'krookodile', 'scrafty', 'zoroark', 'zoroark-hisui', 'beartic', 'hydreigon', 'chesnaught', 'pyroar', 'furfrou', 'tyrantrum', 'sylveon', 'incineroar', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'mudsdale', 'kommo-o', 'wyrdeer', 'skeledirge', 'houndstone', 'farigiraf', 'archaludon'],
+    learnableByPokemonIds: ['venusaur', 'charizard', 'blastoise', 'ninetales', 'ninetales-alola', 'persian', 'persian-alola', 'arcanine', 'arcanine-hisui', 'gyarados', 'vaporeon', 'jolteon', 'flareon', 'aerodactyl', 'dragonite', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'ampharos', 'espeon', 'umbreon', 'skarmory', 'houndoom', 'tyranitar', 'sceptile', 'blaziken', 'swampert', 'aggron', 'manectric', 'camerupt', 'altaria', 'salamence', 'torterra', 'infernape', 'empoleon', 'luxray', 'rampardos', 'bastiodon', 'lucario', 'hippowdon', 'rhyperior', 'leafeon', 'glaceon', 'mamoswine', 'emboar', 'krookodile', 'scrafty', 'zoroark', 'zoroark-hisui', 'beartic', 'hydreigon', 'chesnaught', 'pyroar', 'gogoat', 'furfrou', 'tyrantrum', 'sylveon', 'incineroar', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'mudsdale', 'kommo-o', 'thievul', 'wyrdeer', 'skeledirge', 'mabosstiff', 'houndstone', 'farigiraf', 'archaludon'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -6206,7 +6487,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '将大岩石猛烈地撞向对手进行攻击。有时会使对手畏缩。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['charizard', 'blastoise', 'arbok', 'arcanine', 'arcanine-hisui', 'machamp', 'kangaskhan', 'pinsir', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'aerodactyl', 'snorlax', 'dragonite', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'slowking', 'forretress', 'steelix', 'heracross', 'skarmory', 'tyranitar', 'sceptile', 'blaziken', 'swampert', 'mawile', 'aggron', 'medicham', 'camerupt', 'torkoal', 'absol', 'metagross', 'torterra', 'infernape', 'empoleon', 'rampardos', 'bastiodon', 'garchomp', 'lucario', 'hippowdon', 'toxicroak', 'abomasnow', 'rhyperior', 'gliscor', 'mamoswine', 'gallade', 'emboar', 'simisage', 'simisear', 'simipour', 'musharna', 'excadrill', 'conkeldurr', 'scolipede', 'krookodile', 'scrafty', 'reuniclus', 'eelektross', 'beartic', 'stunfisk', 'stunfisk-galar', 'golurk', 'hydreigon', 'chesnaught', 'greninja', 'diggersby', 'pangoro', 'aegislash-shield', 'malamar', 'barbaracle', 'clawitzer', 'heliolisk', 'tyrantrum', 'aurorus', 'hawlucha', 'goodra', 'goodra-hisui', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'avalugg', 'avalugg-hisui', 'crabominable', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'mudsdale', 'oranguru', 'passimian', 'drampa', 'kommo-o', 'sandaconda', 'runerigus', 'falinks', 'kleavor', 'sneasler', 'garganacl', 'tinkaton', 'orthworm', 'glimmora', 'annihilape', 'archaludon'],
+    learnableByPokemonIds: ['charizard', 'blastoise', 'arbok', 'arcanine', 'arcanine-hisui', 'machamp', 'kangaskhan', 'pinsir', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'aerodactyl', 'snorlax', 'dragonite', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'slowking', 'forretress', 'steelix', 'heracross', 'skarmory', 'tyranitar', 'sceptile', 'blaziken', 'swampert', 'mawile', 'aggron', 'medicham', 'camerupt', 'torkoal', 'absol', 'salamence', 'metagross', 'torterra', 'infernape', 'empoleon', 'rampardos', 'bastiodon', 'garchomp', 'lucario', 'hippowdon', 'toxicroak', 'abomasnow', 'rhyperior', 'gliscor', 'mamoswine', 'gallade', 'emboar', 'simisage', 'simisear', 'simipour', 'musharna', 'excadrill', 'conkeldurr', 'scolipede', 'krookodile', 'scrafty', 'reuniclus', 'eelektross', 'beartic', 'stunfisk', 'stunfisk-galar', 'golurk', 'hydreigon', 'chesnaught', 'greninja', 'diggersby', 'gogoat', 'pangoro', 'aegislash-shield', 'malamar', 'barbaracle', 'clawitzer', 'heliolisk', 'tyrantrum', 'aurorus', 'hawlucha', 'goodra', 'goodra-hisui', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'avalugg', 'avalugg-hisui', 'crabominable', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'mudsdale', 'oranguru', 'passimian', 'golisopod', 'drampa', 'kommo-o', 'sandaconda', 'runerigus', 'falinks', 'kleavor', 'sneasler', 'garganacl', 'tinkaton', 'orthworm', 'glimmora', 'annihilape', 'archaludon'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -6240,7 +6521,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '投掷岩石进行攻击。封住对手的行动，从而降低速度。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['charizard', 'blastoise', 'arbok', 'arcanine', 'arcanine-hisui', 'machamp', 'kangaskhan', 'pinsir', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'aerodactyl', 'snorlax', 'dragonite', 'typhlosion', 'feraligatr', 'slowking', 'forretress', 'steelix', 'heracross', 'skarmory', 'tyranitar', 'sceptile', 'blaziken', 'swampert', 'sableye', 'mawile', 'aggron', 'medicham', 'sharpedo', 'camerupt', 'torkoal', 'absol', 'metagross', 'torterra', 'infernape', 'empoleon', 'rampardos', 'bastiodon', 'spiritomb', 'garchomp', 'lucario', 'hippowdon', 'toxicroak', 'abomasnow', 'rhyperior', 'gliscor', 'mamoswine', 'gallade', 'emboar', 'simisage', 'simisear', 'simipour', 'musharna', 'excadrill', 'conkeldurr', 'scolipede', 'krookodile', 'scrafty', 'reuniclus', 'eelektross', 'beartic', 'stunfisk', 'stunfisk-galar', 'golurk', 'hydreigon', 'chesnaught', 'greninja', 'diggersby', 'pangoro', 'barbaracle', 'heliolisk', 'tyrantrum', 'aurorus', 'hawlucha', 'goodra', 'goodra-hisui', 'avalugg', 'avalugg-hisui', 'decidueye', 'decidueye-hisui', 'crabominable', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'mudsdale', 'passimian', 'kommo-o', 'sandaconda', 'runerigus', 'falinks', 'kleavor', 'sneasler', 'garganacl', 'tinkaton', 'orthworm', 'glimmora', 'annihilape', 'kingambit', 'archaludon'],
+    learnableByPokemonIds: ['charizard', 'blastoise', 'arbok', 'arcanine', 'arcanine-hisui', 'machamp', 'kangaskhan', 'pinsir', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'aerodactyl', 'snorlax', 'dragonite', 'typhlosion', 'feraligatr', 'slowking', 'forretress', 'steelix', 'heracross', 'skarmory', 'tyranitar', 'sceptile', 'blaziken', 'swampert', 'sableye', 'mawile', 'aggron', 'medicham', 'sharpedo', 'camerupt', 'torkoal', 'absol', 'salamence', 'metagross', 'torterra', 'infernape', 'empoleon', 'rampardos', 'bastiodon', 'spiritomb', 'garchomp', 'lucario', 'hippowdon', 'toxicroak', 'abomasnow', 'rhyperior', 'gliscor', 'mamoswine', 'gallade', 'emboar', 'simisage', 'simisear', 'simipour', 'musharna', 'excadrill', 'conkeldurr', 'scolipede', 'krookodile', 'scrafty', 'reuniclus', 'eelektross', 'beartic', 'stunfisk', 'stunfisk-galar', 'golurk', 'hydreigon', 'chesnaught', 'greninja', 'diggersby', 'pangoro', 'barbaracle', 'heliolisk', 'tyrantrum', 'aurorus', 'hawlucha', 'goodra', 'goodra-hisui', 'avalugg', 'avalugg-hisui', 'decidueye', 'decidueye-hisui', 'crabominable', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'mudsdale', 'passimian', 'golisopod', 'kommo-o', 'sandaconda', 'runerigus', 'falinks', 'kleavor', 'sneasler', 'pawmot', 'garganacl', 'tinkaton', 'orthworm', 'glimmora', 'annihilape', 'kingambit', 'archaludon'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -6272,7 +6553,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '扮演对手，让自己的特性变得和对手相同。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['alakazam', 'banette', 'delphox', 'greninja', 'meowstic-female', 'meowstic-male', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'mr-rime', 'wyrdeer'],
+    learnableByPokemonIds: ['alakazam', 'mr-mime', 'banette', 'delphox', 'greninja', 'meowstic-female', 'meowstic-male', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'mr-rime', 'wyrdeer'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -6287,7 +6568,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '降到地面，使身体休息。回复自己最大ＨＰ的一半。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['charizard', 'pidgeot', 'aerodactyl', 'dragonite', 'scizor', 'skarmory', 'pelipper', 'altaria', 'empoleon', 'staraptor', 'emolga', 'talonflame', 'hawlucha', 'noivern', 'decidueye', 'decidueye-hisui', 'toucannon', 'drampa', 'corviknight', 'quaquaval', 'espathra'],
+    learnableByPokemonIds: ['charizard', 'pidgeot', 'farfetchd', 'aerodactyl', 'dragonite', 'scizor', 'skarmory', 'pelipper', 'altaria', 'salamence', 'empoleon', 'staraptor', 'emolga', 'talonflame', 'hawlucha', 'noivern', 'decidueye', 'decidueye-hisui', 'toucannon', 'drampa', 'corviknight', 'quaquaval', 'squawkabilly-green-plumage', 'squawkabilly-yellow-plumage', 'espathra'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -6304,7 +6585,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用歌声攻击对手。大家一起轮唱便可以接连使出，威力也会提高。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['venusaur', 'charizard', 'blastoise', 'beedrill', 'pidgeot', 'arbok', 'pikachu', 'raichu', 'raichu-alola', 'clefable', 'ninetales', 'ninetales-alola', 'vileplume', 'arcanine', 'arcanine-hisui', 'alakazam', 'machamp', 'victreebel', 'slowbro', 'slowbro-galar', 'gengar', 'kangaskhan', 'starmie', 'pinsir', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'vaporeon', 'jolteon', 'flareon', 'aerodactyl', 'snorlax', 'dragonite', 'meganium', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'ariados', 'ampharos', 'azumarill', 'politoed', 'espeon', 'umbreon', 'slowking', 'slowking-galar', 'forretress', 'steelix', 'qwilfish', 'scizor', 'heracross', 'skarmory', 'houndoom', 'tyranitar', 'sceptile', 'blaziken', 'swampert', 'pelipper', 'gardevoir', 'sableye', 'mawile', 'aggron', 'medicham', 'manectric', 'sharpedo', 'camerupt', 'torkoal', 'altaria', 'milotic', 'castform', 'banette', 'chimecho', 'absol', 'glalie', 'metagross', 'torterra', 'infernape', 'empoleon', 'staraptor', 'luxray', 'roserade', 'rampardos', 'bastiodon', 'lopunny', 'spiritomb', 'garchomp', 'lucario', 'hippowdon', 'toxicroak', 'abomasnow', 'weavile', 'rhyperior', 'leafeon', 'glaceon', 'gliscor', 'mamoswine', 'gallade', 'froslass', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'serperior', 'emboar', 'samurott', 'samurott-hisui', 'watchog', 'liepard', 'simisage', 'simisear', 'simipour', 'musharna', 'excadrill', 'audino', 'conkeldurr', 'scolipede', 'whimsicott', 'krookodile', 'scrafty', 'cofagrigus', 'garbodor', 'zoroark', 'zoroark-hisui', 'reuniclus', 'vanilluxe', 'emolga', 'eelektross', 'chandelure', 'beartic', 'stunfisk', 'stunfisk-galar', 'golurk', 'hydreigon', 'volcarona', 'chesnaught', 'delphox', 'greninja', 'diggersby', 'talonflame', 'vivillon', 'pyroar', 'florges', 'pangoro', 'furfrou', 'meowstic-female', 'meowstic-male', 'aegislash-shield', 'aromatisse', 'slurpuff', 'malamar', 'barbaracle', 'dragalge', 'clawitzer', 'heliolisk', 'tyrantrum', 'aurorus', 'sylveon', 'hawlucha', 'dedenne', 'goodra', 'klefki', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'avalugg', 'noivern', 'decidueye', 'decidueye-hisui', 'incineroar', 'primarina', 'toucannon', 'crabominable', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'toxapex', 'mudsdale', 'araquanid', 'salazzle', 'tsareena', 'oranguru', 'passimian', 'mimikyu-disguised', 'drampa', 'kommo-o', 'corviknight', 'flapple', 'appletun', 'sandaconda', 'polteageist', 'hatterene', 'grimmsnarl', 'mr-rime', 'runerigus', 'alcremie', 'falinks', 'morpeko-full-belly', 'dragapult', 'skeledirge'],
+    learnableByPokemonIds: ['venusaur', 'charizard', 'blastoise', 'beedrill', 'pidgeot', 'arbok', 'pikachu', 'raichu', 'raichu-alola', 'clefable', 'ninetales', 'ninetales-alola', 'wigglytuff', 'vileplume', 'persian', 'persian-alola', 'arcanine', 'arcanine-hisui', 'alakazam', 'machamp', 'victreebel', 'slowbro', 'slowbro-galar', 'farfetchd', 'gengar', 'kangaskhan', 'starmie', 'mr-mime', 'pinsir', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'vaporeon', 'jolteon', 'flareon', 'aerodactyl', 'snorlax', 'dragonite', 'meganium', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'ariados', 'ampharos', 'azumarill', 'politoed', 'espeon', 'umbreon', 'slowking', 'slowking-galar', 'forretress', 'steelix', 'qwilfish', 'scizor', 'heracross', 'skarmory', 'houndoom', 'tyranitar', 'sceptile', 'blaziken', 'swampert', 'pelipper', 'gardevoir', 'sableye', 'mawile', 'aggron', 'medicham', 'manectric', 'swalot', 'sharpedo', 'camerupt', 'torkoal', 'altaria', 'milotic', 'castform', 'banette', 'chimecho', 'absol', 'glalie', 'salamence', 'metagross', 'torterra', 'infernape', 'empoleon', 'staraptor', 'luxray', 'roserade', 'rampardos', 'bastiodon', 'lopunny', 'spiritomb', 'garchomp', 'lucario', 'hippowdon', 'toxicroak', 'abomasnow', 'weavile', 'rhyperior', 'leafeon', 'glaceon', 'gliscor', 'mamoswine', 'gallade', 'froslass', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'serperior', 'emboar', 'samurott', 'samurott-hisui', 'watchog', 'liepard', 'simisage', 'simisear', 'simipour', 'musharna', 'excadrill', 'audino', 'conkeldurr', 'scolipede', 'whimsicott', 'krookodile', 'scrafty', 'cofagrigus', 'garbodor', 'zoroark', 'zoroark-hisui', 'reuniclus', 'vanilluxe', 'emolga', 'eelektross', 'chandelure', 'beartic', 'stunfisk', 'stunfisk-galar', 'golurk', 'hydreigon', 'volcarona', 'chesnaught', 'delphox', 'greninja', 'diggersby', 'talonflame', 'vivillon', 'pyroar', 'florges', 'gogoat', 'pangoro', 'furfrou', 'meowstic-female', 'meowstic-male', 'aegislash-shield', 'aromatisse', 'slurpuff', 'malamar', 'barbaracle', 'dragalge', 'clawitzer', 'heliolisk', 'tyrantrum', 'aurorus', 'sylveon', 'hawlucha', 'dedenne', 'goodra', 'klefki', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'avalugg', 'noivern', 'decidueye', 'decidueye-hisui', 'incineroar', 'primarina', 'toucannon', 'crabominable', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'toxapex', 'mudsdale', 'araquanid', 'salazzle', 'tsareena', 'oranguru', 'passimian', 'golisopod', 'mimikyu-disguised', 'drampa', 'kommo-o', 'rillaboom', 'cinderace', 'inteleon', 'corviknight', 'thievul', 'flapple', 'appletun', 'sandaconda', 'toxtricity-amped', 'toxtricity-low-key', 'grapploct', 'polteageist', 'hatterene', 'grimmsnarl', 'perrserker', 'sirfetchd', 'mr-rime', 'runerigus', 'alcremie', 'falinks', 'pincurchin', 'indeedee-female', 'indeedee-male', 'morpeko-full-belly', 'dragapult', 'skeledirge'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -6336,7 +6617,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '在５回合内被神奇的力量守护，从而不会陷入异常状态。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['clefable', 'ninetales', 'ninetales-alola', 'alakazam', 'slowbro', 'slowbro-galar', 'kangaskhan', 'starmie', 'dragonite', 'meganium', 'ampharos', 'espeon', 'slowking', 'slowking-galar', 'gardevoir', 'sableye', 'altaria', 'milotic', 'chimecho', 'gallade', 'froslass', 'musharna', 'audino', 'whimsicott', 'cofagrigus', 'reuniclus', 'chandelure', 'volcarona', 'delphox', 'vivillon', 'floette', 'florges', 'meowstic-female', 'meowstic-male', 'slurpuff', 'barbaracle', 'aurorus', 'sylveon', 'klefki', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'oranguru', 'mimikyu-disguised', 'drampa', 'hatterene', 'mr-rime', 'runerigus', 'alcremie'],
+    learnableByPokemonIds: ['clefable', 'ninetales', 'ninetales-alola', 'wigglytuff', 'alakazam', 'slowbro', 'slowbro-galar', 'kangaskhan', 'starmie', 'mr-mime', 'dragonite', 'meganium', 'ampharos', 'espeon', 'slowking', 'slowking-galar', 'gardevoir', 'sableye', 'altaria', 'milotic', 'chimecho', 'gallade', 'froslass', 'musharna', 'audino', 'whimsicott', 'cofagrigus', 'reuniclus', 'chandelure', 'volcarona', 'delphox', 'vivillon', 'floette', 'florges', 'meowstic-female', 'meowstic-male', 'slurpuff', 'barbaracle', 'aurorus', 'sylveon', 'klefki', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'oranguru', 'mimikyu-disguised', 'drampa', 'hatterene', 'mr-rime', 'runerigus', 'alcremie', 'arboliva'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -6385,7 +6666,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '在５回合内扬起沙暴，除岩石、地面和钢属性以外的宝可梦，都会受到伤害。岩石属性的特防还会提高。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['charizard', 'arcanine', 'arcanine-hisui', 'slowbro', 'slowbro-galar', 'kangaskhan', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'aerodactyl', 'snorlax', 'dragonite', 'forretress', 'steelix', 'scizor', 'skarmory', 'tyranitar', 'mawile', 'aggron', 'camerupt', 'torkoal', 'castform', 'absol', 'metagross', 'torterra', 'rampardos', 'bastiodon', 'garchomp', 'hippowdon', 'rhyperior', 'gliscor', 'mamoswine', 'excadrill', 'krookodile', 'stunfisk', 'stunfisk-galar', 'golurk', 'diggersby', 'barbaracle', 'heliolisk', 'tyrantrum', 'aurorus', 'goodra', 'goodra-hisui', 'klefki', 'avalugg', 'avalugg-hisui', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'mudsdale', 'kommo-o', 'sandaconda', 'runerigus', 'kleavor', 'garganacl', 'scovillain', 'espathra', 'orthworm', 'glimmora', 'houndstone', 'kingambit', 'gholdengo'],
+    learnableByPokemonIds: ['charizard', 'wigglytuff', 'arcanine', 'arcanine-hisui', 'slowbro', 'slowbro-galar', 'kangaskhan', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'aerodactyl', 'snorlax', 'dragonite', 'forretress', 'steelix', 'scizor', 'skarmory', 'tyranitar', 'mawile', 'aggron', 'camerupt', 'torkoal', 'castform', 'absol', 'metagross', 'torterra', 'rampardos', 'bastiodon', 'garchomp', 'hippowdon', 'rhyperior', 'gliscor', 'mamoswine', 'excadrill', 'krookodile', 'stunfisk', 'stunfisk-galar', 'golurk', 'diggersby', 'barbaracle', 'heliolisk', 'tyrantrum', 'aurorus', 'goodra', 'goodra-hisui', 'klefki', 'avalugg', 'avalugg-hisui', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'mudsdale', 'kommo-o', 'sandaconda', 'runerigus', 'kleavor', 'garganacl', 'scovillain', 'espathra', 'orthworm', 'glimmora', 'houndstone', 'kingambit', 'gholdengo'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -6402,7 +6683,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '向对手喷射煮得翻滚的开水进行攻击。有时会让对手陷入灼伤状态。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['slowbro', 'starmie', 'gyarados', 'vaporeon', 'slowking', 'sharpedo', 'milotic', 'castform', 'emboar', 'simipour', 'stunfisk', 'stunfisk-galar', 'barbaracle', 'dragalge', 'goodra', 'sinistcha'],
+    learnableByPokemonIds: ['slowbro', 'starmie', 'gyarados', 'vaporeon', 'slowking', 'sharpedo', 'milotic', 'castform', 'emboar', 'simipour', 'stunfisk', 'stunfisk-galar', 'barbaracle', 'dragalge', 'goodra', 'golisopod', 'inteleon', 'pincurchin', 'sinistcha'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -6419,7 +6700,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '发射鳞片进行攻击。连续攻击２～５次。速度会提高但防御会降低。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['charizard', 'arbok', 'gyarados', 'dragonite', 'feraligatr', 'qwilfish', 'sceptile', 'sharpedo', 'milotic', 'garchomp', 'gliscor', 'serperior', 'krookodile', 'hydreigon', 'dragalge', 'heliolisk', 'tyrantrum', 'salazzle', 'drampa', 'kommo-o', 'sandaconda', 'basculegion-female', 'basculegion-male', 'overqwil'],
+    learnableByPokemonIds: ['charizard', 'arbok', 'gyarados', 'dragonite', 'feraligatr', 'qwilfish', 'sceptile', 'sharpedo', 'milotic', 'garchomp', 'gliscor', 'serperior', 'krookodile', 'hydreigon', 'dragalge', 'heliolisk', 'tyrantrum', 'salazzle', 'drampa', 'kommo-o', 'inteleon', 'sandaconda', 'basculegion-female', 'basculegion-male', 'overqwil', 'baxcalibur'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -6435,7 +6716,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用恐怖的表情瞪着对手，使其害怕，从而大幅降低对手的速度。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['venusaur', 'charizard', 'blastoise', 'arbok', 'arcanine', 'arcanine-hisui', 'machamp', 'victreebel', 'slowbro', 'slowbro-galar', 'gengar', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'flareon', 'aerodactyl', 'dragonite', 'feraligatr', 'ariados', 'umbreon', 'slowking', 'slowking-galar', 'steelix', 'qwilfish', 'scizor', 'houndoom', 'tyranitar', 'swampert', 'aggron', 'manectric', 'sharpedo', 'camerupt', 'banette', 'glalie', 'metagross', 'torterra', 'infernape', 'empoleon', 'luxray', 'rampardos', 'bastiodon', 'spiritomb', 'garchomp', 'lucario', 'toxicroak', 'abomasnow', 'weavile', 'rhyperior', 'gliscor', 'mamoswine', 'froslass', 'serperior', 'emboar', 'samurott', 'samurott-hisui', 'excadrill', 'conkeldurr', 'krookodile', 'scrafty', 'cofagrigus', 'zoroark', 'zoroark-hisui', 'eelektross', 'beartic', 'hydreigon', 'chesnaught', 'pangoro', 'malamar', 'dragalge', 'clawitzer', 'tyrantrum', 'goodra', 'goodra-hisui', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'avalugg', 'avalugg-hisui', 'noivern', 'decidueye', 'decidueye-hisui', 'incineroar', 'toucannon', 'crabominable', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'toxapex', 'mudsdale', 'araquanid', 'salazzle', 'oranguru', 'passimian', 'kommo-o', 'corviknight', 'flapple', 'sandaconda', 'grimmsnarl', 'runerigus', 'morpeko-full-belly', 'wyrdeer', 'kleavor', 'basculegion-female', 'basculegion-male', 'overqwil', 'skeledirge', 'scovillain', 'houndstone', 'annihilape', 'kingambit', 'archaludon'],
+    learnableByPokemonIds: ['venusaur', 'charizard', 'blastoise', 'arbok', 'arcanine', 'arcanine-hisui', 'machamp', 'victreebel', 'slowbro', 'slowbro-galar', 'gengar', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'flareon', 'aerodactyl', 'dragonite', 'feraligatr', 'ariados', 'umbreon', 'slowking', 'slowking-galar', 'steelix', 'qwilfish', 'scizor', 'houndoom', 'tyranitar', 'swampert', 'aggron', 'manectric', 'sharpedo', 'camerupt', 'banette', 'glalie', 'salamence', 'metagross', 'torterra', 'infernape', 'empoleon', 'luxray', 'rampardos', 'bastiodon', 'spiritomb', 'garchomp', 'lucario', 'toxicroak', 'abomasnow', 'weavile', 'rhyperior', 'gliscor', 'mamoswine', 'froslass', 'serperior', 'emboar', 'samurott', 'samurott-hisui', 'excadrill', 'conkeldurr', 'krookodile', 'scrafty', 'cofagrigus', 'zoroark', 'zoroark-hisui', 'eelektross', 'beartic', 'hydreigon', 'chesnaught', 'pangoro', 'malamar', 'dragalge', 'clawitzer', 'tyrantrum', 'goodra', 'goodra-hisui', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'avalugg', 'avalugg-hisui', 'noivern', 'decidueye', 'decidueye-hisui', 'incineroar', 'toucannon', 'crabominable', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'toxapex', 'mudsdale', 'araquanid', 'salazzle', 'oranguru', 'passimian', 'kommo-o', 'rillaboom', 'corviknight', 'flapple', 'sandaconda', 'toxtricity-amped', 'toxtricity-low-key', 'grapploct', 'grimmsnarl', 'runerigus', 'morpeko-full-belly', 'wyrdeer', 'kleavor', 'basculegion-female', 'basculegion-male', 'overqwil', 'skeledirge', 'squawkabilly-green-plumage', 'squawkabilly-yellow-plumage', 'mabosstiff', 'scovillain', 'houndstone', 'annihilape', 'kingambit', 'baxcalibur', 'archaludon'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -6452,7 +6733,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '将滚烫的沙子砸向对手进行攻击。有时会让对手陷入灼伤状态。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['charizard', 'ninetales', 'arcanine', 'arcanine-hisui', 'flareon', 'typhlosion', 'steelix', 'houndoom', 'blaziken', 'camerupt', 'torkoal', 'torterra', 'infernape', 'bastiodon', 'garchomp', 'hippowdon', 'rhyperior', 'emboar', 'simisear', 'excadrill', 'krookodile', 'golurk', 'delphox', 'diggersby', 'pyroar', 'incineroar', 'sandaconda', 'skeledirge', 'armarouge'],
+    learnableByPokemonIds: ['charizard', 'ninetales', 'arcanine', 'arcanine-hisui', 'flareon', 'typhlosion', 'steelix', 'houndoom', 'blaziken', 'camerupt', 'torkoal', 'torterra', 'infernape', 'bastiodon', 'garchomp', 'hippowdon', 'rhyperior', 'emboar', 'simisear', 'excadrill', 'krookodile', 'golurk', 'delphox', 'diggersby', 'pyroar', 'incineroar', 'cinderace', 'sandaconda', 'skeledirge', 'armarouge'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -6469,7 +6750,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用坚硬且无比锋利的爪子抓对手进行攻击。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['mimikyu-disguised'],
+    learnableByPokemonIds: ['mimikyu-disguised', 'pawmot'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -6485,7 +6766,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '发出不由自主想要捂起耳朵的刺耳声，从而大幅降低对手的防御。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['beedrill', 'arbok', 'snorlax', 'feraligatr', 'ariados', 'ampharos', 'politoed', 'umbreon', 'steelix', 'tyranitar', 'sceptile', 'swampert', 'aggron', 'sharpedo', 'banette', 'chimecho', 'rampardos', 'bastiodon', 'lucario', 'toxicroak', 'weavile', 'gliscor', 'samurott', 'samurott-hisui', 'watchog', 'liepard', 'scolipede', 'garbodor', 'stunfisk', 'stunfisk-galar', 'hydreigon', 'volcarona', 'aegislash-shield', 'barbaracle', 'noivern', 'toucannon', 'mimikyu-disguised', 'kommo-o', 'corviknight', 'sandaconda', 'mr-rime', 'falinks', 'sneasler', 'tinkaton', 'annihilape'],
+    learnableByPokemonIds: ['beedrill', 'arbok', 'wigglytuff', 'persian', 'persian-alola', 'snorlax', 'feraligatr', 'ariados', 'ampharos', 'politoed', 'umbreon', 'steelix', 'tyranitar', 'sceptile', 'swampert', 'aggron', 'sharpedo', 'banette', 'chimecho', 'rampardos', 'bastiodon', 'lucario', 'toxicroak', 'weavile', 'gliscor', 'samurott', 'samurott-hisui', 'watchog', 'liepard', 'scolipede', 'garbodor', 'stunfisk', 'stunfisk-galar', 'hydreigon', 'volcarona', 'aegislash-shield', 'barbaracle', 'noivern', 'toucannon', 'golisopod', 'mimikyu-disguised', 'kommo-o', 'rillaboom', 'corviknight', 'thievul', 'sandaconda', 'toxtricity-amped', 'toxtricity-low-key', 'perrserker', 'mr-rime', 'falinks', 'sneasler', 'tinkaton', 'annihilape'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -6519,7 +6800,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '将外壳坚硬的大种子，从上方砸下攻击对手。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['venusaur', 'arbok', 'vileplume', 'victreebel', 'snorlax', 'meganium', 'forretress', 'sceptile', 'pelipper', 'torterra', 'roserade', 'abomasnow', 'leafeon', 'serperior', 'watchog', 'liepard', 'simisage', 'whimsicott', 'garbodor', 'chesnaught', 'floette', 'florges', 'dedenne', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'decidueye', 'decidueye-hisui', 'toucannon', 'tsareena', 'passimian', 'flapple', 'appletun', 'falinks', 'morpeko-full-belly', 'meowscarada', 'skeledirge', 'maushold-family-of-four', 'scovillain', 'espathra', 'annihilape', 'hydrapple'],
+    learnableByPokemonIds: ['venusaur', 'arbok', 'vileplume', 'persian', 'persian-alola', 'victreebel', 'snorlax', 'meganium', 'forretress', 'sceptile', 'pelipper', 'swalot', 'torterra', 'roserade', 'abomasnow', 'leafeon', 'serperior', 'watchog', 'liepard', 'simisage', 'whimsicott', 'garbodor', 'chesnaught', 'floette', 'florges', 'gogoat', 'dedenne', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'decidueye', 'decidueye-hisui', 'toucannon', 'tsareena', 'passimian', 'rillaboom', 'flapple', 'appletun', 'perrserker', 'falinks', 'morpeko-full-belly', 'meowscarada', 'skeledirge', 'pawmot', 'maushold-family-of-four', 'arboliva', 'scovillain', 'espathra', 'annihilape', 'hydrapple'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -6535,7 +6816,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '利用引力将对手甩飞出去。给予对手和自己等级相同的伤害。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['machamp', 'pinsir', 'heracross', 'mawile', 'pangoro', 'passimian', 'annihilape'],
+    learnableByPokemonIds: ['machamp', 'pinsir', 'heracross', 'mawile', 'pangoro', 'passimian', 'grapploct', 'annihilape'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -6552,7 +6833,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '引发爆炸，攻击自己周围所有的宝可梦。使用后陷入昏厥。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['gengar', 'starmie', 'snorlax', 'forretress', 'steelix', 'qwilfish', 'camerupt', 'torkoal', 'chimecho', 'glalie', 'metagross', 'cofagrigus', 'garbodor', 'vanilluxe', 'golurk', 'polteageist', 'runerigus', 'overqwil', 'glimmora'],
+    learnableByPokemonIds: ['wigglytuff', 'gengar', 'starmie', 'snorlax', 'forretress', 'steelix', 'qwilfish', 'swalot', 'camerupt', 'torkoal', 'chimecho', 'glalie', 'metagross', 'cofagrigus', 'garbodor', 'vanilluxe', 'golurk', 'polteageist', 'runerigus', 'pincurchin', 'overqwil', 'glimmora'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -6569,7 +6850,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '投掷一团黑影进行攻击。有时会降低对手的特防。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['clefable', 'ninetales', 'alakazam', 'slowbro', 'slowbro-galar', 'gengar', 'kangaskhan', 'tauros', 'vaporeon', 'jolteon', 'flareon', 'snorlax', 'typhlosion', 'typhlosion-hisui', 'espeon', 'umbreon', 'slowking', 'slowking-galar', 'qwilfish', 'houndoom', 'gardevoir', 'sableye', 'mawile', 'medicham', 'castform', 'banette', 'chimecho', 'absol', 'glalie', 'metagross', 'roserade', 'lopunny', 'spiritomb', 'lucario', 'toxicroak', 'abomasnow', 'weavile', 'leafeon', 'glaceon', 'gallade', 'froslass', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'watchog', 'liepard', 'musharna', 'audino', 'whimsicott', 'cofagrigus', 'zoroark', 'zoroark-hisui', 'reuniclus', 'chandelure', 'golurk', 'delphox', 'meowstic-female', 'meowstic-male', 'aegislash-shield', 'dragalge', 'clawitzer', 'sylveon', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'noivern', 'decidueye', 'primarina', 'oranguru', 'passimian', 'mimikyu-disguised', 'drampa', 'polteageist', 'hatterene', 'mr-rime', 'runerigus', 'dragapult', 'wyrdeer', 'basculegion-female', 'basculegion-male', 'sneasler', 'overqwil', 'meowscarada', 'skeledirge', 'armarouge', 'ceruledge', 'espathra', 'houndstone', 'annihilape', 'farigiraf', 'gholdengo', 'sinistcha'],
+    learnableByPokemonIds: ['clefable', 'ninetales', 'wigglytuff', 'persian', 'persian-alola', 'alakazam', 'slowbro', 'slowbro-galar', 'gengar', 'kangaskhan', 'mr-mime', 'tauros', 'vaporeon', 'jolteon', 'flareon', 'snorlax', 'typhlosion', 'typhlosion-hisui', 'espeon', 'umbreon', 'slowking', 'slowking-galar', 'qwilfish', 'houndoom', 'gardevoir', 'sableye', 'mawile', 'medicham', 'swalot', 'castform', 'banette', 'chimecho', 'absol', 'glalie', 'metagross', 'roserade', 'lopunny', 'spiritomb', 'lucario', 'toxicroak', 'abomasnow', 'weavile', 'leafeon', 'glaceon', 'gallade', 'froslass', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'watchog', 'liepard', 'musharna', 'audino', 'whimsicott', 'cofagrigus', 'zoroark', 'zoroark-hisui', 'reuniclus', 'chandelure', 'golurk', 'delphox', 'meowstic-female', 'meowstic-male', 'aegislash-shield', 'dragalge', 'clawitzer', 'sylveon', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'noivern', 'decidueye', 'primarina', 'oranguru', 'passimian', 'mimikyu-disguised', 'drampa', 'cinderace', 'inteleon', 'thievul', 'polteageist', 'hatterene', 'perrserker', 'mr-rime', 'runerigus', 'indeedee-female', 'indeedee-male', 'dragapult', 'wyrdeer', 'basculegion-female', 'basculegion-male', 'sneasler', 'overqwil', 'meowscarada', 'skeledirge', 'armarouge', 'ceruledge', 'espathra', 'houndstone', 'annihilape', 'farigiraf', 'gholdengo', 'sinistcha'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -6586,7 +6867,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '以影子做成的锐爪，劈开对手。容易击中要害。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['charizard', 'gengar', 'kangaskhan', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'heracross', 'tyranitar', 'blaziken', 'sableye', 'aggron', 'banette', 'absol', 'metagross', 'infernape', 'empoleon', 'garchomp', 'lucario', 'toxicroak', 'weavile', 'rhyperior', 'gallade', 'liepard', 'simisage', 'simisear', 'simipour', 'excadrill', 'krookodile', 'cofagrigus', 'zoroark', 'zoroark-hisui', 'beartic', 'chesnaught', 'pangoro', 'aegislash-shield', 'barbaracle', 'trevenant', 'noivern', 'decidueye', 'decidueye-hisui', 'incineroar', 'lycanroc-midnight', 'salazzle', 'mimikyu-disguised', 'drampa', 'kommo-o', 'hatterene', 'grimmsnarl', 'runerigus', 'sneasler', 'meowscarada', 'skeledirge', 'maushold-family-of-four', 'ceruledge', 'annihilape', 'kingambit'],
+    learnableByPokemonIds: ['charizard', 'persian', 'persian-alola', 'gengar', 'kangaskhan', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'heracross', 'tyranitar', 'blaziken', 'sableye', 'aggron', 'banette', 'absol', 'salamence', 'metagross', 'infernape', 'empoleon', 'garchomp', 'lucario', 'toxicroak', 'weavile', 'rhyperior', 'gallade', 'liepard', 'simisage', 'simisear', 'simipour', 'excadrill', 'krookodile', 'cofagrigus', 'zoroark', 'zoroark-hisui', 'beartic', 'chesnaught', 'pangoro', 'aegislash-shield', 'barbaracle', 'trevenant', 'noivern', 'decidueye', 'decidueye-hisui', 'incineroar', 'lycanroc-midnight', 'salazzle', 'golisopod', 'mimikyu-disguised', 'drampa', 'kommo-o', 'thievul', 'hatterene', 'grimmsnarl', 'perrserker', 'runerigus', 'sneasler', 'meowscarada', 'skeledirge', 'maushold-family-of-four', 'ceruledge', 'annihilape', 'kingambit'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -6703,6 +6984,21 @@ export const championsMoves: Move[] = [
     sourceRefs: moveSourceRefs,
   },
   {
+    id: 'shift-gear',
+    chineseName: '换档',
+    englishName: 'Shift Gear',
+    type: 'Steel',
+    category: 'Status',
+    pp: 10,
+    targetScope: '自身',
+    makesContact: false,
+    affectedByProtect: false,
+    effectSummary: '转动齿轮，不仅提高自己的攻击，还会大幅提高速度。',
+    legalInCurrentRule: true,
+    learnableByPokemonIds: ['toxtricity-amped', 'toxtricity-low-key'],
+    sourceRefs: moveSourceRefs,
+  },
+  {
     id: 'shock-wave',
     chineseName: '电击波',
     englishName: 'Shock Wave',
@@ -6748,7 +7044,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '向对手发送谜之念波。接收到念波的对手，其特性会变为单纯。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['audino'],
+    learnableByPokemonIds: ['farfetchd', 'audino', 'sirfetchd'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -6764,7 +7060,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '让对手听舒适、美妙的歌声，从而陷入睡眠状态。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['clefable', 'azumarill', 'altaria', 'primarina', 'skeledirge'],
+    learnableByPokemonIds: ['clefable', 'wigglytuff', 'azumarill', 'altaria', 'primarina', 'skeledirge'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -6779,7 +7075,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '利用超能力互换自己和对手的特性。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['raichu-alola', 'clefable', 'alakazam', 'slowbro', 'slowbro-galar', 'gengar', 'starmie', 'espeon', 'umbreon', 'slowking', 'slowking-galar', 'gardevoir', 'sableye', 'medicham', 'banette', 'chimecho', 'spiritomb', 'gallade', 'musharna', 'audino', 'cofagrigus', 'reuniclus', 'delphox', 'floette', 'florges', 'meowstic-female', 'meowstic-male', 'aromatisse', 'malamar', 'sylveon', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'oranguru', 'polteageist', 'hatterene', 'mr-rime', 'runerigus', 'wyrdeer', 'meowscarada', 'espathra', 'tinkaton', 'farigiraf'],
+    learnableByPokemonIds: ['raichu-alola', 'clefable', 'wigglytuff', 'alakazam', 'slowbro', 'slowbro-galar', 'gengar', 'starmie', 'mr-mime', 'espeon', 'umbreon', 'slowking', 'slowking-galar', 'gardevoir', 'sableye', 'medicham', 'banette', 'chimecho', 'spiritomb', 'gallade', 'musharna', 'audino', 'cofagrigus', 'reuniclus', 'delphox', 'floette', 'florges', 'meowstic-female', 'meowstic-male', 'aromatisse', 'malamar', 'sylveon', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'oranguru', 'polteageist', 'hatterene', 'mr-rime', 'runerigus', 'indeedee-female', 'indeedee-male', 'wyrdeer', 'meowscarada', 'espathra', 'tinkaton', 'farigiraf'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -6796,7 +7092,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '从对手背后爬近后进行攻击。会降低对手的特攻。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['beedrill', 'arbok', 'gengar', 'ariados', 'scizor', 'heracross', 'sableye', 'milotic', 'banette', 'gliscor', 'liepard', 'scolipede', 'krookodile', 'zoroark', 'zoroark-hisui', 'chandelure', 'volcarona', 'greninja', 'vivillon', 'goodra', 'goodra-hisui', 'klefki', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'decidueye', 'araquanid', 'salazzle', 'sandaconda', 'kleavor', 'tinkaton'],
+    learnableByPokemonIds: ['beedrill', 'arbok', 'persian', 'persian-alola', 'gengar', 'ariados', 'scizor', 'heracross', 'sableye', 'swalot', 'milotic', 'banette', 'gliscor', 'liepard', 'scolipede', 'krookodile', 'zoroark', 'zoroark-hisui', 'chandelure', 'volcarona', 'greninja', 'vivillon', 'goodra', 'goodra-hisui', 'klefki', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'decidueye', 'araquanid', 'salazzle', 'golisopod', 'inteleon', 'sandaconda', 'grapploct', 'kleavor', 'tinkaton'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -6813,7 +7109,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '第２回合攻击对手。偶尔使对手畏缩。也容易击中要害。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['pidgeot', 'aerodactyl', 'skarmory', 'altaria', 'staraptor', 'talonflame', 'hawlucha', 'noivern', 'toucannon', 'corviknight'],
+    learnableByPokemonIds: ['pidgeot', 'farfetchd', 'aerodactyl', 'skarmory', 'altaria', 'staraptor', 'talonflame', 'hawlucha', 'noivern', 'toucannon', 'corviknight', 'sirfetchd'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -6832,6 +7128,23 @@ export const championsMoves: Move[] = [
     sourceRefs: moveSourceRefs,
   },
   {
+    id: 'slam',
+    chineseName: '摔打',
+    englishName: 'Slam',
+    type: 'Normal',
+    category: 'Physical',
+    power: 80,
+    accuracy: 75,
+    pp: 20,
+    targetScope: '单体',
+    makesContact: true,
+    affectedByProtect: true,
+    effectSummary: '使用长长的尾巴或藤蔓等摔打对手进行攻击。',
+    legalInCurrentRule: true,
+    learnableByPokemonIds: ['pawmot'],
+    sourceRefs: moveSourceRefs,
+  },
+  {
     id: 'slash',
     chineseName: '劈开',
     englishName: 'Slash',
@@ -6845,7 +7158,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用爪子或镰刀等劈开对手进行攻击。容易击中要害。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['aegislash-shield', 'mimikyu-disguised'],
+    learnableByPokemonIds: ['persian', 'persian-alola', 'farfetchd', 'absol', 'salamence', 'garchomp', 'aegislash-shield', 'golisopod', 'mimikyu-disguised', 'perrserker', 'sirfetchd'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -6876,7 +7189,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '从自己已学会的招式中任意使出１个。只能在自己睡觉时使用。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['venusaur', 'charizard', 'blastoise', 'beedrill', 'pidgeot', 'arbok', 'pikachu', 'raichu', 'raichu-alola', 'clefable', 'ninetales', 'ninetales-alola', 'vileplume', 'arcanine', 'arcanine-hisui', 'alakazam', 'machamp', 'victreebel', 'slowbro', 'slowbro-galar', 'gengar', 'kangaskhan', 'starmie', 'pinsir', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'vaporeon', 'jolteon', 'flareon', 'aerodactyl', 'snorlax', 'dragonite', 'meganium', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'ariados', 'ampharos', 'azumarill', 'politoed', 'espeon', 'umbreon', 'slowking', 'slowking-galar', 'forretress', 'steelix', 'qwilfish', 'scizor', 'heracross', 'skarmory', 'houndoom', 'tyranitar', 'sceptile', 'blaziken', 'swampert', 'pelipper', 'gardevoir', 'sableye', 'mawile', 'aggron', 'medicham', 'manectric', 'sharpedo', 'camerupt', 'torkoal', 'altaria', 'milotic', 'castform', 'banette', 'chimecho', 'absol', 'glalie', 'metagross', 'torterra', 'infernape', 'empoleon', 'staraptor', 'luxray', 'roserade', 'rampardos', 'bastiodon', 'lopunny', 'spiritomb', 'garchomp', 'lucario', 'hippowdon', 'toxicroak', 'abomasnow', 'weavile', 'rhyperior', 'leafeon', 'glaceon', 'gliscor', 'mamoswine', 'gallade', 'froslass', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'serperior', 'emboar', 'samurott', 'samurott-hisui', 'watchog', 'liepard', 'simisage', 'simisear', 'simipour', 'musharna', 'excadrill', 'audino', 'conkeldurr', 'scolipede', 'whimsicott', 'krookodile', 'scrafty', 'cofagrigus', 'garbodor', 'zoroark', 'zoroark-hisui', 'reuniclus', 'vanilluxe', 'emolga', 'eelektross', 'chandelure', 'beartic', 'stunfisk', 'stunfisk-galar', 'golurk', 'hydreigon', 'volcarona', 'chesnaught', 'delphox', 'greninja', 'diggersby', 'talonflame', 'vivillon', 'pyroar', 'floette', 'florges', 'pangoro', 'furfrou', 'meowstic-female', 'meowstic-male', 'aegislash-shield', 'aromatisse', 'slurpuff', 'malamar', 'barbaracle', 'dragalge', 'clawitzer', 'heliolisk', 'tyrantrum', 'aurorus', 'sylveon', 'hawlucha', 'dedenne', 'goodra', 'goodra-hisui', 'klefki', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'avalugg', 'avalugg-hisui', 'noivern', 'decidueye', 'decidueye-hisui', 'incineroar', 'primarina', 'toucannon', 'crabominable', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'toxapex', 'mudsdale', 'araquanid', 'salazzle', 'tsareena', 'oranguru', 'passimian', 'mimikyu-disguised', 'drampa', 'kommo-o', 'corviknight', 'flapple', 'appletun', 'sandaconda', 'polteageist', 'hatterene', 'grimmsnarl', 'mr-rime', 'runerigus', 'alcremie', 'falinks', 'morpeko-full-belly', 'dragapult', 'wyrdeer', 'kleavor', 'basculegion-female', 'basculegion-male', 'sneasler', 'overqwil', 'meowscarada', 'skeledirge', 'quaquaval', 'maushold-family-of-four', 'garganacl', 'armarouge', 'ceruledge', 'bellibolt', 'scovillain', 'espathra', 'tinkaton', 'palafin-zero', 'orthworm', 'glimmora', 'houndstone', 'annihilape', 'farigiraf', 'kingambit', 'gholdengo', 'sinistcha', 'archaludon', 'hydrapple'],
+    learnableByPokemonIds: ['venusaur', 'charizard', 'blastoise', 'beedrill', 'pidgeot', 'arbok', 'pikachu', 'raichu', 'raichu-alola', 'clefable', 'ninetales', 'ninetales-alola', 'wigglytuff', 'vileplume', 'persian', 'persian-alola', 'arcanine', 'arcanine-hisui', 'alakazam', 'machamp', 'victreebel', 'slowbro', 'slowbro-galar', 'farfetchd', 'gengar', 'kangaskhan', 'starmie', 'mr-mime', 'pinsir', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'vaporeon', 'jolteon', 'flareon', 'aerodactyl', 'snorlax', 'dragonite', 'meganium', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'ariados', 'ampharos', 'azumarill', 'politoed', 'espeon', 'umbreon', 'slowking', 'slowking-galar', 'forretress', 'steelix', 'qwilfish', 'scizor', 'heracross', 'skarmory', 'houndoom', 'tyranitar', 'sceptile', 'blaziken', 'swampert', 'pelipper', 'gardevoir', 'sableye', 'mawile', 'aggron', 'medicham', 'manectric', 'swalot', 'sharpedo', 'camerupt', 'torkoal', 'altaria', 'milotic', 'castform', 'banette', 'chimecho', 'absol', 'glalie', 'salamence', 'metagross', 'torterra', 'infernape', 'empoleon', 'staraptor', 'luxray', 'roserade', 'rampardos', 'bastiodon', 'lopunny', 'spiritomb', 'garchomp', 'lucario', 'hippowdon', 'toxicroak', 'abomasnow', 'weavile', 'rhyperior', 'leafeon', 'glaceon', 'gliscor', 'mamoswine', 'gallade', 'froslass', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'serperior', 'emboar', 'samurott', 'samurott-hisui', 'watchog', 'liepard', 'simisage', 'simisear', 'simipour', 'musharna', 'excadrill', 'audino', 'conkeldurr', 'scolipede', 'whimsicott', 'krookodile', 'scrafty', 'cofagrigus', 'garbodor', 'zoroark', 'zoroark-hisui', 'reuniclus', 'vanilluxe', 'emolga', 'eelektross', 'chandelure', 'beartic', 'stunfisk', 'stunfisk-galar', 'golurk', 'hydreigon', 'volcarona', 'chesnaught', 'delphox', 'greninja', 'diggersby', 'talonflame', 'vivillon', 'pyroar', 'floette', 'florges', 'gogoat', 'pangoro', 'furfrou', 'meowstic-female', 'meowstic-male', 'aegislash-shield', 'aromatisse', 'slurpuff', 'malamar', 'barbaracle', 'dragalge', 'clawitzer', 'heliolisk', 'tyrantrum', 'aurorus', 'sylveon', 'hawlucha', 'dedenne', 'goodra', 'goodra-hisui', 'klefki', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'avalugg', 'avalugg-hisui', 'noivern', 'decidueye', 'decidueye-hisui', 'incineroar', 'primarina', 'toucannon', 'crabominable', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'toxapex', 'mudsdale', 'araquanid', 'salazzle', 'tsareena', 'oranguru', 'passimian', 'golisopod', 'mimikyu-disguised', 'drampa', 'kommo-o', 'rillaboom', 'cinderace', 'inteleon', 'corviknight', 'thievul', 'flapple', 'appletun', 'sandaconda', 'toxtricity-amped', 'toxtricity-low-key', 'grapploct', 'polteageist', 'hatterene', 'grimmsnarl', 'perrserker', 'sirfetchd', 'mr-rime', 'runerigus', 'alcremie', 'falinks', 'pincurchin', 'indeedee-female', 'indeedee-male', 'morpeko-full-belly', 'dragapult', 'wyrdeer', 'kleavor', 'basculegion-female', 'basculegion-male', 'sneasler', 'overqwil', 'meowscarada', 'skeledirge', 'quaquaval', 'pawmot', 'maushold-family-of-four', 'arboliva', 'squawkabilly-green-plumage', 'squawkabilly-yellow-plumage', 'garganacl', 'armarouge', 'ceruledge', 'bellibolt', 'mabosstiff', 'scovillain', 'espathra', 'tinkaton', 'palafin-zero', 'orthworm', 'glimmora', 'houndstone', 'annihilape', 'farigiraf', 'kingambit', 'baxcalibur', 'gholdengo', 'sinistcha', 'archaludon', 'hydrapple'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -6893,7 +7206,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用污泥投掷对手进行攻击。有时会让对手陷入中毒状态。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['venusaur', 'beedrill', 'arbok', 'vileplume', 'victreebel', 'slowbro', 'slowbro-galar', 'gengar', 'ariados', 'slowking', 'slowking-galar', 'qwilfish', 'houndoom', 'swampert', 'mawile', 'torkoal', 'metagross', 'roserade', 'toxicroak', 'gliscor', 'excadrill', 'scolipede', 'krookodile', 'scrafty', 'garbodor', 'zoroark', 'zoroark-hisui', 'stunfisk', 'stunfisk-galar', 'chesnaught', 'diggersby', 'pangoro', 'barbaracle', 'dragalge', 'clawitzer', 'goodra', 'goodra-hisui', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'toxapex', 'salazzle', 'sneasler', 'overqwil', 'glimmora'],
+    learnableByPokemonIds: ['venusaur', 'beedrill', 'arbok', 'vileplume', 'victreebel', 'slowbro', 'slowbro-galar', 'gengar', 'ariados', 'slowking', 'slowking-galar', 'qwilfish', 'houndoom', 'swampert', 'mawile', 'swalot', 'torkoal', 'metagross', 'roserade', 'toxicroak', 'gliscor', 'excadrill', 'scolipede', 'krookodile', 'scrafty', 'garbodor', 'zoroark', 'zoroark-hisui', 'stunfisk', 'stunfisk-galar', 'chesnaught', 'diggersby', 'pangoro', 'barbaracle', 'dragalge', 'clawitzer', 'goodra', 'goodra-hisui', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'toxapex', 'salazzle', 'golisopod', 'toxtricity-amped', 'toxtricity-low-key', 'sneasler', 'overqwil', 'glimmora'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -6910,7 +7223,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用污泥波攻击自己周围所有的宝可梦。有时会陷入中毒状态。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['venusaur', 'arbok', 'vileplume', 'victreebel', 'slowbro', 'slowbro-galar', 'gengar', 'ariados', 'slowking', 'slowking-galar', 'qwilfish', 'swampert', 'toxicroak', 'garbodor', 'stunfisk', 'stunfisk-galar', 'greninja', 'barbaracle', 'dragalge', 'clawitzer', 'goodra', 'goodra-hisui', 'toxapex', 'salazzle', 'sneasler', 'overqwil', 'glimmora'],
+    learnableByPokemonIds: ['venusaur', 'arbok', 'vileplume', 'victreebel', 'slowbro', 'slowbro-galar', 'gengar', 'ariados', 'slowking', 'slowking-galar', 'qwilfish', 'swampert', 'swalot', 'toxicroak', 'garbodor', 'stunfisk', 'stunfisk-galar', 'greninja', 'barbaracle', 'dragalge', 'clawitzer', 'goodra', 'goodra-hisui', 'toxapex', 'salazzle', 'golisopod', 'toxtricity-amped', 'toxtricity-low-key', 'sneasler', 'overqwil', 'glimmora'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -6927,7 +7240,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '扔石头或炮弹，攻击飞行的对手。对手会被击落，掉到地面。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['blastoise', 'arcanine', 'arcanine-hisui', 'slowbro', 'slowbro-galar', 'snorlax', 'steelix', 'heracross', 'tyranitar', 'swampert', 'camerupt', 'torterra', 'infernape', 'rampardos', 'bastiodon', 'rhyperior', 'mamoswine', 'emboar', 'conkeldurr', 'krookodile', 'scrafty', 'golurk', 'chesnaught', 'greninja', 'clawitzer', 'decidueye', 'decidueye-hisui', 'toucannon', 'toxapex', 'mudsdale', 'passimian', 'kleavor', 'garganacl', 'tinkaton', 'orthworm', 'glimmora', 'annihilape', 'archaludon'],
+    learnableByPokemonIds: ['blastoise', 'arcanine', 'arcanine-hisui', 'slowbro', 'slowbro-galar', 'snorlax', 'steelix', 'heracross', 'tyranitar', 'swampert', 'camerupt', 'torterra', 'infernape', 'rampardos', 'bastiodon', 'rhyperior', 'mamoswine', 'emboar', 'conkeldurr', 'krookodile', 'scrafty', 'golurk', 'chesnaught', 'greninja', 'clawitzer', 'decidueye', 'decidueye-hisui', 'toucannon', 'toxapex', 'mudsdale', 'passimian', 'cinderace', 'inteleon', 'kleavor', 'garganacl', 'tinkaton', 'orthworm', 'glimmora', 'annihilape', 'archaludon'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -6977,7 +7290,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '没完没了地大声斥责，从而降低对手的特攻。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['arbok', 'ninetales', 'arcanine', 'arcanine-hisui', 'feraligatr', 'umbreon', 'slowking', 'slowking-galar', 'houndoom', 'tyranitar', 'sableye', 'manectric', 'sharpedo', 'chimecho', 'absol', 'luxray', 'spiritomb', 'weavile', 'samurott', 'samurott-hisui', 'liepard', 'krookodile', 'scrafty', 'zoroark', 'zoroark-hisui', 'beartic', 'hydreigon', 'pyroar', 'pangoro', 'furfrou', 'incineroar', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'drampa', 'morpeko-full-belly', 'skeledirge', 'houndstone', 'kingambit', 'archaludon'],
+    learnableByPokemonIds: ['arbok', 'ninetales', 'persian', 'persian-alola', 'arcanine', 'arcanine-hisui', 'feraligatr', 'umbreon', 'slowking', 'slowking-galar', 'houndoom', 'tyranitar', 'sableye', 'manectric', 'sharpedo', 'chimecho', 'absol', 'luxray', 'spiritomb', 'weavile', 'samurott', 'samurott-hisui', 'liepard', 'krookodile', 'scrafty', 'zoroark', 'zoroark-hisui', 'beartic', 'hydreigon', 'pyroar', 'pangoro', 'furfrou', 'incineroar', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'golisopod', 'drampa', 'rillaboom', 'cinderace', 'thievul', 'toxtricity-amped', 'toxtricity-low-key', 'morpeko-full-belly', 'skeledirge', 'mabosstiff', 'houndstone', 'kingambit', 'archaludon'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -6996,6 +7309,23 @@ export const championsMoves: Move[] = [
     sourceRefs: moveSourceRefs,
   },
   {
+    id: 'snipe-shot',
+    chineseName: '狙击',
+    englishName: 'Snipe Shot',
+    type: 'Water',
+    category: 'Special',
+    power: 80,
+    accuracy: 100,
+    pp: 15,
+    targetScope: '单体',
+    makesContact: false,
+    affectedByProtect: true,
+    effectSummary: '能无视具有吸引对手招式效果的特性或招式的影响。可以向选定的对手进行攻击。',
+    legalInCurrentRule: true,
+    learnableByPokemonIds: ['inteleon'],
+    sourceRefs: moveSourceRefs,
+  },
+  {
     id: 'snore',
     chineseName: '打鼾',
     englishName: 'Snore',
@@ -7009,7 +7339,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '在自己睡觉时，发出噪音进行攻击。有时会使对手畏缩。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['venusaur', 'charizard', 'blastoise', 'beedrill', 'pidgeot', 'arbok', 'pikachu', 'raichu', 'raichu-alola', 'clefable', 'ninetales', 'ninetales-alola', 'vileplume', 'arcanine', 'arcanine-hisui', 'alakazam', 'machamp', 'victreebel', 'slowbro', 'slowbro-galar', 'gengar', 'kangaskhan', 'starmie', 'pinsir', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'vaporeon', 'jolteon', 'flareon', 'aerodactyl', 'snorlax', 'dragonite', 'meganium', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'ariados', 'ampharos', 'azumarill', 'politoed', 'espeon', 'umbreon', 'slowking', 'slowking-galar', 'forretress', 'steelix', 'qwilfish', 'scizor', 'heracross', 'skarmory', 'houndoom', 'tyranitar', 'sceptile', 'blaziken', 'swampert', 'pelipper', 'gardevoir', 'sableye', 'mawile', 'aggron', 'medicham', 'manectric', 'sharpedo', 'camerupt', 'torkoal', 'altaria', 'milotic', 'castform', 'banette', 'chimecho', 'absol', 'glalie', 'metagross', 'torterra', 'infernape', 'empoleon', 'staraptor', 'luxray', 'roserade', 'rampardos', 'bastiodon', 'lopunny', 'spiritomb', 'garchomp', 'lucario', 'hippowdon', 'toxicroak', 'abomasnow', 'weavile', 'rhyperior', 'leafeon', 'glaceon', 'gliscor', 'mamoswine', 'gallade', 'froslass', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'serperior', 'emboar', 'samurott', 'samurott-hisui', 'watchog', 'liepard', 'simisage', 'simisear', 'simipour', 'musharna', 'excadrill', 'audino', 'conkeldurr', 'scolipede', 'whimsicott', 'krookodile', 'scrafty', 'cofagrigus', 'garbodor', 'zoroark', 'zoroark-hisui', 'reuniclus', 'vanilluxe', 'emolga', 'eelektross', 'chandelure', 'beartic', 'stunfisk', 'stunfisk-galar', 'golurk', 'hydreigon', 'volcarona', 'chesnaught', 'delphox', 'greninja', 'diggersby', 'talonflame', 'vivillon', 'pyroar', 'florges', 'pangoro', 'furfrou', 'meowstic-female', 'meowstic-male', 'aegislash-shield', 'aromatisse', 'slurpuff', 'malamar', 'barbaracle', 'dragalge', 'clawitzer', 'heliolisk', 'tyrantrum', 'aurorus', 'sylveon', 'hawlucha', 'dedenne', 'goodra', 'klefki', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'avalugg', 'noivern', 'decidueye', 'decidueye-hisui', 'incineroar', 'primarina', 'toucannon', 'crabominable', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'toxapex', 'mudsdale', 'araquanid', 'salazzle', 'tsareena', 'oranguru', 'passimian', 'mimikyu-disguised', 'drampa', 'kommo-o', 'corviknight', 'flapple', 'appletun', 'sandaconda', 'polteageist', 'hatterene', 'grimmsnarl', 'mr-rime', 'runerigus', 'alcremie', 'falinks', 'morpeko-full-belly', 'dragapult'],
+    learnableByPokemonIds: ['venusaur', 'charizard', 'blastoise', 'beedrill', 'pidgeot', 'arbok', 'pikachu', 'raichu', 'raichu-alola', 'clefable', 'ninetales', 'ninetales-alola', 'wigglytuff', 'vileplume', 'persian', 'persian-alola', 'arcanine', 'arcanine-hisui', 'alakazam', 'machamp', 'victreebel', 'slowbro', 'slowbro-galar', 'farfetchd', 'gengar', 'kangaskhan', 'starmie', 'mr-mime', 'pinsir', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'vaporeon', 'jolteon', 'flareon', 'aerodactyl', 'snorlax', 'dragonite', 'meganium', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'ariados', 'ampharos', 'azumarill', 'politoed', 'espeon', 'umbreon', 'slowking', 'slowking-galar', 'forretress', 'steelix', 'qwilfish', 'scizor', 'heracross', 'skarmory', 'houndoom', 'tyranitar', 'sceptile', 'blaziken', 'swampert', 'pelipper', 'gardevoir', 'sableye', 'mawile', 'aggron', 'medicham', 'manectric', 'swalot', 'sharpedo', 'camerupt', 'torkoal', 'altaria', 'milotic', 'castform', 'banette', 'chimecho', 'absol', 'glalie', 'salamence', 'metagross', 'torterra', 'infernape', 'empoleon', 'staraptor', 'luxray', 'roserade', 'rampardos', 'bastiodon', 'lopunny', 'spiritomb', 'garchomp', 'lucario', 'hippowdon', 'toxicroak', 'abomasnow', 'weavile', 'rhyperior', 'leafeon', 'glaceon', 'gliscor', 'mamoswine', 'gallade', 'froslass', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'serperior', 'emboar', 'samurott', 'samurott-hisui', 'watchog', 'liepard', 'simisage', 'simisear', 'simipour', 'musharna', 'excadrill', 'audino', 'conkeldurr', 'scolipede', 'whimsicott', 'krookodile', 'scrafty', 'cofagrigus', 'garbodor', 'zoroark', 'zoroark-hisui', 'reuniclus', 'vanilluxe', 'emolga', 'eelektross', 'chandelure', 'beartic', 'stunfisk', 'stunfisk-galar', 'golurk', 'hydreigon', 'volcarona', 'chesnaught', 'delphox', 'greninja', 'diggersby', 'talonflame', 'vivillon', 'pyroar', 'florges', 'gogoat', 'pangoro', 'furfrou', 'meowstic-female', 'meowstic-male', 'aegislash-shield', 'aromatisse', 'slurpuff', 'malamar', 'barbaracle', 'dragalge', 'clawitzer', 'heliolisk', 'tyrantrum', 'aurorus', 'sylveon', 'hawlucha', 'dedenne', 'goodra', 'klefki', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'avalugg', 'noivern', 'decidueye', 'decidueye-hisui', 'incineroar', 'primarina', 'toucannon', 'crabominable', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'toxapex', 'mudsdale', 'araquanid', 'salazzle', 'tsareena', 'oranguru', 'passimian', 'golisopod', 'mimikyu-disguised', 'drampa', 'kommo-o', 'rillaboom', 'cinderace', 'inteleon', 'corviknight', 'thievul', 'flapple', 'appletun', 'sandaconda', 'toxtricity-amped', 'toxtricity-low-key', 'grapploct', 'polteageist', 'hatterene', 'grimmsnarl', 'perrserker', 'sirfetchd', 'mr-rime', 'runerigus', 'alcremie', 'falinks', 'pincurchin', 'indeedee-female', 'indeedee-male', 'morpeko-full-belly', 'dragapult'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -7025,7 +7355,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '在５回合内会下雪。冰属性的防御会提高。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['ninetales', 'ninetales-alola', 'slowbro', 'slowbro-galar', 'dragonite', 'azumarill', 'slowking', 'slowking-galar', 'pelipper', 'altaria', 'castform', 'glalie', 'empoleon', 'abomasnow', 'weavile', 'glaceon', 'mamoswine', 'froslass', 'samurott', 'samurott-hisui', 'zoroark', 'zoroark-hisui', 'vanilluxe', 'beartic', 'greninja', 'dragalge', 'aurorus', 'avalugg', 'avalugg-hisui', 'primarina', 'crabominable', 'mr-rime', 'basculegion-female', 'basculegion-male'],
+    learnableByPokemonIds: ['ninetales', 'ninetales-alola', 'slowbro', 'slowbro-galar', 'dragonite', 'azumarill', 'slowking', 'slowking-galar', 'pelipper', 'altaria', 'castform', 'glalie', 'empoleon', 'abomasnow', 'weavile', 'glaceon', 'mamoswine', 'froslass', 'samurott', 'samurott-hisui', 'zoroark', 'zoroark-hisui', 'vanilluxe', 'beartic', 'greninja', 'dragalge', 'aurorus', 'avalugg', 'avalugg-hisui', 'primarina', 'crabominable', 'inteleon', 'mr-rime', 'basculegion-female', 'basculegion-male', 'baxcalibur'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -7041,7 +7371,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '将大量的水泼向对手，从而使其变成水属性。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['azumarill', 'pelipper', 'samurott', 'samurott-hisui', 'araquanid', 'basculegion-female', 'basculegion-male', 'bellibolt'],
+    learnableByPokemonIds: ['azumarill', 'pelipper', 'samurott', 'samurott-hisui', 'araquanid', 'inteleon', 'grapploct', 'basculegion-female', 'basculegion-male', 'bellibolt'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -7058,7 +7388,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '第１回合收集满满的日光，第２回合发射光束进行攻击。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['venusaur', 'charizard', 'beedrill', 'clefable', 'ninetales', 'vileplume', 'arcanine', 'arcanine-hisui', 'victreebel', 'kangaskhan', 'tauros', 'snorlax', 'meganium', 'typhlosion', 'typhlosion-hisui', 'ariados', 'forretress', 'houndoom', 'sceptile', 'blaziken', 'mawile', 'aggron', 'camerupt', 'torkoal', 'altaria', 'castform', 'torterra', 'infernape', 'roserade', 'lopunny', 'abomasnow', 'leafeon', 'serperior', 'emboar', 'simisage', 'simisear', 'audino', 'scolipede', 'whimsicott', 'garbodor', 'emolga', 'chandelure', 'golurk', 'volcarona', 'chesnaught', 'delphox', 'talonflame', 'vivillon', 'pyroar', 'floette', 'florges', 'heliolisk', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'noivern', 'decidueye', 'decidueye-hisui', 'tsareena', 'drampa', 'flapple', 'appletun', 'mr-rime', 'alcremie', 'dragapult', 'wyrdeer', 'meowscarada', 'skeledirge', 'armarouge', 'scovillain', 'glimmora', 'sinistcha', 'archaludon', 'hydrapple'],
+    learnableByPokemonIds: ['venusaur', 'charizard', 'beedrill', 'clefable', 'ninetales', 'wigglytuff', 'vileplume', 'arcanine', 'arcanine-hisui', 'victreebel', 'kangaskhan', 'mr-mime', 'tauros', 'snorlax', 'meganium', 'typhlosion', 'typhlosion-hisui', 'ariados', 'forretress', 'houndoom', 'sceptile', 'blaziken', 'mawile', 'aggron', 'swalot', 'camerupt', 'torkoal', 'altaria', 'castform', 'torterra', 'infernape', 'roserade', 'lopunny', 'abomasnow', 'leafeon', 'serperior', 'emboar', 'simisage', 'simisear', 'audino', 'scolipede', 'whimsicott', 'garbodor', 'emolga', 'chandelure', 'golurk', 'volcarona', 'chesnaught', 'delphox', 'talonflame', 'vivillon', 'pyroar', 'floette', 'florges', 'gogoat', 'heliolisk', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'noivern', 'decidueye', 'decidueye-hisui', 'tsareena', 'drampa', 'rillaboom', 'flapple', 'appletun', 'mr-rime', 'alcremie', 'dragapult', 'wyrdeer', 'meowscarada', 'skeledirge', 'arboliva', 'armarouge', 'scovillain', 'glimmora', 'sinistcha', 'archaludon', 'hydrapple'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -7075,7 +7405,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '第１回合收集满满的日光，第２回合将此力量集中在剑上进行攻击。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['vileplume', 'meganium', 'sceptile', 'leafeon', 'gallade', 'emboar', 'simisage', 'aegislash-shield', 'decidueye', 'tsareena', 'ceruledge'],
+    learnableByPokemonIds: ['vileplume', 'farfetchd', 'meganium', 'sceptile', 'leafeon', 'gallade', 'emboar', 'simisage', 'aegislash-shield', 'decidueye', 'tsareena', 'rillaboom', 'sirfetchd', 'arboliva', 'ceruledge'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -7092,7 +7422,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '让电流覆盖全身，猛撞向对手进行攻击。有时会让对手陷入麻痹状态。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['morpeko-full-belly'],
+    learnableByPokemonIds: ['morpeko-full-belly', 'pawmot'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -7155,7 +7485,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '在对手的脚下扔撒菱。对替换出场的对手的宝可梦给予伤害。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['forretress', 'qwilfish', 'heracross', 'skarmory', 'glalie', 'roserade', 'garchomp', 'gliscor', 'froslass', 'scolipede', 'garbodor', 'chesnaught', 'greninja', 'diggersby', 'klefki', 'overqwil', 'meowscarada', 'orthworm', 'glimmora'],
+    learnableByPokemonIds: ['forretress', 'qwilfish', 'heracross', 'skarmory', 'glalie', 'roserade', 'garchomp', 'gliscor', 'froslass', 'scolipede', 'garbodor', 'chesnaught', 'greninja', 'diggersby', 'klefki', 'golisopod', 'perrserker', 'pincurchin', 'overqwil', 'meowscarada', 'orthworm', 'glimmora'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -7220,7 +7550,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '将积蓄的力量撞向对手进行攻击。积蓄得越多，威力越大。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['arbok', 'victreebel', 'qwilfish', 'pelipper', 'mawile', 'camerupt', 'torterra', 'hippowdon', 'toxapex', 'araquanid', 'overqwil'],
+    learnableByPokemonIds: ['arbok', 'wigglytuff', 'victreebel', 'qwilfish', 'pelipper', 'mawile', 'swalot', 'camerupt', 'torterra', 'hippowdon', 'toxapex', 'araquanid', 'overqwil'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -7236,7 +7566,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '对对手最后使用的招式怀有怨恨，减少４ＰＰ该招式。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['arbok', 'ninetales', 'ninetales-alola', 'gengar', 'gyarados', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'ariados', 'umbreon', 'qwilfish', 'houndoom', 'tyranitar', 'sableye', 'banette', 'glalie', 'spiritomb', 'toxicroak', 'weavile', 'froslass', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'krookodile', 'scrafty', 'zoroark', 'zoroark-hisui', 'chandelure', 'stunfisk', 'stunfisk-galar', 'hydreigon', 'aegislash-shield', 'malamar', 'dragalge', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'decidueye', 'mimikyu-disguised', 'corviknight', 'polteageist', 'morpeko-full-belly', 'wyrdeer', 'basculegion-female', 'basculegion-male', 'sneasler', 'overqwil', 'armarouge', 'ceruledge', 'annihilape', 'kingambit', 'sinistcha'],
+    learnableByPokemonIds: ['arbok', 'ninetales', 'ninetales-alola', 'persian', 'persian-alola', 'gengar', 'gyarados', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'ariados', 'umbreon', 'qwilfish', 'houndoom', 'tyranitar', 'sableye', 'banette', 'glalie', 'spiritomb', 'toxicroak', 'weavile', 'froslass', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'krookodile', 'scrafty', 'zoroark', 'zoroark-hisui', 'chandelure', 'stunfisk', 'stunfisk-galar', 'hydreigon', 'aegislash-shield', 'malamar', 'dragalge', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'decidueye', 'golisopod', 'mimikyu-disguised', 'corviknight', 'polteageist', 'perrserker', 'morpeko-full-belly', 'wyrdeer', 'basculegion-female', 'basculegion-male', 'sneasler', 'overqwil', 'armarouge', 'ceruledge', 'mabosstiff', 'annihilape', 'kingambit', 'sinistcha'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -7266,7 +7596,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '将无数岩石悬浮在对手的周围，从而对替换出场的对手的宝可梦给予伤害。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['clefable', 'arcanine', 'arcanine-hisui', 'pinsir', 'aerodactyl', 'forretress', 'steelix', 'skarmory', 'tyranitar', 'swampert', 'mawile', 'aggron', 'camerupt', 'torkoal', 'metagross', 'torterra', 'infernape', 'empoleon', 'rampardos', 'bastiodon', 'garchomp', 'hippowdon', 'rhyperior', 'gliscor', 'mamoswine', 'excadrill', 'krookodile', 'stunfisk', 'stunfisk-galar', 'golurk', 'hydreigon', 'barbaracle', 'tyrantrum', 'aurorus', 'avalugg', 'avalugg-hisui', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'mudsdale', 'kommo-o', 'sandaconda', 'runerigus', 'kleavor', 'garganacl', 'tinkaton', 'orthworm', 'glimmora', 'annihilape', 'kingambit', 'archaludon'],
+    learnableByPokemonIds: ['clefable', 'wigglytuff', 'arcanine', 'arcanine-hisui', 'pinsir', 'aerodactyl', 'forretress', 'steelix', 'skarmory', 'tyranitar', 'swampert', 'mawile', 'aggron', 'camerupt', 'torkoal', 'metagross', 'torterra', 'infernape', 'empoleon', 'rampardos', 'bastiodon', 'garchomp', 'hippowdon', 'rhyperior', 'gliscor', 'mamoswine', 'excadrill', 'krookodile', 'stunfisk', 'stunfisk-galar', 'golurk', 'hydreigon', 'barbaracle', 'tyrantrum', 'aurorus', 'avalugg', 'avalugg-hisui', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'mudsdale', 'kommo-o', 'sandaconda', 'perrserker', 'runerigus', 'kleavor', 'garganacl', 'tinkaton', 'orthworm', 'glimmora', 'annihilape', 'kingambit', 'archaludon'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -7283,7 +7613,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '将从全身聚集的钢铁化为光束，激烈地发射出去。自己也会受到伤害。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['forretress', 'steelix', 'scizor', 'skarmory', 'mawile', 'aggron', 'metagross', 'empoleon', 'bastiodon', 'lucario', 'excadrill', 'stunfisk', 'stunfisk-galar', 'aegislash-shield', 'goodra', 'goodra-hisui', 'klefki', 'corviknight', 'tinkaton', 'orthworm', 'kingambit', 'gholdengo', 'archaludon'],
+    learnableByPokemonIds: ['forretress', 'steelix', 'scizor', 'skarmory', 'mawile', 'aggron', 'metagross', 'empoleon', 'bastiodon', 'lucario', 'excadrill', 'stunfisk', 'stunfisk-galar', 'aegislash-shield', 'goodra', 'goodra-hisui', 'klefki', 'corviknight', 'perrserker', 'tinkaton', 'orthworm', 'kingambit', 'gholdengo', 'archaludon'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -7300,7 +7630,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '在破坏场地的同时攻击对手。如果脚下没有任何场地状态存在，使出此招式时便会失败。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['forretress', 'steelix', 'qwilfish', 'aggron', 'glalie', 'metagross', 'bastiodon', 'scolipede', 'reuniclus', 'chesnaught'],
+    learnableByPokemonIds: ['wigglytuff', 'forretress', 'steelix', 'qwilfish', 'aggron', 'glalie', 'metagross', 'bastiodon', 'scolipede', 'reuniclus', 'chesnaught'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -7317,7 +7647,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用坚硬的翅膀敲打对手进行攻击。有时会提高自己的防御。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['charizard', 'pidgeot', 'aerodactyl', 'dragonite', 'scizor', 'skarmory', 'pelipper', 'altaria', 'empoleon', 'staraptor', 'gliscor', 'hydreigon', 'talonflame', 'hawlucha', 'noivern', 'decidueye', 'decidueye-hisui', 'toucannon', 'drampa', 'corviknight', 'dragapult'],
+    learnableByPokemonIds: ['charizard', 'pidgeot', 'farfetchd', 'aerodactyl', 'dragonite', 'scizor', 'skarmory', 'pelipper', 'altaria', 'salamence', 'empoleon', 'staraptor', 'gliscor', 'hydreigon', 'talonflame', 'hawlucha', 'noivern', 'decidueye', 'decidueye-hisui', 'toucannon', 'drampa', 'corviknight', 'sirfetchd', 'dragapult'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -7347,7 +7677,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '积蓄力量，提高自己的防御和特防。最多积蓄３次。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['arbok', 'victreebel', 'snorlax', 'qwilfish', 'pelipper', 'mawile', 'camerupt', 'torterra', 'hippowdon', 'garbodor', 'toxapex', 'araquanid', 'overqwil'],
+    learnableByPokemonIds: ['arbok', 'wigglytuff', 'victreebel', 'snorlax', 'qwilfish', 'pelipper', 'mawile', 'swalot', 'camerupt', 'torterra', 'hippowdon', 'garbodor', 'toxapex', 'araquanid', 'overqwil'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -7364,7 +7694,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '化悔恨为力量进行攻击。如果上一回合招式没有打中，威力就会翻倍。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['venusaur', 'arbok', 'machamp', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'snorlax', 'dragonite', 'meganium', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'ariados', 'ampharos', 'slowking', 'slowking-galar', 'steelix', 'tyranitar', 'swampert', 'aggron', 'camerupt', 'torkoal', 'metagross', 'torterra', 'rampardos', 'bastiodon', 'garchomp', 'hippowdon', 'abomasnow', 'rhyperior', 'mamoswine', 'emboar', 'watchog', 'excadrill', 'audino', 'conkeldurr', 'scolipede', 'krookodile', 'garbodor', 'eelektross', 'stunfisk', 'stunfisk-galar', 'golurk', 'hydreigon', 'chesnaught', 'diggersby', 'pangoro', 'tyrantrum', 'goodra', 'goodra-hisui', 'avalugg', 'avalugg-hisui', 'incineroar', 'crabominable', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'mudsdale', 'drampa', 'kommo-o', 'appletun', 'grimmsnarl', 'mr-rime', 'morpeko-full-belly', 'skeledirge', 'garganacl', 'scovillain', 'orthworm', 'houndstone', 'annihilape', 'farigiraf'],
+    learnableByPokemonIds: ['venusaur', 'arbok', 'machamp', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'snorlax', 'dragonite', 'meganium', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'ariados', 'ampharos', 'slowking', 'slowking-galar', 'steelix', 'tyranitar', 'swampert', 'aggron', 'camerupt', 'torkoal', 'metagross', 'torterra', 'rampardos', 'bastiodon', 'garchomp', 'hippowdon', 'abomasnow', 'rhyperior', 'mamoswine', 'emboar', 'watchog', 'excadrill', 'audino', 'conkeldurr', 'scolipede', 'krookodile', 'garbodor', 'eelektross', 'stunfisk', 'stunfisk-galar', 'golurk', 'hydreigon', 'chesnaught', 'diggersby', 'gogoat', 'pangoro', 'tyrantrum', 'goodra', 'goodra-hisui', 'avalugg', 'avalugg-hisui', 'incineroar', 'crabominable', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'mudsdale', 'drampa', 'kommo-o', 'rillaboom', 'appletun', 'grapploct', 'grimmsnarl', 'mr-rime', 'morpeko-full-belly', 'skeledirge', 'garganacl', 'scovillain', 'orthworm', 'houndstone', 'annihilape', 'farigiraf', 'baxcalibur'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -7398,7 +7728,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用尖尖的岩石刺入对手进行攻击。容易击中要害。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['arcanine', 'arcanine-hisui', 'machamp', 'pinsir', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'aerodactyl', 'dragonite', 'forretress', 'steelix', 'heracross', 'tyranitar', 'blaziken', 'swampert', 'mawile', 'aggron', 'camerupt', 'torkoal', 'absol', 'metagross', 'torterra', 'infernape', 'rampardos', 'bastiodon', 'garchomp', 'lucario', 'hippowdon', 'toxicroak', 'rhyperior', 'gliscor', 'mamoswine', 'gallade', 'emboar', 'conkeldurr', 'krookodile', 'scrafty', 'beartic', 'stunfisk', 'stunfisk-galar', 'golurk', 'hydreigon', 'chesnaught', 'diggersby', 'pangoro', 'barbaracle', 'tyrantrum', 'aurorus', 'hawlucha', 'avalugg', 'avalugg-hisui', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'mudsdale', 'sandaconda', 'runerigus', 'kleavor', 'garganacl', 'tinkaton', 'glimmora', 'annihilape', 'kingambit', 'archaludon'],
+    learnableByPokemonIds: ['arcanine', 'arcanine-hisui', 'machamp', 'pinsir', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'aerodactyl', 'dragonite', 'forretress', 'steelix', 'heracross', 'tyranitar', 'blaziken', 'swampert', 'mawile', 'aggron', 'camerupt', 'torkoal', 'absol', 'salamence', 'metagross', 'torterra', 'infernape', 'rampardos', 'bastiodon', 'garchomp', 'lucario', 'hippowdon', 'toxicroak', 'rhyperior', 'gliscor', 'mamoswine', 'gallade', 'emboar', 'conkeldurr', 'krookodile', 'scrafty', 'beartic', 'stunfisk', 'stunfisk-galar', 'golurk', 'hydreigon', 'chesnaught', 'diggersby', 'pangoro', 'barbaracle', 'tyrantrum', 'aurorus', 'hawlucha', 'avalugg', 'avalugg-hisui', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'mudsdale', 'sandaconda', 'runerigus', 'kleavor', 'garganacl', 'tinkaton', 'glimmora', 'annihilape', 'kingambit', 'archaludon'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -7415,7 +7745,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用蓄积起来的力量攻击对手。自己的能力提高得越多，威力就越大。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['raichu-alola', 'clefable', 'ninetales', 'ninetales-alola', 'alakazam', 'slowbro', 'slowbro-galar', 'vaporeon', 'jolteon', 'flareon', 'espeon', 'umbreon', 'slowking', 'slowking-galar', 'gardevoir', 'medicham', 'chimecho', 'spiritomb', 'leafeon', 'glaceon', 'gallade', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'musharna', 'reuniclus', 'delphox', 'floette', 'florges', 'meowstic-female', 'meowstic-male', 'malamar', 'sylveon', 'klefki', 'primarina', 'oranguru', 'polteageist', 'hatterene', 'mr-rime', 'alcremie', 'wyrdeer', 'armarouge', 'ceruledge', 'espathra', 'farigiraf'],
+    learnableByPokemonIds: ['raichu-alola', 'clefable', 'ninetales', 'ninetales-alola', 'wigglytuff', 'alakazam', 'slowbro', 'slowbro-galar', 'mr-mime', 'vaporeon', 'jolteon', 'flareon', 'espeon', 'umbreon', 'slowking', 'slowking-galar', 'gardevoir', 'medicham', 'chimecho', 'spiritomb', 'leafeon', 'glaceon', 'gallade', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'musharna', 'reuniclus', 'delphox', 'floette', 'florges', 'meowstic-female', 'meowstic-male', 'malamar', 'sylveon', 'klefki', 'primarina', 'oranguru', 'toxtricity-amped', 'toxtricity-low-key', 'polteageist', 'hatterene', 'mr-rime', 'alcremie', 'indeedee-female', 'indeedee-male', 'wyrdeer', 'armarouge', 'ceruledge', 'espathra', 'farigiraf'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -7432,7 +7762,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '向对手使出强烈的一击。攻击必定会击中要害。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['machamp', 'pinsir', 'emboar', 'pangoro', 'annihilape'],
+    learnableByPokemonIds: ['machamp', 'pinsir', 'emboar', 'pangoro', 'grapploct', 'annihilape'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -7448,7 +7778,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '给自己回复和对手攻击力相同数值的ＨＰ，然后降低对手的攻击。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['vileplume', 'victreebel', 'polteageist', 'sinistcha'],
+    learnableByPokemonIds: ['vileplume', 'victreebel', 'polteageist', 'arboliva', 'sinistcha'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -7481,7 +7811,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '抵抗并攻击对手。会降低对手的特攻。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['ariados', 'forretress', 'scizor', 'heracross', 'gliscor', 'volcarona', 'vivillon', 'kleavor'],
+    learnableByPokemonIds: ['ariados', 'forretress', 'scizor', 'heracross', 'gliscor', 'volcarona', 'vivillon', 'golisopod', 'kleavor'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -7496,7 +7826,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '吃掉携带的树果，大幅提高防御。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['simisage', 'simisear', 'simipour'],
+    learnableByPokemonIds: ['swalot', 'simisage', 'simisear', 'simipour'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -7527,7 +7857,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '削减少许自己的ＨＰ，制造分身。分身将成为自己的替身。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['venusaur', 'charizard', 'blastoise', 'beedrill', 'pidgeot', 'arbok', 'pikachu', 'raichu', 'raichu-alola', 'clefable', 'ninetales', 'ninetales-alola', 'vileplume', 'arcanine', 'arcanine-hisui', 'alakazam', 'machamp', 'victreebel', 'slowbro', 'slowbro-galar', 'gengar', 'kangaskhan', 'starmie', 'pinsir', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'vaporeon', 'jolteon', 'flareon', 'aerodactyl', 'snorlax', 'dragonite', 'meganium', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'ariados', 'ampharos', 'azumarill', 'politoed', 'espeon', 'umbreon', 'slowking', 'slowking-galar', 'forretress', 'steelix', 'qwilfish', 'scizor', 'heracross', 'skarmory', 'houndoom', 'tyranitar', 'sceptile', 'blaziken', 'swampert', 'pelipper', 'gardevoir', 'sableye', 'mawile', 'aggron', 'medicham', 'manectric', 'sharpedo', 'camerupt', 'torkoal', 'altaria', 'milotic', 'castform', 'banette', 'chimecho', 'absol', 'glalie', 'metagross', 'torterra', 'infernape', 'empoleon', 'staraptor', 'luxray', 'roserade', 'rampardos', 'bastiodon', 'lopunny', 'spiritomb', 'garchomp', 'lucario', 'hippowdon', 'toxicroak', 'abomasnow', 'weavile', 'rhyperior', 'leafeon', 'glaceon', 'gliscor', 'mamoswine', 'gallade', 'froslass', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'serperior', 'emboar', 'samurott', 'samurott-hisui', 'watchog', 'liepard', 'simisage', 'simisear', 'simipour', 'musharna', 'excadrill', 'audino', 'conkeldurr', 'scolipede', 'whimsicott', 'krookodile', 'scrafty', 'cofagrigus', 'garbodor', 'zoroark', 'zoroark-hisui', 'reuniclus', 'vanilluxe', 'emolga', 'eelektross', 'chandelure', 'beartic', 'stunfisk', 'stunfisk-galar', 'golurk', 'hydreigon', 'volcarona', 'chesnaught', 'delphox', 'greninja', 'diggersby', 'talonflame', 'vivillon', 'pyroar', 'floette', 'florges', 'pangoro', 'furfrou', 'meowstic-female', 'meowstic-male', 'aegislash-shield', 'aromatisse', 'slurpuff', 'malamar', 'barbaracle', 'dragalge', 'clawitzer', 'heliolisk', 'tyrantrum', 'aurorus', 'sylveon', 'hawlucha', 'dedenne', 'goodra', 'goodra-hisui', 'klefki', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'avalugg', 'avalugg-hisui', 'noivern', 'decidueye', 'decidueye-hisui', 'incineroar', 'primarina', 'toucannon', 'crabominable', 'lycanroc-midday', 'lycanroc-midnight', 'toxapex', 'mudsdale', 'araquanid', 'salazzle', 'tsareena', 'oranguru', 'passimian', 'mimikyu-disguised', 'drampa', 'kommo-o', 'corviknight', 'flapple', 'appletun', 'sandaconda', 'polteageist', 'hatterene', 'grimmsnarl', 'mr-rime', 'runerigus', 'alcremie', 'falinks', 'morpeko-full-belly', 'dragapult', 'wyrdeer', 'kleavor', 'basculegion-female', 'basculegion-male', 'sneasler', 'overqwil', 'meowscarada', 'skeledirge', 'quaquaval', 'maushold-family-of-four', 'garganacl', 'armarouge', 'ceruledge', 'bellibolt', 'scovillain', 'espathra', 'tinkaton', 'palafin-zero', 'orthworm', 'glimmora', 'houndstone', 'annihilape', 'farigiraf', 'kingambit', 'gholdengo', 'sinistcha', 'archaludon', 'hydrapple'],
+    learnableByPokemonIds: ['venusaur', 'charizard', 'blastoise', 'beedrill', 'pidgeot', 'arbok', 'pikachu', 'raichu', 'raichu-alola', 'clefable', 'ninetales', 'ninetales-alola', 'wigglytuff', 'vileplume', 'persian', 'persian-alola', 'arcanine', 'arcanine-hisui', 'alakazam', 'machamp', 'victreebel', 'slowbro', 'slowbro-galar', 'farfetchd', 'gengar', 'kangaskhan', 'starmie', 'mr-mime', 'pinsir', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'vaporeon', 'jolteon', 'flareon', 'aerodactyl', 'snorlax', 'dragonite', 'meganium', 'typhlosion', 'typhlosion-hisui', 'feraligatr', 'ariados', 'ampharos', 'azumarill', 'politoed', 'espeon', 'umbreon', 'slowking', 'slowking-galar', 'forretress', 'steelix', 'qwilfish', 'scizor', 'heracross', 'skarmory', 'houndoom', 'tyranitar', 'sceptile', 'blaziken', 'swampert', 'pelipper', 'gardevoir', 'sableye', 'mawile', 'aggron', 'medicham', 'manectric', 'swalot', 'sharpedo', 'camerupt', 'torkoal', 'altaria', 'milotic', 'castform', 'banette', 'chimecho', 'absol', 'glalie', 'salamence', 'metagross', 'torterra', 'infernape', 'empoleon', 'staraptor', 'luxray', 'roserade', 'rampardos', 'bastiodon', 'lopunny', 'spiritomb', 'garchomp', 'lucario', 'hippowdon', 'toxicroak', 'abomasnow', 'weavile', 'rhyperior', 'leafeon', 'glaceon', 'gliscor', 'mamoswine', 'gallade', 'froslass', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'serperior', 'emboar', 'samurott', 'samurott-hisui', 'watchog', 'liepard', 'simisage', 'simisear', 'simipour', 'musharna', 'excadrill', 'audino', 'conkeldurr', 'scolipede', 'whimsicott', 'krookodile', 'scrafty', 'cofagrigus', 'garbodor', 'zoroark', 'zoroark-hisui', 'reuniclus', 'vanilluxe', 'emolga', 'eelektross', 'chandelure', 'beartic', 'stunfisk', 'stunfisk-galar', 'golurk', 'hydreigon', 'volcarona', 'chesnaught', 'delphox', 'greninja', 'diggersby', 'talonflame', 'vivillon', 'pyroar', 'floette', 'florges', 'gogoat', 'pangoro', 'furfrou', 'meowstic-female', 'meowstic-male', 'aegislash-shield', 'aromatisse', 'slurpuff', 'malamar', 'barbaracle', 'dragalge', 'clawitzer', 'heliolisk', 'tyrantrum', 'aurorus', 'sylveon', 'hawlucha', 'dedenne', 'goodra', 'goodra-hisui', 'klefki', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'avalugg', 'avalugg-hisui', 'noivern', 'decidueye', 'decidueye-hisui', 'incineroar', 'primarina', 'toucannon', 'crabominable', 'lycanroc-midday', 'lycanroc-midnight', 'toxapex', 'mudsdale', 'araquanid', 'salazzle', 'tsareena', 'oranguru', 'passimian', 'golisopod', 'mimikyu-disguised', 'drampa', 'kommo-o', 'rillaboom', 'cinderace', 'inteleon', 'corviknight', 'thievul', 'flapple', 'appletun', 'sandaconda', 'toxtricity-amped', 'toxtricity-low-key', 'grapploct', 'polteageist', 'hatterene', 'grimmsnarl', 'perrserker', 'sirfetchd', 'mr-rime', 'runerigus', 'alcremie', 'falinks', 'pincurchin', 'indeedee-female', 'indeedee-male', 'morpeko-full-belly', 'dragapult', 'wyrdeer', 'kleavor', 'basculegion-female', 'basculegion-male', 'sneasler', 'overqwil', 'meowscarada', 'skeledirge', 'quaquaval', 'pawmot', 'maushold-family-of-four', 'arboliva', 'squawkabilly-green-plumage', 'squawkabilly-yellow-plumage', 'garganacl', 'armarouge', 'ceruledge', 'bellibolt', 'mabosstiff', 'scovillain', 'espathra', 'tinkaton', 'palafin-zero', 'orthworm', 'glimmora', 'houndstone', 'annihilape', 'farigiraf', 'kingambit', 'baxcalibur', 'gholdengo', 'sinistcha', 'archaludon', 'hydrapple'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -7544,7 +7874,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '可以比对手先攻击。对手使出的招式如果不是攻击招式则会失败。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['arbok', 'victreebel', 'gengar', 'kangaskhan', 'ariados', 'houndoom', 'sableye', 'mawile', 'banette', 'absol', 'spiritomb', 'toxicroak', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'emboar', 'samurott', 'samurott-hisui', 'liepard', 'zoroark', 'stunfisk', 'stunfisk-galar', 'furfrou', 'meowstic-female', 'meowstic-male', 'trevenant', 'decidueye', 'decidueye-hisui', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'flapple', 'appletun', 'polteageist', 'grimmsnarl', 'mr-rime', 'dragapult', 'meowscarada', 'bellibolt', 'kingambit', 'hydrapple'],
+    learnableByPokemonIds: ['arbok', 'victreebel', 'gengar', 'kangaskhan', 'mr-mime', 'ariados', 'houndoom', 'sableye', 'mawile', 'banette', 'absol', 'spiritomb', 'toxicroak', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'emboar', 'samurott', 'samurott-hisui', 'liepard', 'zoroark', 'stunfisk', 'stunfisk-galar', 'furfrou', 'meowstic-female', 'meowstic-male', 'trevenant', 'decidueye', 'decidueye-hisui', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'golisopod', 'cinderace', 'inteleon', 'thievul', 'flapple', 'appletun', 'grapploct', 'polteageist', 'grimmsnarl', 'mr-rime', 'pincurchin', 'dragapult', 'meowscarada', 'bellibolt', 'kingambit', 'hydrapple'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -7559,7 +7889,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '在５回合内让日照变得强烈，从而提高火属性的招式威力。水属性的招式威力则降低。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['venusaur', 'charizard', 'beedrill', 'pidgeot', 'arbok', 'clefable', 'ninetales', 'vileplume', 'arcanine', 'arcanine-hisui', 'alakazam', 'machamp', 'victreebel', 'slowbro', 'slowbro-galar', 'gengar', 'kangaskhan', 'pinsir', 'tauros', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'vaporeon', 'jolteon', 'flareon', 'aerodactyl', 'snorlax', 'dragonite', 'meganium', 'typhlosion', 'typhlosion-hisui', 'ariados', 'ampharos', 'espeon', 'umbreon', 'slowking', 'slowking-galar', 'forretress', 'steelix', 'scizor', 'heracross', 'skarmory', 'houndoom', 'tyranitar', 'sceptile', 'blaziken', 'gardevoir', 'sableye', 'mawile', 'aggron', 'medicham', 'camerupt', 'torkoal', 'altaria', 'castform', 'banette', 'chimecho', 'absol', 'metagross', 'torterra', 'infernape', 'staraptor', 'luxray', 'roserade', 'rampardos', 'bastiodon', 'lopunny', 'spiritomb', 'garchomp', 'lucario', 'hippowdon', 'toxicroak', 'weavile', 'rhyperior', 'leafeon', 'glaceon', 'gliscor', 'gallade', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'serperior', 'emboar', 'watchog', 'liepard', 'simisage', 'simisear', 'excadrill', 'audino', 'conkeldurr', 'scolipede', 'whimsicott', 'scrafty', 'garbodor', 'zoroark', 'reuniclus', 'eelektross', 'chandelure', 'golurk', 'hydreigon', 'volcarona', 'chesnaught', 'delphox', 'talonflame', 'vivillon', 'pyroar', 'floette', 'florges', 'pangoro', 'furfrou', 'meowstic-female', 'meowstic-male', 'aegislash-shield', 'aromatisse', 'slurpuff', 'malamar', 'heliolisk', 'tyrantrum', 'sylveon', 'hawlucha', 'dedenne', 'goodra', 'goodra-hisui', 'klefki', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'noivern', 'decidueye', 'decidueye-hisui', 'incineroar', 'toucannon', 'crabominable', 'lycanroc-midday', 'lycanroc-midnight', 'mudsdale', 'salazzle', 'tsareena', 'oranguru', 'passimian', 'mimikyu-disguised', 'drampa', 'kommo-o', 'corviknight', 'flapple', 'appletun', 'mr-rime', 'falinks', 'dragapult', 'wyrdeer', 'kleavor', 'sneasler', 'skeledirge', 'maushold-family-of-four', 'garganacl', 'armarouge', 'ceruledge', 'scovillain', 'espathra', 'glimmora', 'houndstone', 'annihilape', 'farigiraf', 'hydrapple'],
+    learnableByPokemonIds: ['venusaur', 'charizard', 'beedrill', 'pidgeot', 'arbok', 'clefable', 'ninetales', 'wigglytuff', 'vileplume', 'persian', 'persian-alola', 'arcanine', 'arcanine-hisui', 'alakazam', 'machamp', 'victreebel', 'slowbro', 'slowbro-galar', 'farfetchd', 'gengar', 'kangaskhan', 'mr-mime', 'pinsir', 'tauros', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'vaporeon', 'jolteon', 'flareon', 'aerodactyl', 'snorlax', 'dragonite', 'meganium', 'typhlosion', 'typhlosion-hisui', 'ariados', 'ampharos', 'espeon', 'umbreon', 'slowking', 'slowking-galar', 'forretress', 'steelix', 'scizor', 'heracross', 'skarmory', 'houndoom', 'tyranitar', 'sceptile', 'blaziken', 'gardevoir', 'sableye', 'mawile', 'aggron', 'medicham', 'swalot', 'camerupt', 'torkoal', 'altaria', 'castform', 'banette', 'chimecho', 'absol', 'salamence', 'metagross', 'torterra', 'infernape', 'staraptor', 'luxray', 'roserade', 'rampardos', 'bastiodon', 'lopunny', 'spiritomb', 'garchomp', 'lucario', 'hippowdon', 'toxicroak', 'weavile', 'rhyperior', 'leafeon', 'glaceon', 'gliscor', 'gallade', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'serperior', 'emboar', 'watchog', 'liepard', 'simisage', 'simisear', 'excadrill', 'audino', 'conkeldurr', 'scolipede', 'whimsicott', 'scrafty', 'garbodor', 'zoroark', 'reuniclus', 'eelektross', 'chandelure', 'golurk', 'hydreigon', 'volcarona', 'chesnaught', 'delphox', 'talonflame', 'vivillon', 'pyroar', 'floette', 'florges', 'gogoat', 'pangoro', 'furfrou', 'meowstic-female', 'meowstic-male', 'aegislash-shield', 'aromatisse', 'slurpuff', 'malamar', 'heliolisk', 'tyrantrum', 'sylveon', 'hawlucha', 'dedenne', 'goodra', 'goodra-hisui', 'klefki', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'noivern', 'decidueye', 'decidueye-hisui', 'incineroar', 'toucannon', 'crabominable', 'lycanroc-midday', 'lycanroc-midnight', 'mudsdale', 'salazzle', 'tsareena', 'oranguru', 'passimian', 'mimikyu-disguised', 'drampa', 'kommo-o', 'rillaboom', 'cinderace', 'corviknight', 'flapple', 'appletun', 'toxtricity-amped', 'toxtricity-low-key', 'perrserker', 'sirfetchd', 'mr-rime', 'falinks', 'dragapult', 'wyrdeer', 'kleavor', 'sneasler', 'skeledirge', 'pawmot', 'maushold-family-of-four', 'arboliva', 'squawkabilly-green-plumage', 'squawkabilly-yellow-plumage', 'garganacl', 'armarouge', 'ceruledge', 'mabosstiff', 'scovillain', 'espathra', 'glimmora', 'houndstone', 'annihilape', 'farigiraf', 'hydrapple'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -7575,7 +7905,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用锋利的门牙猛烈地咬住对手进行攻击。对手的ＨＰ减半。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['houndoom', 'toxicroak', 'watchog', 'scrafty', 'eelektross', 'chesnaught', 'diggersby', 'dedenne', 'noivern', 'morpeko-full-belly', 'maushold-family-of-four', 'scovillain'],
+    learnableByPokemonIds: ['houndoom', 'toxicroak', 'watchog', 'scrafty', 'eelektross', 'chesnaught', 'diggersby', 'dedenne', 'noivern', 'cinderace', 'morpeko-full-belly', 'pawmot', 'maushold-family-of-four', 'scovillain'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -7592,7 +7922,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '让身体带电后压向对手。如果没有命中则自己会受到伤害。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['snorlax', 'ampharos', 'manectric', 'luxray', 'rampardos', 'rhyperior', 'eelektross', 'bellibolt'],
+    learnableByPokemonIds: ['snorlax', 'ampharos', 'manectric', 'luxray', 'rampardos', 'rhyperior', 'eelektross', 'pincurchin', 'pawmot', 'bellibolt'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -7609,7 +7939,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '发挥惊人的力量攻击对手。自己的攻击和防御会降低。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['machamp', 'pinsir', 'flareon', 'snorlax', 'dragonite', 'feraligatr', 'azumarill', 'scizor', 'tyranitar', 'blaziken', 'swampert', 'aggron', 'torkoal', 'absol', 'torterra', 'luxray', 'rampardos', 'hippowdon', 'rhyperior', 'mamoswine', 'emboar', 'samurott', 'samurott-hisui', 'simisage', 'simisear', 'simipour', 'conkeldurr', 'scolipede', 'krookodile', 'reuniclus', 'eelektross', 'beartic', 'golurk', 'hydreigon', 'chesnaught', 'diggersby', 'pangoro', 'malamar', 'barbaracle', 'tyrantrum', 'hawlucha', 'goodra', 'avalugg', 'incineroar', 'crabominable', 'mudsdale', 'passimian', 'drampa', 'kommo-o', 'appletun', 'grimmsnarl', 'falinks'],
+    learnableByPokemonIds: ['machamp', 'pinsir', 'flareon', 'snorlax', 'dragonite', 'feraligatr', 'azumarill', 'scizor', 'tyranitar', 'blaziken', 'swampert', 'aggron', 'torkoal', 'absol', 'torterra', 'luxray', 'rampardos', 'hippowdon', 'rhyperior', 'mamoswine', 'emboar', 'samurott', 'samurott-hisui', 'simisage', 'simisear', 'simipour', 'conkeldurr', 'scolipede', 'krookodile', 'reuniclus', 'eelektross', 'beartic', 'golurk', 'hydreigon', 'chesnaught', 'diggersby', 'gogoat', 'pangoro', 'malamar', 'barbaracle', 'tyrantrum', 'hawlucha', 'goodra', 'avalugg', 'incineroar', 'crabominable', 'mudsdale', 'passimian', 'drampa', 'kommo-o', 'rillaboom', 'appletun', 'grapploct', 'grimmsnarl', 'sirfetchd', 'falinks'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -7642,7 +7972,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '利用大浪攻击自己周围所有的宝可梦。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['blastoise', 'pikachu', 'raichu', 'raichu-alola', 'slowbro', 'slowbro-galar', 'kangaskhan', 'starmie', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-combat-breed', 'gyarados', 'vaporeon', 'snorlax', 'dragonite', 'feraligatr', 'azumarill', 'politoed', 'slowking', 'slowking-galar', 'qwilfish', 'tyranitar', 'swampert', 'pelipper', 'aggron', 'sharpedo', 'milotic', 'empoleon', 'rampardos', 'garchomp', 'weavile', 'rhyperior', 'samurott', 'samurott-hisui', 'simipour', 'audino', 'beartic', 'stunfisk', 'stunfisk-galar', 'hydreigon', 'greninja', 'diggersby', 'pangoro', 'furfrou', 'slurpuff', 'barbaracle', 'dragalge', 'clawitzer', 'heliolisk', 'goodra', 'goodra-hisui', 'avalugg', 'primarina', 'toxapex', 'araquanid', 'drampa', 'dragapult', 'basculegion-female', 'basculegion-male', 'overqwil', 'quaquaval', 'palafin-zero', 'gholdengo'],
+    learnableByPokemonIds: ['blastoise', 'pikachu', 'raichu', 'raichu-alola', 'slowbro', 'slowbro-galar', 'kangaskhan', 'starmie', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-combat-breed', 'gyarados', 'vaporeon', 'snorlax', 'dragonite', 'feraligatr', 'azumarill', 'politoed', 'slowking', 'slowking-galar', 'qwilfish', 'tyranitar', 'swampert', 'pelipper', 'aggron', 'sharpedo', 'milotic', 'empoleon', 'rampardos', 'garchomp', 'weavile', 'rhyperior', 'samurott', 'samurott-hisui', 'simipour', 'audino', 'beartic', 'stunfisk', 'stunfisk-galar', 'hydreigon', 'greninja', 'diggersby', 'gogoat', 'pangoro', 'furfrou', 'slurpuff', 'barbaracle', 'dragalge', 'clawitzer', 'heliolisk', 'goodra', 'goodra-hisui', 'avalugg', 'primarina', 'toxapex', 'araquanid', 'golisopod', 'drampa', 'inteleon', 'grapploct', 'pincurchin', 'dragapult', 'basculegion-female', 'basculegion-male', 'overqwil', 'quaquaval', 'palafin-zero', 'gholdengo'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -7658,7 +7988,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '激怒对手，使其混乱。因为愤怒，对手的攻击会大幅提高。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'aerodactyl', 'politoed', 'umbreon', 'slowking', 'slowking-galar', 'houndoom', 'tyranitar', 'gardevoir', 'sableye', 'mawile', 'aggron', 'sharpedo', 'banette', 'metagross', 'empoleon', 'staraptor', 'luxray', 'bastiodon', 'toxicroak', 'abomasnow', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'liepard', 'krookodile', 'scrafty', 'beartic', 'aegislash-shield', 'malamar', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'incineroar', 'crabominable', 'salazzle', 'tsareena', 'mimikyu-disguised', 'corviknight', 'grimmsnarl', 'mr-rime', 'morpeko-full-belly', 'scovillain', 'houndstone', 'annihilape'],
+    learnableByPokemonIds: ['tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'aerodactyl', 'politoed', 'umbreon', 'slowking', 'slowking-galar', 'houndoom', 'tyranitar', 'gardevoir', 'sableye', 'mawile', 'aggron', 'sharpedo', 'banette', 'metagross', 'empoleon', 'staraptor', 'luxray', 'bastiodon', 'toxicroak', 'abomasnow', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'liepard', 'krookodile', 'scrafty', 'beartic', 'aegislash-shield', 'malamar', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'incineroar', 'crabominable', 'salazzle', 'tsareena', 'mimikyu-disguised', 'corviknight', 'toxtricity-amped', 'toxtricity-low-key', 'grimmsnarl', 'perrserker', 'mr-rime', 'morpeko-full-belly', 'squawkabilly-green-plumage', 'squawkabilly-yellow-plumage', 'mabosstiff', 'scovillain', 'houndstone', 'annihilape'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -7673,7 +8003,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '将积蓄的力量吞下，从而回复自己的ＨＰ。积蓄得越多，回复越大。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['arbok', 'victreebel', 'snorlax', 'pelipper', 'mawile', 'camerupt', 'torterra', 'hippowdon', 'garbodor', 'toxapex'],
+    learnableByPokemonIds: ['arbok', 'wigglytuff', 'victreebel', 'snorlax', 'pelipper', 'mawile', 'swalot', 'camerupt', 'torterra', 'hippowdon', 'garbodor', 'toxapex'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -7689,7 +8019,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '像天使般可爱地亲吻对手，从而使对手混乱。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'clefable', 'lopunny', 'audino', 'aromatisse', 'alcremie', 'tinkaton'],
+    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'clefable', 'wigglytuff', 'lopunny', 'audino', 'aromatisse', 'alcremie', 'tinkaton'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -7705,7 +8035,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用香气大幅降低对手的闪避率。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['venusaur', 'vileplume', 'victreebel', 'meganium', 'mawile', 'roserade', 'serperior', 'aromatisse', 'slurpuff', 'salazzle', 'tsareena', 'appletun', 'polteageist', 'alcremie', 'hydrapple'],
+    learnableByPokemonIds: ['venusaur', 'vileplume', 'victreebel', 'meganium', 'mawile', 'roserade', 'serperior', 'aromatisse', 'slurpuff', 'salazzle', 'tsareena', 'appletun', 'polteageist', 'alcremie', 'arboliva', 'hydrapple'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -7721,7 +8051,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '发射星形的光攻击对手。攻击必定会命中。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'morpeko-full-belly', 'maushold-family-of-four', 'palafin-zero'],
+    learnableByPokemonIds: ['rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'morpeko-full-belly', 'pawmot', 'maushold-family-of-four', 'palafin-zero'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -7737,7 +8067,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用一闪而过的速度交换自己和对手的持有物。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['arbok', 'manectric', 'glalie', 'infernape', 'lopunny', 'froslass', 'whimsicott', 'delphox', 'greninja', 'malamar', 'barbaracle', 'klefki', 'noivern', 'sneasler'],
+    learnableByPokemonIds: ['arbok', 'persian', 'persian-alola', 'manectric', 'glalie', 'infernape', 'lopunny', 'froslass', 'whimsicott', 'delphox', 'greninja', 'malamar', 'barbaracle', 'klefki', 'noivern', 'sneasler'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -7752,7 +8082,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '激烈地跳起战舞提高气势。大幅提高自己的攻击。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['venusaur', 'charizard', 'beedrill', 'vileplume', 'victreebel', 'pinsir', 'meganium', 'feraligatr', 'ariados', 'qwilfish', 'scizor', 'heracross', 'skarmory', 'sceptile', 'blaziken', 'mawile', 'banette', 'absol', 'torterra', 'infernape', 'empoleon', 'roserade', 'rampardos', 'lopunny', 'garchomp', 'lucario', 'toxicroak', 'abomasnow', 'weavile', 'rhyperior', 'leafeon', 'gliscor', 'gallade', 'serperior', 'samurott', 'samurott-hisui', 'watchog', 'excadrill', 'scolipede', 'scrafty', 'zoroark', 'zoroark-hisui', 'beartic', 'chesnaught', 'greninja', 'diggersby', 'talonflame', 'pangoro', 'aegislash-shield', 'barbaracle', 'clawitzer', 'hawlucha', 'decidueye', 'decidueye-hisui', 'incineroar', 'toucannon', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'mimikyu-disguised', 'kommo-o', 'hatterene', 'falinks', 'kleavor', 'sneasler', 'overqwil', 'quaquaval', 'ceruledge', 'tinkaton', 'kingambit', 'archaludon'],
+    learnableByPokemonIds: ['venusaur', 'charizard', 'beedrill', 'vileplume', 'victreebel', 'farfetchd', 'pinsir', 'meganium', 'feraligatr', 'ariados', 'qwilfish', 'scizor', 'heracross', 'skarmory', 'sceptile', 'blaziken', 'mawile', 'swalot', 'banette', 'absol', 'torterra', 'infernape', 'empoleon', 'roserade', 'rampardos', 'lopunny', 'garchomp', 'lucario', 'toxicroak', 'abomasnow', 'weavile', 'rhyperior', 'leafeon', 'gliscor', 'gallade', 'serperior', 'samurott', 'samurott-hisui', 'watchog', 'excadrill', 'scolipede', 'scrafty', 'zoroark', 'zoroark-hisui', 'beartic', 'chesnaught', 'greninja', 'diggersby', 'talonflame', 'pangoro', 'aegislash-shield', 'barbaracle', 'clawitzer', 'hawlucha', 'decidueye', 'decidueye-hisui', 'incineroar', 'toucannon', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'golisopod', 'mimikyu-disguised', 'kommo-o', 'rillaboom', 'cinderace', 'inteleon', 'hatterene', 'perrserker', 'sirfetchd', 'falinks', 'kleavor', 'sneasler', 'overqwil', 'quaquaval', 'ceruledge', 'tinkaton', 'kingambit', 'baxcalibur', 'archaludon'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -7767,7 +8097,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '回复自己的ＨＰ。根据天气的不同，回复量也会有所变化。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['venusaur', 'vileplume', 'victreebel', 'meganium', 'sceptile', 'torterra', 'roserade', 'leafeon', 'serperior', 'chesnaught', 'floette', 'florges', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'decidueye', 'decidueye-hisui', 'tsareena'],
+    learnableByPokemonIds: ['venusaur', 'vileplume', 'victreebel', 'meganium', 'sceptile', 'torterra', 'roserade', 'leafeon', 'serperior', 'chesnaught', 'floette', 'florges', 'gogoat', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'decidueye', 'decidueye-hisui', 'tsareena', 'arboliva'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -7818,7 +8148,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用坚硬的尾巴拍打对手进行攻击。连续攻击２～５次。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['ninetales', 'ninetales-alola', 'meowstic-female', 'meowstic-male', 'lycanroc-dusk', 'lycanroc-midday'],
+    learnableByPokemonIds: ['ninetales', 'ninetales-alola', 'meowstic-female', 'meowstic-male', 'lycanroc-dusk', 'lycanroc-midday', 'thievul'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -7849,7 +8179,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '刮起猛烈的旋风，在４回合内提高我方全员的速度。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['pidgeot', 'aerodactyl', 'dragonite', 'scizor', 'skarmory', 'pelipper', 'altaria', 'staraptor', 'gliscor', 'whimsicott', 'hydreigon', 'volcarona', 'talonflame', 'vivillon', 'noivern', 'decidueye', 'decidueye-hisui', 'toucannon', 'corviknight', 'kleavor'],
+    learnableByPokemonIds: ['pidgeot', 'aerodactyl', 'dragonite', 'scizor', 'skarmory', 'pelipper', 'altaria', 'salamence', 'staraptor', 'gliscor', 'whimsicott', 'hydreigon', 'volcarona', 'talonflame', 'vivillon', 'noivern', 'decidueye', 'decidueye-hisui', 'toucannon', 'corviknight', 'kleavor', 'squawkabilly-green-plumage', 'squawkabilly-yellow-plumage'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -7866,7 +8196,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '以惊人的气势撞向对手进行攻击。自己也会受到少许伤害。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['mimikyu-disguised', 'morpeko-full-belly', 'maushold-family-of-four', 'palafin-zero'],
+    learnableByPokemonIds: ['mimikyu-disguised', 'morpeko-full-belly', 'pawmot', 'maushold-family-of-four', 'squawkabilly-green-plumage', 'squawkabilly-yellow-plumage', 'palafin-zero'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -7882,7 +8212,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '使对手愤怒。在３回合内让对手只能使出给予伤害的招式。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['alakazam', 'gengar', 'gyarados', 'aerodactyl', 'umbreon', 'slowking', 'slowking-galar', 'steelix', 'qwilfish', 'skarmory', 'houndoom', 'tyranitar', 'gardevoir', 'sableye', 'mawile', 'aggron', 'medicham', 'sharpedo', 'banette', 'chimecho', 'absol', 'glalie', 'infernape', 'bastiodon', 'spiritomb', 'toxicroak', 'weavile', 'gallade', 'froslass', 'serperior', 'emboar', 'samurott', 'samurott-hisui', 'liepard', 'simisage', 'simisear', 'simipour', 'conkeldurr', 'whimsicott', 'krookodile', 'scrafty', 'zoroark', 'zoroark-hisui', 'vanilluxe', 'emolga', 'chandelure', 'beartic', 'hydreigon', 'chesnaught', 'greninja', 'talonflame', 'pyroar', 'pangoro', 'malamar', 'barbaracle', 'hawlucha', 'noivern', 'decidueye', 'decidueye-hisui', 'incineroar', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'salazzle', 'tsareena', 'oranguru', 'passimian', 'mimikyu-disguised', 'kommo-o', 'corviknight', 'grimmsnarl', 'mr-rime', 'runerigus', 'morpeko-full-belly', 'sneasler', 'overqwil', 'meowscarada', 'quaquaval', 'maushold-family-of-four', 'armarouge', 'ceruledge', 'palafin-zero', 'annihilape', 'kingambit'],
+    learnableByPokemonIds: ['wigglytuff', 'persian', 'persian-alola', 'alakazam', 'gengar', 'mr-mime', 'gyarados', 'aerodactyl', 'umbreon', 'slowking', 'slowking-galar', 'steelix', 'qwilfish', 'skarmory', 'houndoom', 'tyranitar', 'gardevoir', 'sableye', 'mawile', 'aggron', 'medicham', 'sharpedo', 'banette', 'chimecho', 'absol', 'glalie', 'infernape', 'bastiodon', 'spiritomb', 'toxicroak', 'weavile', 'gallade', 'froslass', 'serperior', 'emboar', 'samurott', 'samurott-hisui', 'liepard', 'simisage', 'simisear', 'simipour', 'conkeldurr', 'whimsicott', 'krookodile', 'scrafty', 'zoroark', 'zoroark-hisui', 'vanilluxe', 'emolga', 'chandelure', 'beartic', 'hydreigon', 'chesnaught', 'greninja', 'talonflame', 'pyroar', 'pangoro', 'malamar', 'barbaracle', 'hawlucha', 'noivern', 'decidueye', 'decidueye-hisui', 'incineroar', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'salazzle', 'tsareena', 'oranguru', 'passimian', 'golisopod', 'mimikyu-disguised', 'kommo-o', 'rillaboom', 'cinderace', 'inteleon', 'corviknight', 'thievul', 'toxtricity-amped', 'toxtricity-low-key', 'grapploct', 'grimmsnarl', 'perrserker', 'mr-rime', 'runerigus', 'morpeko-full-belly', 'sneasler', 'overqwil', 'meowscarada', 'quaquaval', 'maushold-family-of-four', 'squawkabilly-green-plumage', 'squawkabilly-yellow-plumage', 'armarouge', 'ceruledge', 'mabosstiff', 'palafin-zero', 'annihilape', 'kingambit'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -7897,7 +8227,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '变得泪眼汪汪，让对手丧失斗志。从而降低对手的攻击和特攻。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['floette', 'florges', 'dedenne', 'goodra', 'goodra-hisui'],
+    learnableByPokemonIds: ['floette', 'florges', 'dedenne', 'goodra', 'goodra-hisui', 'inteleon', 'toxtricity-amped', 'toxtricity-low-key'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -7928,7 +8258,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '摇摇晃晃地跳起舞蹈，让自己周围的宝可梦陷入混乱状态。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['vileplume', 'lopunny', 'tsareena', 'mr-rime'],
+    learnableByPokemonIds: ['vileplume', 'mr-mime', 'lopunny', 'tsareena', 'mr-rime'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -7960,7 +8290,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '以自暴自弃的气势进行攻击。如果上一回合招式没有命中，威力就会翻倍。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['charizard', 'arcanine', 'arcanine-hisui', 'tauros', 'tauros-paldea-blaze-breed', 'gyarados', 'flareon', 'typhlosion', 'typhlosion-hisui', 'houndoom', 'blaziken', 'camerupt', 'torkoal', 'infernape', 'rhyperior', 'emboar', 'simisear', 'chandelure', 'talonflame', 'pyroar', 'incineroar', 'toucannon', 'salazzle', 'skeledirge', 'scovillain'],
+    learnableByPokemonIds: ['charizard', 'arcanine', 'arcanine-hisui', 'tauros', 'tauros-paldea-blaze-breed', 'gyarados', 'flareon', 'typhlosion', 'typhlosion-hisui', 'houndoom', 'blaziken', 'camerupt', 'torkoal', 'salamence', 'infernape', 'rhyperior', 'emboar', 'simisear', 'chandelure', 'talonflame', 'pyroar', 'incineroar', 'toucannon', 'salazzle', 'cinderace', 'skeledirge', 'scovillain'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -7977,7 +8307,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '太晶化时，会放出太晶属性的能量攻击。比较自己的攻击和特攻，用数值相对较高的一项给予对方伤害。（其他属性）／用攻击和特攻数值较高的一项给予伤害。对正处于太晶化的对手效果绝佳。自己的攻击和特攻会降低。（星晶）',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'mimikyu-disguised', 'morpeko-full-belly', 'maushold-family-of-four', 'palafin-zero'],
+    learnableByPokemonIds: ['rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'mimikyu-disguised', 'morpeko-full-belly', 'pawmot', 'maushold-family-of-four', 'squawkabilly-green-plumage', 'squawkabilly-yellow-plumage', 'palafin-zero'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -7994,7 +8324,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '借助场地的力量进行攻击。视使出招式时场地状态不同，招式的属性和威力会有所变化。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['venusaur', 'blastoise', 'kangaskhan', 'snorlax', 'lucario', 'stunfisk', 'stunfisk-galar', 'clawitzer', 'oranguru'],
+    learnableByPokemonIds: ['venusaur', 'blastoise', 'kangaskhan', 'snorlax', 'lucario', 'stunfisk', 'stunfisk-galar', 'clawitzer', 'oranguru', 'indeedee-female', 'indeedee-male', 'arboliva'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -8011,7 +8341,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '攻击的同时盗取道具。当自己携带道具时，不会去盗取。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['beedrill', 'pidgeot', 'arbok', 'pikachu', 'raichu', 'raichu-alola', 'clefable', 'arcanine', 'arcanine-hisui', 'alakazam', 'machamp', 'victreebel', 'gengar', 'kangaskhan', 'pinsir', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'aerodactyl', 'feraligatr', 'ariados', 'politoed', 'umbreon', 'scizor', 'heracross', 'skarmory', 'houndoom', 'sceptile', 'blaziken', 'pelipper', 'gardevoir', 'sableye', 'medicham', 'manectric', 'sharpedo', 'altaria', 'castform', 'banette', 'absol', 'infernape', 'staraptor', 'luxray', 'rampardos', 'spiritomb', 'toxicroak', 'weavile', 'rhyperior', 'gliscor', 'gallade', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'samurott', 'samurott-hisui', 'liepard', 'simisage', 'simisear', 'simipour', 'conkeldurr', 'whimsicott', 'krookodile', 'scrafty', 'cofagrigus', 'garbodor', 'zoroark', 'zoroark-hisui', 'chandelure', 'beartic', 'golurk', 'hydreigon', 'delphox', 'greninja', 'diggersby', 'talonflame', 'vivillon', 'pyroar', 'pangoro', 'slurpuff', 'malamar', 'barbaracle', 'dragalge', 'clawitzer', 'hawlucha', 'dedenne', 'klefki', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'noivern', 'incineroar', 'toucannon', 'crabominable', 'salazzle', 'passimian', 'mimikyu-disguised', 'corviknight', 'grimmsnarl', 'mr-rime', 'runerigus', 'morpeko-full-belly', 'dragapult', 'wyrdeer', 'kleavor', 'sneasler', 'meowscarada', 'maushold-family-of-four', 'scovillain', 'espathra', 'tinkaton', 'houndstone', 'annihilape', 'farigiraf', 'kingambit', 'gholdengo'],
+    learnableByPokemonIds: ['beedrill', 'pidgeot', 'arbok', 'pikachu', 'raichu', 'raichu-alola', 'clefable', 'wigglytuff', 'persian', 'persian-alola', 'arcanine', 'arcanine-hisui', 'alakazam', 'machamp', 'victreebel', 'farfetchd', 'gengar', 'kangaskhan', 'mr-mime', 'pinsir', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'aerodactyl', 'feraligatr', 'ariados', 'politoed', 'umbreon', 'scizor', 'heracross', 'skarmory', 'houndoom', 'sceptile', 'blaziken', 'pelipper', 'gardevoir', 'sableye', 'medicham', 'manectric', 'swalot', 'sharpedo', 'altaria', 'castform', 'banette', 'absol', 'infernape', 'staraptor', 'luxray', 'rampardos', 'spiritomb', 'toxicroak', 'weavile', 'rhyperior', 'gliscor', 'gallade', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'samurott', 'samurott-hisui', 'liepard', 'simisage', 'simisear', 'simipour', 'conkeldurr', 'whimsicott', 'krookodile', 'scrafty', 'cofagrigus', 'garbodor', 'zoroark', 'zoroark-hisui', 'chandelure', 'beartic', 'golurk', 'hydreigon', 'delphox', 'greninja', 'diggersby', 'talonflame', 'vivillon', 'pyroar', 'pangoro', 'slurpuff', 'malamar', 'barbaracle', 'dragalge', 'clawitzer', 'hawlucha', 'dedenne', 'klefki', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'noivern', 'incineroar', 'toucannon', 'crabominable', 'salazzle', 'passimian', 'mimikyu-disguised', 'rillaboom', 'corviknight', 'thievul', 'toxtricity-amped', 'toxtricity-low-key', 'grimmsnarl', 'perrserker', 'mr-rime', 'runerigus', 'morpeko-full-belly', 'dragapult', 'wyrdeer', 'kleavor', 'sneasler', 'meowscarada', 'pawmot', 'maushold-family-of-four', 'squawkabilly-green-plumage', 'squawkabilly-yellow-plumage', 'mabosstiff', 'scovillain', 'espathra', 'tinkaton', 'houndstone', 'annihilape', 'farigiraf', 'kingambit', 'gholdengo'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -8028,7 +8358,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '在２～３回合内，乱打一气地攻击对手。大闹一番后自己会陷入混乱。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['arcanine', 'arcanine-hisui', 'pinsir', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'feraligatr', 'heracross', 'tyranitar', 'sharpedo', 'torterra', 'rampardos', 'garchomp', 'mamoswine', 'emboar', 'krookodile', 'eelektross', 'beartic', 'volcarona', 'tyrantrum', 'incineroar', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'passimian', 'morpeko-full-belly', 'wyrdeer', 'basculegion-female', 'basculegion-male', 'annihilape'],
+    learnableByPokemonIds: ['arcanine', 'arcanine-hisui', 'pinsir', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'feraligatr', 'heracross', 'tyranitar', 'sharpedo', 'salamence', 'torterra', 'rampardos', 'garchomp', 'mamoswine', 'emboar', 'krookodile', 'eelektross', 'beartic', 'volcarona', 'tyrantrum', 'incineroar', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'passimian', 'perrserker', 'morpeko-full-belly', 'wyrdeer', 'basculegion-female', 'basculegion-male', 'annihilape'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -8045,7 +8375,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '受到此招式攻击的对手，会因为地狱般的痛苦，在２回合内，变得无法使出声音类招式。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['beedrill', 'arbok', 'machamp', 'pinsir', 'tauros', 'tauros-paldea-combat-breed', 'typhlosion', 'ariados', 'umbreon', 'qwilfish', 'heracross', 'houndoom', 'sceptile', 'sableye', 'banette', 'absol', 'infernape', 'empoleon', 'luxray', 'toxicroak', 'weavile', 'gliscor', 'mamoswine', 'gallade', 'samurott', 'samurott-hisui', 'liepard', 'simisage', 'simisear', 'simipour', 'excadrill', 'audino', 'scolipede', 'krookodile', 'scrafty', 'zoroark', 'zoroark-hisui', 'eelektross', 'beartic', 'hydreigon', 'pangoro', 'malamar', 'hawlucha', 'incineroar', 'toucannon', 'lycanroc-dusk', 'lycanroc-midnight', 'kommo-o', 'grimmsnarl', 'falinks', 'wyrdeer', 'sneasler', 'overqwil', 'meowscarada', 'ceruledge', 'palafin-zero', 'annihilape', 'kingambit'],
+    learnableByPokemonIds: ['beedrill', 'arbok', 'persian', 'persian-alola', 'machamp', 'farfetchd', 'pinsir', 'tauros', 'tauros-paldea-combat-breed', 'typhlosion', 'ariados', 'umbreon', 'qwilfish', 'heracross', 'houndoom', 'sceptile', 'sableye', 'banette', 'absol', 'infernape', 'empoleon', 'luxray', 'toxicroak', 'weavile', 'gliscor', 'mamoswine', 'gallade', 'samurott', 'samurott-hisui', 'liepard', 'simisage', 'simisear', 'simipour', 'excadrill', 'audino', 'scolipede', 'krookodile', 'scrafty', 'zoroark', 'zoroark-hisui', 'eelektross', 'beartic', 'hydreigon', 'gogoat', 'pangoro', 'malamar', 'hawlucha', 'incineroar', 'toucannon', 'lycanroc-dusk', 'lycanroc-midnight', 'golisopod', 'kommo-o', 'toxtricity-amped', 'toxtricity-low-key', 'grimmsnarl', 'perrserker', 'sirfetchd', 'falinks', 'pincurchin', 'wyrdeer', 'sneasler', 'overqwil', 'meowscarada', 'pawmot', 'ceruledge', 'palafin-zero', 'annihilape', 'kingambit'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -8062,7 +8392,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '向对手劈下暴雷进行攻击。有时会让对手陷入麻痹状态。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'clefable', 'gengar', 'kangaskhan', 'starmie', 'tauros', 'gyarados', 'jolteon', 'snorlax', 'dragonite', 'ampharos', 'tyranitar', 'aggron', 'manectric', 'castform', 'banette', 'absol', 'luxray', 'rampardos', 'bastiodon', 'lopunny', 'rhyperior', 'froslass', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'watchog', 'audino', 'reuniclus', 'emolga', 'eelektross', 'stunfisk', 'aromatisse', 'slurpuff', 'dragalge', 'heliolisk', 'aurorus', 'dedenne', 'goodra', 'goodra-hisui', 'oranguru', 'mimikyu-disguised', 'drampa', 'mr-rime', 'morpeko-full-belly', 'dragapult', 'wyrdeer', 'bellibolt', 'annihilape', 'farigiraf', 'gholdengo', 'archaludon'],
+    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'clefable', 'wigglytuff', 'persian', 'persian-alola', 'gengar', 'kangaskhan', 'starmie', 'mr-mime', 'tauros', 'gyarados', 'jolteon', 'snorlax', 'dragonite', 'ampharos', 'tyranitar', 'aggron', 'manectric', 'castform', 'banette', 'absol', 'luxray', 'rampardos', 'bastiodon', 'lopunny', 'rhyperior', 'froslass', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'watchog', 'audino', 'reuniclus', 'emolga', 'eelektross', 'stunfisk', 'aromatisse', 'slurpuff', 'dragalge', 'heliolisk', 'aurorus', 'dedenne', 'goodra', 'goodra-hisui', 'oranguru', 'mimikyu-disguised', 'drampa', 'toxtricity-amped', 'toxtricity-low-key', 'perrserker', 'mr-rime', 'pincurchin', 'morpeko-full-belly', 'dragapult', 'wyrdeer', 'pawmot', 'bellibolt', 'annihilape', 'farigiraf', 'gholdengo', 'archaludon'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -8079,7 +8409,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用蓄满电流的牙齿咬住对手。有时会使对手畏缩或陷入麻痹状态。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['arbok', 'arcanine', 'arcanine-hisui', 'jolteon', 'aerodactyl', 'steelix', 'houndoom', 'tyranitar', 'mawile', 'manectric', 'luxray', 'garchomp', 'hippowdon', 'rhyperior', 'gliscor', 'liepard', 'krookodile', 'eelektross', 'hydreigon', 'pyroar', 'furfrou', 'tyrantrum', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'sandaconda', 'morpeko-full-belly', 'skeledirge', 'scovillain', 'houndstone'],
+    learnableByPokemonIds: ['arbok', 'arcanine', 'arcanine-hisui', 'jolteon', 'aerodactyl', 'steelix', 'houndoom', 'tyranitar', 'mawile', 'manectric', 'salamence', 'luxray', 'garchomp', 'hippowdon', 'rhyperior', 'gliscor', 'liepard', 'krookodile', 'eelektross', 'hydreigon', 'pyroar', 'furfrou', 'tyrantrum', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'thievul', 'sandaconda', 'toxtricity-amped', 'toxtricity-low-key', 'morpeko-full-belly', 'skeledirge', 'pawmot', 'mabosstiff', 'scovillain', 'houndstone', 'baxcalibur'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -8096,7 +8426,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用充满电流的拳头攻击对手。有时会让对手陷入麻痹状态。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['charizard', 'pikachu', 'raichu', 'raichu-alola', 'clefable', 'alakazam', 'machamp', 'gengar', 'kangaskhan', 'snorlax', 'dragonite', 'typhlosion', 'typhlosion-hisui', 'ampharos', 'slowking', 'slowking-galar', 'tyranitar', 'sceptile', 'blaziken', 'gardevoir', 'sableye', 'mawile', 'aggron', 'medicham', 'metagross', 'infernape', 'rampardos', 'lopunny', 'lucario', 'toxicroak', 'rhyperior', 'gallade', 'emboar', 'watchog', 'audino', 'conkeldurr', 'scrafty', 'reuniclus', 'eelektross', 'golurk', 'chesnaught', 'delphox', 'diggersby', 'pangoro', 'heliolisk', 'hawlucha', 'dedenne', 'goodra', 'goodra-hisui', 'incineroar', 'crabominable', 'lycanroc-midnight', 'kommo-o', 'grimmsnarl', 'morpeko-full-belly', 'meowscarada', 'garganacl', 'annihilape', 'gholdengo'],
+    learnableByPokemonIds: ['charizard', 'pikachu', 'raichu', 'raichu-alola', 'clefable', 'wigglytuff', 'alakazam', 'machamp', 'gengar', 'kangaskhan', 'mr-mime', 'snorlax', 'dragonite', 'typhlosion', 'typhlosion-hisui', 'ampharos', 'slowking', 'slowking-galar', 'tyranitar', 'sceptile', 'blaziken', 'gardevoir', 'sableye', 'mawile', 'aggron', 'medicham', 'swalot', 'metagross', 'infernape', 'rampardos', 'lopunny', 'lucario', 'toxicroak', 'rhyperior', 'gallade', 'emboar', 'watchog', 'audino', 'conkeldurr', 'scrafty', 'reuniclus', 'eelektross', 'golurk', 'chesnaught', 'delphox', 'diggersby', 'pangoro', 'heliolisk', 'hawlucha', 'dedenne', 'goodra', 'goodra-hisui', 'incineroar', 'crabominable', 'lycanroc-midnight', 'kommo-o', 'toxtricity-amped', 'toxtricity-low-key', 'grimmsnarl', 'morpeko-full-belly', 'meowscarada', 'pawmot', 'garganacl', 'annihilape', 'gholdengo'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -8113,7 +8443,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '发出电流刺激对手进行攻击。有时会让对手陷入麻痹状态。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'morpeko-full-belly'],
+    learnableByPokemonIds: ['rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'morpeko-full-belly', 'pawmot'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -8129,7 +8459,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '向对手发出微弱的电击，从而让对手陷入麻痹状态。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'clefable', 'alakazam', 'slowbro', 'slowbro-galar', 'gengar', 'starmie', 'gyarados', 'jolteon', 'dragonite', 'ampharos', 'espeon', 'umbreon', 'slowking', 'slowking-galar', 'forretress', 'qwilfish', 'tyranitar', 'gardevoir', 'sableye', 'aggron', 'manectric', 'castform', 'banette', 'chimecho', 'absol', 'luxray', 'lopunny', 'gallade', 'froslass', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'watchog', 'liepard', 'musharna', 'audino', 'reuniclus', 'emolga', 'eelektross', 'stunfisk', 'stunfisk-galar', 'hydreigon', 'furfrou', 'meowstic-female', 'meowstic-male', 'heliolisk', 'aurorus', 'dedenne', 'klefki', 'salazzle', 'mimikyu-disguised', 'drampa', 'hatterene', 'mr-rime', 'morpeko-full-belly', 'dragapult', 'wyrdeer', 'maushold-family-of-four', 'bellibolt', 'tinkaton', 'farigiraf', 'kingambit', 'archaludon'],
+    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'clefable', 'wigglytuff', 'persian', 'persian-alola', 'alakazam', 'slowbro', 'slowbro-galar', 'gengar', 'starmie', 'mr-mime', 'gyarados', 'jolteon', 'dragonite', 'ampharos', 'espeon', 'umbreon', 'slowking', 'slowking-galar', 'forretress', 'qwilfish', 'tyranitar', 'gardevoir', 'sableye', 'aggron', 'manectric', 'swalot', 'castform', 'banette', 'chimecho', 'absol', 'luxray', 'lopunny', 'gallade', 'froslass', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'watchog', 'liepard', 'musharna', 'audino', 'reuniclus', 'emolga', 'eelektross', 'stunfisk', 'stunfisk-galar', 'hydreigon', 'furfrou', 'meowstic-female', 'meowstic-male', 'heliolisk', 'aurorus', 'dedenne', 'klefki', 'salazzle', 'mimikyu-disguised', 'drampa', 'toxtricity-amped', 'toxtricity-low-key', 'hatterene', 'perrserker', 'mr-rime', 'pincurchin', 'morpeko-full-belly', 'dragapult', 'wyrdeer', 'pawmot', 'maushold-family-of-four', 'bellibolt', 'tinkaton', 'farigiraf', 'kingambit', 'archaludon'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -8146,7 +8476,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '向对手发出强力电击进行攻击。有时会让对手陷入麻痹状态。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'clefable', 'gengar', 'kangaskhan', 'starmie', 'tauros', 'gyarados', 'jolteon', 'snorlax', 'dragonite', 'ampharos', 'tyranitar', 'gardevoir', 'aggron', 'manectric', 'castform', 'banette', 'absol', 'luxray', 'rampardos', 'bastiodon', 'lopunny', 'rhyperior', 'gallade', 'froslass', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'watchog', 'audino', 'garbodor', 'emolga', 'eelektross', 'stunfisk', 'golurk', 'meowstic-female', 'meowstic-male', 'aromatisse', 'slurpuff', 'malamar', 'dragalge', 'heliolisk', 'aurorus', 'dedenne', 'goodra', 'goodra-hisui', 'oranguru', 'mimikyu-disguised', 'drampa', 'mr-rime', 'morpeko-full-belly', 'dragapult', 'wyrdeer', 'bellibolt', 'annihilape', 'farigiraf', 'gholdengo', 'archaludon'],
+    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'clefable', 'wigglytuff', 'persian', 'persian-alola', 'gengar', 'kangaskhan', 'starmie', 'mr-mime', 'tauros', 'gyarados', 'jolteon', 'snorlax', 'dragonite', 'ampharos', 'tyranitar', 'gardevoir', 'aggron', 'manectric', 'castform', 'banette', 'absol', 'luxray', 'rampardos', 'bastiodon', 'lopunny', 'rhyperior', 'gallade', 'froslass', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'watchog', 'audino', 'garbodor', 'emolga', 'eelektross', 'stunfisk', 'golurk', 'meowstic-female', 'meowstic-male', 'aromatisse', 'slurpuff', 'malamar', 'dragalge', 'heliolisk', 'aurorus', 'dedenne', 'goodra', 'goodra-hisui', 'oranguru', 'mimikyu-disguised', 'drampa', 'toxtricity-amped', 'toxtricity-low-key', 'perrserker', 'mr-rime', 'pincurchin', 'morpeko-full-belly', 'dragapult', 'wyrdeer', 'pawmot', 'bellibolt', 'annihilape', 'farigiraf', 'gholdengo', 'archaludon'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -8162,7 +8492,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '给对手挠痒，使其发笑，从而降低对手的攻击和防御。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'clefable', 'vileplume', 'machamp', 'victreebel', 'vaporeon', 'jolteon', 'flareon', 'azumarill', 'espeon', 'umbreon', 'mawile', 'milotic', 'torterra', 'leafeon', 'glaceon', 'whimsicott', 'emolga', 'meowstic-female', 'meowstic-male', 'sylveon', 'drampa', 'mr-rime', 'morpeko-full-belly'],
+    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'clefable', 'vileplume', 'machamp', 'victreebel', 'mr-mime', 'vaporeon', 'jolteon', 'flareon', 'azumarill', 'espeon', 'umbreon', 'mawile', 'milotic', 'torterra', 'leafeon', 'glaceon', 'whimsicott', 'emolga', 'meowstic-female', 'meowstic-male', 'sylveon', 'drampa', 'mr-rime', 'morpeko-full-belly'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -8193,7 +8523,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '颠倒对手身上的所有能力变化，变成和原来相反的状态。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['malamar'],
+    learnableByPokemonIds: ['malamar', 'grapploct'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -8226,7 +8556,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '向对手无理取闹，令其不能连续２次使出相同招式。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['umbreon', 'houndoom', 'sableye', 'banette', 'infernape', 'liepard', 'simisage', 'krookodile', 'scrafty', 'zoroark', 'zoroark-hisui', 'malamar', 'klefki', 'salazzle', 'grimmsnarl', 'mr-rime', 'morpeko-full-belly', 'annihilape', 'kingambit'],
+    learnableByPokemonIds: ['mr-mime', 'umbreon', 'houndoom', 'sableye', 'banette', 'infernape', 'liepard', 'simisage', 'krookodile', 'scrafty', 'zoroark', 'zoroark-hisui', 'malamar', 'klefki', 'salazzle', 'thievul', 'grimmsnarl', 'mr-rime', 'morpeko-full-belly', 'squawkabilly-green-plumage', 'squawkabilly-yellow-plumage', 'annihilape', 'kingambit'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -8242,7 +8572,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '让对手陷入剧毒状态。随着回合的推进，中毒伤害会增加。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['venusaur', 'beedrill', 'arbok', 'vileplume', 'victreebel', 'slowbro', 'slowbro-galar', 'gengar', 'ariados', 'umbreon', 'slowking', 'slowking-galar', 'qwilfish', 'houndoom', 'roserade', 'spiritomb', 'toxicroak', 'gliscor', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'scolipede', 'garbodor', 'zoroark', 'aegislash-shield', 'dragalge', 'goodra', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'toxapex', 'salazzle', 'mimikyu-disguised', 'sneasler', 'overqwil', 'bellibolt', 'glimmora'],
+    learnableByPokemonIds: ['venusaur', 'beedrill', 'arbok', 'vileplume', 'victreebel', 'slowbro', 'slowbro-galar', 'gengar', 'ariados', 'umbreon', 'slowking', 'slowking-galar', 'qwilfish', 'houndoom', 'swalot', 'roserade', 'spiritomb', 'toxicroak', 'gliscor', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-wash', 'scolipede', 'garbodor', 'zoroark', 'aegislash-shield', 'dragalge', 'goodra', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'toxapex', 'salazzle', 'mimikyu-disguised', 'toxtricity-amped', 'toxtricity-low-key', 'sneasler', 'overqwil', 'bellibolt', 'glimmora'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -8257,7 +8587,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '在对手的脚下撒毒菱。使对手替换出场的宝可梦中毒。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['beedrill', 'arbok', 'victreebel', 'slowbro', 'slowbro-galar', 'gengar', 'ariados', 'slowking', 'slowking-galar', 'forretress', 'qwilfish', 'roserade', 'gliscor', 'scolipede', 'cofagrigus', 'garbodor', 'greninja', 'dragalge', 'toxapex', 'salazzle', 'runerigus', 'sneasler', 'overqwil', 'meowscarada', 'glimmora'],
+    learnableByPokemonIds: ['beedrill', 'arbok', 'victreebel', 'slowbro', 'slowbro-galar', 'gengar', 'ariados', 'slowking', 'slowking-galar', 'forretress', 'qwilfish', 'swalot', 'roserade', 'gliscor', 'scolipede', 'cofagrigus', 'garbodor', 'greninja', 'dragalge', 'toxapex', 'salazzle', 'toxtricity-amped', 'toxtricity-low-key', 'runerigus', 'pincurchin', 'sneasler', 'overqwil', 'meowscarada', 'glimmora'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -8290,7 +8620,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '跳出草丛进行攻击。通过轻快的步伐会提高自己的速度。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['venusaur', 'arbok', 'pikachu', 'raichu', 'raichu-alola', 'vileplume', 'victreebel', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'vaporeon', 'jolteon', 'flareon', 'snorlax', 'meganium', 'feraligatr', 'ariados', 'ampharos', 'azumarill', 'espeon', 'umbreon', 'scizor', 'heracross', 'houndoom', 'sceptile', 'medicham', 'manectric', 'camerupt', 'altaria', 'banette', 'absol', 'glalie', 'metagross', 'torterra', 'luxray', 'roserade', 'rampardos', 'bastiodon', 'lopunny', 'lucario', 'abomasnow', 'weavile', 'leafeon', 'glaceon', 'mamoswine', 'froslass', 'serperior', 'emboar', 'watchog', 'liepard', 'simisage', 'scolipede', 'scrafty', 'chandelure', 'beartic', 'volcarona', 'chesnaught', 'greninja', 'diggersby', 'pyroar', 'floette', 'florges', 'furfrou', 'meowstic-female', 'meowstic-male', 'malamar', 'heliolisk', 'sylveon', 'hawlucha', 'dedenne', 'trevenant', 'decidueye', 'decidueye-hisui', 'incineroar', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'araquanid', 'salazzle', 'tsareena', 'oranguru', 'passimian', 'mimikyu-disguised', 'flapple', 'appletun', 'grimmsnarl', 'falinks', 'wyrdeer', 'kleavor', 'sneasler', 'meowscarada', 'maushold-family-of-four', 'scovillain', 'farigiraf'],
+    learnableByPokemonIds: ['venusaur', 'arbok', 'pikachu', 'raichu', 'raichu-alola', 'wigglytuff', 'vileplume', 'persian', 'persian-alola', 'victreebel', 'farfetchd', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'vaporeon', 'jolteon', 'flareon', 'snorlax', 'meganium', 'feraligatr', 'ariados', 'ampharos', 'azumarill', 'espeon', 'umbreon', 'scizor', 'heracross', 'houndoom', 'sceptile', 'medicham', 'manectric', 'camerupt', 'altaria', 'banette', 'absol', 'glalie', 'metagross', 'torterra', 'luxray', 'roserade', 'rampardos', 'bastiodon', 'lopunny', 'lucario', 'abomasnow', 'weavile', 'leafeon', 'glaceon', 'mamoswine', 'froslass', 'serperior', 'emboar', 'watchog', 'liepard', 'simisage', 'scolipede', 'scrafty', 'chandelure', 'beartic', 'volcarona', 'chesnaught', 'greninja', 'diggersby', 'pyroar', 'floette', 'florges', 'gogoat', 'furfrou', 'meowstic-female', 'meowstic-male', 'malamar', 'heliolisk', 'sylveon', 'hawlucha', 'dedenne', 'trevenant', 'decidueye', 'decidueye-hisui', 'incineroar', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'araquanid', 'salazzle', 'tsareena', 'oranguru', 'passimian', 'mimikyu-disguised', 'rillaboom', 'cinderace', 'thievul', 'flapple', 'appletun', 'toxtricity-amped', 'toxtricity-low-key', 'grimmsnarl', 'perrserker', 'falinks', 'wyrdeer', 'kleavor', 'sneasler', 'meowscarada', 'maushold-family-of-four', 'arboliva', 'mabosstiff', 'scovillain', 'farigiraf'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -8322,7 +8652,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用３种光线进行攻击。有时会让对手陷入麻痹、灼伤或冰冻的状态。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['clefable', 'alakazam', 'slowbro', 'slowbro-galar', 'starmie', 'slowking', 'slowking-galar', 'hydreigon', 'drampa', 'alcremie', 'dragapult'],
+    learnableByPokemonIds: ['clefable', 'wigglytuff', 'alakazam', 'slowbro', 'slowbro-galar', 'starmie', 'slowking', 'slowking-galar', 'hydreigon', 'drampa', 'alcremie', 'indeedee-female', 'indeedee-male', 'dragapult'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -8338,7 +8668,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '抓住对手的空隙，交换自己和对手的持有物。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['clefable', 'alakazam', 'slowbro', 'slowbro-galar', 'gengar', 'starmie', 'espeon', 'slowking', 'slowking-galar', 'gardevoir', 'sableye', 'medicham', 'banette', 'chimecho', 'metagross', 'spiritomb', 'gallade', 'froslass', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'liepard', 'musharna', 'cofagrigus', 'zoroark', 'zoroark-hisui', 'reuniclus', 'chandelure', 'golurk', 'delphox', 'floette', 'florges', 'meowstic-female', 'meowstic-male', 'malamar', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'oranguru', 'mimikyu-disguised', 'polteageist', 'hatterene', 'grimmsnarl', 'mr-rime', 'runerigus', 'wyrdeer', 'meowscarada', 'armarouge', 'espathra', 'houndstone', 'farigiraf', 'gholdengo'],
+    learnableByPokemonIds: ['clefable', 'alakazam', 'slowbro', 'slowbro-galar', 'gengar', 'starmie', 'mr-mime', 'espeon', 'slowking', 'slowking-galar', 'gardevoir', 'sableye', 'medicham', 'banette', 'chimecho', 'metagross', 'spiritomb', 'gallade', 'froslass', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'liepard', 'musharna', 'cofagrigus', 'zoroark', 'zoroark-hisui', 'reuniclus', 'chandelure', 'golurk', 'delphox', 'floette', 'florges', 'meowstic-female', 'meowstic-male', 'malamar', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'oranguru', 'mimikyu-disguised', 'polteageist', 'hatterene', 'grimmsnarl', 'mr-rime', 'runerigus', 'indeedee-female', 'indeedee-male', 'wyrdeer', 'meowscarada', 'armarouge', 'espathra', 'houndstone', 'farigiraf', 'gholdengo'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -8369,7 +8699,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '制造出离奇的空间。在５回合内速度慢的宝可梦可以先行动。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['alakazam', 'slowbro', 'slowbro-galar', 'gengar', 'starmie', 'espeon', 'slowking', 'slowking-galar', 'gardevoir', 'medicham', 'banette', 'chimecho', 'spiritomb', 'gallade', 'musharna', 'audino', 'whimsicott', 'cofagrigus', 'reuniclus', 'chandelure', 'delphox', 'meowstic-female', 'meowstic-male', 'aromatisse', 'malamar', 'klefki', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'oranguru', 'mimikyu-disguised', 'polteageist', 'hatterene', 'mr-rime', 'runerigus', 'wyrdeer', 'meowscarada', 'armarouge', 'espathra', 'farigiraf', 'sinistcha'],
+    learnableByPokemonIds: ['alakazam', 'slowbro', 'slowbro-galar', 'gengar', 'starmie', 'mr-mime', 'espeon', 'slowking', 'slowking-galar', 'gardevoir', 'medicham', 'banette', 'chimecho', 'spiritomb', 'gallade', 'musharna', 'audino', 'whimsicott', 'cofagrigus', 'reuniclus', 'chandelure', 'delphox', 'meowstic-female', 'meowstic-male', 'aromatisse', 'malamar', 'klefki', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'oranguru', 'mimikyu-disguised', 'polteageist', 'hatterene', 'mr-rime', 'runerigus', 'indeedee-female', 'indeedee-male', 'wyrdeer', 'meowscarada', 'armarouge', 'espathra', 'farigiraf', 'sinistcha'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -8412,7 +8742,7 @@ export const championsMoves: Move[] = [
     englishName: 'Trop Kick',
     type: 'Grass',
     category: 'Physical',
-    power: 70,
+    power: 85,
     accuracy: 100,
     pp: 15,
     targetScope: '单体',
@@ -8454,7 +8784,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '在攻击之后急速返回，和后备宝可梦进行替换。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['beedrill', 'pidgeot', 'scizor', 'blaziken', 'pelipper', 'infernape', 'staraptor', 'lopunny', 'gliscor', 'liepard', 'whimsicott', 'zoroark', 'zoroark-hisui', 'emolga', 'eelektross', 'hydreigon', 'volcarona', 'greninja', 'diggersby', 'talonflame', 'vivillon', 'furfrou', 'clawitzer', 'heliolisk', 'hawlucha', 'dedenne', 'noivern', 'decidueye', 'decidueye-hisui', 'toucannon', 'tsareena', 'passimian', 'corviknight', 'flapple', 'dragapult', 'kleavor', 'sneasler', 'meowscarada', 'quaquaval', 'maushold-family-of-four', 'espathra', 'annihilape'],
+    learnableByPokemonIds: ['beedrill', 'pidgeot', 'persian', 'persian-alola', 'farfetchd', 'scizor', 'blaziken', 'pelipper', 'infernape', 'staraptor', 'lopunny', 'gliscor', 'liepard', 'whimsicott', 'zoroark', 'zoroark-hisui', 'emolga', 'eelektross', 'hydreigon', 'volcarona', 'greninja', 'diggersby', 'talonflame', 'vivillon', 'furfrou', 'clawitzer', 'heliolisk', 'hawlucha', 'dedenne', 'noivern', 'decidueye', 'decidueye-hisui', 'toucannon', 'tsareena', 'passimian', 'golisopod', 'rillaboom', 'cinderace', 'inteleon', 'corviknight', 'thievul', 'flapple', 'perrserker', 'dragapult', 'kleavor', 'sneasler', 'meowscarada', 'quaquaval', 'maushold-family-of-four', 'squawkabilly-green-plumage', 'squawkabilly-yellow-plumage', 'espathra', 'annihilape'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -8471,7 +8801,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '察觉到对手的动作后用掌根攻击，让对手畏缩。如果对手使出的招式不是先制攻击，则会失败。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'heracross', 'sceptile', 'blaziken', 'medicham', 'infernape', 'lucario', 'toxicroak', 'weavile', 'gallade', 'samurott', 'samurott-hisui', 'conkeldurr', 'scrafty', 'greninja', 'talonflame', 'hawlucha', 'decidueye', 'decidueye-hisui', 'crabominable', 'lycanroc-midnight', 'passimian', 'kommo-o', 'falinks', 'sneasler', 'quaquaval'],
+    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'heracross', 'sceptile', 'blaziken', 'medicham', 'infernape', 'lucario', 'toxicroak', 'weavile', 'gallade', 'samurott', 'samurott-hisui', 'conkeldurr', 'scrafty', 'greninja', 'talonflame', 'hawlucha', 'decidueye', 'decidueye-hisui', 'crabominable', 'lycanroc-midnight', 'passimian', 'kommo-o', 'falinks', 'sneasler', 'quaquaval', 'pawmot'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -8488,7 +8818,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '在３回合内大吵大闹攻击对手。在此期间谁都不能入眠。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['pidgeot', 'clefable', 'kangaskhan', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'snorlax', 'feraligatr', 'azumarill', 'politoed', 'houndoom', 'tyranitar', 'blaziken', 'swampert', 'pelipper', 'aggron', 'manectric', 'sharpedo', 'altaria', 'chimecho', 'infernape', 'empoleon', 'staraptor', 'roserade', 'rampardos', 'lopunny', 'spiritomb', 'rhyperior', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'simisage', 'simisear', 'simipour', 'audino', 'krookodile', 'scrafty', 'zoroark', 'zoroark-hisui', 'vanilluxe', 'stunfisk', 'stunfisk-galar', 'hydreigon', 'diggersby', 'pangoro', 'furfrou', 'barbaracle', 'hawlucha', 'noivern', 'primarina', 'toucannon', 'lycanroc-midnight', 'passimian', 'drampa', 'kommo-o', 'grimmsnarl', 'mr-rime', 'falinks', 'morpeko-full-belly', 'wyrdeer', 'basculegion-female', 'basculegion-male', 'espathra', 'houndstone', 'annihilape', 'farigiraf', 'sinistcha', 'hydrapple'],
+    learnableByPokemonIds: ['pidgeot', 'clefable', 'wigglytuff', 'persian', 'persian-alola', 'farfetchd', 'kangaskhan', 'mr-mime', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'gyarados', 'snorlax', 'feraligatr', 'azumarill', 'politoed', 'houndoom', 'tyranitar', 'blaziken', 'swampert', 'pelipper', 'aggron', 'manectric', 'sharpedo', 'altaria', 'chimecho', 'infernape', 'empoleon', 'staraptor', 'roserade', 'rampardos', 'lopunny', 'spiritomb', 'rhyperior', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'simisage', 'simisear', 'simipour', 'audino', 'krookodile', 'scrafty', 'zoroark', 'zoroark-hisui', 'vanilluxe', 'stunfisk', 'stunfisk-galar', 'hydreigon', 'diggersby', 'pangoro', 'furfrou', 'barbaracle', 'hawlucha', 'noivern', 'primarina', 'toucannon', 'lycanroc-midnight', 'passimian', 'drampa', 'kommo-o', 'rillaboom', 'toxtricity-amped', 'toxtricity-low-key', 'grimmsnarl', 'perrserker', 'mr-rime', 'falinks', 'morpeko-full-belly', 'wyrdeer', 'basculegion-female', 'basculegion-male', 'squawkabilly-green-plumage', 'squawkabilly-yellow-plumage', 'espathra', 'houndstone', 'annihilape', 'farigiraf', 'sinistcha', 'hydrapple'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -8505,7 +8835,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '挥动拳头，掀起真空波。必定能够先制攻击。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['scizor', 'heracross', 'sceptile', 'blaziken', 'gardevoir', 'medicham', 'infernape', 'empoleon', 'lucario', 'toxicroak', 'gallade', 'samurott', 'samurott-hisui', 'passimian', 'kommo-o', 'kleavor', 'sneasler', 'ceruledge', 'annihilape'],
+    learnableByPokemonIds: ['scizor', 'heracross', 'sceptile', 'blaziken', 'gardevoir', 'medicham', 'infernape', 'empoleon', 'lucario', 'toxicroak', 'gallade', 'samurott', 'samurott-hisui', 'passimian', 'kommo-o', 'inteleon', 'kleavor', 'sneasler', 'ceruledge', 'annihilape'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -8522,7 +8852,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '将特殊的毒液泼向对手。对处于中毒状态的对手，威力会变成２倍。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['venusaur', 'beedrill', 'arbok', 'vileplume', 'victreebel', 'slowbro', 'slowbro-galar', 'gengar', 'ariados', 'slowking', 'slowking-galar', 'forretress', 'qwilfish', 'roserade', 'toxicroak', 'gliscor', 'scolipede', 'garbodor', 'dragalge', 'clawitzer', 'toxapex', 'salazzle', 'sneasler', 'overqwil', 'glimmora'],
+    learnableByPokemonIds: ['venusaur', 'beedrill', 'arbok', 'vileplume', 'victreebel', 'slowbro', 'slowbro-galar', 'gengar', 'ariados', 'slowking', 'slowking-galar', 'forretress', 'qwilfish', 'swalot', 'roserade', 'toxicroak', 'gliscor', 'scolipede', 'garbodor', 'dragalge', 'clawitzer', 'toxapex', 'salazzle', 'golisopod', 'toxtricity-amped', 'toxtricity-low-key', 'pincurchin', 'sneasler', 'overqwil', 'glimmora'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -8539,7 +8869,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '在攻击之后急速返回，和后备宝可梦进行替换。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'jolteon', 'ampharos', 'forretress', 'manectric', 'luxray', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'emolga', 'eelektross', 'heliolisk', 'dedenne', 'morpeko-full-belly', 'bellibolt'],
+    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'jolteon', 'ampharos', 'forretress', 'manectric', 'luxray', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'emolga', 'eelektross', 'heliolisk', 'dedenne', 'toxtricity-amped', 'toxtricity-low-key', 'morpeko-full-belly', 'pawmot', 'bellibolt'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -8590,7 +8920,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用水的震动攻击对手。有时会使对手混乱。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['blastoise', 'clefable', 'slowbro', 'slowbro-galar', 'starmie', 'tauros', 'tauros-paldea-aqua-breed', 'gyarados', 'vaporeon', 'dragonite', 'feraligatr', 'azumarill', 'politoed', 'slowking', 'slowking-galar', 'qwilfish', 'swampert', 'pelipper', 'sharpedo', 'milotic', 'glalie', 'empoleon', 'lucario', 'abomasnow', 'weavile', 'glaceon', 'froslass', 'samurott', 'samurott-hisui', 'beartic', 'greninja', 'dragalge', 'clawitzer', 'goodra', 'goodra-hisui', 'noivern', 'primarina', 'toxapex', 'araquanid', 'basculegion-female', 'basculegion-male', 'overqwil', 'quaquaval', 'maushold-family-of-four', 'bellibolt', 'palafin-zero'],
+    learnableByPokemonIds: ['blastoise', 'clefable', 'wigglytuff', 'persian', 'persian-alola', 'slowbro', 'slowbro-galar', 'starmie', 'tauros', 'tauros-paldea-aqua-breed', 'gyarados', 'vaporeon', 'dragonite', 'feraligatr', 'azumarill', 'politoed', 'slowking', 'slowking-galar', 'qwilfish', 'swampert', 'pelipper', 'swalot', 'sharpedo', 'milotic', 'glalie', 'empoleon', 'lucario', 'abomasnow', 'weavile', 'glaceon', 'froslass', 'samurott', 'samurott-hisui', 'beartic', 'greninja', 'dragalge', 'clawitzer', 'goodra', 'goodra-hisui', 'noivern', 'primarina', 'toxapex', 'araquanid', 'inteleon', 'basculegion-female', 'basculegion-male', 'overqwil', 'quaquaval', 'maushold-family-of-four', 'bellibolt', 'palafin-zero'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -8641,7 +8971,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '以惊人的气势扑向对手。有时会使对手畏缩。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['blastoise', 'slowbro', 'slowbro-galar', 'starmie', 'gyarados', 'vaporeon', 'dragonite', 'feraligatr', 'azumarill', 'politoed', 'slowking', 'slowking-galar', 'qwilfish', 'swampert', 'pelipper', 'sharpedo', 'milotic', 'empoleon', 'samurott', 'samurott-hisui', 'simipour', 'eelektross', 'greninja', 'barbaracle', 'dragalge', 'clawitzer', 'primarina', 'araquanid', 'basculegion-female', 'basculegion-male', 'overqwil', 'palafin-zero'],
+    learnableByPokemonIds: ['blastoise', 'slowbro', 'slowbro-galar', 'starmie', 'gyarados', 'vaporeon', 'dragonite', 'feraligatr', 'azumarill', 'politoed', 'slowking', 'slowking-galar', 'qwilfish', 'swampert', 'pelipper', 'sharpedo', 'milotic', 'empoleon', 'samurott', 'samurott-hisui', 'simipour', 'eelektross', 'greninja', 'barbaracle', 'dragalge', 'clawitzer', 'primarina', 'araquanid', 'golisopod', 'inteleon', 'grapploct', 'basculegion-female', 'basculegion-male', 'overqwil', 'palafin-zero'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -8675,7 +9005,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '根据使用时的天气，招式属性和威力会改变。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['venusaur', 'charizard', 'blastoise', 'ninetales', 'ninetales-alola', 'vileplume', 'victreebel', 'slowbro', 'slowbro-galar', 'vaporeon', 'jolteon', 'flareon', 'dragonite', 'meganium', 'politoed', 'espeon', 'umbreon', 'slowking', 'slowking-galar', 'swampert', 'pelipper', 'torkoal', 'altaria', 'milotic', 'castform', 'glalie', 'empoleon', 'roserade', 'abomasnow', 'leafeon', 'glaceon', 'froslass', 'vanilluxe', 'greninja', 'vivillon', 'clawitzer', 'heliolisk', 'aurorus', 'sylveon', 'goodra', 'goodra-hisui', 'primarina', 'armarouge', 'bellibolt'],
+    learnableByPokemonIds: ['venusaur', 'charizard', 'blastoise', 'ninetales', 'ninetales-alola', 'vileplume', 'victreebel', 'slowbro', 'slowbro-galar', 'vaporeon', 'jolteon', 'flareon', 'dragonite', 'meganium', 'politoed', 'espeon', 'umbreon', 'slowking', 'slowking-galar', 'swampert', 'pelipper', 'torkoal', 'altaria', 'milotic', 'castform', 'glalie', 'empoleon', 'roserade', 'abomasnow', 'leafeon', 'glaceon', 'froslass', 'vanilluxe', 'greninja', 'vivillon', 'clawitzer', 'heliolisk', 'aurorus', 'sylveon', 'goodra', 'goodra-hisui', 'primarina', 'cinderace', 'inteleon', 'arboliva', 'armarouge', 'bellibolt'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -8692,7 +9022,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '将对手困在激烈的水流旋涡中，在４～５回合内进行攻击。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['blastoise', 'slowbro', 'slowbro-galar', 'kangaskhan', 'starmie', 'tauros', 'tauros-paldea-aqua-breed', 'gyarados', 'vaporeon', 'feraligatr', 'azumarill', 'politoed', 'slowking', 'slowking-galar', 'qwilfish', 'swampert', 'pelipper', 'aggron', 'sharpedo', 'milotic', 'empoleon', 'samurott', 'samurott-hisui', 'barbaracle', 'dragalge', 'primarina', 'basculegion-female', 'basculegion-male', 'quaquaval', 'palafin-zero'],
+    learnableByPokemonIds: ['blastoise', 'slowbro', 'slowbro-galar', 'kangaskhan', 'starmie', 'tauros', 'tauros-paldea-aqua-breed', 'gyarados', 'vaporeon', 'feraligatr', 'azumarill', 'politoed', 'slowking', 'slowking-galar', 'qwilfish', 'swampert', 'pelipper', 'aggron', 'sharpedo', 'milotic', 'empoleon', 'samurott', 'samurott-hisui', 'barbaracle', 'dragalge', 'primarina', 'inteleon', 'grapploct', 'basculegion-female', 'basculegion-male', 'quaquaval', 'palafin-zero'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -8722,7 +9052,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '在１回合内防住击打我方全员的攻击。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['machamp', 'aerodactyl', 'steelix', 'swampert', 'pelipper', 'torterra', 'bastiodon', 'conkeldurr', 'chesnaught', 'avalugg', 'avalugg-hisui', 'crabominable', 'toxapex', 'araquanid', 'garganacl', 'armarouge'],
+    learnableByPokemonIds: ['machamp', 'mr-mime', 'aerodactyl', 'steelix', 'swampert', 'pelipper', 'torterra', 'bastiodon', 'conkeldurr', 'chesnaught', 'avalugg', 'avalugg-hisui', 'crabominable', 'toxapex', 'araquanid', 'golisopod', 'garganacl', 'armarouge'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -8739,7 +9069,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '让电流覆盖全身，撞向对手进行攻击。自己也会受到少许伤害。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'arcanine', 'arcanine-hisui', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'jolteon', 'snorlax', 'typhlosion', 'typhlosion-hisui', 'ampharos', 'manectric', 'luxray', 'emboar', 'audino', 'emolga', 'eelektross', 'volcarona', 'diggersby', 'pyroar', 'furfrou', 'heliolisk', 'dedenne', 'noivern', 'morpeko-full-belly', 'wyrdeer', 'bellibolt'],
+    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'wigglytuff', 'arcanine', 'arcanine-hisui', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'jolteon', 'snorlax', 'typhlosion', 'typhlosion-hisui', 'ampharos', 'manectric', 'luxray', 'emboar', 'audino', 'emolga', 'eelektross', 'volcarona', 'diggersby', 'pyroar', 'gogoat', 'furfrou', 'heliolisk', 'dedenne', 'noivern', 'toxtricity-amped', 'toxtricity-low-key', 'pincurchin', 'morpeko-full-belly', 'wyrdeer', 'pawmot', 'bellibolt', 'mabosstiff'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -8755,7 +9085,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '放出怪异的火焰，从而让对手陷入灼伤状态。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['charizard', 'ninetales', 'arcanine', 'arcanine-hisui', 'gengar', 'tauros', 'tauros-paldea-blaze-breed', 'flareon', 'typhlosion', 'typhlosion-hisui', 'houndoom', 'blaziken', 'gardevoir', 'sableye', 'camerupt', 'torkoal', 'altaria', 'banette', 'absol', 'infernape', 'spiritomb', 'froslass', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'emboar', 'simisear', 'cofagrigus', 'zoroark', 'zoroark-hisui', 'chandelure', 'volcarona', 'delphox', 'talonflame', 'pyroar', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'incineroar', 'salazzle', 'mimikyu-disguised', 'polteageist', 'runerigus', 'dragapult', 'skeledirge', 'armarouge', 'ceruledge', 'scovillain', 'houndstone'],
+    learnableByPokemonIds: ['charizard', 'ninetales', 'arcanine', 'arcanine-hisui', 'gengar', 'tauros', 'tauros-paldea-blaze-breed', 'flareon', 'typhlosion', 'typhlosion-hisui', 'houndoom', 'blaziken', 'gardevoir', 'sableye', 'camerupt', 'torkoal', 'altaria', 'banette', 'absol', 'infernape', 'spiritomb', 'froslass', 'rotom', 'rotom-fan', 'rotom-frost', 'rotom-heat', 'rotom-mow', 'rotom-wash', 'emboar', 'simisear', 'cofagrigus', 'zoroark', 'zoroark-hisui', 'chandelure', 'volcarona', 'delphox', 'talonflame', 'pyroar', 'trevenant', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'incineroar', 'salazzle', 'mimikyu-disguised', 'cinderace', 'polteageist', 'runerigus', 'dragapult', 'skeledirge', 'armarouge', 'ceruledge', 'scovillain', 'houndstone'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -8770,7 +9100,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '在下一回合回复自己或是替换出场的宝可梦最大ＨＰ的一半。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'clefable', 'vaporeon', 'jolteon', 'flareon', 'espeon', 'umbreon', 'gardevoir', 'chimecho', 'leafeon', 'glaceon', 'audino', 'delphox', 'floette', 'florges', 'meowstic-male', 'aromatisse', 'slurpuff', 'sylveon', 'farigiraf'],
+    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'clefable', 'wigglytuff', 'vaporeon', 'jolteon', 'flareon', 'espeon', 'umbreon', 'gardevoir', 'chimecho', 'leafeon', 'glaceon', 'audino', 'delphox', 'floette', 'florges', 'meowstic-male', 'aromatisse', 'slurpuff', 'sylveon', 'indeedee-female', 'indeedee-male', 'farigiraf'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -8785,7 +9115,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: false,
     effectSummary: '制造出离奇的空间。在５回合内互换所有宝可梦的防御和特防。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['clefable', 'ninetales', 'ninetales-alola', 'alakazam', 'slowbro', 'slowbro-galar', 'gengar', 'starmie', 'slowking', 'slowking-galar', 'gardevoir', 'sableye', 'altaria', 'spiritomb', 'musharna', 'cofagrigus', 'reuniclus', 'delphox', 'meowstic-female', 'meowstic-male', 'primarina', 'araquanid', 'oranguru', 'polteageist', 'hatterene', 'grimmsnarl', 'mr-rime', 'runerigus', 'alcremie'],
+    learnableByPokemonIds: ['clefable', 'ninetales', 'ninetales-alola', 'alakazam', 'slowbro', 'slowbro-galar', 'gengar', 'starmie', 'mr-mime', 'slowking', 'slowking-galar', 'gardevoir', 'sableye', 'altaria', 'spiritomb', 'musharna', 'cofagrigus', 'reuniclus', 'delphox', 'meowstic-female', 'meowstic-male', 'primarina', 'araquanid', 'oranguru', 'polteageist', 'hatterene', 'grimmsnarl', 'mr-rime', 'runerigus', 'alcremie', 'indeedee-female', 'indeedee-male'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -8802,7 +9132,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '用坚硬的躯体撞击对手进行攻击。自己也会受到不小的伤害。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['torterra', 'abomasnow', 'chesnaught', 'trevenant', 'mimikyu-disguised', 'tinkaton'],
+    learnableByPokemonIds: ['torterra', 'abomasnow', 'chesnaught', 'trevenant', 'mimikyu-disguised', 'rillaboom', 'tinkaton'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -8833,7 +9163,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '种植心神不宁的种子。使对手不能入眠，并将特性变成不眠。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['venusaur', 'victreebel', 'sceptile', 'torterra', 'roserade', 'whimsicott', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'meowscarada', 'scovillain'],
+    learnableByPokemonIds: ['venusaur', 'victreebel', 'sceptile', 'torterra', 'roserade', 'whimsicott', 'gogoat', 'gourgeist-average', 'gourgeist-large', 'gourgeist-small', 'gourgeist-super', 'rillaboom', 'meowscarada', 'scovillain'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -8867,7 +9197,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '将镰刀或爪子像剪刀般地交叉，顺势劈开对手。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['beedrill', 'pinsir', 'ariados', 'scizor', 'skarmory', 'sceptile', 'sableye', 'absol', 'toxicroak', 'weavile', 'leafeon', 'gliscor', 'samurott', 'samurott-hisui', 'excadrill', 'scolipede', 'beartic', 'pangoro', 'barbaracle', 'hawlucha', 'trevenant', 'noivern', 'araquanid', 'mimikyu-disguised', 'kommo-o', 'kleavor', 'sneasler', 'ceruledge', 'kingambit'],
+    learnableByPokemonIds: ['beedrill', 'pinsir', 'ariados', 'scizor', 'skarmory', 'sceptile', 'sableye', 'absol', 'toxicroak', 'weavile', 'leafeon', 'gliscor', 'samurott', 'samurott-hisui', 'excadrill', 'scolipede', 'beartic', 'pangoro', 'barbaracle', 'hawlucha', 'trevenant', 'noivern', 'araquanid', 'golisopod', 'mimikyu-disguised', 'kommo-o', 'perrserker', 'kleavor', 'sneasler', 'ceruledge', 'kingambit'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -8882,7 +9212,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '打个大哈欠引起睡意。在下一回合让对手陷入睡眠状态。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['blastoise', 'slowbro', 'slowbro-galar', 'vaporeon', 'jolteon', 'flareon', 'snorlax', 'espeon', 'umbreon', 'slowking', 'slowking-galar', 'swampert', 'camerupt', 'torkoal', 'chimecho', 'empoleon', 'hippowdon', 'leafeon', 'glaceon', 'emboar', 'liepard', 'simisear', 'musharna', 'audino', 'beartic', 'stunfisk', 'stunfisk-galar', 'pyroar', 'meowstic-female', 'meowstic-male', 'slurpuff', 'sylveon', 'oranguru', 'skeledirge', 'houndstone', 'hydrapple'],
+    learnableByPokemonIds: ['blastoise', 'slowbro', 'slowbro-galar', 'vaporeon', 'jolteon', 'flareon', 'snorlax', 'espeon', 'umbreon', 'slowking', 'slowking-galar', 'swampert', 'swalot', 'camerupt', 'torkoal', 'chimecho', 'empoleon', 'hippowdon', 'leafeon', 'glaceon', 'emboar', 'liepard', 'simisear', 'musharna', 'audino', 'beartic', 'stunfisk', 'stunfisk-galar', 'pyroar', 'meowstic-female', 'meowstic-male', 'slurpuff', 'sylveon', 'oranguru', 'skeledirge', 'houndstone', 'hydrapple'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -8899,7 +9229,7 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '发射大炮一样的电流进行攻击。让对手陷入麻痹状态。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'ampharos', 'forretress', 'eelektross', 'bellibolt'],
+    learnableByPokemonIds: ['pikachu', 'raichu', 'raichu-alola', 'ampharos', 'forretress', 'eelektross', 'toxtricity-amped', 'toxtricity-low-key', 'bellibolt'],
     sourceRefs: moveSourceRefs,
   },
   {
@@ -8916,7 +9246,24 @@ export const championsMoves: Move[] = [
     affectedByProtect: true,
     effectSummary: '将思念的力量集中在前额进行攻击。有时会使对手畏缩。',
     legalInCurrentRule: true,
-    learnableByPokemonIds: ['blastoise', 'clefable', 'ninetales', 'ninetales-alola', 'alakazam', 'slowbro', 'slowbro-galar', 'starmie', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'snorlax', 'meganium', 'typhlosion', 'typhlosion-hisui', 'espeon', 'slowking', 'slowking-galar', 'gardevoir', 'sableye', 'medicham', 'sharpedo', 'camerupt', 'torkoal', 'banette', 'chimecho', 'absol', 'metagross', 'torterra', 'infernape', 'rampardos', 'lucario', 'emboar', 'watchog', 'musharna', 'audino', 'scrafty', 'cofagrigus', 'reuniclus', 'eelektross', 'golurk', 'hydreigon', 'volcarona', 'chesnaught', 'delphox', 'pangoro', 'furfrou', 'meowstic-female', 'meowstic-male', 'malamar', 'tyrantrum', 'aurorus', 'hawlucha', 'crabominable', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'tsareena', 'oranguru', 'appletun', 'sandaconda', 'mr-rime', 'runerigus', 'falinks', 'wyrdeer', 'basculegion-female', 'basculegion-male', 'skeledirge', 'garganacl', 'scovillain', 'espathra', 'palafin-zero', 'houndstone', 'farigiraf', 'kingambit'],
+    learnableByPokemonIds: ['blastoise', 'clefable', 'ninetales', 'ninetales-alola', 'wigglytuff', 'alakazam', 'slowbro', 'slowbro-galar', 'starmie', 'mr-mime', 'tauros', 'tauros-paldea-aqua-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-combat-breed', 'snorlax', 'meganium', 'typhlosion', 'typhlosion-hisui', 'espeon', 'slowking', 'slowking-galar', 'gardevoir', 'sableye', 'medicham', 'swalot', 'sharpedo', 'camerupt', 'torkoal', 'banette', 'chimecho', 'absol', 'salamence', 'metagross', 'torterra', 'infernape', 'rampardos', 'lucario', 'emboar', 'watchog', 'musharna', 'audino', 'scrafty', 'cofagrigus', 'reuniclus', 'eelektross', 'golurk', 'hydreigon', 'volcarona', 'chesnaught', 'delphox', 'gogoat', 'pangoro', 'furfrou', 'meowstic-female', 'meowstic-male', 'malamar', 'tyrantrum', 'aurorus', 'hawlucha', 'crabominable', 'lycanroc-dusk', 'lycanroc-midday', 'lycanroc-midnight', 'tsareena', 'oranguru', 'cinderace', 'appletun', 'sandaconda', 'mr-rime', 'runerigus', 'falinks', 'indeedee-female', 'indeedee-male', 'wyrdeer', 'basculegion-female', 'basculegion-male', 'skeledirge', 'garganacl', 'scovillain', 'espathra', 'palafin-zero', 'houndstone', 'farigiraf', 'kingambit', 'baxcalibur'],
+    sourceRefs: moveSourceRefs,
+  },
+  {
+    id: 'zing-zap',
+    chineseName: '麻麻刺刺',
+    englishName: 'Zing Zap',
+    type: 'Electric',
+    category: 'Physical',
+    power: 80,
+    accuracy: 100,
+    pp: 10,
+    targetScope: '单体',
+    makesContact: true,
+    affectedByProtect: true,
+    effectSummary: '撞向对手，并发出强电，使其感到麻麻刺刺的。有时会使对手畏缩。',
+    legalInCurrentRule: true,
+    learnableByPokemonIds: ['pincurchin'],
     sourceRefs: moveSourceRefs,
   },
 ];

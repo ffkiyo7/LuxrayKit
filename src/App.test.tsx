@@ -1299,9 +1299,9 @@ describe('App page flows', () => {
     await user.clear(screen.getByPlaceholderText('搜索名称'));
     await user.click(screen.getByRole('button', { name: '打开道具类别筛选' }));
     expect(screen.getByText('道具类别筛选')).toBeTruthy();
-    expect(screen.getByText('45 件')).toBeTruthy();
+    expect(screen.getByText('57 件')).toBeTruthy();
     expect(screen.getByText('28 件')).toBeTruthy();
-    expect(screen.getByText('75 件')).toBeTruthy();
+    expect(screen.getByText('81 件')).toBeTruthy();
     await user.click(screen.getByRole('button', { name: '树果' }));
     await user.click(screen.getByRole('button', { name: '完成' }));
     expect(screen.getByText('文柚果')).toBeTruthy();

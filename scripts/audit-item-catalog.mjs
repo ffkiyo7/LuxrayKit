@@ -9,7 +9,10 @@ import sharp from 'sharp';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
 const CATALOG_PATH = resolve(ROOT, 'src/data/seed/regMA/catalog.ts');
-const POKEBASE_ITEMS = 'https://pokebase.app/pokemon-champions/items?regulation=m-b';
+// No `?regulation=` filter on purpose. It used to pin `m-b`, which is exactly the kind of hardcoded
+// regulation AGENTS.md §1 forbids — and PokéBase ignores the parameter anyway (the list is one page of
+// every item, `totalPages: 1`). Availability is read off each row's `availableInChampions` instead.
+const POKEBASE_ITEMS = 'https://pokebase.app/pokemon-champions/items';
 const POKEBASE_ITEM_PAGE = 'https://pokebase.app/pokemon-champions/items';
 const POKEAPI_ITEM_API = 'https://pokeapi.co/api/v2/item';
 const POKEAPI_ITEM_SPRITES = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items';
@@ -19,7 +22,10 @@ const WRITE_IMAGES = process.argv.includes('--write');
 const SHOW_REPORT = process.argv.includes('--report');
 const execFileAsync = promisify(execFile);
 const manuallyReviewedChineseNames = new Map([
-  ['fairy-feather', '妖精之羽'],
+  ['fairy-feather', { name: '妖精之羽', sourceUrl: 'https://wiki.52poke.com/wiki/妖精之羽（道具）' }],
+  // PokeAPI files Leek under its pre-Gen-VIII slug `stick`, so `/item/leek` 404s. The catalog keeps
+  // PokéBase's `leek` slug (it is also the icon path), so pin PokeAPI's zh-hans name for `stick`.
+  ['leek', { name: '大葱', sourceUrl: `${POKEAPI_ITEM_API}/stick` }],
 ]);
 
 const normalizeName = (value) => value.replaceAll('’', "'");
@@ -80,29 +86,62 @@ async function fetchWithCurl(url, accept) {
   return stdout;
 }
 
+// The item payload is a React Flight stream split across many `self.__next_f.push([1,"…"])` calls, and
+// no single chunk is valid JSON on its own — so decode every chunk and concatenate before parsing.
+// (The previous version inspected one chunk at a time and had stopped finding the payload entirely.)
 function parsePokebaseList(html) {
-  const callPrefix = 'self.__next_f.push(';
-  let cursor = 0;
-  while (cursor >= 0) {
-    const start = html.indexOf(callPrefix, cursor);
-    if (start < 0) break;
-    const end = html.indexOf(')</script>', start);
-    if (end < 0) break;
-    cursor = end + 1;
-
+  const chunks = [];
+  for (const match of html.matchAll(/self\.__next_f\.push\(\[1,("(?:[^"\\]|\\.)*")\]\)/g)) {
     try {
-      const callArgument = html.slice(start + callPrefix.length, end);
-      const payload = JSON.parse(callArgument)[1];
-      if (typeof payload !== 'string' || !payload.includes('"data":{"docs":')) continue;
-      const itemList = JSON.parse(payload.slice(payload.indexOf('[')));
-      const docs = itemList.find((entry) => entry?.data?.docs)?.data.docs;
-      if (Array.isArray(docs)) return new Map(docs.map((item) => [item.slug, item]));
+      const payload = JSON.parse(match[1]);
+      if (typeof payload === 'string') chunks.push(payload);
     } catch {
-      // Keep searching: a React Flight segment need not be a JSON item payload.
+      // A Flight segment need not be a JSON string literal; skip it.
     }
   }
 
-  throw new Error('Could not find the PokéBase item data payload');
+  // Rows look like `{"name":…,"slug":"air-balloon",…,"availableInChampions":true,…}`. Each row is
+  // self-contained, so walk the slugs and parse the enclosing object by brace matching.
+  const text = chunks.join('');
+  const items = new Map();
+  for (const slugMatch of text.matchAll(/"slug":"([a-z0-9-]+)"/g)) {
+    if (items.has(slugMatch[1])) continue;
+    const row = enclosingJsonObject(text, slugMatch.index);
+    if (row && typeof row.name === 'string' && typeof row.category === 'string') items.set(slugMatch[1], row);
+  }
+
+  if (items.size === 0) throw new Error('Could not find the PokéBase item data payload');
+  return items;
+}
+
+// Walk back to the `{` that opens the object containing `index`, then forward to its matching `}`.
+function enclosingJsonObject(text, index) {
+  let depth = 0;
+  let start = -1;
+  for (let i = index; i >= 0 && index - i < 20000; i -= 1) {
+    if (text[i] === '}') depth += 1;
+    else if (text[i] === '{') {
+      if (depth === 0) { start = i; break; }
+      depth -= 1;
+    }
+  }
+  if (start < 0) return null;
+
+  depth = 0;
+  for (let i = start; i < text.length && i - start < 20000; i += 1) {
+    if (text[i] === '{') depth += 1;
+    else if (text[i] === '}') {
+      depth -= 1;
+      if (depth === 0) {
+        try {
+          return JSON.parse(text.slice(start, i + 1));
+        } catch {
+          return null;
+        }
+      }
+    }
+  }
+  return null;
 }
 
 async function imagePixelHash(input) {
@@ -116,12 +155,7 @@ async function imagePixelHash(input) {
 
 async function fetchChineseNameReference(item) {
   if (item.sourceCategory === 'mega-evolution') return null;
-  if (manuallyReviewedChineseNames.has(item.id)) {
-    return {
-      name: manuallyReviewedChineseNames.get(item.id),
-      sourceUrl: 'https://wiki.52poke.com/wiki/妖精之羽（道具）',
-    };
-  }
+  if (manuallyReviewedChineseNames.has(item.id)) return manuallyReviewedChineseNames.get(item.id);
 
   const sourceUrl = `${POKEAPI_ITEM_API}/${item.id}`;
   const data = JSON.parse((await fetchWithCurl(sourceUrl, 'application/json')).toString('utf8'));
@@ -132,7 +166,10 @@ async function fetchChineseNameReference(item) {
 
 async function auditItem(item, reference) {
   const pageUrl = `${POKEBASE_ITEM_PAGE}/${item.id}`;
-  if (!reference) return { ...item, pageUrl, error: 'missing from PokéBase current M-B item list' };
+  if (!reference) return { ...item, pageUrl, error: 'missing from the PokéBase Champions item list' };
+  if (reference.availableInChampions === false) {
+    return { ...item, pageUrl, reference, error: 'PokéBase reports availableInChampions: false' };
+  }
   const imageSourceUrl = item.sourceCategory === 'berry'
     ? `${POKEAPI_ITEM_SPRITES}/${item.id}.png`
     : reference.icon?.url;

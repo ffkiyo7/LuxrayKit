@@ -30,6 +30,8 @@
     "data:regma:abilities:check": "node scripts/generate-ability-effects.mjs --check",
     "data:regma:catalog-batch": "node scripts/generate-catalog-batch.mjs",
     "data:regma:catalog-batch:list": "node scripts/generate-catalog-batch.mjs --list",
+    "data:regma:physical-metrics": "node scripts/generate-physical-metrics.mjs",
+    "data:regma:physical-metrics:check": "node scripts/generate-physical-metrics.mjs --check",
     "data:regma:moves": "node scripts/generate-champions-moves.mjs",
     "data:regma:move-ids": "node scripts/generate-move-ids.mjs",
     "data:regma:move-ids:check": "node scripts/generate-move-ids.mjs --check",

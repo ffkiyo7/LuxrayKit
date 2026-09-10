@@ -201,7 +201,7 @@ main.tsx
 
 手写 SW，无 Workbox。install 预缓存 app shell + 静态环境快照；同源 GET 走缓存优先 + 后台更新；`/api/*` **永不**读写离线缓存。
 
-- **道具图标预缓存表是构建产物**：`vite.config.ts` 的 `luxraykit-precache-manifest` 插件在 `closeBundle` 调 `scripts/precache-manifest.mjs`，从道具 catalog 的 `iconRef` 写出 `dist/precache-manifest.json`（`{ generatedAt, itemIcons }`，当前 148 条）；SW 在 install 时 fetch 它再逐个 `cache.add`（单个图标失败、manifest 缺失或无法解析都不阻塞安装）。**改道具不用改 `sw.js`**——那里曾经是手写数组，每次加道具都会漂移。
+- **道具图标预缓存表是构建产物**：`vite.config.ts` 的 `luxraykit-precache-manifest` 插件在 `closeBundle` 调 `scripts/precache-manifest.mjs`，从道具 catalog 的 `iconRef` 写出 `dist/precache-manifest.json`（`{ generatedAt, itemIcons }`，当前 166 条）；SW 在 install 时 fetch 它再逐个 `cache.add`（单个图标失败、manifest 缺失或无法解析都不阻塞安装）。**改道具不用改 `sw.js`**——那里曾经是手写数组，每次加道具都会漂移。
 - **`CACHE_NAME` 当前 `champions-tool-v8`**，改版本要同步 `docs/qa/PWA_OFFLINE_CHECKLIST.md`。
 - **新版本提示**：SW 保持 `skipWaiting` + `clients.claim`，部署会在打开着的标签页下面换掉 controller，而页面仍跑旧 chunk。`src/main.tsx` 监听 `controllerchange`，**仅当页面此前已有 controller**（首次安装不提示）时派发 `luxraykit:service-worker-updated`，由 `components/ServiceWorkerUpdateToast.tsx` 渲染刷新 toast。用 CustomEvent 是为了让注册侧保持几行纯 DOM，不进 `AppShell` 的 state。
 - **CSP**：`public/_headers` 的 `Content-Security-Policy` 以同源为主，两处刻意放宽：`style-src 'unsafe-inline'`（React 写 inline style 属性）与 Google Fonts 两个域名（`src/styles.css` 首行远程 `@import` DM Sans，Vite 无法内联）。`_headers` **只在 Cloudflare 生效**，`vite preview` 与 Playwright 都看不到它——改动后只能上线后在生产 DevTools 人工核对。
@@ -522,15 +522,17 @@ npm run data:regma:abilities            # 按目录扫描 catalog.ts + 全部 ca
 npm run data:regma:abilities:check      # 只列出会处理哪些文件与特性行数，不联网、不写文件
 npm run data:regma:catalog-batch        # 生成新的 catalog-batch-NNN.ts 并接线进 catalog.ts
 npm run data:regma:catalog-batch:list   # 只列出已存在批次与下一个批次号
+npm run data:regma:physical-metrics       # 重生成 physicalMetrics.ts（按 catalog 里的 dex 号取 PokeAPI 身高体重）
+npm run data:regma:physical-metrics:check # 只校验 physicalMetrics.ts 是否与 catalog + PokeAPI 一致
 npm run data:regma:moves                # 重生成 move-catalog.ts（learnset + 招式数据）
 npm run data:regma:move-ids             # 从 move-catalog.ts 派生 move-ids.ts（只含 id 数组，不联网）
 npm run data:regma:move-ids:check       # 只校验 move-ids.ts 是否与 catalog 一致
 npm run data:regma:allowlist            # ⚠️ M-A 历史脚本，见下方说明；当前仓库状态下会安全拒绝执行
-npm run data:items:audit                # 只读核验 148 条当前规则道具的中英文名称、类别与本地图片
+npm run data:items:audit                # 只读核验 166 条当前规则道具的中英文名称、类别与本地图片
 npm run data:items:refresh              # 仅用来源图刷新不匹配的本地道具图片
 ```
 
-**`data:regma:allowlist` 是 M-A 时代的历史脚本，不要用它接入新规则。** 它全量重写 `src/data/seed/regMA/allowlist.ts`，来源是官方 M-A web-view 端点（至今仍返回同一份 213 行 payload），且脚本内只有 6 条 `英文名 → pokemonId` 映射。现有 `allowlist.ts` 是 235 条（213 条 `reg-ma-` + 22 条**手工追加**的 `reg-mb-`）。跑它会删掉手工行、把 `regMaPokemonAllowlistExpectedCount` 打回 213、并把文件头 sourceRef 改回 M-A。因此脚本开头加了守卫：只要文件里存在非 `reg-ma-` 的行就直接报错退出（**无 bypass 参数，不要为跑通而放宽**）。新规则的行照 M-B 先例手工追加。
+**`data:regma:allowlist` 是 M-A 时代的历史脚本，不要用它接入新规则。** 它全量重写 `src/data/seed/regMA/allowlist.ts`，来源是官方 M-A web-view 端点（至今仍返回同一份 213 行 payload），且脚本内只有 6 条 `英文名 → pokemonId` 映射。现有 `allowlist.ts` 是 262 条（212 条 `reg-ma-` + 22 条 `reg-mb-` + 28 条 `reg-mc-`，后两批都是**手工追加**的）。跑它会删掉手工行、把 `regMaPokemonAllowlistExpectedCount` 打回 213、并把文件头 sourceRef 改回 M-A。因此脚本开头加了守卫：只要文件里存在非 `reg-ma-` 的行就直接报错退出（**无 bypass 参数，不要为跑通而放宽**）。新规则的行照 M-B 先例手工追加。
 
 `data:regma:catalog-batch` 不再写死批次号 / 批次大小 / 来源标签：
 
@@ -543,7 +545,11 @@ npm run data:regma:catalog-batch -- --source-refs=reg-mc-official-eligible-pokem
 
 `--source-refs` 必须是 `dataSourceManifest` 里已存在的条目 id，否则数据审计会报 `unresolved-source-ref`。
 
-`data:regma:abilities` 的文件列表原先是手写的、停在 `catalog-batch-005`（漏掉了已存在的 006），现改为扫描 `src/data/seed/regMA/` 目录并按批次号排序；用 `:check` 确认覆盖范围。
+`data:regma:abilities` 的文件列表原先是手写的、停在 `catalog-batch-005`（漏掉了已存在的 006），现改为扫描 `src/data/seed/regMA/` 目录并按批次号排序；用 `:check` 确认覆盖范围。Champions 独有特性（`firemane` / `eelevate` / `piercing-drill` / `spicy-spray` …）在 PokeAPI 上是 404，脚本按「PokeAPI 没有」处理、中文名回落到神奇宝贝百科或现有 catalog 行；其余 HTTP 状态仍然致命。
+
+`data:regma:physical-metrics` 生成 `src/data/seed/regMA/physicalMetrics.ts`（DexPage 的身高体重表）。表按 `nationalDexNo` 索引、`DexPage.tsx` 也按本体 dex 号取值，所以每个 dex 号只取**默认形态**（`/pokemon/<dexNo>/`）一行，异种形态不单独建行（没有可用的 key）。每次新增宝可梦后跑一次；`:check` 会在文件与 catalog + PokeAPI 不一致时失败。
+
+`data:regma:moves` 对每只 catalog 宝可梦抓一次 PokéBase 的 Available Moves 页（页面缓存在 `.npm-cache/pokebase/`，首次全量重跑必定走网络）。两个形态的 PokéBase slug 与 PokeAPI 不同名、直接用 catalog id 会拿到 soft-404 壳页（HTTP 200、约 349 KB、没有 Available Moves 行），脚本里因此有两张表：`POKEBASE_SLUG_OVERRIDES`（`basculegion-male` → `basculegion`，已核验 learnset 一致）与 `POKEBASE_LEARNSET_CARRY_FORWARD`（`tauros-paldea-combat-breed`：它的物种页 `/pokemon/tauros-paldea` 虽标题写 Combat Breed，却把斗战 / 火炽 / 水澜三种的招式**合并**列出，不能用，所以这一行的 learnset 从上一版 `move-catalog.ts` 原样沿用，若有招式在新抓取里不存在则直接报错）。下次刷新时复查这两个 slug。
 
 `data:items:audit` 从 PokéBase Champions 当前规则道具列表读取英文名和类别，并用 PokeAPI `zh-hans` 道具名核验普通道具与树果的中文身份（PokeAPI 暂无中文名的妖精之羽按 52Poké 人工核验）；普通道具、进化石图片按 PokéBase 对照，树果图片按 PokeAPI 的 `item id → sprite` 对照，再核验 `catalog.ts` 与 `public/assets/items/`。`--report` 会同时打印本地中文效果摘要与 PokéBase 英文描述，供人工逐项语义校对；跨语言描述不冒充自动判定。网络源不稳定或出现不一致时审计会失败，不作为 CI 门禁。`data:items:refresh` 只替换已确认图片不匹配的本地快照，仍须人工检查 diff 后提交；不要手改 `item-icon-mapping.ts` 或单个图片文件。
 
@@ -635,11 +641,12 @@ VGCPastes 脚本发现脏工作区会直接拒跑；若前一次生成任务失�
   ```
 
   - **为什么不能在本机跑**：① 开发在 macOS，宿主字体栈与镜像不同，直接 `npx playwright test tests/pwa/visual.spec.ts` 只会得到整屏假阳性 diff；② Playwright 的快照文件名只带平台不带 CPU 架构（`…-visual-mobile-390-linux.png`），Apple Silicon 上拉到的 arm64 镜像会用**完全相同的文件名**覆盖掉 CI 的 amd64 基线，静默污染门禁。`scripts/visual-docker.sh` 因此只支持在 amd64 Linux 上手动运行；在没有 Docker 的机器上它会直接报错并指向上面的工作流。
+  - `workflow_dispatch` 的 `mode` 输入默认 `changed`（Playwright 原生行为：只重写 diff 超出 2% `maxDiffPixelRatio` 的快照）。语义过期但像素差在阈值内的基线（典型是规则轮换只挪动了 header 几个字）不会被替换、工作流会报 "nothing to commit"，这时加 `-f mode=all` 强制全量重写。
   - `visual-baseline.yml` 拒绝在 `main` 上运行：push `main` 会触发生产部署，新基线必须跟引发它的 UI 改动一起在 PR 里被 review。
   - 历史背景：2026-07 之前基线在 Windows 上生成（`chrome-mobile-390-win32`），只有 Windows 能验证；WSL2 时期改为容器生成；2026-08 迁到 macOS 开发后，容器保留为「基线的定义环境」，但执行位置整体上移到 CI。
 - **视觉用例刻意与刷新中的数据解耦**，否则它没法当门禁用——环境快照的时间戳和榜单会直接印进截图，每次数据刷新都会让门禁变红、卡住 daily auto-merge：
   - `tests/pwa/fixtures/environment-snapshot.json` 是 `public/data/pokedb/reg-ma-environment.json` 的冻结副本，用例用 `page.route` 把运行时那次 fetch 拦截掉换成它。要让门禁看到更新后的数据，把线上文件复制过来覆盖 fixture，再重建基线——这是一次有意的动作，不是自动的。
-  - `page.clock.setFixedTime` 把时钟钉在 `2026-07-20T12:00:00Z`：赛季/规则 header 和"可能过期"徽标都由挂钟时间推导，不钉住的话跨过赛季窗口或新鲜度阈值时像素会自己变。
+  - `page.clock.setFixedTime` 把时钟钉在 **`currentRuleSet.startAt` + 11 天 12:00 UTC**（由 `metadata.ts` 推导，不写字面量）：赛季/规则 header 与「规则已切换」提示都由挂钟时间推导，时钟若落在上一规则窗口会渲染反向提示。fixture 的 `retrievedAt` / `updatedAt` / 赛季标签在 `page.route` 里按该时钟改写，JSON 本身不动。换规则后基线仍需重建（header 文案变了），用 `-f mode=all` 强制全量重写。
   - **残留耦合**：VGCPastes 队伍库是 build-time 动态 `import()` 的 bundle 产物，拦不住。`automation/vgcpastes-team-refresh`（周级）如果改到截图里可见的靠前队伍，视觉门禁会红——这时人工确认后重建基线即可。PokeDB 环境刷新（日级，churn 的大头）已经被 fixture 完全隔离。
 
 ---

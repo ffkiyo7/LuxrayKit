@@ -302,14 +302,62 @@ async function enrichMove(move) {
   }
 }
 
+// Catalog id → PokéBase slug, where PokéBase does not spell a form the way PokeAPI does.
+// PokéBase serves a species' default form under the bare species slug and answers the
+// explicit-default spelling with a soft-404 shell (HTTP 200, ~349 KB, no "Available Moves" rows),
+// which aborts the whole rebuild. Verified 2026-09-09 from the page title and by diffing the
+// resulting learnset against the previous move-catalog.ts (49 moves, identical):
+//   /pokemon/basculegion → "Basculegion" (the male form; the female form has its own slug)
+const POKEBASE_SLUG_OVERRIDES = {
+  'basculegion-male': 'basculegion',
+};
+
+// Catalog ids whose learnset is carried over from the existing move-catalog.ts instead of scraped.
+//
+// `tauros-paldea-combat-breed` is a soft-404 on PokéBase like the two above, but its bare species
+// slug (`/pokemon/tauros-paldea`) must NOT be substituted: the page is titled "Combat Breed" yet
+// lists 63 moves that are a strict superset of the Blaze (53) and Aqua (52) pages' union —
+// fire-blast / flamethrower / flare-blitz / overheat / will-o-wisp and hydro-pump / liquidation /
+// surf / wave-crash / whirlpool all appear on it, i.e. it aggregates all three breeds. Using it
+// would hand the pure-Fighting Combat Breed 15 moves it does not learn. Rather than derive a
+// learnset by subtraction, the previously scraped one is preserved verbatim and the gap is
+// reported; re-check the slug on the next refresh.
+const POKEBASE_LEARNSET_CARRY_FORWARD = new Set(['tauros-paldea-combat-breed']);
+
+/** move id → Pokemon ids, read back out of the move-catalog.ts this run is about to replace. */
+async function readPreviousLearnsets() {
+  if (!existsSync(OUTPUT_PATH)) return new Map();
+  const text = await readFile(OUTPUT_PATH, 'utf8');
+  const previous = new Map();
+  for (const block of text.split(/\n  \{\n/).slice(1)) {
+    const body = block.split(/\n  \},/)[0];
+    const moveId = /id: '([^']+)'/.exec(body)?.[1];
+    const learners = /learnableByPokemonIds: \[([^\]]*)\]/.exec(body)?.[1] ?? '';
+    if (!moveId) continue;
+    previous.set(
+      moveId,
+      new Set(learners.split(',').map((part) => part.trim().replace(/^'|'$/g, '')).filter(Boolean)),
+    );
+  }
+  return previous;
+}
+
+const previousLearnsets = await readPreviousLearnsets();
+
 const pokemon = await readCurrentPokemon();
 const movesById = new Map();
 const failedPokemon = [];
+const carriedForward = [];
 
 console.log(`Reading PokéBase available moves for ${pokemon.length} Pokémon...`);
 
 for (const [index, entry] of pokemon.entries()) {
-  const url = `${POKEBASE_POKEMON}/${entry.id}`;
+  if (POKEBASE_LEARNSET_CARRY_FORWARD.has(entry.id)) {
+    carriedForward.push(entry);
+    console.warn(`[${String(index + 1).padStart(3, '0')}/${pokemon.length}] CARRY ${entry.id}: PokéBase has no usable page, reusing the previous learnset`);
+    continue;
+  }
+  const url = `${POKEBASE_POKEMON}/${POKEBASE_SLUG_OVERRIDES[entry.id] ?? entry.id}`;
   try {
     const html = await cachedText(url, POKEBASE_CACHE_DIR);
     const availableMoves = parseAvailableMoves(html);
@@ -330,6 +378,29 @@ for (const [index, entry] of pokemon.entries()) {
     failedPokemon.push(entry);
     console.warn(`[${index + 1}/${pokemon.length}] FAIL ${entry.id}: ${error.message}`);
   }
+}
+
+// Re-attach the carried-forward learnsets. A move that the previous catalog credited to one of
+// these Pokemon but that nothing else scraped this run would have to be invented, so that is an
+// error rather than a silent drop.
+for (const entry of carriedForward) {
+  const missing = [];
+  for (const [moveId, learners] of previousLearnsets) {
+    if (!learners.has(entry.id)) continue;
+    const move = movesById.get(moveId);
+    if (!move) {
+      missing.push(moveId);
+      continue;
+    }
+    move.learnableByPokemonIds = Array.from(new Set([...move.learnableByPokemonIds, entry.id]));
+  }
+  if (missing.length > 0) {
+    throw new Error(
+      `Carried-forward Pokemon ${entry.id} previously learned ${missing.length} move(s) that this run did not scrape from any page (${missing.join(', ')}). ` +
+        'Resolve its PokéBase slug instead of carrying the learnset forward.',
+    );
+  }
+  console.log(`CARRY ${entry.id}: reused ${[...previousLearnsets.values()].filter((learners) => learners.has(entry.id)).length} moves from the previous move-catalog.ts`);
 }
 
 if (failedPokemon.length > 0) {

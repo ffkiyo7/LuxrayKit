@@ -1,6 +1,10 @@
+import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
 import { expect, type Page, test } from '@playwright/test';
+
+import { currentSeasonLabel } from '../../src/data/schedule';
+import { currentRuleSet } from '../../src/data/seed/regMA/metadata';
 
 // Frozen copy of public/data/pokedb/reg-ma-environment.json. The live snapshot is
 // rewritten by the refresh pipeline (daily when it is healthy), and its timestamps and
@@ -12,10 +16,83 @@ const ENVIRONMENT_SNAPSHOT_FIXTURE = fileURLToPath(
   new URL('./fixtures/environment-snapshot.json', import.meta.url),
 );
 
-// The season/regulation header and the freshness badge are both derived from the wall
-// clock, so an unpinned clock would silently change pixels as real time passes a season
-// boundary or a staleness threshold.
-const FIXED_TIME = new Date('2026-07-20T12:00:00Z');
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+// The season/regulation header and the catalog-lag notice are both derived from the wall
+// clock, so an unpinned clock would silently change pixels as real time passes a season or
+// regulation boundary. The clock is derived from the *catalog* rather than
+// written as a literal: `CatalogRegulationLagNotice` compares the schedule's regulation at
+// `now` against `currentRuleSet`, so a clock left behind in the previous regulation renders
+// the lag notice inverted ("规则已切换到 M-B，本地图鉴仍为 M-C") and the header would label the
+// screenshots with the old regulation. Eleven days into the catalog's own window keeps it
+// clear of both ends of the rollover.
+const RULE_SET_START = new Date(currentRuleSet.startAt);
+const FIXED_TIME = new Date(
+  Date.UTC(
+    RULE_SET_START.getUTCFullYear(),
+    RULE_SET_START.getUTCMonth(),
+    RULE_SET_START.getUTCDate() + 11,
+    12,
+    0,
+    0,
+  ),
+);
+if (FIXED_TIME <= RULE_SET_START || FIXED_TIME >= new Date(currentRuleSet.endAt)) {
+  throw new Error(
+    `Frozen visual clock ${FIXED_TIME.toISOString()} falls outside ${currentRuleSet.name} ` +
+      `(${currentRuleSet.startAt} – ${currentRuleSet.endAt}). Shorten the offset in visual.spec.ts.`,
+  );
+}
+
+// Season labels rewritten into the snapshot below. The header prefers the snapshot's own
+// season (productContextLabel), so it has to agree with the schedule at FIXED_TIME.
+const SNAPSHOT_SEASON = currentSeasonLabel(FIXED_TIME);
+const SNAPSHOT_SEASON_NUMBER = Number(/^M-(\d+)$/.exec(SNAPSHOT_SEASON)?.[1]);
+if (!Number.isInteger(SNAPSHOT_SEASON_NUMBER)) {
+  throw new Error(
+    `No "M-n" season in seasonSchedule covers ${FIXED_TIME.toISOString()} (got "${SNAPSHOT_SEASON}"). ` +
+      'Append the season window to src/data/schedule.ts.',
+  );
+}
+// The refresh pipeline pulls high-score team samples from the previous, completed season
+// (scripts/update-pokedb-environment.mjs: max(selectedSeason - 1, 1)).
+const SAMPLE_SEASON = `M-${Math.max(SNAPSHOT_SEASON_NUMBER - 1, 1)}`;
+
+// `retrievedAt` is an ISO instant; PokeDB's own `updatedAt` is a zone-less JST wall clock
+// ("2026-07-19 00:43:00"). Both are rendered on the environment header, so they are pinned
+// relative to FIXED_TIME instead of staying frozen in the fixture's original month.
+const SNAPSHOT_RETRIEVED_AT = new Date(FIXED_TIME.getTime() - DAY_MS).toISOString();
+const SNAPSHOT_SOURCE_UPDATED_AT = new Date(FIXED_TIME.getTime() - 2 * DAY_MS + 9 * 60 * 60 * 1000)
+  .toISOString()
+  .replace('T', ' ')
+  .slice(0, 19);
+
+/**
+ * The fixture's rankings and counts are served verbatim; only its timestamps and season labels
+ * are rewritten, so the screenshots stay coherent with the frozen clock without editing (and
+ * re-reviewing) the checked-in JSON at every rollover.
+ */
+const frozenSnapshotBody = async () => {
+  const snapshot = JSON.parse(await readFile(ENVIRONMENT_SNAPSHOT_FIXTURE, 'utf8')) as {
+    retrievedAt: string;
+    battles: Record<string, { season: string; seasonNumber: number; updatedAt: string }>;
+    teamSamples?: Record<string, Array<{ season: string }>>;
+    dataFreshness?: { selectedSeason: number };
+  };
+  snapshot.retrievedAt = SNAPSHOT_RETRIEVED_AT;
+  Object.values(snapshot.battles).forEach((battle) => {
+    battle.season = SNAPSHOT_SEASON;
+    battle.seasonNumber = SNAPSHOT_SEASON_NUMBER;
+    battle.updatedAt = SNAPSHOT_SOURCE_UPDATED_AT;
+  });
+  Object.values(snapshot.teamSamples ?? {}).forEach((samples) => {
+    samples.forEach((sample) => {
+      sample.season = SAMPLE_SEASON;
+    });
+  });
+  if (snapshot.dataFreshness) snapshot.dataFreshness.selectedSeason = SNAPSHOT_SEASON_NUMBER;
+  return JSON.stringify(snapshot);
+};
 
 const screenshotOptions = {
   animations: 'disabled' as const,
@@ -28,8 +105,9 @@ test.use({ serviceWorkers: 'block' });
 
 const openApp = async (page: Page) => {
   await page.clock.setFixedTime(FIXED_TIME);
+  const snapshotBody = await frozenSnapshotBody();
   await page.route('**/data/pokedb/reg-ma-environment.json', (route) =>
-    route.fulfill({ path: ENVIRONMENT_SNAPSHOT_FIXTURE, contentType: 'application/json' }),
+    route.fulfill({ body: snapshotBody, contentType: 'application/json' }),
   );
   await page.addInitScript(() => {
     const originalGetRandomValues = crypto.getRandomValues.bind(crypto);

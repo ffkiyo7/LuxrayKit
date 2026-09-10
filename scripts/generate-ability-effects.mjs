@@ -196,12 +196,28 @@ async function cachedWikiSearch(query) {
   return data;
 }
 
+/**
+ * PokeAPI ability record, or `null` when PokeAPI does not know the ability.
+ *
+ * Champions-only abilities (`firemane`, `eelevate`, `piercing-drill`, `spicy-spray`, ...) have no
+ * main-series counterpart and answer 404. Before batch discovery was widened in Task 5 this script
+ * only ever saw batches 001-005, none of which contained one, so a 404 aborted the whole run the
+ * first time it reached `firemane` (catalog-batch-006). A missing PokeAPI entry is expected for
+ * these, not an error: the Chinese name then comes from zhwiki (which does cover them) or from the
+ * row already in the catalog. Any other HTTP status is still fatal.
+ */
 async function cachedPokeApiAbility(abilityId) {
   const cachePath = resolve(CACHE_DIR, `pokeapi_${abilityId}.json`);
   if (existsSync(cachePath)) {
-    return JSON.parse(await readFile(cachePath, 'utf8'));
+    const cached = JSON.parse(await readFile(cachePath, 'utf8'));
+    return cached?.__missing ? null : cached;
   }
   const response = await fetch(`${POKEAPI}/ability/${abilityId}/`, { headers: { 'User-Agent': USER_AGENT } });
+  if (response.status === 404) {
+    console.log(`  note: ${abilityId} is not in PokeAPI (Champions-only ability); using zhwiki / catalog name`);
+    await writeFile(cachePath, JSON.stringify({ __missing: true }), 'utf8');
+    return null;
+  }
   if (!response.ok) throw new Error(`HTTP ${response.status} for PokeAPI ability ${abilityId}`);
   const data = await response.json();
   await writeFile(cachePath, JSON.stringify(data), 'utf8');
@@ -210,7 +226,7 @@ async function cachedPokeApiAbility(abilityId) {
 
 async function fetchPokeApiChineseName(abilityId) {
   const data = await cachedPokeApiAbility(abilityId);
-  return data.names?.find((name) => name.language?.name === 'zh-hans')?.name;
+  return data?.names?.find((name) => name.language?.name === 'zh-hans')?.name;
 }
 
 function extractInfoboxName(wikitext) {

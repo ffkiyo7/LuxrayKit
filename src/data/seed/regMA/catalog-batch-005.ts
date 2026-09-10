@@ -13,7 +13,7 @@ export const abilitiesBatch005: Ability[] = [
     id: 'minds-eye',
     chineseName: '心眼',
     englishName: "Mind's Eye",
-    effectSummary: '无视对手的闪避率变化，且一般属性和格斗属性的招式可以命中幽灵属性宝可梦。',
+    effectSummary: '一般属性和格斗属性的招式可以击中幽灵属性的宝可梦。无视对手的闪避率的变化，且命中率不会被降低。',
     pokemonIds: [],
     calculationImpact: 'pending',
     legalInCurrentRule: false,

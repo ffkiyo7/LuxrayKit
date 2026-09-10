@@ -1,9 +1,11 @@
 // Auto-generated item icon mapping from PokéBase Champions
-// Generated: 2026-05-02T05:45:53.479Z
-// Source: https://pokebase.app/pokemon-champions/items
+// Generated: 2026-09-09T07:23:02.923Z (--mapping-only: regenerated from catalog + local assets)
+// Sources: https://pokebase.app/pokemon-champions/items (held items and Mega Stones); https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items (berries)
 
 export const itemIconMapping: Record<string, string> = {
+  'air-balloon': '/assets/items/air-balloon.png',
   'big-root': '/assets/items/big-root.png',
+  'binding-band': '/assets/items/binding-band.png',
   'black-belt': '/assets/items/black-belt.png',
   'black-glasses': '/assets/items/black-glasses.png',
   'bright-powder': '/assets/items/bright-powder.png',
@@ -11,15 +13,19 @@ export const itemIconMapping: Record<string, string> = {
   'choice-scarf': '/assets/items/choice-scarf.png',
   'damp-rock': '/assets/items/damp-rock.png',
   'dragon-fang': '/assets/items/dragon-fang.png',
+  'eject-button': '/assets/items/eject-button.png',
+  'electric-seed': '/assets/items/electric-seed.png',
   'expert-belt': '/assets/items/expert-belt.png',
   'fairy-feather': '/assets/items/fairy-feather.png',
   'focus-band': '/assets/items/focus-band.png',
   'focus-sash': '/assets/items/focus-sash.png',
+  'grassy-seed': '/assets/items/grassy-seed.png',
   'hard-stone': '/assets/items/hard-stone.png',
   'heat-rock': '/assets/items/heat-rock.png',
   'icy-rock': '/assets/items/icy-rock.png',
   'iron-ball': '/assets/items/iron-ball.png',
   'kings-rock': '/assets/items/kings-rock.png',
+  'leek': '/assets/items/leek.png',
   'leftovers': '/assets/items/leftovers.png',
   'life-orb': '/assets/items/life-orb.png',
   'light-clay': '/assets/items/light-clay.png',
@@ -29,20 +35,26 @@ export const itemIconMapping: Record<string, string> = {
   'metal-coat': '/assets/items/metal-coat.png',
   'metronome': '/assets/items/metronome.png',
   'miracle-seed': '/assets/items/miracle-seed.png',
+  'misty-seed': '/assets/items/misty-seed.png',
   'muscle-band': '/assets/items/muscle-band.png',
   'mystic-water': '/assets/items/mystic-water.png',
   'never-melt-ice': '/assets/items/never-melt-ice.png',
+  'normal-gem': '/assets/items/normal-gem.png',
   'poison-barb': '/assets/items/poison-barb.png',
+  'psychic-seed': '/assets/items/psychic-seed.png',
   'quick-claw': '/assets/items/quick-claw.png',
+  'red-card': '/assets/items/red-card.png',
+  'rocky-helmet': '/assets/items/rocky-helmet.png',
   'scope-lens': '/assets/items/scope-lens.png',
   'sharp-beak': '/assets/items/sharp-beak.png',
-  'shed-shell': '/assets/items/shed-shell.png',
   'shell-bell': '/assets/items/shell-bell.png',
+  'shed-shell': '/assets/items/shed-shell.png',
   'silk-scarf': '/assets/items/silk-scarf.png',
   'silver-powder': '/assets/items/silver-powder.png',
   'smooth-rock': '/assets/items/smooth-rock.png',
   'soft-sand': '/assets/items/soft-sand.png',
   'spell-tag': '/assets/items/spell-tag.png',
+  'terrain-extender': '/assets/items/terrain-extender.png',
   'twisted-spoon': '/assets/items/twisted-spoon.png',
   'wide-lens': '/assets/items/wide-lens.png',
   'white-herb': '/assets/items/white-herb.png',
@@ -50,6 +62,7 @@ export const itemIconMapping: Record<string, string> = {
   'zoom-lens': '/assets/items/zoom-lens.png',
   'abomasite': '/assets/items/abomasite.png',
   'absolite': '/assets/items/absolite.png',
+  'absolite-z': '/assets/items/absolite-z.png',
   'aerodactylite': '/assets/items/aerodactylite.png',
   'aggronite': '/assets/items/aggronite.png',
   'alakazite': '/assets/items/alakazite.png',
@@ -58,6 +71,7 @@ export const itemIconMapping: Record<string, string> = {
   'audinite': '/assets/items/audinite.png',
   'barbaracite': '/assets/items/barbaracite.png',
   'banettite': '/assets/items/banettite.png',
+  'baxcalibrite': '/assets/items/baxcalibrite.png',
   'beedrillite': '/assets/items/beedrillite.png',
   'blazikenite': '/assets/items/blazikenite.png',
   'blastoisinite': '/assets/items/blastoisinite.png',
@@ -82,10 +96,12 @@ export const itemIconMapping: Record<string, string> = {
   'froslassite': '/assets/items/froslassite.png',
   'galladite': '/assets/items/galladite.png',
   'garchompite': '/assets/items/garchompite.png',
+  'garchompite-z': '/assets/items/garchompite-z.png',
   'gardevoirite': '/assets/items/gardevoirite.png',
   'gengarite': '/assets/items/gengarite.png',
   'glalitite': '/assets/items/glalitite.png',
   'glimmoranite': '/assets/items/glimmoranite.png',
+  'golisopite': '/assets/items/golisopite.png',
   'golurkite': '/assets/items/golurkite.png',
   'greninjite': '/assets/items/greninjite.png',
   'gyaradosite': '/assets/items/gyaradosite.png',
@@ -95,6 +111,7 @@ export const itemIconMapping: Record<string, string> = {
   'kangaskhanite': '/assets/items/kangaskhanite.png',
   'lopunnite': '/assets/items/lopunnite.png',
   'lucarionite': '/assets/items/lucarionite.png',
+  'lucarionite-z': '/assets/items/lucarionite-z.png',
   'malamarite': '/assets/items/malamarite.png',
   'manectite': '/assets/items/manectite.png',
   'mawilite': '/assets/items/mawilite.png',
@@ -108,6 +125,7 @@ export const itemIconMapping: Record<string, string> = {
   'raichunite': '/assets/items/raichunite.png',
   'raichunite-x': '/assets/items/raichunite-x.png',
   'sablenite': '/assets/items/sablenite.png',
+  'salamencite': '/assets/items/salamencite.png',
   'scizorite': '/assets/items/scizorite.png',
   'scolipite': '/assets/items/scolipite.png',
   'scovillainite': '/assets/items/scovillainite.png',
@@ -154,4 +172,5 @@ export const itemIconMapping: Record<string, string> = {
 };
 
 // Items that could not be fetched (need manual review)
-export const missingItemIcons: string[] = [];
+export const missingItemIcons: string[] = [
+];

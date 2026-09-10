@@ -215,14 +215,15 @@ describe('speed tier grouping', () => {
   });
 
   it('drops variants and groups whose pokemon do not resolve to catalog entries', () => {
+    // A non-base form code must never fall back to the base dex row, or the real species gets
+    // painted at a speed it cannot reach. `445-09` is a deliberately unmapped Garchomp form.
     const groups = groupTiersBySpeed([
       rawTier(223, '极速151族', '151', '#ff6f61', [
-        { dexNo: 445, form: '02', japaneseName: 'メガガブリアスＺ' },
-        { dexNo: 448, form: '02', japaneseName: 'メガルカリオＺ' },
+        { dexNo: 445, form: '09', japaneseName: 'メガガブリアス？' },
       ]),
       rawTier(180, '极速112族', '112', '#ff6f61', [
         { dexNo: 448, form: '01', japaneseName: 'メガルカリオ' },
-        { dexNo: 448, form: '02', japaneseName: 'メガルカリオＺ' },
+        { dexNo: 448, form: '09', japaneseName: 'メガルカリオ？' },
       ]),
     ]);
 
@@ -232,6 +233,37 @@ describe('speed tier grouping', () => {
     expect(groups[0].pokemonCount).toBe(1);
   });
 
+  it('resolves the Mega Z chips PokeDB used to ship as unreleased placeholders', () => {
+    // Before Reg M-C these 151-base chips were placeholder eggs with no catalog row, and the point of
+    // the guard above was to stop them borrowing the base species. M-C released the forms, so the same
+    // chips must now resolve to the Z Megas — including PokeDB's full-width Ｚ, via NFKC normalization.
+    const groups = groupTiersBySpeed([
+      rawTier(223, '极速151族', '151', '#ff6f61', [
+        { dexNo: 359, form: '02', japaneseName: 'メガアブソルＺ' },
+        { dexNo: 445, form: '02', japaneseName: 'メガガブリアスＺ' },
+        { dexNo: 448, form: '02', japaneseName: 'メガルカリオＺ' },
+      ]),
+    ]);
+
+    expect(groups.map((group) => group.speed)).toEqual([223]);
+    expect(groups[0].variants[0].pokemon.map((entry) => entry.displayName)).toEqual([
+      '超级阿勃梭鲁Z',
+      '超级烈咬陆鲨Z',
+      '超级路卡利欧Z',
+    ]);
+    expect(resolveTierPokemon({ dexNo: 445, form: '02', japaneseName: 'メガガブリアスＺ' })).toMatchObject({
+      id: 'mega-garchomp-z',
+      pokemonId: 'garchomp',
+      matched: true,
+    });
+  });
+
+  // ⚠️ Reg M-C: re-run on 2026-09-10 against the live M-6 board (`speedTierSeason === 6`), the first
+  // season that actually is M-C. PokeDB still publishes NO Mega Z chip on the speed board — the '151'
+  // tier code does not appear in either rule's snapshot — so the guard holds on real M-C data rather
+  // than by absence of the season. It only becomes wrong once PokeDB starts listing the Z Megas: their
+  // chips would then be legitimate data instead of unreleased placeholders. Replace both assertions
+  // with the resolution check above at that point.
   it('does not ship Mega Z placeholder references in the generated speed snapshot', () => {
     const placeholderNames = speedTierSnapshots
       .flatMap((snapshot) => snapshot.tiers)

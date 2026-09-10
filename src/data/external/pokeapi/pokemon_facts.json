@@ -1,5 +1,5 @@
 {
-  "ruleSetId": "reg-mb",
+  "ruleSetId": "reg-mc",
   "source": "https://pokeapi.co/api/v2/pokemon-species",
   "selectionPolicy": "zh-hans entries scored for concise numeric, ecological, behavioral, and lore details; generic battle copy is penalized",
   "facts": [
@@ -84,12 +84,28 @@
       "interestScore": 9.73
     },
     {
+      "nationalDexNo": 40,
+      "text": "生起气来就会死命地吸气让自己不断膨胀。有时甚至能胀大到原来的２０倍。",
+      "sourceLabel": "《究极之月》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/40/",
+      "sourceVersion": "ultra-moon",
+      "interestScore": 7.45
+    },
+    {
       "nationalDexNo": 45,
       "text": "它有着世界上最大的花瓣。每走一步，花瓣都会跟着摇动，同时撒出大量的毒花粉。",
       "sourceLabel": "《剑》图鉴",
       "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/45/",
       "sourceVersion": "sword",
       "interestScore": 5.73
+    },
+    {
+      "nationalDexNo": 53,
+      "text": "虽然额头上的宝石颜色和阿罗拉猫老大的不一样，但成分却没什么两样。",
+      "sourceLabel": "《究极之日》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/53/",
+      "sourceVersion": "ultra-sun",
+      "interestScore": 5.55
     },
     {
       "nationalDexNo": 59,
@@ -154,6 +170,14 @@
       "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/121/",
       "sourceVersion": "shield",
       "interestScore": 7.64
+    },
+    {
+      "nationalDexNo": 122,
+      "text": "有着非凡的默剧表演实力。在你看入迷的时候，不知不觉间就会出现一面真正的墙壁。",
+      "sourceLabel": "《究极之日》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/122/",
+      "sourceVersion": "ultra-sun",
+      "interestScore": 5.55
     },
     {
       "nationalDexNo": 127,
@@ -432,6 +456,14 @@
       "text": "拥有火焰也无法融化的冰之躯体。能让空气中的水分在一瞬间冻结。",
       "sourceLabel": "《剑》图鉴",
       "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/362/",
+      "sourceVersion": "sword",
+      "interestScore": 7.73
+    },
+    {
+      "nationalDexNo": 373,
+      "text": "一直渴望能飞上天空，进化后身体上终于长出了翅膀的珍奇宝可梦。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/373/",
       "sourceVersion": "sword",
       "interestScore": 7.73
     },
@@ -1020,6 +1052,14 @@
       "interestScore": 7.36
     },
     {
+      "nationalDexNo": 768,
+      "text": "为了胜利会不择手段。看准敌人疏忽的时机，用前脚上的小爪子解决对方。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/768/",
+      "sourceVersion": "sword",
+      "interestScore": 5.73
+    },
+    {
       "nationalDexNo": 778,
       "text": "有一位学者为了研究而看了它的破布里面，结果患上怪病而离开人世。",
       "sourceLabel": "《盾》图鉴",
@@ -1042,6 +1082,38 @@
       "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/784/",
       "sourceVersion": "ultra-sun",
       "interestScore": 7.55
+    },
+    {
+      "nationalDexNo": 812,
+      "text": "打鼓技巧最高超的那一只会成为首领。性情温和，重视族群的和谐相处。",
+      "sourceLabel": "《盾》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/812/",
+      "sourceVersion": "shield",
+      "interestScore": 5.64
+    },
+    {
+      "nationalDexNo": 815,
+      "text": "拥有熟练的进攻和防守技巧。只要得到声援就会更有冲劲，但有时会为了出风头而弄巧成拙。",
+      "sourceLabel": "《盾》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/815/",
+      "sourceVersion": "shield",
+      "interestScore": 5.64
+    },
+    {
+      "nationalDexNo": 818,
+      "text": "能从指尖射出速度高达３马赫的水枪。它的瞬膜能帮助它看穿敌人的弱点，准确地击中要害。",
+      "sourceLabel": "《盾》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/818/",
+      "sourceVersion": "shield",
+      "interestScore": 5.64
+    },
+    {
+      "nationalDexNo": 828,
+      "text": "会偷偷在看中的猎物身上留下标记，追踪目标的气味，在对方放松警戒时偷盗。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/828/",
+      "sourceVersion": "sword",
+      "interestScore": 5.73
     },
     {
       "nationalDexNo": 841,
@@ -1068,6 +1140,14 @@
       "interestScore": 5.73
     },
     {
+      "nationalDexNo": 849,
+      "text": "当它用力抓挠胸部的突起物来制造电力时，四周会响起如同吉他演奏般的声音。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/849/",
+      "sourceVersion": "sword",
+      "interestScore": 7.73
+    },
+    {
       "nationalDexNo": 855,
       "text": "每当发现喝剩的红茶，它就会把自己的身体倒进去，让那壶红茶变成怖思壶。",
       "sourceLabel": "《盾》图鉴",
@@ -1084,10 +1164,34 @@
       "interestScore": 5.73
     },
     {
+      "nationalDexNo": 863,
+      "text": "有着十分好战的性格。头上像铁头盔一样的东西其实是它硬化后的体毛。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/863/",
+      "sourceVersion": "sword",
+      "interestScore": 5.73
+    },
+    {
       "nationalDexNo": 870,
       "text": "列阵兵由１个头头和５个跟班组成。头头的命令不可违抗。",
       "sourceLabel": "《剑》图鉴",
       "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/870/",
+      "sourceVersion": "sword",
+      "interestScore": 5.73
+    },
+    {
+      "nationalDexNo": 871,
+      "text": "每根刺里都储存着电力。即使是折断的刺也至少能连续放电３小时。",
+      "sourceLabel": "《盾》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/871/",
+      "sourceVersion": "shield",
+      "interestScore": 7.64
+    },
+    {
+      "nationalDexNo": 876,
+      "text": "会用头上的角读取对方的心情。雄性就像管家一样，在主人的身边打理一切。",
+      "sourceLabel": "《剑》图鉴",
+      "sourceUrl": "https://pokeapi.co/api/v2/pokemon-species/876/",
       "sourceVersion": "sword",
       "interestScore": 5.73
     },

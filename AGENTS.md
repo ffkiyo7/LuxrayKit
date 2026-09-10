@@ -24,12 +24,18 @@
 - **视觉回归是 CI-only**：开发在 macOS，本机无法产出 Linux 基线（且 Playwright 快照名只带平台不带架构，arm64 会静默覆盖 CI 的 amd64 基线）。校验靠 CI 的 `visual` 阻塞门禁，重建走 `gh workflow run visual-baseline.yml --ref <当前分支>`。
 - 视觉用例吃冻结数据（fixture + 固定时钟），**不要为了"让截图跟上最新数据"去改用例或放宽阈值**——这层解耦是为了让日常数据刷新不卡住 auto-merge。
 
-## 4. 生成产物
+## 4. 文件操作规范
+
+- 修改文件内容时，Codex 使用 `apply_patch`，Claude Code 使用 `Edit`。仅当改动可以用同一条规则机械地应用于大量文件（通常 ≥10 个）时，才编写 Python 脚本，脚本执行后必须用 `git diff` 检查结果；少量文件、各处改动内容不同，一律逐个使用编辑工具。
+- Bash 只用于文件系统操作（mv / mkdir / chmod）、文本搜索和运行测试；禁止使用 `sed` 或 heredoc 修改文件内容。
+- 读取文件使用专用的查看或读取工具（如 `View` / `Read`），不要使用 `cat`。
+
+## 5. 生成产物
 
 带 `Auto-generated` 头的文件、`src/data/speedTiers.ts`、`src/data/external/vgcpastes/**`、`src/data/external/pokeapi/**`、`public/data/pokedb/*.json`、Worker 类型声明等均由 `scripts/` 或 wrangler 生成：**改脚本，不手改产物**（对应命令见 `package.json` 的 `data:*` / `worker:*`）。
 
 **例外**：`src/data/external/` 下的两个 `.ts` 名称映射（`pokedbItemNameMap.ts` / `pokedbResourceKeyMap.ts`）**没有生成脚本，就是手写的**——PokeDB 用日文名报道具/招式，映射只能人工确认。缺映射会触发 Worker 零容忍审计（`workerStatus` 变 degraded），补一行即可；`dataAudit.test.ts` 有门禁保证 Mega 石不漏。
 
-## 5. 进度文档
+## 6. 进度文档
 
 `docs/plans/` / `docs/progress/` 里的任务状态用统一符号：清单 `[ ]` / `[x]` / `[-]`；表格状态列与 `- ✅ xxx` 列表用 ✅ 完成 / ❌ 取消 / 🚧 进行中 / 🎮 待验 / ⬜ 未开始，符号放最前、后接依据（commit / 日期）。完成项的删除线按 `strike-done` 脚本的判定加（它会列出该划哪几行），不自己数 `~~`。

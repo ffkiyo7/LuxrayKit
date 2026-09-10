@@ -458,10 +458,13 @@ export const pokedbMoveKeyToId: Record<number, string> = {
   750: 'magic-powder',
   751: 'dragon-darts',
   752: 'teatime',
+  756: 'court-change',
   775: 'clangorous-soul',
   776: 'body-press',
   777: 'decorate',
+  778: 'drum-beating',
   779: 'snap-trap',
+  780: 'pyro-ball',
   783: 'aura-wheel',
   784: 'breaking-swipe',
   787: 'apple-acid',
@@ -509,6 +512,8 @@ export const pokedbMoveKeyToId: Record<number, string> = {
   858: 'spicy-extract',
   860: 'population-bomb',
   861: 'ice-spinner',
+  862: 'glaive-rush',
+  863: 'revival-blessing',
   864: 'salt-cure',
   866: 'mortal-spin',
   869: 'kowtow-cleave',
@@ -528,6 +533,7 @@ export const pokedbMoveKeyToId: Record<number, string> = {
   889: 'rage-fist',
   890: 'armor-cannon',
   891: 'bitter-blade',
+  892: 'double-shock',
   893: 'gigaton-hammer',
   894: 'comeuppance',
   895: 'aqua-cutter',
@@ -695,6 +701,7 @@ export const pokedbAbilityKeyToId: Record<number, string> = {
   183: 'gooey',
   187: 'fairy-aura',
   192: 'stamina',
+  194: 'emergency-exit',
   196: 'merciless',
   199: 'water-bubble',
   201: 'berserk',
@@ -707,6 +714,9 @@ export const pokedbAbilityKeyToId: Record<number, string> = {
   214: 'queenly-majesty',
   215: 'innards-out',
   222: 'receiver',
+  227: 'psychic-surge',
+  229: 'grassy-surge',
+  236: 'libero',
   240: 'mirror-armor',
   242: 'stalwart',
   245: 'sand-spit',
@@ -734,4 +744,16 @@ export const pokedbAbilityKeyToId: Record<number, string> = {
   309: 'dragonize',
   310: 'mega-sol',
   311: 'spicy-spray',
+  // Reg M-C Mega abilities. Both keys are the abilities' real PokeAPI numeric ids, which is what
+  // PokeDB uses for every ability that also exists in the main series. (The M-6 refresh also added
+  // 194 / 227 / 229 / 236 above and six move keys to the table above; each was read off a PokeDB
+  // season M-6 page and its Japanese name matched against PokeAPI's entry for the same number.)
+  184: 'aerilate',
+  270: 'thermal-exchange',
+  // `aura-guard` (Mega Lucario Z's signature) is Champions-only, so it has no PokeAPI id. Key 317 is
+  // PokeDB's own extension of the numbering (like 309–311 above) and was read off the live season
+  // M-6 page `/pokemon/show/0448-00?season=6`, whose form payload reads:
+  //   "0448-02": { "display_name": "メガルカリオＺ",
+  //                "abilities": [{ "ability_key": 317, "name": "はどうのぼうご", ... }] }
+  317: 'aura-guard',
 };

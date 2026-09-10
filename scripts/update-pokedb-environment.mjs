@@ -172,6 +172,10 @@ async function buildCurrentSeasonSnapshot(tools, detailLimit, fetcher, pageWait,
   // High-score team samples default to the previous (completed) season for stable final
   // rankings. POKEDB_SAMPLE_SEASON pins a specific season for deterministic backfills
   // (e.g. force M-3 while the site's latest is M-4).
+  // Not every season publishes trainer teams: at the M-6 rollout `/trainer/list` reports 0件 for both
+  // M-5 and M-6 while M-1 / M-3 / M-4 still list teams. Without a fallback the previous-season default
+  // would silently ship an empty `teamSamples`, so when the default season yields none the fetch walks
+  // further back until one does. An explicit POKEDB_SAMPLE_SEASON override is never second-guessed.
   const sampleSeasonOverride = configuredNonNegativeInteger('POKEDB_SAMPLE_SEASON');
   const sampleSeason = sampleSeasonOverride && sampleSeasonOverride >= 1
     ? sampleSeasonOverride
@@ -184,22 +188,25 @@ async function buildCurrentSeasonSnapshot(tools, detailLimit, fetcher, pageWait,
     console.log('Skipping team sample refresh.');
     battleTypes.forEach((battleType) => teamSampleEntries.push([battleType, []]));
   } else {
+    const lowestSampleSeason = sampleSeasonOverride && sampleSeasonOverride >= 1 ? sampleSeason : 1;
     for (const battleType of battleTypes) {
-      try {
-        const payload = await tools.fetchTrainerBattlePages({
-          baseUrl: POKEDB_BASE_URL,
-          season: sampleSeason,
-          battleType,
-          fetcher,
-          wait: pageWait,
-        });
-        const samples = buildTeamSamples(payload, battleType);
-        console.log(`Fetched ${battleType} team samples from ${payload.season}: ${samples.length}.`);
-        teamSampleEntries.push([battleType, samples]);
-      } catch (error) {
-        console.warn(`Team sample refresh failed for ${battleType}: ${error instanceof Error ? error.message : String(error)}`);
-        teamSampleEntries.push([battleType, []]);
+      let samples = [];
+      for (let season = sampleSeason; season >= lowestSampleSeason && samples.length === 0; season -= 1) {
+        try {
+          const payload = await tools.fetchTrainerBattlePages({
+            baseUrl: POKEDB_BASE_URL,
+            season,
+            battleType,
+            fetcher,
+            wait: pageWait,
+          });
+          samples = buildTeamSamples(payload, battleType);
+          console.log(`Fetched ${battleType} team samples from ${payload.season}: ${samples.length}.`);
+        } catch (error) {
+          console.warn(`Team sample refresh failed for ${battleType}: ${error instanceof Error ? error.message : String(error)}`);
+        }
       }
+      teamSampleEntries.push([battleType, samples]);
     }
   }
 

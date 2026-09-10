@@ -57,6 +57,13 @@ const championsMegaStoneIconHashes = {
   'metagrossite': 'fab43b56ff84fa2dfa6ca9ebf6da498561e6963a2e2da2db9cfce7eec14b2021',
   'sceptilite': '561aab606d7427b1a80c3c2992ea7bad7ad462ab0783c2c5b4a7654e7b1b6ba1',
   'swampertite': '88e97754c9d55ed4113dcc1d74e8fc9cb3441defec999302c0256bcb28011baa',
+  // Reg M-C stones, snapshotted from PokéBase Champions by scripts/update-mc-assets.mjs
+  'absolite-z': '8f9fd3358be6c4a72545cfd131b9ad93fbfda3adb65968259e28e673e275fa3c',
+  'garchompite-z': 'f454e31fda488507aa31044c96d04e28c76a70bf7bda3a41fe82f3342525918e',
+  'lucarionite-z': 'a4cdae3ffffdd794ded281bb5ece74f5bf4f9841c6cdc06c929a825b4368bf9f',
+  'salamencite': 'cd3066af31a35914f79948b4c760ecc62a26fa6625b21e528c712ac4e6c89d3f',
+  'golisopite': 'ef9ba13e7a131b56bef06b799c4393dafe0d987055a4811b8f70b1460f317826',
+  'baxcalibrite': '229b3eb475818bfb18221b5d9c09a3c19737004e89d93c904a7d3d17e9285a38',
 } as const;
 
 const canonicalBerryData = {
@@ -118,8 +125,10 @@ describe('seed data audit', () => {
     expect(auditSourceRefs('Test row', ['reg-mb-official-rule'])).toEqual([]);
   });
 
-  it('keeps the current Reg M-B allowlist traceable to catalog rows', () => {
-    expect(regMaPokemonAllowlistExpectedCount).toBe(235);
+  it('keeps the current-rule allowlist traceable to catalog rows', () => {
+    // 262 = the official M-C Eligible Pokemon payload row count (235 M-B rows + 28 M-C rows - the
+    // retired reg-ma-0925-000 Maushold row, which M-C re-lists as 0925-001).
+    expect(regMaPokemonAllowlistExpectedCount).toBe(262);
     expect(regMaPokemonAllowlist).toHaveLength(regMaPokemonAllowlistExpectedCount);
     expect(regMaPokemonAllowlist).toEqual(
       expect.arrayContaining([
@@ -132,7 +141,7 @@ describe('seed data audit', () => {
   });
 
   it('keeps the current Reg M-B Mega allowlist traceable', () => {
-    expect(regMaMegaAllowlistExpectedCount).toBe(75);
+    expect(regMaMegaAllowlistExpectedCount).toBe(81);
     expect(regMaMegaAllowlist).toHaveLength(regMaMegaAllowlistExpectedCount);
     expect(regMaMegaAllowlist).toEqual(
       expect.arrayContaining([
@@ -200,7 +209,7 @@ describe('seed data audit', () => {
       expect(new Set(ids).size, `${entry.id} Mega form ids`).toBe(ids.length);
     }
     // Total across the merged M-A + M-B tables. Update deliberately when a regulation adds Megas.
-    expect(pokemon.flatMap((entry) => entry.megaForms)).toHaveLength(75);
+    expect(pokemon.flatMap((entry) => entry.megaForms)).toHaveLength(81);
   });
 
   it('connects Champions-added Mega forms to Pokemon, stones, and local assets', () => {
@@ -276,7 +285,7 @@ describe('seed data audit', () => {
   });
 
   it('keeps unverified or out-of-rule items out of the current selector pool', () => {
-    expect(currentRuleSelectableItemIds).toHaveLength(148);
+    expect(currentRuleSelectableItemIds).toHaveLength(166);
     expect(currentRuleSelectableItemIds).toContain('sitrus-berry');
     expect(currentRuleSelectableItemIds).toContain('focus-sash');
     expect(currentRuleSelectableItemIds).toContain('choice-scarf');
@@ -293,9 +302,9 @@ describe('seed data audit', () => {
       return counts;
     }, {});
     expect(categoryCounts).toEqual({
-      'held-item': 45,
+      'held-item': 57,
       berry: 28,
-      'mega-evolution': 75,
+      'mega-evolution': 81,
     });
     for (const item of currentRuleSelectableItems()) {
       expect(item.isMegaStone, `${item.id} Mega category`).toBe(item.category === 'mega-evolution');
@@ -318,7 +327,7 @@ describe('seed data audit', () => {
     }
 
     const heldItems = currentRuleSelectableItems().filter((item) => item.category === 'held-item');
-    expect(heldItems).toHaveLength(45);
+    expect(heldItems).toHaveLength(57);
     for (const item of heldItems) {
       expect(item.sourceRefs, `${item.id} localized source`).toContain('pokeapi-item-data');
       expect(item.effectSummary, `${item.id} must not use vague effect wording`).not.toMatch(/少量|有概率|更长/);
@@ -354,7 +363,7 @@ describe('seed data audit', () => {
 
   it('keeps all current-rule items with local iconRef snapshots', () => {
     const selectable = currentRuleSelectableItems();
-    expect(selectable).toHaveLength(148);
+    expect(selectable).toHaveLength(166);
     const itemHashes = new Map<string, string[]>();
 
     for (const item of selectable) {
@@ -476,7 +485,11 @@ describe('seed data audit', () => {
   });
 
   it('keeps current-rule move catalog generated from Champions available moves', () => {
-    expect(moves).toHaveLength(545);
+    // 566 = 545 M-B moves + the 21 the M-C roster brought in (drum-beating, glaive-rush, pyro-ball,
+    // snipe-shot, court-change, overdrive, octolock, zing-zap, double-shock, revival-blessing,
+    // meteor-assault, shift-gear, jaw-lock, arm-thrust, fury-attack, growl, metal-claw, metronome,
+    // milk-drink, peck, slam). No move was removed.
+    expect(moves).toHaveLength(566);
 
     const garchompMoves = currentRuleMovesForPokemon('garchomp').map((move) => move.id);
     expect(garchompMoves).toEqual(expect.arrayContaining(['protect', 'dragon-claw', 'earthquake']));
@@ -520,7 +533,11 @@ describe('seed data audit', () => {
   it('keeps real catalog rows on local sprite icons', () => {
     const ids = pokemon.map((entry) => entry.id);
     expect(ids).toEqual(expect.arrayContaining(['venusaur', 'charizard', 'politoed', 'torkoal', 'garchomp', 'incineroar']));
-    expect(pokemon.length).toBe(235);
+    // 262 = 235 M-B rows + the 27 new M-C rows in catalog-batch-007 (the 28th M-C allowlist row,
+    // maushold-family-of-four, already had a catalog row). Equals the allowlist length by
+    // coincidence, not by construction: the allowlist is keyed on championsFormId and the catalog on
+    // pokemonId, and they only line up while every eligible form has exactly one catalog row.
+    expect(pokemon.length).toBe(262);
     // All Pokémon and Mega form icons must be local /assets/pokemon/thumbs/ paths
     expect(pokemon.every((entry) => entry.iconRef.startsWith('/assets/pokemon/thumbs/'))).toBe(true);
     expect(pokemon.flatMap((entry) => entry.megaForms).every((form) => form.iconRef.startsWith('/assets/pokemon/thumbs/'))).toBe(true);
@@ -552,7 +569,11 @@ describe('seed data audit', () => {
   });
 
   it('keeps ability text complete and maps abilities back to current Pokemon', () => {
-    expect(abilities).toHaveLength(198);
+    // 214 = 198 + the 14 abilities the M-C roster introduced via catalog-batch-007 (emergency-exit,
+    // grass-pelt, grassy-surge, guard-dog, libero, liquid-ooze, psychic-surge, punk-rock, rattled,
+    // run-away, seed-sower, stakeout, steely-spirit, thermal-exchange) + the 2 Mega-only abilities
+    // hand-written in catalog.ts because no base Pokémon carries them (aura-guard, aerilate).
+    expect(abilities).toHaveLength(214);
     expect(abilities.every((ability) => ability.effectSummary && !ability.effectSummary.includes('待确认'))).toBe(true);
 
     const expectedPokemonIdsByAbility = new Map<string, string[]>();
@@ -568,7 +589,11 @@ describe('seed data audit', () => {
     });
   });
 
-  it('keeps all 32 form Pokemon entries in the catalog with type distinctions', () => {
+  it('keeps all 39 form Pokemon entries in the catalog with type distinctions', () => {
+    // The first 32 live in catalog-forms.ts (Reg M-A, scripts/generate-form-catalog.mjs); the last 7
+    // are the Regulation M-C form rows, which came out of the batch generator into
+    // catalog-batch-007.ts rather than catalog-forms.ts. Both files feed the same `pokemon` array,
+    // so the distinction is only about which script owns the row.
     const formIds = [
       'raichu-alola', 'ninetales-alola', 'arcanine-hisui', 'slowbro-galar',
       'tauros-paldea-combat-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-aqua-breed',
@@ -580,10 +605,15 @@ describe('seed data audit', () => {
       'avalugg-hisui', 'decidueye-hisui',
       'lycanroc-midday', 'lycanroc-midnight', 'lycanroc-dusk',
       'basculegion-male', 'basculegion-female',
+      // Regulation M-C.
+      'persian-alola',
+      'toxtricity-amped', 'toxtricity-low-key',
+      'indeedee-male', 'indeedee-female',
+      'squawkabilly-green-plumage', 'squawkabilly-yellow-plumage',
     ];
 
     const formPokemon = pokemon.filter((entry) => formIds.includes(entry.id));
-    expect(formPokemon).toHaveLength(32);
+    expect(formPokemon).toHaveLength(39);
 
     for (const id of formIds) {
       const entry = pokemon.find((p) => p.id === id);
@@ -630,6 +660,23 @@ describe('seed data audit', () => {
     expect(typeMap['zoroark-hisui']).toEqual(expect.arrayContaining(['Normal', 'Ghost']));
     expect(typeMap['goodra-hisui']).toContain('Steel');
     expect(typeMap['decidueye-hisui']).toContain('Fighting');
+    // Alolan Persian is mono-Dark, not Normal like its Kantonian counterpart.
+    expect(typeMap['persian-alola']).toEqual(['Dark']);
+    expect(typeMap['toxtricity-amped']).toEqual(expect.arrayContaining(['Electric', 'Poison']));
+    expect(typeMap['indeedee-female']).toEqual(expect.arrayContaining(['Psychic', 'Normal']));
+
+    // All four Squawkabilly plumages share base stats, and both legal ones share Intimidate and
+    // Hustle, so their third ability slot is the only thing that tells the two rows apart: Guts on
+    // Green, Sheer Force on Yellow. Guard that, because a generator that resolved both rows to the
+    // PokeAPI default would produce two identical Green rows and nothing else here would notice.
+    const abilityMap = Object.fromEntries(formPokemon.map((p) => [p.id, p.abilities]));
+    expect(abilityMap['squawkabilly-green-plumage']).toContain('guts');
+    expect(abilityMap['squawkabilly-green-plumage']).not.toContain('sheer-force');
+    expect(abilityMap['squawkabilly-yellow-plumage']).toContain('sheer-force');
+    expect(abilityMap['squawkabilly-yellow-plumage']).not.toContain('guts');
+    // Indeedee's sexes differ in both stats and first ability, which is why they are separate rows.
+    expect(abilityMap['indeedee-male']).toContain('inner-focus');
+    expect(abilityMap['indeedee-female']).toContain('own-tempo');
   });
 
   it('reports source refs that are not present in the manifest', () => {

@@ -174,6 +174,14 @@ const SPECIES_ID_MAP: Record<string, string> = {
   'mimikyu-disguised': 'mimikyu',
   'palafin-zero': 'palafin', 'morpeko-full-belly': 'morpeko',
   'maushold-family-of-four': 'mausholdfour',
+  // Regulation M-C forms. Where @smogon/calc's Gen 9 dex carries a form only as the *base* species
+  // (Amped Toxtricity, male Indeedee, Green-Plumage Squawkabilly), the base id is the right target;
+  // base stats and types were checked against catalog-batch-007 row by row and match exactly.
+  'toxtricity-amped': 'toxtricity',
+  'indeedee-male': 'indeedee',
+  'indeedee-female': 'indeedeef',
+  'squawkabilly-green-plumage': 'squawkabilly',
+  'squawkabilly-yellow-plumage': 'squawkabillyyellow',
   'mega-venusaur': 'venusaurmega', 'mega-charizard-x': 'charizardmegax',
   'mega-charizard-y': 'charizardmegay', 'mega-blastoise': 'blastoisemega',
   'mega-beedrill': 'beedrillmega', 'mega-pidgeot': 'pidgeotmega',
@@ -212,6 +220,12 @@ const SPECIES_ID_MAP: Record<string, string> = {
   'mega-eelektross': 'eelektross', 'mega-pyroar': 'pyroar',
   'mega-malamar': 'malamar', 'mega-barbaracle': 'barbaracle',
   'mega-dragalge': 'dragalge', 'mega-falinks': 'falinks',
+  // Reg M-C. Unusually for Champions-added Megas, @smogon/calc's Gen 9 dex already carries all six
+  // with matching types and base stats, so these map to their own species rather than falling back to
+  // the base form. (`speciesOverrides` still supplies stats/types from the catalog either way.)
+  'mega-absol-z': 'absolmegaz', 'mega-garchomp-z': 'garchompmegaz',
+  'mega-lucario-z': 'lucariomegaz', 'mega-salamence': 'salamencemega',
+  'mega-golisopod': 'golisopodmega', 'mega-baxcalibur': 'baxcaliburmega',
 };
 
 export function calcSpeciesId(projectId: string): ReturnType<typeof toID> {
