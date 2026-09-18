@@ -1,31 +1,62 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Manrope carries Latin and every numeral; it is self-hosted (Latin subset only, ~25 KB) because
+ * fonts.googleapis.com is unreachable for mainland-China users and a PWA must render offline.
+ * Chinese is never downloaded: PingFang SC on Apple platforms, the system Noto on Android.
+ */
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 800;
+  src: url('./assets/fonts/manrope-latin-wght-normal.woff2') format('woff2-variations');
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F,
+    U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/*
+ * Colour roles (design readme → "Color discipline"):
+ *   neutral  — structure and every control. `accent` is neutral ink now (near-white on dark,
+ *              page ink on light); the old blue-purple is retired everywhere.
+ *   select   — the one violet: selected chip ring/fill and focused input ring, nothing else.
+ *   data     — amber, only for invested stat points and the values they affect.
+ *   fn-*     — five function hues for icon tiles / markers on text-only screens; never a number.
+ */
 :root {
   color-scheme: dark;
-  font-family: 'DM Sans', system-ui, sans-serif;
-  --color-page: 13 13 13;
-  --color-card: 30 30 30;
-  --color-elevated: 38 38 40;
-  --color-secondary: 22 22 22;
-  --color-border: 43 43 43;
-  --color-divider: 39 39 39;
-  --color-disabled: 58 58 58;
-  --color-text-primary: 236 236 236;
-  --color-text-secondary: 138 138 138;
-  --color-text-muted: 85 85 85;
-  --color-accent: 96 106 188;
-  --color-success: 61 186 126;
-  --color-danger: 224 82 82;
-  --color-warning: 212 135 10;
-  --color-legal-bg: 13 43 30;
-  --color-review-bg: 43 31 8;
-  --color-missing-bg: 43 16 16;
+  font-family: 'Manrope', 'PingFang SC', 'Noto Sans SC', system-ui, -apple-system, sans-serif;
+  --color-page: 11 11 12;
+  --color-card: 23 23 27;
+  --color-elevated: 34 34 42;
+  --color-secondary: 20 20 26;
+  --color-border: 38 38 43;
+  --color-divider: 30 30 34;
+  --color-disabled: 58 58 66;
+  --color-text-primary: 245 245 247;
+  --color-text-secondary: 142 142 147;
+  --color-text-muted: 110 110 115;
+  --color-accent: 245 245 247;
+  --color-select: 155 154 196;
+  --color-data: 224 162 60;
+  --color-success: 71 192 127;
+  --color-danger: 226 99 95;
+  --color-warning: 224 162 60;
+  --color-fn-blue: 127 168 217;
+  --color-fn-teal: 95 199 184;
+  --color-fn-amber: 226 171 92;
+  --color-fn-pink: 231 139 163;
+  --color-fn-green: 71 192 127;
+  --color-legal-bg: 16 38 28;
+  --color-review-bg: 43 33 14;
+  --color-missing-bg: 44 20 20;
   --color-overlay: 0 0 0;
   --color-on-overlay: 255 255 255;
+  --hairline: rgb(255 255 255 / 0.07);
+  --hairline-strong: rgb(255 255 255 / 0.1);
   background: rgb(var(--color-page));
   color: rgb(var(--color-text-primary));
   font-synthesis: none;
@@ -34,27 +65,38 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Light shares every dimension and weight with dark; only the neutral ramp and ink depth change.
+   Amber and green deepen to hold 4.5:1 on paper. */
 :root[data-theme='light'] {
   color-scheme: light;
-  --color-page: 241 246 250;
-  --color-card: 255 253 248;
-  --color-elevated: 232 241 236;
-  --color-secondary: 231 238 246;
-  --color-border: 198 211 224;
-  --color-divider: 213 224 235;
-  --color-disabled: 181 195 207;
-  --color-text-primary: 30 38 50;
-  --color-text-secondary: 86 101 118;
-  --color-text-muted: 120 135 150;
-  --color-accent: 47 88 150;
-  --color-success: 22 128 86;
-  --color-danger: 190 55 51;
+  --color-page: 251 251 253;
+  --color-card: 255 255 255;
+  --color-elevated: 242 242 245;
+  --color-secondary: 242 242 245;
+  --color-border: 227 227 232;
+  --color-divider: 237 237 240;
+  --color-disabled: 199 199 204;
+  --color-text-primary: 28 28 30;
+  --color-text-secondary: 110 110 115;
+  --color-text-muted: 142 142 147;
+  --color-accent: 28 28 30;
+  --color-select: 98 97 138;
+  --color-data: 170 99 0;
+  --color-success: 18 120 74;
+  --color-danger: 192 57 47;
   --color-warning: 170 99 0;
-  --color-legal-bg: 219 244 232;
-  --color-review-bg: 255 237 198;
-  --color-missing-bg: 255 224 222;
-  --color-overlay: 20 28 38;
-  --color-on-overlay: 255 253 248;
+  --color-fn-blue: 47 95 143;
+  --color-fn-teal: 43 142 130;
+  --color-fn-amber: 169 116 31;
+  --color-fn-pink: 184 79 107;
+  --color-fn-green: 18 120 74;
+  --color-legal-bg: 224 244 233;
+  --color-review-bg: 252 238 208;
+  --color-missing-bg: 253 228 226;
+  --color-overlay: 16 24 40;
+  --color-on-overlay: 255 255 255;
+  --hairline: #ededf0;
+  --hairline-strong: rgb(0 0 0 / 0.08);
 }
 
 * {
@@ -124,13 +166,18 @@ button {
 }
 
 .app-shell {
-  background:
-    linear-gradient(180deg, rgb(var(--color-card) / 0.36), transparent 10rem),
-    rgb(var(--color-page));
+  background: rgb(var(--color-page));
 }
 
+/* Dark separates surfaces by value, not shadow (nulled below); light lifts white cards softly. */
 .surface-shadow {
-  box-shadow: 0 12px 32px rgb(10 22 38 / 0.08);
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.05),
+    0 8px 24px rgb(16 24 40 / 0.06);
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
 }
 
 :root[data-theme='dark'] .surface-shadow,
@@ -677,110 +724,136 @@ button {
 }
 
 /* ===========================================================================
-   Onboarding — first-launch flow + "toy diorama" illustrations.
-   The product chrome stays flat; the dioramas get soft toy shadows and a
-   gentle spring so the miniature scenes feel physical. Brighter "toy" colours
-   live only inside the illustrations, never in chrome.
+   Bottom nav — the one heavy-glass surface (design 09).
+   blur(14px), not 40: a wide blur over-samples into an opaque plate. The fill
+   does almost nothing; brightness/saturate do the lifting, so content stays
+   recognisable through the bar. Dark is 6% white glass, light is rose-grey.
    =========================================================================== */
-:root {
-  --toy-coral: #ff6f61;
-  --toy-blue: #6c8cff;
-  --toy-yellow: #ffd166;
-  --toy-mint: #4fd1a0;
-  --toy-lilac: #b292ff;
-  --shadow-toy: 0 18px 40px -12px rgb(0 0 0 / 0.6);
-  --shadow-pop: 0 10px 30px rgb(0 0 0 / 0.45), 0 2px 6px rgb(0 0 0 / 0.3);
-  --ease-spring: cubic-bezier(0.34, 1.4, 0.5, 1);
-  --dur-slow: 340ms;
+.lk-nav-fade {
+  position: fixed;
+  z-index: 19;
+  bottom: 0;
+  left: 50%;
+  width: 100%;
+  max-width: 430px;
+  height: calc(40px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  pointer-events: none;
+  background: linear-gradient(0deg, rgb(var(--color-page)), rgb(var(--color-page) / 0));
 }
 
-/* Slide entrance — a single gentle rise per step. */
-.lk-slide-anim {
-  animation: lkSlideRise var(--dur-slow) var(--ease-spring) both;
-}
-@keyframes lkSlideRise {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Progress dot grows into an accent pill when active. */
-.lk-progress-dot {
-  height: 7px;
-  width: 7px;
-  border-radius: 999px;
-  background: rgb(var(--color-elevated));
+.lk-nav-pill {
+  position: fixed;
+  z-index: 20;
+  bottom: calc(18px + env(safe-area-inset-bottom));
+  left: 50%;
+  display: flex;
+  align-items: center;
+  width: min(380px, calc(100% - 50px));
+  height: 54px;
+  padding: 0 2px;
+  border-radius: 9999px;
+  transform: translateX(-50%);
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.06), rgb(255 255 255 / 0.01) 44%, rgb(255 255 255 / 0.03));
+  -webkit-backdrop-filter: blur(14px) saturate(210%) brightness(122%);
+  backdrop-filter: blur(14px) saturate(210%) brightness(122%);
+  box-shadow:
+    0 0 0 0.5px rgb(255 255 255 / 0.26),
+    0 14px 34px rgb(0 0 0 / 0.45),
+    inset 0 1px 0.5px rgb(255 255 255 / 0.62),
+    inset 0 -1px 0.5px rgb(255 255 255 / 0.16),
+    inset 0 22px 26px -22px rgb(255 255 255 / 0.3);
   transition:
-    width var(--dur-slow) var(--ease-spring),
-    background 200ms var(--ease-spring);
-}
-.lk-progress-dot[data-active='true'] {
-  width: 22px;
-  background: rgb(var(--color-accent));
+    width 180ms ease-out,
+    height 180ms ease-out;
 }
 
-/* Diorama idle motion + focus pulse — all reduced-motion gated. */
-@media (prefers-reduced-motion: no-preference) {
-  @keyframes lkFigBob {
-    0%,
-    100% {
-      transform: translateY(0);
-    }
-    50% {
-      transform: translateY(-5px);
-    }
-  }
-  @keyframes lkFigSway {
-    0%,
-    100% {
-      transform: rotate(-2.5deg);
-    }
-    50% {
-      transform: rotate(2.5deg);
-    }
-  }
-  @keyframes lkFocusPulse {
-    0%,
-    100% {
-      box-shadow: 0 0 0 0 transparent, 0 0 14px 2px var(--lk-glow);
-    }
-    50% {
-      box-shadow: 0 0 0 5px transparent, 0 0 26px 6px var(--lk-glow);
-    }
-  }
-  @keyframes lkSpark {
-    0%,
-    100% {
-      opacity: 0.15;
-      transform: scale(0.6);
-    }
-    50% {
-      opacity: 1;
-      transform: scale(1);
-    }
-  }
-  .lk-fig-bob {
-    animation: lkFigBob 2.9s ease-in-out infinite;
-  }
-  .lk-fig-sway {
-    animation: lkFigSway 3.5s ease-in-out infinite;
-    transform-origin: 50% 92%;
-  }
-  .lk-focus-pulse {
-    animation: lkFocusPulse 2.2s ease-in-out infinite;
-  }
-  .lk-spark {
-    animation: lkSpark 1.9s ease-in-out infinite;
-  }
+.lk-nav-pill[data-collapsed='true'] {
+  width: 212px;
+  height: 48px;
+}
+
+.lk-nav-tab {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  height: 50px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border: 0;
+  border-radius: 9999px;
+  background: transparent;
+  font-size: 11px;
+  font-weight: 600;
+  color: #b8b8bd;
+  transition:
+    height 180ms ease-out,
+    gap 180ms ease-out;
+}
+
+.lk-nav-tab[data-active='true'] {
+  font-weight: 800;
+  color: #fff;
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.28), rgb(255 255 255 / 0.09) 58%, rgb(255 255 255 / 0.15));
+  box-shadow:
+    inset 0 1px 0.5px rgb(255 255 255 / 0.75),
+    inset 0 -1px 0.5px rgb(255 255 255 / 0.2),
+    0 2px 8px rgb(0 0 0 / 0.35);
+}
+
+.lk-nav-label {
+  overflow: hidden;
+  max-height: 14px;
+  line-height: 14px;
+  opacity: 1;
+  transition:
+    max-height 180ms ease-out,
+    opacity 140ms ease-out;
+}
+
+.lk-nav-pill[data-collapsed='true'] .lk-nav-tab {
+  height: 44px;
+  gap: 0;
+}
+
+.lk-nav-pill[data-collapsed='true'] .lk-nav-label {
+  max-height: 0;
+  opacity: 0;
+}
+
+:root[data-theme='light'] .lk-nav-pill {
+  background: linear-gradient(180deg, rgb(255 246 248 / 0.22), rgb(255 242 245 / 0.09) 46%, rgb(255 244 247 / 0.14));
+  -webkit-backdrop-filter: blur(14px) saturate(190%) brightness(114%);
+  backdrop-filter: blur(14px) saturate(190%) brightness(114%);
+  box-shadow:
+    0 0 0 0.5px rgb(74 52 58 / 0.16),
+    0 14px 34px rgb(74 52 58 / 0.14),
+    inset 0 1px 0.5px rgb(255 255 255 / 0.95),
+    inset 0 -1px 0.5px rgb(74 52 58 / 0.05),
+    inset 0 22px 26px -22px rgb(255 255 255 / 0.78);
+}
+
+:root[data-theme='light'] .lk-nav-tab {
+  color: #6b5f63;
+}
+
+:root[data-theme='light'] .lk-nav-tab[data-active='true'] {
+  color: #2a2227;
+  background: linear-gradient(180deg, rgb(255 250 251 / 0.72), rgb(255 245 248 / 0.46) 58%, rgb(255 247 250 / 0.58));
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  box-shadow:
+    inset 0 1px 0.5px rgb(255 255 255 / 1),
+    inset 0 0 0 0.5px rgb(74 52 58 / 0.1),
+    0 2px 8px rgb(74 52 58 / 0.14);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .lk-slide-anim {
-    animation: none;
+  .lk-nav-pill,
+  .lk-nav-tab,
+  .lk-nav-label {
+    transition: none;
   }
 }

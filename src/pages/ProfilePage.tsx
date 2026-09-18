@@ -1,4 +1,4 @@
-import { ClipboardCopy, Compass, Database, Download, Info, MessageSquare, Moon, PenLine, ShieldCheck, Sun, Trash2, Upload } from 'lucide-react';
+import { ClipboardCopy, Database, Download, Info, MessageSquare, Moon, PenLine, ShieldCheck, Sun, Trash2, Upload } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { currentDataVersion, currentRuleSet } from '../data';
 import { feedbackLinks, productName } from '../branding';
@@ -47,8 +47,8 @@ const isBackupPayload = (value: unknown): value is BackupPayload => {
 
 export function ProfilePage() {
   const { teams, preferences, replaceTeams, replacePreferences, clearLocalData, lastRefreshError, updateTheme } = useAppStore();
-  // The message form is a route, not a local overlay: onboarding and any future entry point
-  // can deep-link straight into it, and the browser back button closes it for free.
+  // The message form is a route, not a local overlay: any entry point can deep-link straight
+  // into it, and the browser back button closes it for free.
   const { route, navigate, back } = useHashRoute();
   const inputRef = useRef<HTMLInputElement>(null);
   const [notice, setNotice] = useState<Notice | null>(null);
@@ -160,19 +160,6 @@ export function ProfilePage() {
                 开启
               </span>
             </button>
-          </div>
-          <div className="flex items-center justify-between gap-3 py-3">
-            <span>
-              <span className="block text-sm">新手引导</span>
-              <span className="text-xs text-textSecondary">重新观看首次启动的功能引导。</span>
-            </span>
-            <Button
-              variant="ghost"
-              onClick={() => replacePreferences({ ...preferences, hasCompletedOnboarding: false })}
-            >
-              <Compass size={14} />
-              查看引导
-            </Button>
           </div>
         </div>
       </Card>

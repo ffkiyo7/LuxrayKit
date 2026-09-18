@@ -15,6 +15,13 @@ export default {
         textSecondary: 'rgb(var(--color-text-secondary) / <alpha-value>)',
         textMuted: 'rgb(var(--color-text-muted) / <alpha-value>)',
         accent: 'rgb(var(--color-accent) / <alpha-value>)',
+        select: 'rgb(var(--color-select) / <alpha-value>)',
+        data: 'rgb(var(--color-data) / <alpha-value>)',
+        fnBlue: 'rgb(var(--color-fn-blue) / <alpha-value>)',
+        fnTeal: 'rgb(var(--color-fn-teal) / <alpha-value>)',
+        fnAmber: 'rgb(var(--color-fn-amber) / <alpha-value>)',
+        fnPink: 'rgb(var(--color-fn-pink) / <alpha-value>)',
+        fnGreen: 'rgb(var(--color-fn-green) / <alpha-value>)',
         success: 'rgb(var(--color-success) / <alpha-value>)',
         danger: 'rgb(var(--color-danger) / <alpha-value>)',
         warning: 'rgb(var(--color-warning) / <alpha-value>)',
@@ -25,7 +32,7 @@ export default {
         onOverlay: 'rgb(var(--color-on-overlay) / <alpha-value>)',
       },
       fontFamily: {
-        sans: ['DM Sans', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        sans: ['Manrope', 'PingFang SC', 'Noto Sans SC', 'system-ui', '-apple-system', 'sans-serif'],
       },
       boxShadow: {
         none: 'none',

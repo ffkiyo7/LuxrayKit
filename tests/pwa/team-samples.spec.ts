@@ -1,20 +1,9 @@
 import { readFile } from 'node:fs/promises';
-import { expect, type Page, test } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 const readSamples = async (fileName: string) => {
   const raw = await readFile(new URL(`../../src/data/external/vgcpastes/${fileName}`, import.meta.url), 'utf8');
   return JSON.parse(raw) as unknown[];
-};
-
-const dismissOnboarding = async (page: Page) => {
-  const skip = page.getByRole('button', { name: '跳过' });
-  try {
-    await skip.waitFor({ state: 'visible', timeout: 5_000 });
-    await skip.click();
-    await page.getByRole('button', { name: '开始探索' }).click();
-  } catch {
-    // The tour was already completed in this browser context.
-  }
 };
 
 test('renders the generated VGCPastes team library', async ({ page, context }) => {
@@ -31,7 +20,6 @@ test('renders the generated VGCPastes team library', async ({ page, context }) =
 
   await context.clearCookies();
   await page.goto('/');
-  await dismissOnboarding(page);
   await expect(page.getByRole('heading', { name: '环境', exact: true })).toBeVisible();
 
   const browseButton = page.getByRole('button', { name: '查看全部队伍' });

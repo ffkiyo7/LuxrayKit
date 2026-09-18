@@ -3,7 +3,6 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react
 import { BottomNav } from './components/BottomNav';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { Header } from './components/Header';
-import { Onboarding } from './components/onboarding/Onboarding';
 import { ServiceWorkerUpdateToast } from './components/ServiceWorkerUpdateToast';
 import { Button } from './components/ui';
 import { productName } from './branding';
@@ -270,17 +269,6 @@ function AppShell() {
     }
   }, [activeTab, toolView]);
 
-  const completeOnboarding = useCallback(() => {
-    void replacePreferences({ ...preferences, hasCompletedOnboarding: true });
-  }, [preferences, replacePreferences]);
-
-  // Onboarding's feedback entries land on the message form. Finishing the tour first matters:
-  // otherwise the overlay would still be on top of the sheet the user just asked for.
-  const openFeedbackFromOnboarding = useCallback(() => {
-    completeOnboarding();
-    navigate({ name: 'profile-feedback' });
-  }, [completeOnboarding, navigate]);
-
   const performImportSampleTeam = useCallback(
     async (sample: EnvironmentTeamSample) => {
       const { createImportedTeamFromEnvironmentSample } = await import('./lib/environmentImport');
@@ -491,11 +479,8 @@ function AppShell() {
           activeTab={activeTab}
           tabs={tabs}
           onChange={(tab) => navigate(routeForTab(tab))}
-          hidden={bottomNavAutoHide.hidden}
+          collapsed={bottomNavAutoHide.hidden}
         />
-      )}
-      {!preferences.hasCompletedOnboarding && (
-        <Onboarding onComplete={completeOnboarding} onOpenFeedback={openFeedbackFromOnboarding} />
       )}
     </main>
   );

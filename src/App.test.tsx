@@ -369,32 +369,6 @@ describe('App page flows', () => {
     expect(window.location.hash).toBe('#/profile');
   });
 
-  it('lands on the message form when the onboarding finale invites feedback', async () => {
-    const user = userEvent.setup();
-    render(<App />);
-    await waitForEnvironmentPage();
-
-    const tour = await screen.findByRole('dialog', { name: 'LuxrayKit 引导' });
-    for (let step = 0; step < 4; step += 1) {
-      await user.click(within(tour).getByRole('button', { name: '下一步' }));
-    }
-    expect(within(tour).getByText('一起把 LuxrayKit 做得更好')).toBeTruthy();
-
-    // The three chips are buttons now, not GitHub links — all three open the same form.
-    expect(within(tour).queryByRole('link', { name: /反馈问题/ })).toBeNull();
-    await user.click(within(tour).getByRole('button', { name: /反馈问题/ }));
-
-    // Onboarding is finished first, so the tour does not sit on top of the sheet.
-    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'LuxrayKit 引导' })).toBeNull());
-    expect(window.location.hash).toBe('#/profile/feedback');
-    const sheet = await screen.findByRole('dialog', { name: '写留言' });
-    expect(within(sheet).getByLabelText('留言内容')).toBeTruthy();
-    await waitFor(async () => {
-      const state = await repository.loadState();
-      expect(state.preferences.hasCompletedOnboarding).toBe(true);
-    });
-  });
-
   it('shows a copyable build identity under 关于', async () => {
     const user = userEvent.setup();
     render(<App />);
@@ -1383,12 +1357,6 @@ describe('App page flows', () => {
 
   it('finds abilities by owner Pokemon names and prioritizes matching owner avatars', { timeout: 30000 }, async () => {
     const user = await renderApp();
-    const onboarding = screen.queryByRole('dialog', { name: 'LuxrayKit 引导' });
-    if (onboarding) {
-      await user.click(screen.getByRole('button', { name: '跳过' }));
-      await user.click(screen.getByRole('button', { name: '开始探索' }));
-      await waitFor(() => expect(screen.queryByRole('dialog', { name: 'LuxrayKit 引导' })).toBeNull());
-    }
 
     await openTool(user, /规则图鉴/);
     expect(await waitForDexPage()).toBeTruthy();

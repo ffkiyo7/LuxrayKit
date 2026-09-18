@@ -26,7 +26,7 @@ export function ServiceWorkerUpdateToast() {
 
   return (
     <div
-      className="fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+4.5rem)] z-50 flex items-center gap-3 rounded-xl border border-border bg-elevated px-3 py-2.5 text-sm shadow-lg"
+      className="fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+84px)] z-50 flex items-center gap-3 rounded-xl border border-border bg-elevated px-3 py-2.5 text-sm shadow-lg"
       role="status"
     >
       <span className="min-w-0 flex-1">新版本已就绪，刷新以更新</span>

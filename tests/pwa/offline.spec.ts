@@ -1,20 +1,8 @@
-import { expect, type Page, test } from '@playwright/test';
-
-const dismissOnboarding = async (page: Page) => {
-  const skip = page.getByRole('button', { name: '跳过' });
-  try {
-    await skip.waitFor({ state: 'visible', timeout: 5_000 });
-    await skip.click();
-    await page.getByRole('button', { name: '开始探索' }).click();
-  } catch {
-    // The tour was already completed in this browser context.
-  }
-};
+import { expect, test } from '@playwright/test';
 
 test('keeps app shell, teams, and unavailable tools available offline', async ({ page, context }) => {
   await context.clearCookies();
   await page.goto('/');
-  await dismissOnboarding(page);
   await expect(page.getByRole('heading', { name: '环境', exact: true })).toBeVisible();
 
   const serviceWorkerReady = await page.evaluate(async () => {
