@@ -459,7 +459,7 @@ button {
   min-height: 38px;
   place-items: center;
   border-radius: 999px;
-  transition: transform 140ms var(--ease-spring);
+  transition: transform 140ms cubic-bezier(0.34, 1.4, 0.5, 1);
 }
 
 .lk-type-badge-button:active {
@@ -708,7 +708,7 @@ button {
 @media (prefers-reduced-motion: no-preference) {
   .lk-type-answer__content--switching .lk-type-answer__hero,
   .lk-type-answer__content--switching .lk-type-answer__panel {
-    animation: lkTypeAnswerRise 260ms var(--ease-spring) both;
+    animation: lkTypeAnswerRise 260ms cubic-bezier(0.34, 1.4, 0.5, 1) both;
   }
 
   @keyframes lkTypeAnswerRise {
@@ -724,10 +724,16 @@ button {
 }
 
 /* ===========================================================================
-   Bottom nav — the one heavy-glass surface (design 09).
-   blur(14px), not 40: a wide blur over-samples into an opaque plate. The fill
-   does almost nothing; brightness/saturate do the lifting, so content stays
-   recognisable through the bar. Dark is 6% white glass, light is rose-grey.
+   Bottom nav — floating glass pill (design 09), adjusted after device review:
+
+   - A tint floor sits under the glass. Pure "fill does nothing" glass turns into a silver
+     plate whenever something bright scrolls beneath it (a near-white primary button in dark
+     theme), and the idle labels vanish. The tint caps how bright the backdrop can get, so
+     labels hold contrast over any content while dark content still reads through.
+   - blur is 8px with no brightness() stage: a lighter filter chain is both less smeared and
+     much cheaper to recompute on every scrolled frame.
+   - Everything that moves on collapse or tab switch is transform/opacity, except the pill's
+     own width/height (4 flex children, no text reflow).
    =========================================================================== */
 .lk-nav-fade {
   position: fixed;
@@ -743,29 +749,32 @@ button {
 }
 
 .lk-nav-pill {
+  --lk-nav-ease: cubic-bezier(0.2, 0, 0, 1);
+  --lk-nav-ink: #c6c6cb;
+  --lk-nav-ink-active: #fff;
   position: fixed;
   z-index: 20;
   bottom: calc(18px + env(safe-area-inset-bottom));
   left: 50%;
   display: flex;
-  align-items: center;
+  align-items: stretch;
   width: min(380px, calc(100% - 50px));
   height: 54px;
-  padding: 0 2px;
+  padding: 2px;
   border-radius: 9999px;
   transform: translateX(-50%);
-  background: linear-gradient(180deg, rgb(255 255 255 / 0.06), rgb(255 255 255 / 0.01) 44%, rgb(255 255 255 / 0.03));
-  -webkit-backdrop-filter: blur(14px) saturate(210%) brightness(122%);
-  backdrop-filter: blur(14px) saturate(210%) brightness(122%);
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 0.08), rgb(255 255 255 / 0.02) 46%, rgb(255 255 255 / 0.04)),
+    rgb(20 20 24 / 0.6);
+  -webkit-backdrop-filter: blur(8px) saturate(160%);
+  backdrop-filter: blur(8px) saturate(160%);
   box-shadow:
-    0 0 0 0.5px rgb(255 255 255 / 0.26),
-    0 14px 34px rgb(0 0 0 / 0.45),
-    inset 0 1px 0.5px rgb(255 255 255 / 0.62),
-    inset 0 -1px 0.5px rgb(255 255 255 / 0.16),
-    inset 0 22px 26px -22px rgb(255 255 255 / 0.3);
+    0 0 0 0.5px rgb(255 255 255 / 0.22),
+    0 10px 28px rgb(0 0 0 / 0.45),
+    inset 0 1px 0.5px rgb(255 255 255 / 0.4);
   transition:
-    width 180ms ease-out,
-    height 180ms ease-out;
+    width 220ms var(--lk-nav-ease),
+    height 220ms var(--lk-nav-ease);
 }
 
 .lk-nav-pill[data-collapsed='true'] {
@@ -773,11 +782,27 @@ button {
   height: 48px;
 }
 
+/* The selected capsule is one element that slides; tabs themselves never repaint a background. */
+.lk-nav-indicator {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  left: 2px;
+  width: calc((100% - 4px) / var(--lk-nav-count));
+  border-radius: 9999px;
+  transform: translateX(calc(var(--lk-nav-index) * 100%));
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.26), rgb(255 255 255 / 0.1) 58%, rgb(255 255 255 / 0.16));
+  box-shadow:
+    inset 0 1px 0.5px rgb(255 255 255 / 0.6),
+    0 2px 8px rgb(0 0 0 / 0.3);
+  transition: transform 280ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
 .lk-nav-tab {
+  position: relative;
   display: flex;
   min-width: 0;
   flex: 1;
-  height: 50px;
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -787,72 +812,69 @@ button {
   background: transparent;
   font-size: 11px;
   font-weight: 600;
-  color: #b8b8bd;
-  transition:
-    height 180ms ease-out,
-    gap 180ms ease-out;
+  color: var(--lk-nav-ink);
+  transition: color 200ms ease-out;
 }
 
 .lk-nav-tab[data-active='true'] {
   font-weight: 800;
-  color: #fff;
-  background: linear-gradient(180deg, rgb(255 255 255 / 0.28), rgb(255 255 255 / 0.09) 58%, rgb(255 255 255 / 0.15));
-  box-shadow:
-    inset 0 1px 0.5px rgb(255 255 255 / 0.75),
-    inset 0 -1px 0.5px rgb(255 255 255 / 0.2),
-    0 2px 8px rgb(0 0 0 / 0.35);
+  color: var(--lk-nav-ink-active);
+}
+
+.lk-nav-tab > svg {
+  transition: transform 220ms var(--lk-nav-ease);
+}
+
+.lk-nav-tab:active > svg {
+  transform: scale(0.9);
 }
 
 .lk-nav-label {
-  overflow: hidden;
-  max-height: 14px;
   line-height: 14px;
-  opacity: 1;
   transition:
-    max-height 180ms ease-out,
-    opacity 140ms ease-out;
+    opacity 140ms ease-out,
+    transform 220ms var(--lk-nav-ease);
 }
 
-.lk-nav-pill[data-collapsed='true'] .lk-nav-tab {
-  height: 44px;
-  gap: 0;
+/* Collapsed: the label stays in layout (no reflow) and fades; the icon slides to the centre.
+   8.5px = half of (3px gap + 14px label), the icon's offset from the group's centre. */
+.lk-nav-pill[data-collapsed='true'] .lk-nav-tab > svg {
+  transform: translateY(8.5px);
+}
+
+.lk-nav-pill[data-collapsed='true'] .lk-nav-tab:active > svg {
+  transform: translateY(8.5px) scale(0.9);
 }
 
 .lk-nav-pill[data-collapsed='true'] .lk-nav-label {
-  max-height: 0;
   opacity: 0;
+  transform: translateY(4px);
 }
 
 :root[data-theme='light'] .lk-nav-pill {
-  background: linear-gradient(180deg, rgb(255 246 248 / 0.22), rgb(255 242 245 / 0.09) 46%, rgb(255 244 247 / 0.14));
-  -webkit-backdrop-filter: blur(14px) saturate(190%) brightness(114%);
-  backdrop-filter: blur(14px) saturate(190%) brightness(114%);
+  --lk-nav-ink: #5f5357;
+  --lk-nav-ink-active: #2a2227;
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 0.5), rgb(255 246 248 / 0.12) 46%, rgb(255 246 248 / 0.24)),
+    rgb(250 244 246 / 0.66);
   box-shadow:
     0 0 0 0.5px rgb(74 52 58 / 0.16),
-    0 14px 34px rgb(74 52 58 / 0.14),
-    inset 0 1px 0.5px rgb(255 255 255 / 0.95),
-    inset 0 -1px 0.5px rgb(74 52 58 / 0.05),
-    inset 0 22px 26px -22px rgb(255 255 255 / 0.78);
+    0 10px 28px rgb(74 52 58 / 0.14),
+    inset 0 1px 0.5px rgb(255 255 255 / 0.95);
 }
 
-:root[data-theme='light'] .lk-nav-tab {
-  color: #6b5f63;
-}
-
-:root[data-theme='light'] .lk-nav-tab[data-active='true'] {
-  color: #2a2227;
-  background: linear-gradient(180deg, rgb(255 250 251 / 0.72), rgb(255 245 248 / 0.46) 58%, rgb(255 247 250 / 0.58));
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
+:root[data-theme='light'] .lk-nav-indicator {
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.95), rgb(255 250 251 / 0.78));
   box-shadow:
-    inset 0 1px 0.5px rgb(255 255 255 / 1),
     inset 0 0 0 0.5px rgb(74 52 58 / 0.1),
     0 2px 8px rgb(74 52 58 / 0.14);
 }
 
 @media (prefers-reduced-motion: reduce) {
   .lk-nav-pill,
+  .lk-nav-indicator,
   .lk-nav-tab,
+  .lk-nav-tab > svg,
   .lk-nav-label {
     transition: none;
   }

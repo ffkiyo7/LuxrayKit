@@ -1,6 +1,6 @@
 import { ArrowLeft, BarChart3, ExternalLink, ShieldCheck, UserCircle, Users, Wrench } from 'lucide-react';
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
-import { BottomNav } from './components/BottomNav';
+import { AutoHideBottomNav } from './components/BottomNav';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { Header } from './components/Header';
 import { ServiceWorkerUpdateToast } from './components/ServiceWorkerUpdateToast';
@@ -8,7 +8,6 @@ import { Button } from './components/ui';
 import { productName } from './branding';
 import { productContextLabel } from './data/schedule';
 import type { EnvironmentState, EnvironmentTeamSample } from './data/environment';
-import { useAutoHideBottomNav } from './hooks/useAutoHideBottomNav';
 import { useHashRoute } from './hooks/useHashRoute';
 import { routeForTab, routePattern, tabForRoute, type Route, type ToolRouteId } from './lib/hashRoute';
 import { trackRoute } from './lib/analytics';
@@ -187,10 +186,6 @@ function AppShell() {
   const activeTeam = teams.find((team) => team.id === activeTeamId) ?? teams[0];
   const speedPresetMember = teams.flatMap((team) => team.members).find((member) => member.id === speedPresetMemberId);
   const bottomNavAutoHideEnabled = !overlay && (activeTab === 'environment' || (activeTab === 'tools' && toolView === 'dex'));
-  const bottomNavAutoHide = useAutoHideBottomNav({
-    enabled: bottomNavAutoHideEnabled,
-    lock: Boolean(pendingImportSample),
-  });
 
   useEffect(() => {
     if (teams.length === 0) {
@@ -475,11 +470,12 @@ function AppShell() {
         />
       )}
       {!overlay && (
-        <BottomNav
+        <AutoHideBottomNav
           activeTab={activeTab}
           tabs={tabs}
           onChange={(tab) => navigate(routeForTab(tab))}
-          collapsed={bottomNavAutoHide.hidden}
+          autoHideEnabled={bottomNavAutoHideEnabled}
+          lock={Boolean(pendingImportSample)}
         />
       )}
     </main>
