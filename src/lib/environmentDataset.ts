@@ -1,3 +1,6 @@
+import type { BaseStats, StatPoints } from '../types';
+import { MAX_STAT_POINTS_PER_STAT, MAX_TOTAL_STAT_POINTS, statPointKeys } from './statPoints';
+
 export type EnvironmentBattleType = 'singles' | 'doubles';
 export type EnvironmentUsageBasis = 'absolute' | 'rank-relative';
 
@@ -13,6 +16,52 @@ export type EnvironmentReferenceUsage = {
   id: string;
   usageRate: number;
   teamCount: number;
+};
+
+export type EnvironmentStatPointKey = keyof BaseStats;
+
+/**
+ * One SP spread from PokeDB's 「能力ポイント」 panel (its default 合算 tab).
+ *
+ * These are Champions stat points — 0–32 per stat, 66 in total — never main-series EVs.
+ * `label` is PokeDB's shorthand, kept verbatim for provenance: uppercase letters are the stats
+ * the spread commits to, lowercase letters after `+` are the ones that only absorb leftovers
+ * (H=HP, A=攻击, B=防御, C=特攻, D=特防, S=速度). The Chinese wording is a rendering concern —
+ * this layer stores stat keys and numbers.
+ *
+ * `points` holds the numbers PokeDB printed on the row. When PokeDB merged several spreads into
+ * one row it prints the leftover as 「余り」 instead of a number: `hasRemainder` marks that, and
+ * `points` then only covers `primaryStatKeys`.
+ */
+export type EnvironmentStatPointUsage = {
+  label: string;
+  primaryStatKeys: EnvironmentStatPointKey[];
+  extraStatKeys?: EnvironmentStatPointKey[];
+  points: StatPoints;
+  hasRemainder?: boolean;
+  usageRate: number;
+  teamCount: number;
+};
+
+const statPointKeySet = new Set<string>(statPointKeys);
+
+/**
+ * Champions SP rules from `statPoints.ts`: every stat 0–32, 66 points in total. A row that
+ * breaks them is upstream markup we no longer understand, so it is dropped rather than guessed at.
+ */
+export const isValidStatPointUsage = (stat: EnvironmentStatPointUsage): boolean => {
+  const keys = [...stat.primaryStatKeys, ...(stat.extraStatKeys ?? [])];
+  if (keys.length === 0 || keys.some((key) => !statPointKeySet.has(key))) return false;
+  if (new Set(keys).size !== keys.length) return false;
+  const entries = Object.entries(stat.points);
+  if (entries.some(([key]) => !keys.includes(key as EnvironmentStatPointKey))) return false;
+  if (stat.primaryStatKeys.some((key) => stat.points[key] === undefined)) return false;
+  if (entries.some(([, value]) => !Number.isInteger(value) || value < 0 || value > MAX_STAT_POINTS_PER_STAT)) {
+    return false;
+  }
+  if (entries.reduce((total, [, value]) => total + (value ?? 0), 0) > MAX_TOTAL_STAT_POINTS) return false;
+  if (!Number.isFinite(stat.usageRate) || stat.usageRate < 0 || stat.usageRate > 100) return false;
+  return Number.isInteger(stat.teamCount) && stat.teamCount >= 0;
 };
 
 /**
@@ -45,6 +94,8 @@ export type EnvironmentPokemonUsage = {
   teammateStats?: EnvironmentReferenceUsage[];
   abilityStats?: EnvironmentReferenceUsage[];
   natureStats?: EnvironmentReferenceUsage[];
+  /** Top SP spreads from PokeDB's 能力ポイント panel. Absent whenever upstream did not expose them. */
+  statPointStats?: EnvironmentStatPointUsage[];
 };
 
 export type EnvironmentTeamSlot = {
@@ -133,6 +184,9 @@ export type EnvironmentDatasetAuditIssue = {
     | 'missing-nature-ref'
     | 'invalid-usage-rate'
     | 'invalid-team-count'
+    // An SP spread that breaks the Champions 0–32 / 66 rules, references an unknown stat, or
+    // carries an unusable rate — upstream markup we no longer understand, dropped not guessed.
+    | 'invalid-stat-point-spread'
     | 'sample-battle-type-mismatch'
     | 'sample-empty-slots';
   path: string;
@@ -199,6 +253,23 @@ const normalizeReferenceStats = (
     return !hasInvalidUsageRate && !hasInvalidTeamCount;
   });
 
+const normalizeStatPointStats = (
+  stats: EnvironmentStatPointUsage[] | undefined,
+  path: string,
+  issues: EnvironmentDatasetAuditIssue[],
+) =>
+  (stats ?? []).filter((stat, index) => {
+    if (isValidStatPointUsage(stat)) return true;
+    issues.push(
+      issue(
+        'invalid-stat-point-spread',
+        `${path}[${index}]`,
+        `${path}[${index}] has an unusable SP spread (${stat.label}); dropped.`,
+      ),
+    );
+    return false;
+  });
+
 const normalizeUsage = (
   usage: EnvironmentPokemonUsage,
   battleType: EnvironmentBattleType,
@@ -239,6 +310,10 @@ const normalizeUsage = (
     return undefined;
   }
 
+  // Snapshots written before this field existed, and any Pokemon whose detail page has no
+  // 能力ポイント panel, simply carry no spreads — the key stays absent rather than empty.
+  const statPointStats = normalizeStatPointStats(usage.statPointStats, `${path}.statPointStats`, issues);
+
   return {
     pokemonId: usage.pokemonId,
     usageRate: usage.usageRate,
@@ -255,6 +330,7 @@ const normalizeUsage = (
     teammateStats: normalizeReferenceStats(usage.teammateStats, ids.pokemon, 'missing-pokemon-ref', `${path}.teammateStats`, issues),
     abilityStats: normalizeReferenceStats(usage.abilityStats, ids.abilities, 'missing-ability-ref', `${path}.abilityStats`, issues),
     natureStats: normalizeReferenceStats(usage.natureStats, ids.natures, 'missing-nature-ref', `${path}.natureStats`, issues),
+    ...(statPointStats.length > 0 ? { statPointStats } : {}),
   };
 };
 

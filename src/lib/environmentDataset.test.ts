@@ -5,6 +5,8 @@ import {
   unresolvedPokemonId,
   type EnvironmentDataset,
   type EnvironmentDatasetCatalog,
+  type EnvironmentPokemonUsage,
+  type EnvironmentStatPointKey,
 } from './environmentDataset';
 import singleRankedTeams from '../data/external/pokedb/s1_single_ranked_teams.json';
 import doubleRankedTeams from '../data/external/pokedb/s1_double_ranked_teams.json';
@@ -260,6 +262,85 @@ describe('environment dataset audit', () => {
       expect.arrayContaining(['rule-set-mismatch', 'data-version-mismatch', 'invalid-usage-rate', 'invalid-team-count']),
     );
     expect(result.dataset.battles.singles.pokemonUsage).toEqual([]);
+  });
+
+  it('keeps valid SP spreads and drops the ones that break the Champions 0–32 / 66 rules', () => {
+    const usage = (statPointStats: EnvironmentPokemonUsage['statPointStats']): EnvironmentDataset['battles'] => ({
+      singles: {
+        pokemonUsage: [
+          {
+            pokemonId: 'charizard',
+            usageRate: 34.8,
+            teamCount: 184,
+            moveIds: [],
+            itemIds: [],
+            teammateIds: [],
+            statPointStats,
+          },
+        ],
+        teamSamples: [],
+      },
+      doubles: { pokemonUsage: [], teamSamples: [] },
+    });
+
+    const kept = auditEnvironmentDataset(
+      makeDataset({
+        battles: usage([
+          {
+            label: 'AS',
+            primaryStatKeys: ['attack', 'speed'],
+            points: { attack: 32, speed: 32 },
+            hasRemainder: true,
+            usageRate: 32.2,
+            teamCount: 322,
+          },
+        ]),
+      }),
+      catalog,
+    );
+    expect(kept.issues).toEqual([]);
+    expect(kept.dataset.battles.singles.pokemonUsage[0].statPointStats).toHaveLength(1);
+
+    const dropped = auditEnvironmentDataset(
+      makeDataset({
+        battles: usage([
+          // Over the 32-per-stat cap.
+          { label: 'A', primaryStatKeys: ['attack'], points: { attack: 33 }, usageRate: 10, teamCount: 10 },
+          // Within the per-stat cap but over the 66 total.
+          {
+            label: 'HCS',
+            primaryStatKeys: ['hp', 'specialAttack', 'speed'],
+            points: { hp: 10, specialAttack: 32, speed: 32 },
+            usageRate: 9,
+            teamCount: 9,
+          },
+          // A stat key that is not part of the Champions stat set.
+          {
+            label: 'X',
+            primaryStatKeys: ['evasion' as EnvironmentStatPointKey],
+            points: { attack: 32 },
+            usageRate: 8,
+            teamCount: 8,
+          },
+          // A committed stat with no number attached.
+          { label: 'AS', primaryStatKeys: ['attack', 'speed'], points: { attack: 32 }, usageRate: 7, teamCount: 7 },
+        ]),
+      }),
+      catalog,
+    );
+    expect(dropped.issues.map((issue) => issue.code)).toEqual([
+      'invalid-stat-point-spread',
+      'invalid-stat-point-spread',
+      'invalid-stat-point-spread',
+      'invalid-stat-point-spread',
+    ]);
+    // Nothing survived, so the key is absent rather than an empty array.
+    expect(dropped.dataset.battles.singles.pokemonUsage[0]).not.toHaveProperty('statPointStats');
+  });
+
+  it('leaves snapshots without SP spreads untouched', () => {
+    const result = auditEnvironmentDataset(makeDataset(), catalog);
+    expect(result.dataset.battles.singles.pokemonUsage[0]).not.toHaveProperty('statPointStats');
   });
 
   it('keeps the current environment fixture audited before UI exports read it', () => {

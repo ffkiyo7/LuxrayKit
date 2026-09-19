@@ -44,9 +44,44 @@ const pokemonListHtml = (
 `;
 };
 
+// PokeDB's 能力ポイント panel, trimmed to its 合算 (merged) tab. The `ZS` row uses a stat letter
+// that does not exist: it must be dropped without touching the zero-tolerance name audit.
+const statPointChip = (label: string, value: string) => `
+  <span class="pokemon-stat-spread__chip pokemon-stat-spread__chip--red">
+    <span class="pokemon-stat-spread__label">${label}</span>
+    <span class="pokemon-stat-spread__value is-family-monospace">${value}</span>
+  </span>
+`;
+const statPointRow = (name: string, rate: string, chips: Array<[string, string]>) => `
+  <li class="usage-list-item usage-list-item--stats" x-data="{ open: false }">
+    <div class="usage-list-item__inner-row usage-list-item__inner-row--stats">
+      <span class="usage-name usage-name--stats">${name}</span>
+      <span class="usage-rate is-family-monospace">${rate}%</span>
+    </div>
+    <div class="pokemon-stat-spread">${chips.map(([label, value]) => statPointChip(label, value)).join('')}</div>
+  </li>
+`;
+const statPointPanelHtml = `
+  <div class="column is-one-fifth-widescreen pokemon-trend__column-stats">
+    <div class="card" x-data="{ statViewMode: 'aggregated' }">
+      <h3>能力ポイント</h3>
+      <div x-show="statViewMode === 'aggregated'">
+        <ul class="usage-list usage-list--stats">
+          ${statPointRow('AS', '32.2', [['A', '32'], ['S', '32'], ['+', '余り']])}
+          ${statPointRow('ZS', '20.0', [['Z', '32'], ['S', '32']])}
+          ${statPointRow('HD + b', '9.4', [['H', '32'], ['B', '14'], ['D', '20']])}
+        </ul>
+      </div>
+      <div x-show="statViewMode === 'raw'" x-cloak></div>
+    </div>
+  </div>
+`;
+
 const pokemonDetailHtml = `
   <span data-move-detail="{&quot;move_key&quot;:89,&quot;rate&quot;:99.2}">じしん</span>
   <div x-data="window.usagePieChart([{&quot;item_key&quot;:275,&quot;name&quot;:&quot;きあいのタスキ&quot;,&quot;rate&quot;:37.7}])"></div>
+  ${statPointPanelHtml}
+  <div class="column pokemon-trend__column-same_team"></div>
 `;
 
 const createKvEnv = (initial: Record<string, string> = {}, overrides: Record<string, string> = {}) => {
@@ -434,6 +469,8 @@ describe('environment Worker PokeDB ingestion', () => {
     const detailHtml = `
       <span data-move-detail="{&quot;move_key&quot;:89,&quot;rate&quot;:99.2}">じしん</span>
       <div x-data="window.usagePieChart([{&quot;item_key&quot;:275,&quot;name&quot;:&quot;きあいのタスキ&quot;,&quot;rate&quot;:37.7}])"></div>
+      ${statPointPanelHtml}
+      <div class="column pokemon-trend__column-same_team"></div>
     `;
     const fetcher = vi.fn(async (input: string | URL | Request) =>
       new Response(new URL(String(input)).pathname === '/pokemon/list' ? listHtml : detailHtml, { status: 200 }),
@@ -465,12 +502,27 @@ describe('environment Worker PokeDB ingestion', () => {
       usageRate: 100,
       moveStats: [{ id: 'earthquake', usageRate: 99.2 }],
       itemStats: [{ id: 'focus-sash', usageRate: 37.7 }],
+      statPointStats: [
+        {
+          label: 'AS',
+          primaryStatKeys: ['attack', 'speed'],
+          points: { attack: 32, speed: 32 },
+          hasRemainder: true,
+          usageRate: 32.2,
+        },
+        { label: 'HD + b', primaryStatKeys: ['hp', 'specialDefense'], extraStatKeys: ['defense'], usageRate: 9.4 },
+      ],
     });
+    // An unmappable stat letter drops its own row only — it must never reach the audit, whose
+    // zero-tolerance threshold would flip workerStatus to degraded.
+    expect(payload.audit).toMatchObject({ unknownItemNames: [], unknownMoveKeys: [], unknownAbilityKeys: [] });
     expect(payload.pokemonUsage[2]).toMatchObject({
       pokemonId: 'primarina',
       moveStats: [],
       itemStats: [],
     });
+    // Ranks outside the detail window have no panel to read, so the key stays absent.
+    expect(payload.pokemonUsage[2]).not.toHaveProperty('statPointStats');
   });
 
   it('keeps unmapped ranking rows as placeholders without fetching their detail page', async () => {

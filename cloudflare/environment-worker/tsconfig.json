@@ -19,6 +19,7 @@
     "../../src/lib/hashRoute.ts",
     "../../src/lib/pokedbEnvironment.ts",
     "../../src/lib/seasonRankDelta.ts",
+    "../../src/lib/statPoints.ts",
     "../../src/types.ts"
   ]
 }

@@ -208,6 +208,110 @@ describe('PokeDB environment ingestion', () => {
     });
   });
 
+  it('reads the top SP spreads from the 能力ポイント panel and drops rows it cannot map', () => {
+    // Trimmed copy of the real markup: the 合算 tab first, the 個別 tab after it. Rates in the
+    // 個別 tab are deliberately higher so a regression that reads the wrong tab is obvious.
+    const chip = (label: string, value: string) => `
+      <span class="pokemon-stat-spread__chip pokemon-stat-spread__chip--red">
+        <span class="pokemon-stat-spread__label">${label}</span>
+        <span class="pokemon-stat-spread__value is-family-monospace">${value}</span>
+      </span>
+    `;
+    const row = (name: string, rate: string, chips: Array<[string, string]>, details = '') => `
+      <li class="usage-list-item usage-list-item--stats" x-data="{ open: false }">
+        <span class="usage-rank is-family-monospace">1</span>
+        <div class="usage-list-item__inner-row usage-list-item__inner-row--stats">
+          <span class="usage-name usage-name--stats">${name}</span>
+          <span class="usage-rate is-family-monospace">${rate}%</span>
+        </div>
+        <div class="pokemon-stat-spread">${chips.map(([label, value]) => chip(label, value)).join('')}</div>
+        ${details ? `<ul class="pokemon-stat-spread__details">${details}</ul>` : ''}
+      </li>
+    `;
+    const html = `
+      <div class="column is-one-fifth-widescreen pokemon-trend__column-stats">
+        <div class="card" x-data="{ statViewMode: 'aggregated' }">
+          <h3>能力ポイント</h3>
+          <div x-show="statViewMode === 'aggregated'">
+            <ul class="usage-list usage-list--stats">
+              ${row('AS', '32.2', [['A', '32'], ['S', '32'], ['+', '余り']], `
+                <li class="pokemon-stat-spread__detail">
+                  <span class="pokemon-stat-spread__detail-name">AS + h</span>
+                  <span class="pokemon-stat-spread__detail-rate is-family-monospace">24.6%</span>
+                  <div class="pokemon-stat-spread pokemon-stat-spread__detail-chips">
+                    ${chip('H', '2')}${chip('A', '32')}${chip('S', '32')}
+                  </div>
+                </li>
+              `)}
+              ${row('HD + b', '9.4', [['H', '32'], ['B', '14'], ['D', '20']])}
+              ${/* unknown shorthand letter: dropped, never half-guessed */ ''}
+              ${row('ZS', '8.0', [['Z', '32'], ['S', '32']])}
+              ${/* 40 > the 32-per-stat cap: dropped */ ''}
+              ${row('HA', '7.0', [['H', '40'], ['A', '32']])}
+              ${/* every stat is within 32 but 32 + 32 + 10 > the 66 total: dropped */ ''}
+              ${row('CS + h', '6.0', [['H', '10'], ['C', '32'], ['S', '32']])}
+              ${row('HCS', '5.0', [['H', '17'], ['C', '17'], ['S', '32']])}
+              ${/* beyond the top 3 */ ''}
+              ${row('HB', '4.0', [['H', '32'], ['B', '32']])}
+            </ul>
+          </div>
+          <div x-show="statViewMode === 'raw'" x-cloak>
+            <ul class="usage-list usage-list--stats">
+              ${row('AS + h', '99.9', [['H', '2'], ['A', '32'], ['S', '32']])}
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="column pokemon-trend__column-same_team"></div>
+    `;
+
+    expect(parsePokeDbPokemonDetailPage(html, {
+      teamCount: 1000,
+      pokemonKeyToId,
+      itemNameToId,
+      moveKeyToId: {},
+      abilityKeyToId: {},
+      natureNameToId: {},
+    }).statPointStats).toEqual([
+      {
+        label: 'AS',
+        primaryStatKeys: ['attack', 'speed'],
+        points: { attack: 32, speed: 32 },
+        // PokeDB merged several spreads here and printed the leftover as 余り, so the points
+        // it did print are deliberately incomplete (64 of 66).
+        hasRemainder: true,
+        usageRate: 32.2,
+        teamCount: 322,
+      },
+      {
+        label: 'HD + b',
+        primaryStatKeys: ['hp', 'specialDefense'],
+        extraStatKeys: ['defense'],
+        points: { hp: 32, defense: 14, specialDefense: 20 },
+        usageRate: 9.4,
+        teamCount: 94,
+      },
+      {
+        label: 'HCS',
+        primaryStatKeys: ['hp', 'specialAttack', 'speed'],
+        points: { hp: 17, specialAttack: 17, speed: 32 },
+        usageRate: 5,
+        teamCount: 50,
+      },
+    ]);
+  });
+
+  it('leaves statPointStats empty when the detail page has no 能力ポイント panel', () => {
+    expect(parsePokeDbPokemonDetailPage('<div class="column pokemon-trend__column-same_team"></div>', {
+      teamCount: 100,
+      pokemonKeyToId,
+      itemNameToId,
+      moveKeyToId: {},
+      abilityKeyToId: {},
+      natureNameToId: {},
+    }).statPointStats).toEqual([]);
+  });
+
   it('builds audited environment usage from PokeDB public ranked-team JSON', () => {
     const dataset = buildEnvironmentDatasetFromPokeDbOpenData({
       id: 'pokedb-test',

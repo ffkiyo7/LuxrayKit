@@ -1,11 +1,13 @@
 import type { EligiblePokemon, Pokemon } from '../types';
-import { isUnresolvedPokemonId, unresolvedPokemonId } from './environmentDataset';
+import { isUnresolvedPokemonId, isValidStatPointUsage, unresolvedPokemonId } from './environmentDataset';
 import type {
   EnvironmentBattleDataset,
   EnvironmentBattleType,
   EnvironmentDataset,
   EnvironmentPokemonUsage,
   EnvironmentReferenceUsage,
+  EnvironmentStatPointKey,
+  EnvironmentStatPointUsage,
   EnvironmentTeamSample,
   EnvironmentTeamSlot,
 } from './environmentDataset';
@@ -99,6 +101,7 @@ export type PokeDbPokemonDetailPayload = {
   teammateStats: EnvironmentReferenceUsage[];
   abilityStats: EnvironmentReferenceUsage[];
   natureStats: EnvironmentReferenceUsage[];
+  statPointStats: EnvironmentStatPointUsage[];
   audit: Omit<PokeDbPokemonStatisticsPayload['audit'], 'unknownPokemonKeys' | 'failedDetailKeys'>;
 };
 
@@ -233,6 +236,101 @@ const mappedStats = (
     if (!Number.isFinite(usageRate) || usageRate < 0 || usageRate > 100) return [];
     return [{ id, usageRate, teamCount: approximateCount(usageRate, teamCount) }];
   });
+
+/**
+ * PokeDB labels SP spreads with the Japanese community's stat shorthand. The mapping is not a
+ * guess: every row prints the letters *and* the matching numbers, so e.g. ガブリアス's top row
+ * `AS` carries chips A32 / S32, and ウーラオス-style `HD + b` carries H32 / B14 / D20 — B and D
+ * are told apart by which one the label capitalises. Uppercase = committed stat, lowercase after
+ * `+` = leftover points.
+ */
+const STAT_POINT_KEY_BY_POKEDB_LETTER: Record<string, EnvironmentStatPointKey> = {
+  H: 'hp',
+  A: 'attack',
+  B: 'defense',
+  C: 'specialAttack',
+  D: 'specialDefense',
+  S: 'speed',
+};
+
+/** `undefined` when any letter is unknown: the row is dropped rather than half-guessed. */
+const toStatPointKeys = (letters: string): EnvironmentStatPointKey[] | undefined => {
+  const keys: EnvironmentStatPointKey[] = [];
+  for (const letter of letters.replace(/\s+/g, '')) {
+    const key = STAT_POINT_KEY_BY_POKEDB_LETTER[letter.toUpperCase()];
+    if (!key || keys.includes(key)) return undefined;
+    keys.push(key);
+  }
+  return keys;
+};
+
+const STAT_POINT_ITEM_PATTERN =
+  /<li class="usage-list-item usage-list-item--stats"[\s\S]*?(?=<li class="usage-list-item usage-list-item--stats"|<\/ul>)/g;
+const STAT_POINT_HEAD_PATTERN =
+  /usage-name usage-name--stats">\s*([^<]*?)\s*<\/span>\s*<span class="usage-rate[^"]*">\s*([\d.]+)%/;
+const STAT_POINT_CHIP_PATTERN =
+  /pokemon-stat-spread__label">\s*([^<\s]+)\s*<\/span>\s*<span class="pokemon-stat-spread__value[^"]*">\s*([^<]+?)\s*<\/span>/g;
+// PokeDB shows the merged rows' unassigned points as a 「余り」 chip under a `+` label.
+const STAT_POINT_REMAINDER_LABEL = '+';
+/** Only the leading spreads are worth carrying in the snapshot; the tail is a long 0.x% list. */
+const STAT_POINT_SPREAD_LIMIT = 3;
+
+/**
+ * The 「能力ポイント」 panel, read from its default 合算 (merged) tab — that is the view that
+ * answers "which 分配法", which is what this field is for. Anything the markup no longer matches
+ * is skipped silently: a missing panel must never fail the rest of the detail page, and it must
+ * never trip the Worker's zero-tolerance name audit (which exists for unmapped items/moves).
+ */
+const parseStatPointStats = (html: string, teamCount: number, limit: number): EnvironmentStatPointUsage[] => {
+  const section = html.match(
+    /pokemon-trend__column-stats[\s\S]*?(?=<div class="column[^"]*pokemon-trend__column-|<\/section>)/,
+  )?.[0];
+  if (!section) return [];
+  const aggregated = section.split(/x-show="statViewMode === 'raw'"/)[0];
+
+  const stats = [...aggregated.matchAll(STAT_POINT_ITEM_PATTERN)].flatMap((match) => {
+    // Everything from the nested `pokemon-stat-spread__details` list belongs to the individual
+    // spreads this row merged, whose chips would otherwise be read as part of the row itself.
+    const head = match[0].split('pokemon-stat-spread__details')[0];
+    const label = decodeHtml(head.match(STAT_POINT_HEAD_PATTERN)?.[1] ?? '');
+    const usageRate = Number(head.match(STAT_POINT_HEAD_PATTERN)?.[2]);
+    if (!label || !Number.isFinite(usageRate)) return [];
+
+    const labelParts = label.split('+');
+    if (labelParts.length > 2) return [];
+    const [primaryLetters = '', extraLetters = ''] = labelParts;
+    const primaryStatKeys = toStatPointKeys(primaryLetters);
+    const extraStatKeys = toStatPointKeys(extraLetters);
+    if (!primaryStatKeys || !extraStatKeys) return [];
+
+    const points: EnvironmentStatPointUsage['points'] = {};
+    let hasRemainder = false;
+    for (const chip of head.matchAll(STAT_POINT_CHIP_PATTERN)) {
+      const [, chipLabel, chipValue] = chip;
+      if (chipLabel === STAT_POINT_REMAINDER_LABEL) {
+        hasRemainder = true;
+        continue;
+      }
+      const key = STAT_POINT_KEY_BY_POKEDB_LETTER[chipLabel];
+      const value = Number(chipValue);
+      if (!key || !Number.isFinite(value)) return [];
+      points[key] = value;
+    }
+
+    const stat: EnvironmentStatPointUsage = {
+      label,
+      primaryStatKeys,
+      ...(extraStatKeys.length > 0 ? { extraStatKeys } : {}),
+      points,
+      ...(hasRemainder ? { hasRemainder: true } : {}),
+      usageRate,
+      teamCount: approximateCount(usageRate, teamCount),
+    };
+    return isValidStatPointUsage(stat) ? [stat] : [];
+  });
+
+  return stats.sort((a, b) => b.usageRate - a.usageRate).slice(0, limit);
+};
 
 const convertSlot = (
   slot: Pick<PokeDbRankedTeamSlot, 'id' | 'item'>,
@@ -711,12 +809,15 @@ export function parsePokeDbPokemonDetailPage(
     return [{ id, usageRate, teamCount: approximateCount(usageRate, options.teamCount) }];
   });
 
+  const statPointStats = parseStatPointStats(html, options.teamCount, STAT_POINT_SPREAD_LIMIT);
+
   return {
     moveStats,
     itemStats,
     teammateStats,
     abilityStats,
     natureStats,
+    statPointStats,
     audit: {
       unknownItemNames: [...unknownItemNames].sort(),
       unknownMoveKeys: [...unknownMoveKeys].sort((a, b) => a - b),
