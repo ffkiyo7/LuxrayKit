@@ -19,8 +19,16 @@
   /* 04-09 base-stat rail vs 04-01 damage meter — two different alphas in the frames. */
   --p4a-stat-track: rgb(255 255 255 / 0.08);
   --p4a-meter-track: rgb(255 255 255 / 0.09);
-  /* 04-01 speed sparkline, the bars that are not the member's own. */
+  /* 04-01 speed sparkline: the member's own bar, then the bars that are not. Both sit below the
+     `fn-*` label ink, which has to hold 4.5:1 on paper while a 4px bar does not. */
+  --p4a-spark-on: #e2ab5c;
   --p4a-spark-idle: rgb(255 255 255 / 0.14);
+  /* 04-01 damage meter, the max-roll half of the fill. */
+  --p4a-damage-soft: rgb(95 199 184 / 0.4);
+  /* 04-01 「148–176」: the dash between the two rolls, dimmer than the digits. */
+  --p4a-range-dash: #6e6e73;
+  /* N04-10 artwork on the type-tinted plane. */
+  --p4a-artwork-shadow: 0 18px 28px rgb(0 0 0 / 0.5);
   /* 04-04 list chevrons sit a step dimmer than the `chevron` token used on controls. */
   --p4a-list-chevron: #48484a;
 }
@@ -31,11 +39,17 @@
   --p4a-muted-bg: #f2f2f5;
   --p4a-field-bg: #f2f2f5;
   --p4a-recent-chip-bg: #f2f2f5;
-  --p4a-filter-panel-bg: #f7f7f9;
+  /* 04-06 puts `surface` chips on this band, so on paper the band has to be the whiter plane of
+     the two; its own hairlines are what separate it from the #fbfbfd page. */
+  --p4a-filter-panel-bg: #ffffff;
   --p4a-chip-x-bg: rgb(28 28 30 / 0.1);
   --p4a-stat-track: #e8e8ec;
   --p4a-meter-track: #e8e8ec;
+  --p4a-spark-on: #c98f26;
   --p4a-spark-idle: #e0e0e5;
+  --p4a-damage-soft: #8cc7be;
+  --p4a-range-dash: #aeaeb2;
+  --p4a-artwork-shadow: 0 18px 28px rgb(16 24 40 / 0.18);
   --p4a-list-chevron: #c7c7cc;
 }
 
@@ -72,8 +86,24 @@
   background: var(--p4a-meter-track);
 }
 
+.lk-p4a-spark-on {
+  background: var(--p4a-spark-on);
+}
+
 .lk-p4a-spark-idle {
   background: var(--p4a-spark-idle);
+}
+
+.lk-p4a-damage-soft {
+  background: var(--p4a-damage-soft);
+}
+
+.lk-p4a-range-dash {
+  color: var(--p4a-range-dash);
+}
+
+.lk-p4a-artwork {
+  filter: drop-shadow(var(--p4a-artwork-shadow));
 }
 
 .lk-p4a-list-chevron {

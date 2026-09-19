@@ -1,26 +1,5 @@
 import type { PokemonType } from '../types';
 
-export function Button({
-  children,
-  variant = 'primary',
-  className = '',
-  ...props
-}: React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'primary' | 'ghost' | 'danger' }) {
-  const variants = {
-    primary: 'bg-accent text-page',
-    ghost: 'border border-accent/40 bg-transparent text-accent',
-    danger: 'border border-danger/40 bg-transparent text-danger',
-  };
-  return (
-    <button
-      className={`inline-flex min-h-8 items-center justify-center gap-1.5 rounded-lg px-3 text-xs font-semibold transition active:scale-[0.98] disabled:cursor-not-allowed disabled:border-border disabled:text-textMuted disabled:opacity-60 ${variants[variant]} ${className}`}
-      {...props}
-    >
-      {children}
-    </button>
-  );
-}
-
 export const typeColors: Record<PokemonType, string> = {
   Normal: '#a8a77a',
   Fire: '#ee8130',

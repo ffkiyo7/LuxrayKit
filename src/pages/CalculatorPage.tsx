@@ -613,7 +613,6 @@ function SideEditor({
       )}
       {editingStat && (
         <StatPointPicker
-          boundsVariant="plain"
           label={editingStat.label}
           value={config.statPoints[editingStat.key] ?? 0}
           onChange={(value) =>

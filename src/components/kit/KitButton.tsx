@@ -30,7 +30,7 @@ export function KitButton({
   const skin = disabled
     ? 'bg-btn1 text-btnDisabledInk'
     : variant === 'primary'
-      ? 'bg-accent text-page shadow-[inset_0_1px_0_rgb(255_255_255/0.9),inset_0_-1px_0_rgb(0_0_0/0.12),0_6px_18px_rgb(0_0_0/0.45)]'
+      ? 'lk-btn-primary bg-accent text-page'
       : `${floor} text-textLabel`;
 
   return (

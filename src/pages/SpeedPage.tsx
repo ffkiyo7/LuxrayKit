@@ -582,7 +582,7 @@ export function SpeedPage({
           {markerOffscreen && (
             <button
               aria-label={`回到我，位于${markerOffscreen === 'up' ? '上方' : '下方'}`}
-              className="fixed bottom-[88px] left-1/2 z-30 inline-flex h-11 -translate-x-1/2 items-center gap-2 rounded-full bg-elevated/90 px-[18px] text-sm font-bold text-textPrimary backdrop-blur-lg shadow-[0_0_0_0.5px_rgb(255_255_255/0.14),0_12px_30px_rgb(0_0_0/0.5)]"
+              className="lk-float-pill fixed bottom-[88px] left-1/2 z-30 inline-flex h-11 -translate-x-1/2 items-center gap-2 rounded-full bg-elevated/90 px-[18px] text-sm font-bold text-textPrimary backdrop-blur-lg"
               type="button"
               onClick={scrollToMarker}
             >

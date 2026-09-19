@@ -97,6 +97,10 @@
   --raised-shadow: none;
   --damage-bar: linear-gradient(90deg, #d4870a, #e2635f);
   --damage-pill: rgb(212 135 10 / 0.16);
+  --btn-primary-shadow: inset 0 1px 0 rgb(255 255 255 / 0.9), inset 0 -1px 0 rgb(0 0 0 / 0.12), 0 6px 18px rgb(0 0 0 / 0.45);
+  --segment-on-shadow: none;
+  --slider-thumb-shadow: 0 2px 8px rgb(0 0 0 / 0.5);
+  --float-pill-shadow: 0 0 0 0.5px rgb(255 255 255 / 0.14), 0 12px 30px rgb(0 0 0 / 0.5);
   background: rgb(var(--color-page));
   color: rgb(var(--color-text-primary));
   font-synthesis: none;
@@ -126,9 +130,9 @@
   --color-danger: 192 57 47;
   --color-warning: 170 99 0;
   --color-fn-blue: 47 95 143;
-  --color-fn-teal: 43 142 130;
-  --color-fn-amber: 169 116 31;
-  --color-fn-pink: 184 79 107;
+  --color-fn-teal: 35 122 111;
+  --color-fn-amber: 150 101 26;
+  --color-fn-pink: 168 66 94;
   --color-fn-green: 18 120 74;
   --color-legal-bg: 224 244 233;
   --color-review-bg: 252 238 208;
@@ -163,6 +167,12 @@
   --raised-shadow: 0 1px 2px rgb(0 0 0 / 0.05), 0 8px 24px rgb(16 24 40 / 0.06);
   --damage-bar: linear-gradient(90deg, #d4870a, #c0392f);
   --damage-pill: rgb(212 135 10 / 0.16);
+  /* NL-01 / NL-02: on paper the ink slab carries one soft drop, not the dark theme's white seam. */
+  --btn-primary-shadow: 0 1px 2px rgb(16 24 40 / 0.12);
+  /* 06-02 / NL-05: a white tile only reads inside a #f2f2f5 well once it is lifted. */
+  --segment-on-shadow: 0 1px 2px rgb(16 24 40 / 0.1), 0 0 0 0.5px rgb(16 24 40 / 0.06);
+  --slider-thumb-shadow: 0 2px 8px rgb(28 28 30 / 0.32);
+  --float-pill-shadow: 0 0 0 0.5px rgb(16 24 40 / 0.1), 0 12px 30px rgb(28 28 30 / 0.18);
 }
 
 * {
@@ -295,6 +305,21 @@ button {
   box-shadow: inset 0 0 0 1.5px var(--marker-ring);
 }
 
+/* The near-white (dark) / ink (light) slab: its shadow is the only part that differs per theme. */
+.lk-btn-primary {
+  box-shadow: var(--btn-primary-shadow);
+}
+
+.lk-segment-on {
+  background: rgb(var(--color-segment-on));
+  box-shadow: var(--segment-on-shadow);
+}
+
+/* Floating "back to me" capsule over the speed axis (05-05). */
+.lk-float-pill {
+  box-shadow: var(--float-pill-shadow);
+}
+
 .lk-damage-bar {
   background: var(--damage-bar);
 }
@@ -343,7 +368,7 @@ button {
   border: 0;
   border-radius: 9999px;
   background: rgb(var(--color-text-primary));
-  box-shadow: 0 2px 8px rgb(0 0 0 / 0.5);
+  box-shadow: var(--slider-thumb-shadow);
   -webkit-appearance: none;
   appearance: none;
 }
@@ -354,7 +379,7 @@ button {
   border: 0;
   border-radius: 9999px;
   background: rgb(var(--color-text-primary));
-  box-shadow: 0 2px 8px rgb(0 0 0 / 0.5);
+  box-shadow: var(--slider-thumb-shadow);
 }
 
 /* ===========================================================================

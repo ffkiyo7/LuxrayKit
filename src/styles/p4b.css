@@ -30,7 +30,9 @@
   --lk-type-chip: #ededf0;
   --lk-type-slot-ring: rgb(16 24 40 / 0.1);
   --lk-type-clear: #e3e3e8;
-  --lk-type-rail-panel: #f4f4f7;
+  /* 06-04 puts `surface` chips on this band (as 04-06 does), so on paper it is the whiter plane
+     and its hairlines carry the separation from the page. */
+  --lk-type-rail-panel: #ffffff;
   --lk-matrix-gutter: #e8e8ec;
   --lk-matrix-cell: #ffffff;
   --lk-matrix-neutral-ink: #6e6e73;

@@ -110,7 +110,7 @@ function LargeArtwork({ entry, onClose }: { entry: DexFormEntry; onClose: () => 
       <div className="grid place-items-center px-6 pt-[120px]">
         <img
           alt={entry.chineseName}
-          className="h-[132px] w-[132px] object-contain drop-shadow-[0_18px_28px_rgb(0_0_0/0.5)]"
+          className="lk-p4a-artwork h-[132px] w-[132px] object-contain"
           src={entry.artworkRef ?? entry.iconRef}
         />
         <p className="mt-[26px] text-[22px] font-extrabold leading-[30px] tracking-[-0.01em]">{entry.chineseName}</p>
@@ -377,7 +377,7 @@ export function PokemonDetail({
           the bar's own padding keeps the buttons clear of it. */}
       <div className="sticky bottom-0 z-10 mt-6 flex gap-2.5 bg-gradient-to-t from-page via-page/70 to-transparent px-6 pb-[86px] pt-4 backdrop-blur-xl">
         <button
-          className="inline-flex h-[50px] min-w-0 flex-1 items-center justify-center gap-2 rounded-2xl bg-accent text-base font-extrabold text-page shadow-[inset_0_1px_0_rgb(255_255_255/0.9),inset_0_-1px_0_rgb(0_0_0/0.12),0_6px_18px_rgb(0_0_0/0.45)]"
+          className="lk-btn-primary inline-flex h-[50px] min-w-0 flex-1 items-center justify-center gap-2 rounded-2xl bg-accent text-base font-extrabold text-page"
           type="button"
           onClick={addToTeam}
         >
