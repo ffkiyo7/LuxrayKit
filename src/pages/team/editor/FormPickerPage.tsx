@@ -49,7 +49,7 @@ export function FormPickerPage({
           }
         >
           <Sprite
-            className="mx-auto drop-shadow-[0_18px_28px_rgba(0,0,0,0.5)]"
+            className="lk-sprite-drop mx-auto"
             iconRef={selected.iconRef}
             label={selected.chineseName}
             size={132}

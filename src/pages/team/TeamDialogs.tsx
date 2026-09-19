@@ -26,7 +26,7 @@ export function SheetButton({
   const skin = disabled
     ? 'bg-btn1 text-btnDisabledInk'
     : tone === 'primary'
-      ? 'bg-accent font-extrabold text-page shadow-[inset_0_1px_0_rgb(255_255_255/0.9),inset_0_-1px_0_rgb(0_0_0/0.12),0_6px_18px_rgb(0_0_0/0.45)]'
+      ? 'lk-slab bg-accent font-extrabold text-page'
       : tone === 'danger'
         ? 'lk-danger-soft font-extrabold text-danger'
         : 'bg-btn1 font-bold text-textLabel';

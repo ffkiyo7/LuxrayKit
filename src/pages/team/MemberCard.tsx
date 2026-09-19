@@ -47,13 +47,13 @@ function StatCell({
       <div className="flex items-baseline gap-1.5">
         <span className={`text-xs ${invested ? 'font-bold text-textPrimary' : 'font-semibold text-textSecondary'}`}>{label}</span>
         {marker && (
-          <span className={`text-xs font-extrabold ${invested ? 'text-data' : 'text-textLabel'}`}>{marker === 'up' ? '↑' : '↓'}</span>
+          <span className={`text-xs font-extrabold ${invested ? 'text-data' : 'lk-glyph-ink'}`}>{marker === 'up' ? '↑' : '↓'}</span>
         )}
         <span className="flex-1" />
         <span className="text-[20px] font-extrabold tracking-[-0.01em] tabular-nums">{value}</span>
       </div>
-      <div className="mt-[7px] flex h-1 gap-0.5 overflow-hidden rounded-full bg-textPrimary/[0.09]">
-        <div className="bg-btnDisabledInk" style={{ width: `${basePercent}%` }} />
+      <div className="lk-stat-track mt-[7px] flex h-1 gap-0.5 overflow-hidden rounded-full">
+        <div className="lk-stat-fill" style={{ width: `${basePercent}%` }} />
         {spPercent > 0 && <div className="bg-data" style={{ width: `${spPercent}%` }} />}
       </div>
     </div>
@@ -106,7 +106,7 @@ export function ExpandedMemberCard({
           {item?.iconRef && (
             <img
               alt={item.chineseName}
-              className="absolute -right-0.5 bottom-0 h-[27px] w-[27px] object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)]"
+              className="lk-item-badge absolute -right-0.5 bottom-0 h-[27px] w-[27px] object-contain"
               src={item.iconRef}
               title={item.chineseName}
             />
@@ -174,7 +174,7 @@ export function ExpandedMemberCard({
       </div>
 
       <button
-        className="mt-4 flex h-12 w-full items-center justify-center gap-[7px] border-t border-[var(--hairline-strong)] text-sm font-bold text-fnBlue"
+        className="lk-edit-entry mt-4 flex h-12 w-full items-center justify-center gap-[7px] border-t border-[var(--hairline-strong)] text-sm font-bold"
         type="button"
         onClick={onEdit}
       >
@@ -196,7 +196,7 @@ export function MemberTile({ member, onExpand }: { member: TeamMember; onExpand:
   return (
     <button
       aria-label={`展开 ${name}`}
-      className="flex flex-col items-center rounded-[20px] bg-surface p-4 text-center"
+      className="lk-card-face flex flex-col items-center rounded-[20px] p-4 text-center shadow-[shadow:var(--lk-card-shadow)]"
       type="button"
       onClick={onExpand}
     >
