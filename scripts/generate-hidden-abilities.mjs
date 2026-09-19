@@ -82,11 +82,19 @@ async function catalogPokemon() {
  */
 async function fetchVariety({ id, nationalDexNo }) {
   const byId = `${POKEAPI}/pokemon/${id}/`;
-  if (cached(byId) || !offline) return cachedJson(byId);
+  if (cached(byId) || !offline) {
+    try {
+      return await cachedJson(byId);
+    } catch (error) {
+      // PokeAPI names some default varieties with a suffix the catalog drops (`pyroar` is
+      // `pyroar-male` there), so the bare id 404s and the dex number has to stand in.
+      if (!String(error.message).startsWith('HTTP 404')) throw error;
+    }
+  }
   const byDexNo = `${POKEAPI}/pokemon/${nationalDexNo}/`;
-  if (!cached(byDexNo)) return undefined;
+  if (!cached(byDexNo) && offline) return undefined;
   const poke = await cachedJson(byDexNo);
-  return poke.name === id ? poke : undefined;
+  return poke.name === id || poke.name.startsWith(`${id}-`) ? poke : undefined;
 }
 
 const catalog = await catalogPokemon();
