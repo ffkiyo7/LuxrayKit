@@ -123,10 +123,19 @@ function ImportCoverageNoticeDialog({
   );
 }
 
-// The redesigned tool pages (05) carry their own 24px gutter and their own big title, so the
-// shell drops its padding and the product Header for them. The Header itself stays in place
-// for every page that has not been reworked yet.
-const bleedToolViews: ToolView[] = ['calculator', 'speed'];
+// Redesigned pages carry their own 24px gutter and big title, so the shell gives them neither
+// padding nor the product Header. Pages listed here are still on the old chrome; each redesign
+// stage deletes its own entries, and the list (with Header.tsx) goes away with the last one.
+type ChromeKey = TabId | ToolView | 'rule';
+const legacyChromePages: ChromeKey[] = [
+  'environment',
+  'teams',
+  'tools',
+  'dex',
+  'typeChart',
+  'profile',
+  'rule',
+];
 
 function ToolWorkspace({
   view,
@@ -157,7 +166,7 @@ function ToolWorkspace({
     speed: environment ? <SpeedPage environment={environment} activeTeam={activeTeam} presetMember={speedPresetMember} onOpenDex={onOpenDex} /> : <PageLoading label="正在载入速度线环境数据..." />,
     typeChart: <TypeChartPage />,
   }[view];
-  const bleed = bleedToolViews.includes(view);
+  const bleed = !legacyChromePages.includes(view);
 
   return (
     <div className={bleed ? '' : 'space-y-3'}>
@@ -447,7 +456,8 @@ function AppShell() {
     );
   }
 
-  const bleedPage = activeTab === 'tools' && toolView !== null && bleedToolViews.includes(toolView);
+  const chromeKey: ChromeKey = overlay === 'rule' ? 'rule' : activeTab === 'tools' && toolView ? toolView : activeTab;
+  const bleedPage = !legacyChromePages.includes(chromeKey);
 
   return (
     <main className="app-shell mx-auto min-h-screen max-w-[430px] text-textPrimary">
