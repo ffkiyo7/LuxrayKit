@@ -47,6 +47,12 @@
    */
   --env-sp-seg2: #4a4a52;
   --env-sp-dash: rgb(255 255 255 / 0.24);
+  /*
+   * 再来一队 (07-05) sits on the draw dialog's sunken card. Dark is plain `btn-1`; in light `btn-1`
+   * and `sunken` are the same #ededf0, so the button had no face at all — light takes white
+   * (owner, 2026-09-19).
+   */
+  --env-draw-again-bg: rgb(var(--color-btn-1));
 }
 
 :root[data-theme='light'] {
@@ -68,6 +74,7 @@
   --env-slab-shadow: 0 1px 2px rgb(16 24 40 / 0.12);
   --env-sp-seg2: #c7c7cc;
   --env-sp-dash: rgb(0 0 0 / 0.22);
+  --env-draw-again-bg: #ffffff;
 }
 
 /* The Pokémon's own two body colours, sampled off its artwork (`auraStyle(types, iconRef)` on the
@@ -110,6 +117,10 @@
 
 .lk-env-slab {
   box-shadow: var(--env-slab-shadow);
+}
+
+.lk-env-draw-again {
+  background: var(--env-draw-again-bg);
 }
 
 /* Skeleton blocks (01-07, N01-15): a plane just off the page so they read as "not content yet". */

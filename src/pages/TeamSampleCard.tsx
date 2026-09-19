@@ -135,7 +135,7 @@ export function TeamSampleCard({
         <div className="mt-3.5 grid grid-cols-[1fr_auto] gap-2">
           <SampleImportButton importing={importing} label="导入为我的队伍" onClick={() => void handleImport()} />
           <button
-            className="inline-flex h-11 items-center justify-center gap-1.5 rounded-xl bg-btn1 px-3 text-sm font-bold text-textLabel"
+            className="inline-flex h-11 items-center justify-center gap-1.5 rounded-xl lk-env-draw-again px-3 text-sm font-bold text-textLabel"
             type="button"
             onClick={onDrawAgain}
           >
