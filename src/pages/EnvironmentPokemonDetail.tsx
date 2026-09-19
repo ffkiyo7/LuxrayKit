@@ -16,9 +16,14 @@ import {
   type EnvironmentState,
   type EnvironmentTeamSample,
 } from '../data/environment';
-import { isUnresolvedPokemonId, type EnvironmentReferenceUsage } from '../lib/environmentDataset';
+import {
+  isUnresolvedPokemonId,
+  type EnvironmentReferenceUsage,
+  type EnvironmentStatPointUsage,
+} from '../lib/environmentDataset';
 import { currentRuleMovesForPokemon } from '../lib/currentRuleCatalog';
 import { evaluateMemberLegality } from '../lib/legality';
+import { MAX_TOTAL_STAT_POINTS, statPointKeys, statPointLabels } from '../lib/statPoints';
 import { createDefaultTeamMember } from '../lib/teamMemberDefaults';
 import { useAppStore } from '../state/AppContext';
 import type { Move, Team, TeamMember } from '../types';
@@ -28,6 +33,7 @@ import { resolveSampleSlots, teamSampleScoreMeta, teamSampleTitle } from './Team
 const VISIBLE_MOVE_ROWS = 4;
 const VISIBLE_ITEM_ROWS = 3;
 const VISIBLE_TRAIT_ROWS = 2;
+const VISIBLE_SPREAD_ROWS = 3;
 const VISIBLE_RELATED_SAMPLES = 3;
 
 const categoryLabels: Record<Move['category'], string> = { Physical: '物理', Special: '特殊', Status: '变化' };
@@ -72,6 +78,87 @@ function StatRow({
         className={`shrink-0 text-[20px] font-extrabold tabular-nums ${dimmed ? 'text-textSecondary' : 'text-textLabel'}`}
       >
         {formatRate(rate)}
+      </span>
+    </div>
+  );
+}
+
+/**
+ * One SP spread: a 66-point rail on top, the same numbers as chips below.
+ *
+ * The rail is the whole Champions budget — every segment grows by its own point count out of
+ * `MAX_TOTAL_STAT_POINTS`, so a row PokeDB merged (`hasRemainder`) visibly stops short and ends
+ * in a dashed tail worth the points it never named. A row that already totals 66 has no tail,
+ * and a short row without `hasRemainder` simply leaves the rail unfilled rather than inventing one.
+ */
+function StatPointSpreadRow({
+  stat,
+  lead,
+  divider,
+}: {
+  stat: EnvironmentStatPointUsage;
+  lead: boolean;
+  divider: boolean;
+}) {
+  const terms = statPointKeys
+    .map((key) => ({ key, label: statPointLabels[key], value: Number(stat.points[key] ?? 0) }))
+    .filter((term) => term.value > 0);
+  const assigned = terms.reduce((total, term) => total + term.value, 0);
+  const remainder = stat.hasRemainder ? Math.max(0, MAX_TOTAL_STAT_POINTS - assigned) : 0;
+  const rate = formatRate(stat.usageRate);
+  const spoken = [
+    terms.map((term) => `${term.label} ${term.value}`).join('、'),
+    ...(remainder > 0 ? [`余 ${remainder} 点`] : []),
+    `使用率 ${rate}`,
+  ].join('，');
+
+  return (
+    <div
+      aria-label={spoken}
+      className={`py-3.5 ${divider ? 'border-b border-[var(--hairline)]' : ''}`}
+      role="group"
+    >
+      <span aria-hidden="true" className="flex h-2.5 items-stretch gap-[3px]">
+        {terms.map((term) => (
+          <span
+            key={term.key}
+            className={`min-w-[8px] basis-0 rounded-[3px] ${lead ? 'bg-data' : 'bg-[var(--env-sp-seg2)]'}`}
+            style={{ flexGrow: term.value }}
+          />
+        ))}
+        {remainder > 0 && (
+          <span
+            className="min-w-[8px] basis-0 rounded-[3px] border border-dashed border-[var(--env-sp-dash)]"
+            style={{ flexGrow: remainder }}
+          />
+        )}
+      </span>
+      <span className="mt-2.5 flex items-center gap-2.5">
+        <span className="flex min-w-0 flex-1 flex-wrap gap-1">
+          {terms.map((term) => (
+            <span
+              key={term.key}
+              className="lk-chip inline-flex h-[22px] items-baseline gap-1 rounded-full px-[7px] pt-[3px]"
+            >
+              <span className="text-[11px] font-bold leading-[14px] text-textLabel">{term.label}</span>
+              <span
+                className={`text-xs font-extrabold leading-[14px] tabular-nums ${lead ? 'text-data' : 'text-textLabel'}`}
+              >
+                {term.value}
+              </span>
+            </span>
+          ))}
+          {remainder > 0 && (
+            <span className="inline-flex h-[22px] items-baseline gap-1 rounded-full border border-dashed border-[var(--env-sp-dash)] px-[7px] pt-[3px]">
+              <span className="text-[11px] font-bold leading-[14px] text-textSecondary">余</span>
+              <span className="text-xs font-extrabold leading-[14px] tabular-nums text-textSecondary">{remainder}</span>
+              <span className="text-[10px] font-bold leading-[14px] text-textSecondary">点</span>
+            </span>
+          )}
+        </span>
+        <span aria-hidden="true" className="shrink-0 text-[20px] font-extrabold tabular-nums text-textLabel">
+          {rate}
+        </span>
       </span>
     </div>
   );
@@ -159,6 +246,7 @@ export function EnvironmentPokemonDetail({
     .map((stat) => ({ stat, ability: getAbility(stat.id) }))
     .filter((row): row is { stat: EnvironmentReferenceUsage; ability: CatalogAbility } => Boolean(row.ability));
   const natureRows = usage?.natureStats ?? [];
+  const spreadRows = (usage?.statPointStats ?? []).slice(0, VISIBLE_SPREAD_ROWS);
   // 常见队友 carries a rank-relative number that must never be shown, so the list is ordered by
   // the teammate's own environment rank and printed without any value at all.
   const teammateRows = (usage?.teammateStats ?? [])
@@ -377,6 +465,22 @@ export function EnvironmentPokemonDetail({
               </div>
             </div>
           )}
+        </section>
+      )}
+
+      {spreadRows.length > 0 && (
+        <section className="px-6 pt-[26px]">
+          <SectionHeading>SP 分配</SectionHeading>
+          <div className="mt-2.5">
+            {spreadRows.map((stat, index) => (
+              <StatPointSpreadRow
+                key={`${stat.label}-${index}`}
+                divider={index < spreadRows.length - 1}
+                lead={index === 0}
+                stat={stat}
+              />
+            ))}
+          </div>
         </section>
       )}
 

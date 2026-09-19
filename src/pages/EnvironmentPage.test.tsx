@@ -3,7 +3,12 @@ import 'fake-indexeddb/auto';
 import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { currentRegulation as catalogRegulation, type EnvironmentState, type EnvironmentTeamSample } from '../data/environment';
+import {
+  currentRegulation as catalogRegulation,
+  type EnvironmentPokemonUsage,
+  type EnvironmentState,
+  type EnvironmentTeamSample,
+} from '../data/environment';
 import { regulationSchedule } from '../data/schedule';
 import { currentDataVersion, currentRuleSet } from '../data';
 import { pokemon } from '../data/seed/regMA/catalog';
@@ -485,6 +490,101 @@ describe('宝可梦详情', () => {
 
     await user.click(screen.getByRole('button', { name: '返回' }));
     expect(await screen.findByRole('heading', { name: '今日环境' })).toBeTruthy();
+  });
+});
+
+describe('SP 分配', () => {
+  // `points` is written out of stat order on purpose: the section must print HP → 速度 regardless.
+  const makeSpreadEnvironment = (statPointStats: EnvironmentPokemonUsage['statPointStats']): EnvironmentState => {
+    const base = makeEnvironment('rank-relative');
+    return {
+      ...base,
+      pokemonUsage: {
+        ...base.pokemonUsage,
+        singles: [
+          { ...base.pokemonUsage.singles[0], ...(statPointStats ? { statPointStats } : {}) },
+          ...base.pokemonUsage.singles.slice(1),
+        ],
+      },
+    };
+  };
+
+  const spreads: NonNullable<EnvironmentPokemonUsage['statPointStats']> = [
+    {
+      label: 'AS',
+      primaryStatKeys: ['attack', 'speed'],
+      points: { speed: 32, attack: 32 },
+      hasRemainder: true,
+      usageRate: 32.2,
+      teamCount: 69,
+    },
+    {
+      label: 'HBD',
+      primaryStatKeys: ['hp', 'defense', 'specialDefense'],
+      points: { specialDefense: 20, hp: 32, defense: 14 },
+      usageRate: 18.6,
+      teamCount: 40,
+    },
+    {
+      label: 'BCS',
+      primaryStatKeys: ['defense', 'specialAttack', 'speed'],
+      points: { defense: 5, specialAttack: 31, speed: 30 },
+      usageRate: 4.2,
+      teamCount: 9,
+    },
+    {
+      label: 'HA',
+      primaryStatKeys: ['hp', 'attack'],
+      points: { hp: 32, attack: 32 },
+      hasRemainder: true,
+      usageRate: 1.1,
+      teamCount: 2,
+    },
+  ];
+
+  const openGarchomp = async (user: ReturnType<typeof userEvent.setup>) => {
+    await user.click(screen.getByRole('button', { name: '单打' }));
+    await user.click(homeRow('烈咬陆鲨'));
+    expect(await screen.findByRole('heading', { name: '烈咬陆鲨' })).toBeTruthy();
+  };
+
+  it('prints the top three spreads in stat order, with the leftover only where PokeDB merged rows', async () => {
+    const user = userEvent.setup();
+    renderEnvironment(makeSpreadEnvironment(spreads));
+    await openGarchomp(user);
+
+    const section = screen.getByText('SP 分配').closest('section') as HTMLElement;
+    const rows = within(section).getAllByRole('group');
+    expect(rows).toHaveLength(3);
+    expect(rows.map((row) => row.getAttribute('aria-label'))).toEqual([
+      '攻击 32、速度 32，余 2 点，使用率 32.2%',
+      'HP 32、防御 14、特防 20，使用率 18.6%',
+      '防御 5、特攻 31、速度 30，使用率 4.2%',
+    ]);
+    // A full 66-point row carries no leftover chip at all.
+    expect(within(rows[1]).queryByText('余')).toBeNull();
+    expect(within(rows[0]).getByText('余')).toBeTruthy();
+    expect(within(rows[0]).getByText('点')).toBeTruthy();
+    // Upstream's shorthand and team counts stay out of the UI.
+    expect(within(section).queryByText('AS')).toBeNull();
+    expect(within(section).queryByText(/69/)).toBeNull();
+  });
+
+  it('drops the whole section — heading included — when the snapshot carries no spreads', async () => {
+    const user = userEvent.setup();
+    renderEnvironment(makeSpreadEnvironment(undefined));
+    await openGarchomp(user);
+
+    expect(screen.queryByText('SP 分配')).toBeNull();
+    expect(screen.getByText('常见队友')).toBeTruthy();
+  });
+
+  it('drops the section when the field is present but empty', async () => {
+    const user = userEvent.setup();
+    renderEnvironment(makeSpreadEnvironment([]));
+    await openGarchomp(user);
+
+    expect(screen.queryByText('SP 分配')).toBeNull();
   });
 });
 

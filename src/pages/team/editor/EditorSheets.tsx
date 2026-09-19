@@ -1,6 +1,6 @@
 import { Trash2 } from 'lucide-react';
 import { moves } from '../../../data';
-import { statPointKeys } from '../../../lib/statPoints';
+import { statPointKeys, statPointLabels } from '../../../lib/statPoints';
 import type { Team, TeamMember } from '../../../types';
 import { Sheet, Sprite } from '../../../components/kit';
 import { SheetButton } from '../TeamDialogs';
@@ -40,15 +40,6 @@ export function DiscardChangesSheet({
   );
 }
 
-const statLabels: Record<string, string> = {
-  hp: 'HP',
-  attack: '攻击',
-  defense: '防御',
-  specialAttack: '特攻',
-  specialDefense: '特防',
-  speed: '速度',
-};
-
 /** 02-14's roster line: 「顺风 / 拍落 / 助攻 / 棉花孢子 · SP 速度 32 · HP 32」. */
 const memberSummary = (member: TeamMember) => {
   const moveNames = member.moveIds
@@ -57,7 +48,7 @@ const memberSummary = (member: TeamMember) => {
     .join(' / ');
   const invested = statPointKeys
     .filter((key) => Number(member.statPoints[key] ?? 0) > 0)
-    .map((key, index) => `${index === 0 ? 'SP ' : ''}${statLabels[key]} ${member.statPoints[key]}`);
+    .map((key, index) => `${index === 0 ? 'SP ' : ''}${statPointLabels[key]} ${member.statPoints[key]}`);
   return [moveNames, ...invested].filter(Boolean).join(' · ');
 };
 

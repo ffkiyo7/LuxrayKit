@@ -3,19 +3,10 @@ import { useEffect, useState } from 'react';
 import { abilities, currentDataVersion, currentRuleSet, items, moves } from '../data';
 import { createId } from '../lib/id';
 import { getMemberBattleForm } from '../lib/pokemonForms';
-import { MAX_TOTAL_STAT_POINTS, statPointKeys, statPointTotal } from '../lib/statPoints';
+import { MAX_TOTAL_STAT_POINTS, statPointKeys, statPointLabels, statPointTotal } from '../lib/statPoints';
 import { decodeTeamShare, type DecodedTeamShare } from '../lib/teamShare';
 import type { Team, TeamMember } from '../types';
 import { Sprite } from '../components/kit/Sprite';
-
-const statLabels: Record<(typeof statPointKeys)[number], string> = {
-  hp: 'HP',
-  attack: '攻击',
-  defense: '防御',
-  specialAttack: '特攻',
-  specialDefense: '特防',
-  speed: '速度',
-};
 
 const abilityName = (abilityId?: string) =>
   abilityId ? abilities.find((entry) => entry.id === abilityId)?.chineseName ?? abilityId : '未设置特性';
@@ -28,7 +19,7 @@ const statSummary = (member: TeamMember) => {
   const total = statPointTotal(member.statPoints ?? {});
   const used = statPointKeys
     .filter((key) => Number(member.statPoints?.[key] ?? 0) > 0)
-    .map((key) => `${statLabels[key]} ${member.statPoints?.[key]}`);
+    .map((key) => `${statPointLabels[key]} ${member.statPoints?.[key]}`);
   return used.length > 0 ? `${used.join(' · ')} · 共 ${total}/${MAX_TOTAL_STAT_POINTS}` : `SP 未分配 · 0/${MAX_TOTAL_STAT_POINTS}`;
 };
 

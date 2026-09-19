@@ -1,6 +1,6 @@
 import { abilities, items, moves, pokemon } from '../../../data';
 import { findBattleForm } from '../../../lib/pokemonForms';
-import { statPointKeys } from '../../../lib/statPoints';
+import { statPointKeys, statPointLabels } from '../../../lib/statPoints';
 import type { Team, TeamMember } from '../../../types';
 
 /**
@@ -54,15 +54,6 @@ const formName = (member: TeamMember) => {
   return form?.chineseName ?? pokemonName(member.pokemonId);
 };
 
-const statLabels: Record<string, string> = {
-  hp: 'HP',
-  attack: '攻击',
-  defense: '防御',
-  specialAttack: '特攻',
-  specialDefense: '特防',
-  speed: '速度',
-};
-
 /** Every field the draft moved, in the order N03-12 lists them. */
 export function draftChanges(original: TeamMember, draft: TeamMember): DraftChange[] {
   const changes: DraftChange[] = [];
@@ -76,7 +67,7 @@ export function draftChanges(original: TeamMember, draft: TeamMember): DraftChan
   statPointKeys.forEach((key) => {
     const before = Number(original.statPoints[key] ?? 0);
     const after = Number(draft.statPoints[key] ?? 0);
-    if (before !== after) changes.push({ label: '能力分配', detail: `${statLabels[key]} ${before} → ${after}` });
+    if (before !== after) changes.push({ label: '能力分配', detail: `${statPointLabels[key]} ${before} → ${after}` });
   });
 
   for (let slot = 0; slot < 4; slot += 1) {
