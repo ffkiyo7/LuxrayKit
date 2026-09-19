@@ -10,9 +10,14 @@ import type { BaseStats, StatPoints } from '../../../types';
  * slider role, keyboard stepping and value announcements).
  *
  * The wheel is a real scroller: native `overflow-x` + `scroll-snap` gives touch dragging, its
- * inertia and the snap for free, and the stat that settles under the centre becomes the
- * selected one. Tapping an item and the arrow keys stay, and a mouse wheel's vertical delta is
- * mapped onto the track (a wheel mouse has no horizontal axis).
+ * inertia and the snap for free. Two things keep that snap honest:
+ *  - every item is the same fixed width and only *paints* smaller away from the centre
+ *    (`transform`), so choosing a stat never moves the snap points under the finger;
+ *  - the stat under the centre is followed live while the track moves, rather than read once
+ *    after a guess at when the gesture ended.
+ * Tapping an item and the arrow keys stay. A mouse wheel has no horizontal axis and would be
+ * pulled back by the mandatory snap tick by tick, so its vertical delta steps the selection
+ * one stat at a time instead of nudging `scrollLeft`.
  */
 
 export type StatKey = keyof BaseStats;
@@ -30,19 +35,28 @@ const TICKS = [0, 8, 16, 24, 32];
 
 // 03-01 shades the wheel by how far a stat sits from the centre; past two steps it stops
 // shrinking, since the frame never shows a fourth ring.
+//
+// The frame's 17 / 15 / 14 / 13px steps are painted as scales of one 17px box: a real font-size
+// change would resize the item and shift every snap point the moment the selection changes.
 const wheelInk = (distance: number) => {
-  if (distance === 0) return { className: 'text-[17px] font-extrabold tracking-[-0.01em] text-textPrimary px-[14px]', style: {} };
+  if (distance === 0) return { className: 'font-extrabold tracking-[-0.01em] text-textPrimary', style: {} };
   if (distance === 1) {
-    return { className: 'text-[15px] font-semibold px-[11px]', style: { color: 'var(--lk-wheel-d1)' } };
+    return { className: 'font-semibold', style: { color: 'var(--lk-wheel-d1)', transform: 'scale(0.88)' } };
   }
   if (distance === 2) {
-    return { className: 'text-[14px] font-semibold px-[11px]', style: { color: 'var(--lk-wheel-d2)', transform: 'scaleY(0.9)' } };
+    return { className: 'font-semibold', style: { color: 'var(--lk-wheel-d2)', transform: 'scale(0.82, 0.74)' } };
   }
   return {
-    className: 'text-[13px] font-semibold px-[11px] opacity-75',
-    style: { color: 'var(--lk-wheel-d3)', transform: 'scaleY(0.82)' },
+    className: 'font-semibold opacity-75',
+    style: { color: 'var(--lk-wheel-d3)', transform: 'scale(0.76, 0.63)' },
   };
 };
+
+/** Wheel travel that counts as one stat, and the pause between two steps of one spin. */
+const WHEEL_STEP_DELTA = 40;
+const WHEEL_STEP_INTERVAL = 110;
+/** A programmatic scroll that never reports arriving stops owning the track after this long. */
+const TARGET_TIMEOUT = 700;
 
 export function StatWheel({
   statPoints,
@@ -63,11 +77,22 @@ export function StatWheel({
   );
   const boxRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<Partial<Record<StatKey, HTMLButtonElement | null>>>({});
-  // A scroll we started ourselves must not be read back as a user choice, and the settle timer
-  // is what tells snapping apart from a gesture still in flight.
-  const programmaticRef = useRef(false);
-  const settleRef = useRef(0);
+  const selectedRef = useRef(selectedKey);
+  selectedRef.current = selectedKey;
+  // While a scroll we started ourselves (tap, key, wheel step) is on its way, the stats it
+  // passes are not choices: the track is only read back once it reports the target.
+  const targetRef = useRef<StatKey | null>(null);
+  const targetTimerRef = useRef(0);
+  // A selection that came *from* the track is already centred by the snap; scrolling to it
+  // again would fight the gesture that produced it.
+  const fromScrollRef = useRef(false);
+  const frameRef = useRef(0);
   const centredRef = useRef(false);
+
+  const releaseTarget = () => {
+    targetRef.current = null;
+    window.clearTimeout(targetTimerRef.current);
+  };
 
   const centreOn = (key: StatKey, behavior: ScrollBehavior) => {
     const box = boxRef.current;
@@ -75,31 +100,68 @@ export function StatWheel({
     if (!box || !item) return;
     const left = item.offsetLeft + item.offsetWidth / 2 - box.clientWidth / 2;
     if (Math.abs(box.scrollLeft - left) < 1) return;
-    programmaticRef.current = true;
+    targetRef.current = key;
+    window.clearTimeout(targetTimerRef.current);
+    targetTimerRef.current = window.setTimeout(releaseTarget, TARGET_TIMEOUT);
     box.scrollTo({ left, behavior });
   };
 
   useLayoutEffect(() => {
+    if (fromScrollRef.current) {
+      fromScrollRef.current = false;
+      return;
+    }
     // The very first pass places the stored stat without animating past its neighbours.
     centreOn(selectedKey, centredRef.current ? 'smooth' : 'auto');
     centredRef.current = true;
   }, [selectedKey]);
 
-  // React's own wheel listener is passive, so the vertical-to-horizontal mapping needs a
-  // native one to be able to cancel the page scroll it would otherwise cause.
+  const step = (delta: number) => {
+    const index = wheelStats.findIndex((entry) => entry.key === selectedRef.current);
+    const next = wheelStats[Math.max(0, Math.min(wheelStats.length - 1, index + delta))];
+    if (next) setSelectedKey(next.key);
+  };
+  const stepRef = useRef(step);
+  stepRef.current = step;
+
+  // React's own wheel listener is passive, so taking over the vertical axis needs a native one
+  // to be able to cancel the page scroll it would otherwise cause.
   useEffect(() => {
     const box = boxRef.current;
     if (!box) return;
+    let travelled = 0;
+    let lastStepAt = 0;
+    let idleTimer = 0;
     const onWheel = (event: WheelEvent) => {
+      // A trackpad's sideways swipe is a real horizontal scroll: the native snap handles it.
       if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
       event.preventDefault();
-      box.scrollLeft += event.deltaY;
+      travelled += event.deltaY;
+      window.clearTimeout(idleTimer);
+      idleTimer = window.setTimeout(() => {
+        travelled = 0;
+      }, 180);
+      if (Math.abs(travelled) < WHEEL_STEP_DELTA) return;
+      const now = performance.now();
+      if (now - lastStepAt < WHEEL_STEP_INTERVAL) return;
+      lastStepAt = now;
+      stepRef.current(travelled > 0 ? 1 : -1);
+      travelled = 0;
     };
     box.addEventListener('wheel', onWheel, { passive: false });
-    return () => box.removeEventListener('wheel', onWheel);
+    return () => {
+      window.clearTimeout(idleTimer);
+      box.removeEventListener('wheel', onWheel);
+    };
   }, []);
 
-  useEffect(() => () => window.clearTimeout(settleRef.current), []);
+  useEffect(
+    () => () => {
+      window.clearTimeout(targetTimerRef.current);
+      window.cancelAnimationFrame(frameRef.current);
+    },
+    [],
+  );
 
   const keyNearestCentre = () => {
     const box = boxRef.current;
@@ -116,21 +178,18 @@ export function StatWheel({
   };
 
   const handleScroll = () => {
-    window.clearTimeout(settleRef.current);
-    settleRef.current = window.setTimeout(() => {
-      if (programmaticRef.current) {
-        programmaticRef.current = false;
+    window.cancelAnimationFrame(frameRef.current);
+    frameRef.current = window.requestAnimationFrame(() => {
+      const nearest = keyNearestCentre();
+      if (!nearest) return;
+      if (targetRef.current) {
+        if (nearest === targetRef.current) releaseTarget();
         return;
       }
-      const settled = keyNearestCentre();
-      if (settled) setSelectedKey(settled);
-    }, 90);
-  };
-
-  const step = (delta: number) => {
-    const index = wheelStats.findIndex((entry) => entry.key === selectedKey);
-    const next = wheelStats[Math.max(0, Math.min(wheelStats.length - 1, index + delta))];
-    if (next) setSelectedKey(next.key);
+      if (nearest === selectedRef.current) return;
+      fromScrollRef.current = true;
+      setSelectedKey(nearest);
+    });
   };
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
@@ -170,9 +229,11 @@ export function StatWheel({
         <div className="lk-wheel-rail absolute inset-x-[-24px] top-2 h-10" />
         <div
           ref={boxRef}
-          className="lk-wheel-scroller absolute inset-0 flex items-center gap-0.5 overflow-x-auto overflow-y-hidden"
+          className="lk-wheel-scroller absolute inset-0 flex items-center overflow-x-auto overflow-y-hidden"
           onKeyDown={handleKeyDown}
+          onPointerDown={releaseTarget}
           onScroll={handleScroll}
+          onTouchStart={releaseTarget}
         >
           {/* Half a track's width at each end, so the first and last stat can still reach the centre. */}
           <span aria-hidden="true" className="h-10 w-1/2 shrink-0" />
@@ -188,7 +249,7 @@ export function StatWheel({
                 }}
                 aria-label={`调整${entry.label}`}
                 aria-pressed={distance === 0}
-                className={`inline-flex h-10 shrink-0 snap-center items-center gap-[3px] ${ink.className}`}
+                className={`lk-wheel-item inline-flex h-10 w-[60px] shrink-0 snap-center items-center justify-center gap-[3px] text-[17px] ${ink.className}`}
                 style={ink.style}
                 type="button"
                 onClick={() => setSelectedKey(entry.key)}

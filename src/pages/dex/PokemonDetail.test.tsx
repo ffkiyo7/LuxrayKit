@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import 'fake-indexeddb/auto';
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { abilities } from '../../data';
 import { hiddenAbilityIdsByPokemonId } from '../../data/seed/regMA/hiddenAbilities';
@@ -44,7 +45,21 @@ describe('PokemonDetail abilities', () => {
 
     const nameClasses = (abilityId: string) =>
       screen.getAllByText(abilityById(abilityId).chineseName)[0].className;
-    expect(nameClasses(entry.abilities.find((id) => hidden.includes(id))!)).toContain('text-fnTeal');
-    expect(nameClasses(entry.abilities.find((id) => !hidden.includes(id))!)).not.toContain('text-fnTeal');
+    expect(nameClasses(entry.abilities.find((id) => hidden.includes(id))!)).toContain('text-data');
+    expect(nameClasses(entry.abilities.find((id) => !hidden.includes(id))!)).not.toContain('text-data');
+  });
+});
+
+describe('PokemonDetail 加入队伍', () => {
+  it('asks which team, then confirms where the Pokémon went', async () => {
+    const user = userEvent.setup();
+    renderDetail(entries[0]);
+
+    await user.click(screen.getByRole('button', { name: '加入队伍' }));
+    const sheet = await screen.findByRole('dialog', { name: `把${entries[0].chineseName}加入哪支队伍` });
+    await user.click(within(sheet).getByRole('button', { name: /新建队伍并加入/ }));
+
+    expect(await screen.findByText(/^已加入/)).toBeTruthy();
+    expect(screen.queryByRole('dialog')).toBeNull();
   });
 });

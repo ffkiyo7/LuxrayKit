@@ -89,6 +89,21 @@
   display: none;
 }
 
+/* Items keep one box size and only paint smaller away from the centre, so the ink can ease
+   between rings while the track is moving without the snap points moving with it. */
+.lk-wheel-item {
+  transition:
+    transform 140ms ease-out,
+    color 140ms ease-out,
+    opacity 140ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lk-wheel-item {
+    transition: none;
+  }
+}
+
 /* 03-01 SP rail — 6px track, 26px knob, drawn on the native range input so the slider role,
    keyboard stepping and value announcements stay untouched. `--lk-sp-fill` is the amber run;
    an over-cap value (N03-15) recolours both halves through `--lk-sp-ink`. */

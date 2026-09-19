@@ -94,6 +94,17 @@ owner 原话与帧冲突时原话赢。共享层先行修复：`15d0f63`。
 - [ ] 🎮 **R18 全站进入新页面回顶**：所有页面共用 window 滚动且没有任何重置 → 路由 push 时回顶（`useScrollResetOnPush`，返回交给浏览器恢复）；非路由的整页选择器 / 计算器编辑页进入回顶、关闭还原（`useScrollResetWhileMounted`）。
 - [ ] 🎮 **R15 Tab bar 玻璃**（`5ca9dfe`）：深色 tint 0.6 → 0.26、浅色 0.66 → 0.44、saturate 190%、标签加阴影、胶囊下方渐隐不再收到实色。验收看：近白主按钮滚到底下时是否泛银。
 
+### 第二轮追加（2026-09-19）
+
+设计稿画布：<https://claude.ai/artifact/Xdb5PRFqdKzWYM8QdfweHC>（工具页示例数据深 / 浅、属性速查文案 A / B / C、光晕属性色 vs 本体色对照深 / 浅）。
+
+- [ ] 🎮 **R19 SP 滚轮卡顿 / 吸附错位**（`211ed0b`）：根因是各项的字号和内边距随「离中心多远」变化，一选中就重排，snap 点在手指底下移动；选中又要等滚动停 90ms 才读，且自发滚动的标记会吞掉下一次用户滚动 → 各项固定 60px 宽、远近只用 `transform` 缩放；滚动中逐帧跟随中心项；鼠标滚轮改为累计 40px 步进一项（不再和 mandatory snap 互相拉扯）。
+- [ ] 🎮 **R20 图鉴种族值高亮条**（`211ed0b`）：原来恒定高亮速度 → 高亮该宝可梦最高的那项（并列则都亮）。
+- [ ] 🎮 **R21 底部按钮被 tab bar 遮挡**（`211ed0b`）：tab bar 的 `bottom` 含 `env(safe-area-inset-bottom)`，图鉴详情的「加入队伍 / 计算」和速度线的「回到我」没加 → 两处补上。
+- [ ] ⬜ **R22 工具页首次打开的示例数据 + 「最近用过」标题常驻**：已出稿，等 owner 看稿后落地。示例取真实计算（稿里是烈咬陆鲨 地震 → 炽焰咆哮虎 156–186、烈咬陆鲨 0 SP 速度 122），标签「上次」位置改写「示例」。
+- [ ] ⬜ **R23 属性速查「打 / 挨」文案**：出了 A 克制 / 弱、B 效果绝佳 / 弱点、C 箭头 三个方案，等 owner 选。涉及 `ToolsPage.tsx` 的 `TypeChartLine` 和 `TypeChartPage.tsx` 的 `MatrixResult`。
+- [ ] ⬜ **R24 光晕按宝可梦本体色**：颜色表已出（分支 `worktree-agent-af7f9f619d7f48bcc` 的 `314b52d`，**未合入 `dev`**）：`scripts/generate-pokemon-colors.mjs` → `src/data/seed/regMA/pokemonColors.ts`，key = 贴图 id（`iconRef` 的文件名），344 条，30 条 lowConfidence；`npm run data:regma:pokemon-colors`（`:check`）。界面未接。已知取得不好：烈咬陆鲨（橘色腹甲压过蓝色主体）、沙奈朵（白裙被当高光丢掉）、喷火龙（偏土黄）、轰擂金刚猩（棕色没进榜）。等 owner 看对照稿决定做不做、要不要调参。
+
 ## 待 owner 拍板（agent 都已按最保守的理解先做完，不阻塞验收）
 
 **帧之间互相矛盾**
