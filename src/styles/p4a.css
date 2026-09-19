@@ -1,0 +1,81 @@
+/*
+ * P4a (04 工具与图鉴) frame fills that styles.css has no token for yet. Each entry is one dark
+ * value plus its light counterpart; the light column is read off 04-02 where that frame draws
+ * the element, and inferred otherwise (the 04 set has no light dex frame) — see the delivery
+ * report for which are which.
+ */
+:root {
+  /* 04-01 tool card face: a flat panel on dark, a white slab with elevation on light (04-02). */
+  --p4a-card-bg: #17171b;
+  --p4a-card-shadow: none;
+  /* N04-11 未开放 card, 04-08 ability-owner tile, N04-09 sheet-depth insets. */
+  --p4a-muted-bg: #141418;
+  /* 04-01 search preview field / 04-06 filter panel plane. */
+  --p4a-field-bg: rgb(255 255 255 / 0.07);
+  --p4a-recent-chip-bg: rgb(255 255 255 / 0.06);
+  --p4a-filter-panel-bg: #101013;
+  /* 04-05 removable chip's × badge. */
+  --p4a-chip-x-bg: rgb(255 255 255 / 0.14);
+  /* 04-09 base-stat rail vs 04-01 damage meter — two different alphas in the frames. */
+  --p4a-stat-track: rgb(255 255 255 / 0.08);
+  --p4a-meter-track: rgb(255 255 255 / 0.09);
+  /* 04-01 speed sparkline, the bars that are not the member's own. */
+  --p4a-spark-idle: rgb(255 255 255 / 0.14);
+  /* 04-04 list chevrons sit a step dimmer than the `chevron` token used on controls. */
+  --p4a-list-chevron: #48484a;
+}
+
+:root[data-theme='light'] {
+  --p4a-card-bg: #ffffff;
+  --p4a-card-shadow: 0 1px 2px rgb(0 0 0 / 0.05), 0 8px 24px rgb(16 24 40 / 0.06);
+  --p4a-muted-bg: #f2f2f5;
+  --p4a-field-bg: #f2f2f5;
+  --p4a-recent-chip-bg: #f2f2f5;
+  --p4a-filter-panel-bg: #f7f7f9;
+  --p4a-chip-x-bg: rgb(28 28 30 / 0.1);
+  --p4a-stat-track: #e8e8ec;
+  --p4a-meter-track: #e8e8ec;
+  --p4a-spark-idle: #e0e0e5;
+  --p4a-list-chevron: #c7c7cc;
+}
+
+.lk-p4a-card {
+  background: var(--p4a-card-bg);
+  box-shadow: var(--p4a-card-shadow);
+}
+
+.lk-p4a-muted {
+  background: var(--p4a-muted-bg);
+}
+
+.lk-p4a-field {
+  background: var(--p4a-field-bg);
+}
+
+.lk-p4a-recent-chip {
+  background: var(--p4a-recent-chip-bg);
+}
+
+.lk-p4a-filter-panel {
+  background: var(--p4a-filter-panel-bg);
+}
+
+.lk-p4a-chip-x {
+  background: var(--p4a-chip-x-bg);
+}
+
+.lk-p4a-stat-track {
+  background: var(--p4a-stat-track);
+}
+
+.lk-p4a-meter-track {
+  background: var(--p4a-meter-track);
+}
+
+.lk-p4a-spark-idle {
+  background: var(--p4a-spark-idle);
+}
+
+.lk-p4a-list-chevron {
+  color: var(--p4a-list-chevron);
+}
