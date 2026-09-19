@@ -1,8 +1,17 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it } from 'vitest';
-import { readToolResults, recordToolResult } from './toolActivity';
+import { readToolResults, recordToolResult, type SpeedToolResult } from './toolActivity';
 
 const KEY = 'luxraykit.recentTools.v2';
+
+const build: SpeedToolResult['build'] = {
+  baseSpeed: 102,
+  statPoints: 32,
+  nature: 'neutral',
+  scarf: false,
+  speedAbility: false,
+  tailwind: false,
+};
 
 beforeEach(() => {
   window.localStorage.clear();
@@ -27,9 +36,9 @@ describe('toolActivity tool results', () => {
   });
 
   it('holds one entry per tool and replaces the previous result of that tool', () => {
-    recordToolResult({ tool: 'speed', label: '烈咬陆鲨', speed: 154 });
+    recordToolResult({ tool: 'speed', label: '烈咬陆鲨', pokemonId: 'garchomp', build, speed: 154 });
     recordToolResult({ tool: 'typeChart', type: 'Dragon' });
-    recordToolResult({ tool: 'speed', label: '风妖精', speed: 184 });
+    recordToolResult({ tool: 'speed', label: '风妖精', pokemonId: 'whimsicott', build, speed: 184 });
 
     const results = readToolResults();
     expect(results.filter((result) => result.tool === 'speed')).toHaveLength(1);
@@ -39,6 +48,10 @@ describe('toolActivity tool results', () => {
   it('degrades to nothing recent for legacy, corrupt and half-written payloads', () => {
     // v1 stored a pre-rendered caption and no numbers.
     window.localStorage.setItem(KEY, JSON.stringify([{ tool: 'speed', label: '烈咬陆鲨', caption: '速度线 · 154' }]));
+    expect(readToolResults()).toEqual([]);
+
+    // A pre-10b speed row names no pokemon and carries no build, so it cannot be reopened.
+    window.localStorage.setItem(KEY, JSON.stringify([{ tool: 'speed', label: '烈咬陆鲨', speed: 154 }]));
     expect(readToolResults()).toEqual([]);
 
     window.localStorage.setItem(KEY, '{not json');

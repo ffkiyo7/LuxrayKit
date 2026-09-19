@@ -1,8 +1,12 @@
 import { ChevronRight, Search } from 'lucide-react';
 import { useMemo, type ReactNode } from 'react';
+import { currentRuleSet } from '../data';
+import type { EnvironmentState } from '../data/environment';
 import { currentRegulation } from '../data/schedule';
 import { attackingTypes } from '../lib/calculations';
 import { getDexFormEntries } from '../lib/pokemonForms';
+import { resolveDefaultSpeedSubject } from '../lib/speedTier';
+import type { Team } from '../types';
 import { defensiveProfile, offensiveProfile } from '../lib/typeChart';
 import {
   readRecentDexEntries,
@@ -18,9 +22,6 @@ import { Sprite } from '../components/kit';
 
 export type ToolView = 'calculator' | 'dex' | 'speed' | 'typeChart';
 
-/** N04-11: entries that exist in the layout but are not built yet. */
-const lockedCards = ['对局记录', '随机一队'];
-
 /** 04-01's sparkline reads as a shape, not a scale: the slowest bar still has to be visible. */
 const SPARK_MIN_HEIGHT = 30;
 
@@ -31,6 +32,11 @@ function CardShell({ children, className = '' }: { children: ReactNode; classNam
 /**
  * 04-01's two square cards: the title row is the entry, everything under it is the last result
  * this tool produced. With nothing recorded the card is title + chevron and nothing else.
+ *
+ * The pair has to stay one size whatever either of them has to say, so the shell owns the
+ * geometry: equal grid columns, `h-full` down to the card face so the shorter card stretches to
+ * the row, and three slots (title, a body that takes the slack, a foot pinned to the bottom).
+ * The name truncates rather than wrapping — no fixed card height is involved.
  */
 function SquareToolCard({
   title,
@@ -46,24 +52,26 @@ function SquareToolCard({
   onClick: () => void;
 }) {
   return (
-    <button className="text-left" type="button" onClick={onClick}>
-      <CardShell className="flex min-h-[150px] flex-col justify-between">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className={`text-[15px] font-extrabold tracking-[-0.01em] ${tone}`}>{title}</span>
-            <span className="flex-1" />
-            <ChevronRight className="shrink-0 text-chevron" size={17} />
-          </div>
-          {body}
+    <button className="h-full w-full text-left" type="button" onClick={onClick}>
+      <CardShell className="flex h-full min-h-[150px] flex-col">
+        <div className="flex items-center gap-2">
+          <span className={`text-[15px] font-extrabold tracking-[-0.01em] ${tone}`}>{title}</span>
+          <span className="flex-1" />
+          <ChevronRight className="shrink-0 text-chevron" size={17} />
         </div>
+        <div className="flex-1">{body}</div>
         {foot}
       </CardShell>
     </button>
   );
 }
 
-function CardLabel({ children }: { children: ReactNode }) {
-  return <p className="mt-3.5 text-[11px] font-bold uppercase tracking-[0.1em] text-chevron">{children}</p>;
+function CardLabel({ children, plain = false }: { children: ReactNode; plain?: boolean }) {
+  return (
+    <p className={`mt-3.5 truncate text-[11px] font-bold text-chevron ${plain ? '' : 'uppercase tracking-[0.1em]'}`}>
+      {children}
+    </p>
+  );
 }
 
 function CardCaption({ children }: { children: ReactNode }) {
@@ -128,9 +136,13 @@ const hasSubject = (result: ToolResult): result is CalculatorToolResult | SpeedT
   result.tool === 'calculator' || result.tool === 'speed';
 
 export function ToolsPage({
+  teams,
+  environment,
   onOpenTool,
   onOpenDexEntry,
 }: {
+  teams?: Team[];
+  environment?: EnvironmentState | null;
   onOpenTool: (tool: ToolView) => void;
   onOpenDexEntry: (entry: RecentDexEntry) => void;
 }) {
@@ -144,6 +156,12 @@ export function ToolsPage({
   const speed = toolResults.find((result): result is SpeedToolResult => result.tool === 'speed');
   const typeChart = toolResults.find((result): result is TypeChartToolResult => result.tool === 'typeChart');
   const recentUses = toolResults.filter(hasSubject).slice(0, 2);
+  // The speed card names the Pokémon it is previewing, and tapping it opens the page on exactly
+  // that one — so with nothing recorded both sides read the same default subject.
+  const speedSubjectLabel = useMemo(
+    () => speed?.label ?? resolveDefaultSpeedSubject({ teams, environment, battleType: currentRuleSet.battleType }).label,
+    [environment, speed?.label, teams],
+  );
 
   return (
     <div className="pb-8">
@@ -211,15 +229,17 @@ export function ToolsPage({
 
         <SquareToolCard
           body={
-            speed && (
-              <>
-                <CardLabel>我的成员</CardLabel>
-                <p className="mt-[5px] text-[28px] font-extrabold leading-8 tracking-[-0.02em] tabular-nums">{speed.speed}</p>
-                {speed.nextTierSpeed !== undefined && speed.nextTierStatPoints !== undefined && (
-                  <CardCaption>超 {speed.nextTierSpeed} 档需 +{speed.nextTierStatPoints}</CardCaption>
-                )}
-              </>
-            )
+            <>
+              <CardLabel plain>{speedSubjectLabel}</CardLabel>
+              {speed && (
+                <>
+                  <p className="mt-[5px] text-[28px] font-extrabold leading-8 tracking-[-0.02em] tabular-nums">{speed.speed}</p>
+                  {speed.nextTierSpeed !== undefined && speed.nextTierStatPoints !== undefined && (
+                    <CardCaption>超 {speed.nextTierSpeed} 档需 +{speed.nextTierStatPoints}</CardCaption>
+                  )}
+                </>
+              )}
+            </>
           }
           foot={
             speed?.window && speed.window.length > 0 && (
@@ -248,16 +268,6 @@ export function ToolsPage({
           </CardShell>
         </button>
 
-        {lockedCards.map((title) => (
-          <div
-            key={title}
-            aria-disabled="true"
-            className="lk-p4a-muted box-border flex min-h-[150px] flex-col justify-between rounded-[20px] p-[18px]"
-          >
-            <span className="text-[15px] font-extrabold tracking-[-0.01em] text-textSecondary">{title}</span>
-            <p className="m-0 text-xs font-semibold text-btnDisabledInk">未开放</p>
-          </div>
-        ))}
       </div>
 
       {recentUses.length > 0 && (
