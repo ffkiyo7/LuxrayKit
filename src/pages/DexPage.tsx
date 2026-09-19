@@ -1,5 +1,5 @@
 import { SlidersHorizontal } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { abilities, moves } from '../data';
 import { currentRegulation } from '../data/schedule';
 import { currentRuleSelectableItems } from '../lib/currentRuleCatalog';
@@ -62,7 +62,27 @@ export function DexPage({
   // a working set, not a destination.
   const { route, navigate, back } = useHashRoute();
   const detailPokemonId = route.name === 'dex-pokemon' ? route.pokemonId : null;
+
+  // The list and the detail share one window scroll. Without this a row tapped far down the
+  // list opens its detail at that same offset; and coming back should land on the row, not the
+  // top. useLayoutEffect so neither correction is ever painted.
+  const listScrollRef = useRef(0);
+  const previousDetailRef = useRef<string | null>(null);
+  useLayoutEffect(() => {
+    if (typeof window === 'undefined' || typeof window.scrollTo !== 'function') return;
+    const previous = previousDetailRef.current;
+    previousDetailRef.current = detailPokemonId;
+    if (detailPokemonId) {
+      window.scrollTo({ top: 0, left: 0 });
+    } else if (previous) {
+      window.scrollTo({ top: listScrollRef.current, left: 0 });
+    }
+  }, [detailPokemonId]);
+
   const openDetail = (entry: DexFormEntry) => {
+    // Read here, not in the effect: by then the detail is in the DOM and a shorter page has
+    // already clamped the offset.
+    if (!detailPokemonId && typeof window !== 'undefined') listScrollRef.current = window.scrollY;
     recordDexEntry({ kind: 'pokemon', id: entry.id, label: entry.chineseName, iconRef: entry.iconRef });
     navigate({ name: 'dex-pokemon', pokemonId: entry.id });
   };

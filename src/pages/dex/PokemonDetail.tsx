@@ -86,6 +86,12 @@ function MatchupGroup({
  * team member card paints, so a Mega or an alternate form re-tints the plane with its own types.
  */
 function LargeArtwork({ entry, onClose }: { entry: DexFormEntry; onClose: () => void }) {
+  const src = entry.artworkRef ?? entry.iconRef;
+  // Until the file has decoded, `filter: drop-shadow()` has no alpha to follow and WebKit paints
+  // the shadow of the whole 132px box — a grey rectangle on the first open, gone once cached.
+  const [loadedSrc, setLoadedSrc] = useState<string | undefined>();
+  const loaded = loadedSrc === src;
+
   return (
     <div
       aria-label={`${entry.chineseName}大图`}
@@ -108,8 +114,10 @@ function LargeArtwork({ entry, onClose }: { entry: DexFormEntry; onClose: () => 
       <div className="grid place-items-center px-6 pt-[120px]">
         <img
           alt={entry.chineseName}
-          className="lk-p4a-artwork h-[132px] w-[132px] object-contain"
-          src={entry.artworkRef ?? entry.iconRef}
+          className={`h-[132px] w-[132px] object-contain ${loaded ? 'lk-p4a-artwork' : 'opacity-0'}`}
+          src={src}
+          onError={() => setLoadedSrc(src)}
+          onLoad={() => setLoadedSrc(src)}
         />
         <p className="mt-[26px] text-[22px] font-extrabold leading-[30px] tracking-[-0.01em]">{entry.chineseName}</p>
         <p className="mt-1 text-[13px] font-semibold tracking-[0.04em] text-textSecondary">

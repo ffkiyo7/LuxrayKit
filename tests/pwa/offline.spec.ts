@@ -40,6 +40,8 @@ test('keeps app shell, teams, and the local catalog available offline', async ({
   await page.getByRole('button', { name: '队伍', exact: true }).click();
   await expect(page.getByRole('heading', { name: '我的队伍' })).toBeVisible();
   await page.getByRole('button', { name: '新建队伍' }).click();
+  // 「+」 offers the two ways in first (02-01); the blank one leads to naming.
+  await page.getByRole('dialog').getByRole('button', { name: /从空白开始/ }).click();
   await page.getByRole('textbox', { name: '队伍名称' }).fill('离线测试队');
   await page.getByRole('button', { name: '建立' }).click();
   await expect(page.getByText(/0\/6 成员/)).toBeVisible();
