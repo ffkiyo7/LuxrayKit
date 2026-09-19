@@ -29,6 +29,8 @@ import {
   type MoveSortKey,
 } from './dexShared';
 
+const MOVE_PREVIEW_COUNT = 8;
+
 const moveSortOptions: Array<{ id: MoveSortKey; label: string }> = [
   { id: 'power-asc', label: '威力 ↑' },
   { id: 'power-desc', label: '威力 ↓' },
@@ -234,6 +236,14 @@ export function PokemonDetail({
     () => sortMoves(filterMovesByQuery(entryMoves, moveQuery), moveSortKey),
     [entryMoves, moveQuery, moveSortKey],
   );
+
+  // The list opens on its first few rows (owner, 2026-09-19): a full learnset pushes the page to
+  // 60+ rows. A search shows every hit — folding results away would hide what was asked for.
+  // Stored against the entry, like the matchup view, so the next Pokémon opens folded again.
+  const [movesExpandedFor, setMovesExpandedFor] = useState<string | null>(null);
+  const movesExpanded = movesExpandedFor === entry.id;
+  const movesFoldable = moveQuery.trim() === '' && visibleMoves.length > MOVE_PREVIEW_COUNT;
+  const shownMoves = movesFoldable && !movesExpanded ? visibleMoves.slice(0, MOVE_PREVIEW_COUNT) : visibleMoves;
 
   const statTotal = Object.values(entry.baseStats).reduce((a, b) => a + b, 0);
   const matchups = attackingTypes
@@ -457,9 +467,9 @@ export function PokemonDetail({
         </div>
         <p className="mt-2.5 text-xs font-semibold text-textSecondary">变化招式置后</p>
         <div className="mt-2">
-          {visibleMoves.map((move, index) => {
+          {shownMoves.map((move, index) => {
             const expanded = expandedMoveId === move.id;
-            const divider = index === visibleMoves.length - 1 ? '' : 'border-b border-[var(--hairline)]';
+            const divider = index === shownMoves.length - 1 ? '' : 'border-b border-[var(--hairline)]';
             if (expanded) {
               return (
                 <div key={move.id} className={`lk-row-active -mx-6 px-6 py-3.5 ${divider}`}>
@@ -499,6 +509,17 @@ export function PokemonDetail({
               </button>
             );
           })}
+          {movesFoldable && (
+            <button
+              aria-expanded={movesExpanded}
+              className="flex h-[52px] w-full items-center justify-center gap-1.5 border-t border-[var(--hairline)] text-[13px] font-bold text-textLabel"
+              type="button"
+              onClick={() => setMovesExpandedFor(movesExpanded ? null : entry.id)}
+            >
+              {movesExpanded ? '收起' : `展开全部 ${visibleMoves.length} 个`}
+              {movesExpanded ? <ChevronUp className="text-chevron" size={16} /> : <ChevronDown className="text-chevron" size={16} />}
+            </button>
+          )}
         </div>
       </section>
 

@@ -1257,7 +1257,17 @@ describe('App page flows', () => {
     expect(screen.getByRole('button', { name: '属性' })).toBeTruthy();
     expect(screen.getByRole('button', { name: '威力 ↑' })).toBeTruthy();
     await user.click(screen.getByRole('button', { name: '威力 ↓' }));
+    // The learnset opens on its first 8 rows; 龙爪 sits further down until the list is unfolded.
+    expect(screen.queryByText('龙爪')).toBeNull();
+    expect(screen.getAllByRole('button', { name: /^展开.+说明$/ })).toHaveLength(8);
+    await user.click(screen.getByRole('button', { name: /^展开全部 \d+ 个$/ }));
     expect(screen.getByText('龙爪')).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: '收起' }));
+    expect(screen.queryByText('龙爪')).toBeNull();
+    // A search shows every hit, folded or not.
+    await user.type(screen.getByLabelText('搜索当前宝可梦招式'), '龙爪');
+    expect(screen.getByText('龙爪')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /^展开全部/ })).toBeNull();
     expect(screen.getByText('属性关系')).toBeTruthy();
   });
 

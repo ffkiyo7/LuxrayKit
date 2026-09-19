@@ -132,6 +132,9 @@ owner 原话与帧冲突时原话赢。共享层先行修复：`15d0f63`。
 
 ### 第四轮追加（2026-09-19）
 
+- [ ] 🎮 **R35 上位构筑卡的链接点了没反应**（owner 2026-09-19）：P2 照 07-01 删掉队报按钮后，标题旁的链接图标只是个 `aria-hidden` 的 `<span>`，从来没接跳转 → 改成真链接（`<a target="_blank" rel="noopener noreferrer">`，读屏「打开<标题>的队报」），只认 `http(s)://` 开头的 `reportUrl`。图标 15px 与位置不变，`p-2.5` + `-m-2.5` 只放大点击区。列表卡与「随机一队」弹窗里的卡共用（`TeamSampleCard.tsx`）。验收：`#/env` → 上位构筑 → 点有链接图标的卡，新标签页打开队报；PWA 内会弹应用内浏览器。
+- [ ] 🎮 **R36 图鉴详情「可学会招式」折叠**（owner 2026-09-19，三选一选了「只露前几条 + 展开全部」）：默认露前 8 条（`MOVE_PREVIEW_COUNT`），列表末尾一行「展开全部 N 个 ⌄」/「收起 ⌃」（稿里没画，52px 高、13px bold `textLabel`，上方发丝线）。搜索框 / 排序 chip 常驻；**有搜索词时显示全部命中、不出折叠行**；总数 ≤ 8 不出折叠行；展开状态按 entry id 记，换一只宝可梦回到折叠（同 R29 的做法）。排序作用于全量再截前 8。`App.test.tsx` 覆盖折叠 / 展开 / 收起 / 搜索。
+
 - [ ] 🎮 **R34 Safari 内用力滑到页面底部整页抖一下**（owner 2026-09-19）：只在 iOS Safari 标签页里出现（iOS 26、地址栏在顶部），环境页最明显；PWA 与 localhost 无此问题。owner 描述：慢慢滑不跳，tab bar 自动回弹时也不跳；**一甩到底时整页像被撞了一下上下抖一下停住，甩到顶不会**。
   - 已排除 tab bar 空闲回弹：实验分支 `exp/r34-no-idle-rebound`（回弹延时拉到 24h，不合并）owner 真机验证「还跳」。
   - 修法：`viewport-fit=cover` 下 `env(safe-area-inset-bottom)` 在 Safari 标签页里不是常数（工具栏在 = 0、收起 ≈ 34px），而 Safari 在甩到页面底部时会把工具栏弹回来 → `.safe-bottom` 的 padding 恰在此刻缩 34px、文档变矮、滚动位置在回弹途中被钳住 → 抖。改为 `calc(84px + max(env(safe-area-inset-bottom), 34px))`，文档高度不再随工具栏变（`styles.css`、`styles.test.ts`）。PWA 恒为 34 不受影响；无刘海设备 / 桌面页面底部多 34px 留白。本机没有 iOS 模拟器 runtime，**根因未经复现证实，靠 owner 真机验证**。
