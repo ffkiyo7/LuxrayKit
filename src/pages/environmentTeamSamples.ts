@@ -18,9 +18,6 @@ export const sampleRegulation = (sample: EnvironmentTeamSample): RegulationId | 
 export const isVgcPastesSample = (sample: EnvironmentTeamSample) =>
   Boolean(sample.sourceId?.includes('vgcpastes') || sample.id.startsWith('vgcpastes-'));
 
-export const teamSampleCategory = (sample: EnvironmentTeamSample) =>
-  isVgcPastesSample(sample) ? 'event' : 'ranked';
-
 /**
  * Only a PokeDB ladder sample carries a rating. VGCPastes stamps an event team's placement into
  * both `rank` and `score` (「6th」 → rank 6, score 6), so reading `score` there prints 「6 分」.

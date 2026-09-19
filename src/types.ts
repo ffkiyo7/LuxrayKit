@@ -262,7 +262,6 @@ export type UserPreference = {
   theme: 'dark' | 'light';
   cachedRuleSetId: string;
   lastDataRefreshAt: string;
-  hasSeenEnvironmentImportNotice: boolean;
   hasCompletedOnboarding: boolean;
   // Set the first time the shipped preset team is opened: 02-02 draws it as a special card and
   // N02-15 as an ordinary one afterwards. Older stored preferences simply lack the key (the

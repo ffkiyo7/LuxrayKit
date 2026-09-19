@@ -19,9 +19,8 @@
   --lk-glyph-ink: #c7c7cc;
   --lk-stat-track: rgb(255 255 255 / 0.09);
   --lk-stat-fill: #5a5a60;
-  /* The 27px held-item badge overlapping the 84px sprite, and the smaller bare item sprites. */
+  /* The 27px held-item badge overlapping the 84px sprite. */
   --lk-item-badge-shadow: drop-shadow(0 1px 2px rgb(0 0 0 / 0.85));
-  --lk-item-ink-shadow: drop-shadow(0 1px 2px rgb(0 0 0 / 0.45));
   --lk-edit-entry-ink: rgb(var(--color-fn-blue));
   --lk-preset-cta-shadow: inset 0 1px 0 rgb(255 255 255 / 0.9), inset 0 -1px 0 rgb(0 0 0 / 0.12);
   --lk-preset-ring: inset 0 0 0 1px rgb(255 255 255 / 0.1);
@@ -43,7 +42,6 @@
   --lk-stat-fill: #b0b0b8;
   /* On paper the badge needs a halo to lift off the white card, not just a drop. */
   --lk-item-badge-shadow: drop-shadow(0 1px 2px rgb(16 24 40 / 0.28)) drop-shadow(0 0 7px rgb(255 255 255 / 0.95));
-  --lk-item-ink-shadow: drop-shadow(0 1px 2px rgb(16 24 40 / 0.18));
   /* The blue entry is an owner decision made after 02-06 was drawn, so the light frame still
      shows plain ink; the decision wins in both themes. */
   --lk-edit-entry-ink: rgb(var(--color-fn-blue));
@@ -98,10 +96,6 @@
 
 .lk-item-badge {
   filter: var(--lk-item-badge-shadow);
-}
-
-.lk-item-ink {
-  filter: var(--lk-item-ink-shadow);
 }
 
 /* 02-05 / 02-06 「编辑配置 ›」 — the card's own entry into 03. */

@@ -79,8 +79,11 @@
 | --- | --- | --- |
 | `src/data/pokemonFacts.ts` + 测试 + `scripts/generate-pokemon-facts.mjs` + `package.json` 的 `data:pokemon-facts` | 唯一消费者「你知道吗」横幅已按决策删除 | 80 多条冷知识是内容资产，确认以后不会换个形态回来 |
 | `src/branding.ts` 的 `feedbackLinks` | 「关于与数据」里的 GitHub issue 外链按 08-02 删了 | **先决定那条外链要不要加回来**（见改版计划的待拍板清单） |
-| `src/pages/environmentTeamSamples.ts` 的 `teamSampleCategory` | 上位构筑页的「赛事 / 排位高分」筛选已按 07-01 删除；`src` 内无其他引用 | 无 |
-| `src/styles.css` 的 `.speed-grid` | 改版前就已无引用 | 无 |
+| ✅ `src/pages/environmentTeamSamples.ts` 的 `teamSampleCategory` | 已删（2026-09-19） | — |
+| ✅ `src/styles.css` 的 `.speed-grid` | 已删（2026-09-19） | — |
+| ✅ `src/components/StatPointPicker.tsx` | 计算器改用队伍的 StatWheel 后无人引用，已删（2026-09-19） | — |
+| ✅ `src/pages/team/HeldItem.tsx` + `.lk-item-ink` / `--lk-item-ink-shadow` | 无任何 import，已删（2026-09-19） | — |
+| ✅ 偏好字段 `hasSeenEnvironmentImportNotice` | 导入确认改为每次都弹后无人读，已从 `types.ts` / seed 删除；老数据里多出的 key 无害 | — |
 
 不是死代码但值得留意：`src/lib/damageAdapter.ts` 的 `validateStatPoints` 仍被计算器用来判定 SP 是否合法，但它返回的**文案**带英文 key（`speed SP 36 超过单项上限 32。`）。计算器现在只用它的判定、自己拼界面文案；以后别处要展示 SP 错误时别直接印这个串。
 

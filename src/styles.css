@@ -231,12 +231,6 @@ button {
   display: none;
 }
 
-.speed-grid {
-  background-image:
-    linear-gradient(to right, rgb(var(--color-success) / 0.08), transparent 35%, transparent 65%, rgb(var(--color-danger) / 0.08)),
-    repeating-linear-gradient(to right, transparent 0, transparent calc(10% - 1px), rgb(var(--color-text-muted) / 0.16) calc(10% - 1px), rgb(var(--color-text-muted) / 0.16) 10%);
-}
-
 .safe-bottom {
   padding-bottom: calc(84px + env(safe-area-inset-bottom));
 }

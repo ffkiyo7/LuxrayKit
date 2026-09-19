@@ -65,7 +65,6 @@ export const defaultPreferences: UserPreference = {
   theme: 'dark',
   cachedRuleSetId: currentRuleSet.id,
   lastDataRefreshAt: currentDataVersion.updatedAt,
-  hasSeenEnvironmentImportNotice: false,
   hasCompletedOnboarding: false,
   hasOpenedPresetTeam: false,
   analyticsOptOut: false,
