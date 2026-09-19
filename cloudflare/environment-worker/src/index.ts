@@ -635,6 +635,9 @@ function buildPokemonStatisticsPayload(
       };
     }
     const detail = detailsByPokemonId[ranking.pokemonId];
+    // Absent rather than empty when PokeDB's 能力ポイント panel yielded nothing: the field is
+    // optional all the way down, and an empty array would only add noise to every snapshot.
+    const statPointStats = detail?.statPointStats ?? [];
     return {
       pokemonId: ranking.pokemonId,
       usageRate: Math.round(((teamCount / Math.max(list.resultCount, 1)) * 100) * 10) / 10,
@@ -649,6 +652,7 @@ function buildPokemonStatisticsPayload(
       teammateStats: detail?.teammateStats ?? [],
       abilityStats: detail?.abilityStats ?? [],
       natureStats: detail?.natureStats ?? [],
+      ...(statPointStats.length > 0 ? { statPointStats } : {}),
     };
   });
   const details = Object.values(detailsByPokemonId);
