@@ -1,7 +1,10 @@
 import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Plus } from 'lucide-react';
-import { useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { auraStyle } from '../components/kit/aura';
 import { KitButton } from '../components/kit/KitButton';
+import { Sheet } from '../components/kit/Sheet';
 import { Sprite } from '../components/kit/Sprite';
+import { Toast } from '../components/kit/Toast';
 import { TypeDot } from '../components/kit/TypeDot';
 import { typeLabels } from '../components/ui';
 import { abilities } from '../data';
@@ -18,11 +21,12 @@ import { currentRuleMovesForPokemon } from '../lib/currentRuleCatalog';
 import { evaluateMemberLegality } from '../lib/legality';
 import { createDefaultTeamMember } from '../lib/teamMemberDefaults';
 import { useAppStore } from '../state/AppContext';
-import type { Move } from '../types';
+import type { Move, Team, TeamMember } from '../types';
 import { DETAIL_RANK_LIMIT, RoundIconButton, SectionHeading } from './environmentChrome';
 import { resolveSampleSlots, teamSampleScoreMeta, teamSampleTitle } from './TeamSampleCard';
 
 const TEAM_SIZE = 6;
+const ADDED_TOAST_DURATION_MS = 2500;
 const VISIBLE_MOVE_ROWS = 4;
 const VISIBLE_ITEM_ROWS = 3;
 const VISIBLE_TRAIT_ROWS = 2;
@@ -75,6 +79,74 @@ function StatRow({
   );
 }
 
+/**
+ * A Mega, a regional form and the base Pokémon are the same team slot as far as the rules are
+ * concerned, and they share a national dex number — so that, not the catalog id, is what decides
+ * whether a team already holds this Pokémon. Ids the catalog does not know fall back to
+ * themselves rather than collapsing into one another.
+ */
+const speciesKey = (pokemonId: string | undefined) => {
+  if (!pokemonId) return undefined;
+  const entry = getEnvironmentPokemon(pokemonId);
+  return entry ? `dex-${entry.nationalDexNo}` : pokemonId;
+};
+
+type TeamChoice = {
+  team: Team;
+  /** Why this team cannot take the Pokémon; `undefined` means it can. */
+  blockedReason?: string;
+};
+
+/** 选队 sheet — rows follow 02-09's menu rows: 68px, hairline-separated, name over its count. */
+function TeamPickerSheet({
+  choices,
+  pokemonName,
+  onPick,
+  onCreate,
+  onClose,
+}: {
+  choices: TeamChoice[];
+  pokemonName: string;
+  onPick: (team: Team) => void;
+  onCreate: () => void;
+  onClose: () => void;
+}) {
+  return (
+    <Sheet label={`把${pokemonName}加入哪支队伍`} title="加入哪支队伍" onClose={onClose}>
+      <div className="mt-3">
+        {choices.map(({ team, blockedReason }) => (
+          <button
+            key={team.id}
+            className="flex h-[68px] w-full items-center gap-3 border-b border-[var(--hairline)] text-left disabled:opacity-45"
+            disabled={Boolean(blockedReason)}
+            type="button"
+            onClick={() => onPick(team)}
+          >
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-base font-bold tracking-[-0.01em]">{team.name}</span>
+              <span className="mt-1 block text-xs font-semibold tabular-nums text-textSecondary">
+                {[`${team.members.length}/${TEAM_SIZE}`, blockedReason].filter(Boolean).join(' · ')}
+              </span>
+            </span>
+            <span className="flex shrink-0 gap-px">
+              {team.members.map((member) => {
+                const entry = member.pokemonId ? getEnvironmentPokemon(member.pokemonId) : undefined;
+                return entry ? <Sprite key={member.id} iconRef={entry.iconRef} label="" size={26} /> : null;
+              })}
+            </span>
+          </button>
+        ))}
+        <button className="flex h-[60px] w-full items-center gap-3 text-left" type="button" onClick={onCreate}>
+          <span className="shrink-0 text-textLabel">
+            <Plus size={18} />
+          </span>
+          <span className="min-w-0 flex-1 text-base font-bold tracking-[-0.01em]">新建队伍并加入</span>
+        </button>
+      </div>
+    </Sheet>
+  );
+}
+
 /** N01-15: the move catalog is a lazy chunk, so the 常用招式 rows are blocked out until it lands. */
 function MoveRowSkeleton() {
   return (
@@ -95,7 +167,9 @@ export function EnvironmentPokemonDetail({
   pokemonId,
   movesById,
   onBack,
+  onImportSample,
   onOpenPokemon,
+  onPageToPokemon,
   onOpenTeams,
 }: {
   environment: EnvironmentState;
@@ -103,12 +177,17 @@ export function EnvironmentPokemonDetail({
   pokemonId: string;
   movesById?: Map<string, Move>;
   onBack: () => void;
+  onImportSample: (sample: EnvironmentTeamSample) => Promise<void> | void;
+  /** Pushes another detail, so 返回 walks back down a 常见队友 chain. */
   onOpenPokemon: (pokemonId: string) => void;
+  /** Replaces this detail — the header chevrons page in place. */
+  onPageToPokemon: (pokemonId: string) => void;
   onOpenTeams: () => void;
 }) {
   const [movesExpanded, setMovesExpanded] = useState(false);
-  const { teams, updateMember } = useAppStore();
-  const activeTeam = teams[0];
+  const [pickingTeam, setPickingTeam] = useState(false);
+  const [addedToTeamName, setAddedToTeamName] = useState<string>();
+  const { teams, addTeam, saveTeam, updateMember } = useAppStore();
   const rankings = environment.pokemonUsage[battleType];
   const entry = getEnvironmentPokemon(pokemonId);
 
@@ -123,6 +202,12 @@ export function EnvironmentPokemonDetail({
   );
   const pageIndex = pageable.findIndex(({ usage }) => usage.pokemonId === pokemonId);
   const current = pageIndex >= 0 ? pageable[pageIndex] : undefined;
+
+  useEffect(() => {
+    if (!addedToTeamName) return;
+    const timeoutId = window.setTimeout(() => setAddedToTeamName(undefined), ADDED_TOAST_DURATION_MS);
+    return () => window.clearTimeout(timeoutId);
+  }, [addedToTeamName]);
 
   if (!entry) return null;
 
@@ -158,29 +243,57 @@ export function EnvironmentPokemonDetail({
   const visibleMoves = movesExpanded ? moveRows : moveRows.slice(0, VISIBLE_MOVE_ROWS);
 
   // 「按热门配置加入队伍」: the rank-1 move / item / ability / nature, SP left at zero for the
-  // user to distribute. Only offered inside the top 60, where those percentages exist at all.
-  const canAddPopularBuild = hasDetailStats && Boolean(activeTeam) && (activeTeam?.members.length ?? 0) < TEAM_SIZE;
-  const addPopularBuild = async () => {
-    if (!activeTeam || !canAddPopularBuild) return;
+  // user to distribute. Only offered inside the top 60, where those percentages exist at all;
+  // which team it lands in is always asked, never assumed — silently writing into the first team
+  // is what let repeated taps pile five copies of one Pokémon into it.
+  const ownSpecies = speciesKey(entry.id);
+  const teamChoices: TeamChoice[] = teams.map((team) => ({
+    team,
+    blockedReason: team.members.some((member) => speciesKey(member.pokemonId) === ownSpecies)
+      ? '已在队伍中'
+      : team.members.length >= TEAM_SIZE
+        ? `已满 ${TEAM_SIZE} 只`
+        : undefined,
+  }));
+
+  const buildPopularMember = (team: Team): TeamMember => {
     const legalMoveIds = currentRuleMovesForPokemon(entry.id).map((move) => move.id);
+    const popularItemId = itemRows[0]?.item.id;
     const member = createDefaultTeamMember({
       pokemonId: entry.id,
       abilityId: abilityRows[0]?.ability.id,
-      itemId: itemRows[0]?.item.id,
+      // A held item is unique within a team, so a teammate already carrying the popular one
+      // leaves this slot empty rather than starting a hand-over the user did not ask for.
+      itemId: team.members.some((existing) => existing.itemId === popularItemId) ? undefined : popularItemId,
       notes: '按环境热门配置加入。',
     });
     const moveIds = (usage?.moveStats ?? [])
       .map((stat) => stat.id)
       .filter((moveId) => legalMoveIds.includes(moveId))
       .slice(0, 4);
-    const nature = natureRows[0]?.id ?? member.nature;
-    const next = { ...member, moveIds, nature };
-    await updateMember(activeTeam.id, { ...next, legalityStatus: evaluateMemberLegality(next, activeTeam).status });
+    const next = { ...member, moveIds, nature: natureRows[0]?.id ?? member.nature };
+    return { ...next, legalityStatus: evaluateMemberLegality(next, team).status };
+  };
+
+  const addToTeam = async (team: Team) => {
+    setPickingTeam(false);
+    await updateMember(team.id, buildPopularMember(team));
+    setAddedToTeamName(team.name);
+  };
+
+  const addToNewTeam = async () => {
+    setPickingTeam(false);
+    // `teams` in this render does not know about the fresh team yet, so the member is written
+    // through the returned object instead of going back through `updateMember`.
+    const team = await addTeam();
+    await saveTeam({ ...team, members: [buildPopularMember(team)] });
+    setAddedToTeamName(team.name);
   };
 
   return (
     <div>
-      <div className="lk-env-detail-hero relative px-6 pb-[34px] pt-5">
+      {/* The header halo is this Pokémon's own two type colours, as on a team member card. */}
+      <div className="lk-env-detail-hero relative px-6 pb-[34px] pt-5" style={auraStyle(entry.types)}>
         <div className="flex items-center justify-between">
           <RoundIconButton label="返回" onHero onClick={onBack}>
             <ChevronLeft size={20} />
@@ -191,7 +304,7 @@ export function EnvironmentPokemonDetail({
                 disabled={pageIndex === 0}
                 label="上一名"
                 onHero
-                onClick={() => onOpenPokemon(pageable[pageIndex - 1].usage.pokemonId)}
+                onClick={() => onPageToPokemon(pageable[pageIndex - 1].usage.pokemonId)}
               >
                 <ChevronUp size={18} />
               </RoundIconButton>
@@ -202,7 +315,7 @@ export function EnvironmentPokemonDetail({
                 disabled={pageIndex === pageable.length - 1}
                 label="下一名"
                 onHero
-                onClick={() => onOpenPokemon(pageable[pageIndex + 1].usage.pokemonId)}
+                onClick={() => onPageToPokemon(pageable[pageIndex + 1].usage.pokemonId)}
               >
                 <ChevronDown size={18} />
               </RoundIconButton>
@@ -237,13 +350,7 @@ export function EnvironmentPokemonDetail({
 
       {hasDetailStats && (
         <div className="px-6 pt-2.5">
-          <KitButton
-            className="w-full"
-            disabled={!canAddPopularBuild}
-            height={50}
-            variant="primary"
-            onClick={() => void addPopularBuild()}
-          >
+          <KitButton className="w-full" height={50} variant="primary" onClick={() => setPickingTeam(true)}>
             <Plus aria-hidden="true" size={18} />
             按热门配置加入队伍
           </KitButton>
@@ -395,12 +502,23 @@ export function EnvironmentPokemonDetail({
                 key={sample.id}
                 divider={index < relatedSamples.length - 1}
                 sample={sample}
-                onOpen={onOpenTeams}
+                onImport={onImportSample}
               />
             ))}
           </div>
         </section>
       )}
+
+      {pickingTeam && (
+        <TeamPickerSheet
+          choices={teamChoices}
+          pokemonName={entry.chineseName}
+          onClose={() => setPickingTeam(false)}
+          onCreate={() => void addToNewTeam()}
+          onPick={(team) => void addToTeam(team)}
+        />
+      )}
+      {addedToTeamName && <Toast title={`已加入${addedToTeamName}`} />}
     </div>
   );
 }
@@ -408,21 +526,21 @@ export function EnvironmentPokemonDetail({
 function RelatedSampleRow({
   sample,
   divider,
-  onOpen,
+  onImport,
 }: {
   sample: EnvironmentTeamSample;
   divider: boolean;
-  onOpen: () => void;
+  onImport: (sample: EnvironmentTeamSample) => Promise<void> | void;
 }) {
   const slots = resolveSampleSlots(sample);
   const title = teamSampleTitle(sample);
 
   return (
     <button
-      aria-label={`在上位构筑里查看 ${title}`}
+      aria-label={`导入「${title}」`}
       className={`flex h-[68px] w-full items-center gap-3 text-left ${divider ? 'border-b border-[var(--hairline)]' : ''}`}
       type="button"
-      onClick={onOpen}
+      onClick={() => void onImport(sample)}
     >
       <span className="min-w-0 flex-1">
         <span className="block truncate text-base font-bold tracking-[-0.01em]">{title}</span>

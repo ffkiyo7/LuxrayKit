@@ -99,9 +99,10 @@ function PageLoading({ label = '正在载入页面' }: { label?: string }) {
 const TEAM_SIZE = 6;
 
 /**
- * 07-04 — what a sample actually carries, shown once before the first upper-build import.
- * The frame lists only what is *missing* below the count line, so a fully-covered sample shows
- * the counts and nothing else.
+ * 07-04 — what a sample actually carries, and the confirmation step every upper-build import
+ * goes through: the card on 环境 首页, the 相关上位构筑 row on a Pokémon detail and the 上位构筑
+ * list card all raise this one dialog. The frame lists only what is *missing* below the count
+ * line, so a fully-covered sample shows the counts and nothing else.
  */
 function ImportCoverageNoticeDialog({
   sample,
@@ -234,7 +235,7 @@ function AppShell() {
   const [pendingImportSample, setPendingImportSample] = useState<EnvironmentTeamSample | null>(null);
   const [environmentState, setEnvironmentState] = useState<EnvironmentState | null>(null);
   const [environmentLoadFailed, setEnvironmentLoadFailed] = useState(false);
-  const { loading, teams, preferences, replacePreferences, saveTeam } = useAppStore();
+  const { loading, teams, preferences, saveTeam } = useAppStore();
 
   const activeTeam = teams.find((team) => team.id === activeTeamId) ?? teams[0];
   const speedPresetMember = teams.flatMap((team) => team.members).find((member) => member.id === speedPresetMemberId);
@@ -359,24 +360,18 @@ function AppShell() {
     [environmentState?.dataStatusLabel, navigate, saveTeam],
   );
 
-  const importSampleTeam = useCallback(
-    async (sample: EnvironmentTeamSample) => {
-      if (!preferences.hasSeenEnvironmentImportNotice) {
-        setPendingImportSample(sample);
-        return;
-      }
-      await performImportSampleTeam(sample);
-    },
-    [performImportSampleTeam, preferences.hasSeenEnvironmentImportNotice],
-  );
+  // Importing replaces nothing and creates a team, so it always asks first — a tap on a sample
+  // card is an interest in the sample, not yet a decision to take it.
+  const importSampleTeam = useCallback((sample: EnvironmentTeamSample) => {
+    setPendingImportSample(sample);
+  }, []);
 
   const continuePendingImport = useCallback(async () => {
     if (!pendingImportSample) return;
     const sample = pendingImportSample;
     setPendingImportSample(null);
-    await replacePreferences({ ...preferences, hasSeenEnvironmentImportNotice: true });
     await performImportSampleTeam(sample);
-  }, [pendingImportSample, performImportSampleTeam, preferences, replacePreferences]);
+  }, [pendingImportSample, performImportSampleTeam]);
 
   // Share flow: navigator.share where the platform has it (Android/iOS sheet), clipboard
   // otherwise. The code is generated on demand rather than stored — it must always reflect
