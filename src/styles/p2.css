@@ -40,6 +40,13 @@
    */
   --env-slab-shadow: inset 0 1px 0 rgb(255 255 255 / 0.9), inset 0 -1px 0 rgb(0 0 0 / 0.12),
     0 4px 14px rgb(0 0 0 / 0.4);
+  /*
+   * SP 分配 (01-05 detail). Two fills the token set has no equivalent for: the neutral rail
+   * segment the 2nd / 3rd spreads use — `disabled` is a hair too dark on dark — and the dashed
+   * outline that draws the unassigned tail (rail segment and 余 chip share it).
+   */
+  --env-sp-seg2: #4a4a52;
+  --env-sp-dash: rgb(255 255 255 / 0.24);
 }
 
 :root[data-theme='light'] {
@@ -59,6 +66,8 @@
    */
   --env-skeleton-bg: #ededf0;
   --env-slab-shadow: 0 1px 2px rgb(16 24 40 / 0.12);
+  --env-sp-seg2: #c7c7cc;
+  --env-sp-dash: rgb(0 0 0 / 0.22);
 }
 
 /* The Pokémon's own two body colours, sampled off its artwork (`auraStyle(types, iconRef)` on the
