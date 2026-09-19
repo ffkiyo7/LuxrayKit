@@ -76,7 +76,7 @@ function DamageMeter({ result }: { result: CalculatorToolResult }) {
   return (
     <div className="lk-p4a-meter-track mt-3.5 flex h-[5px] gap-0.5 overflow-hidden rounded-full">
       <div className="bg-fnTeal" style={{ width: `${low}%` }} />
-      <div className="bg-fnTeal/40" style={{ width: `${span}%` }} />
+      <div className="lk-p4a-damage-soft" style={{ width: `${span}%` }} />
     </div>
   );
 }
@@ -92,7 +92,7 @@ function SpeedSparkline({ speeds, index }: { speeds: number[]; index: number }) 
       {speeds.map((speed, position) => (
         <span
           key={`${speed}-${position}`}
-          className={`flex-1 rounded-[3px] ${position === index ? 'bg-fnAmber' : 'lk-p4a-spark-idle'}`}
+          className={`flex-1 rounded-[3px] ${position === index ? 'lk-p4a-spark-on' : 'lk-p4a-spark-idle'}`}
           style={{ height: `${heightOf(speed)}%` }}
         />
       ))}
@@ -196,7 +196,7 @@ export function ToolsPage({
                 <CardLabel>上次</CardLabel>
                 <p className="mt-[5px] text-[28px] font-extrabold leading-8 tracking-[-0.02em] tabular-nums">
                   {damage.minDamage}
-                  <span className="text-chevron">–</span>
+                  <span className="lk-p4a-range-dash">–</span>
                   {damage.maxDamage}
                 </p>
                 <CardCaption>{damage.hko} · {damage.maxPercent}%</CardCaption>

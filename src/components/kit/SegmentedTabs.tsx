@@ -20,7 +20,7 @@ export function SegmentedTabs<T extends string>({
           key={option.id}
           aria-pressed={value === option.id}
           className={`grid h-[34px] place-items-center rounded-[9px] text-sm ${
-            value === option.id ? 'bg-segmentOn font-bold text-textPrimary' : 'font-semibold text-textSecondary'
+            value === option.id ? 'lk-segment-on font-bold text-textPrimary' : 'font-semibold text-textSecondary'
           }`}
           type="button"
           onClick={() => onChange(option.id)}
