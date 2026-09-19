@@ -1,4 +1,4 @@
-import { ArrowLeftRight, ChevronUp, X } from 'lucide-react';
+import { ArrowLeftRight, ArrowRight, ChevronUp, X } from 'lucide-react';
 import {
   type KeyboardEvent as ReactKeyboardEvent,
   type PointerEvent as ReactPointerEvent,
@@ -292,7 +292,8 @@ function MatrixResult({ selection, onSwap }: { selection: Selection; onSwap: () 
           <TypeDot size={8} type={selection.attacker} />
           {typeLabels[selection.attacker]}
         </span>
-        <span className="text-xs font-semibold text-textSecondary">打</span>
+        <span className="sr-only">攻击</span>
+        <ArrowRight aria-hidden="true" className="shrink-0 text-textSecondary" size={15} />
         <span className="lk-type-chip inline-flex h-8 items-center gap-[7px] rounded-full px-3 text-sm font-bold text-textPrimary">
           <TypeDot size={8} type={selection.defender} />
           {typeLabels[selection.defender]}
