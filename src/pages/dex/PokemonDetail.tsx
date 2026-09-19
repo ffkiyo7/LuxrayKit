@@ -9,8 +9,8 @@ import type { DexFormEntry } from '../../lib/pokemonForms';
 import { createDefaultTeamMember } from '../../lib/teamMemberDefaults';
 import { useAppStore } from '../../state/AppContext';
 import type { PokemonType } from '../../types';
-import { Sprite, TypeDot } from '../../components/kit';
-import { typeColors } from '../../components/ui';
+import { auraStyle, Sprite, TypeDot } from '../../components/kit';
+import { hiddenAbilityIdsByPokemonId } from '../../data/seed/regMA/hiddenAbilities';
 import {
   filterMovesByQuery,
   formatDexNo,
@@ -81,21 +81,19 @@ function MatchupGroup({
   );
 }
 
-/** N04-10: the artwork alone on a plane tinted with the Pokémon's own types. */
+/**
+ * N04-10: the artwork alone on a plane tinted with the Pokémon's own types — the same halo the
+ * team member card paints, so a Mega or an alternate form re-tints the plane with its own types.
+ */
 function LargeArtwork({ entry, onClose }: { entry: DexFormEntry; onClose: () => void }) {
-  const [primary, secondary] = entry.types;
-  const aura = `radial-gradient(90% 120% at 86% 6%, ${typeColors[primary]}38, ${
-    typeColors[secondary ?? primary]
-  }1f 52%, transparent 74%)`;
-
   return (
     <div
       aria-label={`${entry.chineseName}大图`}
       aria-modal="true"
-      className="fixed inset-0 z-50 mx-auto max-w-[430px] bg-page"
+      className="lk-p4a-artwork-aura fixed inset-0 z-50 mx-auto max-w-[430px]"
       data-bottom-nav-lock="true"
       role="dialog"
-      style={{ backgroundImage: aura }}
+      style={auraStyle(entry.types)}
     >
       <div className="flex justify-end px-6 pt-5">
         <button
@@ -133,7 +131,6 @@ export function PokemonDetail({
 }) {
   const { teams, updateMember } = useAppStore();
   const [showArtwork, setShowArtwork] = useState(false);
-  const [expandedAbilityId, setExpandedAbilityId] = useState<string | undefined>(entry.abilities[0]);
   const [expandedMoveId, setExpandedMoveId] = useState<string | null>(null);
   const [moveQuery, setMoveQuery] = useState('');
   const [moveSortKey, setMoveSortKey] = useState<MoveSortKey>('power-asc');
@@ -142,6 +139,9 @@ export function PokemonDetail({
   const entryAbilities = entry.abilities
     .map((id) => abilities.find((ability) => ability.id === id))
     .filter(Boolean) as typeof abilities;
+  // Marked against the species: a Mega's single fixed ability is never a hidden one, and the table
+  // only ever marks abilities the catalog already lists for this Pokémon.
+  const hiddenAbilityIds = hiddenAbilityIdsByPokemonId[entry.basePokemon.id] ?? [];
   const entryMoves = useMemo(() => currentRuleMovesForPokemon(entry.basePokemon.id), [entry.basePokemon.id]);
   const visibleMoves = useMemo(
     () => sortMoves(filterMovesByQuery(entryMoves, moveQuery), moveSortKey),
@@ -267,34 +267,30 @@ export function PokemonDetail({
         </div>
       </section>
 
+      {/* A plain list: no card fill and no disclosure, every ability reads its whole effect at
+          once, hairlines only. A hidden ability (「梦特」) is marked by the colour of its name and
+          nothing else. */}
       <section className="px-6 pt-[26px]">
         <h2 className="text-[22px] font-extrabold leading-[30px] tracking-[-0.01em]">特性</h2>
-        <div className="mt-2.5 rounded-[18px] bg-surface p-4">
-          {entryAbilities.map((ability, index) => {
-            const expanded = expandedAbilityId === ability.id;
-            return (
-              <div key={ability.id} className={index === 0 ? '' : 'mt-3.5 border-t border-[var(--hairline)] pt-3'}>
-                <button
-                  aria-expanded={expanded}
-                  aria-label={expanded ? `收起${ability.chineseName}说明` : `展开${ability.chineseName}说明`}
-                  className={`flex w-full items-center gap-3 text-left ${index === 0 ? '' : 'h-12'}`}
-                  type="button"
-                  onClick={() => setExpandedAbilityId(expanded ? undefined : ability.id)}
+        <div className="mt-2.5">
+          {entryAbilities.map((ability, index) => (
+            <div
+              key={ability.id}
+              className={`py-3.5 ${index === entryAbilities.length - 1 ? '' : 'border-b border-[var(--hairline)]'}`}
+            >
+              <p className="flex items-baseline gap-2">
+                <span
+                  className={`min-w-0 truncate text-[17px] font-bold tracking-[-0.01em] ${
+                    hiddenAbilityIds.includes(ability.id) ? 'text-fnTeal' : ''
+                  }`}
                 >
-                  <span className="flex min-w-0 flex-1 items-baseline gap-2">
-                    <span className={`truncate text-[17px] tracking-[-0.01em] ${expanded ? 'font-extrabold' : 'font-bold'}`}>
-                      {ability.chineseName}
-                    </span>
-                    <span className="shrink-0 text-xs font-semibold tracking-[0.04em] text-chevron">{ability.englishName}</span>
-                  </span>
-                  <span className={`shrink-0 ${expanded ? 'text-textLabel' : 'text-chevron'}`}>
-                    {expanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-                  </span>
-                </button>
-                {expanded && <p className="mt-2 text-[13px] font-semibold leading-5 text-textLabel">{ability.effectSummary}</p>}
-              </div>
-            );
-          })}
+                  {ability.chineseName}
+                </span>
+                <span className="shrink-0 text-xs font-semibold tracking-[0.04em] text-chevron">{ability.englishName}</span>
+              </p>
+              <p className="mt-2 text-[13px] font-semibold leading-5 text-textLabel">{ability.effectSummary}</p>
+            </div>
+          ))}
         </div>
       </section>
 
