@@ -191,13 +191,15 @@ test('captures the mobile visual regression smoke set', { timeout: 60_000 }, asy
   await expect(page.getByText('我的队伍')).toBeVisible();
   await expect(page).toHaveScreenshot('04-team-list.png', screenshotOptions);
 
-  // The card opens the team straight away now; there is no 继续编辑 step in between.
-  const teamCard = page.getByLabel('队伍：Luxray test');
-  await teamCard.click();
-  await expect(page.getByRole('heading', { name: 'Luxray test' })).toBeVisible();
+  // The fixture team is the shipped preset on its first appearance (02-02's card), which is a
+  // section, not a button: only 「接着补齐这支」 opens it. The team name is a heading on the list
+  // card too, so the detail page is confirmed by its member tile instead.
+  await page.getByLabel('队伍：Luxray test').getByRole('button', { name: '接着补齐这支' }).click();
+  const luxrayTile = page.getByRole('button', { name: /^展开 伦琴猫/ });
+  await expect(luxrayTile).toBeVisible();
   await expect(page).toHaveScreenshot('05-team-detail.png', screenshotOptions);
 
-  await page.getByRole('button', { name: /^展开 伦琴猫/ }).click();
+  await luxrayTile.click();
   await expect(page.getByText('能力值', { exact: true })).toBeVisible();
 
   // 03 draws the member editor as a whole page (#/teams/:id/members/:id), not a sheet, and the
