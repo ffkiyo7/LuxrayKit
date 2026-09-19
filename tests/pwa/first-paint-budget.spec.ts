@@ -40,22 +40,17 @@ test('keeps the move catalog out of the environment first paint and stays inside
 
   await page.goto('/');
 
-  const skip = page.getByRole('button', { name: '跳过' });
-  try {
-    await skip.waitFor({ state: 'visible', timeout: 5_000 });
-    await skip.click();
-    await page.getByRole('button', { name: '开始探索' }).click();
-  } catch {
-    // The tour was already completed in this browser context.
-  }
+  // The onboarding tour is gone with the redesign; the only first-run overlay left is the
+  // 数据口径 sheet (01-06), which renders from the snapshot that is already loaded and pulls
+  // no chunk of its own — so it is left standing rather than dismissed.
 
   // First paint is "the environment home is actually usable": the Top 5 ranking rows and the
   // 上位构筑 cards, not just the shell.
-  await expect(page.getByRole('heading', { name: '环境', exact: true })).toBeVisible();
-  await expect(page.getByRole('heading', { name: '宝可梦榜' })).toBeVisible();
-  await expect(page.getByRole('button', { name: '查看全部宝可梦' })).toBeVisible();
-  await expect(page.getByRole('heading', { name: '上位构筑' })).toBeVisible();
-  await expect(page.getByRole('button', { name: '查看全部队伍' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '今日环境' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '使用排行' })).toBeVisible();
+  await expect(page.getByRole('button', { name: '查看完整使用排行' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '上位构筑', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: '查看全部上位构筑' })).toBeVisible();
   await page.waitForLoadState('networkidle');
 
   // `content-length` is absent on vite preview's compressed responses, so read what the browser
