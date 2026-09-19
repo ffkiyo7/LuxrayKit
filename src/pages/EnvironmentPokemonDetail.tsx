@@ -214,8 +214,9 @@ export function EnvironmentPokemonDetail({
 
   return (
     <div>
-      {/* The header halo is this Pokémon's own two type colours, as on a team member card. */}
-      <div className="lk-env-detail-hero relative px-6 pb-[34px] pt-5" style={auraStyle(entry.types)}>
+      {/* The header halo is this Pokémon's own body colours sampled off its artwork, as on a team
+          member card; a sprite with no sampled row falls back to its two type colours. */}
+      <div className="lk-env-detail-hero relative px-6 pb-[34px] pt-5" style={auraStyle(entry.types, entry.iconRef)}>
         <div className="flex items-center justify-between">
           <RoundIconButton label="返回" onHero onClick={onBack}>
             <ChevronLeft size={20} />

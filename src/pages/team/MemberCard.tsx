@@ -91,7 +91,7 @@ export function ExpandedMemberCard({
     <section
       aria-label={`${name} 配置`}
       className="lk-member-aura col-span-2 rounded-[20px] px-[18px] pt-[18px]"
-      style={auraStyle(types)}
+      style={auraStyle(types, form?.iconRef ?? entry?.iconRef)}
     >
       <div className="flex items-center gap-[14px]">
         <div className="relative h-[84px] w-[84px] shrink-0">

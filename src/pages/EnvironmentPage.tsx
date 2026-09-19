@@ -661,9 +661,10 @@ function EnvironmentHero({ usage, onOpen }: { usage: EnvironmentPokemonUsage; on
       <button
         aria-label={`查看 ${entry.chineseName} 的环境详情`}
         className="lk-env-hero relative w-full overflow-hidden rounded-[20px] p-[22px] text-left"
-        // The halo is this Pokémon's own two type colours, as on a team member card; a Mega or
-        // form swap changes `entry.types` and the wash follows.
-        style={auraStyle(entry.types)}
+        // The halo is this Pokémon's own body colours sampled off its artwork, as on a team member
+        // card; a Mega or form swap changes `entry.iconRef` and the wash follows. A sprite with no
+        // sampled row falls back to its two type colours.
+        style={auraStyle(entry.types, entry.iconRef)}
         type="button"
         onClick={() => onOpen(entry.id)}
       >

@@ -5,7 +5,8 @@
 
 :root {
   /* Member aura (02-05 / 02-08 / N02-19): the expanded card tints its face with the member's
-     own two type colours. Light drops both stops a notch so the white face stays paper. */
+     own two body colours, sampled off its artwork, falling back to its type colours. Light drops
+     both stops a notch so the white face stays paper. */
   --lk-aura-s1: 22%;
   --lk-aura-s2: 12%;
   /* Card face: dark leaves every card flat on `surface`; 02-03 / 02-06 lift the light ones onto

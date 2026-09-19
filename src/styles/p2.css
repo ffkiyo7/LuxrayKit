@@ -61,7 +61,8 @@
   --env-slab-shadow: 0 1px 2px rgb(16 24 40 / 0.12);
 }
 
-/* The Pokémon's own two type colours (`auraStyle(types)` on the element) washed over the face. */
+/* The Pokémon's own two body colours, sampled off its artwork (`auraStyle(types, iconRef)` on the
+   element, type colours as the fallback), washed over the face. */
 .lk-env-hero {
   background:
     radial-gradient(
