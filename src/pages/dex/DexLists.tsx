@@ -4,7 +4,10 @@ import type { DexFormEntry } from '../../lib/pokemonForms';
 import { Sprite, TypeDot } from '../../components/kit';
 import { catalogMoveMeta, typeLabelByValue } from './dexShared';
 
-/** 04-04 row: artwork, name (plus the MEGA badge from N04-06), then the type dots. */
+/**
+ * 04-04 row: artwork, name, then the type dots. A Mega form gets no badge — it is already its own
+ * dex entry, so the tag only repeated what the name says.
+ */
 export function PokemonRow({ entry, divider, onOpen }: { entry: DexFormEntry; divider: boolean; onOpen: () => void }) {
   return (
     <button
@@ -14,14 +17,7 @@ export function PokemonRow({ entry, divider, onOpen }: { entry: DexFormEntry; di
     >
       <Sprite iconRef={entry.iconRef} label={entry.chineseName} size={48} />
       <span className="min-w-0 flex-1">
-        <span className="flex items-baseline gap-2">
-          <span className="truncate text-[17px] font-bold tracking-[-0.01em]">{entry.chineseName}</span>
-          {entry.isMega && (
-            <span className="lk-chip inline-flex h-5 shrink-0 items-center rounded-md px-[7px] text-[10px] font-extrabold tracking-[0.06em] text-textLabel">
-              MEGA
-            </span>
-          )}
-        </span>
+        <span className="block truncate text-[17px] font-bold tracking-[-0.01em]">{entry.chineseName}</span>
         <span className="mt-1 flex items-center gap-2.5 text-xs font-semibold text-textSecondary">
           {entry.types.map((type) => (
             <span key={type} className="inline-flex items-center gap-[5px]">
@@ -77,22 +73,55 @@ export function MoveRow({
   );
 }
 
-/** 04-07 row: the item sprite and a single clipped line of effect text. */
+/**
+ * 04-07 row: the item sprite and the whole effect text. Berries in particular carry a sentence a
+ * 68px row cannot hold, so the row keeps the frame's padding and grows instead of clipping; 68px
+ * stays the floor so a one-line item still sits on the frame's rhythm.
+ */
 export function ItemRow({ item, divider }: { item: Item; divider: boolean }) {
   return (
-    <div className={`flex h-[68px] items-center gap-3.5 ${divider ? 'border-b border-[var(--hairline)]' : ''}`}>
+    <div
+      className={`flex min-h-[68px] items-center gap-3.5 py-[13px] ${divider ? 'border-b border-[var(--hairline)]' : ''}`}
+    >
       <Sprite iconRef={item.iconRef} label={item.chineseName} size={36} />
       <div className="min-w-0 flex-1">
         <p className="truncate text-base font-bold tracking-[-0.01em]">{item.chineseName}</p>
-        <p className="mt-[3px] truncate text-xs font-medium text-textSecondary">{item.effectSummary}</p>
+        <p className="mt-[3px] text-xs font-medium leading-[17px] text-textSecondary">{item.effectSummary}</p>
       </div>
     </div>
   );
 }
 
+const MAX_OWNER_AVATARS = 3;
+
 /**
- * 04-08 row: collapsed it previews one owner; expanded it prints the effect and every owner as
- * a tappable tile that jumps to that Pokémon's detail.
+ * The owners of a shared ability, stacked the way the pre-redesign dex drew them: up to three
+ * sprites overlapping by 8px, then a 「+N」 disc for the rest. The frames' sprites are bare artwork
+ * with no chip behind them, so each one gets a page-coloured disc here — overlapping bare sprites
+ * read as one smear otherwise.
+ */
+function OwnerStack({ owners }: { owners: DexFormEntry[] }) {
+  const shown = owners.slice(0, MAX_OWNER_AVATARS);
+  const hidden = owners.length - shown.length;
+  return (
+    <span className="flex shrink-0 -space-x-2">
+      {shown.map((owner) => (
+        <span key={owner.id} className="lk-p4a-owner-disc grid h-[30px] w-[30px] shrink-0 place-items-center rounded-full">
+          <Sprite iconRef={owner.iconRef} label={owner.chineseName} size={26} />
+        </span>
+      ))}
+      {hidden > 0 && (
+        <span className="lk-p4a-owner-disc grid h-[30px] w-[30px] shrink-0 place-items-center rounded-full text-[10px] font-bold tabular-nums text-textSecondary">
+          +{hidden}
+        </span>
+      )}
+    </span>
+  );
+}
+
+/**
+ * 04-08 row: collapsed it previews the owners as a stack; expanded it prints the effect and every
+ * owner as a tappable tile that jumps to that Pokémon's detail.
  */
 export function AbilityRow({
   ability,
@@ -126,11 +155,7 @@ export function AbilityRow({
         onClick={onToggle}
       >
         {heading}
-        {owners[0] && (
-          <span className="lk-p4a-muted shrink-0 rounded-full">
-            <Sprite iconRef={owners[0].iconRef} label={owners[0].chineseName} size={30} />
-          </span>
-        )}
+        {owners.length > 0 && <OwnerStack owners={owners} />}
         <ChevronDown className="lk-p4a-list-chevron shrink-0" size={16} />
       </button>
     );
