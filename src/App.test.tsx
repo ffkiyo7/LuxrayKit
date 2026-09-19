@@ -443,6 +443,7 @@ describe('App page flows', () => {
     const user = await renderApp();
 
     await user.click(screen.getByRole('button', { name: '新建队伍' }));
+    await user.click(await screen.findByRole('button', { name: /从空白开始/ }));
     const nameInput = screen.getByLabelText('队伍名称');
     await user.clear(nameInput);
     await user.type(nameInput, '测试队');
@@ -545,6 +546,7 @@ describe('App page flows', () => {
     const user = await renderApp();
 
     await user.click(screen.getByRole('button', { name: '新建队伍' }));
+    await user.click(await screen.findByRole('button', { name: /从空白开始/ }));
     const sheet = (await screen.findByLabelText('队伍名称')).closest('section') as HTMLElement;
 
     // innerHeight 844 − height 500 − offsetTop 20.
@@ -783,13 +785,15 @@ describe('App page flows', () => {
     expect(state.teams.some((team) => team.name === 'Luxray test')).toBe(false);
   });
 
-  it('reorders teams by dragging the list card handle', async () => {
+  // The drag handle is gone (owner call, 2026-09); 移至首位 in the ⋯ menu writes the same order.
+  it('moves a team to the top of the list from the ⋯ menu', async () => {
     const user = await renderApp();
-    // Retire the preset card first: it has no drag handle of its own.
+    // Retire the preset card first: it has a card of its own with no ⋯ reorder.
     await openDefaultTeam(user);
     await user.click(screen.getByRole('button', { name: '返回队伍列表' }));
 
     await user.click(screen.getByRole('button', { name: '新建队伍' }));
+    await user.click(await screen.findByRole('button', { name: /从空白开始/ }));
     const nameInput = screen.getByLabelText('队伍名称');
     await user.clear(nameInput);
     await user.type(nameInput, '第二队');
@@ -797,11 +801,18 @@ describe('App page flows', () => {
     await user.click(screen.getByRole('button', { name: '返回队伍列表' }));
 
     const secondTeamCard = await screen.findByLabelText('队伍：第二队');
-    const dragHandle = within(secondTeamCard).getByRole('button', { name: '拖动排序 第二队' });
-    expect(within(secondTeamCard).queryByRole('button', { name: /上移|下移/ })).toBeNull();
-    fireEvent.pointerDown(dragHandle, { pointerId: 1, clientY: 0 });
-    fireEvent.pointerMove(dragHandle, { pointerId: 1, clientY: 90 });
-    fireEvent.pointerUp(dragHandle, { pointerId: 1, clientY: 90 });
+    expect(within(secondTeamCard).queryByRole('button', { name: /拖动排序/ })).toBeNull();
+    // 「刚导入」 / 「在用」 status pills are gone too.
+    expect(secondTeamCard.textContent).not.toContain('在用');
+
+    // A new team already heads the list, so the row it would be a no-op for is hidden.
+    await user.click(within(secondTeamCard).getByRole('button', { name: '第二队 的更多操作' }));
+    expect(within(await screen.findByRole('dialog', { name: '第二队 的更多操作' })).queryByRole('button', { name: '移至首位' })).toBeNull();
+    await user.click(within(screen.getByRole('dialog', { name: '第二队 的更多操作' })).getAllByRole('button', { name: '关闭' })[0]);
+
+    const presetCard = await screen.findByLabelText('队伍：Luxray test');
+    await user.click(within(presetCard).getByRole('button', { name: 'Luxray test 的更多操作' }));
+    await user.click(within(await screen.findByRole('dialog', { name: 'Luxray test 的更多操作' })).getByRole('button', { name: '移至首位' }));
 
     await waitFor(async () => {
       const state = await repository.loadState();

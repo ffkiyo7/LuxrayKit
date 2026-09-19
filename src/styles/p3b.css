@@ -75,6 +75,20 @@
   background: linear-gradient(270deg, rgb(var(--lk-wheel-fade)) 12%, rgb(var(--lk-wheel-fade) / 0));
 }
 
+/* The wheel scrolls for real; snapping is what turns a flick into a choice of stat. The bar
+   itself is never drawn — the frame shows only the band and the fades. */
+.lk-wheel-scroller {
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  overscroll-behavior-x: contain;
+  touch-action: pan-x;
+}
+
+.lk-wheel-scroller::-webkit-scrollbar {
+  display: none;
+}
+
 /* 03-01 SP rail — 6px track, 26px knob, drawn on the native range input so the slider role,
    keyboard stepping and value announcements stay untouched. `--lk-sp-fill` is the amber run;
    an over-cap value (N03-15) recolours both halves through `--lk-sp-ink`. */

@@ -35,7 +35,6 @@ export function MovePickerPage({
   availableMoves,
   environmentStats,
   onPick,
-  onClear,
   onBack,
 }: {
   slot: number;
@@ -46,7 +45,6 @@ export function MovePickerPage({
   availableMoves: Move[];
   environmentStats?: EnvironmentReferenceUsage[];
   onPick: (moveId: string) => void;
-  onClear: () => void;
   onBack: () => void;
 }) {
   const [query, setQuery] = useState('');
@@ -134,7 +132,6 @@ export function MovePickerPage({
 
   return (
     <PickerPage
-      action={selectedMoveId ? { label: '清空', onClick: onClear } : undefined}
       backLabel="返回编辑配置"
       filters={
         <div className="mt-3 flex gap-2">

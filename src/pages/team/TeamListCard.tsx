@@ -1,4 +1,4 @@
-import { GripVertical, MoreHorizontal, Pencil, Share2, Trash2, Zap } from 'lucide-react';
+import { MoreHorizontal, Pencil, Share2, Trash2, Zap } from 'lucide-react';
 import { pokemon } from '../../data';
 import { getMemberBattleForm } from '../../lib/pokemonForms';
 import { canShareTeam } from '../../lib/teamShare';
@@ -9,58 +9,12 @@ import { teamListSubtitle } from './teamMeta';
 
 type CardProps = {
   team: Team;
-  active: boolean;
   recentlyImported: boolean;
-  dragging: boolean;
-  dragOffsetY: number;
-  dropTarget: boolean;
   setCardRef: (element: HTMLElement | null) => void;
   onOpen: () => void;
   onMenu: () => void;
   onShare: () => void;
-  onDragCancel: () => void;
-  onDragEnd: (event: React.PointerEvent<HTMLButtonElement>) => void;
-  onDragMove: (event: React.PointerEvent<HTMLButtonElement>) => void;
-  onDragStart: (event: React.PointerEvent<HTMLButtonElement>) => void;
 };
-
-function DragHandle({
-  team,
-  dragging,
-  onDragCancel,
-  onDragEnd,
-  onDragMove,
-  onDragStart,
-}: Pick<CardProps, 'team' | 'dragging' | 'onDragCancel' | 'onDragEnd' | 'onDragMove' | 'onDragStart'>) {
-  return (
-    <button
-      aria-label={`拖动排序 ${team.name}`}
-      className={`-ml-2 -mt-1 grid h-9 w-9 shrink-0 touch-none place-items-center rounded-[10px] ${
-        dragging ? 'text-textPrimary' : 'text-chevron'
-      }`}
-      title={`拖动排序 ${team.name}`}
-      type="button"
-      onClick={(event) => event.stopPropagation()}
-      onPointerCancel={onDragCancel}
-      onPointerDown={(event) => {
-        event.stopPropagation();
-        event.currentTarget.setPointerCapture?.(event.pointerId);
-        onDragStart(event);
-      }}
-      onPointerMove={(event) => {
-        event.stopPropagation();
-        onDragMove(event);
-      }}
-      onPointerUp={(event) => {
-        event.stopPropagation();
-        event.currentTarget.releasePointerCapture?.(event.pointerId);
-        onDragEnd(event);
-      }}
-    >
-      <GripVertical size={18} />
-    </button>
-  );
-}
 
 function MemberStrip({ team, size = 50 }: { team: Team; size?: number }) {
   // Empty slots stay blank — the frames deliberately draw no placeholder tile (02-02, N02-15).
@@ -116,82 +70,49 @@ function CardFooter({ team, onShare }: { team: Team; onShare: () => void }) {
 }
 
 /**
- * 02-02 / N02-15 / N02-16 / N02-18 — the ordinary team card: title, member strip, then the
- * replica-code / 分享 footer. Everything destructive moved into the ⋯ menu (02-04 / 02-09).
+ * 02-02 / N02-15 / N02-18 — the ordinary team card: title, member strip, then the replica-code
+ * / 分享 footer. Everything else — reordering included — lives in the ⋯ menu (02-04 / 02-09).
+ * A just-imported card keeps its ring so the list can be scrolled to it; it carries no badge.
  */
-export function TeamListCard({
-  team,
-  active,
-  recentlyImported,
-  dragging,
-  dragOffsetY,
-  dropTarget,
-  setCardRef,
-  onOpen,
-  onMenu,
-  onShare,
-  ...drag
-}: CardProps) {
+export function TeamListCard({ team, recentlyImported, setCardRef, onOpen, onMenu, onShare }: CardProps) {
   return (
-    <>
-      {dropTarget && <div className="lk-pill-on h-[14px] rounded-full" aria-hidden="true" />}
-      <section
-        ref={setCardRef}
-        aria-label={`队伍：${team.name}`}
-        className={`relative cursor-pointer rounded-[20px] p-[18px] focus:outline-none focus:ring-2 focus:ring-select/55 ${
-          dragging
-            ? 'lk-card-dragging z-10 scale-[1.02] bg-btn1 transition-none'
-            : recentlyImported
-              ? 'lk-field-on bg-btn1 transition-[transform] duration-150'
-              : 'lk-card-face shadow-[shadow:var(--lk-card-shadow)] transition-[transform] duration-150'
-        }`}
-        data-import-highlighted={recentlyImported ? 'true' : undefined}
-        role="button"
-        style={dragging ? { transform: `translateY(${dragOffsetY}px)` } : undefined}
-        tabIndex={0}
-        onClick={onOpen}
-        onKeyDown={(event) => {
-          if (event.key !== 'Enter' && event.key !== ' ') return;
-          event.preventDefault();
-          onOpen();
-        }}
-      >
-        <div className="flex items-start gap-3">
-          <DragHandle team={team} dragging={dragging} {...drag} />
-          <div className="min-w-0 flex-1">
-            <div className="flex items-baseline gap-2">
-              <h2 className="m-0 min-w-0 truncate text-[20px] font-extrabold leading-7 tracking-[-0.01em]">{team.name}</h2>
-              {recentlyImported && (
-                <span className="inline-flex h-[22px] shrink-0 items-center rounded-full bg-textPrimary/[0.14] px-[9px] text-[11px] font-extrabold tracking-[0.06em] text-textPrimary">
-                  刚导入
-                </span>
-              )}
-              {!recentlyImported && active && (
-                <span className="inline-flex h-[22px] shrink-0 items-center gap-1.5 rounded-full bg-btn1 px-[9px] text-[11px] font-extrabold tracking-[0.06em] text-textLabel">
-                  <span className="h-1.5 w-1.5 rounded-full bg-success" aria-hidden="true" />
-                  在用
-                </span>
-              )}
-            </div>
-            <p className="mt-[5px] text-[13px] font-semibold text-textSecondary">{teamListSubtitle(team)}</p>
-          </div>
-          <button
-            aria-label={`${team.name} 的更多操作`}
-            className={`-mt-1 shrink-0 ${dragging || recentlyImported ? 'text-textLabel' : 'text-chevron'}`}
-            title={`${team.name} 的更多操作`}
-            type="button"
-            onClick={(event) => {
-              event.stopPropagation();
-              onMenu();
-            }}
-          >
-            <MoreHorizontal size={20} />
-          </button>
+    <section
+      ref={setCardRef}
+      aria-label={`队伍：${team.name}`}
+      className={`relative cursor-pointer rounded-[20px] p-[18px] focus:outline-none focus:ring-2 focus:ring-select/55 ${
+        recentlyImported ? 'lk-field-on bg-btn1' : 'lk-card-face shadow-[shadow:var(--lk-card-shadow)]'
+      }`}
+      data-import-highlighted={recentlyImported ? 'true' : undefined}
+      role="button"
+      tabIndex={0}
+      onClick={onOpen}
+      onKeyDown={(event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        event.preventDefault();
+        onOpen();
+      }}
+    >
+      <div className="flex items-start gap-3">
+        <div className="min-w-0 flex-1">
+          <h2 className="m-0 min-w-0 truncate text-[20px] font-extrabold leading-7 tracking-[-0.01em]">{team.name}</h2>
+          <p className="mt-[5px] text-[13px] font-semibold text-textSecondary">{teamListSubtitle(team)}</p>
         </div>
-        <MemberStrip team={team} />
-        <CardFooter team={team} onShare={onShare} />
-      </section>
-    </>
+        <button
+          aria-label={`${team.name} 的更多操作`}
+          className={`-mt-1 shrink-0 ${recentlyImported ? 'text-textLabel' : 'text-chevron'}`}
+          title={`${team.name} 的更多操作`}
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation();
+            onMenu();
+          }}
+        >
+          <MoreHorizontal size={20} />
+        </button>
+      </div>
+      <MemberStrip team={team} />
+      <CardFooter team={team} onShare={onShare} />
+    </section>
   );
 }
 

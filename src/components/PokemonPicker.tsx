@@ -9,10 +9,13 @@ import { ListRow, SearchField, Sheet, Sprite, TypeDot } from './kit';
  */
 export function PokemonPicker({
   open,
+  takenSpeciesIds,
   onClose,
   onPick,
 }: {
   open: boolean;
+  /** Species already on the roster: a team holds each Pokémon once, so they are not pickable. */
+  takenSpeciesIds?: ReadonlySet<string>;
   onClose: () => void;
   onPick: (pokemon: Pokemon) => void;
 }) {
@@ -45,26 +48,43 @@ export function PokemonPicker({
         {results.length === 0 ? (
           <p className="py-8 text-center text-sm text-textSecondary">未找到匹配的 Pokémon</p>
         ) : (
-          results.map((entry, index) => (
-            <ListRow
-              key={entry.id}
-              divider={index < results.length - 1}
-              height={68}
-              leading={<Sprite iconRef={entry.iconRef} label={entry.chineseName} size={48} />}
-              title={entry.chineseName}
-              trailing={
-                <span className="flex shrink-0 items-center gap-1.5">
-                  {entry.types.map((type) => (
-                    <TypeDot key={type} type={type} />
-                  ))}
-                </span>
-              }
-              onClick={() => {
-                onPick(entry);
-                setQuery('');
-              }}
-            />
-          ))
+          results.map((entry, index) => {
+            const taken = takenSpeciesIds?.has(entry.id) ?? false;
+            return (
+              <ListRow
+                key={entry.id}
+                divider={index < results.length - 1}
+                height={68}
+                leading={<Sprite iconRef={entry.iconRef} label={entry.chineseName} size={48} />}
+                title={
+                  taken ? (
+                    // 03-02's 「已在招式 N」 treatment: the row stays legible, but dimmed and inert.
+                    <span className="flex items-baseline gap-2">
+                      <span className="text-textSecondary">{entry.chineseName}</span>
+                      <span className="text-[11px] font-bold text-textPrimary">已在队伍中</span>
+                    </span>
+                  ) : (
+                    entry.chineseName
+                  )
+                }
+                trailing={
+                  <span className="flex shrink-0 items-center gap-1.5">
+                    {entry.types.map((type) => (
+                      <TypeDot key={type} type={type} />
+                    ))}
+                  </span>
+                }
+                onClick={
+                  taken
+                    ? undefined
+                    : () => {
+                        onPick(entry);
+                        setQuery('');
+                      }
+                }
+              />
+            );
+          })
         )}
       </div>
     </Sheet>

@@ -5,18 +5,18 @@ import type { EnvironmentState } from '../data/environment';
 import { createId } from '../lib/id';
 import { evaluateMemberLegality } from '../lib/legality';
 import { createDefaultTeamMember } from '../lib/teamMemberDefaults';
+import { rosterSpeciesIds, teamCompositionIssues } from '../lib/teamComposition';
 import { canShareTeam, TEAM_SHARE_REQUIRED_MEMBERS } from '../lib/teamShare';
 import { useHashRoute } from '../hooks/useHashRoute';
 import { useAppStore } from '../state/AppContext';
 import type { Team } from '../types';
 import { PokemonPicker } from '../components/PokemonPicker';
-import { PageHeader } from '../components/kit';
+import { PageHeader, Sheet } from '../components/kit';
 import { EmptyMemberSlot, ExpandedMemberCard, MemberTile } from './team/MemberCard';
 import { MemberEditor } from './team/MemberEditor';
 import { PresetTeamCard, TeamListCard } from './team/TeamListCard';
 import { ConfirmDeleteTeamSheet, ImportShareSheet, TeamMenuSheet, TeamNameSheet } from './team/TeamDialogs';
 import { PRESET_TEAM_ID, teamDetailSubtitle, TEAM_NAME_MAX_LENGTH } from './team/teamMeta';
-import { measureDragRows, reorderById, resolveDragTargetIndex, type TeamDragState } from './team/teamDrag';
 
 const defaultNewTeamName = (teamCount: number) => `队伍${teamCount + 1}`;
 
@@ -46,12 +46,17 @@ const upperBuildPreview = (environment: EnvironmentState | null) => {
   });
 };
 
+/**
+ * 02-01's route card. The 新建队伍 sheet reuses it on a sunken face, so the two ways into a new
+ * team cannot drift apart.
+ */
 function EmptyStateCard({
   icon,
   title,
   subtitle,
   children,
   highlighted,
+  sunken,
   onClick,
 }: {
   icon: React.ReactNode;
@@ -59,11 +64,12 @@ function EmptyStateCard({
   subtitle?: string;
   children?: React.ReactNode;
   highlighted?: boolean;
+  sunken?: boolean;
   onClick: () => void;
 }) {
   return (
     <button
-      className={`block w-full rounded-[20px] bg-surface p-[18px] text-left ${
+      className={`block w-full rounded-[20px] p-[18px] text-left ${sunken ? 'bg-sunken' : 'bg-surface'} ${
         highlighted ? 'shadow-[inset_0_0_0_1.5px_rgb(var(--color-text-primary)/0.22)]' : ''
       }`}
       type="button"
@@ -121,11 +127,13 @@ export function TeamPage({
   const [lastTransfer, setLastTransfer] = useState<{ fromMemberId: string; toMemberId: string; itemId: string } | null>(null);
   const [showPicker, setShowPicker] = useState(false);
   const [showImportSheet, setShowImportSheet] = useState(false);
+  // 02-01's two routes into a new team, reached from the list's 「+」 (the third route it draws,
+  // 输入队伍码, is not a thing the app has).
+  const [showNewTeamSheet, setShowNewTeamSheet] = useState(false);
   const [nameSheet, setNameSheet] = useState<{ mode: 'create' | 'rename'; teamId?: string } | null>(null);
   const [nameDraft, setNameDraft] = useState('');
   const [menuTeamId, setMenuTeamId] = useState<string | null>(null);
   const [pendingDeleteTeamId, setPendingDeleteTeamId] = useState<string | null>(null);
-  const [dragState, setDragState] = useState<TeamDragState | null>(null);
   const teamCardRefs = useRef<Record<string, HTMLElement | null>>({});
 
   const activeTeam = detailTeamId ? teams.find((team) => team.id === detailTeamId) : undefined;
@@ -138,6 +146,7 @@ export function TeamPage({
   const showPresetCard = Boolean(presetTeam && presetTeam.members.length > 0 && !preferences.hasOpenedPresetTeam);
 
   const openCreateSheet = () => {
+    setShowNewTeamSheet(false);
     setNameDraft(defaultNewTeamName(teams.length));
     setNameSheet({ mode: 'create' });
   };
@@ -211,52 +220,75 @@ export function TeamPage({
     navigate(editorTeam ? { name: 'team-detail', teamId: editorTeam.id } : { name: 'teams' }, { replace: true });
   }, [editorRoute, editorTeam, editingMember, navigate]);
 
-  const dragTargetIndex = (clientY: number, sourceIndex: number, startY: number) =>
-    resolveDragTargetIndex({
-      clientY,
-      sourceIndex,
-      startY,
-      rowCount: teams.length,
-      measuredRows: measureDragRows(teams.map((team) => teamCardRefs.current[team.id]?.getBoundingClientRect())),
-    });
-
-  const startTeamDrag = (team: Team, index: number, event: React.PointerEvent<HTMLButtonElement>) => {
-    event.preventDefault();
-    setDragState({ teamId: team.id, sourceIndex: index, startY: event.clientY, currentY: event.clientY, targetIndex: index });
-  };
-
-  const updateTeamDrag = (event: React.PointerEvent<HTMLButtonElement>) => {
-    setDragState((current) => {
-      if (!current) return current;
-      return { ...current, currentY: event.clientY, targetIndex: dragTargetIndex(event.clientY, current.sourceIndex, current.startY) };
-    });
-  };
-
-  const finishTeamDrag = async (event: React.PointerEvent<HTMLButtonElement>) => {
-    if (!dragState) return;
-    const targetIndex = dragTargetIndex(event.clientY, dragState.sourceIndex, dragState.startY);
-    const draggedTeamId = dragState.teamId;
-    setDragState(null);
-    const nextTeams = reorderById(teams, draggedTeamId, targetIndex);
-    if (nextTeams) await replaceTeams(nextTeams);
+  // 02-09's 「移至首位」 — the list order the drag handle used to write, from the ⋯ menu instead.
+  // `replaceTeams` renumbers `sortOrder`, so the move survives a reload.
+  const moveTeamToTop = async (team: Team) => {
+    setMenuTeamId(null);
+    const index = teams.findIndex((candidate) => candidate.id === team.id);
+    if (index <= 0) return;
+    await replaceTeams([team, ...teams.filter((candidate) => candidate.id !== team.id)]);
   };
 
   const handlePickPokemon = async (entry: typeof pokemon[number]) => {
     if (!activeTeam || activeTeam.members.length >= 6) return;
     const member = createDefaultTeamMember({ pokemonId: entry.id, notes: '快速添加，可继续编辑。' });
     const result = evaluateMemberLegality(member, activeTeam);
-    await updateMember(activeTeam.id, { ...member, legalityStatus: result.status });
+    // The picker greys out what is already on the roster, so a rejection here can only come
+    // from a race; leaving the sheet open is the whole feedback.
+    const written = await updateMember(activeTeam.id, { ...member, legalityStatus: result.status });
+    if (!written.ok) return;
     setExpandedMemberId(member.id);
     setShowPicker(false);
   };
+
+  // 02-01's two routes into a new team, shared by the empty state and the 新建队伍 sheet.
+  const preview = upperBuildPreview(environment);
+  const upperBuildRoute = (sunken?: boolean) => (
+    <EmptyStateCard
+      icon={
+        <span className="grid h-[38px] w-[38px] shrink-0 place-items-center rounded-xl bg-data/[0.16] text-data">
+          <Trophy size={19} />
+        </span>
+      }
+      subtitle={environment ? `${environment.teamSamples.length} 份本季样本` : undefined}
+      sunken={sunken}
+      title="从上位构筑抄一套"
+      onClick={() => {
+        setShowNewTeamSheet(false);
+        onBrowseUpperBuilds();
+      }}
+    >
+      {preview.length > 0 && (
+        <span className="mt-[14px] grid grid-cols-6 gap-1 opacity-85">
+          {preview.map((slot) => (
+            <img key={slot.key} alt={slot.label} className="h-10 w-full object-contain" loading="lazy" src={slot.iconRef} />
+          ))}
+        </span>
+      )}
+    </EmptyStateCard>
+  );
+  const blankRoute = (sunken?: boolean) => (
+    <EmptyStateCard
+      icon={
+        <span className="grid h-[38px] w-[38px] shrink-0 place-items-center rounded-xl bg-btn1 text-textLabel">
+          <Plus size={19} />
+        </span>
+      }
+      sunken={sunken}
+      title="从空白开始"
+      onClick={openCreateSheet}
+    />
+  );
 
   const sheets = (
     <>
       {menuTeam && (
         <TeamMenuSheet
+          showMoveToTop={teams.findIndex((candidate) => candidate.id === menuTeam.id) > 0}
           showShare={detailTeamId === menuTeam.id}
           team={menuTeam}
           onClose={() => setMenuTeamId(null)}
+          onMoveToTop={() => void moveTeamToTop(menuTeam)}
           onCopyReplicaCode={() => {
             if (menuTeam.replicaCode) void onCopyReplicaCode(menuTeam.replicaCode);
             setMenuTeamId(null);
@@ -288,6 +320,14 @@ export function TeamPage({
           onCancel={() => setPendingDeleteTeamId(null)}
           onConfirm={() => void confirmDeleteTeam()}
         />
+      )}
+      {showNewTeamSheet && (
+        <Sheet title="新建队伍" onClose={() => setShowNewTeamSheet(false)}>
+          <div className="mt-4 flex flex-col gap-3">
+            {upperBuildRoute(true)}
+            {blankRoute(true)}
+          </div>
+        </Sheet>
       )}
       {showImportSheet && (
         <ImportShareSheet
@@ -361,6 +401,9 @@ export function TeamPage({
   if (activeTeam) {
     const shareable = canShareTeam(activeTeam);
     const missing = TEAM_SHARE_REQUIRED_MEMBERS - activeTeam.members.length;
+    // Old local data and imported teams may already break the composition rules. They are
+    // never rewritten — 02-07's notice reports them and the share stays blocked.
+    const compositionIssues = teamCompositionIssues(activeTeam);
 
     return (
       <div>
@@ -411,7 +454,22 @@ export function TeamPage({
               <Copy className="lk-glyph-ink" size={15} />
             </button>
           )}
-          {!shareable && (
+          {compositionIssues.length > 0 && (
+            <div className="lk-notice mt-[14px] flex gap-2.5 rounded-[14px] p-[14px]">
+              <span className="mt-px shrink-0 text-danger">
+                <TriangleAlert size={18} />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-extrabold tracking-[-0.01em]">这支队伍有 {compositionIssues.length} 处不合规</span>
+                {compositionIssues.map((issue) => (
+                  <span key={`${issue.memberId}-${issue.code}`} className="mt-1 block text-xs font-semibold leading-[18px] text-textSecondary">
+                    {issue.message}
+                  </span>
+                ))}
+              </span>
+            </div>
+          )}
+          {missing > 0 && (
             <div className="lk-notice mt-[14px] flex gap-2.5 rounded-[14px] p-[14px]">
               <span className="mt-px shrink-0 text-data">
                 <TriangleAlert size={18} />
@@ -446,7 +504,12 @@ export function TeamPage({
           ))}
         </div>
 
-        <PokemonPicker open={showPicker} onClose={() => setShowPicker(false)} onPick={handlePickPokemon} />
+        <PokemonPicker
+          open={showPicker}
+          takenSpeciesIds={rosterSpeciesIds(activeTeam)}
+          onClose={() => setShowPicker(false)}
+          onPick={handlePickPokemon}
+        />
         {sheets}
       </div>
     );
@@ -459,7 +522,6 @@ export function TeamPage({
       : [ordinaryTeamCount > 0 ? `${ordinaryTeamCount} 支` : undefined, showPresetCard ? '1 份预设' : undefined]
           .filter(Boolean)
           .join(' + ');
-  const preview = upperBuildPreview(environment);
 
   return (
     <div>
@@ -471,7 +533,7 @@ export function TeamPage({
             className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-accent text-page"
             title="新建队伍"
             type="button"
-            onClick={openCreateSheet}
+            onClick={() => setShowNewTeamSheet(true)}
           >
             <Plus size={20} />
           </button>
@@ -490,37 +552,12 @@ export function TeamPage({
             title="粘贴分享链接 / 分享码"
             onClick={() => setShowImportSheet(true)}
           />
-          <EmptyStateCard
-            icon={
-              <span className="grid h-[38px] w-[38px] shrink-0 place-items-center rounded-xl bg-data/[0.16] text-data">
-                <Trophy size={19} />
-              </span>
-            }
-            subtitle={environment ? `${environment.teamSamples.length} 份本季样本` : undefined}
-            title="从上位构筑抄一套"
-            onClick={onBrowseUpperBuilds}
-          >
-            {preview.length > 0 && (
-              <span className="mt-[14px] grid grid-cols-6 gap-1 opacity-85">
-                {preview.map((slot) => (
-                  <img key={slot.key} alt={slot.label} className="h-10 w-full object-contain" loading="lazy" src={slot.iconRef} />
-                ))}
-              </span>
-            )}
-          </EmptyStateCard>
-          <EmptyStateCard
-            icon={
-              <span className="grid h-[38px] w-[38px] shrink-0 place-items-center rounded-xl bg-btn1 text-textLabel">
-                <Plus size={19} />
-              </span>
-            }
-            title="从空白开始"
-            onClick={openCreateSheet}
-          />
+          {upperBuildRoute()}
+          {blankRoute()}
         </div>
       ) : (
         <div className="flex flex-col gap-[14px] px-6 pt-2">
-          {teams.map((team, index) =>
+          {teams.map((team) =>
             showPresetCard && team.id === PRESET_TEAM_ID ? (
               <PresetTeamCard
                 key={team.id}
@@ -532,19 +569,11 @@ export function TeamPage({
             ) : (
               <TeamListCard
                 key={team.id}
-                active={team.id === activeTeamId}
-                dragOffsetY={dragState?.teamId === team.id ? dragState.currentY - dragState.startY : 0}
-                dragging={dragState?.teamId === team.id}
-                dropTarget={Boolean(dragState && dragState.teamId !== team.id && dragState.targetIndex === index)}
                 recentlyImported={team.id === highlightedTeamId}
                 setCardRef={(element) => {
                   teamCardRefs.current[team.id] = element;
                 }}
                 team={team}
-                onDragCancel={() => setDragState(null)}
-                onDragEnd={(event) => void finishTeamDrag(event)}
-                onDragMove={updateTeamDrag}
-                onDragStart={(event) => startTeamDrag(team, index, event)}
                 onMenu={() => setMenuTeamId(team.id)}
                 onOpen={() => openTeamDetail(team.id)}
                 onShare={() => void onShareTeam(team)}

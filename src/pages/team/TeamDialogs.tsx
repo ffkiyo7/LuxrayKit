@@ -1,4 +1,4 @@
-import { Copy, CopyPlus, Import, Pencil, Share2, Trash2, X } from 'lucide-react';
+import { ArrowUpToLine, Copy, CopyPlus, Import, Pencil, Share2, Trash2, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { pokemon } from '../../data';
@@ -79,6 +79,8 @@ function MenuRow({
 export function TeamMenuSheet({
   team,
   showShare,
+  showMoveToTop,
+  onMoveToTop,
   onRename,
   onCopyReplicaCode,
   onShare,
@@ -88,6 +90,9 @@ export function TeamMenuSheet({
 }: {
   team: Team;
   showShare: boolean;
+  /** Hidden for the team that already heads the list — the drag handle it replaced is gone. */
+  showMoveToTop: boolean;
+  onMoveToTop: () => void;
   onRename: () => void;
   onCopyReplicaCode: () => void;
   onShare: () => void;
@@ -98,6 +103,7 @@ export function TeamMenuSheet({
   return (
     <Sheet label={`${team.name} 的更多操作`} title={team.name} onClose={onClose}>
       <div className="mt-3">
+        {showMoveToTop && <MenuRow icon={<ArrowUpToLine size={18} />} label="移至首位" onClick={onMoveToTop} />}
         <MenuRow icon={<Pencil size={18} />} label="重命名" onClick={onRename} />
         {team.replicaCode && <MenuRow icon={<Copy size={18} />} label="复制队伍码" onClick={onCopyReplicaCode} />}
         {showShare && canShareTeam(team) && <MenuRow icon={<Share2 size={18} />} label="分享链接" onClick={onShare} />}
