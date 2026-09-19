@@ -68,7 +68,7 @@ P1–P7 代码已全部落地并 push `dev`（2026-09-19，`0bde919`），**均�
 - [ ] **P5 伤害计算 + 速度线** 🎮 待验（`f839168`）：进攻 / 防守卡等高、SP 行不折行、选择器「环境常用」tab、结果卡四态、超速 sheet 三态。
 - [ ] **P6 我的 + 全局** 🎮 待验（`690b932`）：「我的」索引 + 备份 / 离线缓存 / 添加到主屏幕 / 当前规则 / 关于与数据五个子页、规则页改正式路由（文案未动）、Toast、错误页、链接失效页、写留言各状态。
 - [ ] **P7 浅色主题走查** 🎮 待验（`3a15580`、`c261584`、`b5cb6e4`、`bb6b238`）。**未做**：视觉基线重建、合 `main`——等 owner 验收后拍板。
-- [x] **e2e 与首屏预算**（2026-09-19，`21adf1e`、`5845f7e`）：`tests/pwa/` 三个功能性 spec 跟上新 UI，本机 3/3 通过；改版把 `regma-moves` 拖进了 `#/env` 首屏（303 KB，超 260 KB 预算），备份模块与环境详情页改按需加载后回到 235 KB。`visual.spec.ts` 只更新了导航步骤，基线未动；其中「随机一队」那条现在的抽队池含 VGCPastes 样本，数据刷新可能让它变红（旧 UI 靠已删除的「排位高分」筛选锁定 fixture）。
+- [x] ~~**e2e 与首屏预算**（2026-09-19，`21adf1e`、`5845f7e`）：`tests/pwa/` 三个功能性 spec 跟上新 UI，本机 3/3 通过；改版把 `regma-moves` 拖进了 `#/env` 首屏（303 KB，超 260 KB 预算），备份模块与环境详情页改按需加载后回到 235 KB。`visual.spec.ts` 只更新了导航步骤，基线未动；其中「随机一队」那条现在的抽队池含 VGCPastes 样本，数据刷新可能让它变红（旧 UI 靠已删除的「排位高分」筛选锁定 fixture）。~~
 - [ ] **收尾**：架构复盘见 [architecture-review-2026-09.md](architecture-review-2026-09.md)（只有建议，未动手）。
 
 ## 第一轮验收反馈（owner，2026-09-19，preview `414da20`）
@@ -100,39 +100,43 @@ owner 原话与帧冲突时原话赢。共享层先行修复：`15d0f63`。
 
 - [x] ~~✅ **R19 SP 滚轮卡顿 / 吸附错位**（`211ed0b`，owner 验收 2026-09-19）：根因是各项的字号和内边距随「离中心多远」变化，一选中就重排，snap 点在手指底下移动；选中又要等滚动停 90ms 才读，且自发滚动的标记会吞掉下一次用户滚动 → 各项固定 60px 宽、远近只用 `transform` 缩放；滚动中逐帧跟随中心项；鼠标滚轮改为累计 40px 步进一项（不再和 mandatory snap 互相拉扯）。~~
 - [x] ~~✅ **R20 图鉴种族值高亮条**（`211ed0b`，owner 验收 2026-09-19）：原来恒定高亮速度 → 高亮该宝可梦最高的那项（并列则都亮）。~~
-- [ ] 🎮 **R21 底部按钮被 tab bar 遮挡**（`211ed0b`）：tab bar 的 `bottom` 含 `env(safe-area-inset-bottom)`，图鉴详情的「加入队伍 / 计算」和速度线的「回到我」没加 → 两处补上。
-- [ ] 🎮 **R25 图鉴「加入队伍」点了没反应**（`577166d`）：原来静默写进第一支队伍，队伍满员 / 已有同种 / 一支队伍都没有时直接 return，无任何提示 → 改为弹环境页同款选队 sheet（抽成 `src/components/TeamPickerSheet.tsx` 共用），成功 toast「已加入<队伍名>」，被规则拒绝时 toast 拒绝原因。
-- [ ] 🎮 **R26 梦特特性名对比度不够**（`577166d`）：`fnTeal` → 琥珀色 `text-data`。
-- [ ] 🎮 **R22 工具页首次打开的示例数据 + 「最近用过」标题常驻**（合并 `3f166be`）：owner 已确认稿子（2026-09-19）。三张卡统一「示例 / 上次」label；`CalculatorToolResult` 新增 `moveLabel` / `defenderLabel` / `defenderIconRef`（旧记录靠校验丢弃一次，存储 key 仍是 `luxraykit.recentTools.v2`）；示例常量在 `src/lib/toolSamples.ts`，`toolSamples.test.ts` 现算对账；速度示例用 `resolveDefaultSpeedSubject` 现算；属性示例是 Fairy 按属性表现算（妖精 → 格斗 / 毒 → 妖精，不是稿里的龙 / 钢）；速度示例态不画 sparkline（要拉 209 kB 的 `speedTiers`）。ToolsPage chunk 9.15 kB，不含 `calc-engine`。 稿上追加的三条 owner 批注：伤害卡大数字改百分比区间（取整，如 `92–109%`）；深色头像圆盘用卡片填充色 + 圆框；示例值写成常量、由单测用 `computeDamage` 现算对账（工具页运行时不引入 `calc-engine`）。第二版稿（owner 提议）：卡片副行不放长文字，改为「圆形小头像 + 招式名 → 圆形小头像」（伤害计算）、「小头像 + 未分配 SP」（速度线），解决窄卡截断。示例取真实计算（稿里是烈咬陆鲨 地震 → 炽焰咆哮虎 156–186、烈咬陆鲨 0 SP 速度 122），标签「上次」位置改写「示例」。
-- [ ] 🚧 **R23 属性速查「打 / 挨」文案**：出了 A 克制 / 弱、B 效果绝佳 / 弱点、C 箭头 三个方案，**owner 选 C 箭头**（2026-09-19）。`MatrixResult` 已改为箭头图标（读屏读「攻击」）；工具页卡片那一行（属性点 + 箭头）随 R22 的稿一起等 owner 看。涉及 `ToolsPage.tsx` 的 `TypeChartLine` 和 `TypeChartPage.tsx` 的 `MatrixResult`。
-- [ ] 🎮 **R24 光晕按宝可梦本体色**（**owner 决定做**，2026-09-19；合并 `885f780`）：`scripts/generate-pokemon-colors.mjs` → `src/data/seed/regMA/pokemonColors.ts`，key = 贴图 id（`iconRef` 的文件名），344 条，22 条 lowConfidence；`npm run data:regma:pokemon-colors`（`:check`），不联网、确定性。`auraStyle(types, iconRef?)`：表里有这张贴图 → 本体色，否则回退属性色。6 个调用点全部接入：成员卡、成员编辑器顶卡、形态选择页（后两处原来是手写内联属性色，一并改走 `auraStyle`）、图鉴大图、环境首屏 hero、环境详情头部。CSS 值未动。颜色表被 Rollup 切成独立 chunk（`aura-*.js` 9.99 kB / gzip 4.33 kB），入口 chunk 体积不变，首屏预算不受影响。
+- [x] ~~✅ **R21 底部按钮被 tab bar 遮挡**（`211ed0b`，owner 验收 2026-09-19）：tab bar 的 `bottom` 含 `env(safe-area-inset-bottom)`，图鉴详情的「加入队伍 / 计算」和速度线的「回到我」没加 → 两处补上。~~
+- [x] ~~✅ **R25 图鉴「加入队伍」点了没反应**（`577166d`，owner 验收 2026-09-19）：原来静默写进第一支队伍，队伍满员 / 已有同种 / 一支队伍都没有时直接 return，无任何提示 → 改为弹环境页同款选队 sheet（抽成 `src/components/TeamPickerSheet.tsx` 共用），成功 toast「已加入<队伍名>」，被规则拒绝时 toast 拒绝原因。~~
+- [x] ~~✅ **R26 梦特特性名对比度不够**（`577166d`，owner 验收 2026-09-19）：`fnTeal` → 琥珀色 `text-data`。~~
+- [x] ~~✅ **R22 工具页首次打开的示例数据 + 「最近用过」标题常驻**（合并 `3f166be`，owner 验收 2026-09-19）：owner 已确认稿子（2026-09-19）。三张卡统一「示例 / 上次」label；`CalculatorToolResult` 新增 `moveLabel` / `defenderLabel` / `defenderIconRef`（旧记录靠校验丢弃一次，存储 key 仍是 `luxraykit.recentTools.v2`）；示例常量在 `src/lib/toolSamples.ts`，`toolSamples.test.ts` 现算对账；速度示例用 `resolveDefaultSpeedSubject` 现算；属性示例是 Fairy 按属性表现算（妖精 → 格斗 / 毒 → 妖精，不是稿里的龙 / 钢）；速度示例态不画 sparkline（要拉 209 kB 的 `speedTiers`）。ToolsPage chunk 9.15 kB，不含 `calc-engine`。 稿上追加的三条 owner 批注：伤害卡大数字改百分比区间（取整，如 `92–109%`）；深色头像圆盘用卡片填充色 + 圆框；示例值写成常量、由单测用 `computeDamage` 现算对账（工具页运行时不引入 `calc-engine`）。第二版稿（owner 提议）：卡片副行不放长文字，改为「圆形小头像 + 招式名 → 圆形小头像」（伤害计算）、「小头像 + 未分配 SP」（速度线），解决窄卡截断。示例取真实计算（稿里是烈咬陆鲨 地震 → 炽焰咆哮虎 156–186、烈咬陆鲨 0 SP 速度 122），标签「上次」位置改写「示例」。~~
+- [x] ~~✅ **R23 属性速查「打 / 挨」文案**（owner 验收 2026-09-19）：出了 A 克制 / 弱、B 效果绝佳 / 弱点、C 箭头 三个方案，**owner 选 C 箭头**（2026-09-19）。`MatrixResult` 已改为箭头图标（读屏读「攻击」）；工具页卡片那一行（属性点 + 箭头）随 R22 的稿一起等 owner 看。涉及 `ToolsPage.tsx` 的 `TypeChartLine` 和 `TypeChartPage.tsx` 的 `MatrixResult`。~~
+- [x] ~~✅ **R24 光晕按宝可梦本体色**（**owner 决定做**，2026-09-19；合并 `885f780`，owner 验收 2026-09-19）：`scripts/generate-pokemon-colors.mjs` → `src/data/seed/regMA/pokemonColors.ts`，key = 贴图 id（`iconRef` 的文件名），344 条，22 条 lowConfidence；`npm run data:regma:pokemon-colors`（`:check`），不联网、确定性。`auraStyle(types, iconRef?)`：表里有这张贴图 → 本体色，否则回退属性色。6 个调用点全部接入：成员卡、成员编辑器顶卡、形态选择页（后两处原来是手写内联属性色，一并改走 `auraStyle`）、图鉴大图、环境首屏 hero、环境详情头部。CSS 值未动。颜色表被 Rollup 切成独立 chunk（`aura-*.js` 9.99 kB / gzip 4.33 kB），入口 chunk 体积不变，首屏预算不受影响。~~
   - 取色：丢透明 / 近黑 / 近白 / 近灰（暖色相 15°–50° 的灰阈值放宽到 0.10 让棕色进榜）→ 15° 分桶 → 峰值得分「面积为主、饱和度为辅」Σ(0.35 + 0.65 × S)，峰必须是局部最大（否则窗口会把两种颜色平均成土黄）→ 饱和度取 75 分位、亮度取均值 → c2 取色相差 ≥ 35° 的次峰，没有就用 c1 的亮度邻近变体 → 钳到 S 0.45–0.90 / L 0.45–0.70；近白像素 ≥ 45% 的白色主体改用淡彩区间 S 0.30–0.55 / L 0.64–0.70。
   - 第一版的四个坏例（烈咬陆鲨橘压蓝、喷火龙土黄、沙奈朵浓绿 + 红、轰擂金刚猩没有棕）靠调参修好，没用 override；脚本顶部 `overrides = {}` 留给 owner 手工指定。
   - 验收重点：深 / 浅各看一遍；沙奈朵（淡彩）、月亮伊布 / 大钢蛇（lowConfidence，靠少量像素撑色）。
-- [ ] 🎮 **R27 工具页搜索框点了不弹输入法**（`3544eb6`）：iOS 只认手势内同步的 `focus()`，图鉴是懒加载页 → 点击瞬间先聚焦一个临时输入框拉起键盘（`src/lib/keyboardHandoff.ts`），图鉴挂载后搜索框接过焦点。只有这个入口会自动聚焦。真机键盘是否弹出需 owner 确认。
+- [x] ~~✅ **R27 工具页搜索框点了不弹输入法**（`3544eb6`，owner 真机验收 2026-09-19）：iOS 只认手势内同步的 `focus()`，图鉴是懒加载页 → 点击瞬间先聚焦一个临时输入框拉起键盘（`src/lib/keyboardHandoff.ts`），图鉴挂载后搜索框接过焦点。只有这个入口会自动聚焦。真机键盘是否弹出需 owner 确认。~~
 
 ### 第三轮追加（2026-09-19，owner 要求全部由 Opus 实施）
 
-- [ ] 🎮 **R28 图鉴属性关系组标题去掉 `×2 · ×4`**（合并 `b68d192`）：chip 里已有倍率。
-- [ ] 🎮 **R29 图鉴属性关系加可切换的「攻击时」**（合并 `c3c1230`）：出过三版稿（A 全宽分段 + 按属性分块 / B 文字切换 + 一次看一系 / C 标题行紧凑分段 + 合并成一张表、chip 尾部标来源系），**owner 选 C，并要求默认进入展示「受击时」**（2026-09-19）。落地：选择按 entry id 记（换一只宝可梦即回到受击时，不闪一帧）；攻击时三组「效果绝佳」success /「效果不好」「无效」danger（与 `TypeChartPage` 的 `SingleTypeView` 一致）；数据用 `offensiveProfile`；跨组不合并（烈咬陆鲨的钢在 ×2 · 地面 与 ×½ · 龙 各出现一次）；**同组同倍率合并成一个 chip、来源写「火 · 格斗」**（稿里没画，规则池里 186 处，如火焰鸡的冰 ×2）；单属性不显示来源。分段控件内联在 `PokemonDetail.tsx`（`SegmentedTabs` 写死等宽 34px），选中态复用全局 `.lk-segment-on`，未新增 CSS。
-- [ ] 🎮 **R30 环境页 NEW 标记给颜色**（合并 `b68d192`）：`rankDeltaTone.new` → `text-fnBlue`（↑ success / ↓ danger / – secondary，蓝不撞语义；teal 易读成涨、琥珀是数值色）。
-- [ ] 🎮 **R31 主题开关加太阳 / 月亮图标**（合并 `b68d192`）：`ProfilePage.tsx`「主题」行 leading 图标随状态在 `Moon` / `Sun` 间切换。
-- [ ] 🎮 **R32 环境宝可梦详情删掉「按使用率排序」**（合并 `b68d192`）：常用招式、携带道具两处；「按环境名次排序」保留（那一栏不显示数值）。
+- [x] ~~✅ **R28 图鉴属性关系组标题去掉 `×2 · ×4`**（合并 `b68d192`，owner 验收 2026-09-19）：chip 里已有倍率。~~
+- [x] ~~✅ **R29 图鉴属性关系加可切换的「攻击时」**（合并 `c3c1230`，owner 验收 2026-09-19）：出过三版稿（A 全宽分段 + 按属性分块 / B 文字切换 + 一次看一系 / C 标题行紧凑分段 + 合并成一张表、chip 尾部标来源系），**owner 选 C，并要求默认进入展示「受击时」**（2026-09-19）。落地：选择按 entry id 记（换一只宝可梦即回到受击时，不闪一帧）；攻击时三组「效果绝佳」success /「效果不好」「无效」danger（与 `TypeChartPage` 的 `SingleTypeView` 一致）；数据用 `offensiveProfile`；跨组不合并（烈咬陆鲨的钢在 ×2 · 地面 与 ×½ · 龙 各出现一次）；**同组同倍率合并成一个 chip、来源写「火 · 格斗」**（稿里没画，规则池里 186 处，如火焰鸡的冰 ×2）；单属性不显示来源。分段控件内联在 `PokemonDetail.tsx`（`SegmentedTabs` 写死等宽 34px），选中态复用全局 `.lk-segment-on`，未新增 CSS。~~
+- [x] ~~✅ **R30 环境页 NEW 标记给颜色**（合并 `b68d192`，owner 验收 2026-09-19）：`rankDeltaTone.new` → `text-fnBlue`（↑ success / ↓ danger / – secondary，蓝不撞语义；teal 易读成涨、琥珀是数值色）。~~
+- [x] ~~✅ **R31 主题开关加太阳 / 月亮图标**（合并 `b68d192`，owner 验收 2026-09-19）：`ProfilePage.tsx`「主题」行 leading 图标随状态在 `Moon` / `Sun` 间切换。~~
+- [x] ~~✅ **R32 环境宝可梦详情删掉「按使用率排序」**（合并 `b68d192`，owner 验收 2026-09-19）：常用招式、携带道具两处；「按环境名次排序」保留（那一栏不显示数值）。~~
 - [ ] 🚧 **R33 环境宝可梦详情加 SP 分配（上游「能力ポイント」）**：只取前 3，中文写入。
-  - ✅ ① 数据层（合并 `35b4713`）：`EnvironmentPokemonUsage.statPointStats?: EnvironmentStatPointUsage[]`（`label` 上游缩写原文 / `primaryStatKeys` / `extraStatKeys` / `points` / `hasRemainder` / `usageRate` / `teamCount`）。取上游默认的「合算」tab；缺失 / 未知字母 / 单项 > 32 / 总和 > 66 → 只丢那一条，**不进 Worker 零容忍 audit**（不会 degraded）；归一化层新增 issue code `invalid-stat-point-spread`。Worker `tsconfig.json` 的 include 加了 `statPoints.ts`。调查只读 GET 4 次，未写 KV、未跑 wrangler、未碰刷新端点。
+  - ✅ ~~① 数据层（合并 `35b4713`）：`EnvironmentPokemonUsage.statPointStats?: EnvironmentStatPointUsage[]`（`label` 上游缩写原文 / `primaryStatKeys` / `extraStatKeys` / `points` / `hasRemainder` / `usageRate` / `teamCount`）。取上游默认的「合算」tab；缺失 / 未知字母 / 单项 > 32 / 总和 > 66 → 只丢那一条，**不进 Worker 零容忍 audit**（不会 degraded）；归一化层新增 issue code `invalid-stat-point-spread`。Worker `tsconfig.json` 的 include 加了 `statPoints.ts`。调查只读 GET 4 次，未写 KV、未跑 wrangler、未碰刷新端点。~~
   - 缩写已核实：H=HP A=攻击 B=防御 C=特攻 D=特防 S=速度；大写 = 主投项，`+` 后小写 = 吃余点的项。证据是「位置 + 数值」（chip 顺序恒为 H→A→B→C→D→S，与同页种族值区块顺序一一对应；烈咬陆鲨 `AS` = 攻击 32 / 速度 32，索财灵 `CS` = 特攻 32 / 速度 32），上游没有字母 ↔ 全称的图例。owner 猜的 AS = 攻击 + 速度 正确。
   - **已知坑 `hasRemainder`**：上游把「满投项相同、余点去向不同」的配置合并成一条时只印满投项，余点印「余り」——使用率第一的那条往往正是这种（攻击 32 + 速度 32 = 64/66），不能画成完整分配。
-  - 🎮 ② 展示（合并 `8cf6445`）：出过三版稿（A 文字行 / B 六格缩略图 / C 66 点总量条 + chip），**owner 选 C 的小号 chip 版**（2026-09-19；chip 22px 高、11 / 12px 字）。位置在性格之后、常见队友之前；第一条琥珀、后两条中性灰；`hasRemainder` 行条尾留虚线空段 + 「余 N 点」虚线 chip（N 用 `MAX_TOTAL_STAT_POINTS` 算）；不显示上游缩写和 `teamCount`；字段缺失或空数组 → 整节不渲染。`p2.css` 新增两个纯色变量 `--env-sp-seg2` / `--env-sp-dash`。六项中文名原有三份私有副本，抽成 `src/lib/statPoints.ts` 的 `statPointLabels`。
-  - ✅ ③ 兜底数据已重跑（owner 允许，`b7aedfd`）：`npm run data:pokedb:environment`，约 124 次只读页面请求、3 分钟，M-6，审计全 0、未补映射；`public/data/pokedb/reg-ma-environment.json` 402 KB → 513 KB（主要是 `statPointStats`）。未写 KV、未跑 wrangler。
-  - ✅ ④ 过渡回填（`06bb183`，`src/data/environment.ts` 的 `backfillStatPointStats`）：`loadEnvironmentState` 在 Worker 快照 fresh + ok 时**完全不取兜底 JSON**，所以新 Worker 上线前 preview / 生产都看不到这一节 → API payload **整份没有** `statPointStats` 键时，用兜底快照同 battleType、同 pokemonId 的条目补上；API 带了键（哪怕空数组）就完全以 API 为准；**赛季不一致不回填**（兜底是手工刷的，会跨赛季滞后）。兜底是运行时 `fetch` 的 JSON，不进 JS chunk，首屏预算不受影响（入口 +103 B、`environment.js` +811 B）。**Worker 在 `main` 上线后删掉这段**（代码里有 `TRANSITIONAL` 注释）。
+  - ✅ ~~② 展示（合并 `8cf6445`，owner 验收 2026-09-19）：出过三版稿（A 文字行 / B 六格缩略图 / C 66 点总量条 + chip），**owner 选 C 的小号 chip 版**（2026-09-19；chip 22px 高、11 / 12px 字）。位置在性格之后、常见队友之前；第一条琥珀、后两条中性灰；`hasRemainder` 行条尾留虚线空段 + 「余 N 点」虚线 chip（N 用 `MAX_TOTAL_STAT_POINTS` 算）；不显示上游缩写和 `teamCount`；字段缺失或空数组 → 整节不渲染。`p2.css` 新增两个纯色变量 `--env-sp-seg2` / `--env-sp-dash`。六项中文名原有三份私有副本，抽成 `src/lib/statPoints.ts` 的 `statPointLabels`。~~
+  - ✅ ~~③ 兜底数据已重跑（owner 允许，`b7aedfd`）：`npm run data:pokedb:environment`，约 124 次只读页面请求、3 分钟，M-6，审计全 0、未补映射；`public/data/pokedb/reg-ma-environment.json` 402 KB → 513 KB（主要是 `statPointStats`）。未写 KV、未跑 wrangler。~~
+  - ✅ ~~④ 过渡回填（`06bb183`，`src/data/environment.ts` 的 `backfillStatPointStats`）：`loadEnvironmentState` 在 Worker 快照 fresh + ok 时**完全不取兜底 JSON**，所以新 Worker 上线前 preview / 生产都看不到这一节 → API payload **整份没有** `statPointStats` 键时，用兜底快照同 battleType、同 pokemonId 的条目补上；API 带了键（哪怕空数组）就完全以 API 为准；**赛季不一致不回填**（兜底是手工刷的，会跨赛季滞后）。兜底是运行时 `fetch` 的 JSON，不进 JS chunk，首屏预算不受影响（入口 +103 B、`environment.js` +811 B）。**Worker 在 `main` 上线后删掉这段**（代码里有 `TRANSITIONAL` 注释）。~~
   - ⬜ 上线链路（owner 决定时机）：合 `main` → Worker 部署；KV 要等上游下一次发布（约每天 00:30 JST，Worker 只在上游 signature 变化时重建快照）或 owner 手动 POST `/api/environment/refresh`。
   - 已知：单打的炽焰咆哮虎没有这一节是预期（不在单打前 60，上游没有详情页）。KV 快照滚到下一赛季而兜底还停在 M-6 时，回填会整体失效、这一节消失（而不是显示旧配点）。
+
+### 第四轮追加（2026-09-19）
+
+- [ ] ⬜ **R34 Safari 内下滑页面抖动**（owner 2026-09-19）：只在 iOS Safari 标签页里出现，环境页最明显；PWA 与 localhost 无此问题。owner 补充：iOS 26、地址栏在顶部；**整页内容上下跳，停手约 1 秒后跳一下**——时间点对上 `useAutoHideBottomNav` 的空闲回弹（`DEFAULT_IDLE_DELAY` 850ms + `.lk-nav-pill` 的 `width` / `height` 220ms 过渡，这是全站唯一会逐帧触发 layout 的动画）。推测：Safari 工具栏收起后视口尺寸的提交被推迟，回弹动画强制 layout 时一并落地 → 内容位移；PWA 没有工具栏伸缩所以无症状。本机没有 iOS 模拟器 runtime，无法复现，根因未证实。已排除：tab bar 收起只改 fixed 元素、`hidden` 状态只被 `BottomNav` 消费；`Sprite` 有固定宽高，不是图片晚到的位移；`Sheet` 的 visualViewport 监听只在打开时挂载。嫌疑（都只在 Safari 工具栏伸缩时成立）：① `viewport-fit=cover` 下 `env(safe-area-inset-bottom)` 随工具栏收起从 0 变约 34px → `.safe-bottom` 的 padding、`.lk-nav-pill` 的 `bottom`、`.lk-nav-fade` 的高度同时跳；② `min-h-screen`（100vh）与动态视口不一致；③ `body { overflow-x: hidden }`。
 
 ## 待 owner 拍板（agent 都已按最保守的理解先做完，不阻塞验收）
 
 **帧之间互相矛盾**
 
-- ✅ **05-03 vs 05-04**（owner 2026-09-19：用 05-04 整页，环境 / 图鉴在上、从队伍选择在下）→ 随 R8 落地。原状：两侧共用 05-03 的 sheet，图鉴搜索并进 sheet。
+- ✅ ~~**05-03 vs 05-04**（owner 2026-09-19：用 05-04 整页，环境 / 图鉴在上、从队伍选择在下）→ 随 R8 落地。原状：两侧共用 05-03 的 sheet，图鉴搜索并进 sheet。~~
 - **07-02 的浅色语言与其他浅色帧不是一套**：玫瑰色 `#90646a` 导入按钮、白卡 + 发丝环的圆钮 / 搜索框 / 胶囊、选中胶囊无紫环、琥珀 `#8a5c0f`。01-04 的同一个返回钮却是 `#f2f2f5`。现状：全站统一走 token，07 页没有单开变体。
 - **02-04（⋯ 锚定浮层）vs 02-09（sheet）**：现状用 sheet。
 - **开关关态轨浅色**：05-02 `#f2f2f5`（现状）vs NL-06 `#e8e8ec`。
@@ -144,7 +148,7 @@ owner 原话与帧冲突时原话赢。共享层先行修复：`15d0f63`。
 - 成员 ⋯ 菜单（N02-20）：没有任何帧画它的触发点 → 没做。
 - N01-14「看缺哪 18 只」、N08-10「重试更新」、08-10「输入队伍码」主按钮、N05-17「还能留多少余量」、N05-18「已经算过的组合」：背后没有对应功能 / 算法 → 没画。
 - 「添加到主屏幕」只有 iOS 图文（帧只画了 iOS），Android / 桌面 Chrome 也看到这套说明。
-- ✅ 队伍卡拖拽把手（owner 2026-09-19：删掉拖动，⋯ 菜单加「移至首位」）→ 随 R5 落地。
+- ✅ ~~队伍卡拖拽把手（owner 2026-09-19：删掉拖动，⋯ 菜单加「移至首位」）→ 随 R5 落地。~~
 - 「我的」子页与编辑配置页不显示 tab bar（帧里都没画）。
 
 **产品 / 文案**
