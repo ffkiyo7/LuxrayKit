@@ -161,7 +161,7 @@ function ImportCoverageNoticeDialog({
         </div>
         <div className="mt-[18px] h-px bg-[var(--hairline)]" />
         <button
-          className="mt-[18px] flex h-11 w-full items-center justify-center gap-[7px] rounded-[14px] bg-accent text-[15px] font-extrabold text-page shadow-[inset_0_1px_0_rgb(255_255_255/0.9),inset_0_-1px_0_rgb(0_0_0/0.12),0_4px_14px_rgb(0_0_0/0.4)]"
+          className="lk-env-slab mt-[18px] flex h-11 w-full items-center justify-center gap-[7px] rounded-[14px] bg-accent text-[15px] font-extrabold text-page"
           type="button"
           onClick={onContinue}
         >

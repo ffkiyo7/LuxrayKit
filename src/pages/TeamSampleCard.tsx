@@ -54,7 +54,7 @@ export function SampleImportButton({
       className={`flex h-11 items-center justify-center gap-[7px] rounded-xl text-sm ${
         importing
           ? 'bg-btn1 font-bold text-btnDisabledInk'
-          : 'bg-accent font-extrabold text-page shadow-[inset_0_1px_0_rgb(255_255_255/0.9),inset_0_-1px_0_rgb(0_0_0/0.12),0_4px_14px_rgb(0_0_0/0.4)]'
+          : 'lk-env-slab bg-accent font-extrabold text-page'
       } ${className}`}
       disabled={importing}
       type="button"
