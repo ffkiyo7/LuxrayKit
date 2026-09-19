@@ -12,7 +12,7 @@ import { sampleRegulation, teamSampleLadderScore, teamSamplePlacementLabel } fro
  * 07-01's card is four blocks and nothing else: title row (name · link glyph · amber score),
  * meta line, the six sprites, then the import slab. The source badge, 队报 button and 「可导入」
  * chips the old card carried are not in the frame and are gone; the link glyph is the only
- * remaining marker that a sample has a public report.
+ * remaining marker that a sample has a public report, and it opens that report.
  */
 export const teamSampleMeta = (sample: EnvironmentTeamSample) =>
   [
@@ -88,6 +88,8 @@ export function TeamSampleCard({
   const slots = resolveSampleSlots(sample);
   const title = teamSampleTitle(sample);
   const ladderScore = teamSampleLadderScore(sample);
+  // The glyph is a real link (owner, 2026-09-19); upstream text is only trusted as an http(s) URL.
+  const reportUrl = sample.reportUrl && /^https?:\/\//.test(sample.reportUrl) ? sample.reportUrl : undefined;
 
   const handleImport = async () => {
     setImporting(true);
@@ -104,10 +106,17 @@ export function TeamSampleCard({
     >
       <div className="flex items-baseline gap-2.5">
         <h3 className="text-[20px] font-extrabold leading-7 tracking-[-0.01em]">{title}</h3>
-        {sample.reportUrl && (
-          <span aria-hidden="true" className="inline-flex shrink-0 self-center text-textSecondary">
-            <LinkIcon size={15} />
-          </span>
+        {reportUrl && (
+          // Same 15px glyph as the frame; the padding / negative margin only widens the tap target.
+          <a
+            aria-label={`打开${title}的队报`}
+            className="-m-2.5 inline-flex shrink-0 self-center p-2.5 text-textSecondary"
+            href={reportUrl}
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            <LinkIcon aria-hidden="true" size={15} />
+          </a>
         )}
         <span className="flex-1" />
         {ladderScore !== undefined && (
