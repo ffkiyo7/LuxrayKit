@@ -231,8 +231,13 @@ button {
   display: none;
 }
 
+/* In a Safari tab `env(safe-area-inset-bottom)` is not a constant: it is 0 while the toolbar is
+   up and ~34px once it minimises, and Safari brings the toolbar back the moment a fling hits
+   the end of the page. Padding that tracks it makes the document 34px shorter exactly then, the
+   scroll position gets clamped mid-bounce and the whole page jolts (R34). Flooring it at the
+   home-indicator height keeps the document height fixed; standalone is unaffected (always 34). */
 .safe-bottom {
-  padding-bottom: calc(84px + env(safe-area-inset-bottom));
+  padding-bottom: calc(84px + max(env(safe-area-inset-bottom), 34px));
 }
 
 .app-shell {

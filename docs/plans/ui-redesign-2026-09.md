@@ -130,7 +130,11 @@ owner 原话与帧冲突时原话赢。共享层先行修复：`15d0f63`。
 
 ### 第四轮追加（2026-09-19）
 
-- [ ] ⬜ **R34 Safari 内下滑页面抖动**（owner 2026-09-19）：只在 iOS Safari 标签页里出现，环境页最明显；PWA 与 localhost 无此问题。owner 补充：iOS 26、地址栏在顶部；**整页内容上下跳，停手约 1 秒后跳一下**——时间点对上 `useAutoHideBottomNav` 的空闲回弹（`DEFAULT_IDLE_DELAY` 850ms + `.lk-nav-pill` 的 `width` / `height` 220ms 过渡，这是全站唯一会逐帧触发 layout 的动画）。推测：Safari 工具栏收起后视口尺寸的提交被推迟，回弹动画强制 layout 时一并落地 → 内容位移；PWA 没有工具栏伸缩所以无症状。本机没有 iOS 模拟器 runtime，无法复现，根因未证实。已排除：tab bar 收起只改 fixed 元素、`hidden` 状态只被 `BottomNav` 消费；`Sprite` 有固定宽高，不是图片晚到的位移；`Sheet` 的 visualViewport 监听只在打开时挂载。嫌疑（都只在 Safari 工具栏伸缩时成立）：① `viewport-fit=cover` 下 `env(safe-area-inset-bottom)` 随工具栏收起从 0 变约 34px → `.safe-bottom` 的 padding、`.lk-nav-pill` 的 `bottom`、`.lk-nav-fade` 的高度同时跳；② `min-h-screen`（100vh）与动态视口不一致；③ `body { overflow-x: hidden }`。
+- [ ] 🎮 **R34 Safari 内用力滑到页面底部整页抖一下**（owner 2026-09-19）：只在 iOS Safari 标签页里出现（iOS 26、地址栏在顶部），环境页最明显；PWA 与 localhost 无此问题。owner 描述：慢慢滑不跳，tab bar 自动回弹时也不跳；**一甩到底时整页像被撞了一下上下抖一下停住，甩到顶不会**。
+  - 已排除 tab bar 空闲回弹：实验分支 `exp/r34-no-idle-rebound`（回弹延时拉到 24h，不合并）owner 真机验证「还跳」。
+  - 修法：`viewport-fit=cover` 下 `env(safe-area-inset-bottom)` 在 Safari 标签页里不是常数（工具栏在 = 0、收起 ≈ 34px），而 Safari 在甩到页面底部时会把工具栏弹回来 → `.safe-bottom` 的 padding 恰在此刻缩 34px、文档变矮、滚动位置在回弹途中被钳住 → 抖。改为 `calc(84px + max(env(safe-area-inset-bottom), 34px))`，文档高度不再随工具栏变（`styles.css`、`styles.test.ts`）。PWA 恒为 34 不受影响；无刘海设备 / 桌面页面底部多 34px 留白。本机没有 iOS 模拟器 runtime，**根因未经复现证实，靠 owner 真机验证**。
+  - 未动：图鉴详情底部 sticky 按钮条的 `pb-[calc(86px+env(safe-area-inset-bottom))]` 是同一模式（在文档流里，同样会改文档高度），等本条验证有效后再照改。`.lk-nav-pill` 的 `bottom` / `.lk-nav-fade` 的高度是 fixed 元素，应当跟随真实 inset，不改。
+  - 其余排除项：`hidden` 状态只被 `BottomNav` 消费；`Sprite` 有固定宽高，不是图片晚到的位移；`Sheet` 的 visualViewport 监听只在打开时挂载；没有滚动驱动的 `replaceState`。
 
 ## 待 owner 拍板（agent 都已按最保守的理解先做完，不阻塞验收）
 
