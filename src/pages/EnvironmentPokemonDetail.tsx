@@ -282,9 +282,7 @@ export function EnvironmentPokemonDetail({
 
       {(movesPending || moveRows.length > 0) && (
         <section className="px-6 pt-[26px]">
-          <SectionHeading trailing={<span className="shrink-0 text-xs font-semibold text-textSecondary">按使用率排序</span>}>
-            常用招式
-          </SectionHeading>
+          <SectionHeading>常用招式</SectionHeading>
           <div className="mt-2.5">
             {movesPending ? (
               <>
@@ -328,9 +326,7 @@ export function EnvironmentPokemonDetail({
 
       {itemRows.length > 0 && (
         <section className="px-6 pt-[26px]">
-          <SectionHeading trailing={<span className="shrink-0 text-xs font-semibold text-textSecondary">按使用率排序</span>}>
-            携带道具
-          </SectionHeading>
+          <SectionHeading>携带道具</SectionHeading>
           <div className="mt-2.5">
             {itemRows.slice(0, VISIBLE_ITEM_ROWS).map(({ item, stat }) => (
               <div key={item.id} className="flex h-16 items-center gap-3.5 border-b border-[var(--hairline)]">
