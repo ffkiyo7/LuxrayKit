@@ -207,10 +207,10 @@ const editCalculatorSide = async (
   await user.click(screen.getByRole('button', { name: '完成' }));
 };
 
+/** The calculator shares 03-01's wheel now: pick the stat on the wheel, then move its rail. */
 const setCalculatorStatPoints = async (user: ReturnType<typeof userEvent.setup>, label: string, value: number) => {
-  await user.click(screen.getByRole('button', { name: new RegExp(`^${label} \\d+$`) }));
+  await user.click(screen.getByRole('button', { name: `调整${label}` }));
   fireEvent.change(screen.getByRole('slider', { name: `${label} SP` }), { target: { value: String(value) } });
-  await user.click(screen.getByTitle('关闭 SP 调整'));
 };
 
 const selectCalculatorPair = async (user: ReturnType<typeof userEvent.setup>) => {
@@ -1039,15 +1039,10 @@ describe('App page flows', () => {
     expect(screen.getByRole('switch', { name: '会心一击' })).toBeTruthy();
 
     await editCalculatorSide(user, 'attacker', async () => {
-      // A temporary Pokémon starts at 0 SP; the shared picker is the only way to change it.
+      // A temporary Pokémon starts at 0 SP; the shared wheel is the only way to change it.
       expect(screen.queryByRole('spinbutton')).toBeNull();
-      await user.click(screen.getByRole('button', { name: /^HP 0$/ }));
-      const hpSlider = screen.getByRole('slider', { name: 'HP SP' });
-      expect(hpSlider.getAttribute('max')).toBe('32');
-      expect(screen.getByRole('button', { name: 'min' })).toBeTruthy();
-      expect(screen.getByRole('button', { name: 'max' })).toBeTruthy();
-      fireEvent.change(hpSlider, { target: { value: '8' } });
-      await user.click(screen.getByTitle('关闭 SP 调整'));
+      await setCalculatorStatPoints(user, 'HP', 8);
+      expect(screen.getByRole('slider', { name: 'HP SP' }).getAttribute('max')).toBe('32');
       expect(screen.getByText('8 / 66')).toBeTruthy();
 
       await setCalculatorStatPoints(user, '攻击', 32);
@@ -1057,32 +1052,30 @@ describe('App page flows', () => {
       expect(screen.getByText(/总计超了 6 点/)).toBeTruthy();
       expect(screen.getByRole('button', { name: '完成' }).hasAttribute('disabled')).toBe(true);
 
-      // Back under the cap, then change nature and item through their sheets.
+      // Back under the cap, then change nature and item through the shared picker pages.
       await setCalculatorStatPoints(user, '速度', 26);
       await user.click(screen.getByRole('button', { name: /^性格/ }));
-      await user.click(within(screen.getByRole('dialog', { name: '性格' })).getByRole('button', { name: /固执/ }));
+      await user.click((await screen.findAllByRole('button', { name: /固执/ }))[0]);
 
       await user.click(screen.getByRole('button', { name: /^道具/ }));
-      const itemSheet = screen.getByRole('dialog', { name: '道具' });
-      const itemOption = within(itemSheet).getAllByRole('button').find((button) => !['关闭', '无道具'].includes(button.textContent ?? ''));
-      expect(itemOption).toBeTruthy();
-      await user.click(itemOption!);
+      await user.type(screen.getByRole('textbox', { name: '搜索道具名' }), '气势披带');
+      await user.click(await screen.findByRole('button', { name: '气势披带' }));
+      expect(screen.getByRole('button', { name: '道具 气势披带' })).toBeTruthy();
     });
 
     // Edits survive coming back to the calculator and changing a battle condition.
     expect(calculatorSideCard('attacker').textContent).toContain('固执');
-    expect(calculatorSideCard('attacker').textContent).toContain('SP 攻击 32');
     await user.click(screen.getByRole('button', { name: /^天气/ }));
     await user.click(within(screen.getByRole('dialog', { name: '天气' })).getByRole('button', { name: '晴天' }));
     expect(screen.getByRole('button', { name: '天气 晴天' })).toBeTruthy();
 
     await editCalculatorSide(user, 'attacker', async () => {
-      expect(screen.getByRole('button', { name: /^HP 8$/ })).toBeTruthy();
+      expect(screen.getByText('66 / 66')).toBeTruthy();
     });
 
-    // The defender gets the same editor, minus the move list.
+    // The defender gets the same editor, minus the move entry.
     await editCalculatorSide(user, 'defender', async () => {
-      expect(screen.queryByRole('textbox', { name: '搜索攻击招式' })).toBeNull();
+      expect(screen.queryByRole('button', { name: /^招式/ })).toBeNull();
       await setCalculatorStatPoints(user, '防御', 20);
       expect(screen.getByText('20 / 66')).toBeTruthy();
     });
@@ -1099,7 +1092,6 @@ describe('App page flows', () => {
     const initialHp = Number(initialHpText.match(/对方 HP (\d+)/)?.[1]);
     expect(Number.isFinite(initialHp)).toBe(true);
     expect(screen.getByText('防守方 HP / 防御')).toBeTruthy();
-    expect(calculatorSideCard('defender').textContent).toContain('SP 未分配');
 
     await editCalculatorSide(user, 'defender', async () => {
       await setCalculatorStatPoints(user, 'HP', 32);
@@ -1108,7 +1100,6 @@ describe('App page flows', () => {
     await waitFor(() => {
       expect(screen.getByText(new RegExp(`对方 HP ${initialHp + 32}`))).toBeTruthy();
     });
-    expect(calculatorSideCard('defender').textContent).toContain('SP HP 32');
   });
 
   it('keeps calculator move search results synced with the selected move', async () => {
@@ -1118,9 +1109,9 @@ describe('App page flows', () => {
     expect(await screen.findByRole('heading', { name: '伤害计算' })).toBeTruthy();
     await pickCalculatorPokemon(user, 'attacker', 'Incineroar', '炽焰咆哮虎');
 
-    await user.click(screen.getByRole('button', { name: '编辑进攻方配置' }));
-    const moveSearch = screen.getByRole('textbox', { name: '搜索攻击招式' });
-    await user.type(moveSearch, 'DD');
+    // 当前招式 on the page opens the attacker's move picker straight away (owner call).
+    await user.click(screen.getByRole('button', { name: /^招式 / }));
+    await user.type(screen.getByRole('textbox', { name: '搜索招式名' }), '金勾臂');
     await user.click(await screen.findByRole('button', { name: /ＤＤ金勾臂/ }));
     await user.click(screen.getByRole('button', { name: '完成' }));
 
@@ -1135,15 +1126,16 @@ describe('App page flows', () => {
     expect(await screen.findByRole('heading', { name: '伤害计算' })).toBeTruthy();
 
     await pickCalculatorPokemon(user, 'attacker', 'Houndoom', '黑鲁加');
-    await user.click(screen.getByRole('button', { name: '编辑进攻方配置' }));
-    await user.type(screen.getByRole('textbox', { name: '搜索攻击招式' }), '闪焰冲锋');
-    await user.click(await screen.findByRole('button', { name: /闪焰冲锋/ }));
-    await user.click(screen.getByRole('button', { name: '完成' }));
+    await editCalculatorSide(user, 'attacker', async () => {
+      await user.click(screen.getByRole('button', { name: /^招式/ }));
+      await user.type(screen.getByRole('textbox', { name: '搜索招式名' }), '闪焰冲锋');
+      await user.click(await screen.findByRole('button', { name: /闪焰冲锋/ }));
+    });
 
     await pickCalculatorPokemon(user, 'defender', 'Arcanine', '风速狗');
     await editCalculatorSide(user, 'defender', async () => {
       await user.click(screen.getByRole('button', { name: /^特性/ }));
-      await user.click(within(screen.getByRole('dialog', { name: '特性' })).getByRole('button', { name: '引火' }));
+      await user.click(await screen.findByRole('button', { name: /引火/ }));
     });
 
     expect(await screen.findByText(/无法造成伤害/)).toBeTruthy();
@@ -1157,12 +1149,13 @@ describe('App page flows', () => {
 
     expect(await screen.findByRole('heading', { name: '伤害计算' })).toBeTruthy();
     await user.click(screen.getByRole('button', { name: '选择进攻方' }));
-    await user.click(await screen.findByRole('button', { name: '伦琴猫' }));
+    // 从队伍选择 is the picker's last section, so the saved build is the last match (05-04).
+    await user.click((await screen.findAllByRole('button', { name: '伦琴猫' })).at(-1)!);
     expect(calculatorSideCard('attacker').textContent).toContain('伦琴猫');
 
     await editCalculatorSide(user, 'attacker', async () => {
       await setCalculatorStatPoints(user, 'HP', 12);
-      expect(screen.getByRole('button', { name: /^HP 12$/ })).toBeTruthy();
+      expect(screen.getByRole('slider', { name: 'HP SP' }).getAttribute('value')).toBe('12');
     });
 
     // Navigate back to team page
@@ -1185,10 +1178,10 @@ describe('App page flows', () => {
     expect(screen.queryByText('小顿熊')).toBeNull();
     await pickCalculatorPokemon(user, 'attacker', 'Garchomp', '烈咬陆鲨');
 
-    // The defender takes a saved team member straight from the picker's 我的队伍 tab.
+    // The defender takes a saved team member straight from the picker's 从队伍选择 section.
     await user.click(screen.getByRole('button', { name: '选择防守方' }));
-    const picker = screen.getByRole('dialog', { name: '选择防守方' });
-    await user.click(within(picker).getByRole('button', { name: '伦琴猫' }));
+    expect(await screen.findByRole('heading', { name: '选择防守方' })).toBeTruthy();
+    await user.click((await screen.findAllByRole('button', { name: '伦琴猫' })).at(-1)!);
     expect(calculatorSideCard('defender').textContent).toContain('伦琴猫');
 
     await pickCalculatorPokemon(user, 'defender', 'Torkoal', '煤炭龟');
