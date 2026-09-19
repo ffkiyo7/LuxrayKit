@@ -1,56 +1,32 @@
-import {
-  ArrowLeft,
-  Check,
-  ChevronDown,
-  Dices,
-  Search,
-  SlidersHorizontal,
-  Sparkles,
-  X,
-} from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
-import { Button, Card, EmptyState } from '../components/ui';
+import { Dices, SlidersHorizontal, X } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { PageHeader, SearchField } from '../components/kit';
 import {
   getEnvironmentPokemon,
   type EnvironmentBattleType,
   type EnvironmentTeamSample,
-  type RegulationId,
 } from '../data/environment';
-import { regulationSchedule } from '../data/schedule';
+import { PushHeader, RoundIconButton } from './environmentChrome';
 import { TeamSampleCard } from './TeamSampleCard';
 import {
   nextTeamSampleShuffleSeed,
-  sampleRegulation,
   shuffleTeamSamples,
   sortTeamSamplesByDate,
-  teamSampleCategory,
+  sortTeamSamplesByScore,
 } from './environmentTeamSamples';
 
-const battleTypeLabels: Record<EnvironmentBattleType, string> = {
-  singles: '单打',
-  doubles: '双打',
-};
+type SampleFilterId = 'hasMoves' | 'hasSpread' | 'replicaCode';
+type SampleSort = 'score' | 'date';
 
-type CategoryFilter = 'all' | 'event' | 'ranked';
-type RegulationFilter = 'all' | RegulationId;
-type DateSort = 'newest' | 'oldest';
-
-const categoryFilters: Array<{ value: CategoryFilter; label: string }> = [
-  { value: 'all', label: '全部' },
-  { value: 'event', label: '赛事' },
-  { value: 'ranked', label: '排位高分' },
+const sampleFilters: Array<{ id: SampleFilterId; label: string; matches: (sample: EnvironmentTeamSample) => boolean }> = [
+  { id: 'hasMoves', label: '带配招', matches: (sample) => Boolean(sample.hasMoves) },
+  { id: 'hasSpread', label: '带 SP', matches: (sample) => Boolean(sample.hasSpread) },
+  { id: 'replicaCode', label: '有队伍码', matches: (sample) => Boolean(sample.replicaCode) },
 ];
 
-// Derived from the schedule (newest regulation first) so a rollover only needs the new window
-// appended to `regulationSchedule` — the filter button appears on its own. Samples whose
-// regulation is unknown (sampleRegulation -> undefined) match none of the concrete buttons and
-// remain reachable through "全部规则".
-const regulationFilters: Array<{ value: RegulationFilter; label: string }> = [
-  ...[...regulationSchedule]
-    .sort((left, right) => Date.parse(right.startAt) - Date.parse(left.startAt))
-    .map((entry) => ({ value: entry.id as RegulationFilter, label: entry.id })),
-  { value: 'all', label: '全部规则' },
-];
+const sortLabels: Record<SampleSort, string> = { score: '按分数', date: '按时间' };
+
+const chineseCount = ['零', '一', '两', '三'];
 
 const matchesTeamSearch = (sample: EnvironmentTeamSample, searchTerm: string) => {
   const query = searchTerm.trim().toLocaleLowerCase();
@@ -65,241 +41,225 @@ const matchesTeamSearch = (sample: EnvironmentTeamSample, searchTerm: string) =>
     .some((value) => value!.toLocaleLowerCase().includes(query));
 };
 
+function FilterChip({
+  children,
+  selected,
+  onClick,
+}: {
+  children: ReactNode;
+  selected: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      aria-pressed={selected}
+      className={`inline-flex h-[34px] shrink-0 items-center rounded-full px-3.5 text-[13px] font-bold ${
+        selected ? 'lk-pill-on text-textPrimary' : 'bg-surface text-textSecondary'
+      }`}
+      type="button"
+      onClick={onClick}
+    >
+      {children}
+    </button>
+  );
+}
+
 export function TeamBrowseView({
   battleType,
   samples,
-  onBattleTypeChange,
+  subtitle,
   onBack,
   onImportSample,
 }: {
   battleType: EnvironmentBattleType;
   samples: EnvironmentTeamSample[];
-  onBattleTypeChange: (battleType: EnvironmentBattleType) => void;
+  subtitle: string;
   onBack: () => void;
   onImportSample: (sample: EnvironmentTeamSample) => Promise<void> | void;
 }) {
   const [searchTerm, setSearchTerm] = useState('');
-  // Default to "全部规则" so users always land on a populated list regardless of the active
-  // battle type; pre-selecting the live regulation could show an empty page and confuse.
-  const [regulation, setRegulation] = useState<RegulationFilter>('all');
-  const [category, setCategory] = useState<CategoryFilter>('all');
-  const [withReplicaCode, setWithReplicaCode] = useState(false);
-  const [dateSort, setDateSort] = useState<DateSort>('newest');
-  const [inspiration, setInspiration] = useState<EnvironmentTeamSample | null>(null);
+  const [activeFilters, setActiveFilters] = useState<SampleFilterId[]>([]);
+  const [sort, setSort] = useState<SampleSort>('score');
+  const [drawnSample, setDrawnSample] = useState<EnvironmentTeamSample | null>(null);
+
+  const battleSamples = useMemo(
+    () => samples.filter((sample) => sample.battleType === battleType),
+    [battleType, samples],
+  );
+
+  const applyFilters = useCallback(
+    (filterIds: SampleFilterId[]) =>
+      battleSamples.filter(
+        (sample) =>
+          filterIds.every((id) => sampleFilters.find((filter) => filter.id === id)!.matches(sample)) &&
+          matchesTeamSearch(sample, searchTerm),
+      ),
+    [battleSamples, searchTerm],
+  );
 
   const visibleSamples = useMemo(() => {
-    const filtered = samples.filter(
-      (sample) =>
-        sample.battleType === battleType &&
-        (regulation === 'all' || sampleRegulation(sample) === regulation) &&
-        (category === 'all' || teamSampleCategory(sample) === category) &&
-        (!withReplicaCode || Boolean(sample.replicaCode)) &&
-        matchesTeamSearch(sample, searchTerm),
-    );
-    return sortTeamSamplesByDate(filtered, dateSort);
-  }, [battleType, category, dateSort, regulation, samples, searchTerm, withReplicaCode]);
-
-  const hasActiveFilters =
-    Boolean(searchTerm) || regulation !== 'all' || category !== 'all' || withReplicaCode;
-  const resetFilters = () => {
-    setSearchTerm('');
-    setRegulation('all');
-    setCategory('all');
-    setWithReplicaCode(false);
-  };
+    const filtered = applyFilters(activeFilters);
+    return sort === 'score' ? sortTeamSamplesByScore(filtered) : sortTeamSamplesByDate(filtered, 'newest');
+  }, [activeFilters, applyFilters, sort]);
 
   useEffect(() => {
-    if (!inspiration) return;
+    if (!drawnSample) return;
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setInspiration(null);
+      if (event.key === 'Escape') setDrawnSample(null);
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [inspiration]);
+  }, [drawnSample]);
 
-  const changeBattleType = (nextBattleType: EnvironmentBattleType) => {
-    setInspiration(null);
-    onBattleTypeChange(nextBattleType);
+  // Changing the battle type re-scopes the whole list, so a drawn sample from the old one
+  // would no longer be reachable in the list behind the dialog.
+  useEffect(() => {
+    setDrawnSample(null);
+  }, [battleType]);
+
+  const toggleFilter = (id: SampleFilterId) => {
+    setActiveFilters((current) => (current.includes(id) ? current.filter((value) => value !== id) : [...current, id]));
   };
 
-  const drawInspiration = () => {
+  const resetFilters = () => {
+    setActiveFilters([]);
+    setSearchTerm('');
+  };
+
+  const drawSample = () => {
     const shuffled = shuffleTeamSamples(visibleSamples, nextTeamSampleShuffleSeed());
-    setInspiration(shuffled.find((sample) => sample.id !== inspiration?.id) ?? shuffled[0] ?? null);
+    setDrawnSample(shuffled.find((sample) => sample.id !== drawnSample?.id) ?? shuffled[0] ?? null);
   };
+
+  const dropHints = activeFilters.map((id) => {
+    const filter = sampleFilters.find((candidate) => candidate.id === id)!;
+    return `去掉「${filter.label}」还有 ${applyFilters(activeFilters.filter((value) => value !== id)).length} 支`;
+  });
 
   return (
-    <div className="space-y-3">
-      <button className="inline-flex items-center gap-2 text-sm text-textSecondary" type="button" onClick={onBack}>
-        <ArrowLeft size={16} />
-        返回环境
-      </button>
-
-      <Card className="bg-gradient-to-b from-elevated to-page">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="text-[11px] uppercase tracking-wide text-textMuted">Team Library</p>
-            <h2 className="mt-1 text-xl font-semibold">队伍一览</h2>
-            <p className="mt-1 text-xs text-textSecondary">搜索公开队伍，或随机找一点构筑灵感。</p>
-          </div>
-          <div className="grid shrink-0 grid-cols-2 rounded-lg border border-border bg-page p-1 text-sm font-semibold">
-            {(Object.keys(battleTypeLabels) as EnvironmentBattleType[]).map((type) => (
-              <button
-                key={type}
-                className={`whitespace-nowrap rounded-md px-3 py-2 ${battleType === type ? 'bg-accent text-page' : 'text-textSecondary'}`}
-                type="button"
-                onClick={() => changeBattleType(type)}
-              >
-                {battleTypeLabels[type]}
-              </button>
-            ))}
-          </div>
-        </div>
-        <Button className="mt-4 w-full" type="button" onClick={drawInspiration} disabled={visibleSamples.length === 0}>
-          <Sparkles aria-hidden="true" size={15} />
-          试试灵感
-        </Button>
-      </Card>
-
-      <Card>
-        <div className="flex items-center gap-2">
-          <SlidersHorizontal className="text-accent" size={16} />
-          <h3 className="text-sm font-semibold">筛选队伍</h3>
-        </div>
-        <label className="relative mt-3 block">
-          <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-textMuted" size={16} />
-          <input
-            aria-label="搜索队伍或宝可梦"
-            className="h-10 w-full rounded-lg border border-border bg-page pl-9 pr-3 text-sm outline-none placeholder:text-textMuted focus:border-accent"
-            type="search"
-            value={searchTerm}
-            placeholder="搜索宝可梦名或队伍名"
-            onChange={(event) => setSearchTerm(event.target.value)}
-          />
-        </label>
-        <div className="mt-3">
-          <p className="text-[11px] font-semibold text-textMuted">规则</p>
-          <div className="mt-1.5 flex flex-wrap gap-2">
-            {regulationFilters.map((filter) => (
-              <button
-                key={filter.value}
-                aria-pressed={regulation === filter.value}
-                className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${
-                  regulation === filter.value
-                    ? 'border-accent bg-accent/15 text-accent'
-                    : 'border-border bg-secondary text-textSecondary'
-                }`}
-                type="button"
-                onClick={() => setRegulation(filter.value)}
-              >
-                {filter.label}
-              </button>
-            ))}
-          </div>
-        </div>
-        <div className="mt-3">
-          <p className="text-[11px] font-semibold text-textMuted">队伍类别</p>
-          <div className="mt-1.5 flex flex-wrap gap-2">
-            {categoryFilters.map((filter) => (
-              <button
-                key={filter.value}
-                aria-pressed={category === filter.value}
-                className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${
-                  category === filter.value
-                    ? 'border-accent bg-accent/15 text-accent'
-                    : 'border-border bg-secondary text-textSecondary'
-                }`}
-                type="button"
-                onClick={() => setCategory(filter.value)}
-              >
-                {filter.label}
-              </button>
-            ))}
-          </div>
-        </div>
-        <div className="mt-3 grid grid-cols-2 gap-2">
-          <label className={`flex h-10 items-center gap-2 rounded-lg border px-3 text-xs font-semibold ${
-            withReplicaCode ? 'border-accent bg-accent/10 text-accent' : 'border-border bg-secondary text-textSecondary'
-          }`}>
-            <input
-              checked={withReplicaCode}
-              className="sr-only"
-              type="checkbox"
-              onChange={(event) => setWithReplicaCode(event.target.checked)}
-            />
-            <span className={`grid h-4 w-4 place-items-center rounded border ${withReplicaCode ? 'border-accent bg-accent text-page' : 'border-border bg-card'}`}>
-              {withReplicaCode && <Check aria-hidden="true" size={11} strokeWidth={3} />}
-            </span>
-            含队伍码
-          </label>
-          <label className="relative">
-            <span className="sr-only">时间排序</span>
-            <select
-              aria-label="时间排序"
-              className="h-10 w-full appearance-none rounded-lg border border-border bg-secondary px-3 pr-8 text-xs font-semibold text-textSecondary outline-none focus:border-accent"
-              value={dateSort}
-              onChange={(event) => setDateSort(event.target.value as DateSort)}
+    <div>
+      <PushHeader
+        onBack={onBack}
+        trailing={
+          <div className="flex items-center gap-2">
+            <RoundIconButton label="随机一队" onClick={drawSample}>
+              <span className="text-data">
+                <Dices size={19} />
+              </span>
+            </RoundIconButton>
+            <button
+              className="inline-flex h-9 items-center gap-1.5 rounded-full bg-surface px-[13px] text-[13px] font-bold text-textLabel"
+              type="button"
+              onClick={() => setSort((current) => (current === 'score' ? 'date' : 'score'))}
             >
-              <option value="newest">时间：最新优先</option>
-              <option value="oldest">时间：最旧优先</option>
-            </select>
-            <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-textMuted" size={15} />
-          </label>
-        </div>
-      </Card>
-
-      <section className="space-y-2" aria-label="队伍列表">
-        <div className="flex items-center justify-between px-1 text-xs text-textSecondary">
-          <span>{visibleSamples.length} 支队伍</span>
-          {hasActiveFilters && (
-            <button className="text-accent" type="button" onClick={resetFilters}>
-              清除筛选
+              <SlidersHorizontal size={15} />
+              {sortLabels[sort]}
             </button>
-          )}
-        </div>
-        {visibleSamples.length > 0 ? (
-          visibleSamples.map((sample) => <TeamSampleCard key={sample.id} sample={sample} onImport={onImportSample} />)
-        ) : (
-          <EmptyState title="没有找到匹配的队伍" />
-        )}
-      </section>
+          </div>
+        }
+      />
+      <PageHeader className="px-6 pt-3.5" subtitle={subtitle} title="上位构筑" />
+      <div className="px-6 pt-3.5">
+        <SearchField
+          label="搜索队伍或宝可梦"
+          placeholder="队伍名、宝可梦、作者"
+          value={searchTerm}
+          onChange={setSearchTerm}
+        />
+      </div>
 
-      {inspiration && (
-        <div
-          className="fixed inset-0 z-40 mx-auto max-w-[430px]"
-          role="dialog"
-          aria-label="队伍灵感"
-          aria-modal="true"
-          data-bottom-nav-lock="true"
-        >
-          <button className="absolute inset-0 h-full w-full bg-overlay/75" type="button" aria-label="关闭试试灵感" onClick={() => setInspiration(null)} />
-          <section className="absolute inset-x-4 top-1/2 max-h-[calc(100vh-2rem)] -translate-y-1/2 overflow-y-auto rounded-xl border border-border bg-card p-3 shadow-[0_18px_60px_rgb(0_0_0/0.35)]">
-            <div className="mb-3 flex items-center justify-between px-1">
-              <div className="flex items-center gap-2">
-                <Dices className="text-accent" size={17} />
-                <h2 className="text-base font-semibold">试试灵感</h2>
-              </div>
+      <div className="hide-scrollbar mt-4 flex gap-2 overflow-x-auto px-6">
+        <FilterChip selected={activeFilters.length === 0} onClick={() => setActiveFilters([])}>
+          全部 {battleSamples.length}
+        </FilterChip>
+        {sampleFilters.map((filter) => (
+          <FilterChip
+            key={filter.id}
+            selected={activeFilters.includes(filter.id)}
+            onClick={() => toggleFilter(filter.id)}
+          >
+            {filter.label} {battleSamples.filter(filter.matches).length}
+          </FilterChip>
+        ))}
+      </div>
+
+      {visibleSamples.length > 0 ? (
+        <div className="mt-5 flex flex-col gap-3.5 px-6" role="region" aria-label="上位构筑列表">
+          {visibleSamples.map((sample) => (
+            <TeamSampleCard key={sample.id} sample={sample} onImport={onImportSample} />
+          ))}
+        </div>
+      ) : (
+        <div className="px-6 pt-5" role="region" aria-label="上位构筑列表">
+          <p className="text-[13px] font-semibold text-textSecondary">
+            {activeFilters.length >= 2 ? `${chineseCount[activeFilters.length] ?? activeFilters.length}个条件同时满足 · ` : ''}
+            0 支
+          </p>
+          <h2 className="mt-6 text-[20px] font-extrabold leading-7 tracking-[-0.01em]">这一季没有同时满足的样本</h2>
+          {dropHints.length > 0 && (
+            <p className="mt-2 text-[13px] font-semibold leading-5 text-textSecondary">{dropHints.join('；')}。</p>
+          )}
+          <div className="mt-[18px] flex flex-wrap gap-2">
+            <button
+              className="inline-flex h-[34px] items-center rounded-full bg-surface px-3.5 text-[13px] font-bold text-textPrimary"
+              type="button"
+              onClick={resetFilters}
+            >
+              重置筛选
+            </button>
+            {activeFilters.length >= 2 && (
               <button
-                aria-label="关闭试试灵感"
-                className="grid h-8 w-8 place-items-center rounded-lg border border-border bg-secondary text-textSecondary"
+                className="inline-flex h-[34px] items-center rounded-full bg-surface px-3.5 text-[13px] font-bold text-textLabel"
                 type="button"
-                onClick={() => setInspiration(null)}
+                onClick={() => setActiveFilters([activeFilters[0]])}
               >
-                <X aria-hidden="true" size={16} />
+                只留{sampleFilters.find((filter) => filter.id === activeFilters[0])!.label}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {drawnSample && (
+        <div
+          aria-label="随机一队"
+          aria-modal="true"
+          className="fixed inset-0 z-50 mx-auto max-w-[430px]"
+          data-bottom-nav-lock="true"
+          role="dialog"
+        >
+          <button
+            aria-label="关闭随机一队"
+            className="lk-sheet-overlay absolute inset-0 h-full w-full"
+            type="button"
+            onClick={() => setDrawnSample(null)}
+          />
+          <section className="lk-sheet absolute inset-x-4 top-1/2 max-h-[calc(100vh-2rem)] -translate-y-1/2 overflow-y-auto rounded-[20px] p-[18px]">
+            <div className="flex items-center gap-2.5">
+              <span className="inline-flex text-data">
+                <Dices size={19} />
+              </span>
+              <h2 className="flex-1 text-[17px] font-extrabold leading-6 tracking-[-0.01em]">随机一队</h2>
+              <button
+                aria-label="关闭随机一队"
+                className="grid h-[30px] w-[30px] shrink-0 place-items-center rounded-full bg-btn1 text-textLabel"
+                type="button"
+                onClick={() => setDrawnSample(null)}
+              >
+                <X size={17} />
               </button>
             </div>
-            <TeamSampleCard
-              sample={inspiration}
-              onImport={(sample) => {
-                setInspiration(null);
-                return onImportSample(sample);
-              }}
-            />
-            {visibleSamples.length > 1 && (
-              <Button className="mt-2 w-full" variant="ghost" type="button" onClick={drawInspiration}>
-                <Dices aria-hidden="true" size={14} />
-                再来一队
-              </Button>
-            )}
+            <div className="mt-4">
+              <TeamSampleCard
+                sample={drawnSample}
+                variant="draw"
+                onDrawAgain={drawSample}
+                onImport={(sample) => {
+                  setDrawnSample(null);
+                  return onImportSample(sample);
+                }}
+              />
+            </div>
           </section>
         </div>
       )}

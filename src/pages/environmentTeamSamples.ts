@@ -47,6 +47,14 @@ export const sortTeamSamplesByDate = (
     return compareUnknownDateSamples(left, right);
   });
 
+/**
+ * 07-01's default order (「按分数」): ladder rank first where the source publishes one, then raw
+ * score. Samples with neither (VGCPastes event teams carry rank 0 / score 0) keep a stable id
+ * order at the end rather than shuffling between renders.
+ */
+export const sortTeamSamplesByScore = (samples: EnvironmentTeamSample[]) =>
+  [...samples].sort(compareUnknownDateSamples);
+
 const seededRandom = (seed: number) => {
   let state = seed >>> 0;
   return () => {

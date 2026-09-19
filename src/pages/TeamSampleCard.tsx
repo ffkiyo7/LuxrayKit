@@ -1,67 +1,92 @@
-import {
-  ExternalLink,
-  Import,
-  KeyRound,
-  SlidersHorizontal,
-  Swords,
-  Trophy,
-  type LucideIcon,
-} from 'lucide-react';
+import { Dices, Import, Link as LinkIcon } from 'lucide-react';
 import { useState } from 'react';
-import { Button, Card, PokemonAvatar } from '../components/ui';
+import { Sprite } from '../components/kit/Sprite';
 import {
   getEnvironmentPokemon,
-  type EnvironmentBattleType,
   type EnvironmentTeamSample,
 } from '../data/environment';
-import { isVgcPastesSample } from './environmentTeamSamples';
+import { battleTypeLabels } from './environmentChrome';
+import { sampleRegulation } from './environmentTeamSamples';
 
-const battleTypeLabels: Record<EnvironmentBattleType, string> = {
-  singles: '单打',
-  doubles: '双打',
-};
+/**
+ * 07-01's card is four blocks and nothing else: title row (name · link glyph · amber score),
+ * meta line, the six sprites, then the import slab. The source badge, 队报 button and 「可导入」
+ * chips the old card carried are not in the frame and are gone; the link glyph is the only
+ * remaining marker that a sample has a public report.
+ */
+export const teamSampleMeta = (sample: EnvironmentTeamSample) =>
+  [
+    sample.rank ? `第 ${sample.rank} 名` : undefined,
+    battleTypeLabels[sample.battleType],
+    sampleRegulation(sample),
+  ].filter((part): part is string => Boolean(part));
 
-const sampleSourceLabel = (sample: EnvironmentTeamSample) =>
-  isVgcPastesSample(sample) ? 'VGCPastes' : 'PokeDB 环境榜';
+/** 01-05's related-build row uses the score inline instead of in an amber corner. */
+export const teamSampleScoreMeta = (sample: EnvironmentTeamSample) =>
+  [
+    sample.rank ? `第 ${sample.rank} 名` : undefined,
+    sample.score > 0 ? `${sample.score} 分` : undefined,
+    battleTypeLabels[sample.battleType],
+  ].filter((part): part is string => Boolean(part));
 
-const sampleCardTitle = (sample: EnvironmentTeamSample) => {
-  if (!isVgcPastesSample(sample)) return sample.title;
-  return sample.title || [sample.author, sample.tournament, sample.eventRank].filter(Boolean).join(' · ') || '锦标赛公开构筑';
-};
+/** The sample's slots that the local catalog can actually draw; unknown ids leave no gap. */
+export const resolveSampleSlots = (sample: EnvironmentTeamSample) =>
+  sample.slots
+    .map((slot) => getEnvironmentPokemon(slot.pokemonId))
+    .filter((entry): entry is NonNullable<ReturnType<typeof getEnvironmentPokemon>> => Boolean(entry));
 
-const sampleCardMeta = (sample: EnvironmentTeamSample) => {
-  if (isVgcPastesSample(sample)) {
-    const eventParts = [sample.tournament, sample.eventRank].filter(Boolean);
-    const dateText = sample.dateShared ? `分享 ${sample.dateShared}` : undefined;
-    return [sample.author ? `原作者：${sample.author}` : undefined, eventParts.join(' · ') || undefined, dateText].filter(
-      (part): part is string => Boolean(part),
-    );
-  }
+export const teamSampleTitle = (sample: EnvironmentTeamSample) =>
+  sample.title || [sample.author, sample.tournament, sample.eventRank].filter(Boolean).join(' · ') || sample.author;
 
-  return [`原作者：${sample.author}`, battleTypeLabels[sample.battleType]];
-};
-
-const importChipDefinitions: Array<{
+export function SampleImportButton({
+  importing,
+  label,
+  onClick,
+  className = '',
+}: {
+  importing: boolean;
   label: string;
-  icon: LucideIcon;
-  isVisible: (sample: EnvironmentTeamSample) => boolean;
-}> = [
-  { label: 'SP分配', icon: SlidersHorizontal, isVisible: (sample) => Boolean(sample.hasSpread) },
-  { label: '配招', icon: Swords, isVisible: (sample) => Boolean(sample.hasMoves) },
-  { label: '队伍码', icon: KeyRound, isVisible: (sample) => Boolean(sample.replicaCode) },
-];
+  onClick: () => void;
+  className?: string;
+}) {
+  return (
+    <button
+      className={`flex h-11 items-center justify-center gap-[7px] rounded-xl text-sm ${
+        importing
+          ? 'bg-btn1 font-bold text-btnDisabledInk'
+          : 'bg-accent font-extrabold text-page shadow-[inset_0_1px_0_rgb(255_255_255/0.9),inset_0_-1px_0_rgb(0_0_0/0.12),0_4px_14px_rgb(0_0_0/0.4)]'
+      } ${className}`}
+      disabled={importing}
+      type="button"
+      onClick={onClick}
+    >
+      {importing ? (
+        '导入中'
+      ) : (
+        <>
+          <Import aria-hidden="true" size={15} />
+          {label}
+        </>
+      )}
+    </button>
+  );
+}
 
 export function TeamSampleCard({
   sample,
+  variant = 'list',
   onImport,
+  onDrawAgain,
 }: {
   sample: EnvironmentTeamSample;
+  /** `draw` is 07-05's sunken card inside the 随机一队 dialog: same blocks, extra 再来一队. */
+  variant?: 'list' | 'draw';
   onImport: (sample: EnvironmentTeamSample) => Promise<void> | void;
+  onDrawAgain?: () => void;
 }) {
   const [importing, setImporting] = useState(false);
-  const visibleSlots = sample.slots.map((slot) => getEnvironmentPokemon(slot.pokemonId)).filter(Boolean);
-  const metaParts = sampleCardMeta(sample);
-  const importChips = importChipDefinitions.filter((chip) => chip.isVisible(sample));
+  const slots = resolveSampleSlots(sample);
+  const title = teamSampleTitle(sample);
 
   const handleImport = async () => {
     setImporting(true);
@@ -73,52 +98,44 @@ export function TeamSampleCard({
   };
 
   return (
-    <Card className="bg-secondary">
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <h3 className="truncate text-sm font-semibold" title={sampleCardTitle(sample)}>{sampleCardTitle(sample)}</h3>
-          <p className="mt-1 text-xs text-textSecondary">{metaParts.join(' · ')}</p>
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            <span className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-2 py-0.5 text-[11px] font-semibold text-textSecondary">
-              <Trophy aria-hidden="true" size={12} />
-              {sampleSourceLabel(sample)}
-            </span>
-          </div>
-        </div>
-        <button
-          aria-label="队报链接"
-          title="队报链接"
-          className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-border bg-card text-textSecondary active:scale-[0.96]"
-          type="button"
-          onClick={() => window.open(sample.reportUrl, '_blank', 'noopener,noreferrer')}
-        >
-          <ExternalLink aria-hidden="true" size={15} />
-        </button>
+    <section
+      className={`box-border rounded-[20px] p-[18px] ${variant === 'draw' ? 'rounded-[18px] bg-sunken' : 'surface-shadow bg-card'}`}
+    >
+      <div className="flex items-baseline gap-2.5">
+        <h3 className="text-[20px] font-extrabold leading-7 tracking-[-0.01em]">{title}</h3>
+        {sample.reportUrl && (
+          <span aria-hidden="true" className="inline-flex shrink-0 self-center text-textSecondary">
+            <LinkIcon size={15} />
+          </span>
+        )}
+        <span className="flex-1" />
+        {sample.score > 0 && (
+          <span className="shrink-0 text-[13px] font-bold tabular-nums text-data">{sample.score} 分</span>
+        )}
       </div>
-      <div className="mt-3 flex gap-2">
-        {visibleSlots.map((entry) => (
-          <PokemonAvatar key={entry!.id} iconRef={entry!.iconRef} label={entry!.chineseName} size="sm" />
+      <p className="mt-[5px] text-[13px] font-semibold text-textSecondary">{teamSampleMeta(sample).join(' · ')}</p>
+      <div className={`mt-3.5 grid grid-cols-6 gap-1 ${importing ? 'opacity-45' : ''}`}>
+        {slots.map((entry, index) => (
+          <span key={`${entry.id}-${index}`} className="grid h-11 place-items-center">
+            <Sprite iconRef={entry.iconRef} label={entry.chineseName} size={44} />
+          </span>
         ))}
       </div>
-      {importChips.length > 0 && (
-        <div className="mt-2 flex flex-wrap items-center gap-1.5" aria-label="可导入内容">
-          <span className="text-[11px] font-semibold text-textMuted">可导入</span>
-          {importChips.map(({ label, icon: Icon }) => (
-            <span
-              key={label}
-              aria-label={`可导入 ${label}`}
-              className="inline-flex items-center gap-1 rounded-full border border-accent/25 bg-accent/10 px-2 py-0.5 text-[11px] font-semibold text-accent"
-            >
-              <Icon aria-hidden="true" size={12} strokeWidth={2.2} />
-              {label}
-            </span>
-          ))}
+      {variant === 'draw' ? (
+        <div className="mt-3.5 grid grid-cols-[1fr_auto] gap-2">
+          <SampleImportButton importing={importing} label="导入为我的队伍" onClick={() => void handleImport()} />
+          <button
+            className="inline-flex h-11 items-center justify-center gap-1.5 rounded-xl bg-btn1 px-3 text-sm font-bold text-textLabel"
+            type="button"
+            onClick={onDrawAgain}
+          >
+            <Dices aria-hidden="true" size={15} />
+            再来一队
+          </button>
         </div>
+      ) : (
+        <SampleImportButton className="mt-3.5 w-full" importing={importing} label="导入为我的队伍" onClick={() => void handleImport()} />
       )}
-      <Button className="mt-3 w-full" onClick={handleImport} disabled={importing}>
-        <Import aria-hidden="true" size={14} />
-        {importing ? '导入中' : '导入配置'}
-      </Button>
-    </Card>
+    </section>
   );
 }

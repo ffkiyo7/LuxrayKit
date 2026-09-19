@@ -63,7 +63,7 @@ const team = (id: string, name: string, members: TeamMember[] = []): Team => ({
 const renderTeamList = async () => {
   const user = userEvent.setup();
   render(<App />);
-  await screen.findByRole('heading', { name: '环境' }, { timeout: 5000 });
+  await screen.findByRole('heading', { name: '今日环境' }, { timeout: 5000 });
   await user.click(screen.getByRole('button', { name: '队伍' }));
   await screen.findByText('我的队伍');
   return user;
