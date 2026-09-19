@@ -40,6 +40,15 @@ const PLAIN_PREFIX = 'p1';
 const DEFAULT_LEVEL = 50;
 export const MAX_SHARED_TEAM_NAME_LENGTH = 60;
 
+/**
+ * A link may only be produced from a full team: a half-built team's link is almost always a
+ * mis-send, and the receiver cannot tell it apart from a finished one. Decoding stays
+ * unrestricted — links made before this rule, and hand-edited ones, still import.
+ */
+export const TEAM_SHARE_REQUIRED_MEMBERS = 6;
+
+export const canShareTeam = (team: Pick<Team, 'members'>) => team.members.length >= TEAM_SHARE_REQUIRED_MEMBERS;
+
 export class TeamShareDecodeError extends Error {
   constructor(message: string) {
     super(message);

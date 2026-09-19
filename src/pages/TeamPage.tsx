@@ -1,64 +1,145 @@
-import { ArrowLeft, Copy, Edit3, Plus, Share2, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Copy, Import, MoreHorizontal, Plus, Share2, TriangleAlert, Trophy } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { pokemon } from '../data';
+import type { EnvironmentState } from '../data/environment';
+import { createId } from '../lib/id';
 import { evaluateMemberLegality } from '../lib/legality';
 import { createDefaultTeamMember } from '../lib/teamMemberDefaults';
+import { canShareTeam, TEAM_SHARE_REQUIRED_MEMBERS } from '../lib/teamShare';
 import { useHashRoute } from '../hooks/useHashRoute';
 import { useAppStore } from '../state/AppContext';
 import type { Team } from '../types';
 import { PokemonPicker } from '../components/PokemonPicker';
-import { Button, EmptyState } from '../components/ui';
-import { MemberCard } from './team/MemberCard';
+import { PageHeader } from '../components/kit';
+import { EmptyMemberSlot, ExpandedMemberCard, MemberTile } from './team/MemberCard';
 import { MemberEditor } from './team/MemberEditor';
-import { TeamListCard } from './team/TeamListCard';
-import { ConfirmDeleteTeamDialog, LuxrayEasterEggDialog, TeamNameModal } from './team/TeamDialogs';
+import { PresetTeamCard, TeamListCard } from './team/TeamListCard';
+import { ConfirmDeleteTeamSheet, ImportShareSheet, TeamMenuSheet, TeamNameSheet } from './team/TeamDialogs';
+import { PRESET_TEAM_ID, teamDetailSubtitle, TEAM_NAME_MAX_LENGTH } from './team/teamMeta';
 import { measureDragRows, reorderById, resolveDragTargetIndex, type TeamDragState } from './team/teamDrag';
 
-const LUXRAY_EASTER_TEAM_ID = 'team-starter';
 const defaultNewTeamName = (teamCount: number) => `队伍${teamCount + 1}`;
+
+/** 「复制为新队伍」 — same configuration, fresh ids, no replica code (it names the original). */
+const duplicateTeam = (team: Team): Team => {
+  const now = new Date().toISOString();
+  return {
+    ...team,
+    id: createId('team'),
+    name: `${team.name} 副本`.slice(0, TEAM_NAME_MAX_LENGTH),
+    members: team.members.map((member) => ({ ...member, id: createId('member') })),
+    createdAt: now,
+    updatedAt: now,
+    replicaCode: undefined,
+    source: undefined,
+    sortOrder: undefined,
+  };
+};
+
+// 02-01's 「从上位构筑抄一套」 preview strip: the six slots of the most recent sample.
+const upperBuildPreview = (environment: EnvironmentState | null) => {
+  const sample = environment?.teamSamples[0];
+  if (!sample) return [];
+  return sample.slots.slice(0, 6).map((slot) => {
+    const entry = pokemon.find((candidate) => candidate.id === slot.pokemonId);
+    return { key: `${sample.id}-${slot.pokemonId}`, iconRef: entry?.iconRef, label: entry?.chineseName ?? slot.pokemonId };
+  });
+};
+
+function EmptyStateCard({
+  icon,
+  title,
+  subtitle,
+  children,
+  highlighted,
+  onClick,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  subtitle?: string;
+  children?: React.ReactNode;
+  highlighted?: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      className={`block w-full rounded-[20px] bg-surface p-[18px] text-left ${
+        highlighted ? 'shadow-[inset_0_0_0_1.5px_rgb(var(--color-text-primary)/0.22)]' : ''
+      }`}
+      type="button"
+      onClick={onClick}
+    >
+      <span className="flex items-center gap-3">
+        {icon}
+        <span className="min-w-0 flex-1">
+          <span className="block text-[17px] font-extrabold tracking-[-0.01em]">{title}</span>
+          {subtitle && <span className="mt-[3px] block text-[13px] font-semibold text-textSecondary">{subtitle}</span>}
+        </span>
+        <span className="shrink-0 text-chevron">
+          <ChevronRight size={18} />
+        </span>
+      </span>
+      {children}
+    </button>
+  );
+}
 
 export function TeamPage({
   activeTeamId,
   highlightedTeamId,
+  environment,
   onActiveTeamChange,
+  onBrowseUpperBuilds,
   onCopyReplicaCode,
+  onImportSharedTeam,
   onShareTeam,
   onSendToSpeed,
   onSendToCalculator,
 }: {
   activeTeamId?: string;
   highlightedTeamId?: string;
+  environment: EnvironmentState | null;
   onActiveTeamChange: (teamId: string | undefined) => void;
+  onBrowseUpperBuilds: () => void;
   onCopyReplicaCode: (replicaCode: string) => Promise<void> | void;
+  onImportSharedTeam: (team: Team) => Promise<void> | void;
   onShareTeam: (team: Team) => Promise<void> | void;
   onSendToSpeed: (memberId: string) => void;
   onSendToCalculator: (memberId: string, side: 'attacker' | 'defender') => void;
 }) {
   const { teams, addTeam, deleteTeam, replaceTeams, saveTeam, updateMember, preferences, replacePreferences } = useAppStore();
   // Which team is open lives in the URL (#/teams/:teamId) so a team is linkable and the
-  // hardware back button leaves the detail instead of the app. The member editor, the
-  // Pokemon picker and the rename modal stay local: they are transient overlays, not
-  // destinations worth a history entry.
+  // hardware back button leaves the detail instead of the app. Sheets, the member editor and
+  // the Pokemon picker stay local: they are transient overlays, not destinations.
   const { route, navigate, back } = useHashRoute();
   const detailTeamId = route.name === 'team-detail' ? route.teamId : null;
   const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
   const [expandedMemberId, setExpandedMemberId] = useState<string | null>(null);
   const [showPicker, setShowPicker] = useState(false);
-  const [showNameModal, setShowNameModal] = useState(false);
+  const [showImportSheet, setShowImportSheet] = useState(false);
+  const [nameSheet, setNameSheet] = useState<{ mode: 'create' | 'rename'; teamId?: string } | null>(null);
   const [nameDraft, setNameDraft] = useState('');
-  const [renamingTeamId, setRenamingTeamId] = useState<string | null>(null);
-  const [inlineNameDraft, setInlineNameDraft] = useState('');
-  const [pendingDeleteTeam, setPendingDeleteTeam] = useState<Team | null>(null);
+  const [menuTeamId, setMenuTeamId] = useState<string | null>(null);
+  const [pendingDeleteTeamId, setPendingDeleteTeamId] = useState<string | null>(null);
   const [dragState, setDragState] = useState<TeamDragState | null>(null);
-  const [showLuxrayEasterEgg, setShowLuxrayEasterEgg] = useState(false);
   const teamCardRefs = useRef<Record<string, HTMLElement | null>>({});
-  const activeListTeam = teams.find((team) => team.id === activeTeamId) ?? teams[0];
-  const activeTeam = detailTeamId ? teams.find((team) => team.id === detailTeamId) : undefined;
-  const editingMember = activeTeam?.members.find((member) => member.id === editingMemberId);
 
-  const openCreateModal = () => {
+  const activeTeam = detailTeamId ? teams.find((team) => team.id === detailTeamId) : undefined;
+  const menuTeam = menuTeamId ? teams.find((team) => team.id === menuTeamId) : undefined;
+  const pendingDeleteTeam = pendingDeleteTeamId ? teams.find((team) => team.id === pendingDeleteTeamId) : undefined;
+  const editingMember = activeTeam?.members.find((member) => member.id === editingMemberId);
+  const presetTeam = teams.find((team) => team.id === PRESET_TEAM_ID);
+  const showPresetCard = Boolean(presetTeam && presetTeam.members.length > 0 && !preferences.hasOpenedPresetTeam);
+
+  const openCreateSheet = () => {
     setNameDraft(defaultNewTeamName(teams.length));
-    setShowNameModal(true);
+    setNameSheet({ mode: 'create' });
+  };
+
+  const openRenameSheet = (team: Team) => {
+    setNameDraft(team.name);
+    setNameSheet({ mode: 'rename', teamId: team.id });
+    setMenuTeamId(null);
   };
 
   const openTeamDetail = (teamId: string) => {
@@ -67,12 +148,10 @@ export function TeamPage({
     setExpandedMemberId(null);
     setEditingMemberId(null);
     setShowPicker(false);
-    setRenamingTeamId(null);
-    // Easter egg only on the first time the user edits the preset Luxray team;
-    // persisted like onboarding so it never auto-pops or repeats.
-    const showEgg = teamId === LUXRAY_EASTER_TEAM_ID && !preferences.hasSeenLuxrayEasterEgg;
-    setShowLuxrayEasterEgg(showEgg);
-    if (showEgg) void replacePreferences({ ...preferences, hasSeenLuxrayEasterEgg: true });
+    // Opening the preset team once retires its special card (02-02 → N02-15).
+    if (teamId === PRESET_TEAM_ID && !preferences.hasOpenedPresetTeam) {
+      void replacePreferences({ ...preferences, hasOpenedPresetTeam: true });
+    }
   };
 
   const closeTeamDetail = () => {
@@ -80,37 +159,21 @@ export function TeamPage({
     setExpandedMemberId(null);
     setEditingMemberId(null);
     setShowPicker(false);
-    setRenamingTeamId(null);
-    setShowLuxrayEasterEgg(false);
-  };
-
-  const beginInlineRename = (team: Team) => {
-    setRenamingTeamId(team.id);
-    setInlineNameDraft(team.name);
-  };
-
-  const commitInlineRename = async () => {
-    if (!renamingTeamId) return;
-    const team = teams.find((candidate) => candidate.id === renamingTeamId);
-    const name = inlineNameDraft.trim();
-    if (!team || !name) {
-      setRenamingTeamId(null);
-      return;
-    }
-    if (name !== team.name) {
-      await saveTeam({ ...team, name });
-    }
-    setRenamingTeamId(null);
   };
 
   const confirmName = async () => {
-    const name = nameDraft.trim();
-    if (!name) return;
-    const team = await addTeam(name);
-    onActiveTeamChange(team.id);
-    navigate({ name: 'team-detail', teamId: team.id });
-    setShowNameModal(false);
-    setExpandedMemberId(null);
+    const name = nameDraft.trim().slice(0, TEAM_NAME_MAX_LENGTH);
+    if (!name || !nameSheet) return;
+    if (nameSheet.mode === 'create') {
+      const team = await addTeam(name);
+      onActiveTeamChange(team.id);
+      navigate({ name: 'team-detail', teamId: team.id });
+      setExpandedMemberId(null);
+    } else {
+      const team = teams.find((candidate) => candidate.id === nameSheet.teamId);
+      if (team && name !== team.name) await saveTeam({ ...team, name });
+    }
+    setNameSheet(null);
   };
 
   const confirmDeleteTeam = async () => {
@@ -128,7 +191,14 @@ export function TeamPage({
       setExpandedMemberId(null);
       setEditingMemberId(null);
     }
-    setPendingDeleteTeam(null);
+    setPendingDeleteTeamId(null);
+  };
+
+  const confirmDuplicate = async (team: Team) => {
+    const copy = duplicateTeam(team);
+    await saveTeam(copy);
+    setMenuTeamId(null);
+    onActiveTeamChange(copy.id);
   };
 
   const dragTargetIndex = (clientY: number, sourceIndex: number, startY: number) =>
@@ -140,30 +210,15 @@ export function TeamPage({
       measuredRows: measureDragRows(teams.map((team) => teamCardRefs.current[team.id]?.getBoundingClientRect())),
     });
 
-  const moveTeamToIndex = async (teamId: string, targetIndex: number) => {
-    const nextTeams = reorderById(teams, teamId, targetIndex);
-    if (nextTeams) await replaceTeams(nextTeams);
-  };
-
   const startTeamDrag = (team: Team, index: number, event: React.PointerEvent<HTMLButtonElement>) => {
     event.preventDefault();
-    setDragState({
-      teamId: team.id,
-      sourceIndex: index,
-      startY: event.clientY,
-      currentY: event.clientY,
-      targetIndex: index,
-    });
+    setDragState({ teamId: team.id, sourceIndex: index, startY: event.clientY, currentY: event.clientY, targetIndex: index });
   };
 
   const updateTeamDrag = (event: React.PointerEvent<HTMLButtonElement>) => {
     setDragState((current) => {
       if (!current) return current;
-      return {
-        ...current,
-        currentY: event.clientY,
-        targetIndex: dragTargetIndex(event.clientY, current.sourceIndex, current.startY),
-      };
+      return { ...current, currentY: event.clientY, targetIndex: dragTargetIndex(event.clientY, current.sourceIndex, current.startY) };
     });
   };
 
@@ -172,189 +227,278 @@ export function TeamPage({
     const targetIndex = dragTargetIndex(event.clientY, dragState.sourceIndex, dragState.startY);
     const draggedTeamId = dragState.teamId;
     setDragState(null);
-    await moveTeamToIndex(draggedTeamId, targetIndex);
+    const nextTeams = reorderById(teams, draggedTeamId, targetIndex);
+    if (nextTeams) await replaceTeams(nextTeams);
   };
 
   const handlePickPokemon = async (entry: typeof pokemon[number]) => {
     if (!activeTeam || activeTeam.members.length >= 6) return;
-    const member = createDefaultTeamMember({
-      pokemonId: entry.id,
-      notes: '快速添加，可继续编辑。',
-    });
+    const member = createDefaultTeamMember({ pokemonId: entry.id, notes: '快速添加，可继续编辑。' });
     const result = evaluateMemberLegality(member, activeTeam);
     await updateMember(activeTeam.id, { ...member, legalityStatus: result.status });
     setExpandedMemberId(member.id);
     setShowPicker(false);
   };
 
-  return (
-    <div className="space-y-3">
-      {!activeTeam ? (
-        <>
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-lg font-semibold">我的队伍</h2>
-              <p className="text-xs text-textSecondary">本地保存 · 无账号依赖</p>
-            </div>
-            <Button onClick={openCreateModal}>
-              <Plus size={14} />
-              新建
-            </Button>
-          </div>
+  const sheets = (
+    <>
+      {menuTeam && (
+        <TeamMenuSheet
+          showShare={detailTeamId === menuTeam.id}
+          team={menuTeam}
+          onClose={() => setMenuTeamId(null)}
+          onCopyReplicaCode={() => {
+            if (menuTeam.replicaCode) void onCopyReplicaCode(menuTeam.replicaCode);
+            setMenuTeamId(null);
+          }}
+          onDelete={() => {
+            setMenuTeamId(null);
+            setPendingDeleteTeamId(menuTeam.id);
+          }}
+          onDuplicate={() => void confirmDuplicate(menuTeam)}
+          onRename={() => openRenameSheet(menuTeam)}
+          onShare={() => {
+            void onShareTeam(menuTeam);
+            setMenuTeamId(null);
+          }}
+        />
+      )}
+      {nameSheet && (
+        <TeamNameSheet
+          draft={nameDraft}
+          mode={nameSheet.mode}
+          onClose={() => setNameSheet(null)}
+          onConfirm={() => void confirmName()}
+          onDraftChange={setNameDraft}
+        />
+      )}
+      {pendingDeleteTeam && (
+        <ConfirmDeleteTeamSheet
+          team={pendingDeleteTeam}
+          onCancel={() => setPendingDeleteTeamId(null)}
+          onConfirm={() => void confirmDeleteTeam()}
+        />
+      )}
+      {showImportSheet && (
+        <ImportShareSheet
+          onClose={() => setShowImportSheet(false)}
+          onImport={async (team) => {
+            setShowImportSheet(false);
+            await onImportSharedTeam(team);
+          }}
+        />
+      )}
+    </>
+  );
 
-          {teams.length === 0 ? (
-            <EmptyState title="还没有队伍" action={<Button onClick={openCreateModal}>新建第一支队伍</Button>} />
-          ) : (
-            <div className="space-y-2">
-              {teams.map((team, index) => (
-                <TeamListCard
-                  key={team.id}
-                  team={team}
-                  active={team.id === activeListTeam?.id}
-                  recentlyImported={team.id === highlightedTeamId}
-                  index={index}
-                  dragging={dragState?.teamId === team.id}
-                  dragOffsetY={dragState?.teamId === team.id ? dragState.currentY - dragState.startY : 0}
-                  dropTarget={Boolean(dragState && dragState.teamId !== team.id && dragState.targetIndex === index)}
-                  setCardRef={(element) => {
-                    teamCardRefs.current[team.id] = element;
-                  }}
-                  onEdit={() => openTeamDetail(team.id)}
-                  onDelete={() => setPendingDeleteTeam(team)}
-                  onDragCancel={() => setDragState(null)}
-                  onDragEnd={(event) => void finishTeamDrag(event)}
-                  onDragMove={updateTeamDrag}
-                  onDragStart={(event) => startTeamDrag(team, index, event)}
-                />
-              ))}
-            </div>
-          )}
-        </>
-      ) : (
-        <>
-          <div className="flex items-start gap-3">
-            <button
-              aria-label="返回队伍列表"
-              className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-border bg-card text-textSecondary active:scale-[0.98]"
-              title="返回队伍列表"
-              type="button"
-              onClick={closeTeamDetail}
-            >
-              <ArrowLeft size={18} />
-            </button>
-            <div className="min-w-0 flex-1">
-              {renamingTeamId === activeTeam.id ? (
-                <input
-                  aria-label="队伍名称"
-                  autoFocus
-                  className="w-full rounded-lg border border-accent bg-secondary px-2 py-1 text-xl font-semibold outline-none"
-                  value={inlineNameDraft}
-                  onBlur={() => void commitInlineRename()}
-                  onChange={(event) => setInlineNameDraft(event.target.value)}
-                  onKeyDown={(event) => {
-                    if (event.key === 'Enter') void commitInlineRename();
-                    if (event.key === 'Escape') setRenamingTeamId(null);
-                  }}
-                />
-              ) : (
-                <h2 className="text-xl font-semibold">
-                  <button className="flex max-w-full items-center gap-1.5 text-left" title="编辑队伍名称" type="button" onClick={() => beginInlineRename(activeTeam)}>
-                    <span className="truncate">{activeTeam.name}</span>
-                    <Edit3 size={15} className="shrink-0 text-textMuted" />
-                  </button>
-                </h2>
-              )}
-              <p className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-textSecondary">
-                <span>{activeTeam.members.length}/6 成员</span>
-                {activeTeam.replicaCode && (
-                  <>
-                    <span aria-hidden="true">·</span>
-                    <span className="font-semibold text-textPrimary">{activeTeam.replicaCode}</span>
-                    <button
-                      aria-label="复制队伍码"
-                      className="grid h-6 w-6 place-items-center rounded-md border border-border bg-card text-textSecondary active:scale-[0.96]"
-                      title="复制队伍码"
-                      type="button"
-                      onClick={() => void onCopyReplicaCode(activeTeam.replicaCode!)}
-                    >
-                      <Copy size={13} />
-                    </button>
-                  </>
-                )}
-              </p>
-            </div>
+  if (activeTeam) {
+    const shareable = canShareTeam(activeTeam);
+    const missing = TEAM_SHARE_REQUIRED_MEMBERS - activeTeam.members.length;
+
+    return (
+      <div>
+        <div className="flex items-center justify-between px-6 pt-5">
+          <button
+            aria-label="返回队伍列表"
+            className="grid h-9 w-9 place-items-center rounded-full bg-surface text-textLabel"
+            title="返回队伍列表"
+            type="button"
+            onClick={closeTeamDetail}
+          >
+            <ChevronLeft size={20} />
+          </button>
+          <div className="flex gap-2">
             <button
               aria-label={`分享 ${activeTeam.name}`}
-              className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-border bg-card text-textSecondary active:scale-[0.98] disabled:opacity-40"
-              disabled={activeTeam.members.length === 0}
-              title={activeTeam.members.length === 0 ? '空队伍无法分享' : '分享队伍'}
+              className={`grid h-9 w-9 place-items-center rounded-full bg-surface ${shareable ? 'text-textLabel' : 'text-btnDisabledInk'}`}
+              disabled={!shareable}
+              title={shareable ? '分享队伍' : `满 ${TEAM_SHARE_REQUIRED_MEMBERS} 只才能分享`}
               type="button"
               onClick={() => void onShareTeam(activeTeam)}
             >
               <Share2 size={17} />
             </button>
+            <button
+              aria-label={`${activeTeam.name} 的更多操作`}
+              className="grid h-9 w-9 place-items-center rounded-full bg-surface text-textLabel"
+              title={`${activeTeam.name} 的更多操作`}
+              type="button"
+              onClick={() => setMenuTeamId(activeTeam.id)}
+            >
+              <MoreHorizontal size={18} />
+            </button>
           </div>
+        </div>
 
-          <div className="grid grid-cols-2 gap-2">
-            {activeTeam.members.map((member) => (
-              <MemberCard
+        <div className="px-6 pt-[14px]">
+          <PageHeader subtitle={teamDetailSubtitle(activeTeam)} title={activeTeam.name} />
+          {activeTeam.replicaCode && (
+            <button
+              aria-label="复制队伍码"
+              className="mt-[14px] inline-flex h-9 items-center gap-2.5 rounded-xl bg-surface px-3"
+              title="复制队伍码"
+              type="button"
+              onClick={() => void onCopyReplicaCode(activeTeam.replicaCode!)}
+            >
+              <span className="text-[13px] font-bold tracking-[0.06em] tabular-nums">{activeTeam.replicaCode}</span>
+              <Copy className="text-textLabel" size={15} />
+            </button>
+          )}
+          {!shareable && (
+            <div className="lk-notice mt-[14px] flex gap-2.5 rounded-[14px] p-[14px]">
+              <span className="mt-px shrink-0 text-data">
+                <TriangleAlert size={18} />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-extrabold tracking-[-0.01em]">还差 {missing} 只才能分享</span>
+                <span className="mt-1 block text-xs font-semibold leading-[18px] text-textSecondary">
+                  分享链接在 {TEAM_SHARE_REQUIRED_MEMBERS}/{TEAM_SHARE_REQUIRED_MEMBERS} 时才能生成；现在可以先编辑已有成员。
+                </span>
+              </span>
+            </div>
+          )}
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 px-6 pt-6">
+          {activeTeam.members.map((member) =>
+            expandedMemberId === member.id ? (
+              <ExpandedMemberCard
                 key={member.id}
                 member={member}
-                expanded={expandedMemberId === member.id}
-                onToggle={(memberId) => setExpandedMemberId((current) => (current === memberId ? null : memberId))}
-                onEdit={(nextMember) => setEditingMemberId(nextMember.id)}
-                onDelete={async (memberId) => {
-                  await saveTeam({ ...activeTeam, members: activeTeam.members.filter((candidate) => candidate.id !== memberId) });
-                  setExpandedMemberId((current) => (current === memberId ? null : current));
-                }}
-                onOpenSpeed={onSendToSpeed}
-                onOpenCalculator={onSendToCalculator}
+                onCollapse={() => setExpandedMemberId(null)}
+                onEdit={() => setEditingMemberId(member.id)}
+                onOpenCalculator={() => onSendToCalculator(member.id, 'attacker')}
+                onOpenSpeed={() => onSendToSpeed(member.id)}
               />
-            ))}
-          </div>
-
-          {activeTeam.members.length < 6 && (
-            <Button variant="ghost" className="w-full" onClick={() => setShowPicker(true)}>
-              <Plus size={14} />
-              添加 Pokémon
-            </Button>
+            ) : (
+              <MemberTile key={member.id} member={member} onExpand={() => setExpandedMemberId(member.id)} />
+            ),
           )}
+          {Array.from({ length: Math.max(0, 6 - activeTeam.members.length) }).map((_, index) => (
+            <EmptyMemberSlot key={`slot-${index}`} onAdd={() => setShowPicker(true)} />
+          ))}
+        </div>
 
-          <Button variant="danger" className="w-full" title="删除队伍" onClick={() => setPendingDeleteTeam(activeTeam)}>
-            <Trash2 size={14} />
-            删除队伍
-          </Button>
+        {editingMember && (
+          <MemberEditor
+            member={editingMember}
+            team={activeTeam}
+            onClose={() => setEditingMemberId(null)}
+            onDelete={async (memberId) => {
+              await saveTeam({ ...activeTeam, members: activeTeam.members.filter((member) => member.id !== memberId) });
+              setExpandedMemberId((current) => (current === memberId ? null : current));
+            }}
+            onSave={(member) => updateMember(activeTeam.id, member)}
+          />
+        )}
+        <PokemonPicker open={showPicker} onClose={() => setShowPicker(false)} onPick={handlePickPokemon} />
+        {sheets}
+      </div>
+    );
+  }
 
-          {editingMember && (
-            <MemberEditor
-              team={activeTeam}
-              member={editingMember}
-              onClose={() => setEditingMemberId(null)}
-              onDelete={async (memberId) => {
-                await saveTeam({ ...activeTeam, members: activeTeam.members.filter((member) => member.id !== memberId) });
-              }}
-              onSave={(member) => updateMember(activeTeam.id, member)}
-            />
+  const ordinaryTeamCount = teams.filter((team) => !(showPresetCard && team.id === PRESET_TEAM_ID)).length;
+  const subtitle =
+    teams.length === 0
+      ? '还没有队伍。'
+      : [ordinaryTeamCount > 0 ? `${ordinaryTeamCount} 支` : undefined, showPresetCard ? '1 份预设' : undefined]
+          .filter(Boolean)
+          .join(' + ');
+  const preview = upperBuildPreview(environment);
+
+  return (
+    <div>
+      <div className="flex items-start justify-between gap-4 px-6 pb-4 pt-11">
+        <PageHeader subtitle={subtitle} title="我的队伍" />
+        {teams.length > 0 && (
+          <button
+            aria-label="新建队伍"
+            className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-accent text-page"
+            title="新建队伍"
+            type="button"
+            onClick={openCreateSheet}
+          >
+            <Plus size={20} />
+          </button>
+        )}
+      </div>
+
+      {teams.length === 0 ? (
+        <div className="flex flex-col gap-3 px-6 pt-6">
+          <EmptyStateCard
+            highlighted
+            icon={
+              <span className="grid h-[38px] w-[38px] shrink-0 place-items-center rounded-xl bg-accent text-page">
+                <Import size={19} />
+              </span>
+            }
+            title="粘贴分享链接 / 分享码"
+            onClick={() => setShowImportSheet(true)}
+          />
+          <EmptyStateCard
+            icon={
+              <span className="grid h-[38px] w-[38px] shrink-0 place-items-center rounded-xl bg-data/[0.16] text-data">
+                <Trophy size={19} />
+              </span>
+            }
+            subtitle={environment ? `${environment.teamSamples.length} 份本季样本` : undefined}
+            title="从上位构筑抄一套"
+            onClick={onBrowseUpperBuilds}
+          >
+            {preview.length > 0 && (
+              <span className="mt-[14px] grid grid-cols-6 gap-1 opacity-85">
+                {preview.map((slot) => (
+                  <img key={slot.key} alt={slot.label} className="h-10 w-full object-contain" loading="lazy" src={slot.iconRef} />
+                ))}
+              </span>
+            )}
+          </EmptyStateCard>
+          <EmptyStateCard
+            icon={
+              <span className="grid h-[38px] w-[38px] shrink-0 place-items-center rounded-xl bg-btn1 text-textLabel">
+                <Plus size={19} />
+              </span>
+            }
+            title="从空白开始"
+            onClick={openCreateSheet}
+          />
+        </div>
+      ) : (
+        <div className="flex flex-col gap-[14px] px-6 pt-2">
+          {teams.map((team, index) =>
+            showPresetCard && team.id === PRESET_TEAM_ID ? (
+              <PresetTeamCard
+                key={team.id}
+                team={team}
+                onDelete={() => setPendingDeleteTeamId(team.id)}
+                onMenu={() => setMenuTeamId(team.id)}
+                onOpen={() => openTeamDetail(team.id)}
+              />
+            ) : (
+              <TeamListCard
+                key={team.id}
+                active={team.id === activeTeamId}
+                dragOffsetY={dragState?.teamId === team.id ? dragState.currentY - dragState.startY : 0}
+                dragging={dragState?.teamId === team.id}
+                dropTarget={Boolean(dragState && dragState.teamId !== team.id && dragState.targetIndex === index)}
+                recentlyImported={team.id === highlightedTeamId}
+                setCardRef={(element) => {
+                  teamCardRefs.current[team.id] = element;
+                }}
+                team={team}
+                onDragCancel={() => setDragState(null)}
+                onDragEnd={(event) => void finishTeamDrag(event)}
+                onDragMove={updateTeamDrag}
+                onDragStart={(event) => startTeamDrag(team, index, event)}
+                onMenu={() => setMenuTeamId(team.id)}
+                onOpen={() => openTeamDetail(team.id)}
+                onShare={() => void onShareTeam(team)}
+              />
+            ),
           )}
-          <PokemonPicker open={showPicker} onClose={() => setShowPicker(false)} onPick={handlePickPokemon} />
-        </>
+        </div>
       )}
-      <TeamNameModal
-        open={showNameModal}
-        isRename={false}
-        draft={nameDraft}
-        onDraftChange={setNameDraft}
-        onConfirm={confirmName}
-        onClose={() => setShowNameModal(false)}
-      />
-      {pendingDeleteTeam && (
-        <ConfirmDeleteTeamDialog
-          team={pendingDeleteTeam}
-          onCancel={() => setPendingDeleteTeam(null)}
-          onConfirm={() => void confirmDeleteTeam()}
-        />
-      )}
-      {showLuxrayEasterEgg && <LuxrayEasterEggDialog onClose={() => setShowLuxrayEasterEgg(false)} />}
+      {sheets}
     </div>
   );
 }

@@ -227,12 +227,23 @@ const waitForEnvironmentPage = () => screen.findByRole('heading', { name: '环�
 
 const openDefaultTeam = async (user: ReturnType<typeof userEvent.setup>) => {
   const teamCard = await screen.findByLabelText('队伍：Luxray test');
-  await user.click(teamCard);
+  // Until it has been opened once the preset team is 02-02's special card, whose only way in
+  // is its own CTA; afterwards it is an ordinary card you tap anywhere (N02-15).
+  const presetCta = within(teamCard).queryByRole('button', { name: /接着补齐这支/ });
+  await user.click(presetCta ?? teamCard);
   await screen.findByRole('heading', { name: 'Luxray test' });
-  const easterEgg = screen.queryByRole('dialog', { name: 'Luxray test 彩蛋' });
-  if (easterEgg) {
-    await user.click(within(easterEgg).getByRole('button', { name: '继续编辑' }));
-  }
+};
+
+/** Expand a member tile, then open the full editor from 「编辑配置」 (02-05 / N02-19). */
+const openMemberEditor = async (user: ReturnType<typeof userEvent.setup>, memberName: string) => {
+  await user.click(await screen.findByRole('button', { name: `展开 ${memberName}` }));
+  await user.click(await screen.findByRole('button', { name: '编辑配置' }));
+  await screen.findByText('编辑成员');
+};
+
+const openTeamMenu = async (user: ReturnType<typeof userEvent.setup>, teamName: string) => {
+  await user.click(await screen.findByRole('button', { name: `${teamName} 的更多操作` }));
+  return screen.findByRole('dialog', { name: `${teamName} 的更多操作` });
 };
 
 describe('App page flows', () => {
@@ -415,11 +426,11 @@ describe('App page flows', () => {
   it('creates and switches teams, then expands and collapses a member card', async () => {
     const user = await renderApp();
 
-    await user.click(screen.getByRole('button', { name: /新建/ }));
-    const nameInput = screen.getByRole('textbox');
+    await user.click(screen.getByRole('button', { name: '新建队伍' }));
+    const nameInput = screen.getByLabelText('队伍名称');
     await user.clear(nameInput);
     await user.type(nameInput, '测试队');
-    await user.click(screen.getByRole('button', { name: '确认' }));
+    await user.click(screen.getByRole('button', { name: '建立' }));
     expect(await screen.findByRole('heading', { name: '测试队' })).toBeTruthy();
     expect(await screen.findByText(/0\/6 成员/)).toBeTruthy();
 
@@ -427,21 +438,21 @@ describe('App page flows', () => {
     await openDefaultTeam(user);
     expect(await screen.findByText(/1\/6 成员/)).toBeTruthy();
 
-    await user.click(screen.getByText('伦琴猫'));
-    expect(await screen.findByText('能力值 / SP')).toBeTruthy();
-    await user.click(screen.getByTitle('编辑成员'));
+    await user.click(screen.getByRole('button', { name: '展开 伦琴猫' }));
+    expect(await screen.findByText('能力值')).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: '编辑配置' }));
     expect(await screen.findByText('编辑成员')).toBeTruthy();
     await user.click(screen.getByTitle('关闭'));
 
-    await user.click(screen.getByTitle('收起成员'));
-    expect(screen.queryByText('能力值 / SP')).toBeNull();
+    await user.click(screen.getByRole('button', { name: '收起 伦琴猫' }));
+    expect(screen.queryByText('能力值')).toBeNull();
   });
 
   it('initializes manually added team members with editable blank defaults', async () => {
     const user = await renderApp();
     await openDefaultTeam(user);
 
-    await user.click(screen.getByRole('button', { name: /添加 Pokémon/ }));
+    await user.click(screen.getAllByRole('button', { name: '添加成员' })[0]);
     await user.type(await screen.findByPlaceholderText('搜索 Pokémon 名称...'), 'Garchomp');
     await user.click(await screen.findByText('烈咬陆鲨'));
 
@@ -478,10 +489,8 @@ describe('App page flows', () => {
     const user = await renderApp();
     await openDefaultTeam(user);
 
-    await user.click(screen.getByText('伦琴猫'));
-    await user.click(screen.getByTitle('编辑成员'));
+    await openMemberEditor(user, '伦琴猫');
 
-    expect(await screen.findByText('编辑成员')).toBeTruthy();
     expect(screen.queryByLabelText('Pokemon')).toBeNull();
     expect(screen.queryByText('等级')).toBeNull();
     expect(screen.queryByText('备注')).toBeNull();
@@ -513,52 +522,47 @@ describe('App page flows', () => {
     expect(screen.getByRole('button', { name: 'max' })).toBeTruthy();
   });
 
-  it('deletes a compact team member directly from the team grid', async () => {
+  // The member tile carries no delete of its own (02-05); removal goes through the editor.
+  it('removes a team member from the member editor', async () => {
     const user = await renderApp();
     await openDefaultTeam(user);
 
     expect(await screen.findByText(/1\/6 成员/)).toBeTruthy();
-    await user.click(screen.getAllByTitle('删除成员')[0]);
+    await openMemberEditor(user, '伦琴猫');
+    await user.click(screen.getByRole('button', { name: '删除' }));
+
     expect(await screen.findByText(/0\/6 成员/)).toBeTruthy();
   });
 
   it('creates a team after all teams have been deleted', async () => {
-    installVisualViewport(500, 20);
     const user = await renderApp();
     await openDefaultTeam(user);
 
-    await user.click(screen.getByTitle('删除队伍'));
+    await user.click(within(await openTeamMenu(user, 'Luxray test')).getByRole('button', { name: '删除队伍' }));
     const confirmDialog = await screen.findByRole('dialog', { name: '确认删除队伍' });
-    await user.click(within(confirmDialog).getByRole('button', { name: '确认删除' }));
-    expect(await screen.findByText('还没有队伍')).toBeTruthy();
+    await user.click(within(confirmDialog).getByRole('button', { name: '删除' }));
+    expect(await screen.findByText('还没有队伍。')).toBeTruthy();
 
-    await user.click(screen.getByRole('button', { name: '新建第一支队伍' }));
-    const nameInput = screen.getByRole('textbox') as HTMLInputElement;
+    await user.click(screen.getByRole('button', { name: /从空白开始/ }));
+    const nameInput = screen.getByLabelText('队伍名称') as HTMLInputElement;
     expect(nameInput.value).toBe('队伍1');
-    const nameSheet = nameInput.parentElement as HTMLElement;
-    expect(nameSheet.style.bottom).toBe('324px');
-    expect(nameSheet.style.maxHeight).toBe('460px');
-    expect(nameSheet.className).toContain('overflow-y-auto');
-    await user.click(screen.getByRole('button', { name: '确认' }));
+    await user.click(screen.getByRole('button', { name: '建立' }));
 
     expect(await screen.findByText('队伍1')).toBeTruthy();
     expect(screen.getByText(/0\/6 成员/)).toBeTruthy();
   });
 
-  it('opens team detail from the list, renames inline, and keeps delete at the bottom of detail', async () => {
+  it('opens team detail from the list and renames it through the ⋯ menu', async () => {
     const user = await renderApp();
 
     expect(screen.getByRole('heading', { name: '我的队伍' })).toBeTruthy();
-    expect(screen.queryByTitle('删除队伍')).toBeNull();
 
     await openDefaultTeam(user);
     expect(screen.getByRole('button', { name: '返回队伍列表' })).toBeTruthy();
-    expect(screen.queryByTitle('编辑名称')).toBeNull();
-    expect(screen.getByTitle('删除队伍')).toBeTruthy();
     expect(screen.queryByRole('button', { name: '展开队伍分析' })).toBeNull();
     expect(screen.queryByText('配队分析详情')).toBeNull();
 
-    await user.click(screen.getByTitle('编辑队伍名称'));
+    await user.click(within(await openTeamMenu(user, 'Luxray test')).getByRole('button', { name: '重命名' }));
     const nameInput = screen.getByLabelText('队伍名称');
     await user.clear(nameInput);
     await user.type(nameInput, '雨天试验队{enter}');
@@ -568,17 +572,16 @@ describe('App page flows', () => {
     expect(await screen.findByLabelText('队伍：雨天试验队')).toBeTruthy();
   });
 
-  it('opens team detail from the list card or compact edit icon without image actions', async () => {
+  it('opens team detail by tapping the list card, with no image actions on it', async () => {
     const user = await renderApp();
+    await openDefaultTeam(user);
+    await user.click(screen.getByRole('button', { name: '返回队伍列表' }));
 
     const teamCard = await screen.findByLabelText('队伍：Luxray test');
-    expect(within(teamCard).getByRole('button', { name: '编辑 Luxray test' })).toBeTruthy();
-    expect(within(teamCard).getByText('Luxray test').parentElement?.parentElement?.classList.contains('pr-14')).toBe(true);
-    expect(within(teamCard).queryByRole('button', { name: '编辑配置' })).toBeNull();
     expect(within(teamCard).queryByRole('button', { name: '生成图片' })).toBeNull();
     expect(screen.queryByRole('dialog', { name: '队伍分享图' })).toBeNull();
 
-    await user.click(within(teamCard).getByRole('button', { name: '编辑 Luxray test' }));
+    await user.click(teamCard);
     expect(await screen.findByRole('heading', { name: 'Luxray test' })).toBeTruthy();
   });
 
@@ -590,10 +593,8 @@ describe('App page flows', () => {
 
     await user.click(await screen.findByLabelText('队伍：重复道具测试队'));
     expect(await screen.findByRole('heading', { name: '重复道具测试队' })).toBeTruthy();
-    await user.click(screen.getByText('烈咬陆鲨'));
-    await user.click(screen.getByTitle('编辑成员'));
+    await openMemberEditor(user, '烈咬陆鲨');
 
-    expect(await screen.findByText('编辑成员')).toBeTruthy();
     expect(screen.queryByText('校验结果')).toBeNull();
     expect(screen.queryByText('合法')).toBeNull();
     expect(screen.queryByText(/数据版本/)).toBeNull();
@@ -623,10 +624,8 @@ describe('App page flows', () => {
     const user = await renderApp();
 
     await user.click(await screen.findByLabelText('队伍：静默校验测试队'));
-    await user.click(screen.getByText('烈咬陆鲨'));
-    await user.click(screen.getByTitle('编辑成员'));
+    await openMemberEditor(user, '烈咬陆鲨');
 
-    expect(await screen.findByText('编辑成员')).toBeTruthy();
     expect(screen.queryByText('特性与当前 Pokémon 不匹配。')).toBeNull();
     expect(screen.queryByText('校验结果')).toBeNull();
     expect((screen.getByRole('button', { name: '保存' }) as HTMLButtonElement).disabled).toBe(false);
@@ -650,7 +649,6 @@ describe('App page flows', () => {
     expect(importedCard.textContent).not.toContain('上位构筑导入');
     expect(importedCard.textContent).not.toContain('当前');
     expect(importedCard.textContent).toContain(`${importedSample.slots.length}/6 成员`);
-    expect(within(importedCard).getByRole('button', { name: `编辑 ${importedSample.title}` })).toBeTruthy();
     expect(within(importedCard).queryByRole('button', { name: '编辑配置' })).toBeNull();
     expect(within(importedCard).queryByRole('button', { name: '生成图片' })).toBeNull();
 
@@ -730,18 +728,19 @@ describe('App page flows', () => {
     expect(await screen.findByLabelText(`队伍：${secondImportedSample.title}`)).toBeTruthy();
   });
 
-  it('deletes teams directly from the list card', async () => {
+  // The preset card keeps a direct 删除 (02-02); every other card routes through the ⋯ menu.
+  it('deletes the preset team from its own card after confirming', async () => {
     const user = await renderApp();
 
-    expect(screen.getByLabelText('队伍：Luxray test')).toBeTruthy();
-    await user.click(screen.getByRole('button', { name: '删除 Luxray test' }));
+    const presetCard = await screen.findByLabelText('队伍：Luxray test');
+    await user.click(within(presetCard).getByRole('button', { name: /删除/ }));
     const confirmDialog = await screen.findByRole('dialog', { name: '确认删除队伍' });
     expect(confirmDialog.textContent).toContain('Luxray test');
     await user.click(within(confirmDialog).getByRole('button', { name: '取消' }));
     expect(screen.getByLabelText('队伍：Luxray test')).toBeTruthy();
 
-    await user.click(screen.getByRole('button', { name: '删除 Luxray test' }));
-    await user.click(within(await screen.findByRole('dialog', { name: '确认删除队伍' })).getByRole('button', { name: '确认删除' }));
+    await user.click(within(screen.getByLabelText('队伍：Luxray test')).getByRole('button', { name: /删除/ }));
+    await user.click(within(await screen.findByRole('dialog', { name: '确认删除队伍' })).getByRole('button', { name: '删除' }));
 
     await waitFor(() => expect(screen.queryByLabelText('队伍：Luxray test')).toBeNull());
     const state = await repository.loadState();
@@ -750,12 +749,15 @@ describe('App page flows', () => {
 
   it('reorders teams by dragging the list card handle', async () => {
     const user = await renderApp();
+    // Retire the preset card first: it has no drag handle of its own.
+    await openDefaultTeam(user);
+    await user.click(screen.getByRole('button', { name: '返回队伍列表' }));
 
-    await user.click(screen.getByRole('button', { name: /新建/ }));
-    const nameInput = screen.getByRole('textbox');
+    await user.click(screen.getByRole('button', { name: '新建队伍' }));
+    const nameInput = screen.getByLabelText('队伍名称');
     await user.clear(nameInput);
     await user.type(nameInput, '第二队');
-    await user.click(screen.getByRole('button', { name: '确认' }));
+    await user.click(screen.getByRole('button', { name: '建立' }));
     await user.click(screen.getByRole('button', { name: '返回队伍列表' }));
 
     const secondTeamCard = await screen.findByLabelText('队伍：第二队');
@@ -815,8 +817,7 @@ describe('App page flows', () => {
     await user.click(importedCard);
     expect(await screen.findByRole('heading', { name: starmieSample.title })).toBeTruthy();
 
-    await user.click(screen.getByText('宝石海星'));
-    await user.click(screen.getByTitle('编辑成员'));
+    await openMemberEditor(user, '宝石海星');
     const formSelect = (await screen.findByLabelText('形态预览')) as HTMLSelectElement;
 
     expect(Array.from(formSelect.options).map((option) => option.value)).toContain('mega-starmie');
@@ -1125,10 +1126,10 @@ describe('App page flows', () => {
     await openDefaultTeam(user);
 
     // Expand member again — the team page is functional
-    await user.click(screen.getByText('伦琴猫'));
-    expect(screen.getByText('能力值 / SP')).toBeTruthy();
-    expect(screen.getByText(/已用 65\/66/)).toBeTruthy();
-    expect(screen.queryByText(/已用 76\/66/)).toBeNull();
+    await user.click(screen.getByRole('button', { name: '展开 伦琴猫' }));
+    expect(screen.getByText('能力值')).toBeTruthy();
+    expect(screen.getByText(/已投 SP 65\/66/)).toBeTruthy();
+    expect(screen.queryByText(/已投 SP 76\/66/)).toBeNull();
   });
 
   it('selects both calculator sides from searchable Pokemon and team recommendations', async () => {
@@ -1402,14 +1403,24 @@ describe('App page flows', () => {
     expect(within(dialog).queryByRole('button', { name: /导入到我的队伍/ })).toBeNull();
   });
 
-  it('copies a share URL from team detail when the platform has no share sheet', async () => {
+  it('copies a share URL from a full team when the platform has no share sheet', async () => {
+    // Only a 6/6 team can be shared, so seed one rather than using the single-member preset.
+    await repository.replaceTeams([
+      testTeam(
+        '满员队',
+        ['garchomp', 'incineroar', 'luxray', 'charizard', 'whimsicott', 'gholdengo'].map((pokemonId) =>
+          garchompMember({ id: `member-${pokemonId}`, pokemonId, formId: pokemonId, abilityId: undefined, itemId: undefined, moveIds: [], statPoints: {} }),
+        ),
+      ),
+    ]);
     const user = await renderApp();
     // userEvent.setup() installs its own clipboard stub, so override it *after* renderApp.
     const writeText = vi.fn().mockResolvedValue(undefined);
     Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } });
-    await openDefaultTeam(user);
+    await user.click(await screen.findByLabelText('队伍：满员队'));
+    await screen.findByRole('heading', { name: '满员队' });
 
-    await user.click(screen.getByRole('button', { name: '分享 Luxray test' }));
+    await user.click(screen.getByRole('button', { name: '分享 满员队' }));
 
     await waitFor(() => expect(writeText).toHaveBeenCalledTimes(1));
     const sharedUrl = writeText.mock.calls[0][0] as string;
@@ -1418,8 +1429,8 @@ describe('App page flows', () => {
 
     const { decodeTeamShare } = await import('./lib/teamShare');
     const decoded = await decodeTeamShare(sharedUrl.split('/#/t/')[1]);
-    expect(decoded.name).toBe('Luxray test');
-    expect(decoded.members[0].pokemonId).toBe('luxray');
+    expect(decoded.name).toBe('满员队');
+    expect(decoded.members[0].pokemonId).toBe('garchomp');
   });
 
   it('opens the speed line tool from the tools page', async () => {

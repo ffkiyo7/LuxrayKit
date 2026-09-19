@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { App } from './App';
 import { SERVICE_WORKER_UPDATE_EVENT } from './components/ServiceWorkerUpdateToast';
 import './styles.css';
+import './styles/p3.css';
 import './styles/p4b.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(

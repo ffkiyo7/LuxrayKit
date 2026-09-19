@@ -1,0 +1,113 @@
+/*
+ * 02 队伍 — fills the frames draw with per-theme alpha, which Tailwind's `/<alpha-value>`
+ * cannot vary. Everything with a single value per theme stays a token in styles.css.
+ */
+
+:root {
+  /* Member aura (02-05 / 02-08 / N02-19): the expanded card tints its face with the member's
+     own two type colours. Light drops both stops a notch so the white face stays paper. */
+  --lk-aura-s1: 22%;
+  --lk-aura-s2: 12%;
+  --lk-preset-ring: inset 0 0 0 1px rgb(255 255 255 / 0.1);
+  --lk-preset-edge-1: rgb(248 208 48 / 0.9);
+  --lk-preset-edge-2: rgb(255 255 255 / 0.95);
+  --lk-well-ring: inset 0 0 0 1px rgb(255 255 255 / 0.06);
+  --lk-slot-ring: inset 0 0 0 1.5px rgb(255 255 255 / 0.1);
+  --lk-notice-ring: inset 0 0 0 1px rgb(255 255 255 / 0.07);
+  --lk-drag-shadow: 0 0 0 0.5px rgb(255 255 255 / 0.16), 0 22px 44px rgb(0 0 0 / 0.6);
+  --lk-menu-shadow: 0 22px 50px rgb(0 0 0 / 0.55);
+}
+
+:root[data-theme='light'] {
+  --lk-aura-s1: 18%;
+  --lk-aura-s2: 10%;
+  --lk-preset-ring: inset 0 0 0 1px rgb(16 24 40 / 0.1), 0 1px 2px rgb(0 0 0 / 0.05), 0 8px 24px rgb(16 24 40 / 0.06);
+  --lk-preset-edge-1: rgb(196 145 10 / 0.9);
+  --lk-preset-edge-2: rgb(120 80 0 / 0.95);
+  --lk-well-ring: inset 0 0 0 1px rgb(16 24 40 / 0.06);
+  --lk-slot-ring: inset 0 0 0 1.5px rgb(16 24 40 / 0.1);
+  --lk-notice-ring: inset 0 0 0 1px rgb(16 24 40 / 0.08);
+  --lk-drag-shadow: 0 0 0 0.5px rgb(16 24 40 / 0.16), 0 22px 44px rgb(16 24 40 / 0.18);
+  --lk-menu-shadow: 0 22px 50px rgb(16 24 40 / 0.22);
+}
+
+.lk-member-aura {
+  background:
+    radial-gradient(
+      90% 120% at 86% 6%,
+      color-mix(in srgb, var(--lk-aura-c1) var(--lk-aura-s1), transparent),
+      color-mix(in srgb, var(--lk-aura-c2) var(--lk-aura-s2), transparent) 52%,
+      transparent 74%
+    ),
+    rgb(var(--color-surface));
+}
+
+/* 02-02 预设队 — an amber filament runs along all four edges of the card. */
+.lk-preset-card {
+  box-shadow: var(--lk-preset-ring);
+}
+
+.lk-preset-edge {
+  position: absolute;
+  pointer-events: none;
+}
+
+.lk-preset-edge--top {
+  top: 0;
+  right: 14px;
+  left: 14px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, var(--lk-preset-edge-1) 20%, var(--lk-preset-edge-2) 50%, var(--lk-preset-edge-1) 80%, transparent 100%);
+}
+
+.lk-preset-edge--bottom {
+  right: 14px;
+  bottom: 0;
+  left: 14px;
+  height: 2px;
+  opacity: 0.7;
+  background: linear-gradient(90deg, transparent 0%, var(--lk-preset-edge-1) 30%, var(--lk-preset-edge-2) 50%, var(--lk-preset-edge-1) 70%, transparent 100%);
+}
+
+.lk-preset-edge--right {
+  top: 14px;
+  right: 0;
+  bottom: 14px;
+  width: 2px;
+  background: linear-gradient(180deg, transparent 0%, var(--lk-preset-edge-1) 34%, var(--lk-preset-edge-2) 62%, var(--lk-preset-edge-1) 82%, transparent 100%);
+}
+
+.lk-preset-edge--left {
+  top: 14px;
+  bottom: 14px;
+  left: 0;
+  width: 2px;
+  background: linear-gradient(180deg, transparent 0%, var(--lk-preset-edge-2) 22%, var(--lk-preset-edge-1) 46%, transparent 74%, transparent 100%);
+}
+
+/* The 76px sprite well on the preset card (02-02) and the sunken panels that reuse it. */
+.lk-well {
+  box-shadow: var(--lk-well-ring);
+}
+
+/* 02-07 empty member slot. */
+.lk-slot {
+  box-shadow: var(--lk-slot-ring);
+}
+
+/* 02-07 「还差 N 只才能分享」 panel. */
+.lk-notice {
+  background: var(--sheet-bg-deep);
+  box-shadow: var(--lk-notice-ring);
+}
+
+/* N02-16 the card under the finger, and the shadow it casts over its neighbours. */
+.lk-card-dragging {
+  box-shadow: var(--lk-drag-shadow);
+}
+
+/* 02-11 destructive confirm button — a tinted slab rather than a filled one. */
+.lk-danger-soft {
+  background: rgb(var(--color-danger) / 0.16);
+  box-shadow: inset 0 0 0 1.5px rgb(var(--color-danger) / 0.55);
+}

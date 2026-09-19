@@ -67,7 +67,7 @@ export const defaultPreferences: UserPreference = {
   lastDataRefreshAt: currentDataVersion.updatedAt,
   hasSeenEnvironmentImportNotice: false,
   hasCompletedOnboarding: false,
-  hasSeenLuxrayEasterEgg: false,
+  hasOpenedPresetTeam: false,
   analyticsOptOut: false,
 };
 
