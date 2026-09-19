@@ -50,6 +50,67 @@ describe('PokemonDetail abilities', () => {
   });
 });
 
+describe('PokemonDetail 属性关系', () => {
+  const garchomp = () => entries.find((candidate) => candidate.chineseName === '烈咬陆鲨')!;
+  const singleType = () => entries.find((candidate) => candidate.types.length === 1)!;
+
+  /** Each shelf is a heading followed by its row of chips; a chip's text is its whole capsule. */
+  const chipTexts = (shelfTitle: string) =>
+    [...screen.getByText(shelfTitle).nextElementSibling!.children].map((chip) => chip.textContent ?? '');
+
+  it('opens on 受击时 and only names the attacking shelves once 攻击时 is picked', async () => {
+    const user = userEvent.setup();
+    renderDetail(garchomp());
+
+    expect(screen.getByRole('button', { name: '受击时' }).getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByRole('button', { name: '攻击时' }).getAttribute('aria-pressed')).toBe('false');
+    expect(screen.getByText('弱点')).toBeTruthy();
+    expect(screen.queryByText('效果绝佳')).toBeNull();
+
+    await user.click(screen.getByRole('button', { name: '攻击时' }));
+
+    expect(screen.getByText('效果绝佳')).toBeTruthy();
+    expect(screen.getByText('效果不好')).toBeTruthy();
+    expect(screen.getByText('无效')).toBeTruthy();
+    expect(screen.queryByText('弱点')).toBeNull();
+    // 钢 sits on two shelves at once — ×2 for its 地面 moves, ×½ for its 龙 moves.
+    expect(chipTexts('效果绝佳')).toContain('钢×2地面');
+    expect(chipTexts('效果不好')).toContain('钢×½龙');
+  });
+
+  it('drops the source label for a single-type Pokémon', async () => {
+    const user = userEvent.setup();
+    const entry = singleType();
+    renderDetail(entry);
+
+    await user.click(screen.getByRole('button', { name: '攻击时' }));
+
+    const chips = ['效果绝佳', '效果不好', '无效']
+      .filter((title) => screen.queryByText(title))
+      .flatMap((title) => chipTexts(title));
+    expect(chips.length).toBeGreaterThan(0);
+    // 「属性名 + 倍率」 and nothing else: the one possible source carries no information.
+    chips.forEach((text) => expect(text).toMatch(/^[^×]+×(2|½|0)$/));
+  });
+
+  it('goes back to 受击时 when another Pokémon takes the page over', async () => {
+    const user = userEvent.setup();
+    const { rerender } = renderDetail(garchomp());
+
+    await user.click(screen.getByRole('button', { name: '攻击时' }));
+    expect(screen.getByText('效果绝佳')).toBeTruthy();
+
+    rerender(
+      <AppProvider>
+        <PokemonDetail entry={singleType()} onBack={vi.fn()} onOpenCalculator={vi.fn()} />
+      </AppProvider>,
+    );
+
+    expect(screen.getByRole('button', { name: '受击时' }).getAttribute('aria-pressed')).toBe('true');
+    expect(screen.queryByText('效果绝佳')).toBeNull();
+  });
+});
+
 describe('PokemonDetail 加入队伍', () => {
   it('asks which team, then confirms where the Pokémon went', async () => {
     const user = userEvent.setup();

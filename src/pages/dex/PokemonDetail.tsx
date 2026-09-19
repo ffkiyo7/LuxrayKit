@@ -7,6 +7,7 @@ import { currentRuleMovesForPokemon } from '../../lib/currentRuleCatalog';
 import { evaluateMemberLegality } from '../../lib/legality';
 import type { DexFormEntry } from '../../lib/pokemonForms';
 import { createDefaultTeamMember } from '../../lib/teamMemberDefaults';
+import { offensiveProfile } from '../../lib/typeChart';
 import { useAppStore } from '../../state/AppContext';
 import type { PokemonType, Team, TeamMember } from '../../types';
 import { auraStyle, Sprite, TypeDot } from '../../components/kit';
@@ -43,41 +44,105 @@ function SectionHeading({ title, trailing }: { title: string; trailing?: string 
   );
 }
 
-/** 04-09 matchup chip: a type dot, the type name and its multiplier on one neutral capsule. */
-function MatchupChip({ type, multiplier }: { type: PokemonType; multiplier: number }) {
+type MatchupRow = {
+  type: PokemonType;
+  multiplier: number;
+  /** Which of the Pokémon's own types produce this line — only 「攻击时」 fills it in. */
+  sources?: PokemonType[];
+};
+
+/**
+ * 04-09 matchup chip: a type dot, the type name and its multiplier on one neutral capsule. The
+ * 攻击时 list adds the source type behind a hairline, since the same defender can show up under two
+ * different shelves depending on which of the attacker's own types is throwing the move.
+ */
+function MatchupChip({ type, multiplier, sources }: MatchupRow) {
   return (
     <span className="lk-chip inline-flex h-8 items-center gap-1.5 rounded-full px-[11px] text-xs font-bold text-textLabel">
       <TypeDot size={7} type={type} />
-      {typeLabelByValue[type]} {formatMultiplier(multiplier)}
+      <span>{typeLabelByValue[type]}</span>
+      <span className="tabular-nums">{formatMultiplier(multiplier)}</span>
+      {sources && sources.length > 0 && (
+        <>
+          <span aria-hidden="true" className="h-2.5 w-px shrink-0 bg-[var(--hairline-strong)]" />
+          <span className="text-[11px] font-bold text-textSecondary">
+            {sources.map((source) => typeLabelByValue[source]).join(' · ')}
+          </span>
+        </>
+      )}
     </span>
   );
 }
 
-function MatchupGroup({
-  title,
-  tone,
-  rows,
-}: {
-  title: string;
-  tone: 'danger' | 'success';
-  rows: Array<{ type: PokemonType; multiplier: number }>;
-}) {
+function MatchupGroup({ title, tone, rows }: { title: string; tone: 'danger' | 'success'; rows: MatchupRow[] }) {
   if (rows.length === 0) return null;
   const ink = tone === 'danger' ? 'text-danger' : 'text-success';
+  const dot = tone === 'danger' ? 'bg-danger' : 'bg-success';
 
   return (
     <>
       <p className={`mt-4 flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.14em] ${ink}`}>
-        <span className={`h-[7px] w-[7px] shrink-0 rounded-full ${tone === 'danger' ? 'bg-danger' : 'bg-success'}`} />
+        <span className={`h-[7px] w-[7px] shrink-0 rounded-full ${dot}`} />
         {title}
       </p>
       <div className="mt-2 flex flex-wrap gap-[7px]">
         {rows.map((row) => (
-          <MatchupChip key={`${title}-${row.type}`} multiplier={row.multiplier} type={row.type} />
+          <MatchupChip
+            key={`${title}-${row.type}-${(row.sources ?? []).join('-')}`}
+            multiplier={row.multiplier}
+            sources={row.sources}
+            type={row.type}
+          />
         ))}
       </div>
     </>
   );
+}
+
+type MatchupView = 'defense' | 'offense';
+
+const matchupViews: Array<{ id: MatchupView; label: string }> = [
+  { id: 'defense', label: '受击时' },
+  { id: 'offense', label: '攻击时' },
+];
+
+/**
+ * 攻击时 asks the chart once per own type and keeps both answers: 烈咬陆鲨 resists nothing as a whole,
+ * but 钢 is ×2 for its 地面 moves and ×½ for its 龙 moves, so the same defender belongs on two
+ * shelves. Only when both own types land on the same shelf with the same multiplier do they share a
+ * chip (火焰鸡: 冰 ×2 from 火 and 格斗 alike), so one shelf never prints the same type twice.
+ */
+function offensiveRows(types: PokemonType[]): Record<'superEffective' | 'notVery' | 'noEffect', MatchupRow[]> {
+  const shelves = {
+    superEffective: { multiplier: 2, rows: new Map<PokemonType, MatchupRow>() },
+    notVery: { multiplier: 0.5, rows: new Map<PokemonType, MatchupRow>() },
+    noEffect: { multiplier: 0, rows: new Map<PokemonType, MatchupRow>() },
+  } as const;
+  const dual = types.length > 1;
+
+  for (const own of types) {
+    const profile = offensiveProfile(own);
+    for (const key of ['superEffective', 'notVery', 'noEffect'] as const) {
+      for (const defender of profile[key]) {
+        const shelf = shelves[key];
+        const existing = shelf.rows.get(defender);
+        if (existing) existing.sources!.push(own);
+        else shelf.rows.set(defender, { type: defender, multiplier: shelf.multiplier, sources: [own] });
+      }
+    }
+  }
+
+  const sorted = (rows: Map<PokemonType, MatchupRow>) =>
+    [...rows.values()]
+      .sort((a, b) => typeOrder[a.type] - typeOrder[b.type])
+      // A single-type Pokémon has one possible source, so the hairline and its label are noise.
+      .map((row) => (dual ? row : { type: row.type, multiplier: row.multiplier }));
+
+  return {
+    superEffective: sorted(shelves.superEffective.rows),
+    notVery: sorted(shelves.notVery.rows),
+    noEffect: sorted(shelves.noEffect.rows),
+  };
 }
 
 /**
@@ -144,6 +209,13 @@ export function PokemonDetail({
   const [expandedMoveId, setExpandedMoveId] = useState<string | null>(null);
   const [moveQuery, setMoveQuery] = useState('');
   const [moveSortKey, setMoveSortKey] = useState<MoveSortKey>('power-asc');
+  // Every entry opens on 受击时, including a switch from one Pokémon to another: the view the last
+  // Pokémon was left on is not a preference, so it is stored against the entry it was chosen for.
+  const [matchupChoice, setMatchupChoice] = useState<{ entryId: string; view: MatchupView }>({
+    entryId: entry.id,
+    view: 'defense',
+  });
+  const matchupView = matchupChoice.entryId === entry.id ? matchupChoice.view : 'defense';
 
   useEffect(() => {
     if (!notice) return;
@@ -173,6 +245,7 @@ export function PokemonDetail({
   const resistances = matchups
     .filter(({ multiplier }) => multiplier < 1)
     .sort((a, b) => b.multiplier - a.multiplier || typeOrder[a.type] - typeOrder[b.type]);
+  const offense = useMemo(() => offensiveRows(entry.types), [entry.types]);
 
   const metrics = pokemonPhysicalMetricsByDexNo[entry.basePokemon.nationalDexNo];
   const heightLabel = formatHeight(metrics?.heightDm);
@@ -273,12 +346,37 @@ export function PokemonDetail({
       </section>
 
       <section className="px-6 pt-[26px]">
-        <div className="flex items-baseline justify-between gap-3">
+        <div className="flex items-center justify-between gap-3">
           <h2 className="text-[22px] font-extrabold leading-[30px] tracking-[-0.01em]">属性关系</h2>
-          <span className="shrink-0 text-xs font-normal text-textSecondary">受到攻击时</span>
+          <div aria-label="属性关系" className="flex shrink-0 gap-[3px] rounded-[10px] bg-sunken p-[3px]" role="group">
+            {matchupViews.map((option) => (
+              <button
+                key={option.id}
+                aria-pressed={matchupView === option.id}
+                className={`grid h-[26px] place-items-center rounded-lg px-[11px] text-xs ${
+                  matchupView === option.id ? 'lk-segment-on font-bold text-textPrimary' : 'font-semibold text-textSecondary'
+                }`}
+                type="button"
+                onClick={() => setMatchupChoice({ entryId: entry.id, view: option.id })}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
         </div>
-        <MatchupGroup rows={weaknesses} title="弱点" tone="danger" />
-        <MatchupGroup rows={resistances} title="抵抗与免疫" tone="success" />
+        {matchupView === 'defense' ? (
+          <>
+            <MatchupGroup rows={weaknesses} title="弱点" tone="danger" />
+            <MatchupGroup rows={resistances} title="抵抗与免疫" tone="success" />
+          </>
+        ) : (
+          <>
+            {/* 打得动 = 绿, the same reading 属性速查 gives an attacker (`SingleTypeView`). */}
+            <MatchupGroup rows={offense.superEffective} title="效果绝佳" tone="success" />
+            <MatchupGroup rows={offense.notVery} title="效果不好" tone="danger" />
+            <MatchupGroup rows={offense.noEffect} title="无效" tone="danger" />
+          </>
+        )}
       </section>
 
       <section className="px-6 pt-[26px]">
