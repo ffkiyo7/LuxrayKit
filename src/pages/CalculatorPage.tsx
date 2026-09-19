@@ -178,11 +178,20 @@ export function CalculatorPage({
     const form = findBattleForm(entry?.id ?? '', attackerConfig.formId);
     const label = form?.chineseName ?? entry?.chineseName;
     if (!label) return;
+    // 04-01 draws 「进攻方 招式 → 防守方」, so the card needs the other two sides by name as well.
+    const defenderEntry = pokemon.find((candidate) => candidate.id === defenderConfig.pokemonId);
+    const defenderForm = findBattleForm(defenderEntry?.id ?? '', defenderConfig.formId);
+    const defenderLabel = defenderForm?.chineseName ?? defenderEntry?.chineseName;
+    const moveLabel = currentMove?.chineseName;
+    if (!defenderLabel || !moveLabel) return;
     const timer = window.setTimeout(
       () => recordToolResult({
         tool: 'calculator',
         label,
         iconRef: form?.iconRef ?? entry?.iconRef,
+        moveLabel,
+        defenderLabel,
+        defenderIconRef: defenderForm?.iconRef ?? defenderEntry?.iconRef,
         minDamage,
         maxDamage,
         minPercent,
@@ -192,7 +201,14 @@ export function CalculatorPage({
       RESULT_RECORD_DELAY_MS,
     );
     return () => window.clearTimeout(timer);
-  }, [attackerConfig.formId, attackerConfig.pokemonId, damageResult]);
+  }, [
+    attackerConfig.formId,
+    attackerConfig.pokemonId,
+    currentMove,
+    damageResult,
+    defenderConfig.formId,
+    defenderConfig.pokemonId,
+  ]);
 
   if (pickerSide) {
     return (

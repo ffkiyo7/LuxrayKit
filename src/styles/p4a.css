@@ -35,6 +35,10 @@
      so the sprite in front reads as cut out of the one behind it. */
   --p4a-owner-disc-bg: #0b0b0c;
   --p4a-owner-disc-ring: rgb(255 255 255 / 0.12);
+  /* 04-01 tool cards: the 26px sprites in the matchup line sit on the card's own face plus a
+     hairline — one step brighter than 04-08's stack, which is cut out of the page instead. */
+  --p4a-tool-disc-bg: #17171b;
+  --p4a-tool-disc-ring: rgb(255 255 255 / 0.18);
 }
 
 :root[data-theme='light'] {
@@ -57,6 +61,8 @@
   --p4a-list-chevron: #c7c7cc;
   --p4a-owner-disc-bg: #fbfbfd;
   --p4a-owner-disc-ring: rgb(28 28 30 / 0.1);
+  --p4a-tool-disc-bg: #fbfbfd;
+  --p4a-tool-disc-ring: rgb(28 28 30 / 0.1);
 }
 
 .lk-p4a-card {
@@ -119,6 +125,11 @@
 .lk-p4a-owner-disc {
   background: var(--p4a-owner-disc-bg);
   box-shadow: inset 0 0 0 1px var(--p4a-owner-disc-ring);
+}
+
+.lk-p4a-tool-disc {
+  background: var(--p4a-tool-disc-bg);
+  box-shadow: 0 0 0 1px var(--p4a-tool-disc-ring);
 }
 
 /* N04-10 — the artwork plane takes the Pokémon's own body colours, sampled off that very artwork.

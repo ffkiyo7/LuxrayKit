@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, render, screen, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { currentDataVersion, currentRuleSet, pokemon } from '../data';
 import { environmentFallbackState } from '../data/environment';
@@ -41,6 +41,9 @@ const teamLedBy = (pokemonId: string): Team => ({
 const renderPage = (props: Partial<Parameters<typeof ToolsPage>[0]> = {}) =>
   render(<ToolsPage onOpenDexEntry={vi.fn()} onOpenTool={vi.fn()} {...props} />);
 
+/** Both square cards draw sprites, so every card assertion is scoped to its own card. */
+const card = (title: string) => within(screen.getByText(title).closest('button')!);
+
 beforeEach(() => {
   window.localStorage.clear();
 });
@@ -48,13 +51,24 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe('ToolsPage', () => {
-  it('leaves a tool card bare when that tool has no recorded result', () => {
+  it('shows a worked example on every card when no tool has been run', () => {
     renderPage();
 
     expect(screen.getByText('伤害计算')).toBeTruthy();
     expect(screen.queryByText('上次')).toBeNull();
+    expect(screen.getAllByText('示例').length).toBe(3);
+    // The frozen damage sample, rounded to whole percent (91.8–109.4 → 92–109).
+    expect(screen.getByText(/92/).textContent?.replace(/\s+/g, '')).toBe('92–109%');
+    expect(screen.getByText('地震')).toBeTruthy();
+    expect(screen.getByText('未分配 SP')).toBeTruthy();
     expect(screen.queryByText('我的成员')).toBeNull();
-    expect(screen.queryByRole('heading', { name: '最近用过' })).toBeNull();
+  });
+
+  it('keeps the 最近用过 heading standing with nothing under it', () => {
+    renderPage();
+
+    expect(screen.getByRole('heading', { name: '最近用过' })).toBeTruthy();
+    expect(screen.queryByText('伤害计算 · 进攻方')).toBeNull();
   });
 
   it('drops the unplanned 对局记录 / 随机一队 entries', () => {
@@ -65,10 +79,12 @@ describe('ToolsPage', () => {
     expect(screen.queryByText('未开放')).toBeNull();
   });
 
-  it('names the newest team lead on the speed card when nothing has been recorded', () => {
+  it('previews the newest team lead on the speed card when nothing has been recorded', () => {
     renderPage({ teams: [teamLedBy('garchomp')], environment: environmentFallbackState });
 
-    expect(screen.getByText('烈咬陆鲨')).toBeTruthy();
+    expect(card('速度线').getByAltText('烈咬陆鲨')).toBeTruthy();
+    // 0 SP, neutral nature: floor(102 + 0 + 20).
+    expect(card('速度线').getByText('122')).toBeTruthy();
     expect(screen.queryByText('我的成员')).toBeNull();
   });
 
@@ -79,13 +95,15 @@ describe('ToolsPage', () => {
     const expected = pokemon.find((entry) => entry.id === mostUsed.pokemonId);
     renderPage({ teams: [], environment: environmentFallbackState });
 
-    expect(screen.getByText(expected!.chineseName)).toBeTruthy();
+    expect(card('速度线').getByAltText(expected!.chineseName)).toBeTruthy();
   });
 
-  it('phrases the last calculator run from the stored numbers', () => {
+  it('redraws the last calculator run as a percent range and a matchup line', () => {
     recordToolResult({
       tool: 'calculator',
       label: '喷火龙',
+      moveLabel: '大字爆炎',
+      defenderLabel: '钢铠鸦',
       minDamage: 148,
       maxDamage: 176,
       minPercent: 73.6,
@@ -95,8 +113,11 @@ describe('ToolsPage', () => {
     renderPage();
 
     expect(screen.getByText('上次')).toBeTruthy();
-    expect(screen.getByText(/148/)).toBeTruthy();
-    expect(screen.getByText('确定两击击杀 · 87.6%')).toBeTruthy();
+    expect(screen.getByText(/74/).textContent?.replace(/\s+/g, '')).toBe('74–88%');
+    expect(screen.getByText('大字爆炎')).toBeTruthy();
+    // The long HKO sentence is gone; the sample matchup is replaced by the recorded one.
+    expect(screen.queryByText(/确定两击击杀/)).toBeNull();
+    expect(screen.queryByText('地震')).toBeNull();
     expect(screen.getByText('伤害计算 · 进攻方')).toBeTruthy();
   });
 
@@ -104,6 +125,7 @@ describe('ToolsPage', () => {
     recordToolResult({
       tool: 'speed',
       label: '烈咬陆鲨',
+      iconRef: '/assets/pokemon/thumbs/445.png',
       pokemonId: 'garchomp',
       build: speedBuild,
       speed: 154,
@@ -112,18 +134,22 @@ describe('ToolsPage', () => {
     });
     renderPage({ teams: [teamLedBy('staraptor')] });
 
-    // The recorded run wins over the default subject: the card names who it is previewing.
-    expect(screen.getAllByText('烈咬陆鲨').length).toBeGreaterThan(0);
-    expect(screen.queryByText('姆克鹰')).toBeNull();
-    expect(screen.getByText('154')).toBeTruthy();
+    // The recorded run wins over the default subject: the card previews who it is about.
+    expect(card('速度线').getByAltText('烈咬陆鲨')).toBeTruthy();
+    expect(screen.queryByAltText('姆克鹰')).toBeNull();
+    expect(card('速度线').getByText('154')).toBeTruthy();
     expect(screen.queryByText(/档需/)).toBeNull();
     expect(screen.getByText('速度线 · 154')).toBeTruthy();
   });
 
-  it('reads the type chart headline off the recorded type', () => {
+  it('reads both type chart matchups off the recorded type', () => {
     recordToolResult({ tool: 'typeChart', type: 'Fairy' });
     renderPage();
 
-    expect(screen.getByText(/妖精/).textContent?.replace(/\s+/g, ' ')).toContain('妖精 打 格斗 ×2 · 挨 毒 ×2');
+    const typeCard = card('属性速查');
+    expect(typeCard.getByText('上次')).toBeTruthy();
+    // The labels are bare text nodes between the dots and the arrow, so read the whole line.
+    const line = typeCard.getByText('上次').nextElementSibling;
+    expect(line?.textContent?.replace(/\s+/g, '')).toBe('妖精攻击格斗×2毒攻击妖精×2');
   });
 });

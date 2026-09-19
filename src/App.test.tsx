@@ -317,8 +317,9 @@ describe('App page flows', () => {
     // 对局记录 / 随机一队 are not on the roadmap, so the tools page carries no entry for them.
     expect(screen.queryByText('对局记录')).toBeNull();
     expect(screen.queryByText('未开放')).toBeNull();
-    // Nothing has been used yet, so neither recent surface is drawn.
-    expect(screen.queryByRole('heading', { name: '最近用过' })).toBeNull();
+    // Nothing has been used yet: the 最近用过 heading still stands, with nothing under it.
+    expect(screen.getByRole('heading', { name: '最近用过' })).toBeTruthy();
+    expect(screen.queryByText('伤害计算 · 进攻方')).toBeNull();
     expect(screen.queryByText(/三个入口并列|从本地队伍带入配置|队伍配置带入/)).toBeNull();
     expect(screen.queryByText(/天气、场地/)).toBeNull();
     expect(screen.queryByText(/当前规则内的宝可梦、招式、道具、特性/)).toBeNull();

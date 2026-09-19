@@ -38,6 +38,10 @@ export type CalculatorToolResult = {
   /** The attacker, which is also what 「最近用过」 shows for this tool. */
   label: string;
   iconRef?: string;
+  /** 04-01 redraws the run as 「进攻方 招式 → 防守方」, so the other two sides are stored too. */
+  moveLabel: string;
+  defenderLabel: string;
+  defenderIconRef?: string;
   minDamage: number;
   maxDamage: number;
   minPercent: number;
@@ -112,7 +116,11 @@ const isToolResult = (value: unknown): value is ToolResult => {
   if (!isRecord(value)) return false;
   switch (value.tool) {
     case 'calculator':
+      // A row written before 04-01 drew the matchup line has no move or defender; it fails here
+      // and is dropped, the same way a build-less speed row is.
       return typeof value.label === 'string'
+        && typeof value.moveLabel === 'string'
+        && typeof value.defenderLabel === 'string'
         && typeof value.hko === 'string'
         && [value.minDamage, value.maxDamage, value.minPercent, value.maxPercent].every(isFiniteNumber);
     case 'speed':
