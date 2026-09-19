@@ -8,6 +8,22 @@
      own two type colours. Light drops both stops a notch so the white face stays paper. */
   --lk-aura-s1: 22%;
   --lk-aura-s2: 12%;
+  /* Card face: dark leaves every card flat on `surface`; 02-03 / 02-06 lift the light ones onto
+     paper white, since `surface` light would not read against the page. */
+  --lk-card-face: rgb(var(--color-surface));
+  /* Transparent rather than `none`: it is consumed through Tailwind's `shadow-[…]`, whose
+     box-shadow list would be dropped wholesale by a `none` entry — and with it the focus ring. */
+  --lk-card-shadow: 0 0 rgb(0 0 0 / 0);
+  /* 02-05 / 02-06 — a glyph that is a quiet label on dark but the darkest ink on light: the
+     nature arrow of an un-invested stat, and the 复制队伍码 icon. */
+  --lk-glyph-ink: #c7c7cc;
+  --lk-stat-track: rgb(255 255 255 / 0.09);
+  --lk-stat-fill: #5a5a60;
+  /* The 27px held-item badge overlapping the 84px sprite, and the smaller bare item sprites. */
+  --lk-item-badge-shadow: drop-shadow(0 1px 2px rgb(0 0 0 / 0.85));
+  --lk-item-ink-shadow: drop-shadow(0 1px 2px rgb(0 0 0 / 0.45));
+  --lk-edit-entry-ink: rgb(var(--color-fn-blue));
+  --lk-preset-cta-shadow: inset 0 1px 0 rgb(255 255 255 / 0.9), inset 0 -1px 0 rgb(0 0 0 / 0.12);
   --lk-preset-ring: inset 0 0 0 1px rgb(255 255 255 / 0.1);
   --lk-preset-edge-1: rgb(248 208 48 / 0.9);
   --lk-preset-edge-2: rgb(255 255 255 / 0.95);
@@ -21,6 +37,17 @@
 :root[data-theme='light'] {
   --lk-aura-s1: 18%;
   --lk-aura-s2: 10%;
+  --lk-card-face: #ffffff;
+  --lk-card-shadow: var(--raised-shadow);
+  --lk-glyph-ink: #1c1c1e;
+  --lk-stat-track: #e8e8ec;
+  --lk-stat-fill: #b0b0b8;
+  /* On paper the badge needs a halo to lift off the white card, not just a drop. */
+  --lk-item-badge-shadow: drop-shadow(0 1px 2px rgb(16 24 40 / 0.28)) drop-shadow(0 0 7px rgb(255 255 255 / 0.95));
+  --lk-item-ink-shadow: drop-shadow(0 1px 2px rgb(16 24 40 / 0.18));
+  /* 02-06 draws the entry in plain ink rather than the functional blue 02-05 uses. */
+  --lk-edit-entry-ink: rgb(var(--color-text-primary));
+  --lk-preset-cta-shadow: 0 1px 2px rgb(16 24 40 / 0.12);
   --lk-preset-ring: inset 0 0 0 1px rgb(16 24 40 / 0.1), 0 1px 2px rgb(0 0 0 / 0.05), 0 8px 24px rgb(16 24 40 / 0.06);
   --lk-preset-edge-1: rgb(196 145 10 / 0.9);
   --lk-preset-edge-2: rgb(120 80 0 / 0.95);
@@ -39,12 +66,53 @@
       color-mix(in srgb, var(--lk-aura-c2) var(--lk-aura-s2), transparent) 52%,
       transparent 74%
     ),
-    rgb(var(--color-surface));
+    var(--lk-card-face);
+  box-shadow: var(--lk-card-shadow);
+}
+
+/* 02-02 / 02-03 / 02-06 — the plain card face shared by the team card and the member tile.
+   Callers pair it with `shadow-[shadow:var(--lk-card-shadow)]` so the elevation composes with a
+   focus ring instead of replacing it. */
+.lk-card-face {
+  background: var(--lk-card-face);
 }
 
 /* 02-02 预设队 — an amber filament runs along all four edges of the card. */
 .lk-preset-card {
+  background: var(--lk-card-face);
   box-shadow: var(--lk-preset-ring);
+}
+
+/* 02-02 「接着补齐这支」 — a lit slab on dark, a plain raised one on light. */
+.lk-preset-cta {
+  box-shadow: var(--lk-preset-cta-shadow);
+}
+
+/* 02-05 / 02-06 stat bars: the base value, then what SP added on top. */
+.lk-stat-track {
+  background: var(--lk-stat-track);
+}
+
+.lk-stat-fill {
+  background: var(--lk-stat-fill);
+}
+
+.lk-item-badge {
+  filter: var(--lk-item-badge-shadow);
+}
+
+.lk-item-ink {
+  filter: var(--lk-item-ink-shadow);
+}
+
+/* 02-05 / 02-06 「编辑配置 ›」 — the card's own entry into 03. */
+.lk-edit-entry {
+  color: var(--lk-edit-entry-ink);
+}
+
+/* Nature arrow on a stat with no SP in it, and the 复制队伍码 glyph. */
+.lk-glyph-ink {
+  color: var(--lk-glyph-ink);
 }
 
 .lk-preset-edge {

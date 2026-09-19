@@ -143,7 +143,7 @@ export function TeamListCard({
             ? 'lk-card-dragging z-10 scale-[1.02] bg-btn1 transition-none'
             : recentlyImported
               ? 'lk-field-on bg-btn1 transition-[transform] duration-150'
-              : 'bg-surface transition-[transform] duration-150'
+              : 'lk-card-face shadow-[shadow:var(--lk-card-shadow)] transition-[transform] duration-150'
         }`}
         data-import-highlighted={recentlyImported ? 'true' : undefined}
         role="button"
@@ -219,7 +219,7 @@ export function PresetTeamCard({
   return (
     <section
       aria-label={`队伍：${team.name}`}
-      className="lk-preset-card relative overflow-hidden rounded-[20px] bg-surface p-[18px]"
+      className="lk-preset-card relative overflow-hidden rounded-[20px] p-[18px]"
     >
       <span className="lk-preset-edge lk-preset-edge--top" aria-hidden="true" />
       <span className="lk-preset-edge lk-preset-edge--right" aria-hidden="true" />
@@ -272,7 +272,7 @@ export function PresetTeamCard({
 
       <div className="mt-4 grid grid-cols-[1fr_auto] gap-2 border-t border-[var(--hairline)] pt-[14px]">
         <button
-          className="inline-flex h-11 items-center justify-center gap-[7px] rounded-[14px] bg-accent text-sm font-extrabold text-page shadow-[inset_0_1px_0_rgb(255_255_255/0.9),inset_0_-1px_0_rgb(0_0_0/0.12)]"
+          className="lk-preset-cta inline-flex h-11 items-center justify-center gap-[7px] rounded-[14px] bg-accent text-sm font-extrabold text-page"
           type="button"
           onClick={onOpen}
         >

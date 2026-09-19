@@ -408,7 +408,7 @@ export function TeamPage({
               onClick={() => void onCopyReplicaCode(activeTeam.replicaCode!)}
             >
               <span className="text-[13px] font-bold tracking-[0.06em] tabular-nums">{activeTeam.replicaCode}</span>
-              <Copy className="text-textLabel" size={15} />
+              <Copy className="lk-glyph-ink" size={15} />
             </button>
           )}
           {!shareable && (

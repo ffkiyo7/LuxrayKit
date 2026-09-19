@@ -19,6 +19,8 @@
   --lk-editor-face: linear-gradient(0deg, rgb(var(--color-surface)), rgb(var(--color-surface)));
   --lk-primary-slab: inset 0 1px 0 rgb(255 255 255 / 0.9), inset 0 -1px 0 rgb(0 0 0 / 0.12),
     0 6px 18px rgb(0 0 0 / 0.45);
+  /* N03-04 / NL-01 — the 132px sprite the form picker floats above its card. */
+  --lk-sprite-shadow: drop-shadow(0 18px 28px rgb(0 0 0 / 0.5));
 }
 
 :root[data-theme='light'] {
@@ -37,6 +39,13 @@
   /* NL-02 puts the member card on paper white, a notch above the page's other surfaces. */
   --lk-editor-face: linear-gradient(0deg, #ffffff, #ffffff);
   --lk-primary-slab: 0 1px 2px rgb(16 24 40 / 0.12);
+  --lk-sprite-shadow: drop-shadow(0 20px 30px rgb(28 28 30 / 0.32));
+}
+
+/* NL-02 keeps the editor's wash at the dark frame's strength; only the member card (02-06)
+   drops a notch on light. */
+:root[data-theme='light'] .lk-editor-aura {
+  --lk-aura-s1: 20%;
 }
 
 /* 03-01 member card: the same two-type wash as the expanded card (02-05), on the editor face. */
@@ -137,6 +146,10 @@
 /* 03-01 / N03-13 「保存配置」 and 03-09's 「移除并给…」 — the frames' un-gradiented slab. */
 .lk-slab {
   box-shadow: var(--lk-primary-slab);
+}
+
+.lk-sprite-drop {
+  filter: var(--lk-sprite-shadow);
 }
 
 /* 03-09 — the row whose conflict confirmation is open: highlighted *and* ringed, so it reads

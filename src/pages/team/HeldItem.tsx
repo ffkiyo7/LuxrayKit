@@ -18,7 +18,7 @@ export function HeldItemIcon({
 
   return (
     <img
-      className={`shrink-0 object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.45)] ${className}`}
+      className={`lk-item-ink shrink-0 object-contain ${className}`}
       src={iconRef}
       alt={label}
       loading="lazy"
