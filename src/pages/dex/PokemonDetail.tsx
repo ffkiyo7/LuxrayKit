@@ -1,5 +1,5 @@
 import { ChevronDown, ChevronLeft, ChevronUp, Search, Swords, X } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { abilities } from '../../data';
 import { pokemonPhysicalMetricsByDexNo } from '../../data/seed/regMA/physicalMetrics';
 import { attackingTypes, defensiveMatchupMultiplier, statRows } from '../../lib/calculations';
@@ -8,8 +8,10 @@ import { evaluateMemberLegality } from '../../lib/legality';
 import type { DexFormEntry } from '../../lib/pokemonForms';
 import { createDefaultTeamMember } from '../../lib/teamMemberDefaults';
 import { useAppStore } from '../../state/AppContext';
-import type { PokemonType } from '../../types';
+import type { PokemonType, Team, TeamMember } from '../../types';
 import { auraStyle, Sprite, TypeDot } from '../../components/kit';
+import { Toast } from '../../components/kit/Toast';
+import { ADDED_TOAST_DURATION_MS, TeamPickerSheet, teamChoicesFor } from '../../components/TeamPickerSheet';
 import { hiddenAbilityIdsByPokemonId } from '../../data/seed/regMA/hiddenAbilities';
 import {
   filterMovesByQuery,
@@ -137,12 +139,19 @@ export function PokemonDetail({
   onBack: () => void;
   onOpenCalculator: (pokemonId: string) => void;
 }) {
-  const { teams, updateMember } = useAppStore();
+  const { teams, addTeam, saveTeam, updateMember } = useAppStore();
   const [showArtwork, setShowArtwork] = useState(false);
+  const [pickingTeam, setPickingTeam] = useState(false);
+  const [notice, setNotice] = useState<string>();
   const [expandedMoveId, setExpandedMoveId] = useState<string | null>(null);
   const [moveQuery, setMoveQuery] = useState('');
   const [moveSortKey, setMoveSortKey] = useState<MoveSortKey>('power-asc');
-  const activeTeam = teams[0];
+
+  useEffect(() => {
+    if (!notice) return;
+    const timeoutId = window.setTimeout(() => setNotice(undefined), ADDED_TOAST_DURATION_MS);
+    return () => window.clearTimeout(timeoutId);
+  }, [notice]);
 
   const entryAbilities = entry.abilities
     .map((id) => abilities.find((ability) => ability.id === id))
@@ -171,17 +180,36 @@ export function PokemonDetail({
   const heightLabel = formatHeight(metrics?.heightDm);
   const weightLabel = formatWeight(metrics?.weightHg);
 
-  const addToTeam = async () => {
-    if (!activeTeam || activeTeam.members.length >= 6) return;
+  // Which team it lands in is always asked (the same sheet 环境 uses). Writing silently into the
+  // first team is what made this button look dead: a full team, a duplicate or no team at all
+  // each returned without a word.
+  const buildMember = (team: Team): TeamMember => {
     const member = createDefaultTeamMember({
       pokemonId: entry.basePokemon.id,
       formId: entry.id,
       abilityId: entry.abilities[0],
-      itemId: entry.requiredItemId,
+      // A held item is unique within a team; a clash leaves the slot empty for the user to sort out.
+      itemId: team.members.some((existing) => existing.itemId && existing.itemId === entry.requiredItemId)
+        ? undefined
+        : entry.requiredItemId,
       notes: '从图鉴加入。',
     });
-    const result = evaluateMemberLegality(member, activeTeam);
-    await updateMember(activeTeam.id, { ...member, legalityStatus: result.status });
+    return { ...member, legalityStatus: evaluateMemberLegality(member, team).status };
+  };
+
+  const addToTeam = async (team: Team) => {
+    setPickingTeam(false);
+    const result = await updateMember(team.id, buildMember(team));
+    setNotice(result.ok ? `已加入${team.name}` : result.message);
+  };
+
+  const addToNewTeam = async () => {
+    setPickingTeam(false);
+    // `teams` in this render does not know about the fresh team yet, so the member is written
+    // through the returned object instead of going back through `updateMember`.
+    const team = await addTeam();
+    await saveTeam({ ...team, members: [buildMember(team)] });
+    setNotice(`已加入${team.name}`);
   };
 
   return (
@@ -290,7 +318,7 @@ export function PokemonDetail({
               <p className="flex items-baseline gap-2">
                 <span
                   className={`min-w-0 truncate text-[17px] font-bold tracking-[-0.01em] ${
-                    hiddenAbilityIds.includes(ability.id) ? 'text-fnTeal' : ''
+                    hiddenAbilityIds.includes(ability.id) ? 'text-data' : ''
                   }`}
                 >
                   {ability.chineseName}
@@ -385,7 +413,7 @@ export function PokemonDetail({
         <button
           className="lk-btn-primary inline-flex h-[50px] min-w-0 flex-1 items-center justify-center gap-2 rounded-2xl bg-accent text-base font-extrabold text-page"
           type="button"
-          onClick={addToTeam}
+          onClick={() => setPickingTeam(true)}
         >
           加入队伍
         </button>
@@ -400,6 +428,16 @@ export function PokemonDetail({
       </div>
 
       {showArtwork && <LargeArtwork entry={entry} onClose={() => setShowArtwork(false)} />}
+      {pickingTeam && (
+        <TeamPickerSheet
+          choices={teamChoicesFor(teams, entry.basePokemon.id)}
+          pokemonName={entry.chineseName}
+          onClose={() => setPickingTeam(false)}
+          onCreate={addToNewTeam}
+          onPick={addToTeam}
+        />
+      )}
+      {notice && <Toast title={notice} />}
     </div>
   );
 }

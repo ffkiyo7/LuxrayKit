@@ -2,8 +2,8 @@ import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Plus } from 'lucide-
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { auraStyle } from '../components/kit/aura';
 import { KitButton } from '../components/kit/KitButton';
-import { Sheet } from '../components/kit/Sheet';
 import { Sprite } from '../components/kit/Sprite';
+import { ADDED_TOAST_DURATION_MS, TeamPickerSheet, teamChoicesFor } from '../components/TeamPickerSheet';
 import { Toast } from '../components/kit/Toast';
 import { TypeDot } from '../components/kit/TypeDot';
 import { typeLabels } from '../components/ui';
@@ -25,8 +25,6 @@ import type { Move, Team, TeamMember } from '../types';
 import { DETAIL_RANK_LIMIT, RoundIconButton, SectionHeading } from './environmentChrome';
 import { resolveSampleSlots, teamSampleScoreMeta, teamSampleTitle } from './TeamSampleCard';
 
-const TEAM_SIZE = 6;
-const ADDED_TOAST_DURATION_MS = 2500;
 const VISIBLE_MOVE_ROWS = 4;
 const VISIBLE_ITEM_ROWS = 3;
 const VISIBLE_TRAIT_ROWS = 2;
@@ -76,74 +74,6 @@ function StatRow({
         {formatRate(rate)}
       </span>
     </div>
-  );
-}
-
-/**
- * A Mega, a regional form and the base Pokémon are the same team slot as far as the rules are
- * concerned, and they share a national dex number — so that, not the catalog id, is what decides
- * whether a team already holds this Pokémon. Ids the catalog does not know fall back to
- * themselves rather than collapsing into one another.
- */
-const speciesKey = (pokemonId: string | undefined) => {
-  if (!pokemonId) return undefined;
-  const entry = getEnvironmentPokemon(pokemonId);
-  return entry ? `dex-${entry.nationalDexNo}` : pokemonId;
-};
-
-type TeamChoice = {
-  team: Team;
-  /** Why this team cannot take the Pokémon; `undefined` means it can. */
-  blockedReason?: string;
-};
-
-/** 选队 sheet — rows follow 02-09's menu rows: 68px, hairline-separated, name over its count. */
-function TeamPickerSheet({
-  choices,
-  pokemonName,
-  onPick,
-  onCreate,
-  onClose,
-}: {
-  choices: TeamChoice[];
-  pokemonName: string;
-  onPick: (team: Team) => void;
-  onCreate: () => void;
-  onClose: () => void;
-}) {
-  return (
-    <Sheet label={`把${pokemonName}加入哪支队伍`} title="加入哪支队伍" onClose={onClose}>
-      <div className="mt-3">
-        {choices.map(({ team, blockedReason }) => (
-          <button
-            key={team.id}
-            className="flex h-[68px] w-full items-center gap-3 border-b border-[var(--hairline)] text-left disabled:opacity-45"
-            disabled={Boolean(blockedReason)}
-            type="button"
-            onClick={() => onPick(team)}
-          >
-            <span className="min-w-0 flex-1">
-              <span className="block truncate text-base font-bold tracking-[-0.01em]">{team.name}</span>
-              <span className="mt-1 block text-xs font-semibold tabular-nums text-textSecondary">
-                {[`${team.members.length}/${TEAM_SIZE}`, blockedReason].filter(Boolean).join(' · ')}
-              </span>
-            </span>
-            <span className="flex shrink-0 gap-px">
-              {team.members.map((member) => {
-                const entry = member.pokemonId ? getEnvironmentPokemon(member.pokemonId) : undefined;
-                return entry ? <Sprite key={member.id} iconRef={entry.iconRef} label="" size={26} /> : null;
-              })}
-            </span>
-          </button>
-        ))}
-        <button className="flex h-[60px] w-full items-center gap-3 text-left" type="button" onClick={onCreate}>
-          <span className="shrink-0 text-textLabel">
-            <Plus size={18} />
-          </span>
-          <span className="min-w-0 flex-1 text-base font-bold tracking-[-0.01em]">新建队伍并加入</span>
-        </button>
-      </div>
-    </Sheet>
   );
 }
 
@@ -246,15 +176,7 @@ export function EnvironmentPokemonDetail({
   // user to distribute. Only offered inside the top 60, where those percentages exist at all;
   // which team it lands in is always asked, never assumed — silently writing into the first team
   // is what let repeated taps pile five copies of one Pokémon into it.
-  const ownSpecies = speciesKey(entry.id);
-  const teamChoices: TeamChoice[] = teams.map((team) => ({
-    team,
-    blockedReason: team.members.some((member) => speciesKey(member.pokemonId) === ownSpecies)
-      ? '已在队伍中'
-      : team.members.length >= TEAM_SIZE
-        ? `已满 ${TEAM_SIZE} 只`
-        : undefined,
-  }));
+  const teamChoices = teamChoicesFor(teams, entry.id);
 
   const buildPopularMember = (team: Team): TeamMember => {
     const legalMoveIds = currentRuleMovesForPokemon(entry.id).map((move) => move.id);
