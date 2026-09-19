@@ -26,6 +26,11 @@ export type Route =
   | { name: 'dex-pokemon'; pokemonId: string }
   | { name: 'profile' }
   | { name: 'profile-feedback' }
+  | { name: 'profile-backup' }
+  | { name: 'profile-cache' }
+  | { name: 'profile-install' }
+  | { name: 'profile-rule' }
+  | { name: 'profile-about' }
   | { name: 'share'; code: string };
 
 export type RouteTabId = 'environment' | 'teams' | 'tools' | 'profile';
@@ -83,6 +88,11 @@ export function parseHashRoute(hash: string | undefined | null): Route {
   if (first === 'profile') {
     if (!second) return { name: 'profile' };
     if (second === 'feedback' && !third) return { name: 'profile-feedback' };
+    if (second === 'backup' && !third) return { name: 'profile-backup' };
+    if (second === 'cache' && !third) return { name: 'profile-cache' };
+    if (second === 'install' && !third) return { name: 'profile-install' };
+    if (second === 'rule' && !third) return { name: 'profile-rule' };
+    if (second === 'about' && !third) return { name: 'profile-about' };
     return defaultRoute;
   }
 
@@ -118,6 +128,16 @@ export function buildHash(route: Route): string {
       return '#/profile';
     case 'profile-feedback':
       return '#/profile/feedback';
+    case 'profile-backup':
+      return '#/profile/backup';
+    case 'profile-cache':
+      return '#/profile/cache';
+    case 'profile-install':
+      return '#/profile/install';
+    case 'profile-rule':
+      return '#/profile/rule';
+    case 'profile-about':
+      return '#/profile/about';
     case 'share':
       return `#/t/${encodeSegment(route.code)}`;
   }
@@ -142,6 +162,11 @@ export function parentRoute(route: Route): Route {
     case 'dex-pokemon':
       return { name: 'tool', tool: 'dex' };
     case 'profile-feedback':
+    case 'profile-backup':
+    case 'profile-cache':
+    case 'profile-install':
+    case 'profile-rule':
+    case 'profile-about':
       return { name: 'profile' };
     default:
       return route;
@@ -167,6 +192,11 @@ export function tabForRoute(route: Route): RouteTabId {
       return 'tools';
     case 'profile':
     case 'profile-feedback':
+    case 'profile-backup':
+    case 'profile-cache':
+    case 'profile-install':
+    case 'profile-rule':
+    case 'profile-about':
       return 'profile';
   }
 }
@@ -216,6 +246,16 @@ export function routePattern(route: Route): string {
       return '/profile';
     case 'profile-feedback':
       return '/profile/feedback';
+    case 'profile-backup':
+      return '/profile/backup';
+    case 'profile-cache':
+      return '/profile/cache';
+    case 'profile-install':
+      return '/profile/install';
+    case 'profile-rule':
+      return '/profile/rule';
+    case 'profile-about':
+      return '/profile/about';
     case 'share':
       return '/t/:code';
   }
@@ -235,5 +275,10 @@ export const routePatterns: string[] = [
   '/tools/dex/:id',
   '/profile',
   '/profile/feedback',
+  '/profile/backup',
+  '/profile/cache',
+  '/profile/install',
+  '/profile/rule',
+  '/profile/about',
   '/t/:code',
 ];

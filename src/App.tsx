@@ -1,10 +1,12 @@
-import { ArrowLeft, BarChart3, ExternalLink, ShieldCheck, UserCircle, Users, Wrench } from 'lucide-react';
+import { ArrowLeft, BarChart3, ExternalLink, UserCircle, Users, Wrench } from 'lucide-react';
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { AutoHideBottomNav } from './components/BottomNav';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { Header } from './components/Header';
 import { ServiceWorkerUpdateToast } from './components/ServiceWorkerUpdateToast';
+import { Toast } from './components/kit/Toast';
 import { Button } from './components/ui';
+import { downloadBackup } from './pages/profile/backupFile';
 import { productName } from './branding';
 import { productContextLabel } from './data/schedule';
 import type { EnvironmentState, EnvironmentTeamSample } from './data/environment';
@@ -20,6 +22,11 @@ const CalculatorPage = lazy(() => import('./pages/CalculatorPage').then((module)
 const DexPage = lazy(() => import('./pages/DexPage').then((module) => ({ default: module.DexPage })));
 const EnvironmentPage = lazy(() => import('./pages/EnvironmentPage').then((module) => ({ default: module.EnvironmentPage })));
 const ProfilePage = lazy(() => import('./pages/ProfilePage').then((module) => ({ default: module.ProfilePage })));
+const AboutPage = lazy(() => import('./pages/profile/AboutPage').then((module) => ({ default: module.AboutPage })));
+const BackupPage = lazy(() => import('./pages/profile/BackupPage').then((module) => ({ default: module.BackupPage })));
+const InstallPage = lazy(() => import('./pages/profile/InstallPage').then((module) => ({ default: module.InstallPage })));
+const OfflineCachePage = lazy(() => import('./pages/profile/OfflineCachePage').then((module) => ({ default: module.OfflineCachePage })));
+const FeedbackSheet = lazy(() => import('./pages/profile/FeedbackSheet').then((module) => ({ default: module.FeedbackSheet })));
 const RulePage = lazy(() => import('./pages/RulePage').then((module) => ({ default: module.RulePage })));
 const SpeedPage = lazy(() => import('./pages/SpeedPage').then((module) => ({ default: module.SpeedPage })));
 const TeamPage = lazy(() => import('./pages/TeamPage').then((module) => ({ default: module.TeamPage })));
@@ -28,7 +35,6 @@ const ToolsPage = lazy(() => import('./pages/ToolsPage').then((module) => ({ def
 const TypeChartPage = lazy(() => import('./pages/TypeChartPage').then((module) => ({ default: module.TypeChartPage })));
 
 export type TabId = 'environment' | 'teams' | 'tools' | 'profile';
-export type OverlayPage = 'rule' | null;
 
 const tabs = [
   { id: 'environment', label: '环境', icon: BarChart3 },
@@ -81,10 +87,26 @@ const missingImportCoverageItems = (sample: EnvironmentTeamSample) => [
   sample.replicaCode ? undefined : '队伍码',
 ].filter((item): item is string => Boolean(item));
 
-function PageLoading({ label = '正在载入页面...' }: { label?: string }) {
+/** Page-level placeholder (N08-15): the shape of a page, not a spinner. */
+function PageLoading({ label = '正在载入页面' }: { label?: string }) {
   return (
-    <div className="rounded-lg border border-border bg-card px-4 py-8 text-center text-sm text-textSecondary">
-      {label}
+    <div>
+      <div className="px-6 pt-11">
+        <span className="block h-[34px] w-[46%] rounded-xl bg-textPrimary/[0.09]" />
+        <span className="mt-3 block h-[13px] w-[68%] rounded-full bg-textPrimary/[0.06]" />
+        <span className="mt-[22px] block h-11 rounded-[14px] bg-textPrimary/[0.05]" />
+      </div>
+      <div className="flex flex-col gap-3.5 px-6 pt-[22px]">
+        {[0.05, 0.05, 0.04, 0.03].map((alpha, index) => (
+          <span key={index} className="block h-[68px] rounded-2xl" style={{ background: `rgb(var(--color-text-primary) / ${alpha})` }} />
+        ))}
+      </div>
+      <div className="flex items-center gap-2.5 px-6 pt-7">
+        <span className="inline-block h-3 w-14 rounded-full bg-textPrimary/[0.09]" />
+        <span className="text-[13px] font-semibold text-textSecondary" role="status">
+          {label}
+        </span>
+      </div>
     </div>
   );
 }
@@ -126,15 +148,13 @@ function ImportCoverageNoticeDialog({
 // Redesigned pages carry their own 24px gutter and big title, so the shell gives them neither
 // padding nor the product Header. Pages listed here are still on the old chrome; each redesign
 // stage deletes its own entries, and the list (with Header.tsx) goes away with the last one.
-type ChromeKey = TabId | ToolView | 'rule';
+type ChromeKey = TabId | ToolView;
 const legacyChromePages: ChromeKey[] = [
   'environment',
   'teams',
   'tools',
   'dex',
   'typeChart',
-  'profile',
-  'rule',
 ];
 
 function ToolWorkspace({
@@ -163,7 +183,7 @@ function ToolWorkspace({
   const content = {
     calculator: <CalculatorPage environment={environment} selectedMemberId={selectedMemberId} onPickMember={onPickMember} presetMember={calcPreset} />,
     dex: <DexPage onOpenCalculator={onOpenCalculator} />,
-    speed: environment ? <SpeedPage environment={environment} activeTeam={activeTeam} presetMember={speedPresetMember} onOpenDex={onOpenDex} /> : <PageLoading label="正在载入速度线环境数据..." />,
+    speed: environment ? <SpeedPage environment={environment} activeTeam={activeTeam} presetMember={speedPresetMember} onOpenDex={onOpenDex} /> : <PageLoading label="正在载入速度线" />,
     typeChart: <TypeChartPage />,
   }[view];
   const bleed = !legacyChromePages.includes(view);
@@ -190,9 +210,6 @@ function AppShell() {
   const { route, navigate, back } = useHashRoute();
   const activeTab: TabId = tabForRoute(route);
   const toolView = toolViewForRoute(route);
-  // RulePage stays deliberately unreachable — kept rendered behind a state that nothing
-  // sets, and intentionally *not* given a route. See AGENTS.md / DEVELOPER_GUIDE §4.1.
-  const [overlay, setOverlay] = useState<OverlayPage>(null);
   const [calculatorMemberId, setCalculatorMemberId] = useState<string | undefined>();
   const [speedPresetMemberId, setSpeedPresetMemberId] = useState<string | undefined>();
   const [calcPreset, setCalcPreset] = useState<{ memberId: string; side: CalcSide } | undefined>();
@@ -206,7 +223,11 @@ function AppShell() {
 
   const activeTeam = teams.find((team) => team.id === activeTeamId) ?? teams[0];
   const speedPresetMember = teams.flatMap((team) => team.members).find((member) => member.id === speedPresetMemberId);
-  const bottomNavAutoHideEnabled = !overlay && (activeTab === 'environment' || (activeTab === 'tools' && toolView === 'dex'));
+  const bottomNavAutoHideEnabled = activeTab === 'environment' || (activeTab === 'tools' && toolView === 'dex');
+  // 我的 second-level screens are drawn without the floating nav (08-02, N08-01, N08-10, N08-16):
+  // they are a drill-down, and the frames give them no room for it. 写留言 is a sheet over 我的,
+  // so it keeps the tab root underneath and locks the nav the usual way.
+  const profileSubPage = route.name.startsWith('profile-') && route.name !== 'profile-feedback';
 
   useEffect(() => {
     if (teams.length === 0) {
@@ -363,14 +384,12 @@ function AppShell() {
   }, []);
 
   const page = useMemo(() => {
-    if (overlay === 'rule') return <RulePage onBack={() => setOverlay(null)} />;
-
     switch (activeTab) {
       case 'environment':
         return environmentState ? (
           <EnvironmentPage environment={environmentState} onImportSample={importSampleTeam} />
         ) : (
-          <PageLoading label={environmentLoadFailed ? '环境数据加载失败，请稍后重试。' : '正在载入环境数据...'} />
+          <PageLoading label={environmentLoadFailed ? '环境数据加载失败，请稍后重试。' : '正在载入环境数据'} />
         );
       case 'teams':
         return (
@@ -405,7 +424,22 @@ function AppShell() {
           <ToolsPage onOpenTool={openTool} />
         );
       case 'profile':
-        return <ProfilePage />;
+        switch (route.name) {
+          case 'profile-backup':
+            return <BackupPage onBack={back} onGoToTeams={() => navigate({ name: 'teams' })} />;
+          case 'profile-cache':
+            return (
+              <OfflineCachePage environment={environmentState} onBack={back} onOpenMethodology={() => navigate({ name: 'env-methodology' })} />
+            );
+          case 'profile-install':
+            return <InstallPage onBack={back} />;
+          case 'profile-rule':
+            return <RulePage onBack={back} />;
+          case 'profile-about':
+            return <AboutPage onBack={back} onExportBackup={() => downloadBackup(teams, preferences)} />;
+          default:
+            return <ProfilePage />;
+        }
     }
   }, [
     activeTab,
@@ -423,14 +457,16 @@ function AppShell() {
     copyReplicaCode,
     navigate,
     openTool,
+    preferences,
+    route,
     shareTeam,
-    overlay,
+    teams,
     toolView,
   ]);
 
   useEffect(() => {
-    document.title = overlay === 'rule' ? `当前规则 · ${productName}` : productName;
-  }, [overlay]);
+    document.title = route.name === 'profile-rule' ? `当前规则 · ${productName}` : productName;
+  }, [route.name]);
 
   // Anonymous page view, one per distinct route. Lives here rather than inside useHashRoute
   // because the opt-out preference is only reachable through the store — and because the hook
@@ -445,44 +481,44 @@ function AppShell() {
     document.documentElement.dataset.theme = preferences.theme;
   }, [preferences.theme]);
 
+  // 08-05: the very first paint, before IndexedDB has answered. No product name, no logo —
+  // one line about what is happening and one about where the data lives.
   if (loading) {
     return (
-      <div className="grid min-h-screen place-items-center bg-page px-6 text-center text-textSecondary">
-        <div>
-          <ShieldCheck className="mx-auto mb-3 text-accent" size={32} />
-          <p className="text-sm">正在载入本地缓存与规则数据...</p>
+      <main className="app-shell relative mx-auto min-h-screen max-w-[430px] text-textPrimary">
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <p className="text-[15px] font-semibold text-textSecondary" role="status">
+            正在载入本地数据
+          </p>
+          <div className="mt-[22px] h-[3px] w-[132px] overflow-hidden rounded-full bg-textPrimary/[0.09]">
+            <div className="h-[3px] w-[52px] rounded-full bg-textLabel" />
+          </div>
         </div>
-      </div>
+        <p className="absolute inset-x-6 bottom-7 text-center text-xs font-semibold text-textLabel/70">队伍与偏好都存在本机，不需要账号</p>
+      </main>
     );
   }
 
-  const chromeKey: ChromeKey = overlay === 'rule' ? 'rule' : activeTab === 'tools' && toolView ? toolView : activeTab;
+  const chromeKey: ChromeKey = activeTab === 'tools' && toolView ? toolView : activeTab;
   const bleedPage = !legacyChromePages.includes(chromeKey);
 
   return (
     <main className="app-shell mx-auto min-h-screen max-w-[430px] text-textPrimary">
-      <div className={`safe-bottom min-h-screen ${bleedPage ? '' : 'px-4 pt-4'}`}>
+      <div className={`min-h-screen ${profileSubPage ? '' : 'safe-bottom'} ${bleedPage ? '' : 'px-4 pt-4'}`}>
         {!bleedPage && <Header contextLabel={productContextLabel(environmentState?.seasonLabel)} />}
         <Suspense fallback={<PageLoading />}>{page}</Suspense>
       </div>
       {importToast && (
-        <div
-          role="status"
-          aria-live="polite"
-          className={`fixed inset-x-4 top-4 z-50 mx-auto flex max-w-[360px] items-start rounded-lg border bg-card px-3 py-2 text-sm font-semibold text-textPrimary shadow-[0_10px_32px_rgb(0_0_0/0.28)] ${
-            importToast.tone === 'warning' ? 'border-warning/45' : 'border-success/40'
-          }`}
-        >
-          <span className={`mr-2 mt-1.5 inline-block h-2 w-2 shrink-0 rounded-full ${importToast.tone === 'warning' ? 'bg-warning' : 'bg-success'}`} />
-          <span className="min-w-0">
-            <span className="block">{importToast.title}</span>
-            {importToast.description && <span className="mt-0.5 block text-xs font-medium text-textSecondary">{importToast.description}</span>}
-          </span>
-        </div>
+        <Toast description={importToast.description} title={importToast.title} tone={importToast.tone === 'warning' ? 'danger' : 'success'} />
+      )}
+      {route.name === 'profile-feedback' && (
+        <Suspense fallback={null}>
+          <FeedbackSheet onClose={back} />
+        </Suspense>
       )}
       {route.name === 'share' && (
         <Suspense fallback={null}>
-          <SharedTeamPreview code={route.code} onClose={back} onImport={importSharedTeam} />
+          <SharedTeamPreview code={route.code} onClose={back} onGoToTeams={() => navigate({ name: 'teams' })} onImport={importSharedTeam} />
         </Suspense>
       )}
       {pendingImportSample && (
@@ -494,7 +530,7 @@ function AppShell() {
           }}
         />
       )}
-      {!overlay && (
+      {!profileSubPage && (
         <AutoHideBottomNav
           activeTab={activeTab}
           tabs={tabs}

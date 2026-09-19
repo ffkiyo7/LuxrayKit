@@ -1,20 +1,20 @@
-import { AlertTriangle, Download, X } from 'lucide-react';
+import { Download, TriangleAlert, Unlink, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { abilities, currentDataVersion, currentRuleSet, items, moves } from '../data';
 import { createId } from '../lib/id';
 import { getMemberBattleForm } from '../lib/pokemonForms';
-import { statPointKeys, statPointTotal } from '../lib/statPoints';
+import { MAX_TOTAL_STAT_POINTS, statPointKeys, statPointTotal } from '../lib/statPoints';
 import { decodeTeamShare, type DecodedTeamShare } from '../lib/teamShare';
 import type { Team, TeamMember } from '../types';
-import { Button, Card, PokemonAvatar } from '../components/ui';
+import { Sprite } from '../components/kit/Sprite';
 
 const statLabels: Record<(typeof statPointKeys)[number], string> = {
   hp: 'HP',
-  attack: '攻',
-  defense: '防',
+  attack: '攻击',
+  defense: '防御',
   specialAttack: '特攻',
   specialDefense: '特防',
-  speed: '速',
+  speed: '速度',
 };
 
 const abilityName = (abilityId?: string) =>
@@ -25,10 +25,11 @@ const itemName = (itemId?: string) => (itemId ? items.find((entry) => entry.id =
 const moveName = (moveId: string) => moves.find((entry) => entry.id === moveId)?.chineseName ?? moveId;
 
 const statSummary = (member: TeamMember) => {
+  const total = statPointTotal(member.statPoints ?? {});
   const used = statPointKeys
     .filter((key) => Number(member.statPoints?.[key] ?? 0) > 0)
-    .map((key) => `${statLabels[key]}${member.statPoints?.[key]}`);
-  return used.length > 0 ? `${used.join(' / ')}（合计 ${statPointTotal(member.statPoints ?? {})}）` : 'SP 全 0';
+    .map((key) => `${statLabels[key]} ${member.statPoints?.[key]}`);
+  return used.length > 0 ? `${used.join(' · ')} · 共 ${total}/${MAX_TOTAL_STAT_POINTS}` : `SP 未分配 · 0/${MAX_TOTAL_STAT_POINTS}`;
 };
 
 /**
@@ -50,22 +51,78 @@ export const createTeamFromShare = (decoded: Pick<DecodedTeamShare, 'name' | 'me
   };
 };
 
-function MemberRow({ member, index }: { member: TeamMember; index: number }) {
+function MemberRow({ member, index, divider }: { member: TeamMember; index: number; divider: boolean }) {
   const form = getMemberBattleForm(member);
   const name = form?.chineseName ?? `空位 ${index + 1}`;
 
   return (
-    <li className="flex items-start gap-2 py-2">
-      <PokemonAvatar iconRef={form?.iconRef} label={name} size="md" />
-      <div className="min-w-0 flex-1 text-xs text-textSecondary">
-        <p className="truncate text-sm font-semibold text-textPrimary">{name}</p>
-        <p className="mt-0.5 truncate">
+    <li className={`flex items-start gap-3 py-3 ${divider ? 'border-b border-[var(--hairline)]' : ''}`}>
+      <Sprite iconRef={form?.iconRef} label={name} size={40} />
+      <div className="min-w-0 flex-1 text-[11px] font-semibold text-textSecondary">
+        <p className="truncate text-sm font-bold text-textPrimary">{name}</p>
+        <p className="mt-[3px] truncate">
           {abilityName(member.abilityId)} · {itemName(member.itemId)} · {member.nature}
         </p>
         <p className="mt-0.5 truncate">{member.moveIds.length > 0 ? member.moveIds.map(moveName).join(' / ') : '未设置招式'}</p>
         <p className="mt-0.5 truncate">{statSummary(member)}</p>
       </div>
     </li>
+  );
+}
+
+/** N08-11: three placeholder rows while the code is being decoded. */
+function LoadingBody() {
+  return (
+    <div className="mt-4 flex flex-col gap-2.5">
+      {[44, 38, 50].map((width) => (
+        <div key={width} className="flex h-[68px] items-center gap-3">
+          <span className="h-12 w-12 shrink-0 rounded-[14px] bg-textPrimary/[0.06]" />
+          <span className="min-w-0 flex-1">
+            <span className="block h-3.5 rounded-full bg-textPrimary/[0.09]" style={{ width: `${width}%` }} />
+            <span className="mt-2 block h-3 w-3/5 rounded-full bg-textPrimary/[0.06]" />
+          </span>
+        </div>
+      ))}
+      <p className="mt-1 text-[13px] font-semibold text-textSecondary">读取中</p>
+    </div>
+  );
+}
+
+/** 08-10: the link itself is unusable, so there is nothing to preview — a whole screen, not a card. */
+function ExpiredLink({ onClose, onGoToTeams }: { onClose: () => void; onGoToTeams: () => void }) {
+  return (
+    <div
+      aria-label="分享链接已失效"
+      aria-modal="true"
+      className="fixed inset-0 z-50 mx-auto max-w-[430px] overflow-y-auto bg-page"
+      data-bottom-nav-lock="true"
+      role="dialog"
+    >
+      <div className="flex justify-end px-6 pt-5">
+        <button aria-label="关闭分享的队伍" className="grid h-9 w-9 place-items-center rounded-full bg-surface text-textLabel" type="button" onClick={onClose}>
+          <X size={18} />
+        </button>
+      </div>
+      <div className="px-6 pt-12">
+        <span className="grid h-[52px] w-[52px] place-items-center rounded-2xl bg-surface text-textSecondary shadow-[inset_0_0_0_1px_var(--hairline)]">
+          <Unlink size={22} />
+        </span>
+        <h1 className="mt-[22px] text-[34px] font-extrabold leading-[42px] tracking-[-0.02em]">链接已失效</h1>
+        <p className="mt-2.5 text-[15px] font-semibold leading-[22px] text-textSecondary">
+          分享链接把队伍数据写在地址里，被截断或对方改过队伍后就打不开了。
+        </p>
+        <div className="mt-6 flex flex-col gap-2.5">
+          <button
+            className="flex h-[50px] items-center justify-center rounded-2xl bg-accent text-base font-extrabold tracking-[-0.01em] text-page shadow-[inset_0_1px_0_rgb(255_255_255/0.9),inset_0_-1px_0_rgb(0_0_0/0.12),0_6px_18px_rgb(0_0_0/0.45)]"
+            type="button"
+            onClick={onGoToTeams}
+          >
+            去我的队伍
+          </button>
+        </div>
+        <p className="mt-[18px] text-xs font-semibold leading-[18px] text-chevron">本机已有的队伍不受影响。</p>
+      </div>
+    </div>
   );
 }
 
@@ -78,25 +135,27 @@ export function SharedTeamPreview({
   code,
   onClose,
   onImport,
+  onGoToTeams,
 }: {
   code: string;
   onClose: () => void;
   onImport: (team: Team) => Promise<void> | void;
+  onGoToTeams: () => void;
 }) {
   const [decoded, setDecoded] = useState<DecodedTeamShare | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [failed, setFailed] = useState(false);
   const [importing, setImporting] = useState(false);
 
   useEffect(() => {
     let active = true;
     setDecoded(null);
-    setError(null);
+    setFailed(false);
     decodeTeamShare(code)
       .then((result) => {
         if (active) setDecoded(result);
       })
-      .catch((decodeError: unknown) => {
-        if (active) setError(decodeError instanceof Error ? decodeError.message : '无法解析这个分享链接。');
+      .catch(() => {
+        if (active) setFailed(true);
       });
     return () => {
       active = false;
@@ -113,25 +172,28 @@ export function SharedTeamPreview({
     }
   };
 
+  if (failed) return <ExpiredLink onClose={onClose} onGoToTeams={onGoToTeams} />;
+
+  const empty = decoded?.members.length === 0;
+
   return (
-    <div
-      className="fixed inset-0 z-50 mx-auto max-w-[430px]"
-      role="dialog"
-      aria-label="分享的队伍"
-      aria-modal="true"
-      data-bottom-nav-lock="true"
-    >
-      <button className="absolute inset-0 h-full w-full bg-overlay/75" type="button" aria-label="关闭分享的队伍" onClick={onClose} />
-      <section className="surface-shadow absolute inset-x-4 top-1/2 max-h-[calc(100vh-2rem)] -translate-y-1/2 overflow-y-auto rounded-xl border border-border bg-card p-3">
-        <div className="mb-3 flex items-start justify-between gap-2">
+    <div className="fixed inset-0 z-50 mx-auto max-w-[430px]" role="dialog" aria-label="分享的队伍" aria-modal="true" data-bottom-nav-lock="true">
+      <button className="absolute inset-0 h-full w-full bg-overlay/70" type="button" aria-label="关闭分享的队伍" onClick={onClose} />
+      <section className="lk-panel absolute inset-x-4 top-1/2 max-h-[calc(100vh-2rem)] -translate-y-1/2 overflow-y-auto rounded-[20px] p-[18px] shadow-[0_24px_60px_rgb(0_0_0/0.5)]">
+        <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-[11px] uppercase tracking-wide text-textMuted">Shared team</p>
-            <h2 className="truncate text-base font-semibold">{decoded?.name ?? (error ? '无法打开分享' : '正在读取分享…')}</h2>
-            {decoded && <p className="mt-0.5 text-xs text-textSecondary">{decoded.members.length}/6 成员 · 导入后可自由编辑</p>}
+            <p className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-textSecondary">Shared team</p>
+            {decoded ? (
+              <h2 className="mt-1.5 text-[22px] font-extrabold leading-[30px] tracking-[-0.01em]">{decoded.name}</h2>
+            ) : (
+              <span className="mt-2.5 block h-[22px] w-[150px] rounded-full bg-textPrimary/[0.09]" />
+            )}
+            {decoded && !empty && <p className="mt-1 text-xs font-semibold text-textSecondary">{decoded.members.length}/6 成员</p>}
+            {!decoded && <span className="mt-2 block h-3 w-[76px] rounded-full bg-textPrimary/[0.06]" />}
           </div>
           <button
             aria-label="关闭分享的队伍"
-            className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-border bg-secondary text-textSecondary"
+            className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-btn2 text-textLabel"
             type="button"
             onClick={onClose}
           >
@@ -139,53 +201,62 @@ export function SharedTeamPreview({
           </button>
         </div>
 
-        {error && (
-          <div className="rounded-lg bg-missingBg p-3 text-xs text-danger">
-            <p className="font-semibold">分享链接打不开</p>
-            <p className="mt-1">{error}</p>
+        {!decoded && <LoadingBody />}
+
+        {empty && (
+          <div className="pb-1.5 pt-[18px]">
+            <p className="text-[17px] font-extrabold tracking-[-0.01em]">这份分享没有成员</p>
+            <p className="mt-2 text-[13px] font-semibold leading-5 text-textSecondary">
+              链接能打开，但里面一只宝可梦也没有。可以让对方补齐后重新分享。
+            </p>
           </div>
         )}
 
-        {!error && !decoded && <p className="py-6 text-center text-sm text-textSecondary">正在读取分享…</p>}
+        {decoded && !empty && (
+          <ul className="mt-3.5 rounded-[14px] bg-sunken px-3">
+            {decoded.members.map((member, index) => (
+              <MemberRow key={member.id} divider={index < decoded.members.length - 1} index={index} member={member} />
+            ))}
+          </ul>
+        )}
+
+        {decoded && decoded.warnings.length > 0 && (
+          <div className="mt-3 rounded-[14px] px-3.5 py-3" style={{ background: 'rgb(var(--color-data) / 0.1)' }}>
+            <p className="flex items-center gap-1.5 text-xs font-extrabold text-data">
+              <TriangleAlert aria-hidden="true" size={14} />
+              部分配置不在当前规则
+            </p>
+            <ul className="mt-2.5 flex flex-col gap-2">
+              {decoded.warnings.map((warning) => (
+                <li key={warning} className="flex gap-[9px] text-xs font-semibold leading-[18px] text-data">
+                  <span className="mt-1.5 h-[5px] w-[5px] shrink-0 rounded-full bg-data" />
+                  <span className="min-w-0 flex-1">{warning}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         {decoded && (
-          <>
-            {decoded.members.length === 0 ? (
-              <p className="py-6 text-center text-sm text-textSecondary">这份分享里没有成员。</p>
-            ) : (
-              <Card className="p-0">
-                <ul className="divide-y divide-divider px-3">
-                  {decoded.members.map((member, index) => (
-                    <MemberRow key={member.id} member={member} index={index} />
-                  ))}
-                </ul>
-              </Card>
-            )}
-
-            {decoded.warnings.length > 0 && (
-              <div className="mt-3 rounded-lg bg-reviewBg p-3 text-xs text-warning">
-                <p className="flex items-center gap-1.5 font-semibold">
-                  <AlertTriangle size={14} aria-hidden="true" />
-                  部分配置不在当前规则
-                </p>
-                <ul className="mt-1.5 list-disc space-y-1 pl-4">
-                  {decoded.warnings.map((warning) => (
-                    <li key={warning}>{warning}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            <div className="mt-3 grid grid-cols-2 gap-2">
-              <Button variant="ghost" type="button" onClick={onClose}>
-                关闭
-              </Button>
-              <Button type="button" disabled={importing} onClick={() => void confirmImport()}>
-                <Download size={14} />
-                导入到我的队伍
-              </Button>
-            </div>
-          </>
+          <div className="mt-3.5 grid grid-cols-2 gap-2">
+            <button
+              className={`flex h-11 items-center justify-center rounded-[14px] bg-btn2 text-[15px] font-bold ${importing ? 'text-textSecondary' : 'text-textLabel'}`}
+              type="button"
+              onClick={onClose}
+            >
+              关闭
+            </button>
+            <button
+              className={`flex h-11 items-center justify-center gap-2 rounded-[14px] text-[15px] font-extrabold ${
+                importing ? 'bg-btn1 text-textLabel' : 'bg-accent text-page'
+              }`}
+              disabled={importing}
+              type="button"
+              onClick={() => void confirmImport()}
+            >
+              {importing ? '导入中' : <><Download size={16} />导入到我的队伍</>}
+            </button>
+          </div>
         )}
       </section>
     </div>

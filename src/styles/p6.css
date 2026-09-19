@@ -1,0 +1,76 @@
+/*
+ * P6 我的与全局 — the handful of fills from 08 / 补画 08 whose alpha or value differs between
+ * themes, so Tailwind's `/<alpha-value>` cannot express them. Everything that can be written as
+ * `rgb(var(--color-x) / a)` with the same alpha in both themes stays inline in the JSX instead.
+ */
+:root {
+  /* 08-01 icon tiles: 16% of the function hue on dark, 10% on light (NL-06). */
+  --lk-tile-alpha: 0.16;
+  --lk-toast-shadow: 0 0 0 0.5px rgb(255 255 255 / 0.1), 0 14px 34px rgb(0 0 0 / 0.45);
+  /* N08-01 「已选文件」/ N08-10 「上次刷新失败」: a deeper face ringed instead of shadowed. */
+  --lk-panel-bg: #141418;
+  --lk-panel-ring: inset 0 0 0 1px rgb(255 255 255 / 0.07);
+  --lk-field-bg: #0f0f12;
+  --lk-chip-ring: rgb(255 255 255 / 0.12);
+}
+
+:root[data-theme='light'] {
+  --lk-tile-alpha: 0.1;
+  --lk-toast-shadow: 0 1px 2px rgb(0 0 0 / 0.05), 0 8px 24px rgb(16 24 40 / 0.06);
+  --lk-panel-bg: #ffffff;
+  --lk-panel-ring: inset 0 0 0 1px rgb(16 24 40 / 0.06);
+  --lk-field-bg: #f2f2f5;
+  --lk-chip-ring: rgb(16 24 40 / 0.1);
+}
+
+/* 32px rounded tile behind a list row's icon (08-01, N08-10, N08-16). */
+.lk-tile {
+  background: rgb(var(--lk-tile-ink) / var(--lk-tile-alpha));
+  color: rgb(var(--lk-tile-ink));
+}
+
+.lk-tile--select {
+  --lk-tile-ink: var(--color-select);
+}
+
+.lk-tile--blue {
+  --lk-tile-ink: var(--color-fn-blue);
+}
+
+.lk-tile--teal {
+  --lk-tile-ink: var(--color-fn-teal);
+}
+
+.lk-tile--amber {
+  --lk-tile-ink: var(--color-fn-amber);
+}
+
+.lk-tile--pink {
+  --lk-tile-ink: var(--color-fn-pink);
+}
+
+.lk-tile--neutral {
+  --lk-tile-ink: var(--color-text-secondary);
+}
+
+.lk-toast {
+  background: rgb(var(--color-card));
+  box-shadow: var(--lk-toast-shadow);
+}
+
+.lk-panel {
+  background: var(--lk-panel-bg);
+  box-shadow: var(--lk-panel-ring);
+}
+
+/* 08-03 写留言: the text fields sit on a face that is darker than the sheet on dark, lighter on
+   light — neither direction is `sunken`, which tracks the page rather than a sheet. */
+.lk-field {
+  background: var(--lk-field-bg);
+}
+
+/* Selected kind chip (08-03 / NL-04): a hairline ring over the active-row fill. */
+.lk-chip-outline {
+  background: var(--row-active);
+  box-shadow: inset 0 0 0 1px var(--lk-chip-ring);
+}

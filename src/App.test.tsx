@@ -19,7 +19,6 @@ import { repository } from './lib/db';
 import type { Team, TeamMember } from './types';
 import { sortTeamSamplesByDate } from './pages/environmentTeamSamples';
 import { productContextLabel } from './data/schedule';
-import { feedbackLinks } from './branding';
 
 const DB_NAME = 'pokemon-champions-assistant';
 const pokedbSnapshot = {
@@ -261,7 +260,7 @@ describe('App page flows', () => {
   it('labels the loading state as local rule data instead of mock data', async () => {
     render(<App />);
 
-    expect(screen.getByText('正在载入本地缓存与规则数据...')).toBeTruthy();
+    expect(screen.getByText('正在载入本地数据')).toBeTruthy();
     expect(screen.queryByText(/模拟数据/)).toBeNull();
     expect(await waitForEnvironmentPage()).toBeTruthy();
     expect(screen.getByText('LuxrayKit')).toBeTruthy();
@@ -318,30 +317,49 @@ describe('App page flows', () => {
 
     expect(document.documentElement.dataset.theme).toBe('dark');
     await user.click(screen.getByRole('button', { name: '我的' }));
-    await user.click(await screen.findByRole('button', { name: '切换深色和浅色主题' }));
+    await user.click(await screen.findByRole('switch', { name: '切换深色和浅色主题' }));
     expect(document.documentElement.dataset.theme).toBe('light');
     expect(await screen.findByText('浅色工具界面')).toBeTruthy();
 
-    await user.click(screen.getByRole('button', { name: '切换深色和浅色主题' }));
+    await user.click(screen.getByRole('switch', { name: '切换深色和浅色主题' }));
     expect(document.documentElement.dataset.theme).toBe('dark');
     expect(await screen.findByText('深色工具界面')).toBeTruthy();
   });
 
-  it('keeps the profile page focused on local preferences and backup rather than rule navigation', async () => {
+  it('routes every 我的 entry to its own second-level screen', async () => {
     const user = userEvent.setup();
     render(<App />);
     await waitForEnvironmentPage();
 
     await user.click(screen.getByRole('button', { name: '我的' }));
-
     expect(await screen.findByRole('heading', { name: '我的' })).toBeTruthy();
     expect(screen.getByText('主题')).toBeTruthy();
-    expect(screen.getByRole('button', { name: /导出备份/ })).toBeTruthy();
-    expect(screen.getByRole('button', { name: /导入备份/ })).toBeTruthy();
-    expect(screen.getByRole('button', { name: /清除本地数据/ })).toBeTruthy();
-    expect(screen.queryByText('当前规则')).toBeNull();
-    expect(screen.queryByRole('button', { name: /当前赛季|规则详情/ })).toBeNull();
-    expect(screen.queryByText(/本地队伍\s+\d|收藏\s+\d/)).toBeNull();
+
+    await user.click(screen.getByRole('button', { name: /本地备份/ }));
+    expect(window.location.hash).toBe('#/profile/backup');
+    expect(await screen.findByRole('button', { name: '导出 JSON' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /选择文件导入/ })).toBeTruthy();
+
+    await user.click(screen.getByRole('button', { name: '返回' }));
+    await user.click(await screen.findByRole('button', { name: /关于与数据/ }));
+    expect(window.location.hash).toBe('#/profile/about');
+    expect(await screen.findByRole('button', { name: '清除本地数据' })).toBeTruthy();
+  });
+
+  it('reopens the rule page from 我的 rather than leaving it unreachable', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await waitForEnvironmentPage();
+
+    await user.click(screen.getByRole('button', { name: '我的' }));
+    await user.click(await screen.findByRole('button', { name: /当前规则/ }));
+
+    expect(window.location.hash).toBe('#/profile/rule');
+    expect(await screen.findByRole('heading', { name: currentRuleSet.name })).toBeTruthy();
+    // The copy is still under owner review: these strings must survive the restyle verbatim.
+    expect(screen.getByText('规则周期')).toBeTruthy();
+    expect(screen.getByText('暂不支持远程刷新')).toBeTruthy();
+    expect(screen.getByText('当前版本使用本地 seed 数据，远程官方数据刷新入口将在接入审核流程后开放。')).toBeTruthy();
   });
 
   it('lets the user turn the anonymous page-view ping off, and persists that choice', async () => {
@@ -350,36 +368,31 @@ describe('App page flows', () => {
     await waitForEnvironmentPage();
     await user.click(screen.getByRole('button', { name: '我的' }));
 
-    const toggle = await screen.findByRole('button', { name: '切换匿名使用统计' });
+    const toggle = await screen.findByRole('switch', { name: '切换匿名使用统计' });
     // Default is opted *in*; the copy has to state exactly what leaves the device.
-    expect(toggle.getAttribute('aria-pressed')).toBe('true');
-    expect(screen.getByText(/不含 IP、设备标识或任何队伍内容，也不写 cookie/)).toBeTruthy();
+    expect(toggle.getAttribute('aria-checked')).toBe('true');
+    expect(screen.getByText(/不含 IP、设备标识或队伍内容/)).toBeTruthy();
 
     await user.click(toggle);
-    await waitFor(() => expect(screen.getByRole('button', { name: '切换匿名使用统计' }).getAttribute('aria-pressed')).toBe('false'));
+    await waitFor(() => expect(screen.getByRole('switch', { name: '切换匿名使用统计' }).getAttribute('aria-checked')).toBe('false'));
     await waitFor(async () => {
       const state = await repository.loadState();
       expect(state.preferences.analyticsOptOut).toBe(true);
     });
   });
 
-  it('opens the in-app message form from 我的, and keeps one GitHub exit under 关于', async () => {
+  it('opens the in-app message form from 我的', async () => {
     const user = userEvent.setup();
     render(<App />);
     await waitForEnvironmentPage();
     await user.click(screen.getByRole('button', { name: '我的' }));
     await screen.findByRole('heading', { name: '我的' });
 
-    // The three GitHub issue entry points are gone — they all forced a login.
+    // The GitHub issue entry points are gone — they all forced a login.
     expect(screen.queryByRole('link', { name: /反馈问题/ })).toBeNull();
     expect(screen.queryByRole('link', { name: /功能建议/ })).toBeNull();
 
-    const githubExit = screen.getByRole('link', { name: '也可以在 GitHub 提 issue' });
-    expect(githubExit.getAttribute('href')).toBe(feedbackLinks.general);
-    expect(githubExit.getAttribute('target')).toBe('_blank');
-    expect(githubExit.getAttribute('rel')).toBe('noopener noreferrer');
-
-    await user.click(screen.getByRole('button', { name: /写留言/ }));
+    await user.click(screen.getByRole('button', { name: /留言/ }));
     expect(window.location.hash).toBe('#/profile/feedback');
     const sheet = await screen.findByRole('dialog', { name: '写留言' });
     expect(within(sheet).getByLabelText('留言内容')).toBeTruthy();
@@ -390,12 +403,13 @@ describe('App page flows', () => {
     expect(window.location.hash).toBe('#/profile');
   });
 
-  it('shows a copyable build identity under 关于', async () => {
+  it('shows a copyable build identity under 关于与数据', async () => {
     const user = userEvent.setup();
     render(<App />);
     await waitForEnvironmentPage();
     await user.click(screen.getByRole('button', { name: '我的' }));
-    await screen.findByRole('heading', { name: '我的' });
+    await user.click(await screen.findByRole('button', { name: /关于与数据/ }));
+    await screen.findByRole('heading', { name: '关于与数据' });
 
     // 关于 must name the regulation and data version from the catalog, never a literal.
     expect(screen.getByText(currentRuleSet.displayName)).toBeTruthy();
@@ -1397,8 +1411,9 @@ describe('App page flows', () => {
     window.location.hash = '#/t/z1notarealcode';
     render(<App />);
 
-    const dialog = await screen.findByRole('dialog', { name: '分享的队伍' }, { timeout: 10000 });
-    expect(await within(dialog).findByText('分享链接打不开')).toBeTruthy();
+    // 08-10: a link that cannot be decoded has nothing to preview, so it takes the whole screen.
+    const dialog = await screen.findByRole('dialog', { name: '分享链接已失效' }, { timeout: 10000 });
+    expect(await within(dialog).findByRole('heading', { name: '链接已失效' })).toBeTruthy();
     expect(within(dialog).queryByRole('button', { name: /导入到我的队伍/ })).toBeNull();
   });
 
