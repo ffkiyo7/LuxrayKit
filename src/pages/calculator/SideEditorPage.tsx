@@ -12,6 +12,7 @@ import { validateStatPoints } from '../../lib/damageAdapter';
 import { findBattleForm, findPokemon } from '../../lib/pokemonForms';
 import { clampStatPointValue, MAX_TOTAL_STAT_POINTS } from '../../lib/statPoints';
 import { KitButton, ListRow, PageHeader, Pill, SectionLabel } from '../../components/kit';
+import { useScrollResetWhileMounted } from '../../hooks/useScrollReset';
 import { AbilityPickerPage } from '../team/editor/AbilityPickerPage';
 import { ItemPickerPage } from '../team/editor/ItemPickerPage';
 import { MovePickerPage } from '../team/editor/MovePickerPage';
@@ -52,6 +53,8 @@ export function SideEditorPage({
   onClose: () => void;
 }) {
   const [view, setView] = useState<SideEditorView>(initialView);
+  // Swapped in by calculator state, not a route: start at the top, hand the offset back on close.
+  useScrollResetWhileMounted();
 
   const entry = findPokemon(config.pokemonId);
   const battleForm = findBattleForm(entry?.id ?? '', config.formId) ?? (entry ? findBattleForm(entry.id, entry.id) : undefined);

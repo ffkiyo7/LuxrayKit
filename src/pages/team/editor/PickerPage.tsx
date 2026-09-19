@@ -1,6 +1,7 @@
 import { ChevronDown, ChevronLeft, ChevronUp } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { SearchField } from '../../../components/kit';
+import { useScrollResetWhileMounted } from '../../../hooks/useScrollReset';
 
 /**
  * The shell every 03 picker sub-page shares (03-02 / 03-06 / 03-10 / 03-11): a round back
@@ -64,6 +65,8 @@ export function PickerPage({
   children: ReactNode;
 }) {
   const searching = Boolean(search && search.value.length > 0);
+  // Pickers are swapped in by editor state, not by a route, so the router's reset misses them.
+  useScrollResetWhileMounted();
 
   return (
     <div className="pb-8">

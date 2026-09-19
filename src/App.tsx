@@ -8,7 +8,8 @@ import { EnvironmentErrorView, EnvironmentLoadingView } from './pages/Environmen
 import { productName } from './branding';
 import type { EnvironmentState, EnvironmentTeamSample } from './data/environment';
 import { useHashRoute } from './hooks/useHashRoute';
-import { routeForTab, routePattern, tabForRoute, type Route, type ToolRouteId } from './lib/hashRoute';
+import { useScrollResetOnPush } from './hooks/useScrollReset';
+import { buildHash, routeForTab, routePattern, tabForRoute, type Route, type ToolRouteId } from './lib/hashRoute';
 import { trackRoute } from './lib/analytics';
 import { AppProvider, useAppStore } from './state/AppContext';
 import type { Team, TeamMember } from './types';
@@ -233,6 +234,7 @@ function AppShell() {
   // button, deep links and share links all need it. Only ephemeral, id-bearing presets
   // stay in memory below.
   const { route, navigate, back } = useHashRoute();
+  useScrollResetOnPush(buildHash(route));
   const activeTab: TabId = tabForRoute(route);
   const toolView = toolViewForRoute(route);
   const [calculatorMemberId, setCalculatorMemberId] = useState<string | undefined>();
