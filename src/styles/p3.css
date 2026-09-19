@@ -30,7 +30,6 @@
   --lk-well-ring: inset 0 0 0 1px rgb(255 255 255 / 0.06);
   --lk-slot-ring: inset 0 0 0 1.5px rgb(255 255 255 / 0.1);
   --lk-notice-ring: inset 0 0 0 1px rgb(255 255 255 / 0.07);
-  --lk-drag-shadow: 0 0 0 0.5px rgb(255 255 255 / 0.16), 0 22px 44px rgb(0 0 0 / 0.6);
   --lk-menu-shadow: 0 22px 50px rgb(0 0 0 / 0.55);
 }
 
@@ -55,7 +54,6 @@
   --lk-well-ring: inset 0 0 0 1px rgb(16 24 40 / 0.06);
   --lk-slot-ring: inset 0 0 0 1.5px rgb(16 24 40 / 0.1);
   --lk-notice-ring: inset 0 0 0 1px rgb(16 24 40 / 0.08);
-  --lk-drag-shadow: 0 0 0 0.5px rgb(16 24 40 / 0.16), 0 22px 44px rgb(16 24 40 / 0.18);
   --lk-menu-shadow: 0 22px 50px rgb(16 24 40 / 0.22);
 }
 
@@ -168,11 +166,6 @@
 .lk-notice {
   background: var(--sheet-bg-deep);
   box-shadow: var(--lk-notice-ring);
-}
-
-/* N02-16 the card under the finger, and the shadow it casts over its neighbours. */
-.lk-card-dragging {
-  box-shadow: var(--lk-drag-shadow);
 }
 
 /* 02-11 destructive confirm button — a tinted slab rather than a filled one. */

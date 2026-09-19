@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { calculateBattleStats } from '../../../lib/calculations';
 import { MAX_STAT_POINTS_PER_STAT, MAX_TOTAL_STAT_POINTS, statPointTotal } from '../../../lib/statPoints';
 import type { BaseStats, StatPoints } from '../../../types';
@@ -8,6 +8,11 @@ import type { BaseStats, StatPoints } from '../../../types';
  * the real number underneath recomputes live. The frame draws no ± keys — the rail is the
  * only control — so the native range input carries the whole interaction (and with it the
  * slider role, keyboard stepping and value announcements).
+ *
+ * The wheel is a real scroller: native `overflow-x` + `scroll-snap` gives touch dragging, its
+ * inertia and the snap for free, and the stat that settles under the centre becomes the
+ * selected one. Tapping an item and the arrow keys stay, and a mouse wheel's vertical delta is
+ * mapped onto the track (a wheel mouse has no horizontal axis).
  */
 
 export type StatKey = keyof BaseStats;
@@ -58,14 +63,82 @@ export function StatWheel({
   );
   const boxRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<Partial<Record<StatKey, HTMLButtonElement | null>>>({});
-  const [trackOffset, setTrackOffset] = useState(0);
+  // A scroll we started ourselves must not be read back as a user choice, and the settle timer
+  // is what tells snapping apart from a gesture still in flight.
+  const programmaticRef = useRef(false);
+  const settleRef = useRef(0);
+  const centredRef = useRef(false);
+
+  const centreOn = (key: StatKey, behavior: ScrollBehavior) => {
+    const box = boxRef.current;
+    const item = itemRefs.current[key];
+    if (!box || !item) return;
+    const left = item.offsetLeft + item.offsetWidth / 2 - box.clientWidth / 2;
+    if (Math.abs(box.scrollLeft - left) < 1) return;
+    programmaticRef.current = true;
+    box.scrollTo({ left, behavior });
+  };
 
   useLayoutEffect(() => {
-    const box = boxRef.current;
-    const item = itemRefs.current[selectedKey];
-    if (!box || !item) return;
-    setTrackOffset(box.offsetWidth / 2 - (item.offsetLeft + item.offsetWidth / 2));
+    // The very first pass places the stored stat without animating past its neighbours.
+    centreOn(selectedKey, centredRef.current ? 'smooth' : 'auto');
+    centredRef.current = true;
   }, [selectedKey]);
+
+  // React's own wheel listener is passive, so the vertical-to-horizontal mapping needs a
+  // native one to be able to cancel the page scroll it would otherwise cause.
+  useEffect(() => {
+    const box = boxRef.current;
+    if (!box) return;
+    const onWheel = (event: WheelEvent) => {
+      if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
+      event.preventDefault();
+      box.scrollLeft += event.deltaY;
+    };
+    box.addEventListener('wheel', onWheel, { passive: false });
+    return () => box.removeEventListener('wheel', onWheel);
+  }, []);
+
+  useEffect(() => () => window.clearTimeout(settleRef.current), []);
+
+  const keyNearestCentre = () => {
+    const box = boxRef.current;
+    if (!box) return null;
+    const centre = box.scrollLeft + box.clientWidth / 2;
+    let nearest: { key: StatKey; distance: number } | null = null;
+    wheelStats.forEach((entry) => {
+      const item = itemRefs.current[entry.key];
+      if (!item) return;
+      const distance = Math.abs(item.offsetLeft + item.offsetWidth / 2 - centre);
+      if (!nearest || distance < nearest.distance) nearest = { key: entry.key, distance };
+    });
+    return nearest ? (nearest as { key: StatKey }).key : null;
+  };
+
+  const handleScroll = () => {
+    window.clearTimeout(settleRef.current);
+    settleRef.current = window.setTimeout(() => {
+      if (programmaticRef.current) {
+        programmaticRef.current = false;
+        return;
+      }
+      const settled = keyNearestCentre();
+      if (settled) setSelectedKey(settled);
+    }, 90);
+  };
+
+  const step = (delta: number) => {
+    const index = wheelStats.findIndex((entry) => entry.key === selectedKey);
+    const next = wheelStats[Math.max(0, Math.min(wheelStats.length - 1, index + delta))];
+    if (next) setSelectedKey(next.key);
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    const delta = event.key === 'ArrowUp' || event.key === 'ArrowLeft' ? -1 : event.key === 'ArrowDown' || event.key === 'ArrowRight' ? 1 : 0;
+    if (delta === 0) return;
+    event.preventDefault();
+    step(delta);
+  };
 
   const selected = wheelStats.find((entry) => entry.key === selectedKey)!;
   const selectedIndex = wheelStats.indexOf(selected);
@@ -95,38 +168,41 @@ export function StatWheel({
 
       <div className="relative mt-[18px] h-14 overflow-hidden">
         <div className="lk-wheel-rail absolute inset-x-[-24px] top-2 h-10" />
-        <div ref={boxRef} className="absolute inset-0">
-          <div
-            className="absolute top-0 flex h-full items-center gap-0.5"
-            style={{ transform: `translateX(${trackOffset}px)` }}
-          >
-            {wheelStats.map((entry, index) => {
-              const distance = Math.abs(index - selectedIndex);
-              const ink = wheelInk(distance);
-              const marker = natureMarker(entry.key);
-              return (
-                <button
-                  key={entry.key}
-                  ref={(element) => {
-                    itemRefs.current[entry.key] = element;
-                  }}
-                  aria-label={`调整${entry.label}`}
-                  aria-pressed={distance === 0}
-                  className={`inline-flex h-10 shrink-0 items-center gap-[3px] ${ink.className}`}
-                  style={ink.style}
-                  type="button"
-                  onClick={() => setSelectedKey(entry.key)}
-                >
-                  {entry.label}
-                  {marker && distance === 0 && (
-                    <span className={`text-[13px] font-extrabold ${selectedOver ? 'text-danger' : 'text-data'}`}>
-                      {marker === 'up' ? '↑' : '↓'}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
+        <div
+          ref={boxRef}
+          className="lk-wheel-scroller absolute inset-0 flex items-center gap-0.5 overflow-x-auto overflow-y-hidden"
+          onKeyDown={handleKeyDown}
+          onScroll={handleScroll}
+        >
+          {/* Half a track's width at each end, so the first and last stat can still reach the centre. */}
+          <span aria-hidden="true" className="h-10 w-1/2 shrink-0" />
+          {wheelStats.map((entry, index) => {
+            const distance = Math.abs(index - selectedIndex);
+            const ink = wheelInk(distance);
+            const marker = natureMarker(entry.key);
+            return (
+              <button
+                key={entry.key}
+                ref={(element) => {
+                  itemRefs.current[entry.key] = element;
+                }}
+                aria-label={`调整${entry.label}`}
+                aria-pressed={distance === 0}
+                className={`inline-flex h-10 shrink-0 snap-center items-center gap-[3px] ${ink.className}`}
+                style={ink.style}
+                type="button"
+                onClick={() => setSelectedKey(entry.key)}
+              >
+                {entry.label}
+                {marker && distance === 0 && (
+                  <span className={`text-[13px] font-extrabold ${selectedOver ? 'text-danger' : 'text-data'}`}>
+                    {marker === 'up' ? '↑' : '↓'}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+          <span aria-hidden="true" className="h-10 w-1/2 shrink-0" />
         </div>
         <div className="lk-wheel-fade--left pointer-events-none absolute inset-y-0 left-0 w-[72px]" />
         <div className="lk-wheel-fade--right pointer-events-none absolute inset-y-0 right-0 w-[72px]" />

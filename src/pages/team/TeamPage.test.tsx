@@ -370,6 +370,74 @@ describe('TeamPage', () => {
     });
   });
 
+  it('will not add a second copy of a species already on the roster', async () => {
+    await repository.replaceTeams([team('team-alpha', '甲队', [member()])]);
+    const user = await renderTeamDetail('team-alpha');
+
+    await user.click((await screen.findAllByRole('button', { name: '添加成员' }, { timeout: 5000 }))[0]);
+    await user.type(await screen.findByLabelText('搜索宝可梦'), 'Garchomp');
+
+    // The row is still legible, but inert and marked.
+    const picker = await screen.findByRole('dialog', { name: '添加成员' });
+    expect(within(picker).getByText('已在队伍中')).toBeTruthy();
+    await user.click(within(picker).getByText('烈咬陆鲨'));
+
+    expect(screen.getByLabelText('搜索宝可梦')).toBeTruthy();
+    const state = await repository.loadState();
+    expect(state.teams[0].members.map((entry) => entry.pokemonId)).toEqual(['garchomp']);
+  });
+
+  it('reports a team that already breaks the composition rules instead of repairing it', async () => {
+    // Exactly the 「五只轰雷金刚猩」 shape: written by an older build, never rewritten by this one.
+    await repository.replaceTeams([
+      team('team-dupes', '重复队', [
+        member({ id: 'member-1', itemId: undefined }),
+        member({ id: 'member-2', itemId: undefined }),
+      ]),
+    ]);
+    await renderTeamDetail('team-dupes');
+
+    expect(await screen.findByText('这支队伍有 1 处不合规', undefined, { timeout: 5000 })).toBeTruthy();
+    expect(screen.getByText('烈咬陆鲨在队伍里出现了不止一次。')).toBeTruthy();
+    const state = await repository.loadState();
+    expect(state.teams[0].members).toHaveLength(2);
+  });
+
+  it('refuses to share a full team that breaks the composition rules', async () => {
+    const duplicated = fullRoster().map((entry, index) =>
+      index === 0 ? entry : { ...entry, pokemonId: 'garchomp', formId: 'garchomp' },
+    );
+    await repository.replaceTeams([team('team-broken', '重复满队', duplicated)]);
+    await renderTeamDetail('team-broken');
+
+    const share = (await screen.findByRole('button', { name: '分享 重复满队' }, { timeout: 5000 })) as HTMLButtonElement;
+    expect(share.disabled).toBe(true);
+  });
+
+  it('offers 02-01 two routes before naming a new team', async () => {
+    await repository.replaceTeams([team('team-alpha', '甲队')]);
+    const user = await renderTeamList();
+
+    await user.click(screen.getByRole('button', { name: '新建队伍' }));
+    const sheet = await screen.findByRole('dialog', { name: '新建队伍' });
+    // 02-01's third route — 输入队伍码 — is not one the app has.
+    expect(within(sheet).queryByText(/队伍码/)).toBeNull();
+
+    await user.click(within(sheet).getByRole('button', { name: /从空白开始/ }));
+    expect(await screen.findByLabelText('队伍名称')).toBeTruthy();
+  });
+
+  it('sends 从上位构筑抄一套 to the upper-build list', async () => {
+    await repository.replaceTeams([team('team-alpha', '甲队')]);
+    const user = await renderTeamList();
+
+    await user.click(screen.getByRole('button', { name: '新建队伍' }));
+    await user.click(within(await screen.findByRole('dialog', { name: '新建队伍' })).getByRole('button', { name: /从上位构筑抄一套/ }));
+
+    expect(window.location.hash).toBe('#/env/teams');
+    expect(screen.queryByRole('dialog', { name: '新建队伍' })).toBeNull();
+  });
+
   it('honours the pre-rename preference key so the preset card does not come back', async () => {
     // Stored records written before hasSeenLuxrayEasterEgg → hasOpenedPresetTeam carry only the
     // old key; reading it as false would show the special card to every existing user again.

@@ -6,6 +6,7 @@ import { currentRuleMovesForPokemon, currentRuleSelectableItemsForPokemon } from
 import { evaluateMemberLegality } from '../../lib/legality';
 import { findBattleForm, toBaseFormView, toMegaFormView } from '../../lib/pokemonForms';
 import { MAX_STAT_POINTS_PER_STAT, MAX_TOTAL_STAT_POINTS, statPointTotal } from '../../lib/statPoints';
+import { rosterSpeciesIds } from '../../lib/teamComposition';
 import type { Team, TeamMember } from '../../types';
 import { PokemonPicker } from '../../components/PokemonPicker';
 import { PageHeader, Sprite, TypeDot } from '../../components/kit';
@@ -153,10 +154,9 @@ export function MemberEditor({
     setView({ kind: 'editor' });
   };
 
-  const setMove = (slot: number, moveId?: string) => {
+  const setMove = (slot: number, moveId: string) => {
     const next = [...draft.moveIds];
-    if (moveId) next[slot] = moveId;
-    else next.splice(slot, 1);
+    next[slot] = moveId;
     patch({ moveIds: next.filter(Boolean).slice(0, 4) });
     setView({ kind: 'editor' });
   };
@@ -196,7 +196,6 @@ export function MemberEditor({
         slot={view.slot}
         takenSlots={taken}
         onBack={() => setView({ kind: 'editor' })}
-        onClear={() => setMove(view.slot, undefined)}
         onPick={(moveId) => setMove(view.slot, moveId)}
       />
     );
@@ -442,6 +441,7 @@ export function MemberEditor({
 
       <PokemonPicker
         open={changingPokemon}
+        takenSpeciesIds={rosterSpeciesIds(team, draft.id)}
         onClose={() => setChangingPokemon(false)}
         onPick={(picked) => {
           setTransfer(null);

@@ -3,6 +3,7 @@ import type { StatPoints, Team, TeamMember } from '../types';
 import { currentRuleMovesForPokemon, isCurrentRuleSelectableItem } from './currentRuleCatalog';
 import { createId } from './id';
 import { evaluateMemberLegality } from './legality';
+import { teamCompositionIssues } from './teamComposition';
 import { defaultTeamMemberNature } from './teamMemberDefaults';
 import { clampStatPointValue, MAX_TOTAL_STAT_POINTS, statPointKeys, statPointTotal } from './statPoints';
 
@@ -41,13 +42,15 @@ const DEFAULT_LEVEL = 50;
 export const MAX_SHARED_TEAM_NAME_LENGTH = 60;
 
 /**
- * A link may only be produced from a full team: a half-built team's link is almost always a
- * mis-send, and the receiver cannot tell it apart from a finished one. Decoding stays
- * unrestricted — links made before this rule, and hand-edited ones, still import.
+ * A link may only be produced from a full team that also obeys the composition rules: a
+ * half-built or rule-breaking team's link is almost always a mis-send, and the receiver cannot
+ * tell it apart from a finished one. Decoding stays unrestricted — links made before this rule,
+ * and hand-edited ones, still import.
  */
 export const TEAM_SHARE_REQUIRED_MEMBERS = 6;
 
-export const canShareTeam = (team: Pick<Team, 'members'>) => team.members.length >= TEAM_SHARE_REQUIRED_MEMBERS;
+export const canShareTeam = (team: Pick<Team, 'members'>) =>
+  team.members.length >= TEAM_SHARE_REQUIRED_MEMBERS && teamCompositionIssues(team).length === 0;
 
 export class TeamShareDecodeError extends Error {
   constructor(message: string) {
