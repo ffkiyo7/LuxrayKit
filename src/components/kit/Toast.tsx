@@ -6,7 +6,7 @@ export type ToastTone = 'success' | 'info' | 'danger';
 
 const dotClass: Record<ToastTone, string> = {
   success: 'bg-success',
-  info: 'bg-textLabel',
+  info: 'lk-toast-dot-info',
   danger: 'bg-danger',
 };
 

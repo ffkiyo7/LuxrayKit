@@ -26,7 +26,7 @@ export function ServiceWorkerUpdateToast() {
 
   return (
     <div
-      className="fixed inset-x-5 bottom-[calc(env(safe-area-inset-bottom)+84px)] z-50 mx-auto flex max-w-[390px] items-center gap-3 rounded-[18px] bg-btn1 py-3.5 pl-4 pr-3.5 shadow-[0_12px_32px_rgb(0_0_0/0.5)]"
+      className="lk-float fixed inset-x-5 bottom-[calc(env(safe-area-inset-bottom)+84px)] z-50 mx-auto flex max-w-[390px] items-center gap-3 rounded-[18px] bg-btn1 py-3.5 pl-4 pr-3.5"
       role="status"
     >
       <RefreshCw aria-hidden="true" className="shrink-0 text-textLabel" size={18} />

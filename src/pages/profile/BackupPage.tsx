@@ -103,7 +103,7 @@ export function BackupPage({ onBack, onGoToTeams }: { onBack: () => void; onGoTo
 
       <section className="flex flex-col gap-2.5 px-6 pt-[22px]">
         <button
-          className="flex h-[50px] items-center justify-center gap-2 rounded-2xl bg-accent text-base font-extrabold text-page shadow-[inset_0_1px_0_rgb(255_255_255/0.9),inset_0_-1px_0_rgb(0_0_0/0.12),0_6px_18px_rgb(0_0_0/0.45)]"
+          className="lk-btn-primary flex h-[50px] items-center justify-center gap-2 rounded-2xl bg-accent text-base font-extrabold text-page"
           type="button"
           onClick={() => downloadBackup(teams, preferences)}
         >
@@ -138,7 +138,7 @@ export function BackupPage({ onBack, onGoToTeams }: { onBack: () => void; onGoTo
             <p className="mt-1 text-xs font-semibold tabular-nums text-textSecondary">{fileSizeLabel(picked.size)} · 导入会替换本机队伍</p>
             <div className="mt-3.5 flex gap-2.5">
               <button
-                className="inline-flex h-12 min-w-0 flex-1 items-center justify-center rounded-[14px] bg-accent text-[15px] font-extrabold text-page shadow-[inset_0_1px_0_rgb(255_255_255/0.9),inset_0_-1px_0_rgb(0_0_0/0.12)]"
+                className="lk-btn-primary--flat inline-flex h-12 min-w-0 flex-1 items-center justify-center rounded-[14px] bg-accent text-[15px] font-extrabold text-page"
                 disabled={importing}
                 type="button"
                 onClick={() => void startImport()}
