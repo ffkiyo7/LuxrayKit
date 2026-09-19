@@ -288,7 +288,7 @@ describe('App page flows', () => {
 
     await openTool(user, /规则图鉴/);
     expect(await waitForDexPage()).toBeTruthy();
-    expect(await screen.findByText('Pokémon / 招式 / 道具 / 特性 · 当前规则数据')).toBeTruthy();
+    expect(await screen.findByText(/规则数据 · 宝可梦 \d+ · 招式 \d+ · 道具 \d+ · 特性 \d+/)).toBeTruthy();
     expect(screen.queryByText(/当前规则模拟数据/)).toBeNull();
 
     await user.click(screen.getByRole('button', { name: '队伍' }));
@@ -299,7 +299,7 @@ describe('App page flows', () => {
     expect(screen.queryByText('官方数据源状态可追溯')).toBeNull();
   });
 
-  it('keeps the tools landing page as three equal entries without explanatory notes', async () => {
+  it('lays the tools landing page out as 04-01 cards without explanatory notes', async () => {
     const user = userEvent.setup();
     render(<App />);
     await waitForEnvironmentPage();
@@ -307,20 +307,20 @@ describe('App page flows', () => {
     await user.click(screen.getByRole('button', { name: '工具' }));
 
     expect(await screen.findByRole('heading', { name: '工具' })).toBeTruthy();
-    const toolButtons = screen.getAllByRole('button').filter((button) =>
-      /规则图鉴|伤害计算|速度线计算/.test(button.textContent ?? ''),
-    );
-    expect(toolButtons.map((button) => button.textContent?.replace(/\s+/g, ''))).toEqual([
-      '规则图鉴当前规则内的宝可梦、招式、道具、特性。',
-      '伤害计算攻防双方、招式、天气与伤害区间。',
-      '速度线计算对照环境档位，反解超速所需配置。',
-    ]);
-    expect(await screen.findByRole('button', { name: /伤害计算/ })).toBeTruthy();
-    const speedTool = await screen.findByRole('button', { name: /速度线计算/ });
-    expect((speedTool as HTMLButtonElement).disabled).toBe(false);
-    expect(await screen.findByRole('button', { name: /规则图鉴/ })).toBeTruthy();
+    // The dex card leads with the live catalog size and the regulation it belongs to.
+    expect(await screen.findByRole('button', { name: /规则图鉴 \d+ 只 · M-\w/ })).toBeTruthy();
+    expect(screen.getByRole('button', { name: '在图鉴里搜索' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /伤害计算/ })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /速度线/ })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /属性速查/ })).toBeTruthy();
+    // N04-11: the unbuilt entries are present but inert.
+    expect(screen.getByText('对局记录')).toBeTruthy();
+    expect(screen.getAllByText('未开放').length).toBe(2);
+    // Nothing has been used yet, so neither recent surface is drawn.
+    expect(screen.queryByRole('heading', { name: '最近用过' })).toBeNull();
     expect(screen.queryByText(/三个入口并列|从本地队伍带入配置|队伍配置带入/)).toBeNull();
     expect(screen.queryByText(/天气、场地/)).toBeNull();
+    expect(screen.queryByText(/当前规则内的宝可梦、招式、道具、特性/)).toBeNull();
     expect(screen.queryByRole('button', { name: '当前规则' })).toBeNull();
   });
 
@@ -1161,32 +1161,30 @@ describe('App page flows', () => {
     expect(screen.getByPlaceholderText('搜索名称')).toBeTruthy();
     expect(screen.getByText('超级烈咬陆鲨')).toBeTruthy();
 
-    await user.click(screen.getByRole('button', { name: '打开图鉴过滤' }));
+    // The inline filter panel (N04-05) stays open while you pick, and the list updates live.
+    await user.click(screen.getByRole('button', { name: '属性' }));
     await user.click(screen.getByRole('button', { name: /^火属性$/ }));
-    await user.click(screen.getByRole('button', { name: '完成' }));
     expect(screen.getAllByText('炽焰咆哮虎').length).toBeGreaterThan(0);
     expect(screen.getByText('煤炭龟')).toBeTruthy();
     expect(screen.getAllByText('喷火龙').length).toBeGreaterThan(0);
     expect(screen.queryByText('蚊香蛙皇')).toBeNull();
 
-    await user.click(screen.getByRole('button', { name: '打开图鉴过滤' }));
     await user.click(screen.getByRole('button', { name: /^飞行属性$/ }));
-    await user.click(screen.getByRole('button', { name: '完成' }));
     expect(screen.getAllByText('喷火龙').length).toBeGreaterThan(0);
     expect(screen.queryByText('炽焰咆哮虎')).toBeNull();
     expect(screen.queryByText('煤炭龟')).toBeNull();
 
-    await user.click(screen.getByRole('button', { name: '清空' }));
-    await user.click(screen.getByRole('button', { name: '打开图鉴过滤' }));
+    // N04-06: each active filter is a removable chip above the panel.
+    await user.click(screen.getByRole('button', { name: '移除火属性筛选' }));
+    await user.click(screen.getByRole('button', { name: '移除飞行属性筛选' }));
     await user.click(screen.getByRole('button', { name: /^地面属性$/ }));
     await user.click(screen.getByRole('button', { name: /^龙属性$/ }));
-    await user.click(screen.getByRole('button', { name: '完成' }));
     expect(screen.getAllByText('烈咬陆鲨').length).toBeGreaterThan(0);
-    expect(screen.getAllByLabelText('龙属性').length).toBeGreaterThan(0);
+    await user.click(screen.getByRole('button', { name: '收起筛选' }));
+    expect(screen.queryByRole('button', { name: /^龙属性$/ })).toBeNull();
 
     await user.click(screen.getByText('烈咬陆鲨'));
-    expect(await screen.findByText(/Garchomp/)).toBeTruthy();
-    expect(screen.getByText(/ガブリアス/)).toBeTruthy();
+    expect(await screen.findByText(/ガブリアス/)).toBeTruthy();
     expect(screen.queryByRole('button', { name: /敬请期待/ })).toBeNull();
     expect(screen.getByRole('button', { name: /加入队伍/ })).toBeTruthy();
     expect(screen.getByRole('button', { name: /计算/ })).toBeTruthy();
@@ -1203,11 +1201,11 @@ describe('App page flows', () => {
     const artworkSrc = within(imageDialog).getByRole('img', { name: '烈咬陆鲨' }).getAttribute('src');
     expect(artworkSrc).toContain('/assets/pokemon/artwork/');
     expect(detailAvatarSrc?.match(/\/(\d+)\.png$/)?.[1]).toBe(artworkSrc?.match(/\/(\d+)\.png$/)?.[1]);
-    await user.click(screen.getByTitle('关闭'));
+    await user.click(screen.getByRole('button', { name: '关闭大图' }));
     expect(screen.queryByText('示例待补齐')).toBeNull();
     expect(screen.getByRole('button', { name: '属性' })).toBeTruthy();
-    expect(screen.getByRole('button', { name: '升序' })).toBeTruthy();
-    await user.click(screen.getByRole('button', { name: '威力' }));
+    expect(screen.getByRole('button', { name: '威力 ↑' })).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: '威力 ↓' }));
     expect(screen.getByText('龙爪')).toBeTruthy();
     expect(screen.getByText('属性关系')).toBeTruthy();
   });
@@ -1221,18 +1219,18 @@ describe('App page flows', () => {
     await user.click(screen.getByRole('button', { name: '道具' }));
     await user.type(screen.getByPlaceholderText('搜索名称'), '围巾');
     expect(screen.getByText('讲究围巾')).toBeTruthy();
-    const choiceScarfCard = screen.getByText('讲究围巾').closest('section')!;
-    expect(within(choiceScarfCard).getByAltText('讲究围巾').getAttribute('src')).toContain('/assets/items/choice-scarf.png');
+    expect(screen.getByAltText('讲究围巾').getAttribute('src')).toContain('/assets/items/choice-scarf.png');
     expect(screen.queryByText('文柚果')).toBeNull();
 
     await user.clear(screen.getByPlaceholderText('搜索名称'));
-    await user.click(screen.getByRole('button', { name: '打开道具类别筛选' }));
-    expect(screen.getByText('道具类别筛选')).toBeTruthy();
-    expect(screen.getByText('57 件')).toBeTruthy();
-    expect(screen.getByText('28 件')).toBeTruthy();
-    expect(screen.getByText('81 件')).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: '类别' }));
+    // 04-07 draws six categories and a row of 「效果」 chips; the catalog only carries these three.
+    expect(['常规道具', '树果', 'Mega 进化石'].map((label) => screen.getByRole('button', { name: label }).textContent)).toEqual([
+      '常规道具57',
+      '树果28',
+      'Mega 进化石81',
+    ]);
     await user.click(screen.getByRole('button', { name: '树果' }));
-    await user.click(screen.getByRole('button', { name: '完成' }));
     expect(screen.getByText('文柚果')).toBeTruthy();
     expect(screen.queryByText('讲究围巾')).toBeNull();
     expect(screen.queryByText('烈咬陆鲨进化石')).toBeNull();
@@ -1242,71 +1240,67 @@ describe('App page flows', () => {
     expect(screen.queryByText('大根茎')).toBeNull();
     await user.clear(screen.getByPlaceholderText('搜索名称'));
 
-    await user.click(screen.getByRole('button', { name: '打开道具类别筛选' }));
     await user.click(screen.getByRole('button', { name: '常规道具' }));
-    await user.click(screen.getByRole('button', { name: '完成' }));
     expect(screen.getByText('讲究围巾')).toBeTruthy();
     expect(screen.getByText('文柚果')).toBeTruthy();
     expect(screen.queryByText('烈咬陆鲨进化石')).toBeNull();
-    await user.click(screen.getByRole('button', { name: '清空' }));
+    await user.click(screen.getByRole('button', { name: '移除树果筛选' }));
+    await user.click(screen.getByRole('button', { name: '移除常规道具筛选' }));
     expect(screen.getByText('烈咬陆鲨进化石')).toBeTruthy();
 
     await user.click(screen.getByRole('button', { name: '招式' }));
-    const firstNormalMoveCard = screen.getByText(/百万吨重踢 Mega Kick/).closest('section')!;
-    const firstPoisonMoveCard = screen.getByText(/溶化 Acid Armor/).closest('section')!;
-    expect(firstNormalMoveCard.compareDocumentPosition(firstPoisonMoveCard) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    await user.click(screen.getByRole('button', { name: '打开招式属性筛选' }));
+    const firstNormalMoveRow = screen.getByText('百万吨重踢').closest('button')!;
+    const firstPoisonMoveRow = screen.getByText('溶化').closest('button')!;
+    expect(firstNormalMoveRow.compareDocumentPosition(firstPoisonMoveRow) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: '筛选' }));
     await user.click(screen.getByRole('button', { name: /^毒属性招式$/ }));
-    await user.click(screen.getByRole('button', { name: '完成' }));
-    expect(screen.getByText('招式属性：毒')).toBeTruthy();
-    expect(screen.queryByText(/百万吨重踢 Mega Kick/)).toBeNull();
-    expect(screen.getByText(/溶化 Acid Armor/)).toBeTruthy();
+    expect(screen.queryByText('百万吨重踢')).toBeNull();
+    expect(screen.getByText('溶化')).toBeTruthy();
+    // 新增：招式分类筛选，计数在选中属性内统计。
+    await user.click(screen.getByRole('button', { name: '变化招式' }));
+    expect(screen.getByText('溶化')).toBeTruthy();
+    expect(screen.queryByText('污泥炸弹')).toBeNull();
+    await user.click(screen.getByRole('button', { name: '移除变化分类筛选' }));
 
     await user.type(screen.getByPlaceholderText('搜索名称'), 'Dragon');
-    expect(screen.queryByText(/龙爪 Dragon Claw/)).toBeNull();
-    expect(screen.queryByText(/守住 Protect/)).toBeNull();
+    expect(screen.queryByText('龙爪')).toBeNull();
+    expect(screen.queryByText('守住')).toBeNull();
 
     await user.clear(screen.getByPlaceholderText('搜索名称'));
-    await user.click(screen.getByRole('button', { name: '清空' }));
+    await user.click(screen.getByRole('button', { name: '移除毒属性筛选' }));
     await user.click(screen.getByRole('button', { name: '特性' }));
-    const aftermathCard = screen.getByText(/引爆 Aftermath/).closest('section')!;
-    const analyticCard = screen.getByText(/分析 Analytic/).closest('section')!;
-    const bigPecksCard = screen.getByText(/健壮胸肌 Big Pecks/).closest('section')!;
-    expect(aftermathCard.compareDocumentPosition(analyticCard) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(analyticCard.compareDocumentPosition(bigPecksCard) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    const aftermathRow = screen.getByText('引爆').closest('button')!;
+    const analyticRow = screen.getByText('分析').closest('button')!;
+    const bigPecksRow = screen.getByText('健壮胸肌').closest('button')!;
+    expect(aftermathRow.compareDocumentPosition(analyticRow) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(analyticRow.compareDocumentPosition(bigPecksRow) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 
     await user.type(screen.getByPlaceholderText('搜索名称'), '威吓');
-    const intimidateCard = screen.getByText(/威吓 Intimidate/).closest('section')!;
-    expect(screen.queryByText(/精神力 Inner Focus/)).toBeNull();
-    expect(screen.queryByText(/猛火 Blaze/)).toBeNull();
+    expect(screen.queryByText('精神力')).toBeNull();
+    expect(screen.queryByText('猛火')).toBeNull();
     expect(screen.queryByText('出场时威吓对手，让其退缩，降低对手的攻击。')).toBeNull();
-    expect(within(intimidateCard).getByText(/^\+\d+$/)).toBeTruthy();
-    expect(within(intimidateCard).queryByText('炽焰咆哮虎')).toBeNull();
-    const intimidateExpandButton = within(intimidateCard).getByRole('button', { name: '展开威吓说明' });
-    expect(intimidateExpandButton.className).toContain('h-6');
-    expect(intimidateExpandButton.className).toContain('w-6');
-    expect(intimidateExpandButton.className).not.toContain('border');
-    await user.click(intimidateExpandButton);
-    expect(within(intimidateCard).getByText('出场时威吓对手，让其退缩，降低对手的攻击。')).toBeTruthy();
-    expect(within(intimidateCard).getByText('炽焰咆哮虎')).toBeTruthy();
+    // 04-08 previews a single owner until the row is opened.
+    expect(screen.queryByText('炽焰咆哮虎')).toBeNull();
+    await user.click(screen.getByRole('button', { name: '展开威吓说明' }));
+    const intimidateRow = screen.getByRole('button', { name: '收起威吓说明' }).parentElement!;
+    expect(within(intimidateRow).getByText('出场时威吓对手，让其退缩，降低对手的攻击。')).toBeTruthy();
+    expect(within(intimidateRow).getByText('炽焰咆哮虎')).toBeTruthy();
 
     await user.clear(screen.getByPlaceholderText('搜索名称'));
     await user.type(screen.getByPlaceholderText('搜索名称'), '引火');
-    const flashFireCard = screen.getByText(/引火 Flash Fire/).closest('section')!;
-    expect(within(flashFireCard).getByText(/\+\d+/)).toBeTruthy();
-    expect(within(flashFireCard).queryByText('火暴兽')).toBeNull();
-    await user.click(within(flashFireCard).getByRole('button', { name: '展开引火说明' }));
-    expect(within(flashFireCard).getByText('火暴兽')).toBeTruthy();
+    expect(screen.queryByText('火暴兽')).toBeNull();
+    await user.click(screen.getByRole('button', { name: '展开引火说明' }));
+    const flashFireRow = screen.getByRole('button', { name: '收起引火说明' }).parentElement!;
+    expect(within(flashFireRow).getByText('火暴兽')).toBeTruthy();
 
     await user.clear(screen.getByPlaceholderText('搜索名称'));
     await user.type(screen.getByPlaceholderText('搜索名称'), '厚脂肪');
-    const thickFatCard = screen.getByText(/厚脂肪 Thick Fat/).closest('section')!;
-    expect(within(thickFatCard).queryByAltText('妙蛙花')).toBeNull();
-    await user.click(within(thickFatCard).getByRole('button', { name: '展开厚脂肪说明' }));
-    expect(within(thickFatCard).getByText('超级妙蛙花')).toBeTruthy();
-    expect(within(thickFatCard).queryByText(/^妙蛙花$/)).toBeNull();
-    await user.click(within(thickFatCard).getByRole('button', { name: /超级妙蛙花/ }));
-    expect(await screen.findByText(/Mega Venusaur/)).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: '展开厚脂肪说明' }));
+    const thickFatRow = screen.getByRole('button', { name: '收起厚脂肪说明' }).parentElement!;
+    expect(within(thickFatRow).getByText('超级妙蛙花')).toBeTruthy();
+    expect(within(thickFatRow).queryByText(/^妙蛙花$/)).toBeNull();
+    await user.click(within(thickFatRow).getByRole('button', { name: /超级妙蛙花/ }));
+    expect(await screen.findByText('超级妙蛙花')).toBeTruthy();
     expect(screen.getByText('种族值')).toBeTruthy();
   });
 
@@ -1318,16 +1312,14 @@ describe('App page flows', () => {
     await user.click(screen.getByRole('button', { name: '特性' }));
     await user.type(screen.getByPlaceholderText('搜索名称'), 'Luxray');
 
-    const intimidateCard = await screen.findByText(/威吓 Intimidate/);
-    const card = intimidateCard.closest('section')!;
-    const previewImages = within(card).getAllByRole('img');
-    expect(previewImages[0].getAttribute('alt')).toBe('伦琴猫');
-    expect(screen.queryByText(/厚脂肪 Thick Fat/)).toBeNull();
+    const intimidateRow = await screen.findByRole('button', { name: '展开威吓说明' });
+    expect(within(intimidateRow).getByRole('img').getAttribute('alt')).toBe('伦琴猫');
+    expect(screen.queryByText('厚脂肪')).toBeNull();
 
     await user.clear(screen.getByPlaceholderText('搜索名称'));
     await user.type(screen.getByPlaceholderText('搜索名称'), '烈咬陆鲨');
-    expect(await screen.findByText(/沙隐 Sand Veil/)).toBeTruthy();
-    expect(await screen.findByText(/粗糙皮肤 Rough Skin/)).toBeTruthy();
+    expect(await screen.findByText('沙隐')).toBeTruthy();
+    expect(await screen.findByText('粗糙皮肤')).toBeTruthy();
   });
 
   it('opens a Pokemon environment detail directly from a #/env/pokemon deep link', async () => {
@@ -1437,7 +1429,7 @@ describe('App page flows', () => {
     const user = await renderApp();
 
     await user.click(screen.getByRole('button', { name: '工具' }));
-    const speedTool = await screen.findByRole('button', { name: /速度线计算/ });
+    const speedTool = await screen.findByRole('button', { name: /速度线/ });
     expect((speedTool as HTMLButtonElement).disabled).toBe(false);
     await user.click(speedTool);
 

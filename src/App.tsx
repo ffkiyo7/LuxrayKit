@@ -15,6 +15,8 @@ import { AppProvider, useAppStore } from './state/AppContext';
 import type { Team, TeamMember } from './types';
 import type { ToolView } from './pages/ToolsPage';
 import type { CalcSide } from './pages/CalculatorPage';
+import type { DexTab } from './pages/dex/dexShared';
+import type { RecentDexEntry } from './lib/toolActivity';
 
 const CalculatorPage = lazy(() => import('./pages/CalculatorPage').then((module) => ({ default: module.CalculatorPage })));
 const DexPage = lazy(() => import('./pages/DexPage').then((module) => ({ default: module.DexPage })));
@@ -129,8 +131,6 @@ function ImportCoverageNoticeDialog({
 type ChromeKey = TabId | ToolView | 'rule';
 const legacyChromePages: ChromeKey[] = [
   'environment',
-  'tools',
-  'dex',
   'profile',
   'rule',
 ];
@@ -146,6 +146,7 @@ function ToolWorkspace({
   activeTeam,
   speedPresetMember,
   calcPreset,
+  dexTab,
 }: {
   view: ToolView;
   onBack: () => void;
@@ -157,10 +158,11 @@ function ToolWorkspace({
   activeTeam?: Team;
   speedPresetMember?: TeamMember;
   calcPreset?: { memberId: string; side: CalcSide };
+  dexTab?: DexTab;
 }) {
   const content = {
     calculator: <CalculatorPage environment={environment} selectedMemberId={selectedMemberId} onPickMember={onPickMember} presetMember={calcPreset} />,
-    dex: <DexPage onOpenCalculator={onOpenCalculator} />,
+    dex: <DexPage initialTab={dexTab} onOpenCalculator={onOpenCalculator} />,
     speed: environment ? <SpeedPage environment={environment} activeTeam={activeTeam} presetMember={speedPresetMember} onOpenDex={onOpenDex} /> : <PageLoading label="正在载入速度线环境数据..." />,
     typeChart: <TypeChartPage environment={environment} />,
   }[view];
@@ -194,6 +196,9 @@ function AppShell() {
   const [calculatorMemberId, setCalculatorMemberId] = useState<string | undefined>();
   const [speedPresetMemberId, setSpeedPresetMemberId] = useState<string | undefined>();
   const [calcPreset, setCalcPreset] = useState<{ memberId: string; side: CalcSide } | undefined>();
+  // Which dex tab a 「最近用过」 chip on the tools page asks for. Like the calculator presets it is
+  // a one-shot hint, not a destination, so it stays out of the route.
+  const [dexTab, setDexTab] = useState<DexTab | undefined>();
   const [activeTeamId, setActiveTeamId] = useState<string | undefined>();
   const [importToast, setImportToast] = useState<AppToast | null>(null);
   const [highlightedImportTeamId, setHighlightedImportTeamId] = useState<string | undefined>();
@@ -249,7 +254,21 @@ function AppShell() {
       if (view === 'calculator') setCalculatorMemberId(undefined);
       setCalcPreset(undefined);
       setSpeedPresetMemberId(undefined);
+      setDexTab(undefined);
       navigate({ name: 'tool', tool: routeIdByToolView[view] });
+    },
+    [navigate],
+  );
+
+  const openDexEntry = useCallback(
+    (entry: RecentDexEntry) => {
+      if (entry.kind === 'pokemon') {
+        setDexTab('pokemon');
+        navigate({ name: 'dex-pokemon', pokemonId: entry.id });
+        return;
+      }
+      setDexTab(entry.kind === 'move' ? 'moves' : entry.kind === 'item' ? 'items' : 'abilities');
+      navigate({ name: 'tool', tool: 'dex' });
     },
     [navigate],
   );
@@ -280,6 +299,9 @@ function AppShell() {
     }
     if (activeTab !== 'tools' || toolView !== 'speed') {
       setSpeedPresetMemberId(undefined);
+    }
+    if (activeTab !== 'tools' || toolView !== 'dex') {
+      setDexTab(undefined);
     }
   }, [activeTab, toolView]);
 
@@ -401,9 +423,10 @@ function AppShell() {
             activeTeam={activeTeam}
             speedPresetMember={speedPresetMember}
             calcPreset={calcPreset}
+            dexTab={dexTab}
           />
         ) : (
-          <ToolsPage onOpenTool={openTool} />
+          <ToolsPage onOpenDexEntry={openDexEntry} onOpenTool={openTool} />
         );
       case 'profile':
         return <ProfilePage />;
@@ -414,6 +437,8 @@ function AppShell() {
     back,
     calculatorMemberId,
     calcPreset,
+    dexTab,
+    openDexEntry,
     speedPresetMember,
     sendMemberToSpeed,
     sendMemberToCalculator,
