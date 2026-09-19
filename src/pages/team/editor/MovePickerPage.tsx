@@ -21,10 +21,13 @@ const moveLine = (move: Move) =>
     .filter(Boolean)
     .join(' · ');
 
+// NFKC folds full-width letters, so `DD` finds 「ＤＤ金勾臂」; the id covers hyphenated English.
+const fold = (value: string) => value.normalize('NFKC').trim().toLowerCase();
+
 const matches = (move: Move, query: string) => {
-  const normalized = query.trim().toLowerCase();
+  const normalized = fold(query);
   if (!normalized) return true;
-  return move.chineseName.toLowerCase().includes(normalized) || move.englishName.toLowerCase().includes(normalized);
+  return [move.chineseName, move.englishName, move.id].some((field) => fold(field).includes(normalized));
 };
 
 export function MovePickerPage({
@@ -34,9 +37,14 @@ export function MovePickerPage({
   takenSlots,
   availableMoves,
   environmentStats,
+  title,
+  backLabel = '返回编辑配置',
   onPick,
   onBack,
 }: {
+  /** The damage calculator has a single move, so 「招式 1」 would read wrong there. */
+  title?: string;
+  backLabel?: string;
   slot: number;
   pokemonName: string;
   selectedMoveId?: string;
@@ -132,7 +140,7 @@ export function MovePickerPage({
 
   return (
     <PickerPage
-      backLabel="返回编辑配置"
+      backLabel={backLabel}
       filters={
         <div className="mt-3 flex gap-2">
           <FilterToggle count={types.length} label="属性" open={filtersOpen} onClick={() => setFiltersOpen((open) => !open)} />
@@ -141,7 +149,7 @@ export function MovePickerPage({
       }
       search={{ value: query, onChange: setQuery, placeholder: '搜索招式名', label: '搜索招式名' }}
       subtitle={`${pokemonName} · ${currentRegulation} 规则可学，共 ${availableMoves.length} 个`}
-      title={`招式 ${slot + 1}`}
+      title={title ?? `招式 ${slot + 1}`}
       onBack={onBack}
     >
       {filtersOpen && !searching && (

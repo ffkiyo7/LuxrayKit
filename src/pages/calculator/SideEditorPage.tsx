@@ -96,8 +96,8 @@ export function SideEditorPage({
         selectedMoveId={config.selectedMoveId}
         slot={0}
         takenSlots={new Map()}
+        title="招式"
         onBack={backToEditor}
-        onClear={() => selectMove(undefined)}
         onPick={(moveId) => selectMove(moveId)}
       />
     );
