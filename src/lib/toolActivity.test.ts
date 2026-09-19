@@ -23,6 +23,8 @@ describe('toolActivity tool results', () => {
     recordToolResult({
       tool: 'calculator',
       label: '喷火龙',
+      moveLabel: '大字爆炎',
+      defenderLabel: '钢铠鸦',
       minDamage: 148,
       maxDamage: 176,
       minPercent: 73.6,
@@ -58,6 +60,15 @@ describe('toolActivity tool results', () => {
     expect(readToolResults()).toEqual([]);
 
     window.localStorage.setItem(KEY, JSON.stringify([{ tool: 'calculator', label: '喷火龙', hko: '确定两击击杀' }]));
+    expect(readToolResults()).toEqual([]);
+
+    // A calculator row from before 04-01 drew the matchup line names neither move nor defender.
+    window.localStorage.setItem(
+      KEY,
+      JSON.stringify([
+        { tool: 'calculator', label: '喷火龙', minDamage: 148, maxDamage: 176, minPercent: 73.6, maxPercent: 87.6, hko: '确定两击击杀' },
+      ]),
+    );
     expect(readToolResults()).toEqual([]);
   });
 });

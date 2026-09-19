@@ -1,13 +1,14 @@
-import { ChevronRight, Search } from 'lucide-react';
+import { ArrowRight, ChevronRight, Search } from 'lucide-react';
 import { useMemo, type ReactNode } from 'react';
-import { currentRuleSet } from '../data';
+import { currentRuleSet, pokemon } from '../data';
 import type { EnvironmentState } from '../data/environment';
 import { currentRegulation } from '../data/schedule';
 import { attackingTypes } from '../lib/calculations';
 import { primeKeyboard } from '../lib/keyboardHandoff';
-import { getDexFormEntries } from '../lib/pokemonForms';
-import { resolveDefaultSpeedSubject } from '../lib/speedTier';
-import type { Team } from '../types';
+import { findBattleForm, findPokemon, getDexFormEntries } from '../lib/pokemonForms';
+import { calculateSpeedForBuild, resolveDefaultSpeedSubject, type SpeedSubject } from '../lib/speedTier';
+import { DAMAGE_SAMPLE, SPEED_SAMPLE_CAPTION, TYPE_CHART_SAMPLE_TYPE } from '../lib/toolSamples';
+import type { PokemonType, Team } from '../types';
 import { defensiveProfile, offensiveProfile } from '../lib/typeChart';
 import {
   readRecentDexEntries,
@@ -67,26 +68,66 @@ function SquareToolCard({
   );
 }
 
-function CardLabel({ children, plain = false }: { children: ReactNode; plain?: boolean }) {
+function CardLabel({ children }: { children: ReactNode }) {
+  return <p className="mt-3.5 truncate text-[11px] font-bold uppercase tracking-[0.1em] text-chevron">{children}</p>;
+}
+
+/** The speed card's second line: who it is about, and — when there is one — the tier advice. */
+function SubjectRow({ subject, caption }: { subject: Combatant; caption?: string }) {
   return (
-    <p className={`mt-3.5 truncate text-[11px] font-bold text-chevron ${plain ? '' : 'uppercase tracking-[0.1em]'}`}>
-      {children}
-    </p>
+    <div className="mt-2 flex items-center gap-1.5">
+      <ToolDisc iconRef={subject.iconRef} label={subject.label} />
+      {caption && <span className="min-w-0 truncate text-xs font-bold text-textLabel">{caption}</span>}
+    </div>
   );
 }
 
-function CardCaption({ children }: { children: ReactNode }) {
-  return <p className="mt-1 text-xs font-semibold text-textSecondary">{children}</p>;
-}
-
-function DamageMeter({ result }: { result: CalculatorToolResult }) {
-  const low = Math.max(0, Math.min(100, result.minPercent));
-  const span = Math.max(0, Math.min(100 - low, result.maxPercent - result.minPercent));
+function DamageMeter({ minPercent, maxPercent }: { minPercent: number; maxPercent: number }) {
+  const low = Math.max(0, Math.min(100, minPercent));
+  const span = Math.max(0, Math.min(100 - low, maxPercent - minPercent));
   return (
     <div className="lk-p4a-meter-track mt-3.5 flex h-[5px] gap-0.5 overflow-hidden rounded-full">
       <div className="bg-fnTeal" style={{ width: `${low}%` }} />
       <div className="lk-p4a-damage-soft" style={{ width: `${span}%` }} />
     </div>
+  );
+}
+
+/**
+ * 04-01's tool cards put their sprites on a coin: the card's own face plus a hairline, so a
+ * transparent artwork still reads as one object at 26px.
+ */
+function ToolDisc({ iconRef, label }: { iconRef?: string; label: string }) {
+  return (
+    <span className="lk-p4a-tool-disc grid h-[26px] w-[26px] shrink-0 place-items-center rounded-full">
+      <Sprite iconRef={iconRef} label={label} size={22} />
+    </span>
+  );
+}
+
+type Combatant = { label: string; iconRef?: string };
+
+/** 「进攻方 · 招式 → 防守方」. Only the move name may truncate; neither sprite ever does. */
+function MatchupRow({ attacker, move, defender }: { attacker: Combatant; move: string; defender: Combatant }) {
+  return (
+    <div className="mt-2 flex items-center gap-1.5">
+      <ToolDisc iconRef={attacker.iconRef} label={attacker.label} />
+      <span className="min-w-0 truncate text-xs font-bold text-textLabel">{move}</span>
+      <ArrowRight aria-hidden="true" className="shrink-0 text-textSecondary" size={14} strokeWidth={2.2} />
+      <ToolDisc iconRef={defender.iconRef} label={defender.label} />
+    </div>
+  );
+}
+
+/** The card's headline figure: 「92–109%」, with the unit a size down and a step quieter. */
+function PercentRange({ minPercent, maxPercent }: { minPercent: number; maxPercent: number }) {
+  return (
+    <p className="mt-[5px] text-[28px] font-extrabold leading-8 tracking-[-0.02em] tabular-nums">
+      {Math.round(minPercent)}
+      <span className="lk-p4a-range-dash">–</span>
+      {Math.round(maxPercent)}
+      <span className="ml-0.5 text-[17px] tracking-normal text-textSecondary">%</span>
+    </p>
   );
 }
 
@@ -109,28 +150,62 @@ function SpeedSparkline({ speeds, index }: { speeds: number[]; index: number }) 
   );
 }
 
-/** 「妖精 打 龙 ×2 · 挨 钢 ×2」 — either half is dropped when the type has no such matchup. */
-function TypeChartLine({ result }: { result: TypeChartToolResult }) {
-  const hits = offensiveProfile(result.type).superEffective[0];
-  const takes = defensiveProfile(result.type).weakTo[0];
-  if (!hits && !takes) return null;
+function TypeDot({ type }: { type: PokemonType }) {
+  return <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: typeColors[type] }} />;
+}
+
+/** One matchup, read as 「攻击方 → 受击方 ×2」. */
+function TypeMatchup({ from, to, toneClass }: { from: PokemonType; to: PokemonType; toneClass: string }) {
+  return (
+    <span className="flex items-center gap-1.5">
+      <TypeDot type={from} />
+      {typeLabels[from]}
+      <span className="sr-only">攻击</span>
+      <ArrowRight aria-hidden="true" className="shrink-0 text-textSecondary" size={15} strokeWidth={2.2} />
+      <TypeDot type={to} />
+      {typeLabels[to]}
+      <span className={toneClass}>×2</span>
+    </span>
+  );
+}
+
+/**
+ * 「妖精 → 龙 ×2 · 钢 → 妖精 ×2」: what this type doubles, then what doubles it. Either half is
+ * dropped when the type has no such matchup.
+ */
+function TypeChartLine({ type }: { type: PokemonType }) {
+  const hits = offensiveProfile(type).superEffective[0];
+  const takenBy = defensiveProfile(type).weakTo[0];
+  if (!hits && !takenBy) return null;
 
   return (
-    <p className="mt-2.5 text-[17px] font-bold tracking-[-0.01em]">
-      {typeLabels[result.type]}
-      {hits && (
-        <> 打 {typeLabels[hits]} <span className="text-fnPink">×2</span></>
-      )}
-      {hits && takes && ' ·'}
-      {takes && (
-        <> 挨 {typeLabels[takes]} <span className="text-textLabel">×2</span></>
-      )}
-    </p>
+    <div className="mt-2 flex items-center gap-[18px] text-[16px] font-bold tracking-[-0.01em]">
+      {hits && <TypeMatchup from={type} to={hits} toneClass="text-fnPink" />}
+      {takenBy && <TypeMatchup from={takenBy} to={type} toneClass="text-textLabel" />}
+    </div>
   );
 }
 
 const recentUseCaption = (result: CalculatorToolResult | SpeedToolResult) =>
   result.tool === 'speed' ? `速度线 · ${result.speed}` : '伤害计算 · 进攻方';
+
+/**
+ * The speed card's sample figure: the default subject at 0 SP on a neutral nature, with nothing
+ * else applied — cheap enough to compute on every render, unlike the damage sample.
+ */
+const sampleSpeedOf = (subject: SpeedSubject) => {
+  const baseSpeed = findBattleForm(subject.pokemonId, subject.formId)?.baseStats.speed
+    ?? findPokemon(subject.pokemonId)?.baseStats.speed;
+  if (baseSpeed === undefined) return undefined;
+  return calculateSpeedForBuild({
+    baseSpeed,
+    statPoints: 0,
+    nature: 'neutral',
+    scarf: false,
+    speedAbility: false,
+    tailwind: false,
+  });
+};
 
 /** 「最近用过」 only takes the tools whose result has a pokemon behind it (04-01 draws its sprite). */
 const hasSubject = (result: ToolResult): result is CalculatorToolResult | SpeedToolResult =>
@@ -159,10 +234,23 @@ export function ToolsPage({
   const recentUses = toolResults.filter(hasSubject).slice(0, 2);
   // The speed card names the Pokémon it is previewing, and tapping it opens the page on exactly
   // that one — so with nothing recorded both sides read the same default subject.
-  const speedSubjectLabel = useMemo(
-    () => speed?.label ?? resolveDefaultSpeedSubject({ teams, environment, battleType: currentRuleSet.battleType }).label,
-    [environment, speed?.label, teams],
+  const defaultSpeedSubject = useMemo(
+    () => resolveDefaultSpeedSubject({ teams, environment, battleType: currentRuleSet.battleType }),
+    [environment, teams],
   );
+
+  // Before a tool has been run, its card shows a worked example instead of an empty panel.
+  // The damage figures are frozen (see `toolSamples.ts`); everything else is computed here.
+  const damageSample = useMemo(() => {
+    const named = (id: string): Combatant => {
+      const entry = pokemon.find((candidate) => candidate.id === id);
+      return { label: entry?.chineseName ?? id, iconRef: entry?.iconRef };
+    };
+    return { attacker: named(DAMAGE_SAMPLE.attackerPokemonId), defender: named(DAMAGE_SAMPLE.defenderPokemonId) };
+  }, []);
+
+  const sampleSpeed = useMemo(() => sampleSpeedOf(defaultSpeedSubject), [defaultSpeedSubject]);
+  const speedValue = speed ? speed.speed : sampleSpeed;
 
   return (
     <div className="pb-8">
@@ -215,19 +303,25 @@ export function ToolsPage({
 
         <SquareToolCard
           body={
-            damage && (
-              <>
-                <CardLabel>上次</CardLabel>
-                <p className="mt-[5px] text-[28px] font-extrabold leading-8 tracking-[-0.02em] tabular-nums">
-                  {damage.minDamage}
-                  <span className="lk-p4a-range-dash">–</span>
-                  {damage.maxDamage}
-                </p>
-                <CardCaption>{damage.hko} · {damage.maxPercent}%</CardCaption>
-              </>
-            )
+            <>
+              <CardLabel>{damage ? '上次' : '示例'}</CardLabel>
+              <PercentRange
+                maxPercent={damage?.maxPercent ?? DAMAGE_SAMPLE.maxPercent}
+                minPercent={damage?.minPercent ?? DAMAGE_SAMPLE.minPercent}
+              />
+              <MatchupRow
+                attacker={damage ? { label: damage.label, iconRef: damage.iconRef } : damageSample.attacker}
+                defender={damage ? { label: damage.defenderLabel, iconRef: damage.defenderIconRef } : damageSample.defender}
+                move={damage ? damage.moveLabel : DAMAGE_SAMPLE.moveLabel}
+              />
+            </>
           }
-          foot={damage && <DamageMeter result={damage} />}
+          foot={
+            <DamageMeter
+              maxPercent={damage?.maxPercent ?? DAMAGE_SAMPLE.maxPercent}
+              minPercent={damage?.minPercent ?? DAMAGE_SAMPLE.minPercent}
+            />
+          }
           title="伤害计算"
           tone="text-fnTeal"
           onClick={() => onOpenTool('calculator')}
@@ -236,15 +330,24 @@ export function ToolsPage({
         <SquareToolCard
           body={
             <>
-              <CardLabel plain>{speedSubjectLabel}</CardLabel>
-              {speed && (
-                <>
-                  <p className="mt-[5px] text-[28px] font-extrabold leading-8 tracking-[-0.02em] tabular-nums">{speed.speed}</p>
-                  {speed.nextTierSpeed !== undefined && speed.nextTierStatPoints !== undefined && (
-                    <CardCaption>超 {speed.nextTierSpeed} 档需 +{speed.nextTierStatPoints}</CardCaption>
-                  )}
-                </>
+              <CardLabel>{speed ? '上次' : '示例'}</CardLabel>
+              {speedValue !== undefined && (
+                <p className="mt-[5px] text-[28px] font-extrabold leading-8 tracking-[-0.02em] tabular-nums">{speedValue}</p>
               )}
+              <SubjectRow
+                caption={
+                  speed
+                    ? (speed.nextTierSpeed !== undefined && speed.nextTierStatPoints !== undefined
+                      ? `超 ${speed.nextTierSpeed} 档需 +${speed.nextTierStatPoints}`
+                      : undefined)
+                    : SPEED_SAMPLE_CAPTION
+                }
+                subject={
+                  speed
+                    ? { label: speed.label, iconRef: speed.iconRef }
+                    : { label: defaultSpeedSubject.label, iconRef: defaultSpeedSubject.iconRef }
+                }
+              />
             </>
           }
           foot={
@@ -265,7 +368,8 @@ export function ToolsPage({
               <span className="text-xs font-normal text-textSecondary">18 × 18</span>
               <ChevronRight className="shrink-0 text-chevron" size={18} />
             </div>
-            {typeChart && <TypeChartLine result={typeChart} />}
+            <CardLabel>{typeChart ? '上次' : '示例'}</CardLabel>
+            <TypeChartLine type={typeChart ? typeChart.type : TYPE_CHART_SAMPLE_TYPE} />
             <div className="mt-3.5 flex gap-[5px]">
               {attackingTypes.map((type) => (
                 <span key={type} className="h-1.5 flex-1 rounded-full" style={{ background: typeColors[type] }} />
@@ -276,9 +380,10 @@ export function ToolsPage({
 
       </div>
 
-      {recentUses.length > 0 && (
-        <div className="px-6 pt-7">
-          <h2 className="text-[22px] font-extrabold leading-[30px] tracking-[-0.01em]">最近用过</h2>
+      {/* The heading stays put with nothing under it: 04-01 keeps the section, not its cards. */}
+      <div className="px-6 pt-7">
+        <h2 className="text-[22px] font-extrabold leading-[30px] tracking-[-0.01em]">最近用过</h2>
+        {recentUses.length > 0 && (
           <div className="mt-3 flex gap-2.5">
             {recentUses.map((use) => (
               <button key={use.tool} className="min-w-0 flex-1 text-left" type="button" onClick={() => onOpenTool(use.tool)}>
@@ -290,8 +395,8 @@ export function ToolsPage({
               </button>
             ))}
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
