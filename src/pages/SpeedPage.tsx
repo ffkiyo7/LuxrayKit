@@ -23,11 +23,17 @@ import {
   type SpeedTierGroup,
 } from '../lib/speedTier';
 import { MAX_STAT_POINTS_PER_STAT } from '../lib/statPoints';
+import { recordToolResult } from '../lib/toolActivity';
 import type { Pokemon, Team, TeamMember } from '../types';
 import { ListRow, PageHeader, Pill, SearchField, SectionLabel, Sheet, Sprite, Switch } from '../components/kit';
 
 type BattleType = 'singles' | 'doubles';
 type MarkerOffscreen = 'up' | 'down' | null;
+
+/** Debounce before a settled build reaches 04-01's card. */
+const RESULT_RECORD_DELAY_MS = 800;
+/** Tier rows the card's sparkline shows around the member, the member's own bar included. */
+const SPARKLINE_WINDOW = 6;
 
 const groupPrimaryLabel = (group: SpeedTierGroup) => group.variants[0].displayLabel;
 
@@ -35,6 +41,15 @@ const groupRoster = (group: SpeedTierGroup) =>
   group.variants.flatMap((variant) =>
     variant.pokemon.map((entry) => ({ key: `${variant.code}-${entry.key}`, label: entry.displayName, variant: variant.label, iconRef: entry.iconRef })),
   );
+
+/** `tierSpeeds` runs fastest → slowest and the member's own bar belongs at `markerIndex`. */
+const sparklineWindow = (tierSpeeds: number[], markerIndex: number, finalSpeed: number) => {
+  const neighbours = SPARKLINE_WINDOW - 1;
+  const start = Math.max(0, Math.min(markerIndex - Math.floor(neighbours / 2), tierSpeeds.length - neighbours));
+  const around = tierSpeeds.slice(start, start + neighbours);
+  const index = Math.max(0, Math.min(markerIndex - start, around.length));
+  return { speeds: [...around.slice(0, index), finalSpeed, ...around.slice(index)], index };
+};
 
 const natureFromMember = (member?: TeamMember): SpeedNature => {
   const option = currentRuleNatureOptions.find((candidate) => member?.nature.includes(candidate.id));
@@ -253,11 +268,16 @@ export function SpeedPage({
   const [selectedTier, setSelectedTier] = useState<SpeedTierGroup | null>(null);
   const [expandedTier, setExpandedTier] = useState<number | null>(null);
   const [markerOffscreen, setMarkerOffscreen] = useState<MarkerOffscreen>(null);
+  // The opening pokemon is a neutral default, not a choice — 04-01 only speaks for a member the
+  // user actually settled on.
+  const [memberChosen, setMemberChosen] = useState(false);
   const markerRef = useRef<HTMLDivElement>(null);
 
   const selected = pokemon.find((entry) => entry.id === selectedPokemonId) ?? defaultPokemon;
   const selectedForm = findBattleForm(selected.id, selectedFormId) ?? findBattleForm(selected.id, selected.id);
   const selectedName = selectedForm?.chineseName ?? selected.chineseName;
+  const selectedFormIconRef = selectedForm?.iconRef;
+  const selectedIconRef = selected.iconRef;
   const matchingMember = activeTeam?.members.find(
     (member) => member.pokemonId === selected.id && (member.formId ?? selected.id) === (selectedForm?.id ?? selected.id),
   );
@@ -330,6 +350,7 @@ export function SpeedPage({
       tailwind: false,
     });
     setQuery('');
+    setMemberChosen(true);
   };
 
   // Jump-in from a team member: carry the saved pokemon/form/nature/scarf/SP.
@@ -342,7 +363,52 @@ export function SpeedPage({
     setSelectedPokemonId(entry.id);
     setSelectedFormId(presetMember.formId);
     setBuild(createBuild(entry, findBattleForm(entry.id, presetMember.formId), presetMember));
+    setMemberChosen(true);
   }, [presetMember]);
+
+  // 04-01's 速度线 card. Debounced so dragging the SP slider does not write a row per frame.
+  useEffect(() => {
+    if (!memberChosen) return;
+    const timer = window.setTimeout(() => {
+      const nextTier = markerIndex > 0 ? tiers[markerIndex - 1] : undefined;
+      const plan = nextTier
+        ? buildOutspeedPlan({
+            target: nextTier.speed,
+            current: build,
+            scarfEligible: scarfUsageRate >= SCARF_SUGGESTION_USAGE_THRESHOLD,
+            speedAbility: availableAbility,
+          })
+        : undefined;
+      // 「超 N 档需 +M」 only holds when the cheapest plan is speed SP alone on the same nature.
+      const extraStatPoints =
+        plan?.status === 'suggestions' && plan.primary.rung === 'investment' && plan.primary.build.nature === build.nature
+          ? plan.primary.build.statPoints - build.statPoints
+          : 0;
+      const sparkline = sparklineWindow(tiers.map((group) => group.speed), markerIndex, finalSpeed);
+      recordToolResult({
+        tool: 'speed',
+        label: selectedName,
+        iconRef: selectedFormIconRef ?? selectedIconRef,
+        speed: finalSpeed,
+        nextTierSpeed: extraStatPoints > 0 ? nextTier?.speed : undefined,
+        nextTierStatPoints: extraStatPoints > 0 ? extraStatPoints : undefined,
+        window: sparkline.speeds,
+        windowIndex: sparkline.index,
+      });
+    }, RESULT_RECORD_DELAY_MS);
+    return () => window.clearTimeout(timer);
+  }, [
+    availableAbility,
+    build,
+    finalSpeed,
+    markerIndex,
+    memberChosen,
+    scarfUsageRate,
+    selectedFormIconRef,
+    selectedIconRef,
+    selectedName,
+    tiers,
+  ]);
 
   const scrollToMarker = () => markerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 

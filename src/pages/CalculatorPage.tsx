@@ -14,6 +14,7 @@ import {
 } from '../lib/damageAdapter';
 import { findBattleForm } from '../lib/pokemonForms';
 import { clampStatPointValue, MAX_STAT_POINTS_PER_STAT, MAX_TOTAL_STAT_POINTS } from '../lib/statPoints';
+import { recordToolResult } from '../lib/toolActivity';
 import { useAppStore } from '../state/AppContext';
 import type { Move as AppMove, StatPoints, TeamMember } from '../types';
 import { StatPointPicker } from '../components/StatPointPicker';
@@ -23,6 +24,9 @@ export type CalcSide = 'attacker' | 'defender';
 
 /** Top slice of the environment ranking offered as ready-made picks (plan: 仅名次前 60). */
 const ENVIRONMENT_PICK_LIMIT = 60;
+
+/** Debounce before a settled result reaches 04-01's card. */
+const RESULT_RECORD_DELAY_MS = 800;
 
 const weatherOptions: Array<{ id: string; note?: string }> = [
   { id: '无天气' },
@@ -905,6 +909,33 @@ export function CalculatorPage({
     return computeDamage({ attacker: attackerConfig, defender: defenderConfig, battleType, weather, isCritical, attackStage: 0 });
     // eslint-disable-next-line
   }, [damageKey]);
+
+  // 04-01 shows the last run on the tools landing. Wait for the inputs to settle so dragging an
+  // SP slider does not write a row per frame.
+  useEffect(() => {
+    if (damageResult?.status !== 'experimental-success') return;
+    const { minDamage, maxDamage, minPercent, maxPercent, possibleHkoText } = damageResult;
+    if (minDamage === undefined || maxDamage === undefined || minPercent === undefined || maxPercent === undefined) return;
+    if (!possibleHkoText) return;
+    const entry = pokemon.find((candidate) => candidate.id === attackerConfig.pokemonId);
+    const form = findBattleForm(entry?.id ?? '', attackerConfig.formId);
+    const label = form?.chineseName ?? entry?.chineseName;
+    if (!label) return;
+    const timer = window.setTimeout(
+      () => recordToolResult({
+        tool: 'calculator',
+        label,
+        iconRef: form?.iconRef ?? entry?.iconRef,
+        minDamage,
+        maxDamage,
+        minPercent,
+        maxPercent,
+        hko: possibleHkoText,
+      }),
+      RESULT_RECORD_DELAY_MS,
+    );
+    return () => window.clearTimeout(timer);
+  }, [attackerConfig.formId, attackerConfig.pokemonId, damageResult]);
 
   if (editorSide) {
     return (

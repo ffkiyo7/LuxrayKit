@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { readToolResults } from '../lib/toolActivity';
 import { environmentFallbackState, type EnvironmentState } from '../data/environment';
 import { currentDataVersion, currentRuleSet } from '../data';
 import type { Team } from '../types';
@@ -25,6 +26,10 @@ const environment: EnvironmentState = {
     ],
   },
 };
+
+beforeEach(() => {
+  window.localStorage.clear();
+});
 
 afterEach(() => {
   cleanup();
@@ -112,6 +117,25 @@ describe('SpeedPage', () => {
     await user.click(applyButtons[0]);
     expect(screen.queryByRole('dialog', { name: /^超速 / })).toBeNull();
     expect(screen.getByRole('button', { name: '＋ 速度性格' }).getAttribute('aria-pressed')).toBe('true');
+  });
+
+  it('records the chosen member for the tools landing, but not the neutral default', async () => {
+    const user = userEvent.setup();
+    render(<SpeedPage environment={environment} />);
+
+    expect(readToolResults()).toEqual([]);
+
+    await user.type(screen.getByRole('textbox', { name: '搜索宝可梦' }), 'Staraptor');
+    await user.click(screen.getByRole('button', { name: '姆克鹰 Staraptor' }));
+
+    await waitFor(
+      () => {
+        const [result] = readToolResults();
+        expect(result).toMatchObject({ tool: 'speed', label: '姆克鹰' });
+        expect(result.tool === 'speed' && result.window?.length).toBeGreaterThan(1);
+      },
+      { timeout: 3000 },
+    );
   });
 
   it('explains a name that is outside the current rule instead of showing an empty list', async () => {

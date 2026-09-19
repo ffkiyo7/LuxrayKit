@@ -13,6 +13,7 @@ import { typeLabels } from '../components/ui';
 import { currentRuleSet, pokemon } from '../data';
 import type { EnvironmentState } from '../data/environment';
 import { attackingTypes, defensiveMatchupMultiplier } from '../lib/calculations';
+import { recordToolResult } from '../lib/toolActivity';
 import { defenseBuckets, defensiveProfile, offensiveProfile, representativeSpecies } from '../lib/typeChart';
 import type { Pokemon, PokemonType } from '../types';
 
@@ -379,6 +380,7 @@ function TypeMatrix() {
     if (suppressClickRef.current) return;
     scrollModeRef.current = 'if-needed';
     setSelection(next);
+    recordToolResult({ tool: 'typeChart', type: next.attacker });
   };
 
   const focusCell = (next: Selection) => {
@@ -560,6 +562,13 @@ export function TypeChartPage({ environment }: { environment: EnvironmentState |
     return representativeSpecies(legal, types, (entry) => rankByPokemonId.get(entry.id) ?? null);
   }, [primary, rankByPokemonId, secondary]);
 
+  // Picking a type is one deliberate tap, so 04-01's card takes it as it happens. Arrow-key
+  // walks across the matrix are not picks and stay unrecorded.
+  const pickSingleType = (type: PokemonType) => {
+    setPrimary(type);
+    recordToolResult({ tool: 'typeChart', type });
+  };
+
   const pickForSlot = (type: PokemonType) => {
     const slot = editing ?? 'primary';
     // A species never carries the same type twice, so picking the other slot's type swaps the pair
@@ -567,9 +576,11 @@ export function TypeChartPage({ environment }: { environment: EnvironmentState |
     if (slot === 'primary') {
       if (secondary === type) setSecondary(primary);
       setPrimary(type);
+      recordToolResult({ tool: 'typeChart', type });
     } else {
       if (primary === type) setPrimary(secondary ?? primary);
       setSecondary(type);
+      recordToolResult({ tool: 'typeChart', type: primary === type ? (secondary ?? primary) : primary });
     }
     setEditing(null);
   };
@@ -594,7 +605,7 @@ export function TypeChartPage({ environment }: { environment: EnvironmentState |
         ))}
       </div>
 
-      {tab === 'single' && <SingleTypeView type={primary} onSelect={setPrimary} />}
+      {tab === 'single' && <SingleTypeView type={primary} onSelect={pickSingleType} />}
       {tab === 'dual' && (
         <DualTypeView
           editing={editing}

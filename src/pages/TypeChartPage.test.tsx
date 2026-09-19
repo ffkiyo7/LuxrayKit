@@ -2,9 +2,11 @@
 import { cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { readToolResults } from '../lib/toolActivity';
 import { TypeChartPage } from './TypeChartPage';
 
 beforeEach(() => {
+  window.localStorage.clear();
   vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => window.setTimeout(() => callback(performance.now() + 250), 0));
   vi.stubGlobal('cancelAnimationFrame', (id: number) => window.clearTimeout(id));
   Object.defineProperty(window, 'matchMedia', {
@@ -34,6 +36,16 @@ describe('TypeChartPage', () => {
     expect(screen.queryByText('抵抗')).toBeNull();
     expect(screen.getByText('没有效果')).toBeTruthy();
     expect(screen.getByText('免疫')).toBeTruthy();
+  });
+
+  it('records the picked type for the tools landing, but not the type it opens on', async () => {
+    const user = userEvent.setup();
+    render(<TypeChartPage environment={null} />);
+
+    expect(readToolResults()).toEqual([]);
+
+    await user.click(within(screen.getByRole('group', { name: '选择属性' })).getByRole('button', { name: '妖精' }));
+    expect(readToolResults()[0]).toMatchObject({ tool: 'typeChart', type: 'Fairy' });
   });
 
   it('groups the dual-type answer by multiplier once the second slot is filled', async () => {

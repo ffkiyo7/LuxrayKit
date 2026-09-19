@@ -1,8 +1,9 @@
 // @vitest-environment jsdom
 import 'fake-indexeddb/auto';
-import { cleanup, render, screen, within } from '@testing-library/react';
+import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { readToolResults } from '../lib/toolActivity';
 import { AppProvider } from '../state/AppContext';
 import { CalculatorPage } from './CalculatorPage';
 
@@ -47,6 +48,7 @@ const selectPokemon = async (
 describe('CalculatorPage', () => {
   beforeEach(async () => {
     await deleteDb();
+    window.localStorage.clear();
   });
 
   afterEach(() => {
@@ -90,6 +92,24 @@ describe('CalculatorPage', () => {
     expect(screen.getByRole('switch', { name: '会心一击' }).getAttribute('aria-checked')).toBe('true');
     expect(screen.getByRole('button', { name: '天气 晴天' })).toBeTruthy();
     expect(screen.getByRole('button', { name: '单打' }).getAttribute('aria-pressed')).toBe('true');
+  });
+
+  it('records a settled damage range for the tools landing, and nothing before one exists', async () => {
+    const user = userEvent.setup();
+    await renderCalculator();
+
+    await selectPokemon(user, '进攻方', 'Garchomp', '烈咬陆鲨');
+    expect(readToolResults()).toEqual([]);
+
+    await selectPokemon(user, '防守方', 'Torkoal', '煤炭龟');
+    await waitFor(
+      () => {
+        const [result] = readToolResults();
+        expect(result).toMatchObject({ tool: 'calculator', label: '烈咬陆鲨' });
+        expect(result.tool === 'calculator' && result.maxDamage).toBeGreaterThan(0);
+      },
+      { timeout: 3000 },
+    );
   });
 
   it('lists the top environment picks under 环境常用 and leaves the config blank', async () => {
