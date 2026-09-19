@@ -2,7 +2,7 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { readToolResults } from '../lib/toolActivity';
+import { readToolResults, recordToolResult } from '../lib/toolActivity';
 import { environmentFallbackState, type EnvironmentState } from '../data/environment';
 import { currentDataVersion, currentRuleSet } from '../data';
 import type { Team } from '../types';
@@ -61,14 +61,43 @@ const teamWithFastLeadoff = (): Team => ({
 });
 
 describe('SpeedPage', () => {
-  it('opens on a neutral default instead of inheriting the active team first member', () => {
-    // Regression: opening the tool used to seed SP/nature/scarf from activeTeam.members[0].
-    render(<SpeedPage environment={environment} activeTeam={teamWithFastLeadoff()} />);
+  it('opens on the newest team lead with a neutral build, not a hard-coded default', () => {
+    const team = teamWithFastLeadoff();
+    render(<SpeedPage environment={environment} activeTeam={team} teams={[team]} />);
 
-    // Neutral default (max SP, no speed nature), not the member's 4 SP / 爽朗 / choice-scarf.
+    expect(screen.getAllByText('烈咬陆鲨').length).toBeGreaterThan(0);
+    // The subject decides who, not how they are invested: still max SP / no nature / no scarf,
+    // never the member's own 4 SP / 爽朗 / choice-scarf.
     expect(screen.getByRole('slider', { name: '速度 SP' }).getAttribute('value')).toBe('32');
     expect(screen.getByRole('button', { name: '＋ 速度性格' }).getAttribute('aria-pressed')).toBe('false');
     expect(screen.getByRole('switch', { name: '讲究围巾' }).getAttribute('aria-checked')).toBe('false');
+  });
+
+  it('reopens on the pokemon and build behind the tools card', () => {
+    recordToolResult({
+      tool: 'speed',
+      label: '烈咬陆鲨',
+      pokemonId: 'garchomp',
+      build: { baseSpeed: 102, statPoints: 0, nature: 'increased', scarf: true, speedAbility: false, tailwind: false },
+      speed: 201,
+    });
+    render(<SpeedPage environment={environment} teams={[teamWithFastLeadoff()]} />);
+
+    expect(screen.getAllByText('烈咬陆鲨').length).toBeGreaterThan(0);
+    expect(screen.getByRole('slider', { name: '速度 SP' }).getAttribute('value')).toBe('0');
+    expect(screen.getByRole('button', { name: '＋ 速度性格' }).getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByRole('switch', { name: '讲究围巾' }).getAttribute('aria-checked')).toBe('true');
+  });
+
+  it('searches by base speed, exactly', async () => {
+    const user = userEvent.setup();
+    render(<SpeedPage environment={environment} />);
+
+    await user.type(screen.getByRole('textbox', { name: '搜索宝可梦' }), '102');
+
+    const hits = screen.getAllByText(/速度种族值 \d+/);
+    expect(hits.length).toBeGreaterThan(0);
+    for (const hit of hits) expect(hit.textContent).toContain('速度种族值 102');
   });
 
   it('updates the final speed and the axis marker from SP and nature controls', async () => {

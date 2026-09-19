@@ -314,9 +314,9 @@ describe('App page flows', () => {
     expect(screen.getByRole('button', { name: /伤害计算/ })).toBeTruthy();
     expect(screen.getByRole('button', { name: /速度线/ })).toBeTruthy();
     expect(screen.getByRole('button', { name: /属性速查/ })).toBeTruthy();
-    // N04-11: the unbuilt entries are present but inert.
-    expect(screen.getByText('对局记录')).toBeTruthy();
-    expect(screen.getAllByText('未开放').length).toBe(2);
+    // 对局记录 / 随机一队 are not on the roadmap, so the tools page carries no entry for them.
+    expect(screen.queryByText('对局记录')).toBeNull();
+    expect(screen.queryByText('未开放')).toBeNull();
     // Nothing has been used yet, so neither recent surface is drawn.
     expect(screen.queryByRole('heading', { name: '最近用过' })).toBeNull();
     expect(screen.queryByText(/三个入口并列|从本地队伍带入配置|队伍配置带入/)).toBeNull();

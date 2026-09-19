@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { EnvironmentState } from '../data/environment';
+import type { Team } from '../types';
 import { speedTierSnapshots } from '../data/speedTiers';
 import {
   buildOutspeedPlan,
@@ -9,6 +10,7 @@ import {
   getSpeedAbilityProfile,
   groupTiersBySpeed,
   markerInsertIndex,
+  resolveDefaultSpeedSubject,
   resolveTierPokemon,
   sortVariantsByUsage,
   type SpeedBuild,
@@ -95,6 +97,36 @@ describe('speed tier selectors', () => {
     expect(getScarfUsageRate(environment, 'staraptor', 'singles')).toBe(0);
     expect(getSpeedAbilityProfile('chlorophyll')).toMatchObject({ label: '叶绿素', requirement: '需晴天' });
     expect(getSpeedAbilityProfile('protosynthesis')).toBeUndefined();
+  });
+
+  it('picks the default subject from the newest team, then the environment, then the catalog', () => {
+    const environment = {
+      pokemonUsage: {
+        singles: [],
+        doubles: [
+          { pokemonId: 'staraptor', usageRate: 12 },
+          { pokemonId: 'garchomp', usageRate: 41 },
+        ],
+      },
+    } as unknown as EnvironmentState;
+    const team = (id: string, pokemonId: string, updatedAt: string) =>
+      ({ id, updatedAt, members: [{ id: `${id}-lead`, pokemonId }] }) as unknown as Team;
+
+    expect(
+      resolveDefaultSpeedSubject({
+        teams: [team('old', 'pikachu', '2026-01-01T00:00:00.000Z'), team('new', 'staraptor', '2026-09-01T00:00:00.000Z')],
+        environment,
+        battleType: 'doubles',
+      }),
+    ).toMatchObject({ pokemonId: 'staraptor', label: '姆克鹰' });
+
+    // No team: the most-used species of that battle type, not the first row of the list.
+    expect(resolveDefaultSpeedSubject({ teams: [], environment, battleType: 'doubles' })).toMatchObject({
+      pokemonId: 'garchomp',
+    });
+
+    // Nothing at all still yields one determinate subject, which is what the tools card names.
+    expect(resolveDefaultSpeedSubject({ battleType: 'doubles' }).pokemonId).toBeTruthy();
   });
 
   it('uses the dex Chinese names for speed abilities', () => {
@@ -277,6 +309,25 @@ describe('speed tier grouping', () => {
       speedTierSnapshots.flatMap((snapshot) => snapshot.tiers).filter((tier) => tier.code === '151'),
     ).flatMap((group) => group.variants.map((variant) => variant.displayLabel));
     expect(tier151Labels).toEqual([]);
+  });
+
+  // Gate for 「档位头像全挂」: an avatar only falls back to the name's first letter when the entry
+  // either failed to match the catalog or matched a row without artwork. Both are silent, so keep
+  // a floor under the shipped snapshot rather than trusting a spot check.
+  it('resolves nearly every shipped speed-tier entry to a catalog row with artwork', () => {
+    const raw = speedTierSnapshots.flatMap((snapshot) => snapshot.tiers).flatMap((tier) => tier.pokemon);
+    const resolved = raw.map(resolveTierPokemon);
+    const unmatched = resolved.filter((entry) => !entry.matched).map((entry) => `${entry.key} ${entry.displayName}`);
+
+    expect(resolved.filter((entry) => entry.matched).length / raw.length).toBeGreaterThanOrEqual(0.95);
+    expect(unmatched).toEqual([]);
+
+    // Everything the axis and the outspeed sheet actually draw has to carry an icon.
+    const drawn = speedTierSnapshots
+      .flatMap((snapshot) => groupTiersBySpeed(snapshot.tiers))
+      .flatMap((group) => group.variants)
+      .flatMap((variant) => variant.pokemon);
+    expect(drawn.filter((entry) => !entry.iconRef)).toEqual([]);
   });
 
   it('places the marker slot right below every strictly-faster group', () => {

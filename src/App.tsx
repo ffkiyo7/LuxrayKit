@@ -181,6 +181,7 @@ function ToolWorkspace({
   onOpenCalculator,
   onOpenDex,
   environment,
+  teams,
   activeTeam,
   speedPresetMember,
   calcPreset,
@@ -193,6 +194,7 @@ function ToolWorkspace({
   onOpenCalculator: (pokemonId: string) => void;
   onOpenDex: () => void;
   environment: EnvironmentState | null;
+  teams?: Team[];
   activeTeam?: Team;
   speedPresetMember?: TeamMember;
   calcPreset?: { memberId: string; side: CalcSide };
@@ -201,7 +203,17 @@ function ToolWorkspace({
   const content = {
     calculator: <CalculatorPage environment={environment} selectedMemberId={selectedMemberId} onPickMember={onPickMember} presetMember={calcPreset} />,
     dex: <DexPage initialTab={dexTab} onOpenCalculator={onOpenCalculator} />,
-    speed: environment ? <SpeedPage environment={environment} activeTeam={activeTeam} presetMember={speedPresetMember} onOpenDex={onOpenDex} /> : <PageLoading label="正在载入速度线" />,
+    speed: environment ? (
+      <SpeedPage
+        environment={environment}
+        teams={teams}
+        activeTeam={activeTeam}
+        presetMember={speedPresetMember}
+        onOpenDex={onOpenDex}
+      />
+    ) : (
+      <PageLoading label="正在载入速度线" />
+    ),
     typeChart: <TypeChartPage environment={environment} />,
   }[view];
 
@@ -471,13 +483,14 @@ function AppShell() {
             }}
             onOpenDex={() => navigate({ name: 'tool', tool: 'dex' })}
             environment={environmentState}
+            teams={teams}
             activeTeam={activeTeam}
             speedPresetMember={speedPresetMember}
             calcPreset={calcPreset}
             dexTab={dexTab}
           />
         ) : (
-          <ToolsPage onOpenDexEntry={openDexEntry} onOpenTool={openTool} />
+          <ToolsPage environment={environmentState} teams={teams} onOpenDexEntry={openDexEntry} onOpenTool={openTool} />
         );
       case 'profile':
         switch (route.name) {

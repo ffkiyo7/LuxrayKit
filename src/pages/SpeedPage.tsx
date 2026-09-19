@@ -14,6 +14,7 @@ import {
   getSpeedAbilityProfile,
   groupTiersBySpeed,
   markerInsertIndex,
+  resolveDefaultSpeedSubject,
   sortVariantsByUsage,
   SCARF_SUGGESTION_USAGE_THRESHOLD,
   type OutspeedPlanOption,
@@ -23,7 +24,7 @@ import {
   type SpeedTierGroup,
 } from '../lib/speedTier';
 import { MAX_STAT_POINTS_PER_STAT } from '../lib/statPoints';
-import { recordToolResult } from '../lib/toolActivity';
+import { readToolResults, recordToolResult, type SpeedToolResult } from '../lib/toolActivity';
 import type { Pokemon, Team, TeamMember } from '../types';
 import { ListRow, PageHeader, Pill, SearchField, SectionLabel, Sheet, Sprite, Switch } from '../components/kit';
 
@@ -246,34 +247,57 @@ function TierRow({
 
 // ── Page ──
 
+/**
+ * Where the page starts when it is opened cold: the last recorded run if there is one — 04-01's
+ * card names that Pokémon, so tapping the card has to land on it with its recorded build — and
+ * otherwise `resolveDefaultSpeedSubject`, which the card reads too.
+ */
+const openingState = (teams: Team[] | undefined, environment: EnvironmentState) => {
+  const recorded = readToolResults().find((result): result is SpeedToolResult => result.tool === 'speed');
+  const recordedEntry = recorded && pokemon.find((entry) => entry.id === recorded.pokemonId);
+  if (recorded && recordedEntry) {
+    return { pokemonId: recordedEntry.id, formId: recorded.formId, build: recorded.build, fromRecord: true };
+  }
+  const subject = resolveDefaultSpeedSubject({ teams, environment, battleType: currentRuleSet.battleType });
+  const entry = pokemon.find((candidate) => candidate.id === subject.pokemonId) ?? pokemon[0];
+  return {
+    pokemonId: entry.id,
+    formId: subject.formId,
+    // The subject decides *who*, never how they are invested: a member's own SP / nature only
+    // travels via an explicit "send to speed" (presetMember, below).
+    build: createBuild(entry, findBattleForm(entry.id, subject.formId)),
+    fromRecord: false,
+  };
+};
+
 export function SpeedPage({
   environment,
+  teams,
   activeTeam,
   presetMember,
   onOpenDex,
 }: {
   environment: EnvironmentState;
+  teams?: Team[];
   activeTeam?: Team;
   presetMember?: TeamMember;
   onOpenDex?: () => void;
 }) {
-  // Open on a neutral default that is independent of any team. Carrying a specific member's
-  // config only happens via an explicit "send to speed" (presetMember, below).
-  const defaultPokemon = pokemon.find((entry) => entry.id === 'staraptor') ?? pokemon[0];
+  const [opening] = useState(() => openingState(teams, environment));
   const [battleType, setBattleType] = useState<BattleType>(currentRuleSet.battleType);
-  const [selectedPokemonId, setSelectedPokemonId] = useState(defaultPokemon.id);
-  const [selectedFormId, setSelectedFormId] = useState<string | undefined>(undefined);
-  const [build, setBuild] = useState(() => createBuild(defaultPokemon, findBattleForm(defaultPokemon.id, undefined)));
+  const [selectedPokemonId, setSelectedPokemonId] = useState(opening.pokemonId);
+  const [selectedFormId, setSelectedFormId] = useState<string | undefined>(opening.formId);
+  const [build, setBuild] = useState(opening.build);
   const [query, setQuery] = useState('');
   const [selectedTier, setSelectedTier] = useState<SpeedTierGroup | null>(null);
   const [expandedTier, setExpandedTier] = useState<number | null>(null);
   const [markerOffscreen, setMarkerOffscreen] = useState<MarkerOffscreen>(null);
-  // The opening pokemon is a neutral default, not a choice — 04-01 only speaks for a member the
-  // user actually settled on.
-  const [memberChosen, setMemberChosen] = useState(false);
+  // The opening pokemon is a default, not a choice — 04-01 only speaks for a member the user
+  // actually settled on. Reopening on an existing record is already such a choice.
+  const [memberChosen, setMemberChosen] = useState(opening.fromRecord);
   const markerRef = useRef<HTMLDivElement>(null);
 
-  const selected = pokemon.find((entry) => entry.id === selectedPokemonId) ?? defaultPokemon;
+  const selected = pokemon.find((entry) => entry.id === selectedPokemonId) ?? pokemon[0];
   const selectedForm = findBattleForm(selected.id, selectedFormId) ?? findBattleForm(selected.id, selected.id);
   const selectedName = selectedForm?.chineseName ?? selected.chineseName;
   const selectedFormIconRef = selectedForm?.iconRef;
@@ -298,12 +322,11 @@ export function SpeedPage({
   const trimmedQuery = query.trim();
   const matchesQuery = useCallback(
     (entry: DexFormEntry) => {
+      // An all-digit query is a base-speed lookup, and only an exact one is useful: a substring
+      // match on 「100」 would drag in every 100x tier alongside the 100s.
+      if (/^\d+$/.test(trimmedQuery)) return entry.baseStats.speed === Number(trimmedQuery);
       const needle = trimmedQuery.toLowerCase();
-      return (
-        entry.chineseName.includes(trimmedQuery) ||
-        entry.englishName.toLowerCase().includes(needle) ||
-        String(entry.baseStats.speed).includes(needle)
-      );
+      return entry.chineseName.includes(trimmedQuery) || entry.englishName.toLowerCase().includes(needle);
     },
     [trimmedQuery],
   );
@@ -389,6 +412,9 @@ export function SpeedPage({
         tool: 'speed',
         label: selectedName,
         iconRef: selectedFormIconRef ?? selectedIconRef,
+        pokemonId: selectedPokemonId,
+        formId: selectedFormId,
+        build,
         speed: finalSpeed,
         nextTierSpeed: extraStatPoints > 0 ? nextTier?.speed : undefined,
         nextTierStatPoints: extraStatPoints > 0 ? extraStatPoints : undefined,
@@ -405,8 +431,10 @@ export function SpeedPage({
     memberChosen,
     scarfUsageRate,
     selectedFormIconRef,
+    selectedFormId,
     selectedIconRef,
     selectedName,
+    selectedPokemonId,
     tiers,
   ]);
 
@@ -422,7 +450,13 @@ export function SpeedPage({
         title="速度线"
       />
 
-      <SearchField className="mx-6 mt-4" label="搜索宝可梦" placeholder="名称 / 速度种族值" value={query} onChange={setQuery} />
+      <SearchField
+        className="mx-6 mt-4"
+        label="搜索宝可梦"
+        placeholder="搜索宝可梦名称/速度种族值"
+        value={query}
+        onChange={setQuery}
+      />
 
       {trimmedQuery ? (
         <>

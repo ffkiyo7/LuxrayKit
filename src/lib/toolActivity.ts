@@ -9,6 +9,8 @@
  */
 
 import type { PokemonType } from '../types';
+// Type-only: keeps the tool store free of the catalog that speedTier pulls in at runtime.
+import type { SpeedBuild } from './speedTier';
 
 const DEX_KEY = 'luxraykit.recentDex.v1';
 // v2 stores each tool's raw result instead of a pre-rendered caption; v1 payloads simply do not
@@ -48,6 +50,10 @@ export type SpeedToolResult = {
   tool: 'speed';
   label: string;
   iconRef?: string;
+  /** Who the card names — and, on a tap, exactly who the page reopens on, with `build` applied. */
+  pokemonId: string;
+  formId?: string;
+  build: SpeedBuild;
   speed: number;
   /** Nearest tier the member is still slower than, and the speed SP that would clear it. */
   nextTierSpeed?: number;
@@ -93,6 +99,15 @@ const isDexEntry = (value: unknown): value is RecentDexEntry =>
 
 const isFiniteNumber = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value);
 
+// A v2 speed row carries no build, so it fails here and is dropped — the readers already treat
+// that as "nothing recent", and one lost row is cheaper than reopening the page on a half-result.
+const isSpeedBuild = (value: unknown): value is SpeedBuild =>
+  isRecord(value)
+  && isFiniteNumber(value.baseSpeed)
+  && isFiniteNumber(value.statPoints)
+  && ['decreased', 'neutral', 'increased'].includes(value.nature as string)
+  && [value.scarf, value.speedAbility, value.tailwind].every((flag) => typeof flag === 'boolean');
+
 const isToolResult = (value: unknown): value is ToolResult => {
   if (!isRecord(value)) return false;
   switch (value.tool) {
@@ -101,7 +116,10 @@ const isToolResult = (value: unknown): value is ToolResult => {
         && typeof value.hko === 'string'
         && [value.minDamage, value.maxDamage, value.minPercent, value.maxPercent].every(isFiniteNumber);
     case 'speed':
-      return typeof value.label === 'string' && isFiniteNumber(value.speed);
+      return typeof value.label === 'string'
+        && typeof value.pokemonId === 'string'
+        && isSpeedBuild(value.build)
+        && isFiniteNumber(value.speed);
     case 'typeChart':
       return typeof value.type === 'string';
     default:
