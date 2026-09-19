@@ -48,7 +48,8 @@
   --lk-aura-s1: 20%;
 }
 
-/* 03-01 member card: the same two-type wash as the expanded card (02-05), on the editor face. */
+/* 03-01 member card: the same two-colour wash as the expanded card (02-05) — body colours first,
+   type colours as the fallback — on the editor face. */
 .lk-editor-aura {
   background:
     radial-gradient(

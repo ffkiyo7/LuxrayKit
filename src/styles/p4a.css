@@ -121,9 +121,10 @@
   box-shadow: inset 0 0 0 1px var(--p4a-owner-disc-ring);
 }
 
-/* N04-10 — the artwork plane takes the Pokémon's own type colours. Same gradient shape as the team
-   member card's `.lk-member-aura`, and it reads p3.css's `--lk-aura-s*` stops on purpose, so the
-   two surfaces can never drift apart; `auraStyle(types)` feeds the two colours. */
+/* N04-10 — the artwork plane takes the Pokémon's own body colours, sampled off that very artwork.
+   Same gradient shape as the team member card's `.lk-member-aura`, and it reads p3.css's
+   `--lk-aura-s*` stops on purpose, so the two surfaces can never drift apart;
+   `auraStyle(types, iconRef)` feeds the two colours, falling back to the type colours. */
 .lk-p4a-artwork-aura {
   background:
     radial-gradient(

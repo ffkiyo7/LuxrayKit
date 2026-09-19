@@ -9,8 +9,8 @@ import { MAX_STAT_POINTS_PER_STAT, MAX_TOTAL_STAT_POINTS, statPointTotal } from 
 import { rosterSpeciesIds } from '../../lib/teamComposition';
 import type { Team, TeamMember } from '../../types';
 import { PokemonPicker } from '../../components/PokemonPicker';
-import { PageHeader, Sprite, TypeDot } from '../../components/kit';
-import { typeColors, typeLabels } from '../../components/ui';
+import { auraStyle, PageHeader, Sprite, TypeDot } from '../../components/kit';
+import { typeLabels } from '../../components/ui';
 import { AbilityPickerPage } from './editor/AbilityPickerPage';
 import { ConfirmRemoveMemberSheet, DiscardChangesSheet } from './editor/EditorSheets';
 import { FormPickerPage } from './editor/FormPickerPage';
@@ -389,12 +389,7 @@ export function MemberEditor({
 
       <div
         className="lk-editor-aura mx-6 mt-5 flex items-center gap-[14px] rounded-[20px] p-4"
-        style={
-          {
-            '--lk-aura-c1': typeColors[types[0]] ?? '#8e8e93',
-            '--lk-aura-c2': typeColors[types[1] ?? types[0]] ?? '#8e8e93',
-          } as React.CSSProperties
-        }
+        style={auraStyle(types, form?.iconRef ?? entry.iconRef)}
       >
         <Sprite iconRef={form?.iconRef ?? entry.iconRef} label={name} size={64} />
         <div className="min-w-0 flex-1">

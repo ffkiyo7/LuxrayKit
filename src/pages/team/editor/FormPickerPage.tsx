@@ -1,8 +1,8 @@
 import { Check, Info } from 'lucide-react';
 import { items } from '../../../data';
 import type { BattleFormView } from '../../../lib/pokemonForms';
-import { ListRow, Sprite, TypeDot } from '../../../components/kit';
-import { typeColors, typeLabels } from '../../../components/ui';
+import { auraStyle, ListRow, Sprite, TypeDot } from '../../../components/kit';
+import { typeLabels } from '../../../components/ui';
 import { PickerPage } from './PickerPage';
 
 /** N03-14 — only reachable for a species that actually has a Mega form. */
@@ -41,12 +41,7 @@ export function FormPickerPage({
       <div className="px-6 pt-[22px]">
         <div
           className="lk-editor-aura overflow-hidden rounded-[20px] p-5 text-center"
-          style={
-            {
-              '--lk-aura-c1': typeColors[selected.types[0]] ?? '#8e8e93',
-              '--lk-aura-c2': typeColors[selected.types[1] ?? selected.types[0]] ?? '#8e8e93',
-            } as React.CSSProperties
-          }
+          style={auraStyle(selected.types, selected.iconRef)}
         >
           <Sprite
             className="lk-sprite-drop mx-auto"

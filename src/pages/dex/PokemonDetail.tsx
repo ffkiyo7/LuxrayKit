@@ -84,8 +84,9 @@ function MatchupGroup({
 }
 
 /**
- * N04-10: the artwork alone on a plane tinted with the Pokémon's own types — the same halo the
- * team member card paints, so a Mega or an alternate form re-tints the plane with its own types.
+ * N04-10: the artwork alone on a plane tinted with the Pokémon's own body colours — the same halo
+ * the team member card paints, so a Mega or an alternate form re-tints the plane with its own
+ * artwork's colours (and with its own types, for a sprite that has no sampled row).
  */
 function LargeArtwork({ entry, onClose }: { entry: DexFormEntry; onClose: () => void }) {
   const src = entry.artworkRef ?? entry.iconRef;
@@ -101,7 +102,7 @@ function LargeArtwork({ entry, onClose }: { entry: DexFormEntry; onClose: () => 
       className="lk-p4a-artwork-aura fixed inset-0 z-50 mx-auto max-w-[430px]"
       data-bottom-nav-lock="true"
       role="dialog"
-      style={auraStyle(entry.types)}
+      style={auraStyle(entry.types, entry.iconRef)}
     >
       <div className="flex justify-end px-6 pt-5">
         <button
