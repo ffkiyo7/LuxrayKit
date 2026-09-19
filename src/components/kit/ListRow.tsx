@@ -53,8 +53,10 @@ export function ListRow({
   );
 
   const shell = [
-    'flex w-full items-center',
-    bleed ? '-mx-6 px-6' : '',
+    'flex items-center',
+    // `w-full` plus a negative margin only shifts the row left; the bleed has to widen it by
+    // both gutters or the highlight stops 48px short of the right edge.
+    bleed ? '-mx-6 w-[calc(100%+3rem)] px-6' : 'w-full',
     divider ? 'border-b border-[var(--hairline)]' : '',
     active ? 'lk-row-active' : '',
     className,

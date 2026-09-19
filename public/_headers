@@ -5,6 +5,14 @@
   X-Frame-Options: DENY
   Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; manifest-src 'self'
 
+# Sprites are named by dex number / item slug and only ever get added. Without this the platform
+# default (`max-age=0, must-revalidate`) makes every list remount revalidate each avatar, which
+# shows as artwork popping in a second late.
+/assets/pokemon/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+/assets/items/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
 # CSP notes (verify in production DevTools after deploy — _headers only takes effect on Cloudflare,
 # never under `vite preview`, so no local test can catch a regression here):
 #   script-src 'self'      — the app ships no inline <script>; index.html loads one module bundle.

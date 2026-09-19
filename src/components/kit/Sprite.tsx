@@ -6,10 +6,12 @@ import { useState } from 'react';
  * missing or fails to load.
  */
 export function Sprite({ iconRef, label, size, className = '' }: { iconRef?: string; label: string; size: number; className?: string }) {
-  const [failed, setFailed] = useState(false);
+  // Keyed by src: a recycled row that once failed must not stay on the letter fallback after
+  // its `iconRef` changes.
+  const [failedSrc, setFailedSrc] = useState<string | undefined>();
   const isImage = Boolean(iconRef && /^(https?:|\/|\.\.?\/|data:image\/)/.test(iconRef));
 
-  if (!isImage || failed) {
+  if (!isImage || failedSrc === iconRef) {
     return (
       <span
         aria-hidden="true"
@@ -21,15 +23,16 @@ export function Sprite({ iconRef, label, size, className = '' }: { iconRef?: str
     );
   }
 
+  // No `decoding="async"`: with no chip behind the artwork, an async decode shows as an empty
+  // slot every time a list remounts, even when the file is already cached.
   return (
     <img
       alt={label}
       className={`shrink-0 object-contain ${className}`}
-      decoding="async"
       loading="lazy"
       src={iconRef}
       style={{ width: size, height: size }}
-      onError={() => setFailed(true)}
+      onError={() => setFailedSrc(iconRef)}
     />
   );
 }

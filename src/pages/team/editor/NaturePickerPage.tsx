@@ -107,7 +107,7 @@ export function NaturePickerPage({
               return (
                 <button
                   key={option.id}
-                  className={`flex h-[60px] w-full items-center gap-3 ${selected ? 'lk-row-active -mx-6 px-6' : ''} ${
+                  className={`flex h-[60px] items-center gap-3 ${selected ? 'lk-row-active -mx-6 w-[calc(100%+3rem)] px-6' : 'w-full'} ${
                     index < common.length - 1 ? 'border-b border-[var(--hairline)]' : ''
                   }`}
                   type="button"

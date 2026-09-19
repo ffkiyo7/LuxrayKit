@@ -35,7 +35,7 @@ export function AbilityPickerPage({
           return (
             <button
               key={ability.id}
-              className={`flex w-full items-start gap-3 py-4 text-left ${selected ? 'lk-row-active -mx-6 px-6' : ''} ${
+              className={`flex items-start gap-3 py-4 text-left ${selected ? 'lk-row-active -mx-6 w-[calc(100%+3rem)] px-6' : 'w-full'} ${
                 index < options.length - 1 ? 'border-b border-[var(--hairline)]' : ''
               }`}
               type="button"

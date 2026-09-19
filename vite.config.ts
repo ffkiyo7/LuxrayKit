@@ -80,6 +80,7 @@ export default defineConfig({
     // heavy environment-app render tests already sit close to vitest's 5s default.
     // Per-test `{ timeout }` options still take precedence over this baseline.
     testTimeout: 20000,
-    exclude: ['node_modules/**', 'dist/**', 'tmp/**', 'tests/pwa/**', 'test-results/**'],
+    // `.claude/**`: parallel agent worktrees live there, each a full copy of the test suite.
+    exclude: ['node_modules/**', 'dist/**', 'tmp/**', 'tests/pwa/**', 'test-results/**', '.claude/**'],
   },
 });

@@ -1,3 +1,4 @@
+export { auraStyle } from './aura';
 export { KitButton } from './KitButton';
 export { ListRow } from './ListRow';
 export { PageHeader } from './PageHeader';

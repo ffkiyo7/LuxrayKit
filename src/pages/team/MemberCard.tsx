@@ -3,9 +3,9 @@ import { abilities, currentRuleNatureOptions, items, pokemon } from '../../data'
 import { memberBattleStats, memberLabel } from '../../lib/calculations';
 import { getMemberBattleForm } from '../../lib/pokemonForms';
 import { MAX_TOTAL_STAT_POINTS, statPointTotal } from '../../lib/statPoints';
-import type { PokemonType, TeamMember } from '../../types';
-import { Sprite, TypeDot } from '../../components/kit';
-import { typeColors, typeLabels } from '../../components/ui';
+import type { TeamMember } from '../../types';
+import { auraStyle, Sprite, TypeDot } from '../../components/kit';
+import { typeLabels } from '../../components/ui';
 
 // The frames scale every stat bar against the same ceiling, so a 184 speed and a 112 HP stay
 // comparable across the grid.
@@ -19,12 +19,6 @@ const statRows = [
   { key: 'specialDefense', label: '特防' },
   { key: 'speed', label: '速度' },
 ] as const;
-
-const auraStyle = (types: PokemonType[]): React.CSSProperties =>
-  ({
-    '--lk-aura-c1': typeColors[types[0]] ?? '#8e8e93',
-    '--lk-aura-c2': typeColors[types[1] ?? types[0]] ?? '#8e8e93',
-  }) as React.CSSProperties;
 
 function StatCell({
   label,
