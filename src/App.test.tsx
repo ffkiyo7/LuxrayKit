@@ -119,17 +119,25 @@ const renderApp = async () => {
 const renderEnvironmentApp = async () => {
   const user = userEvent.setup();
   render(<App />);
-  // Battle-type toggles now default to the current regulation's primary format (M-B → 双打).
-  await screen.findByText(`${testEnvironmentState.seasonLabel} · 双打`);
+  await waitForEnvironmentPage();
   return user;
 };
 
 const continueFirstImportNotice = async (user: ReturnType<typeof userEvent.setup>) => {
-  const dialog = await screen.findByRole('dialog', { name: '导入配置提示' });
-  expect(dialog.textContent).toContain('这份样本可带入Pokémon、道具');
-  expect(dialog.textContent).toContain('未公开的SP分配、配招、队伍码需要手动确认');
-  expect(dialog.textContent).toContain('队报链接');
+  const dialog = await screen.findByRole('dialog', { name: '导入确认' });
+  expect(dialog.textContent).toContain('这份样本可带入宝可梦、道具、SP 分配。');
   await user.click(within(dialog).getByRole('button', { name: '继续导入' }));
+};
+
+// The upper-build list is its own pushed page (07-01); the battle type it shows is the one
+// picked on the environment home, so callers set that first.
+const openUpperBuilds = async (
+  user: ReturnType<typeof userEvent.setup>,
+  battleType: 'singles' | 'doubles' = 'doubles',
+) => {
+  await user.click(screen.getByRole('button', { name: battleType === 'doubles' ? '双打' : '单打' }));
+  await user.click(await screen.findByRole('button', { name: '查看全部上位构筑' }));
+  return screen.findByRole('region', { name: '上位构筑列表' });
 };
 
 const findSampleForImportButton = (button: HTMLElement) => {
@@ -140,30 +148,19 @@ const findSampleForImportButton = (button: HTMLElement) => {
 };
 
 const revealEnvironmentSample = async (user: ReturnType<typeof userEvent.setup>, sample: typeof testEnvironmentState.teamSamples[number]) => {
-  await user.click(await screen.findByRole('button', { name: '查看全部队伍' }));
-  // The library defaults to 全部规则; click it explicitly so M-A samples are visible regardless.
-  await user.click(screen.getByRole('button', { name: '全部规则' }));
-  if (sample.battleType === 'doubles') {
-    await user.click(screen.getByRole('button', { name: '双打' }));
-  } else {
-    await user.click(screen.getByRole('button', { name: '单打' }));
-  }
-  await user.type(screen.getByRole('searchbox', { name: '搜索队伍或宝可梦' }), sample.title);
+  await openUpperBuilds(user, sample.battleType);
+  await user.type(screen.getByRole('textbox', { name: '搜索队伍或宝可梦' }), sample.title);
   const title = await screen.findByText(sample.title);
   return title.closest('section') as HTMLElement;
 };
 
 const revealVisibleReplicaCodeSample = async (user: ReturnType<typeof userEvent.setup>) => {
-  await user.click(await screen.findByRole('button', { name: '查看全部队伍' }));
-  // The library defaults to 全部规则; click it explicitly so M-A samples are visible regardless.
-  await user.click(screen.getByRole('button', { name: '全部规则' }));
-  await user.click(screen.getByRole('button', { name: '双打' }));
-  await user.click(screen.getByRole('checkbox', { name: '含队伍码' }));
+  const region = await openUpperBuilds(user, 'doubles');
+  await user.click(screen.getByRole('button', { name: /^有队伍码 / }));
 
-  const chips = await screen.findAllByLabelText('可导入 队伍码');
-  for (const chip of chips) {
-    const card = chip.closest('section') as HTMLElement | null;
-    const sample = card ? vgcPastesTeamSamples.find((candidate) => within(card).queryByText(candidate.title)) : undefined;
+  for (const heading of within(region).getAllByRole('heading', { level: 3 })) {
+    const card = heading.closest('section') as HTMLElement | null;
+    const sample = vgcPastesTeamSamples.find((candidate) => candidate.title === heading.textContent);
     if (card && sample?.replicaCode) return { card, sample };
   }
 
@@ -222,7 +219,7 @@ const selectCalculatorPair = async (user: ReturnType<typeof userEvent.setup>) =>
 };
 
 const waitForDexPage = () => screen.findByText('规则内图鉴', undefined, { timeout: 5000 });
-const waitForEnvironmentPage = () => screen.findByRole('heading', { name: '环境' }, { timeout: 5000 });
+const waitForEnvironmentPage = () => screen.findByRole('heading', { name: '今日环境' }, { timeout: 5000 });
 
 const openDefaultTeam = async (user: ReturnType<typeof userEvent.setup>) => {
   const teamCard = await screen.findByLabelText('队伍：Luxray test');
@@ -259,11 +256,15 @@ describe('App page flows', () => {
       if (array) new Uint32Array(array.buffer, array.byteOffset, 1)[0] = 0x1234abcd;
       return array;
     });
+    // The 数据口径 intro sheet (01-06) shows once per browser; acknowledge it up front so it
+    // does not sit over every environment flow here. Its own coverage is in EnvironmentPage.test.
+    window.localStorage.setItem('luxraykit.env.methodologySeen', '1');
     await deleteDb();
   });
 
   afterEach(() => {
     cleanup();
+    window.localStorage.clear();
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
   });
@@ -274,8 +275,9 @@ describe('App page flows', () => {
     expect(screen.getByText('正在载入本地数据')).toBeTruthy();
     expect(screen.queryByText(/模拟数据/)).toBeNull();
     expect(await waitForEnvironmentPage()).toBeTruthy();
-    expect(screen.getByText('LuxrayKit')).toBeTruthy();
-    expect(screen.getByText(productContextLabel(testEnvironmentState.seasonLabel))).toBeTruthy();
+    // 环境 left the legacy shell in P2: it draws its own 34px title and no product Header.
+    expect(screen.queryByText('LuxrayKit')).toBeNull();
+    expect(screen.queryByText(productContextLabel(testEnvironmentState.seasonLabel))).toBeNull();
     expect(screen.queryByText(/移动端 PWA/)).toBeNull();
   });
 
@@ -652,9 +654,9 @@ describe('App page flows', () => {
 
   it('keeps imported environment sample metadata on the list without showing a source card in detail', async () => {
     const user = await renderEnvironmentApp();
-    // Upper-build now defaults to 双打; exercise the singles samples this fixture is rich in.
-    await user.click(screen.getByRole('button', { name: '单打' }));
-    const importButton = screen.getAllByRole('button', { name: /导入配置/ })[0];
+    // Upper-build defaults to 双打; exercise the singles samples this fixture is rich in.
+    const region = await openUpperBuilds(user, 'singles');
+    const importButton = within(region).getAllByRole('button', { name: '导入为我的队伍' })[0];
     const importedSample = findSampleForImportButton(importButton);
 
     await user.click(importButton);
@@ -682,15 +684,16 @@ describe('App page flows', () => {
 
     const { card: sampleCard, sample: replicaCodeSample } = await revealVisibleReplicaCodeSample(user);
     expect(sampleCard).toBeTruthy();
-    expect(sampleCard.textContent).toContain('VGCPastes');
-    expect(within(sampleCard).getByLabelText('可导入 SP分配')).toBeTruthy();
-    expect(within(sampleCard).getByLabelText('可导入 配招')).toBeTruthy();
-    expect(within(sampleCard).getByLabelText('可导入 队伍码')).toBeTruthy();
+    // 07-01 dropped the source badge and the 可导入 chips; the card is four blocks only.
+    expect(sampleCard.textContent).not.toContain('VGCPastes');
+    expect(within(sampleCard).queryByLabelText(/可导入/)).toBeNull();
 
-    await user.click(within(sampleCard).getByRole('button', { name: /导入配置/ }));
-    const dialog = await screen.findByRole('dialog', { name: '导入配置提示' });
-    expect(dialog.textContent).toContain('这份样本可带入Pokémon、道具、SP分配、配招、队伍码');
-    expect(dialog.textContent).toContain('公开配置已随队伍带入');
+    await user.click(within(sampleCard).getByRole('button', { name: '导入为我的队伍' }));
+    const dialog = await screen.findByRole('dialog', { name: '导入确认' });
+    expect(dialog.textContent).toContain(`导入「${replicaCodeSample.title}」`);
+    // A fully covered sample lists its counts and nothing else: no 配招未公开, no 无队伍码.
+    expect(dialog.textContent).not.toContain('配招未公开');
+    expect(dialog.textContent).not.toContain('无队伍码');
     await user.click(within(dialog).getByRole('button', { name: '继续导入' }));
 
     // The real VGCPastes fixture is intentionally large after mechanical refreshes;
@@ -722,23 +725,21 @@ describe('App page flows', () => {
 
   it('shows the import coverage notice only before the first upper-build import', async () => {
     const user = await renderEnvironmentApp();
-    await user.click(screen.getByRole('button', { name: '单打' }));
-    const firstImportButton = screen.getAllByRole('button', { name: /导入配置/ })[0];
+    const region = await openUpperBuilds(user, 'singles');
+    const firstImportButton = within(region).getAllByRole('button', { name: '导入为我的队伍' })[0];
     const firstImportedSample = findSampleForImportButton(firstImportButton);
 
     await user.click(firstImportButton);
-    const dialog = await screen.findByRole('dialog', { name: '导入配置提示' });
-    expect(within(dialog).getByRole('button', { name: '队报链接' })).toBeTruthy();
-    await user.click(within(dialog).getByRole('button', { name: '继续导入' }));
+    await continueFirstImportNotice(user);
     expect(await screen.findByLabelText(`队伍：${firstImportedSample.title}`)).toBeTruthy();
 
     await user.click(screen.getByRole('button', { name: '环境' }));
     // Returning to 环境 re-defaults the battle-type toggle to 双打; re-select 单打.
-    await user.click(screen.getByRole('button', { name: '单打' }));
-    const secondImportButton = screen.getAllByRole('button', { name: /导入配置/ })[1];
+    const secondRegion = await openUpperBuilds(user, 'singles');
+    const secondImportButton = within(secondRegion).getAllByRole('button', { name: '导入为我的队伍' })[1];
     const secondImportedSample = findSampleForImportButton(secondImportButton);
     await user.click(secondImportButton);
-    expect(screen.queryByRole('dialog', { name: '导入配置提示' })).toBeNull();
+    expect(screen.queryByRole('dialog', { name: '导入确认' })).toBeNull();
     expect(await screen.findByLabelText(`队伍：${secondImportedSample.title}`)).toBeTruthy();
   });
 
@@ -791,7 +792,7 @@ describe('App page flows', () => {
     const user = await renderEnvironmentApp();
     const sampleCard = await revealEnvironmentSample(user, basicPokeDbSample);
 
-    await user.click(within(sampleCard).getByRole('button', { name: /导入配置/ }));
+    await user.click(within(sampleCard).getByRole('button', { name: '导入为我的队伍' }));
     await continueFirstImportNotice(user);
     await screen.findByLabelText(`队伍：${basicPokeDbSample.title}`);
 
@@ -824,7 +825,7 @@ describe('App page flows', () => {
 
     expect(starmieSampleIndex).toBeGreaterThanOrEqual(0);
     const starmieSampleCard = await revealEnvironmentSample(user, starmieSample);
-    await user.click(within(starmieSampleCard).getByRole('button', { name: /导入配置/ }));
+    await user.click(within(starmieSampleCard).getByRole('button', { name: '导入为我的队伍' }));
     await continueFirstImportNotice(user);
 
     const importedCard = await screen.findByLabelText(`队伍：${starmieSample.title}`);
@@ -842,13 +843,13 @@ describe('App page flows', () => {
 
   it('shows import success feedback and clears the imported team highlight', async () => {
     const user = await renderEnvironmentApp();
-    await user.click(screen.getByRole('button', { name: '单打' }));
-    const importButton = screen.getAllByRole('button', { name: /导入配置/ })[0];
+    const region = await openUpperBuilds(user, 'singles');
+    const importButton = within(region).getAllByRole('button', { name: '导入为我的队伍' })[0];
     const importedSample = findSampleForImportButton(importButton);
 
     await user.click(importButton);
     await continueFirstImportNotice(user);
-    expect((await screen.findByRole('status')).textContent).toContain('已导入配置');
+    expect((await screen.findByRole('status')).textContent).toContain(`已导入「${importedSample.title}」`);
 
     const importedCard = await screen.findByLabelText(`队伍：${importedSample.title}`);
     expect(importedCard.dataset.importHighlighted).toBe('true');
@@ -860,8 +861,8 @@ describe('App page flows', () => {
   it('opens a dedicated full environment ranking before pokemon environment detail', async () => {
     const user = await renderEnvironmentApp();
 
-    await user.click(screen.getByRole('button', { name: '查看全部宝可梦' }));
-    expect(await screen.findByRole('heading', { name: '完整宝可梦榜' })).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: '查看完整使用排行' }));
+    expect(await screen.findByRole('heading', { name: '使用排行' })).toBeTruthy();
     expect(screen.getByRole('button', { name: '单打' })).toBeTruthy();
     expect(screen.getByRole('button', { name: '双打' })).toBeTruthy();
     expect(screen.queryByText('热门队伍样本')).toBeNull();
@@ -869,100 +870,96 @@ describe('App page flows', () => {
     await user.click(screen.getByRole('button', { name: '单打' }));
     await user.click(screen.getByRole('button', { name: new RegExp(topSinglesPokemon.chineseName) }));
     expect(await screen.findByRole('heading', { name: topSinglesPokemon.chineseName })).toBeTruthy();
-    // The move catalog is loaded on demand once the detail mounts, so the 常用招式 card
-    // appears a tick after the heading rather than in the same render.
-    expect(await screen.findByText('常用招式')).toBeTruthy();
-    expect(screen.getByText(topSinglesMove.chineseName)).toBeTruthy();
+    // The move catalog is loaded on demand once the detail mounts, so the 常用招式 rows land
+    // a tick after the heading rather than in the same render.
+    expect(await screen.findByText(topSinglesMove.chineseName)).toBeTruthy();
+    expect(screen.getByText('常用招式')).toBeTruthy();
     expect(screen.getByText('携带道具')).toBeTruthy();
     expect(screen.getByText('常见队友')).toBeTruthy();
   });
 
-  it('shows the latest four upper-build samples and opens the full team library', async () => {
+  it('teases upper builds on the home carousel and pushes the full 上位构筑 page', async () => {
     const user = await renderEnvironmentApp();
-    // Exercise the singles upper-build list explicitly (default view is now 双打).
     await user.click(screen.getByRole('button', { name: '单打' }));
-    const singlesSamples = testEnvironmentState.teamSamples.filter((sample) => sample.battleType === 'singles');
-    const expectedLatestTitles = sortTeamSamplesByDate(singlesSamples).slice(0, 4).map((sample) => sample.title);
 
-    expect(screen.getByText('上位构筑')).toBeTruthy();
-    const upperBuildSection = screen.getByText('上位构筑').closest('section');
-    const visibleSampleTitles = within(upperBuildSection as HTMLElement)
-      .getAllByRole('heading', { level: 3 })
-      .map((heading) => heading.textContent)
-      .slice(1);
-    expect(visibleSampleTitles).toEqual(expectedLatestTitles);
-    expect(screen.queryByRole('button', { name: '换一批' })).toBeNull();
+    const upperBuildSection = screen.getByText('上位构筑').closest('section') as HTMLElement;
+    expect(within(upperBuildSection).getAllByRole('paragraph').length).toBeGreaterThan(0);
+    // The home carousel is a teaser only: importing happens on the pushed page.
+    expect(within(upperBuildSection).queryByRole('button', { name: '导入为我的队伍' })).toBeNull();
 
-    await user.click(screen.getByRole('button', { name: '查看全部队伍' }));
-    expect(await screen.findByRole('heading', { name: '队伍一览' })).toBeTruthy();
-    expect(screen.getByRole('searchbox', { name: '搜索队伍或宝可梦' })).toBeTruthy();
-    expect(screen.getByRole('button', { name: '试试灵感' })).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: '查看全部上位构筑' }));
+    expect(await screen.findByRole('heading', { name: '上位构筑' })).toBeTruthy();
+    expect(screen.getByRole('textbox', { name: '搜索队伍或宝可梦' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: '随机一队' })).toBeTruthy();
+    expect(screen.getAllByRole('button', { name: '导入为我的队伍' }).length).toBeGreaterThan(0);
   });
 
-  it('keeps environment sample labeling lightweight without the bulky seed notice', async () => {
+  it('keeps environment labeling lightweight: no source names, no seed notice, no sample counts', async () => {
     const user = await renderEnvironmentApp();
 
-    expect(screen.getByText(`${testEnvironmentState.seasonLabel} · 双打`)).toBeTruthy();
-    expect(screen.getByText(/源更新/)).toBeTruthy();
-    expect(screen.getByText(/抓取/)).toBeTruthy();
-    expect(screen.queryByText('在线数据')).toBeNull();
-    expect(screen.queryByText('最新')).toBeNull();
+    expect(screen.getByText(new RegExp(`${testEnvironmentState.seasonLabel} 赛季 · .* 规则 · .* 更新`))).toBeTruthy();
+    // The fixture snapshot is stale, so the N01-14 notice shows — but never a source name.
     expect(screen.getByText('可能过期')).toBeTruthy();
     expect(screen.queryByText('数据源异常')).toBeNull();
     expect(screen.queryByText(testEnvironmentState.sourceLabel)).toBeNull();
     expect(screen.queryByText(/本页使用本地 seed 占位数据/)).toBeNull();
     expect(screen.queryByText(/不代表真实使用率/)).toBeNull();
     expect(screen.queryByText('高分样本')).toBeNull();
+    expect(screen.queryByText(/队$/)).toBeNull();
 
-    await user.click(screen.getByRole('button', { name: '查看全部宝可梦' }));
-    expect(await screen.findByRole('heading', { name: '完整宝可梦榜' })).toBeTruthy();
-    expect(screen.getByText(`${testEnvironmentState.seasonLabel} · 双打`)).toBeTruthy();
-    expect(screen.getByText('可能过期')).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: '查看完整使用排行' }));
+    expect(await screen.findByRole('heading', { name: '使用排行' })).toBeTruthy();
     expect(screen.queryByText(testEnvironmentState.sourceLabel)).toBeNull();
-    expect(screen.queryByText(/本页使用本地 seed 占位数据/)).toBeNull();
-
-    // Switch to the singles ranking to exercise the singles-top pokemon detail.
-    await user.click(screen.getByRole('button', { name: '单打' }));
-    await user.click(screen.getByRole('button', { name: new RegExp(topSinglesPokemon.chineseName) }));
-    expect(await screen.findByRole('heading', { name: topSinglesPokemon.chineseName })).toBeTruthy();
-    expect(screen.getAllByText(/原作者：/).length).toBeGreaterThan(0);
-    expect(screen.queryByText('真实样本')).toBeNull();
-    expect(screen.queryByText('PokeDB公开数据')).toBeNull();
-    expect(screen.queryByText(/本页使用本地 seed 占位数据/)).toBeNull();
   });
 
-  it('opens environment data methodology with source, sample count, and metric notes', async () => {
+  it('opens the 数据口径 page from the degraded notice and states the rank-only basis', async () => {
     const user = await renderEnvironmentApp();
+    await user.click(screen.getByRole('button', { name: '查看完整使用排行' }));
+    expect(await screen.findByRole('heading', { name: '使用排行' })).toBeTruthy();
 
-    await user.click(screen.getByRole('button', { name: '查看数据口径' }));
-
+    window.location.hash = '#/env/methodology';
     expect(await screen.findByRole('heading', { name: '数据口径' })).toBeTruthy();
-    expect(screen.getByText('528 队')).toBeTruthy();
-    expect(screen.getByText('71 队')).toBeTruthy();
-    expect(screen.getByText(/PokeDB 公开统计页（M-1 当季聚合）/)).toBeTruthy();
-    expect(screen.getByText('不是全服实时统计')).toBeTruthy();
-    expect(screen.getByText(/无总使用率 %，只有名次/)).toBeTruthy();
-    expect(screen.getByText(/招式、道具 % 是真实占比；队友仅按搭档排名展示/)).toBeTruthy();
-    expect(screen.queryByText(/54\.0% \/ 285 队/)).toBeNull();
-    expect(screen.queryByText(/PokeDB 公开的 M-1 上位构筑快照/)).toBeNull();
+    expect(screen.getByText('榜单只给名次和名次变化，不给登场率百分比。')).toBeTruthy();
+    expect(screen.getByText('前 60 名有招式、道具、特性、性格的使用率，60 名之外不出统计段。')).toBeTruthy();
+    // The sample-pool card and the per-battle-type 队 counts are gone with the 数据口径 decision.
+    expect(screen.queryByText('528 队')).toBeNull();
+    expect(screen.queryByText('71 队')).toBeNull();
 
-    await user.click(screen.getByRole('button', { name: '返回环境' }));
+    await user.click(screen.getByRole('button', { name: '返回' }));
     expect(await waitForEnvironmentPage()).toBeTruthy();
   });
 
-  it('shows related environment sample teams on pokemon environment detail and imports them', async () => {
+  it('lists related upper builds on a pokemon detail and hands them to the 上位构筑 page', async () => {
     const user = await renderEnvironmentApp();
 
     await user.click(screen.getByRole('button', { name: '单打' }));
-    await user.click(screen.getByRole('button', { name: /烈咬陆鲨/ }));
+    await user.click(within(screen.getByText('使用排行').closest('section') as HTMLElement).getByRole('button', { name: /烈咬陆鲨/ }));
     expect(await screen.findByRole('heading', { name: '烈咬陆鲨' })).toBeTruthy();
-    expect(screen.getByText('相关上位构筑')).toBeTruthy();
-    expect(screen.getByText(relatedGarchompSample.title)).toBeTruthy();
 
-    await user.click(screen.getAllByRole('button', { name: '导入配置' })[0]);
-    await continueFirstImportNotice(user);
-    expect((await screen.findByRole('status')).textContent).toContain('已导入配置');
-    expect(await screen.findByLabelText(relatedGarchompTeamLabel)).toBeTruthy();
+    const related = screen.getByText('相关上位构筑').closest('section') as HTMLElement;
+    expect(within(related).getByText(relatedGarchompSample.title)).toBeTruthy();
+    // 01-05 rows are navigation only: the import slab lives on the 上位构筑 cards.
+    expect(within(related).queryByRole('button', { name: '导入为我的队伍' })).toBeNull();
+
+    await user.click(within(related).getByRole('button', { name: '查看全部' }));
+    expect(await screen.findByRole('heading', { name: '上位构筑' })).toBeTruthy();
+  });
+
+  it('adds a top-60 Pokemon to the active team with its most popular config and blank SP', async () => {
+    const user = await renderEnvironmentApp();
+
+    await user.click(screen.getByRole('button', { name: '单打' }));
+    await user.click(within(screen.getByText('使用排行').closest('section') as HTMLElement).getByRole('button', { name: new RegExp(topSinglesPokemon.chineseName) }));
+    await user.click(await screen.findByRole('button', { name: '按热门配置加入队伍' }));
+
+    await waitFor(async () => {
+      const state = await repository.loadState();
+      const added = state.teams[0].members.find((member) => member.pokemonId === topSinglesPokemon.id);
+      expect(added).toBeTruthy();
+      // SP stays blank by design; the popular item comes from the snapshot's rank-1 entry.
+      expect(Object.values(added!.statPoints).every((value) => !value)).toBe(true);
+      expect(added!.itemId).toBe(testEnvironmentState.pokemonUsage.singles[0].itemStats?.[0]?.id);
+    });
   });
 
   it('opens the damage calculator on a blank state and resets it after leaving', async () => {
@@ -1341,10 +1338,10 @@ describe('App page flows', () => {
     render(<App />);
 
     expect(await screen.findByRole('heading', { name: '烈咬陆鲨' }, { timeout: 5000 })).toBeTruthy();
-    expect(screen.getByRole('button', { name: /返回环境/ })).toBeTruthy();
+    expect(screen.getByRole('button', { name: '返回' })).toBeTruthy();
     // Nothing pushed this entry, so 返回 replaces into the environment home instead of
     // walking off the site.
-    expect(screen.queryByRole('heading', { name: '环境' })).toBeNull();
+    expect(screen.queryByRole('heading', { name: '今日环境' })).toBeNull();
   });
 
   it('drives the bottom tabs through the URL hash', async () => {

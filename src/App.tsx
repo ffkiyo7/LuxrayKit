@@ -1,12 +1,12 @@
-import { ArrowLeft, BarChart3, ExternalLink, UserCircle, Users, Wrench } from 'lucide-react';
+import { ArrowLeft, BarChart3, Import, UserCircle, Users, Wrench, X } from 'lucide-react';
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { AutoHideBottomNav } from './components/BottomNav';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { Header } from './components/Header';
 import { ServiceWorkerUpdateToast } from './components/ServiceWorkerUpdateToast';
 import { Toast } from './components/kit/Toast';
-import { Button } from './components/ui';
 import { downloadBackup } from './pages/profile/backupFile';
+import { EnvironmentErrorView, EnvironmentLoadingView } from './pages/EnvironmentStates';
 import { productName } from './branding';
 import { productContextLabel } from './data/schedule';
 import type { EnvironmentState, EnvironmentTeamSample } from './data/environment';
@@ -75,20 +75,6 @@ type AppToast = {
   tone?: 'success' | 'warning';
 };
 
-const importCoverageItems = (sample: EnvironmentTeamSample) => [
-  'Pokémon',
-  '道具',
-  sample.hasSpread ? 'SP分配' : undefined,
-  sample.hasMoves ? '配招' : undefined,
-  sample.replicaCode ? '队伍码' : undefined,
-].filter((item): item is string => Boolean(item));
-
-const missingImportCoverageItems = (sample: EnvironmentTeamSample) => [
-  sample.hasSpread ? undefined : 'SP分配',
-  sample.hasMoves ? undefined : '配招',
-  sample.replicaCode ? undefined : '队伍码',
-].filter((item): item is string => Boolean(item));
-
 /** Page-level placeholder (N08-15): the shape of a page, not a spinner. */
 function PageLoading({ label = '正在载入页面' }: { label?: string }) {
   return (
@@ -113,6 +99,13 @@ function PageLoading({ label = '正在载入页面' }: { label?: string }) {
   );
 }
 
+const TEAM_SIZE = 6;
+
+/**
+ * 07-04 — what a sample actually carries, shown once before the first upper-build import.
+ * The frame lists only what is *missing* below the count line, so a fully-covered sample shows
+ * the counts and nothing else.
+ */
 function ImportCoverageNoticeDialog({
   sample,
   onCancel,
@@ -122,26 +115,61 @@ function ImportCoverageNoticeDialog({
   onCancel: () => void;
   onContinue: () => void;
 }) {
-  const coverageItems = importCoverageItems(sample);
-  const missingItems = missingImportCoverageItems(sample);
+  const itemCount = sample.slots.filter((slot) => slot.itemId).length;
+  const spreadCount = sample.slots.filter((slot) => Object.keys(slot.statPoints ?? {}).length > 0).length;
+  const moveCount = sample.slots.filter((slot) => slot.moveIds.length > 0).length;
+  const counts = [
+    `宝可梦 ${sample.slots.length} / ${TEAM_SIZE}`,
+    `道具 ${itemCount} / ${TEAM_SIZE}`,
+    ...(spreadCount > 0 ? [`SP ${spreadCount} / ${TEAM_SIZE}`] : []),
+    ...(moveCount > 0 ? [`配招 ${moveCount} / ${TEAM_SIZE}`] : []),
+  ].join(' · ');
 
   return (
-    <div className="fixed inset-0 z-50 mx-auto max-w-[430px]" role="dialog" aria-label="导入配置提示" aria-modal="true" data-bottom-nav-lock="true">
-      <button className="absolute inset-0 h-full w-full bg-black/70" type="button" aria-label="关闭导入配置提示" onClick={onCancel} />
-      <section className="surface-shadow absolute inset-x-4 top-1/2 -translate-y-1/2 rounded-xl border border-border bg-card p-4">
-        <h2 className="text-base font-semibold">导入配置提示</h2>
-        <p className="mt-2 text-sm leading-6 text-textSecondary">
-          这份样本可带入{coverageItems.join('、')}。{missingItems.length > 0 ? `未公开的${missingItems.join('、')}需要手动确认。` : '公开配置已随队伍带入。'}
-        </p>
-        <div className="mt-4 grid grid-cols-2 gap-2">
-          <Button variant="ghost" type="button" onClick={() => window.open(sample.reportUrl, '_blank', 'noopener,noreferrer')}>
-            <ExternalLink size={14} />
-            队报链接
-          </Button>
-          <Button type="button" onClick={onContinue}>
-            继续导入
-          </Button>
+    <div className="fixed inset-0 z-50 mx-auto max-w-[430px]" role="dialog" aria-label="导入确认" aria-modal="true" data-bottom-nav-lock="true">
+      <button className="lk-sheet-overlay absolute inset-0 h-full w-full" type="button" aria-label="关闭导入确认" onClick={onCancel} />
+      <section className="lk-sheet absolute inset-x-4 top-1/2 -translate-y-1/2 rounded-[20px] p-[22px]">
+        <div className="flex items-start gap-3">
+          <h2 className="m-0 flex-1 text-[22px] font-extrabold leading-[30px] tracking-[-0.01em]">
+            导入「{sample.title}」
+          </h2>
+          <button
+            aria-label="关闭导入确认"
+            className="-mr-1 -mt-0.5 grid h-[30px] w-[30px] shrink-0 place-items-center rounded-full bg-btn1 text-textLabel"
+            type="button"
+            onClick={onCancel}
+          >
+            <X size={17} />
+          </button>
         </div>
+        <p className="mt-2 text-sm leading-[21px] text-textLabel">这份样本可带入宝可梦、道具、SP 分配。</p>
+        <div className="mt-4 flex flex-col gap-3">
+          <div className="flex items-center gap-2.5">
+            <span className="inline-block h-[7px] w-[7px] shrink-0 rounded-full bg-textLabel" />
+            <span className="text-sm font-bold tabular-nums">{counts}</span>
+          </div>
+          {!sample.hasMoves && (
+            <div className="flex items-center gap-2.5">
+              <span className="inline-block h-[7px] w-[7px] shrink-0 rounded-full bg-data" />
+              <span className="text-sm font-bold text-data">配招未公开</span>
+            </div>
+          )}
+          {!sample.replicaCode && (
+            <div className="flex items-center gap-2.5">
+              <span className="inline-block h-[7px] w-[7px] shrink-0 rounded-full bg-disabled" />
+              <span className="text-sm font-bold text-textSecondary">无队伍码</span>
+            </div>
+          )}
+        </div>
+        <div className="mt-[18px] h-px bg-[var(--hairline)]" />
+        <button
+          className="mt-[18px] flex h-11 w-full items-center justify-center gap-[7px] rounded-[14px] bg-accent text-[15px] font-extrabold text-page shadow-[inset_0_1px_0_rgb(255_255_255/0.9),inset_0_-1px_0_rgb(0_0_0/0.12),0_4px_14px_rgb(0_0_0/0.4)]"
+          type="button"
+          onClick={onContinue}
+        >
+          <Import aria-hidden="true" size={16} />
+          继续导入
+        </button>
       </section>
     </div>
   );
@@ -152,7 +180,6 @@ function ImportCoverageNoticeDialog({
 // stage deletes its own entries, and the list (with Header.tsx) goes away with the last one.
 type ChromeKey = TabId | ToolView;
 const legacyChromePages: ChromeKey[] = [
-  'environment',
 ];
 
 function ToolWorkspace({
@@ -251,6 +278,14 @@ function AppShell() {
     return () => window.clearTimeout(timeoutId);
   }, [highlightedImportTeamId, importToast]);
 
+  // Bumped by 重试 on the failure screen (01-08) and by the 离线 / 可能过期 notices (01-09,
+  // N01-14); re-running the effect is the whole retry, there is no separate fetch path.
+  const [environmentLoadAttempt, setEnvironmentLoadAttempt] = useState(0);
+  const retryEnvironmentLoad = useCallback(() => {
+    setEnvironmentLoadFailed(false);
+    setEnvironmentLoadAttempt((attempt) => attempt + 1);
+  }, []);
+
   useEffect(() => {
     let active = true;
     import('./data/environment')
@@ -268,7 +303,7 @@ function AppShell() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [environmentLoadAttempt]);
 
   const openTool = useCallback(
     (view: ToolView) => {
@@ -333,7 +368,7 @@ function AppShell() {
       await saveTeam(importedTeam);
       setActiveTeamId(importedTeam.id);
       setHighlightedImportTeamId(importedTeam.id);
-      setImportToast({ title: '已导入配置' });
+      setImportToast({ title: `已导入「${sample.title}」` });
       navigate({ name: 'teams' });
     },
     [environmentState?.dataStatusLabel, navigate, saveTeam],
@@ -406,10 +441,20 @@ function AppShell() {
   const page = useMemo(() => {
     switch (activeTab) {
       case 'environment':
-        return environmentState ? (
-          <EnvironmentPage environment={environmentState} onImportSample={importSampleTeam} />
+        if (environmentState) {
+          return (
+            <EnvironmentPage
+              environment={environmentState}
+              onImportSample={importSampleTeam}
+              onOpenRule={() => navigate({ name: 'profile-rule' })}
+              onRetryLoad={retryEnvironmentLoad}
+            />
+          );
+        }
+        return environmentLoadFailed ? (
+          <EnvironmentErrorView onOpenTeams={() => navigate({ name: 'teams' })} onRetry={retryEnvironmentLoad} />
         ) : (
-          <PageLoading label={environmentLoadFailed ? '环境数据加载失败，请稍后重试。' : '正在载入环境数据'} />
+          <EnvironmentLoadingView />
         );
       case 'teams':
         return (
@@ -485,6 +530,7 @@ function AppShell() {
     navigate,
     openTool,
     preferences,
+    retryEnvironmentLoad,
     route,
     shareTeam,
     teams,

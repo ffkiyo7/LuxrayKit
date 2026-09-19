@@ -1,0 +1,59 @@
+/*
+ * P2 — 环境 + 上位构筑. Only the fills the 01 / 07 frames use that cannot be expressed with an
+ * existing token: the two tinted hero washes, the ink that sits on top of them, and the inset
+ * notice face. Everything else on those pages is a `styles.css` token.
+ *
+ * Light values are read off 01-02 element by element. 01-05 (宝可梦详情) and N01-14 (数据状态)
+ * have no light frame, so their light values are derived from the 01-02 pair with the same role
+ * — flagged in the delivery report as inferred.
+ */
+:root {
+  /* 01-01 hero: violet→amber wash over the card face. */
+  --env-hero-bg: radial-gradient(90% 120% at 86% 6%, rgb(111 53 252 / 0.22), rgb(226 191 101 / 0.12) 52%, transparent 74%), #17171b;
+  --env-hero-shadow: none;
+  /* 01-05 detail header: the same wash over the page face rather than a card. */
+  --env-detail-hero-bg: radial-gradient(90% 120% at 86% 6%, rgb(111 53 252 / 0.22), rgb(226 191 101 / 0.12) 52%, transparent 74%), #0b0b0c;
+  /* Chips and round buttons drawn on top of a wash, where a flat surface token would vanish. */
+  --env-on-hero: rgb(255 255 255 / 0.12);
+  --env-on-hero-strong: rgb(255 255 255 / 0.14);
+  /* 01-09 / N01-14 notice, N01-15 / 01-07 skeleton blocks. */
+  --env-note-bg: #141418;
+  --env-note-ring: inset 0 0 0 1px rgb(255 255 255 / 0.07);
+}
+
+:root[data-theme='light'] {
+  --env-hero-bg: radial-gradient(90% 120% at 86% 6%, rgb(111 53 252 / 0.16), rgb(226 191 101 / 0.1) 52%, rgb(255 255 255 / 0) 74%), #ffffff;
+  --env-hero-shadow: 0 1px 2px rgb(0 0 0 / 0.05), 0 8px 24px rgb(16 24 40 / 0.06);
+  --env-detail-hero-bg: radial-gradient(90% 120% at 86% 6%, rgb(111 53 252 / 0.16), rgb(226 191 101 / 0.1) 52%, rgb(255 255 255 / 0) 74%), #fbfbfd;
+  --env-on-hero: rgb(16 24 40 / 0.07);
+  --env-on-hero-strong: rgb(16 24 40 / 0.08);
+  --env-note-bg: #ffffff;
+  --env-note-ring: inset 0 0 0 1px #ededf0;
+}
+
+.lk-env-hero {
+  background: var(--env-hero-bg);
+  box-shadow: var(--env-hero-shadow);
+}
+
+.lk-env-detail-hero {
+  background: var(--env-detail-hero-bg);
+}
+
+.lk-on-hero {
+  background: var(--env-on-hero);
+}
+
+.lk-on-hero-strong {
+  background: var(--env-on-hero-strong);
+}
+
+.lk-env-note {
+  background: var(--env-note-bg);
+  box-shadow: var(--env-note-ring);
+}
+
+/* Skeleton blocks (01-07, N01-15) share the notice face so they read as "not content yet". */
+.lk-env-skeleton {
+  background: var(--env-note-bg);
+}
