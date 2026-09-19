@@ -523,6 +523,14 @@ export function PokemonDetail({
         </button>
       </div>
 
+      {/* R34: the bar's padding tracks the real inset (it has to clear the nav), but in a Safari tab
+          that inset flips 0 ↔ 34px with the toolbar and would change the document height mid-fling.
+          This spacer takes up exactly the difference, so the total stays constant. */}
+      <div
+        aria-hidden="true"
+        className="h-[calc(max(env(safe-area-inset-bottom),34px)_-_env(safe-area-inset-bottom))]"
+      />
+
       {showArtwork && <LargeArtwork entry={entry} onClose={() => setShowArtwork(false)} />}
       {pickingTeam && (
         <TeamPickerSheet
