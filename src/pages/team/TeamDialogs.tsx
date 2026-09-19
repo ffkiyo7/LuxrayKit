@@ -9,8 +9,8 @@ import { Sheet, Sprite } from '../../components/kit';
 import { createTeamFromShare } from '../SharedTeamPreview';
 import { TEAM_NAME_MAX_LENGTH } from './teamMeta';
 
-/** The 50px sheet button pair the frames use for every confirm (02-10 / 02-11 / N02-17). */
-function SheetButton({
+/** The 50px sheet button pair the frames use for every confirm (02-10 / 02-11 / N02-17 / 02-14). */
+export function SheetButton({
   children,
   tone = 'secondary',
   disabled,

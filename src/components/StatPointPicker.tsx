@@ -3,14 +3,9 @@ import { MAX_STAT_POINTS_PER_STAT } from '../lib/statPoints';
 import { Button } from './ui';
 
 /**
- * The bottom-sheet SP slider, shared by the team member editor and the damage calculator.
- *
- * The two pages carried near-identical copies. They do differ in how the min/max buttons are
- * rendered, and both spellings are pinned by visual baselines (06/07 member editor, 09
- * calculator), so the variant stays an explicit prop rather than being unified away:
- *
- * - `accent` — the shared `ui` <Button> pair (ghost + primary). Team member editor.
- * - `plain`  — bordered / solid raw buttons. Damage calculator.
+ * The bottom-sheet SP slider. The damage calculator is its only caller since 03 gave the team
+ * member editor its own wheel (`pages/team/editor/StatWheel.tsx`, which has no ± keys); the
+ * `accent` bounds variant the editor used is dead, and goes when the calculator is redesigned.
  *
  * `min`/`max` default to the SP range; the calculator relied on `clampStatPointValue`, which is
  * the same clamp with those defaults.

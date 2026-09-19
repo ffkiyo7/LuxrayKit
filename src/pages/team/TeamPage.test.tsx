@@ -83,11 +83,11 @@ const renderTeamDetail = async (teamId: string) => {
   return user;
 };
 
-/** Expand a member tile, then open the full editor from 「编辑配置」 (02-05 / N02-19). */
+/** Expand a member tile, then open the editor page from 「编辑配置」 (02-05 / N02-19 → 03-01). */
 const openMemberEditor = async (user: ReturnType<typeof userEvent.setup>, memberName: string) => {
   await user.click(await screen.findByRole('button', { name: `展开 ${memberName}` }));
   await user.click(await screen.findByRole('button', { name: '编辑配置' }));
-  await screen.findByText('编辑成员');
+  await screen.findByRole('heading', { name: '编辑配置' });
 };
 
 const openTeamMenu = async (user: ReturnType<typeof userEvent.setup>, teamName: string) => {
@@ -95,7 +95,7 @@ const openTeamMenu = async (user: ReturnType<typeof userEvent.setup>, teamName: 
   return screen.findByRole('dialog', { name: `${teamName} 的更多操作` });
 };
 
-const saveButton = () => screen.getByRole('button', { name: '保存' }) as HTMLButtonElement;
+const saveButton = () => screen.getByRole('button', { name: /^保存配置/ }) as HTMLButtonElement;
 
 describe('TeamPage', () => {
   beforeEach(async () => {
@@ -175,16 +175,29 @@ describe('TeamPage', () => {
     });
   });
 
+  it('opens the editor on its own route and leaves it again through 返回', async () => {
+    await repository.replaceTeams([team('team-alpha', '甲队', [member()])]);
+    const user = await renderTeamDetail('team-alpha');
+    await openMemberEditor(user, '烈咬陆鲨');
+
+    expect(window.location.hash).toBe('#/teams/team-alpha/members/member-garchomp');
+    // 03-01's subtitle names the roster slot, not the Pokemon.
+    expect(screen.getByText('甲队 的第 1 位成员')).toBeTruthy();
+
+    await user.click(screen.getByRole('button', { name: '返回队伍详情' }));
+    expect(await screen.findByRole('heading', { name: '甲队' })).toBeTruthy();
+  });
+
   it('blocks saving while a single stat is over the per-stat SP cap', async () => {
-    // Over-cap values cannot be typed in — the picker clamps — but they do arrive from older
-    // local data, so the editor has to refuse the save rather than silently truncate.
+    // Over-cap values cannot be dialled in — the rail clamps — but they do arrive from older
+    // local data, so the editor has to refuse the save rather than silently truncate (N03-15).
     await repository.replaceTeams([
       team('team-alpha', '甲队', [member({ statPoints: { attack: MAX_STAT_POINTS_PER_STAT + 1 } })]),
     ]);
     const user = await renderTeamDetail('team-alpha');
     await openMemberEditor(user, '烈咬陆鲨');
 
-    expect(screen.getByText(`攻击 SP 不能超过 ${MAX_STAT_POINTS_PER_STAT}。`)).toBeTruthy();
+    expect(screen.getByText(`攻击 ${MAX_STAT_POINTS_PER_STAT + 1} 超过单项上限 ${MAX_STAT_POINTS_PER_STAT}`)).toBeTruthy();
     expect(saveButton().disabled).toBe(true);
   });
 
@@ -195,30 +208,83 @@ describe('TeamPage', () => {
     const user = await renderTeamDetail('team-alpha');
     await openMemberEditor(user, '烈咬陆鲨');
 
-    expect(screen.getByText(`已用 ${MAX_TOTAL_STAT_POINTS - 1}/${MAX_TOTAL_STAT_POINTS}`)).toBeTruthy();
+    expect(screen.getByText(`${MAX_TOTAL_STAT_POINTS - 1} / ${MAX_TOTAL_STAT_POINTS}`)).toBeTruthy();
     expect(saveButton().disabled).toBe(false);
 
-    await user.click(screen.getAllByRole('button', { name: /HP\s*1/ }).at(-1)!);
+    await user.click(screen.getByRole('button', { name: '调整HP' }));
     fireEvent.change(screen.getByRole('slider', { name: 'HP SP' }), { target: { value: '3' } });
-    await user.click(screen.getByTitle('关闭 SP 调整'));
 
-    expect(screen.getByText(`已用 ${MAX_TOTAL_STAT_POINTS + 1}/${MAX_TOTAL_STAT_POINTS}`)).toBeTruthy();
-    expect(screen.getByText(`单项最多 ${MAX_STAT_POINTS_PER_STAT}，总量最多 ${MAX_TOTAL_STAT_POINTS}。`)).toBeTruthy();
+    expect(screen.getByText(`${MAX_TOTAL_STAT_POINTS + 1} / ${MAX_TOTAL_STAT_POINTS}`)).toBeTruthy();
+    expect(screen.getByText('总计超了 1 点，得从任意一项减 1')).toBeTruthy();
     expect(saveButton().disabled).toBe(true);
   });
 
-  it('flags a held item another member of the same team already carries', async () => {
+  it('transfers a held item off the teammate that carried it, but only on save', async () => {
     await repository.replaceTeams([
       team('team-alpha', '甲队', [
         member(),
-        member({ id: 'member-incineroar', pokemonId: 'incineroar', formId: 'incineroar', abilityId: 'intimidate', moveIds: ['flare-blitz'], nature: '固执', statPoints: {} }),
+        member({ id: 'member-incineroar', pokemonId: 'incineroar', formId: 'incineroar', abilityId: 'intimidate', itemId: undefined, moveIds: ['flare-blitz'], nature: '固执', statPoints: {} }),
       ]),
     ]);
     const user = await renderTeamDetail('team-alpha');
+    await openMemberEditor(user, '炽焰咆哮虎');
+
+    await user.click(screen.getByRole('button', { name: '选择道具' }));
+    await user.type(await screen.findByLabelText('搜索道具名'), '气势披带');
+    await user.click(await screen.findByRole('button', { name: '气势披带' }));
+
+    // 03-09: the conflict is a confirmation, not a refusal.
+    expect(screen.getByText('将从烈咬陆鲨身上移除「气势披带」')).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: '移除并给炽焰咆哮虎' }));
+    await screen.findByRole('heading', { name: '编辑配置' });
+
+    // Staged only — nothing has reached IndexedDB yet.
+    let state = await repository.loadState();
+    expect(state.teams[0].members.map((entry) => entry.itemId)).toEqual(['focus-sash', undefined]);
+
+    await user.click(saveButton());
+    await waitFor(async () => {
+      state = await repository.loadState();
+      expect(state.teams[0].members.map((entry) => entry.itemId)).toEqual([undefined, 'focus-sash']);
+    });
+  });
+
+  it('asks once before throwing unsaved changes away', async () => {
+    await repository.replaceTeams([team('team-alpha', '甲队', [member()])]);
+    const user = await renderTeamDetail('team-alpha');
     await openMemberEditor(user, '烈咬陆鲨');
 
-    expect(screen.getByText('当前规则不允许同队重复携带相同道具。')).toBeTruthy();
-    expect(saveButton().disabled).toBe(true);
+    fireEvent.change(screen.getByRole('slider', { name: '速度 SP' }), { target: { value: '8' } });
+    await user.click(screen.getByRole('button', { name: '返回队伍详情' }));
+
+    const discard = await screen.findByRole('dialog', { name: '放弃改动确认' });
+    expect(within(discard).getByText('速度 32 → 8')).toBeTruthy();
+    await user.click(within(discard).getByRole('button', { name: '继续编辑' }));
+    expect(screen.getByRole('heading', { name: '编辑配置' })).toBeTruthy();
+
+    await user.click(screen.getByRole('button', { name: '返回队伍详情' }));
+    await user.click(within(await screen.findByRole('dialog', { name: '放弃改动确认' })).getByRole('button', { name: '放弃' }));
+
+    expect(await screen.findByRole('heading', { name: '甲队' })).toBeTruthy();
+    const state = await repository.loadState();
+    expect(state.teams[0].members[0].statPoints.speed).toBe(32);
+  });
+
+  it('removes a member only after 02-14 confirms it', async () => {
+    await repository.replaceTeams([team('team-alpha', '甲队', [member()])]);
+    const user = await renderTeamDetail('team-alpha');
+    await openMemberEditor(user, '烈咬陆鲨');
+
+    await user.click(screen.getByRole('button', { name: '从队伍移除烈咬陆鲨' }));
+    const confirm = await screen.findByRole('dialog', { name: '确认移除成员' });
+    expect(within(confirm).getByText('这支队伍会变成 0/6。')).toBeTruthy();
+    await user.click(within(confirm).getByRole('button', { name: '移除成员' }));
+
+    expect(await screen.findByText(/0\/6 成员/)).toBeTruthy();
+    await waitFor(async () => {
+      const state = await repository.loadState();
+      expect(state.teams[0].members).toEqual([]);
+    });
   });
 
   it('deletes a team from the ⋯ menu only after the confirmation sheet', async () => {
@@ -302,6 +368,21 @@ describe('TeamPage', () => {
       const state = await repository.loadState();
       expect(state.teams.map((entry) => entry.name)).toContain('别人的队');
     });
+  });
+
+  it('honours the pre-rename preference key so the preset card does not come back', async () => {
+    // Stored records written before hasSeenLuxrayEasterEgg → hasOpenedPresetTeam carry only the
+    // old key; reading it as false would show the special card to every existing user again.
+    const state = await repository.loadState();
+    await repository.savePreferences({
+      ...state.preferences,
+      hasOpenedPresetTeam: undefined as unknown as boolean,
+      hasSeenLuxrayEasterEgg: true,
+    });
+    await renderTeamList();
+
+    const card = await screen.findByLabelText('队伍：Luxray test');
+    expect(within(card).queryByText('预设')).toBeNull();
   });
 
   it('draws the preset team as the special card until it is opened once', async () => {

@@ -5,6 +5,7 @@ import { SERVICE_WORKER_UPDATE_EVENT } from './components/ServiceWorkerUpdateToa
 import './styles.css';
 import './styles/p2.css';
 import './styles/p3.css';
+import './styles/p3b.css';
 import './styles/p4a.css';
 import './styles/p4b.css';
 import './styles/p6.css';

@@ -268,6 +268,11 @@ export type UserPreference = {
   // N02-15 as an ordinary one afterwards. Older stored preferences simply lack the key (the
   // repository does not merge defaults), which reads as false — the card shows once more.
   hasOpenedPresetTeam: boolean;
+  /**
+   * The pre-2026-09 name of `hasOpenedPresetTeam`, kept optional so stored records written
+   * before the rename still read as "already opened". Nothing writes it any more.
+   */
+  hasSeenLuxrayEasterEgg?: boolean;
   // Opt *out*, so the default (false) keeps the anonymous page-view ping on. See lib/analytics.ts
   // for exactly what it sends — no cookie, no identifier, no user content.
   analyticsOptOut: boolean;

@@ -603,7 +603,9 @@ function AppShell() {
           }}
         />
       )}
-      {!profileSubPage && (
+      {/* 03 draws the member editor with its own bottom action bar and no tab bar — the two
+          cannot share the same 22px of screen. */}
+      {!profileSubPage && route.name !== 'member-editor' && (
         <AutoHideBottomNav
           activeTab={activeTab}
           tabs={tabs}

@@ -41,15 +41,24 @@ const createEmptyTeam = (name?: string): Team => ({
   notes: '',
 });
 
-const normalizePreferences = (preferences?: Partial<UserPreference>): UserPreference => ({
-  ...defaultPreferences,
-  ...preferences,
-  theme: preferences?.theme ?? defaultPreferences.theme,
-  // Coerce rather than spread: an older stored record has no such field, and anything other
-  // than an explicit `true` must read as "analytics on" so the default is not silently flipped
-  // by a corrupted value.
-  analyticsOptOut: preferences?.analyticsOptOut === true,
-});
+const normalizePreferences = (preferences?: Partial<UserPreference>): UserPreference => {
+  // Dropped rather than spread: the legacy key is read once here and never written back, so a
+  // record saved from this session carries only `hasOpenedPresetTeam`.
+  const { hasSeenLuxrayEasterEgg, ...stored } = preferences ?? {};
+
+  return {
+    ...defaultPreferences,
+    ...stored,
+    theme: stored.theme ?? defaultPreferences.theme,
+    // Coerce rather than spread: an older stored record has no such field, and anything other
+    // than an explicit `true` must read as "analytics on" so the default is not silently flipped
+    // by a corrupted value.
+    analyticsOptOut: stored.analyticsOptOut === true,
+    // Records written before the 2026-09 rename only carry the old key; without this fall-back
+    // every existing user would be shown the preset team's special card a second time.
+    hasOpenedPresetTeam: stored.hasOpenedPresetTeam ?? hasSeenLuxrayEasterEgg ?? false,
+  };
+};
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);

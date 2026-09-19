@@ -1,6 +1,6 @@
 import { ChevronLeft, ChevronRight, Copy, Import, MoreHorizontal, Plus, Share2, TriangleAlert, Trophy } from 'lucide-react';
-import { useRef, useState } from 'react';
-import { pokemon } from '../data';
+import { useEffect, useRef, useState } from 'react';
+import { items, pokemon } from '../data';
 import type { EnvironmentState } from '../data/environment';
 import { createId } from '../lib/id';
 import { evaluateMemberLegality } from '../lib/legality';
@@ -108,13 +108,17 @@ export function TeamPage({
   onSendToCalculator: (memberId: string, side: 'attacker' | 'defender') => void;
 }) {
   const { teams, addTeam, deleteTeam, replaceTeams, saveTeam, updateMember, preferences, replacePreferences } = useAppStore();
-  // Which team is open lives in the URL (#/teams/:teamId) so a team is linkable and the
-  // hardware back button leaves the detail instead of the app. Sheets, the member editor and
-  // the Pokemon picker stay local: they are transient overlays, not destinations.
+  // Which team is open — and which member is being edited (#/teams/:teamId/members/:memberId,
+  // 03) — lives in the URL, so both are linkable and the hardware back button leaves the screen
+  // instead of the app. Sheets and the Pokemon picker stay local: transient overlays, not
+  // destinations.
   const { route, navigate, back } = useHashRoute();
   const detailTeamId = route.name === 'team-detail' ? route.teamId : null;
-  const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
+  const editorRoute = route.name === 'member-editor' ? route : null;
   const [expandedMemberId, setExpandedMemberId] = useState<string | null>(null);
+  // An item transfer commits with the save (03-09), so the member it was taken from has no
+  // record of it. N03-13's 「已转给…」 notice is that record, for as long as the session lasts.
+  const [lastTransfer, setLastTransfer] = useState<{ fromMemberId: string; toMemberId: string; itemId: string } | null>(null);
   const [showPicker, setShowPicker] = useState(false);
   const [showImportSheet, setShowImportSheet] = useState(false);
   const [nameSheet, setNameSheet] = useState<{ mode: 'create' | 'rename'; teamId?: string } | null>(null);
@@ -127,7 +131,9 @@ export function TeamPage({
   const activeTeam = detailTeamId ? teams.find((team) => team.id === detailTeamId) : undefined;
   const menuTeam = menuTeamId ? teams.find((team) => team.id === menuTeamId) : undefined;
   const pendingDeleteTeam = pendingDeleteTeamId ? teams.find((team) => team.id === pendingDeleteTeamId) : undefined;
-  const editingMember = activeTeam?.members.find((member) => member.id === editingMemberId);
+  const editorTeam = editorRoute ? teams.find((team) => team.id === editorRoute.teamId) : undefined;
+  const editingMemberIndex = editorTeam ? editorTeam.members.findIndex((member) => member.id === editorRoute!.memberId) : -1;
+  const editingMember = editingMemberIndex >= 0 ? editorTeam!.members[editingMemberIndex] : undefined;
   const presetTeam = teams.find((team) => team.id === PRESET_TEAM_ID);
   const showPresetCard = Boolean(presetTeam && presetTeam.members.length > 0 && !preferences.hasOpenedPresetTeam);
 
@@ -146,7 +152,6 @@ export function TeamPage({
     onActiveTeamChange(teamId);
     navigate({ name: 'team-detail', teamId });
     setExpandedMemberId(null);
-    setEditingMemberId(null);
     setShowPicker(false);
     // Opening the preset team once retires its special card (02-02 → N02-15).
     if (teamId === PRESET_TEAM_ID && !preferences.hasOpenedPresetTeam) {
@@ -157,7 +162,6 @@ export function TeamPage({
   const closeTeamDetail = () => {
     back();
     setExpandedMemberId(null);
-    setEditingMemberId(null);
     setShowPicker(false);
   };
 
@@ -184,12 +188,11 @@ export function TeamPage({
     const nextActiveTeam = remainingTeams[Math.min(Math.max(teamIndex, 0), remainingTeams.length - 1)];
     await deleteTeam(team.id);
     if (activeTeamId === team.id) onActiveTeamChange(nextActiveTeam?.id);
-    if (detailTeamId === team.id) {
+    if (detailTeamId === team.id || editorRoute?.teamId === team.id) {
       // The route still points at a team that no longer exists; replace (not push) so
       // 返回 does not walk back into a dead detail page.
       navigate({ name: 'teams' }, { replace: true });
       setExpandedMemberId(null);
-      setEditingMemberId(null);
     }
     setPendingDeleteTeamId(null);
   };
@@ -200,6 +203,13 @@ export function TeamPage({
     setMenuTeamId(null);
     onActiveTeamChange(copy.id);
   };
+
+  // A member-editor deep link whose member has since been removed lands on its team instead of
+  // a blank page; replace, so 返回 does not walk back into the dead editor.
+  useEffect(() => {
+    if (!editorRoute || editingMember) return;
+    navigate(editorTeam ? { name: 'team-detail', teamId: editorTeam.id } : { name: 'teams' }, { replace: true });
+  }, [editorRoute, editorTeam, editingMember, navigate]);
 
   const dragTargetIndex = (clientY: number, sourceIndex: number, startY: number) =>
     resolveDragTargetIndex({
@@ -291,6 +301,63 @@ export function TeamPage({
     </>
   );
 
+  if (editorRoute) {
+    // The effect above has already redirected a route whose member is gone.
+    if (!editorTeam || !editingMember) return null;
+
+    const lost = lastTransfer?.fromMemberId === editingMember.id ? lastTransfer : null;
+    const lostToMember = lost ? editorTeam.members.find((member) => member.id === lost.toMemberId) : undefined;
+    const lostItem =
+      lost && lostToMember && !editingMember.itemId
+        ? {
+            itemName: items.find((item) => item.id === lost.itemId)?.chineseName ?? lost.itemId,
+            toMemberName: pokemon.find((entry) => entry.id === lostToMember.pokemonId)?.chineseName ?? '队友',
+          }
+        : undefined;
+
+    return (
+      <>
+        <MemberEditor
+          environment={environment}
+          lostItem={lostItem}
+          member={editingMember}
+          memberIndex={editingMemberIndex}
+          team={editorTeam}
+          onClose={() => navigate({ name: 'team-detail', teamId: editorTeam.id })}
+          onDelete={async () => {
+            await saveTeam({ ...editorTeam, members: editorTeam.members.filter((entry) => entry.id !== editingMember.id) });
+            setExpandedMemberId((current) => (current === editingMember.id ? null : current));
+            navigate({ name: 'team-detail', teamId: editorTeam.id });
+          }}
+          onSave={async (members, transfer) => {
+            await saveTeam({ ...editorTeam, members });
+            if (transfer) {
+              setLastTransfer({ fromMemberId: transfer.fromMemberId, toMemberId: editingMember.id, itemId: transfer.itemId });
+            } else if (lastTransfer && (lastTransfer.fromMemberId === editingMember.id || lastTransfer.toMemberId === editingMember.id)) {
+              setLastTransfer(null);
+            }
+          }}
+          onUndoTransfer={
+            lostItem
+              ? () => {
+                  const restored = editorTeam.members.map((entry) =>
+                    entry.id === editingMember.id
+                      ? { ...entry, itemId: lost!.itemId }
+                      : entry.id === lost!.toMemberId
+                        ? { ...entry, itemId: undefined }
+                        : entry,
+                  );
+                  setLastTransfer(null);
+                  void saveTeam({ ...editorTeam, members: restored });
+                }
+              : undefined
+          }
+        />
+        {sheets}
+      </>
+    );
+  }
+
   if (activeTeam) {
     const shareable = canShareTeam(activeTeam);
     const missing = TEAM_SHARE_REQUIRED_MEMBERS - activeTeam.members.length;
@@ -366,7 +433,7 @@ export function TeamPage({
                 key={member.id}
                 member={member}
                 onCollapse={() => setExpandedMemberId(null)}
-                onEdit={() => setEditingMemberId(member.id)}
+                onEdit={() => navigate({ name: 'member-editor', teamId: activeTeam.id, memberId: member.id })}
                 onOpenCalculator={() => onSendToCalculator(member.id, 'attacker')}
                 onOpenSpeed={() => onSendToSpeed(member.id)}
               />
@@ -379,18 +446,6 @@ export function TeamPage({
           ))}
         </div>
 
-        {editingMember && (
-          <MemberEditor
-            member={editingMember}
-            team={activeTeam}
-            onClose={() => setEditingMemberId(null)}
-            onDelete={async (memberId) => {
-              await saveTeam({ ...activeTeam, members: activeTeam.members.filter((member) => member.id !== memberId) });
-              setExpandedMemberId((current) => (current === memberId ? null : current));
-            }}
-            onSave={(member) => updateMember(activeTeam.id, member)}
-          />
-        )}
         <PokemonPicker open={showPicker} onClose={() => setShowPicker(false)} onPick={handlePickPokemon} />
         {sheets}
       </div>

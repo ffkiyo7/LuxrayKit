@@ -22,6 +22,11 @@ describe('parseHashRoute', () => {
     expect(parseHashRoute('#/env/pokemon/garchomp')).toEqual({ name: 'env-pokemon', pokemonId: 'garchomp' });
     expect(parseHashRoute('#/teams')).toEqual({ name: 'teams' });
     expect(parseHashRoute('#/teams/team-1')).toEqual({ name: 'team-detail', teamId: 'team-1' });
+    expect(parseHashRoute('#/teams/team-1/members/member-9')).toEqual({
+      name: 'member-editor',
+      teamId: 'team-1',
+      memberId: 'member-9',
+    });
     expect(parseHashRoute('#/tools')).toEqual({ name: 'tools' });
     expect(parseHashRoute('#/tools/calculator')).toEqual({ name: 'tool', tool: 'calculator' });
     expect(parseHashRoute('#/tools/dex')).toEqual({ name: 'tool', tool: 'dex' });
@@ -51,6 +56,8 @@ describe('parseHashRoute', () => {
     expect(parseHashRoute('#/tools/nope')).toEqual(defaultRoute);
     expect(parseHashRoute('#/tools/speed/extra')).toEqual(defaultRoute);
     expect(parseHashRoute('#/teams/a/b')).toEqual(defaultRoute);
+    expect(parseHashRoute('#/teams/a/members')).toEqual(defaultRoute);
+    expect(parseHashRoute('#/teams/a/members/b/extra')).toEqual(defaultRoute);
     expect(parseHashRoute('#/profile/extra')).toEqual(defaultRoute);
     expect(parseHashRoute('#/profile/feedback/extra')).toEqual(defaultRoute);
     expect(parseHashRoute('#/t')).toEqual(defaultRoute);
@@ -63,6 +70,11 @@ describe('buildHash', () => {
     ids.forEach((id) => {
       expect(roundtrip({ name: 'env-pokemon', pokemonId: id })).toEqual({ name: 'env-pokemon', pokemonId: id });
       expect(roundtrip({ name: 'team-detail', teamId: id })).toEqual({ name: 'team-detail', teamId: id });
+      expect(roundtrip({ name: 'member-editor', teamId: id, memberId: id })).toEqual({
+        name: 'member-editor',
+        teamId: id,
+        memberId: id,
+      });
       expect(roundtrip({ name: 'dex-pokemon', pokemonId: id })).toEqual({ name: 'dex-pokemon', pokemonId: id });
     });
   });
@@ -82,6 +94,7 @@ describe('buildHash', () => {
       { name: 'env-pokemon', pokemonId: 'x' },
       { name: 'teams' },
       { name: 'team-detail', teamId: 'x' },
+      { name: 'member-editor', teamId: 'x', memberId: 'm' },
       { name: 'tools' },
       { name: 'tool', tool: 'typechart' },
       { name: 'dex-pokemon', pokemonId: 'x' },
@@ -106,6 +119,7 @@ describe('parentRoute', () => {
     expect(parentRoute({ name: 'env-ranking' })).toEqual({ name: 'env' });
     expect(parentRoute({ name: 'env-pokemon', pokemonId: 'x' })).toEqual({ name: 'env' });
     expect(parentRoute({ name: 'team-detail', teamId: 'x' })).toEqual({ name: 'teams' });
+    expect(parentRoute({ name: 'member-editor', teamId: 'x', memberId: 'm' })).toEqual({ name: 'team-detail', teamId: 'x' });
     expect(parentRoute({ name: 'tool', tool: 'speed' })).toEqual({ name: 'tools' });
     expect(parentRoute({ name: 'dex-pokemon', pokemonId: 'x' })).toEqual({ name: 'tool', tool: 'dex' });
     expect(parentRoute({ name: 'profile-feedback' })).toEqual({ name: 'profile' });
@@ -125,6 +139,7 @@ describe('tabForRoute / routeForTab', () => {
   it('groups routes under the right bottom tab', () => {
     expect(tabForRoute({ name: 'env-pokemon', pokemonId: 'x' })).toBe('environment');
     expect(tabForRoute({ name: 'team-detail', teamId: 'x' })).toBe('teams');
+    expect(tabForRoute({ name: 'member-editor', teamId: 'x', memberId: 'm' })).toBe('teams');
     expect(tabForRoute({ name: 'share', code: 'x' })).toBe('teams');
     expect(tabForRoute({ name: 'dex-pokemon', pokemonId: 'x' })).toBe('tools');
     expect(tabForRoute({ name: 'profile' })).toBe('profile');
@@ -142,6 +157,9 @@ describe('routePattern', () => {
   it('strips ids so analytics never sees a team id or share code', () => {
     expect(routePattern({ name: 'env-pokemon', pokemonId: 'garchomp' })).toBe('/env/pokemon/:id');
     expect(routePattern({ name: 'team-detail', teamId: 'team-secret' })).toBe('/teams/:id');
+    expect(routePattern({ name: 'member-editor', teamId: 'team-secret', memberId: 'member-secret' })).toBe(
+      '/teams/:id/members/:id',
+    );
     expect(routePattern({ name: 'dex-pokemon', pokemonId: 'garchomp' })).toBe('/tools/dex/:id');
     expect(routePattern({ name: 'share', code: 'z1payload' })).toBe('/t/:code');
     expect(routePattern({ name: 'tool', tool: 'typechart' })).toBe('/tools/typechart');
@@ -156,6 +174,7 @@ describe('routePattern', () => {
       { name: 'env-pokemon', pokemonId: 'x' },
       { name: 'teams' },
       { name: 'team-detail', teamId: 'x' },
+      { name: 'member-editor', teamId: 'x', memberId: 'm' },
       { name: 'tools' },
       { name: 'tool', tool: 'calculator' },
       { name: 'tool', tool: 'dex' },
