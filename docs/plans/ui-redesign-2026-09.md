@@ -105,7 +105,10 @@ owner 原话与帧冲突时原话赢。共享层先行修复：`15d0f63`。
 - [ ] 🎮 **R26 梦特特性名对比度不够**（`577166d`）：`fnTeal` → 琥珀色 `text-data`。
 - [ ] ⬜ **R22 工具页首次打开的示例数据 + 「最近用过」标题常驻**：已出稿，等 owner 看稿后落地。第二版稿（owner 提议）：卡片副行不放长文字，改为「圆形小头像 + 招式名 → 圆形小头像」（伤害计算）、「小头像 + 未分配 SP」（速度线），解决窄卡截断。示例取真实计算（稿里是烈咬陆鲨 地震 → 炽焰咆哮虎 156–186、烈咬陆鲨 0 SP 速度 122），标签「上次」位置改写「示例」。
 - [ ] 🚧 **R23 属性速查「打 / 挨」文案**：出了 A 克制 / 弱、B 效果绝佳 / 弱点、C 箭头 三个方案，**owner 选 C 箭头**（2026-09-19）。`MatrixResult` 已改为箭头图标（读屏读「攻击」）；工具页卡片那一行（属性点 + 箭头）随 R22 的稿一起等 owner 看。涉及 `ToolsPage.tsx` 的 `TypeChartLine` 和 `TypeChartPage.tsx` 的 `MatrixResult`。
-- [ ] 🚧 **R24 光晕按宝可梦本体色**（**owner 决定做**，2026-09-19；调参 + 接入进行中）：颜色表已出（分支 `worktree-agent-af7f9f619d7f48bcc` 的 `314b52d`，**未合入 `dev`**）：`scripts/generate-pokemon-colors.mjs` → `src/data/seed/regMA/pokemonColors.ts`，key = 贴图 id（`iconRef` 的文件名），344 条，30 条 lowConfidence；`npm run data:regma:pokemon-colors`（`:check`）。界面未接。已知取得不好：烈咬陆鲨（橘色腹甲压过蓝色主体）、沙奈朵（白裙被当高光丢掉）、喷火龙（偏土黄）、轰擂金刚猩（棕色没进榜）。等 owner 看对照稿决定做不做、要不要调参。
+- [ ] 🎮 **R24 光晕按宝可梦本体色**（**owner 决定做**，2026-09-19；合并 `885f780`）：`scripts/generate-pokemon-colors.mjs` → `src/data/seed/regMA/pokemonColors.ts`，key = 贴图 id（`iconRef` 的文件名），344 条，22 条 lowConfidence；`npm run data:regma:pokemon-colors`（`:check`），不联网、确定性。`auraStyle(types, iconRef?)`：表里有这张贴图 → 本体色，否则回退属性色。6 个调用点全部接入：成员卡、成员编辑器顶卡、形态选择页（后两处原来是手写内联属性色，一并改走 `auraStyle`）、图鉴大图、环境首屏 hero、环境详情头部。CSS 值未动。颜色表被 Rollup 切成独立 chunk（`aura-*.js` 9.99 kB / gzip 4.33 kB），入口 chunk 体积不变，首屏预算不受影响。
+  - 取色：丢透明 / 近黑 / 近白 / 近灰（暖色相 15°–50° 的灰阈值放宽到 0.10 让棕色进榜）→ 15° 分桶 → 峰值得分「面积为主、饱和度为辅」Σ(0.35 + 0.65 × S)，峰必须是局部最大（否则窗口会把两种颜色平均成土黄）→ 饱和度取 75 分位、亮度取均值 → c2 取色相差 ≥ 35° 的次峰，没有就用 c1 的亮度邻近变体 → 钳到 S 0.45–0.90 / L 0.45–0.70；近白像素 ≥ 45% 的白色主体改用淡彩区间 S 0.30–0.55 / L 0.64–0.70。
+  - 第一版的四个坏例（烈咬陆鲨橘压蓝、喷火龙土黄、沙奈朵浓绿 + 红、轰擂金刚猩没有棕）靠调参修好，没用 override；脚本顶部 `overrides = {}` 留给 owner 手工指定。
+  - 验收重点：深 / 浅各看一遍；沙奈朵（淡彩）、月亮伊布 / 大钢蛇（lowConfidence，靠少量像素撑色）。
 
 ## 待 owner 拍板（agent 都已按最保守的理解先做完，不阻塞验收）
 
