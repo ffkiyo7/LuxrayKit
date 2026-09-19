@@ -6,6 +6,7 @@ import './styles.css';
 import './styles/p3.css';
 import './styles/p4a.css';
 import './styles/p4b.css';
+import './styles/p6.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

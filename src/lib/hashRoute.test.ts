@@ -87,6 +87,11 @@ describe('buildHash', () => {
       { name: 'dex-pokemon', pokemonId: 'x' },
       { name: 'profile' },
       { name: 'profile-feedback' },
+      { name: 'profile-backup' },
+      { name: 'profile-cache' },
+      { name: 'profile-install' },
+      { name: 'profile-rule' },
+      { name: 'profile-about' },
       { name: 'share', code: 'x' },
     ];
     routes.forEach((route) => {
@@ -159,6 +164,11 @@ describe('routePattern', () => {
       { name: 'dex-pokemon', pokemonId: 'x' },
       { name: 'profile' },
       { name: 'profile-feedback' },
+      { name: 'profile-backup' },
+      { name: 'profile-cache' },
+      { name: 'profile-install' },
+      { name: 'profile-rule' },
+      { name: 'profile-about' },
       { name: 'share', code: 'x' },
     ];
     const emitted = new Set(routes.map(routePattern));
