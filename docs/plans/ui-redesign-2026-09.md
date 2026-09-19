@@ -103,7 +103,7 @@ owner 原话与帧冲突时原话赢。共享层先行修复：`15d0f63`。
 - [ ] 🎮 **R21 底部按钮被 tab bar 遮挡**（`211ed0b`）：tab bar 的 `bottom` 含 `env(safe-area-inset-bottom)`，图鉴详情的「加入队伍 / 计算」和速度线的「回到我」没加 → 两处补上。
 - [ ] 🎮 **R25 图鉴「加入队伍」点了没反应**（`577166d`）：原来静默写进第一支队伍，队伍满员 / 已有同种 / 一支队伍都没有时直接 return，无任何提示 → 改为弹环境页同款选队 sheet（抽成 `src/components/TeamPickerSheet.tsx` 共用），成功 toast「已加入<队伍名>」，被规则拒绝时 toast 拒绝原因。
 - [ ] 🎮 **R26 梦特特性名对比度不够**（`577166d`）：`fnTeal` → 琥珀色 `text-data`。
-- [ ] 🚧 **R22 工具页首次打开的示例数据 + 「最近用过」标题常驻**：**owner 已确认稿子（2026-09-19「工具页的稿可以了，落地吧」），Opus 落地中。** 稿上追加的三条 owner 批注：伤害卡大数字改百分比区间（取整，如 `92–109%`）；深色头像圆盘用卡片填充色 + 圆框；示例值写成常量、由单测用 `computeDamage` 现算对账（工具页运行时不引入 `calc-engine`）。第二版稿（owner 提议）：卡片副行不放长文字，改为「圆形小头像 + 招式名 → 圆形小头像」（伤害计算）、「小头像 + 未分配 SP」（速度线），解决窄卡截断。示例取真实计算（稿里是烈咬陆鲨 地震 → 炽焰咆哮虎 156–186、烈咬陆鲨 0 SP 速度 122），标签「上次」位置改写「示例」。
+- [ ] 🎮 **R22 工具页首次打开的示例数据 + 「最近用过」标题常驻**（合并 `3f166be`）：owner 已确认稿子（2026-09-19）。三张卡统一「示例 / 上次」label；`CalculatorToolResult` 新增 `moveLabel` / `defenderLabel` / `defenderIconRef`（旧记录靠校验丢弃一次，存储 key 仍是 `luxraykit.recentTools.v2`）；示例常量在 `src/lib/toolSamples.ts`，`toolSamples.test.ts` 现算对账；速度示例用 `resolveDefaultSpeedSubject` 现算；属性示例是 Fairy 按属性表现算（妖精 → 格斗 / 毒 → 妖精，不是稿里的龙 / 钢）；速度示例态不画 sparkline（要拉 209 kB 的 `speedTiers`）。ToolsPage chunk 9.15 kB，不含 `calc-engine`。 稿上追加的三条 owner 批注：伤害卡大数字改百分比区间（取整，如 `92–109%`）；深色头像圆盘用卡片填充色 + 圆框；示例值写成常量、由单测用 `computeDamage` 现算对账（工具页运行时不引入 `calc-engine`）。第二版稿（owner 提议）：卡片副行不放长文字，改为「圆形小头像 + 招式名 → 圆形小头像」（伤害计算）、「小头像 + 未分配 SP」（速度线），解决窄卡截断。示例取真实计算（稿里是烈咬陆鲨 地震 → 炽焰咆哮虎 156–186、烈咬陆鲨 0 SP 速度 122），标签「上次」位置改写「示例」。
 - [ ] 🚧 **R23 属性速查「打 / 挨」文案**：出了 A 克制 / 弱、B 效果绝佳 / 弱点、C 箭头 三个方案，**owner 选 C 箭头**（2026-09-19）。`MatrixResult` 已改为箭头图标（读屏读「攻击」）；工具页卡片那一行（属性点 + 箭头）随 R22 的稿一起等 owner 看。涉及 `ToolsPage.tsx` 的 `TypeChartLine` 和 `TypeChartPage.tsx` 的 `MatrixResult`。
 - [ ] 🎮 **R24 光晕按宝可梦本体色**（**owner 决定做**，2026-09-19；合并 `885f780`）：`scripts/generate-pokemon-colors.mjs` → `src/data/seed/regMA/pokemonColors.ts`，key = 贴图 id（`iconRef` 的文件名），344 条，22 条 lowConfidence；`npm run data:regma:pokemon-colors`（`:check`），不联网、确定性。`auraStyle(types, iconRef?)`：表里有这张贴图 → 本体色，否则回退属性色。6 个调用点全部接入：成员卡、成员编辑器顶卡、形态选择页（后两处原来是手写内联属性色，一并改走 `auraStyle`）、图鉴大图、环境首屏 hero、环境详情头部。CSS 值未动。颜色表被 Rollup 切成独立 chunk（`aura-*.js` 9.99 kB / gzip 4.33 kB），入口 chunk 体积不变，首屏预算不受影响。
   - 取色：丢透明 / 近黑 / 近白 / 近灰（暖色相 15°–50° 的灰阈值放宽到 0.10 让棕色进榜）→ 15° 分桶 → 峰值得分「面积为主、饱和度为辅」Σ(0.35 + 0.65 × S)，峰必须是局部最大（否则窗口会把两种颜色平均成土黄）→ 饱和度取 75 分位、亮度取均值 → c2 取色相差 ≥ 35° 的次峰，没有就用 c1 的亮度邻近变体 → 钳到 S 0.45–0.90 / L 0.45–0.70；近白像素 ≥ 45% 的白色主体改用淡彩区间 S 0.30–0.55 / L 0.64–0.70。
@@ -113,12 +113,17 @@ owner 原话与帧冲突时原话赢。共享层先行修复：`15d0f63`。
 
 ### 第三轮追加（2026-09-19，owner 要求全部由 Opus 实施）
 
-- [ ] 🚧 **R28 图鉴属性关系组标题去掉 `×2 · ×4`**：chip 里已有倍率。
-- [ ] 🚧 **R29 图鉴属性关系加可切换的「攻击时」**：先出三版设计稿（Opus + Design 画布），owner 选定后落地。
-- [ ] 🚧 **R30 环境页 NEW 标记给颜色**：现在是主题反色；用已有 token，不和涨 / 跌语义色撞。
-- [ ] 🚧 **R31 主题开关加太阳 / 月亮图标**。
-- [ ] 🚧 **R32 环境宝可梦详情删掉「按使用率排序」**（两处 `SectionHeading` trailing）。
-- [ ] 🚧 **R33 环境宝可梦详情加 SP 分配（上游「能力ポイント」）**：只取前 3，中文写入；上游缩写（AS / CS…，日本对战圈记法 H/A/B/C/D/S）要拿证据核实。分两步：① 数据层（Worker 解析 + 兜底 JSON 脚本 + `environmentDataset` 归一化，**不写 KV、不部署**）；② 展示先出三版设计稿，owner 选定后落地。
+- [ ] 🎮 **R28 图鉴属性关系组标题去掉 `×2 · ×4`**（合并 `b68d192`）：chip 里已有倍率。
+- [ ] 🚧 **R29 图鉴属性关系加可切换的「攻击时」**：三版稿已上画布（A 全宽分段 + 按属性分块 / B 文字切换 + 一次看一系、攻击侧不上色 / C 标题行紧凑分段 + 合并成一张表、chip 尾部标来源系），六张都可点。Opus 与我都推荐 C；颜色建议反转（效果绝佳 = success，与 `TypeChartPage` 的 `SingleTypeView` 一致）。等 owner 选。
+- [ ] 🎮 **R30 环境页 NEW 标记给颜色**（合并 `b68d192`）：`rankDeltaTone.new` → `text-fnBlue`（↑ success / ↓ danger / – secondary，蓝不撞语义；teal 易读成涨、琥珀是数值色）。
+- [ ] 🎮 **R31 主题开关加太阳 / 月亮图标**（合并 `b68d192`）：`ProfilePage.tsx`「主题」行 leading 图标随状态在 `Moon` / `Sun` 间切换。
+- [ ] 🎮 **R32 环境宝可梦详情删掉「按使用率排序」**（合并 `b68d192`）：常用招式、携带道具两处；「按环境名次排序」保留（那一栏不显示数值）。
+- [ ] 🚧 **R33 环境宝可梦详情加 SP 分配（上游「能力ポイント」）**：只取前 3，中文写入。
+  - ✅ ① 数据层（合并 `35b4713`）：`EnvironmentPokemonUsage.statPointStats?: EnvironmentStatPointUsage[]`（`label` 上游缩写原文 / `primaryStatKeys` / `extraStatKeys` / `points` / `hasRemainder` / `usageRate` / `teamCount`）。取上游默认的「合算」tab；缺失 / 未知字母 / 单项 > 32 / 总和 > 66 → 只丢那一条，**不进 Worker 零容忍 audit**（不会 degraded）；归一化层新增 issue code `invalid-stat-point-spread`。Worker `tsconfig.json` 的 include 加了 `statPoints.ts`。调查只读 GET 4 次，未写 KV、未跑 wrangler、未碰刷新端点。
+  - 缩写已核实：H=HP A=攻击 B=防御 C=特攻 D=特防 S=速度；大写 = 主投项，`+` 后小写 = 吃余点的项。证据是「位置 + 数值」（chip 顺序恒为 H→A→B→C→D→S，与同页种族值区块顺序一一对应；烈咬陆鲨 `AS` = 攻击 32 / 速度 32，索财灵 `CS` = 特攻 32 / 速度 32），上游没有字母 ↔ 全称的图例。owner 猜的 AS = 攻击 + 速度 正确。
+  - **已知坑 `hasRemainder`**：上游把「满投项相同、余点去向不同」的配置合并成一条时只印满投项，余点印「余り」——使用率第一的那条往往正是这种（攻击 32 + 速度 32 = 64/66），不能画成完整分配。
+  - 🚧 ② 展示：三版设计稿 Opus 出稿中，owner 选定后落地。
+  - ⬜ 上线链路（都要 owner 决定时机）：合 `main` → Worker 部署；KV 要等上游下一次发布（约每天 00:30 JST，Worker 只在上游 signature 变化时重建快照）或 owner 手动 POST `/api/environment/refresh`；兜底 JSON 要跑 `npm run data:pokedb:environment`（会顺带刷新整份使用率，**未跑、未提交产物**）。在这之前界面上这一节不会有数据。
 
 ## 待 owner 拍板（agent 都已按最保守的理解先做完，不阻塞验收）
 
