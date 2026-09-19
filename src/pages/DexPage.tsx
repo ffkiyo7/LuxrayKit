@@ -1,9 +1,10 @@
 import { SlidersHorizontal } from 'lucide-react';
-import { useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { abilities, moves } from '../data';
 import { currentRegulation } from '../data/schedule';
 import { currentRuleSelectableItems } from '../lib/currentRuleCatalog';
 import { getDexFormEntries, type DexFormEntry } from '../lib/pokemonForms';
+import { isKeyboardPrimed, releaseKeyboardPrime } from '../lib/keyboardHandoff';
 import { recordDexEntry } from '../lib/toolActivity';
 import { useHashRoute } from '../hooks/useHashRoute';
 import type { ItemCategory, PokemonType } from '../types';
@@ -48,6 +49,12 @@ export function DexPage({
 }) {
   const [tab, setTab] = useState<DexTab>(initialTab);
   const [query, setQuery] = useState('');
+  // Arriving from 工具's search box: that tap already raised the keyboard on a stand-in input
+  // (see keyboardHandoff), so the real field takes focus on mount and the stand-in goes away.
+  const [focusSearchOnMount] = useState(isKeyboardPrimed);
+  useEffect(() => {
+    if (focusSearchOnMount) releaseKeyboardPrime();
+  }, [focusSearchOnMount]);
   const [filterPanelOpen, setFilterPanelOpen] = useState(false);
   const [selectedTypes, setSelectedTypes] = useState<PokemonType[]>([]);
   const [showMegaOnly, setShowMegaOnly] = useState(false);
@@ -237,7 +244,7 @@ export function DexPage({
         subtitle={`${regulationId} 规则数据 · 宝可梦 ${dexEntries.length} · 招式 ${moves.length} · 道具 ${selectableItems.length} · 特性 ${abilities.length}`}
         title="规则内图鉴"
       />
-      <SearchField className="mx-6 mt-4" label="搜索图鉴" placeholder="搜索名称" value={query} onChange={setQuery} />
+      <SearchField autoFocus={focusSearchOnMount} className="mx-6 mt-4" label="搜索图鉴" placeholder="搜索名称" value={query} onChange={setQuery} />
       <DexTabs className="mx-6 mt-3.5" value={tab} onChange={openTab} />
 
       {tab === 'pokemon' && (

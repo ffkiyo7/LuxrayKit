@@ -4,6 +4,7 @@ import { currentRuleSet } from '../data';
 import type { EnvironmentState } from '../data/environment';
 import { currentRegulation } from '../data/schedule';
 import { attackingTypes } from '../lib/calculations';
+import { primeKeyboard } from '../lib/keyboardHandoff';
 import { getDexFormEntries } from '../lib/pokemonForms';
 import { resolveDefaultSpeedSubject } from '../lib/speedTier';
 import type { Team } from '../types';
@@ -183,7 +184,12 @@ export function ToolsPage({
             aria-label="在图鉴里搜索"
             className="lk-p4a-field mt-3.5 flex h-11 w-full items-center gap-2.5 rounded-[14px] px-[13px]"
             type="button"
-            onClick={() => onOpenTool('dex')}
+            onClick={() => {
+              // This looks like a field, so it has to behave like one: raise the keyboard inside
+              // the tap, and the dex hands it to its own search field once it has mounted.
+              primeKeyboard();
+              onOpenTool('dex');
+            }}
           >
             <Search className="shrink-0 text-textSecondary" size={17} />
             <span className="min-w-0 flex-1 text-left text-[15px] font-medium text-textSecondary">搜宝可梦 / 招式 / 道具</span>

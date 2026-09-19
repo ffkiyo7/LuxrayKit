@@ -3,6 +3,7 @@ import 'fake-indexeddb/auto';
 import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { primeKeyboard } from '../lib/keyboardHandoff';
 import { getDexFormEntries } from '../lib/pokemonForms';
 import { AppProvider } from '../state/AppContext';
 import { DexPage } from './DexPage';
@@ -37,5 +38,30 @@ describe('DexPage scroll position', () => {
     await user.click(screen.getByRole('button', { name: '返回图鉴列表' }));
     await screen.findByRole('button', { name: new RegExp(first.chineseName) });
     expect(scrollTo).toHaveBeenLastCalledWith({ top: 1840, left: 0 });
+  });
+});
+
+describe('DexPage search focus', () => {
+  const renderDex = () =>
+    render(
+      <AppProvider>
+        <DexPage onOpenCalculator={vi.fn()} />
+      </AppProvider>,
+    );
+
+  it('takes the keyboard over from the stand-in input a tap on 工具 raised', () => {
+    primeKeyboard();
+    const standIn = document.activeElement;
+    expect(standIn?.tagName).toBe('INPUT');
+
+    renderDex();
+
+    expect(document.activeElement).toBe(screen.getByRole('textbox', { name: '搜索图鉴' }));
+    expect(standIn?.isConnected).toBe(false);
+  });
+
+  it('leaves the search field alone when opened any other way', () => {
+    renderDex();
+    expect(document.activeElement).not.toBe(screen.getByRole('textbox', { name: '搜索图鉴' }));
   });
 });
