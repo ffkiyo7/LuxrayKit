@@ -1341,7 +1341,8 @@ describe('App page flows', () => {
     await user.type(screen.getByPlaceholderText('搜索名称'), 'Luxray');
 
     const intimidateRow = await screen.findByRole('button', { name: '展开威吓说明' });
-    expect(within(intimidateRow).getByRole('img').getAttribute('alt')).toBe('伦琴猫');
+    // The collapsed row stacks up to three owners; the one that matched the search leads.
+    expect(within(intimidateRow).getAllByRole('img')[0].getAttribute('alt')).toBe('伦琴猫');
     expect(screen.queryByText('厚脂肪')).toBeNull();
 
     await user.clear(screen.getByPlaceholderText('搜索名称'));
