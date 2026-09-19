@@ -233,7 +233,7 @@ function EnvironmentStatusNotices({
 // ── Ranking rows (01-01 / 01-03 / N01-11) ──
 
 const rankDeltaTone = {
-  new: 'text-textPrimary',
+  new: 'text-fnBlue',
   up: 'text-success',
   down: 'text-danger',
   hold: 'text-textSecondary',
