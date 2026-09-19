@@ -234,11 +234,11 @@ const openDefaultTeam = async (user: ReturnType<typeof userEvent.setup>) => {
   await screen.findByRole('heading', { name: 'Luxray test' });
 };
 
-/** Expand a member tile, then open the full editor from 「编辑配置」 (02-05 / N02-19). */
+/** Expand a member tile, then open the editor page from 「编辑配置」 (02-05 / N02-19 → 03-01). */
 const openMemberEditor = async (user: ReturnType<typeof userEvent.setup>, memberName: string) => {
   await user.click(await screen.findByRole('button', { name: `展开 ${memberName}` }));
   await user.click(await screen.findByRole('button', { name: '编辑配置' }));
-  await screen.findByText('编辑成员');
+  await screen.findByRole('heading', { name: '编辑配置' });
 };
 
 const openTeamMenu = async (user: ReturnType<typeof userEvent.setup>, teamName: string) => {
@@ -441,10 +441,10 @@ describe('App page flows', () => {
     await user.click(screen.getByRole('button', { name: '展开 伦琴猫' }));
     expect(await screen.findByText('能力值')).toBeTruthy();
     await user.click(screen.getByRole('button', { name: '编辑配置' }));
-    expect(await screen.findByText('编辑成员')).toBeTruthy();
-    await user.click(screen.getByTitle('关闭'));
+    expect(await screen.findByRole('heading', { name: '编辑配置' })).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: '返回队伍详情' }));
 
-    await user.click(screen.getByRole('button', { name: '收起 伦琴猫' }));
+    await user.click(await screen.findByRole('button', { name: '收起 伦琴猫' }));
     expect(screen.queryByText('能力值')).toBeNull();
   });
 
@@ -485,41 +485,56 @@ describe('App page flows', () => {
     expect(screen.getByText(/2\/6 成员/)).toBeTruthy();
   });
 
-  it('keeps member editing focused on the selected Pokemon, moves, nature, item, ability, and six SP fields', { timeout: 15000 }, async () => {
+  it('keeps the editor to the four config rows, the SP wheel and four move slots', { timeout: 15000 }, async () => {
     const user = await renderApp();
     await openDefaultTeam(user);
 
     await openMemberEditor(user, '伦琴猫');
 
-    expect(screen.queryByLabelText('Pokemon')).toBeNull();
+    // 03-01 carries no level, notes or species field — the species is 「换宝可梦」.
     expect(screen.queryByText('等级')).toBeNull();
     expect(screen.queryByText('备注')).toBeNull();
-    const itemSearch = screen.getByPlaceholderText('搜索携带物');
-    await user.type(itemSearch, '磁铁');
-    expect(screen.getAllByRole('button', { name: /磁铁/ }).length).toBeGreaterThan(0);
-    await user.clear(itemSearch);
-    await user.type(itemSearch, '突击背心');
-    expect(screen.queryByRole('button', { name: /突击背心/ })).toBeNull();
-    await user.clear(itemSearch);
-    await user.type(itemSearch, '清净坠饰');
-    expect(screen.queryByRole('button', { name: /清净坠饰/ })).toBeNull();
-    await user.clear(itemSearch);
-    expect(screen.queryByLabelText('形态预览')).toBeNull();
-    const moveSearch = screen.getAllByPlaceholderText('搜索招式')[0];
-    await user.type(moveSearch, '雷电牙');
-    await user.click(screen.getAllByRole('button', { name: /雷电牙/ })[0]);
-    expect(screen.getByRole('button', { name: /招式 3.*雷电牙/ })).toBeTruthy();
-
-    ['HP SP', '攻击 SP', '防御 SP', '特攻 SP', '特防 SP', '速度 SP'].forEach((label) => {
-      expect(screen.getAllByText(label.replace(' SP', '')).length).toBeGreaterThan(0);
+    expect(screen.getByRole('button', { name: '换宝可梦' })).toBeTruthy();
+    ['道具', '特性', '性格'].forEach((label) => {
+      expect(screen.getByRole('button', { name: `选择${label}` })).toBeTruthy();
     });
-    expect(screen.getByText('已用 65/66')).toBeTruthy();
+    // 形态 only exists for a species with a Mega (N03-14); 伦琴猫 has none.
+    expect(screen.queryByRole('button', { name: '选择形态' })).toBeNull();
 
-    await user.click(screen.getByRole('button', { name: /速度\s*32/ }));
-    expect(screen.getByText('速度 SP')).toBeTruthy();
+    // The item picker only offers what the current rule allows this Pokemon to hold.
+    await user.click(screen.getByRole('button', { name: '选择道具' }));
+    const itemSearch = await screen.findByLabelText('搜索道具名');
+    await user.type(itemSearch, '突击背心');
+    expect(screen.queryByRole('button', { name: '突击背心' })).toBeNull();
+    expect(await screen.findByText('没有匹配的道具')).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: '返回编辑配置' }));
+
+    // 03-02: a move slot is its own page, and the picked move lands back on the slot row.
+    await user.click(await screen.findByRole('button', { name: '招式 3' }));
+    await user.type(await screen.findByLabelText('搜索招式名'), '雷电牙');
+    await user.click(await screen.findByRole('button', { name: '雷电牙' }));
+    expect(await screen.findByRole('button', { name: '招式 3 雷电牙' })).toBeTruthy();
+
+    // 03-01's wheel: one stat at a time, one rail, no ± keys.
+    expect(screen.getByRole('button', { name: '调整速度' })).toBeTruthy();
     expect(screen.getByRole('slider', { name: '速度 SP' }).getAttribute('max')).toBe('32');
-    expect(screen.getByRole('button', { name: 'min' })).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'max' })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'min' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'max' })).toBeNull();
+  });
+
+  it('keeps a sheet with a field above the software keyboard', async () => {
+    // The keyboard shrinks the *visual* viewport only, so a sheet pinned to the layout
+    // viewport's bottom would open behind it. Every kit Sheet rides the visual viewport.
+    installVisualViewport(500, 20);
+    const user = await renderApp();
+
+    await user.click(screen.getByRole('button', { name: '新建队伍' }));
+    const sheet = (await screen.findByLabelText('队伍名称')).closest('section') as HTMLElement;
+
+    // innerHeight 844 − height 500 − offsetTop 20.
+    expect(sheet.style.bottom).toBe('324px');
+    expect(sheet.style.maxHeight).toBe('430px');
+    expect(sheet.className).toContain('overflow-y-auto');
   });
 
   // The member tile carries no delete of its own (02-05); removal goes through the editor.
@@ -529,7 +544,8 @@ describe('App page flows', () => {
 
     expect(await screen.findByText(/1\/6 成员/)).toBeTruthy();
     await openMemberEditor(user, '伦琴猫');
-    await user.click(screen.getByRole('button', { name: '删除' }));
+    await user.click(screen.getByRole('button', { name: '从队伍移除伦琴猫' }));
+    await user.click(within(await screen.findByRole('dialog', { name: '确认移除成员' })).getByRole('button', { name: '移除成员' }));
 
     expect(await screen.findByText(/0\/6 成员/)).toBeTruthy();
   });
@@ -585,7 +601,7 @@ describe('App page flows', () => {
     expect(await screen.findByRole('heading', { name: 'Luxray test' })).toBeTruthy();
   });
 
-  it('scopes member editor validation to SP limits and duplicate held items', { timeout: 15000 }, async () => {
+  it('keeps the editor free of the old legality panel, and only blocks the save on SP', { timeout: 15000 }, async () => {
     await repository.replaceTeams([
       testTeam('重复道具测试队', [garchompMember(), incineroarMember()]),
     ]);
@@ -599,20 +615,19 @@ describe('App page flows', () => {
     expect(screen.queryByText('合法')).toBeNull();
     expect(screen.queryByText(/数据版本/)).toBeNull();
     expect(screen.queryByText(/当前字段未发现问题|需要完成 Reg M-B 复核/)).toBeNull();
-    expect(screen.getByText('当前规则不允许同队重复携带相同道具。')).toBeTruthy();
-    expect(screen.getByText('已用 65/66')).toBeTruthy();
-    expect((screen.getByRole('button', { name: '保存' }) as HTMLButtonElement).disabled).toBe(true);
+    // A duplicate already in local data is no longer a block: 03-09 turns it into a transfer.
+    expect(screen.getByText('65 / 66')).toBeTruthy();
+    expect((screen.getByRole('button', { name: /^保存配置/ }) as HTMLButtonElement).disabled).toBe(false);
 
-    await user.click(screen.getAllByRole('button', { name: /HP\s*1/ }).at(-1)!);
+    await user.click(screen.getByRole('button', { name: '调整HP' }));
     fireEvent.change(screen.getByRole('slider', { name: 'HP SP' }), { target: { value: '3' } });
-    await user.click(screen.getByTitle('关闭 SP 调整'));
 
-    expect(screen.getByText('已用 67/66')).toBeTruthy();
-    expect(screen.getByText('单项最多 32，总量最多 66。')).toBeTruthy();
-    expect((screen.getByRole('button', { name: '保存' }) as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.getByText('67 / 66')).toBeTruthy();
+    expect(screen.getByText('总计超了 1 点，得从任意一项减 1')).toBeTruthy();
+    expect((screen.getByRole('button', { name: /^保存配置/ }) as HTMLButtonElement).disabled).toBe(true);
   });
 
-  it('saves non-SP non-duplicate legality issues silently while keeping legalityStatus updated', async () => {
+  it('saves non-SP legality issues silently while keeping legalityStatus updated', async () => {
     await repository.replaceTeams([
       testTeam('静默校验测试队', [
         garchompMember({
@@ -628,10 +643,10 @@ describe('App page flows', () => {
 
     expect(screen.queryByText('特性与当前 Pokémon 不匹配。')).toBeNull();
     expect(screen.queryByText('校验结果')).toBeNull();
-    expect((screen.getByRole('button', { name: '保存' }) as HTMLButtonElement).disabled).toBe(false);
+    expect((screen.getByRole('button', { name: /^保存配置/ }) as HTMLButtonElement).disabled).toBe(false);
 
-    await user.click(screen.getByRole('button', { name: '保存' }));
-    await waitFor(() => expect(screen.queryByText('编辑成员')).toBeNull());
+    await user.click(screen.getByRole('button', { name: /^保存配置/ }));
+    await waitFor(() => expect(screen.queryByRole('heading', { name: '编辑配置' })).toBeNull());
     const state = await repository.loadState();
     expect(state.teams[0].members[0].legalityStatus).toBe('illegal');
   });
@@ -818,12 +833,14 @@ describe('App page flows', () => {
     expect(await screen.findByRole('heading', { name: starmieSample.title })).toBeTruthy();
 
     await openMemberEditor(user, '宝石海星');
-    const formSelect = (await screen.findByLabelText('形态预览')) as HTMLSelectElement;
+    // N03-14 is a page of its own, and only exists for a species that has a Mega.
+    await user.click(await screen.findByRole('button', { name: '选择形态' }));
+    expect(await screen.findByRole('heading', { name: '形态' })).toBeTruthy();
 
-    expect(Array.from(formSelect.options).map((option) => option.value)).toContain('mega-starmie');
-    expect(formSelect.value).toBe('starmie');
-    await user.selectOptions(formSelect, 'mega-starmie');
-    expect(formSelect.value).toBe('mega-starmie');
+    await user.click(screen.getByRole('button', { name: '超级宝石海星 MEGA' }));
+    expect(await screen.findByRole('heading', { name: '编辑配置' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: '选择形态' }).textContent).toContain('超级宝石海星');
+    await waitFor(() => expect(screen.getByRole('button', { name: /^保存配置/ }).textContent).toContain('项改动'));
   });
 
   it('shows import success feedback and clears the imported team highlight', async () => {

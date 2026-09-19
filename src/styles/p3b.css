@@ -1,0 +1,151 @@
+/*
+ * 03 编辑配置 — the pieces of the editor and its four picker sub-pages that need a per-theme
+ * alpha or a pseudo-element. Anything with one value per theme stays a token in styles.css.
+ */
+
+:root {
+  --lk-wheel-rail: rgb(255 255 255 / 0.1);
+  --lk-wheel-fade: 11 11 12;
+  --lk-wheel-d1: #9a9aa0;
+  --lk-wheel-d2: #7e7e85;
+  --lk-wheel-d3: #6e6e73;
+  --lk-bar-ink: rgb(11 11 12 / 0.9);
+  --lk-bar-edge: rgb(255 255 255 / 0.08);
+  --lk-sp-rail: rgb(255 255 255 / 0.09);
+  --lk-sp-knob: #ffffff;
+  --lk-sp-knob-shadow: 0 2px 8px rgb(0 0 0 / 0.5);
+  --lk-row-pending-ring: inset 0 0 0 1.5px rgb(255 255 255 / 0.18);
+  --lk-nature-on: rgb(255 255 255 / 0.14);
+  --lk-editor-face: linear-gradient(0deg, rgb(var(--color-surface)), rgb(var(--color-surface)));
+  --lk-primary-slab: inset 0 1px 0 rgb(255 255 255 / 0.9), inset 0 -1px 0 rgb(0 0 0 / 0.12),
+    0 6px 18px rgb(0 0 0 / 0.45);
+}
+
+:root[data-theme='light'] {
+  --lk-wheel-rail: rgb(16 24 40 / 0.08);
+  --lk-wheel-fade: 251 251 253;
+  --lk-wheel-d1: #8e8e93;
+  --lk-wheel-d2: #7e7e85;
+  --lk-wheel-d3: #6e6e73;
+  --lk-bar-ink: rgb(251 251 253 / 0.9);
+  --lk-bar-edge: rgb(16 24 40 / 0.06);
+  --lk-sp-rail: #e8e8ec;
+  --lk-sp-knob: #1c1c1e;
+  --lk-sp-knob-shadow: 0 2px 8px rgb(28 28 30 / 0.32);
+  --lk-row-pending-ring: inset 0 0 0 1.5px rgb(16 24 40 / 0.18);
+  --lk-nature-on: rgb(16 24 40 / 0.1);
+  /* NL-02 puts the member card on paper white, a notch above the page's other surfaces. */
+  --lk-editor-face: linear-gradient(0deg, #ffffff, #ffffff);
+  --lk-primary-slab: 0 1px 2px rgb(16 24 40 / 0.12);
+}
+
+/* 03-01 member card: the same two-type wash as the expanded card (02-05), on the editor face. */
+.lk-editor-aura {
+  background:
+    radial-gradient(
+      90% 120% at 86% 6%,
+      color-mix(in srgb, var(--lk-aura-c1) var(--lk-aura-s1), transparent),
+      color-mix(in srgb, var(--lk-aura-c2) var(--lk-aura-s2), transparent) 52%,
+      transparent 74%
+    ),
+    var(--lk-editor-face);
+}
+
+/* 03-01 stat wheel: a 40px band bleeding past the 24px gutter, with the page fading in at
+   both ends so the off-centre stats slide out of view instead of being clipped. */
+.lk-wheel-rail {
+  border-top: 1px solid var(--lk-wheel-rail);
+  border-bottom: 1px solid var(--lk-wheel-rail);
+}
+
+.lk-wheel-fade--left {
+  background: linear-gradient(90deg, rgb(var(--lk-wheel-fade)) 12%, rgb(var(--lk-wheel-fade) / 0));
+}
+
+.lk-wheel-fade--right {
+  background: linear-gradient(270deg, rgb(var(--lk-wheel-fade)) 12%, rgb(var(--lk-wheel-fade) / 0));
+}
+
+/* 03-01 SP rail — 6px track, 26px knob, drawn on the native range input so the slider role,
+   keyboard stepping and value announcements stay untouched. `--lk-sp-fill` is the amber run;
+   an over-cap value (N03-15) recolours both halves through `--lk-sp-ink`. */
+.lk-sp-slider {
+  --lk-sp-ink: rgb(var(--color-data));
+  width: 100%;
+  height: 28px;
+  margin: 0;
+  background: transparent;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.lk-sp-slider--over {
+  --lk-sp-ink: rgb(var(--color-danger));
+  --lk-sp-rail: rgb(var(--color-danger) / 0.2);
+}
+
+.lk-sp-slider::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 9999px;
+  background: linear-gradient(
+    to right,
+    var(--lk-sp-ink) var(--lk-sp-fill, 0%),
+    var(--lk-sp-rail) var(--lk-sp-fill, 0%)
+  );
+}
+
+.lk-sp-slider::-moz-range-track {
+  height: 6px;
+  border-radius: 9999px;
+  background: var(--lk-sp-rail);
+}
+
+.lk-sp-slider::-moz-range-progress {
+  height: 6px;
+  border-radius: 9999px;
+  background: var(--lk-sp-ink);
+}
+
+.lk-sp-slider::-webkit-slider-thumb {
+  width: 26px;
+  height: 26px;
+  margin-top: -10px;
+  border: 0;
+  border-radius: 9999px;
+  background: var(--lk-sp-knob);
+  box-shadow: var(--lk-sp-knob-shadow);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.lk-sp-slider::-moz-range-thumb {
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 9999px;
+  background: var(--lk-sp-knob);
+  box-shadow: var(--lk-sp-knob-shadow);
+}
+
+/* 03-01 bottom action bar — sits over the scrolling page on a blurred page-coloured floor. */
+.lk-editor-bar {
+  border-top: 1px solid var(--lk-bar-edge);
+  background: var(--lk-bar-ink);
+  backdrop-filter: blur(20px);
+}
+
+/* 03-01 / N03-13 「保存配置」 and 03-09's 「移除并给…」 — the frames' un-gradiented slab. */
+.lk-slab {
+  box-shadow: var(--lk-primary-slab);
+}
+
+/* 03-09 — the row whose conflict confirmation is open: highlighted *and* ringed, so it reads
+   as pending rather than chosen. */
+.lk-row-pending {
+  box-shadow: var(--lk-row-pending-ring);
+}
+
+/* 03-11 nature grid: the five diagonal cells carry no modifier, the current one is filled. */
+.lk-nature-cell-on {
+  background: var(--lk-nature-on);
+}

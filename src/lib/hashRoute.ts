@@ -6,9 +6,11 @@
  * it without the bundle cost. Everything URL-shaped lives here; `hooks/useHashRoute.ts`
  * owns the browser wiring.
  *
- * Only *navigational* state belongs in a Route. Filters, search boxes, battle-type toggles
- * and member-editor overlays stay local component state — they are cheap to re-pick and
- * would otherwise turn every keystroke into a history entry.
+ * Only *navigational* state belongs in a Route. Filters, search boxes and battle-type toggles
+ * stay local component state — they are cheap to re-pick and would otherwise turn every
+ * keystroke into a history entry. The member editor is a destination (03 draws it as a whole
+ * page, and 返回 must leave it rather than the team), so it does carry a route; its own four
+ * picker sub-pages stay local, because they only ever stage a value the editor may discard.
  */
 
 export type ToolRouteId = 'calculator' | 'dex' | 'speed' | 'typechart';
@@ -21,6 +23,7 @@ export type Route =
   | { name: 'env-pokemon'; pokemonId: string }
   | { name: 'teams' }
   | { name: 'team-detail'; teamId: string }
+  | { name: 'member-editor'; teamId: string; memberId: string }
   | { name: 'tools' }
   | { name: 'tool'; tool: ToolRouteId }
   | { name: 'dex-pokemon'; pokemonId: string }
@@ -56,7 +59,7 @@ export function parseHashRoute(hash: string | undefined | null): Route {
 
   if (segments.length === 0) return defaultRoute;
 
-  const [first, second, third] = segments;
+  const [first, second, third, fourth] = segments;
 
   if (first === 'env') {
     if (!second) return { name: 'env' };
@@ -70,6 +73,9 @@ export function parseHashRoute(hash: string | undefined | null): Route {
   if (first === 'teams') {
     if (!second) return { name: 'teams' };
     if (!third) return { name: 'team-detail', teamId: second };
+    if (third === 'members' && fourth && segments.length === 4) {
+      return { name: 'member-editor', teamId: second, memberId: fourth };
+    }
     return defaultRoute;
   }
 
@@ -108,6 +114,8 @@ export function buildHash(route: Route): string {
       return '#/teams';
     case 'team-detail':
       return `#/teams/${encodeSegment(route.teamId)}`;
+    case 'member-editor':
+      return `#/teams/${encodeSegment(route.teamId)}/members/${encodeSegment(route.memberId)}`;
     case 'tools':
       return '#/tools';
     case 'tool':
@@ -137,6 +145,8 @@ export function parentRoute(route: Route): Route {
     case 'team-detail':
     case 'share':
       return { name: 'teams' };
+    case 'member-editor':
+      return { name: 'team-detail', teamId: route.teamId };
     case 'tool':
       return { name: 'tools' };
     case 'dex-pokemon':
@@ -159,6 +169,7 @@ export function tabForRoute(route: Route): RouteTabId {
       return 'environment';
     case 'teams':
     case 'team-detail':
+    case 'member-editor':
     case 'share':
       return 'teams';
     case 'tools':
@@ -206,6 +217,8 @@ export function routePattern(route: Route): string {
       return '/teams';
     case 'team-detail':
       return '/teams/:id';
+    case 'member-editor':
+      return '/teams/:id/members/:id';
     case 'tools':
       return '/tools';
     case 'tool':
@@ -230,6 +243,7 @@ export const routePatterns: string[] = [
   '/env/pokemon/:id',
   '/teams',
   '/teams/:id',
+  '/teams/:id/members/:id',
   '/tools',
   ...toolRouteIds.map((tool) => `/tools/${tool}`),
   '/tools/dex/:id',

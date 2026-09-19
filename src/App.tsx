@@ -521,7 +521,9 @@ function AppShell() {
           }}
         />
       )}
-      {!overlay && (
+      {/* 03 draws the member editor with its own bottom action bar and no tab bar — the two
+          cannot share the same 22px of screen. */}
+      {!overlay && route.name !== 'member-editor' && (
         <AutoHideBottomNav
           activeTab={activeTab}
           tabs={tabs}
