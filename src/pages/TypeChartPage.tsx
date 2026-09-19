@@ -1,382 +1,35 @@
-import { ArrowLeftRight } from 'lucide-react';
+import { ArrowLeftRight, ChevronUp, X } from 'lucide-react';
 import {
-  type CSSProperties,
   type KeyboardEvent as ReactKeyboardEvent,
   type PointerEvent as ReactPointerEvent,
-  type WheelEvent as ReactWheelEvent,
   useCallback,
-  useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
   useState,
 } from 'react';
-import { TypeBadge, typeColors, typeLabels } from '../components/ui';
-import { pokemon } from '../data';
+import { Sprite, TypeDot } from '../components/kit';
+import { typeLabels } from '../components/ui';
+import { currentRuleSet, pokemon } from '../data';
+import type { EnvironmentState } from '../data/environment';
 import { attackingTypes, defensiveMatchupMultiplier } from '../lib/calculations';
-import { defensiveProfile, offensiveProfile } from '../lib/typeChart';
-import type { PokemonType } from '../types';
+import { defenseBuckets, defensiveProfile, offensiveProfile, representativeSpecies } from '../lib/typeChart';
+import type { Pokemon, PokemonType } from '../types';
 
-const DIAL_STEP = 9;
-const DIAL_PILL_RADIUS = 380;
-const DIAL_TICK_RADIUS = 348;
-const DIAL_APEX_Y = 36;
-const DIAL_PX_PER_DEGREE = 4.9;
 const MATRIX_CELL_SIZE = 44;
 const MATRIX_ROW_HEADER_WIDTH = 62;
 
-type TypeChartMode = 'quick' | 'matrix';
+type TypeChartTab = 'single' | 'dual' | 'matrix';
 type Selection = { attacker: PokemonType; defender: PokemonType };
-type CustomProperties = CSSProperties & Record<`--${string}`, string | number>;
-
-type MascotPlacement = {
-  dex: number;
-  x: string;
-  y: string;
-  scale: number;
-  rotate: number;
-  mirror: 1 | -1;
-};
-
-const mascotPlacements: Record<PokemonType, MascotPlacement> = {
-  Normal: { dex: 143, x: '50%', y: '62%', scale: 1.15, rotate: 0, mirror: 1 },
-  Fire: { dex: 6, x: '76%', y: '42%', scale: 1.1, rotate: -6, mirror: 1 },
-  Water: { dex: 130, x: '20%', y: '48%', scale: 1.2, rotate: 5, mirror: -1 },
-  Electric: { dex: 405, x: '74%', y: '52%', scale: 1.18, rotate: 0, mirror: -1 },
-  Grass: { dex: 3, x: '24%', y: '60%', scale: 1.1, rotate: 0, mirror: 1 },
-  Ice: { dex: 471, x: '76%', y: '58%', scale: 0.95, rotate: 0, mirror: -1 },
-  Fighting: { dex: 448, x: '26%', y: '48%', scale: 1, rotate: -4, mirror: 1 },
-  Poison: { dex: 748, x: '75%', y: '64%', scale: 1.05, rotate: 8, mirror: 1 },
-  Ground: { dex: 445, x: '77%', y: '46%', scale: 1.12, rotate: 0, mirror: -1 },
-  Flying: { dex: 823, x: '74%', y: '36%', scale: 1.15, rotate: -8, mirror: 1 },
-  Psychic: { dex: 282, x: '25%', y: '46%', scale: 1.05, rotate: 0, mirror: 1 },
-  Bug: { dex: 637, x: '50%', y: '40%', scale: 1.35, rotate: 0, mirror: 1 },
-  Rock: { dex: 248, x: '24%', y: '46%', scale: 1.1, rotate: 0, mirror: -1 },
-  Ghost: { dex: 94, x: '30%', y: '52%', scale: 1.05, rotate: -6, mirror: 1 },
-  Dragon: { dex: 149, x: '76%', y: '48%', scale: 1.1, rotate: 0, mirror: 1 },
-  Dark: { dex: 197, x: '75%', y: '62%', scale: 1, rotate: 0, mirror: -1 },
-  Steel: { dex: 376, x: '25%', y: '56%', scale: 1.15, rotate: 4, mirror: 1 },
-  Fairy: { dex: 700, x: '76%', y: '50%', scale: 1.05, rotate: -4, mirror: 1 },
-};
-
-const artworkByDex = new Map(pokemon.map((entry) => [entry.nationalDexNo, entry.artworkRef ?? entry.iconRef]));
+type Slot = 'primary' | 'secondary';
 
 const prefersReducedMotion = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
 
-export const placeOnArc = (theta: number, radius: number, scale = 1) => {
-  const radians = (theta * Math.PI) / 180;
-  const centerY = DIAL_APEX_Y + DIAL_PILL_RADIUS;
-  const x = radius * Math.sin(radians);
-  const y = centerY - radius * Math.cos(radians);
-  const opacity = Math.max(0, Math.min(1, (30 - Math.abs(theta)) / 8));
-  return {
-    x,
-    y,
-    opacity,
-    visible: opacity > 0,
-    transform: `translate(calc(-50% + ${x.toFixed(1)}px), calc(-50% + ${y.toFixed(1)}px)) rotate(${theta.toFixed(2)}deg) scale(${scale.toFixed(3)})`,
-  };
+const multiplierLabel = (value: number) => {
+  if (value === 0.25) return '×¼';
+  if (value === 0.5) return '×½';
+  return `×${value}`;
 };
-
-const buzz = () => {
-  try {
-    navigator.vibrate?.(6);
-  } catch {
-    // iOS does not expose the Vibration API; the dial naturally degrades to visual feedback.
-  }
-};
-
-function TypeDial({
-  selectedIndex,
-  onSelect,
-  onSettled,
-}: {
-  selectedIndex: number;
-  onSelect: (index: number, settled: boolean) => void;
-  onSettled: () => void;
-}) {
-  const dialRef = useRef<HTMLDivElement | null>(null);
-  const pillRefs = useRef<Array<HTMLButtonElement | null>>([]);
-  const tickRefs = useRef<Array<HTMLSpanElement | null>>([]);
-  const rotationRef = useRef(-selectedIndex * DIAL_STEP);
-  const selectedIndexRef = useRef(selectedIndex);
-  const tweenRef = useRef(0);
-  const lastWheelRef = useRef(0);
-  const suppressClickRef = useRef(false);
-  const dragRef = useRef<{ id: number; x: number; total: number } | null>(null);
-
-  selectedIndexRef.current = selectedIndex;
-
-  const layout = useCallback(() => {
-    const rotation = rotationRef.current;
-    pillRefs.current.forEach((element, index) => {
-      if (!element) return;
-      const theta = index * DIAL_STEP + rotation;
-      const proximity = Math.max(0, 1 - Math.abs(theta) / DIAL_STEP);
-      const placement = placeOnArc(theta, DIAL_PILL_RADIUS, 0.92 + 0.26 * proximity);
-      element.style.transform = placement.transform;
-      element.style.opacity = placement.opacity.toFixed(3);
-      element.style.visibility = placement.visible ? 'visible' : 'hidden';
-      element.style.pointerEvents = placement.visible ? 'auto' : 'none';
-      element.setAttribute('aria-pressed', String(index === selectedIndexRef.current));
-    });
-    tickRefs.current.forEach((element, index) => {
-      if (!element) return;
-      const theta = (index * DIAL_STEP) / 4 + rotation;
-      const placement = placeOnArc(theta, DIAL_TICK_RADIUS);
-      element.style.transform = placement.transform;
-      element.style.opacity = placement.opacity.toFixed(3);
-      element.style.visibility = placement.visible ? 'visible' : 'hidden';
-    });
-  }, []);
-
-  const snapTo = useCallback((targetIndex: number, done?: () => void) => {
-    const target = -targetIndex * DIAL_STEP;
-    const id = ++tweenRef.current;
-    if (prefersReducedMotion()) {
-      rotationRef.current = target;
-      layout();
-      done?.();
-      return;
-    }
-    const from = rotationRef.current;
-    const startedAt = performance.now();
-    const frame = (now: number) => {
-      if (id !== tweenRef.current) return;
-      const progress = Math.min(1, (now - startedAt) / 220);
-      const eased = 1 - (1 - progress) ** 3;
-      rotationRef.current = from + (target - from) * eased;
-      layout();
-      if (progress < 1) window.requestAnimationFrame(frame);
-      else done?.();
-    };
-    window.requestAnimationFrame(frame);
-  }, [layout]);
-
-  useLayoutEffect(() => {
-    if (dragRef.current) return;
-    snapTo(selectedIndex);
-  }, [selectedIndex, snapTo]);
-
-  useLayoutEffect(() => {
-    layout();
-  }, [layout]);
-
-  const choose = (nextIndex: number, settled = true) => {
-    const index = Math.max(0, Math.min(attackingTypes.length - 1, nextIndex));
-    if (index !== selectedIndexRef.current) buzz();
-    onSelect(index, settled);
-  };
-
-  const handlePointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
-    if (event.pointerType === 'mouse' && event.button !== 0) return;
-    tweenRef.current += 1;
-    dragRef.current = { id: event.pointerId, x: event.clientX, total: 0 };
-    event.currentTarget.setPointerCapture?.(event.pointerId);
-  };
-
-  const handlePointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
-    const drag = dragRef.current;
-    if (!drag || drag.id !== event.pointerId) return;
-    const delta = event.clientX - drag.x;
-    drag.x = event.clientX;
-    drag.total += Math.abs(delta);
-    rotationRef.current += delta / DIAL_PX_PER_DEGREE;
-    const minimum = -(attackingTypes.length - 1) * DIAL_STEP;
-    if (rotationRef.current > 0) rotationRef.current *= 0.35;
-    if (rotationRef.current < minimum) rotationRef.current = minimum + (rotationRef.current - minimum) * 0.35;
-    const nearest = Math.max(0, Math.min(attackingTypes.length - 1, Math.round(-rotationRef.current / DIAL_STEP)));
-    if (nearest !== selectedIndexRef.current) choose(nearest, false);
-    layout();
-  };
-
-  const finishPointer = (event: ReactPointerEvent<HTMLDivElement>) => {
-    const drag = dragRef.current;
-    if (!drag || drag.id !== event.pointerId) return;
-    if (event.currentTarget.hasPointerCapture?.(event.pointerId)) event.currentTarget.releasePointerCapture?.(event.pointerId);
-    dragRef.current = null;
-    if (drag.total > 6) {
-      suppressClickRef.current = true;
-      window.setTimeout(() => {
-        suppressClickRef.current = false;
-      }, 0);
-      snapTo(selectedIndexRef.current, onSettled);
-    } else {
-      snapTo(selectedIndexRef.current);
-    }
-  };
-
-  const handleKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
-    const moves: Partial<Record<string, number>> = {
-      ArrowLeft: -1,
-      ArrowRight: 1,
-      Home: -selectedIndexRef.current,
-      End: attackingTypes.length - 1 - selectedIndexRef.current,
-    };
-    const delta = moves[event.key];
-    if (delta === undefined) return;
-    event.preventDefault();
-    choose(selectedIndexRef.current + delta);
-  };
-
-  const handleWheel = (event: ReactWheelEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    const now = performance.now();
-    if (now - lastWheelRef.current < 140) return;
-    lastWheelRef.current = now;
-    choose(selectedIndexRef.current + Math.sign(event.deltaY || event.deltaX));
-  };
-
-  const ticks = Array.from({ length: (attackingTypes.length - 1) * 4 + 1 });
-  const selectedType = attackingTypes[selectedIndex];
-
-  return (
-    <div
-      ref={dialRef}
-      className="lk-type-dial"
-      style={{ '--lk-type-color': typeColors[selectedType] } as CustomProperties}
-      role="slider"
-      tabIndex={0}
-      aria-label="选择属性"
-      aria-valuemin={0}
-      aria-valuemax={attackingTypes.length - 1}
-      aria-valuenow={selectedIndex}
-      aria-valuetext={`${typeLabels[selectedType]}属性`}
-      onKeyDown={handleKeyDown}
-      onWheel={handleWheel}
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={finishPointer}
-      onPointerCancel={finishPointer}
-    >
-      <div className="lk-type-dial__spot" aria-hidden="true" />
-      <div className="lk-type-dial__track">
-        {attackingTypes.map((type, index) => (
-          <button
-            ref={(node) => {
-              pillRefs.current[index] = node;
-            }}
-            key={type}
-            className="lk-type-dial__pill"
-            style={{ '--lk-type-color': typeColors[type] } as CustomProperties}
-            type="button"
-            tabIndex={-1}
-            aria-label={`${typeLabels[type]}属性`}
-            aria-pressed={index === selectedIndex}
-            onClick={() => {
-              if (!suppressClickRef.current) choose(index);
-            }}
-          >
-            {typeLabels[type]}
-          </button>
-        ))}
-        {ticks.map((_, index) => (
-          <span
-            ref={(node) => {
-              tickRefs.current[index] = node;
-            }}
-            // The dial scale is positional; the stable numeric index is its identity.
-            // eslint-disable-next-line react/no-array-index-key
-            key={index}
-            className={`lk-type-dial__tick ${index % 4 === 0 ? '' : 'lk-type-dial__tick--minor'}`}
-            aria-hidden="true"
-          />
-        ))}
-      </div>
-      <div className="lk-type-dial__needle" aria-hidden="true" />
-    </div>
-  );
-}
-
-function ClickableTypeBadge({ type, onSelect }: { type: PokemonType; onSelect: (type: PokemonType) => void }) {
-  return (
-    <button className="lk-type-badge-button" type="button" aria-label={`查看${typeLabels[type]}属性速查`} onClick={() => onSelect(type)}>
-      <TypeBadge type={type} />
-    </button>
-  );
-}
-
-function TypeShelf({
-  tone,
-  multiplier,
-  label,
-  types,
-  onSelect,
-}: {
-  tone: 'good' | 'bad' | 'null';
-  multiplier: string;
-  label: string;
-  types: PokemonType[];
-  onSelect: (type: PokemonType) => void;
-}) {
-  if (types.length === 0) return null;
-  return (
-    <div className={`lk-type-shelf lk-type-shelf--${tone}`}>
-      <div className="lk-type-shelf__label">
-        <span className="lk-type-shelf__multiplier">{multiplier}</span>
-        <span className="lk-type-shelf__name">{label}</span>
-      </div>
-      <div className="lk-type-shelf__badges">
-        {types.map((type) => <ClickableTypeBadge key={type} type={type} onSelect={onSelect} />)}
-      </div>
-    </div>
-  );
-}
-
-function TypeAnswerCard({ type, animationVersion, onSelect }: { type: PokemonType; animationVersion: number; onSelect: (type: PokemonType) => void }) {
-  const offense = offensiveProfile(type);
-  const defense = defensiveProfile(type);
-  const mascot = mascotPlacements[type];
-  const artworkRef = artworkByDex.get(mascot.dex);
-  const label = typeLabels[type];
-  const style = {
-    '--lk-type-color': typeColors[type],
-    '--lk-mascot-x': mascot.x,
-    '--lk-mascot-y': mascot.y,
-    '--lk-mascot-scale': mascot.scale,
-    '--lk-mascot-rotate': `${mascot.rotate}deg`,
-    '--lk-mascot-mirror': mascot.mirror,
-  } as CustomProperties;
-
-  return (
-    <section className="lk-type-answer" style={style} aria-live="polite" aria-atomic="true">
-      <div className="lk-type-answer__aura" aria-hidden="true" />
-      <div key={`${type}-${animationVersion}`} className={animationVersion > 0 ? 'lk-type-answer__content lk-type-answer__content--switching' : 'lk-type-answer__content'}>
-        <div className="lk-type-answer__hero">
-          {artworkRef && (
-            <div
-              className="lk-type-answer__mascot"
-              style={{ WebkitMaskImage: `url(${artworkRef})`, maskImage: `url(${artworkRef})` }}
-              aria-hidden="true"
-            />
-          )}
-          <p className="lk-type-answer__glyph" data-length={label.length}>{label}</p>
-          <p className="lk-type-answer__english">{type.toUpperCase()}</p>
-        </div>
-        <div className="lk-type-answer__panel">
-          <div className="lk-type-answer__group-title"><h3>进攻</h3></div>
-          <TypeShelf tone="good" multiplier="×2" label="效果绝佳" types={offense.superEffective} onSelect={onSelect} />
-          <TypeShelf tone="bad" multiplier="×½" label="效果不佳" types={offense.notVery} onSelect={onSelect} />
-          <TypeShelf tone="null" multiplier="×0" label="没有效果" types={offense.noEffect} onSelect={onSelect} />
-
-          <div className="lk-type-answer__group-title"><h3>防守</h3></div>
-          <TypeShelf tone="bad" multiplier="×2" label="弱点" types={defense.weakTo} onSelect={onSelect} />
-          <TypeShelf tone="good" multiplier="×½" label="抵抗" types={defense.resistedBy} onSelect={onSelect} />
-          <TypeShelf tone="null" multiplier="×0" label="免疫" types={defense.immuneTo} onSelect={onSelect} />
-        </div>
-      </div>
-    </section>
-  );
-}
-
-const compactMultiplier = (value: number) => {
-  if (value === 2) return '2';
-  if (value === 0.5) return '½';
-  if (value === 0) return '0';
-  return '•';
-};
-
-const fullMultiplier = (value: number) => (value === 0.5 ? '×½' : `×${value}`);
 
 const outcome = (value: number) => {
   if (value === 2) return '效果绝佳';
@@ -386,14 +39,236 @@ const outcome = (value: number) => {
 };
 
 const multiplierTone = (value: number) => {
-  if (value === 2) return 'super';
-  if (value === 0.5) return 'resisted';
+  if (value > 1) return 'super';
   if (value === 0) return 'immune';
+  if (value < 1) return 'resisted';
   return 'neutral';
 };
 
-function MatrixTypePill({ type }: { type: PokemonType }) {
-  return <span className="lk-type-matrix__type-pill" style={{ '--lk-type-color': typeColors[type] } as CustomProperties}>{typeLabels[type]}</span>;
+/** 06-01 的属性轨胶囊：32px、8px 圆点、选中是紫环。 */
+function RailPill({ type, selected, onSelect }: { type: PokemonType; selected: boolean; onSelect: (type: PokemonType) => void }) {
+  return (
+    <button
+      aria-pressed={selected}
+      className={`inline-flex h-8 shrink-0 items-center gap-[7px] rounded-full px-3 text-[13px] ${
+        selected ? 'lk-pill-on font-bold text-textPrimary' : 'bg-surface font-semibold text-textLabel'
+      }`}
+      type="button"
+      onClick={() => onSelect(type)}
+    >
+      <TypeDot size={8} type={type} />
+      {typeLabels[type]}
+    </button>
+  );
+}
+
+/** 结果区的属性 chip：32px、7px 圆点。 */
+function TypeChip({ type }: { type: PokemonType }) {
+  return (
+    <span className="lk-type-chip inline-flex h-8 items-center gap-1.5 rounded-full px-[11px] text-xs font-bold text-textLabel">
+      <TypeDot size={7} type={type} />
+      {typeLabels[type]}
+    </span>
+  );
+}
+
+function Shelf({ tone, name, multiplier, types }: { tone: 'good' | 'bad'; name: string; multiplier: string; types: PokemonType[] }) {
+  if (types.length === 0) return null;
+  return (
+    <div>
+      <p className={`flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.14em] ${tone === 'good' ? 'text-success' : 'text-danger'}`}>
+        <span aria-hidden="true" className="h-[7px] w-[7px] shrink-0 rounded-full bg-current" />
+        {name}
+        <span className="font-extrabold tracking-[0.08em] tabular-nums">{multiplier}</span>
+      </p>
+      <div className="mt-2 flex flex-wrap gap-[7px]">
+        {types.map((type) => <TypeChip key={type} type={type} />)}
+      </div>
+    </div>
+  );
+}
+
+/** 全宽属性轨：左右溢出 24px 页边距，右侧 48px 渐隐提示还能滑。 */
+function TypeRail({ selected, label, className = '', onSelect }: { selected: PokemonType | null; label: string; className?: string; onSelect: (type: PokemonType) => void }) {
+  return (
+    <div className={`relative ${className}`}>
+      <div aria-label={label} className="hide-scrollbar flex gap-2 overflow-x-auto px-6" role="group">
+        {attackingTypes.map((type) => (
+          <RailPill key={type} selected={type === selected} type={type} onSelect={onSelect} />
+        ))}
+      </div>
+      <div aria-hidden="true" className="lk-type-rail-fade" />
+    </div>
+  );
+}
+
+function SingleTypeView({ type, onSelect }: { type: PokemonType; onSelect: (type: PokemonType) => void }) {
+  const offense = offensiveProfile(type);
+  const defense = defensiveProfile(type);
+  const label = typeLabels[type];
+
+  return (
+    <>
+      <TypeRail className="mt-3.5" label="选择属性" selected={type} onSelect={onSelect} />
+
+      <section className="px-6 pt-6">
+        <h2 className="text-[22px] font-extrabold leading-[30px] tracking-[-0.01em]">{label} · 进攻时</h2>
+        <div className="mt-3.5 space-y-4">
+          <Shelf multiplier="×2" name="效果绝佳" tone="good" types={offense.superEffective} />
+          <Shelf multiplier="×½" name="效果不佳" tone="bad" types={offense.notVery} />
+          <Shelf multiplier="×0" name="没有效果" tone="bad" types={offense.noEffect} />
+        </div>
+      </section>
+
+      <section className="px-6 pt-[26px]">
+        <h2 className="text-[22px] font-extrabold leading-[30px] tracking-[-0.01em]">{label} · 防守时</h2>
+        <div className="mt-3.5 space-y-4">
+          <Shelf multiplier="×2" name="被克" tone="bad" types={defense.weakTo} />
+          <Shelf multiplier="×½" name="抵抗" tone="good" types={defense.resistedBy} />
+          <Shelf multiplier="×0" name="免疫" tone="good" types={defense.immuneTo} />
+        </div>
+      </section>
+    </>
+  );
+}
+
+function TypeSlot({
+  slot,
+  type,
+  editing,
+  onEdit,
+  onClear,
+}: {
+  slot: Slot;
+  type: PokemonType | null;
+  editing: boolean;
+  onEdit: () => void;
+  onClear?: () => void;
+}) {
+  const name = slot === 'primary' ? '主属性' : '副属性';
+  return (
+    <div className={`relative flex min-w-0 flex-1 rounded-2xl bg-surface ${editing ? 'lk-type-slot--editing' : 'lk-type-slot'}`}>
+      <button
+        aria-label={`选择${name}`}
+        aria-pressed={editing}
+        className="flex min-w-0 flex-1 flex-col gap-[7px] p-3.5 text-left"
+        type="button"
+        onClick={onEdit}
+      >
+        <span className={`text-[11px] font-extrabold uppercase tracking-[0.14em] ${editing ? 'text-textPrimary' : 'text-textSecondary'}`}>
+          {name}
+        </span>
+        <span className="flex items-center gap-[9px]">
+          {type ? <TypeDot size={12} type={type} /> : <span aria-hidden="true" className="lk-type-slot-empty h-3 w-3 shrink-0 rounded-full" />}
+          <span
+            className={`min-w-0 flex-1 text-[20px] font-extrabold tracking-[-0.01em] ${type ? '' : 'text-textSecondary'} ${
+              type && onClear ? 'pr-[31px]' : ''
+            }`}
+          >
+            {type ? typeLabels[type] : '—'}
+          </span>
+        </span>
+      </button>
+      {type && onClear && (
+        <button
+          aria-label={`清空${name}`}
+          className="lk-type-slot-clear absolute bottom-3.5 right-3.5 grid h-[22px] w-[22px] place-items-center rounded-full text-textLabel"
+          type="button"
+          onClick={onClear}
+        >
+          <X aria-hidden="true" size={12} />
+        </button>
+      )}
+    </div>
+  );
+}
+
+function DualTypeView({
+  primary,
+  secondary,
+  editing,
+  representative,
+  onEdit,
+  onCollapse,
+  onPick,
+  onClearSecondary,
+}: {
+  primary: PokemonType;
+  secondary: PokemonType | null;
+  editing: Slot | null;
+  representative: Pokemon | null;
+  onEdit: (slot: Slot) => void;
+  onCollapse: () => void;
+  onPick: (type: PokemonType) => void;
+  onClearSecondary: () => void;
+}) {
+  const types = secondary ? [primary, secondary] : [primary];
+  const buckets = defenseBuckets(types);
+
+  return (
+    <>
+      <div className="mt-3.5 flex gap-2.5 px-6">
+        <TypeSlot editing={editing === 'primary'} slot="primary" type={primary} onEdit={() => onEdit('primary')} />
+        <TypeSlot
+          editing={editing === 'secondary'}
+          slot="secondary"
+          type={secondary}
+          onClear={onClearSecondary}
+          onEdit={() => onEdit('secondary')}
+        />
+      </div>
+
+      {representative ? (
+        <div className="mt-3 flex items-center gap-2.5 px-6">
+          <Sprite iconRef={representative.iconRef} label={representative.chineseName} size={36} />
+          <p className="flex min-w-0 items-baseline gap-[7px]">
+            <span className="text-sm font-bold tracking-[-0.01em] text-textLabel">{representative.chineseName}</span>
+            <span className="text-xs font-semibold text-textMuted">{representative.japaneseName}</span>
+          </p>
+        </div>
+      ) : (
+        <p className="mt-3 px-6 text-[13px] font-semibold leading-5 text-textSecondary">当前规则内没有这个属性组合的宝可梦</p>
+      )}
+
+      {editing && (
+        <div className="lk-type-rail-panel mt-[18px] py-4">
+          <div className="flex items-baseline justify-between gap-3 px-6">
+            <p className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-textPrimary">
+              正在选{editing === 'primary' ? '主属性' : '副属性'}
+            </p>
+            <button className="inline-flex items-center gap-1.5 text-[13px] font-bold text-textLabel" type="button" onClick={onCollapse}>
+              收起
+              <ChevronUp aria-hidden="true" size={14} />
+            </button>
+          </div>
+          <div aria-label="选择属性" className="mt-3 flex flex-wrap gap-[7px] px-6" role="group">
+            {attackingTypes.map((type) => (
+              <RailPill
+                key={type}
+                selected={type === (editing === 'primary' ? primary : secondary)}
+                type={type}
+                onSelect={onPick}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className={editing ? 'px-6' : 'mt-5 border-t border-[var(--hairline)] px-6'}>
+        <div className="mt-5 space-y-4">
+          {buckets.map((bucket) => (
+            <Shelf
+              key={bucket.multiplier}
+              multiplier={multiplierLabel(bucket.multiplier)}
+              name={bucket.multiplier > 1 ? '弱点' : bucket.multiplier === 0 ? '免疫' : '抵抗'}
+              tone={bucket.multiplier > 1 ? 'bad' : 'good'}
+              types={bucket.types}
+            />
+          ))}
+        </div>
+      </div>
+    </>
+  );
 }
 
 const scrollViewport = (viewport: HTMLDivElement, left: number, top: number, behavior: ScrollBehavior) => {
@@ -404,14 +279,68 @@ const scrollViewport = (viewport: HTMLDivElement, left: number, top: number, beh
   }
 };
 
-function TypeMatrix({ initialAttacker }: { initialAttacker: PokemonType }) {
-  const [selection, setSelection] = useState<Selection>({ attacker: initialAttacker, defender: 'Grass' });
+function MatrixResult({ selection, onSwap }: { selection: Selection; onSwap: () => void }) {
+  const multiplier = defensiveMatchupMultiplier(selection.attacker, [selection.defender]);
+  const tone = multiplierTone(multiplier);
+  const ink = tone === 'super' ? 'text-success' : tone === 'neutral' ? 'text-textSecondary' : 'text-danger';
+
+  return (
+    <section aria-atomic="true" aria-live="polite" className="mx-6 mt-4 flex items-center gap-3 rounded-2xl bg-surface px-3.5 py-3">
+      <p className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
+        <span className="lk-type-chip inline-flex h-8 items-center gap-[7px] rounded-full px-3 text-sm font-bold text-textPrimary">
+          <TypeDot size={8} type={selection.attacker} />
+          {typeLabels[selection.attacker]}
+        </span>
+        <span className="text-xs font-semibold text-textSecondary">打</span>
+        <span className="lk-type-chip inline-flex h-8 items-center gap-[7px] rounded-full px-3 text-sm font-bold text-textPrimary">
+          <TypeDot size={8} type={selection.defender} />
+          {typeLabels[selection.defender]}
+        </span>
+      </p>
+      <div className="flex shrink-0 items-center gap-2.5">
+        <p className="flex flex-col items-end gap-0.5">
+          <span className={`text-[11px] font-extrabold uppercase tracking-[0.14em] ${ink}`}>{outcome(multiplier)}</span>
+          <span className={`text-[28px] font-extrabold leading-none tracking-[-0.01em] tabular-nums ${ink}`}>{multiplierLabel(multiplier)}</span>
+        </p>
+        <button
+          aria-label="交换攻击方与防御方"
+          className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-btn1 text-textPrimary"
+          type="button"
+          onClick={onSwap}
+        >
+          <ArrowLeftRight aria-hidden="true" size={18} />
+        </button>
+      </div>
+    </section>
+  );
+}
+
+function MatrixLegend() {
+  return (
+    <div className="flex gap-3.5 px-6 pt-[18px]">
+      <span className="inline-flex items-center gap-1.5 text-xs font-bold text-success">
+        <span aria-hidden="true" className="lk-type-legend-swatch lk-type-legend-swatch--super" />
+        效果绝佳 ×2
+      </span>
+      <span className="inline-flex items-center gap-1.5 text-xs font-bold text-danger">
+        <span aria-hidden="true" className="lk-type-legend-swatch lk-type-legend-swatch--resisted" />
+        效果不佳 ×½
+      </span>
+      <span className="inline-flex items-center gap-1.5 text-xs font-bold text-textSecondary">
+        <span aria-hidden="true" className="lk-type-legend-swatch" />
+        ×1
+      </span>
+    </div>
+  );
+}
+
+function TypeMatrix() {
+  const [selection, setSelection] = useState<Selection | null>(null);
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const cellRefs = useRef(new Map<string, HTMLButtonElement>());
   const dragRef = useRef<{ pointerId: number; startX: number; startY: number; scrollLeft: number; scrollTop: number; moved: boolean } | null>(null);
   const suppressClickRef = useRef(false);
   const scrollModeRef = useRef<'if-needed' | 'center-smooth'>('if-needed');
-  const multiplier = defensiveMatchupMultiplier(selection.attacker, [selection.defender]);
 
   const revealSelection = useCallback((next: Selection, mode: 'if-needed' | 'center-smooth') => {
     const viewport = viewportRef.current;
@@ -441,6 +370,7 @@ function TypeMatrix({ initialAttacker }: { initialAttacker: PokemonType }) {
   }, []);
 
   useLayoutEffect(() => {
+    if (!selection) return;
     revealSelection(selection, scrollModeRef.current);
     scrollModeRef.current = 'if-needed';
   }, [revealSelection, selection]);
@@ -474,6 +404,7 @@ function TypeMatrix({ initialAttacker }: { initialAttacker: PokemonType }) {
   };
 
   const swap = () => {
+    if (!selection) return;
     scrollModeRef.current = 'center-smooth';
     setSelection({ attacker: selection.defender, defender: selection.attacker });
   };
@@ -525,29 +456,18 @@ function TypeMatrix({ initialAttacker }: { initialAttacker: PokemonType }) {
   }))), []);
 
   return (
-    <div className="space-y-2.5">
-      <section className="lk-type-matrix__result" aria-live="polite" aria-atomic="true">
-        <div className="lk-type-matrix__result-copy">
-          <MatrixTypePill type={selection.attacker} />
-          <span className="lk-type-matrix__role">攻击</span>
-          <MatrixTypePill type={selection.defender} />
-          <span className="lk-type-matrix__outcome">· {outcome(multiplier)} {fullMultiplier(multiplier)}</span>
-        </div>
-        <button className="lk-type-matrix__swap" type="button" aria-label="交换攻击方与防御方" onClick={swap}>
-          <ArrowLeftRight aria-hidden="true" size={17} />
-          <span>交换</span>
-        </button>
-      </section>
+    <>
+      {selection ? <MatrixResult selection={selection} onSwap={swap} /> : null}
 
-      <div className="lk-type-matrix__shell">
+      <div className="ml-6 mt-3.5 overflow-hidden rounded-[4px]">
         <div
           ref={viewportRef}
-          className="lk-type-matrix__viewport hide-scrollbar"
           aria-label="属性克制矩阵，可横向及纵向拖动"
+          className="lk-type-matrix__viewport hide-scrollbar"
+          onPointerCancel={finishPointer}
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
           onPointerUp={finishPointer}
-          onPointerCancel={finishPointer}
         >
           <div
             className="lk-type-matrix__grid"
@@ -556,29 +476,31 @@ function TypeMatrix({ initialAttacker }: { initialAttacker: PokemonType }) {
               gridTemplateRows: `${MATRIX_CELL_SIZE}px repeat(${attackingTypes.length}, ${MATRIX_CELL_SIZE}px)`,
             }}
           >
-            <div className="lk-type-matrix__corner">攻 \ 防</div>
+            <div className="lk-type-matrix__corner" />
             {attackingTypes.map((type, column) => (
               <div
                 key={`column-${type}`}
-                className={`lk-type-matrix__column-header ${selection.defender === type ? 'is-selected-axis' : ''}`}
-                style={{ gridColumn: column + 2, gridRow: 1, '--lk-type-color': typeColors[type] } as CustomProperties}
+                className={`lk-type-matrix__column-header ${selection?.defender === type ? 'is-selected-axis' : ''}`}
+                style={{ gridColumn: column + 2, gridRow: 1 }}
               >
-                {typeLabels[type]}
+                <TypeDot type={type} />
+                <span>{typeLabels[type]}</span>
               </div>
             ))}
             {attackingTypes.map((type, row) => (
               <div
                 key={`row-${type}`}
-                className={`lk-type-matrix__row-header ${selection.attacker === type ? 'is-selected-axis' : ''}`}
-                style={{ gridColumn: 1, gridRow: row + 2, '--lk-type-color': typeColors[type] } as CustomProperties}
+                className={`lk-type-matrix__row-header ${selection?.attacker === type ? 'is-selected-axis' : ''}`}
+                style={{ gridColumn: 1, gridRow: row + 2 }}
               >
-                {typeLabels[type]}
+                <TypeDot type={type} />
+                <span>{typeLabels[type]}</span>
               </div>
             ))}
-            {cells.map(({ attacker, defender, row, column, multiplier: cellMultiplier }) => {
-              const selected = attacker === selection.attacker && defender === selection.defender;
-              const inRow = attacker === selection.attacker;
-              const inColumn = defender === selection.defender;
+            {cells.map(({ attacker, defender, row, column, multiplier }) => {
+              const selected = attacker === selection?.attacker && defender === selection?.defender;
+              const inCross = selection !== null && (attacker === selection.attacker || defender === selection.defender);
+              const tabbable = selection ? selected : row === 0 && column === 0;
               return (
                 <button
                   ref={(node) => {
@@ -587,79 +509,108 @@ function TypeMatrix({ initialAttacker }: { initialAttacker: PokemonType }) {
                     else cellRefs.current.delete(key);
                   }}
                   key={`${attacker}-${defender}`}
-                  className={`lk-type-matrix__cell is-${multiplierTone(cellMultiplier)} ${inRow ? 'is-row' : ''} ${inColumn ? 'is-column' : ''} ${selected ? 'is-selected-cell' : ''}`}
-                  style={{ gridColumn: column + 2, gridRow: row + 2 }}
-                  type="button"
-                  tabIndex={selected ? 0 : -1}
-                  aria-label={`${typeLabels[attacker]}攻击${typeLabels[defender]}，${outcome(cellMultiplier)}，${fullMultiplier(cellMultiplier)}`}
+                  aria-label={`${typeLabels[attacker]}攻击${typeLabels[defender]}，${outcome(multiplier)}，${multiplierLabel(multiplier)}`}
                   aria-pressed={selected}
+                  className={`lk-type-matrix__cell is-${multiplierTone(multiplier)} ${inCross ? 'is-cross' : ''} ${
+                    selection && !inCross ? 'is-dimmed' : ''
+                  } ${selected ? 'is-selected-cell' : ''}`}
+                  style={{ gridColumn: column + 2, gridRow: row + 2 }}
+                  tabIndex={tabbable ? 0 : -1}
+                  type="button"
                   onClick={() => selectCell({ attacker, defender })}
                   onKeyDown={(event) => handleCellKeyDown(event, row, column)}
                 >
-                  {selected ? fullMultiplier(cellMultiplier) : compactMultiplier(cellMultiplier)}
+                  {multiplier === 1 ? '·' : multiplierLabel(multiplier)}
                 </button>
               );
             })}
           </div>
         </div>
-        <div className="lk-type-matrix__edge-fade lk-type-matrix__edge-fade--left" aria-hidden="true" />
-        <div className="lk-type-matrix__edge-fade lk-type-matrix__edge-fade--right" aria-hidden="true" />
       </div>
-    </div>
+
+      {selection ? null : <MatrixLegend />}
+    </>
   );
 }
 
-export function TypeChartPage() {
-  const fireIndex = attackingTypes.indexOf('Fire');
-  const [mode, setMode] = useState<TypeChartMode>('quick');
-  const [selectedIndex, setSelectedIndex] = useState(fireIndex);
-  const [animationVersion, setAnimationVersion] = useState(0);
-  const selectedType = attackingTypes[selectedIndex];
+const tabs: Array<{ id: TypeChartTab; label: string }> = [
+  { id: 'single', label: '单属性' },
+  { id: 'dual', label: '双属性' },
+  { id: 'matrix', label: '完整矩阵' },
+];
 
-  const selectType = (type: PokemonType) => {
-    const nextIndex = attackingTypes.indexOf(type);
-    if (nextIndex === selectedIndex) return;
-    setSelectedIndex(nextIndex);
-    setAnimationVersion((version) => version + 1);
+export function TypeChartPage({ environment }: { environment: EnvironmentState | null }) {
+  const [tab, setTab] = useState<TypeChartTab>('single');
+  const [primary, setPrimary] = useState<PokemonType>('Dragon');
+  const [secondary, setSecondary] = useState<PokemonType | null>(null);
+  // The secondary slot starts empty, so the rail opens on it (06-04); clearing it reopens the rail.
+  const [editing, setEditing] = useState<Slot | null>('secondary');
+
+  // Ranking order of the current rule's battle type: the representative species is whoever in the
+  // combination stands highest in it. An environment that has not loaded yet leaves every species
+  // unranked, which falls back to the lowest dex number.
+  const rankByPokemonId = useMemo(() => {
+    const usage = environment?.pokemonUsage[currentRuleSet.battleType] ?? [];
+    return new Map(usage.map((entry, index) => [entry.pokemonId, index]));
+  }, [environment]);
+
+  const representative = useMemo(() => {
+    const types = secondary ? [primary, secondary] : [primary];
+    const legal = pokemon.filter((entry) => entry.legalInCurrentRule);
+    return representativeSpecies(legal, types, (entry) => rankByPokemonId.get(entry.id) ?? null);
+  }, [primary, rankByPokemonId, secondary]);
+
+  const pickForSlot = (type: PokemonType) => {
+    const slot = editing ?? 'primary';
+    // A species never carries the same type twice, so picking the other slot's type swaps the pair
+    // rather than producing a doubled multiplier.
+    if (slot === 'primary') {
+      if (secondary === type) setSecondary(primary);
+      setPrimary(type);
+    } else {
+      if (primary === type) setPrimary(secondary ?? primary);
+      setSecondary(type);
+    }
+    setEditing(null);
   };
 
   return (
-    <section className="space-y-3" aria-labelledby="type-chart-title">
-      <div className="flex items-center justify-between gap-3">
-        <h2 id="type-chart-title" className="text-[22px] font-bold tracking-[-0.02em]">属性速查</h2>
-        <div className="flex rounded-[10px] border border-border bg-page p-0.5" aria-label="属性速查显示模式">
-          {([
-            ['quick', '速查'],
-            ['matrix', '完整矩阵'],
-          ] as const).map(([value, label]) => (
-            <button
-              key={value}
-              className={`rounded-[7px] px-3 py-1.5 text-xs font-semibold ${mode === value ? 'bg-accent text-page' : 'text-textSecondary'}`}
-              type="button"
-              aria-pressed={mode === value}
-              onClick={() => setMode(value)}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+    <div className="pb-8">
+      <h1 className="px-6 pt-5 text-[34px] font-extrabold leading-[42px] tracking-[-0.02em]">属性速查</h1>
+
+      <div aria-label="属性速查显示模式" className="mx-6 mt-3.5 grid grid-cols-3 gap-1 rounded-xl bg-surface p-1" role="group">
+        {tabs.map((option) => (
+          <button
+            key={option.id}
+            aria-pressed={tab === option.id}
+            className={`grid h-[34px] place-items-center rounded-[9px] text-sm ${
+              tab === option.id ? 'lk-type-segment-on font-bold text-textPrimary' : 'font-semibold text-textSecondary'
+            }`}
+            type="button"
+            onClick={() => setTab(option.id)}
+          >
+            {option.label}
+          </button>
+        ))}
       </div>
 
-      {mode === 'quick' ? (
-        <div>
-          <TypeDial
-            selectedIndex={selectedIndex}
-            onSelect={(index, settled) => {
-              setSelectedIndex(index);
-              if (settled) setAnimationVersion((version) => version + 1);
-            }}
-            onSettled={() => setAnimationVersion((version) => version + 1)}
-          />
-          <TypeAnswerCard type={selectedType} animationVersion={animationVersion} onSelect={selectType} />
-        </div>
-      ) : (
-        <TypeMatrix initialAttacker={selectedType} />
+      {tab === 'single' && <SingleTypeView type={primary} onSelect={setPrimary} />}
+      {tab === 'dual' && (
+        <DualTypeView
+          editing={editing}
+          primary={primary}
+          representative={representative}
+          secondary={secondary}
+          onClearSecondary={() => {
+            setSecondary(null);
+            setEditing('secondary');
+          }}
+          onCollapse={() => setEditing(null)}
+          onEdit={setEditing}
+          onPick={pickForSlot}
+        />
       )}
-    </section>
+      {tab === 'matrix' && <TypeMatrix />}
+    </div>
   );
 }

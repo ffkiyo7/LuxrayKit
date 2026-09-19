@@ -1,0 +1,259 @@
+/* ===========================================================================
+   P4b 属性速查 (06-01…06-06, N06-01, NL-05).
+
+   Everything the page needs beyond the shared tokens: the matrix palette (its own ink/fill pairs
+   per multiplier, three brightness levels: idle, in-cross, dimmed) and the few surfaces the
+   frames draw only here (the rail panel, the slot ring, the 22px clear chip).
+   =========================================================================== */
+:root {
+  --lk-type-chip: rgb(255 255 255 / 0.07);
+  --lk-type-slot-ring: rgb(255 255 255 / 0.08);
+  --lk-type-clear: #2c2c33;
+  --lk-type-rail-panel: #101013;
+  --lk-matrix-gutter: rgb(255 255 255 / 0.09);
+  --lk-matrix-cell: #101013;
+  --lk-matrix-neutral-ink: #48484a;
+  --lk-matrix-neutral-dim-ink: #2c2c31;
+  --lk-matrix-cross-fill: #212124;
+  --lk-matrix-cross-ring: rgb(255 255 255 / 0.16);
+  --lk-matrix-super-fill: #1a2922;
+  --lk-matrix-super-strong: #1c372b;
+  --lk-matrix-super-dim-ink: #2e6e4d;
+  --lk-matrix-super-selected-ink: #7fdca7;
+  --lk-matrix-resist-fill: #2d1c1e;
+  --lk-matrix-resist-strong: #3a2023;
+  --lk-matrix-resist-dim-ink: #7d413d;
+  --lk-matrix-resist-selected-ink: #f0908c;
+}
+
+:root[data-theme='light'] {
+  --lk-type-chip: #ededf0;
+  --lk-type-slot-ring: rgb(16 24 40 / 0.1);
+  --lk-type-clear: #e3e3e8;
+  --lk-type-rail-panel: #f4f4f7;
+  --lk-matrix-gutter: #e8e8ec;
+  --lk-matrix-cell: #ffffff;
+  --lk-matrix-neutral-ink: #6e6e73;
+  --lk-matrix-neutral-dim-ink: #b0b0b8;
+  --lk-matrix-cross-fill: #f2f2f5;
+  --lk-matrix-cross-ring: rgb(16 24 40 / 0.13);
+  --lk-matrix-super-fill: #e6f4ec;
+  --lk-matrix-super-strong: #d7ecdf;
+  --lk-matrix-super-dim-ink: #12784a;
+  --lk-matrix-super-selected-ink: #12784a;
+  --lk-matrix-resist-fill: #fbe9e7;
+  --lk-matrix-resist-strong: #f7ddd9;
+  --lk-matrix-resist-dim-ink: #c0392f;
+  --lk-matrix-resist-selected-ink: #c0392f;
+}
+
+.lk-type-chip {
+  background: var(--lk-type-chip);
+}
+
+/* 06-01 / 06-02: the segmented well sits on `surface`, so its selected tile needs the light
+   theme's elevation instead of a fill that would vanish into the well. */
+.lk-type-segment-on {
+  background: rgb(var(--color-segment-on));
+}
+
+:root[data-theme='light'] .lk-type-segment-on {
+  box-shadow: 0 1px 2px rgb(16 24 40 / 0.1), 0 0 0 0.5px rgb(16 24 40 / 0.06);
+}
+
+.lk-type-rail-fade {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 48px;
+  background: linear-gradient(270deg, rgb(var(--color-page)) 22%, rgb(var(--color-page) / 0));
+  pointer-events: none;
+}
+
+.lk-type-rail-panel {
+  border-top: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--hairline);
+  background: var(--lk-type-rail-panel);
+}
+
+.lk-type-slot {
+  box-shadow: inset 0 0 0 1px var(--lk-type-slot-ring);
+}
+
+.lk-type-slot--editing {
+  box-shadow: inset 0 0 0 1.5px rgb(var(--color-text-primary));
+}
+
+.lk-type-slot-empty {
+  box-shadow: inset 0 0 0 1.5px rgb(var(--color-text-muted));
+}
+
+.lk-type-slot-clear {
+  background: var(--lk-type-clear);
+}
+
+.lk-type-legend-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 1px rgb(var(--color-border));
+}
+
+.lk-type-legend-swatch--super {
+  background: rgb(var(--color-success) / 0.14);
+  box-shadow: inset 0 0 0 1px rgb(var(--color-success));
+}
+
+.lk-type-legend-swatch--resisted {
+  background: rgb(var(--color-danger) / 0.14);
+  box-shadow: inset 0 0 0 1px rgb(var(--color-danger));
+}
+
+/* --- 完整矩阵 (06-05 / 06-06 / NL-05) ------------------------------------ */
+.lk-type-matrix__viewport {
+  position: relative;
+  height: clamp(360px, calc(100dvh - 282px), 520px);
+  overflow: auto;
+  cursor: grab;
+  overscroll-behavior: contain;
+  touch-action: pan-x pan-y;
+}
+
+.lk-type-matrix__viewport:active {
+  cursor: grabbing;
+}
+
+.lk-type-matrix__grid {
+  display: grid;
+  width: max-content;
+  min-width: 100%;
+  background: var(--lk-matrix-gutter);
+}
+
+.lk-type-matrix__corner,
+.lk-type-matrix__column-header,
+.lk-type-matrix__row-header,
+.lk-type-matrix__cell {
+  border-right: 1px solid var(--lk-matrix-gutter);
+  border-bottom: 1px solid var(--lk-matrix-gutter);
+  background: var(--lk-matrix-cell);
+}
+
+.lk-type-matrix__corner {
+  position: sticky;
+  z-index: 8;
+  top: 0;
+  left: 0;
+}
+
+.lk-type-matrix__column-header,
+.lk-type-matrix__row-header {
+  z-index: 4;
+  display: flex;
+  color: rgb(var(--color-text-secondary));
+  font-weight: 700;
+}
+
+.lk-type-matrix__column-header {
+  position: sticky;
+  top: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  padding-bottom: 6px;
+  font-size: 10px;
+}
+
+.lk-type-matrix__row-header {
+  position: sticky;
+  left: 0;
+  align-items: center;
+  gap: 6px;
+  padding-left: 6px;
+  color: rgb(var(--color-text-label));
+  font-size: 11px;
+}
+
+.lk-type-matrix__column-header.is-selected-axis,
+.lk-type-matrix__row-header.is-selected-axis {
+  z-index: 6;
+  color: rgb(var(--color-text-primary));
+  font-weight: 800;
+}
+
+.lk-type-matrix__cell {
+  position: relative;
+  display: grid;
+  min-width: 44px;
+  min-height: 44px;
+  place-items: center;
+  padding: 0;
+  color: var(--lk-matrix-neutral-ink);
+  font-size: 12px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  transition: background 140ms ease, color 140ms ease, box-shadow 140ms ease;
+}
+
+.lk-type-matrix__cell.is-super {
+  background: var(--lk-matrix-super-fill);
+  color: rgb(var(--color-success));
+}
+
+.lk-type-matrix__cell.is-resisted,
+.lk-type-matrix__cell.is-immune {
+  background: var(--lk-matrix-resist-fill);
+  color: rgb(var(--color-danger));
+}
+
+.lk-type-matrix__cell.is-dimmed {
+  color: var(--lk-matrix-neutral-dim-ink);
+}
+
+.lk-type-matrix__cell.is-dimmed.is-super {
+  color: var(--lk-matrix-super-dim-ink);
+}
+
+.lk-type-matrix__cell.is-dimmed.is-resisted,
+.lk-type-matrix__cell.is-dimmed.is-immune {
+  color: var(--lk-matrix-resist-dim-ink);
+}
+
+.lk-type-matrix__cell.is-cross {
+  z-index: 2;
+  background: var(--lk-matrix-cross-fill);
+  font-size: 13px;
+  box-shadow: inset 0 0 0 1px var(--lk-matrix-cross-ring);
+}
+
+.lk-type-matrix__cell.is-cross.is-super {
+  background: var(--lk-matrix-super-fill);
+}
+
+.lk-type-matrix__cell.is-cross.is-resisted,
+.lk-type-matrix__cell.is-cross.is-immune {
+  background: var(--lk-matrix-resist-fill);
+}
+
+.lk-type-matrix__cell.is-selected-cell {
+  z-index: 3;
+  background: var(--lk-matrix-cross-fill);
+  color: rgb(var(--color-text-primary));
+  font-size: 14px;
+  box-shadow: inset 0 0 0 2px rgb(var(--color-text-primary));
+}
+
+.lk-type-matrix__cell.is-selected-cell.is-super {
+  background: var(--lk-matrix-super-strong);
+  color: var(--lk-matrix-super-selected-ink);
+  box-shadow: inset 0 0 0 2px rgb(var(--color-success));
+}
+
+.lk-type-matrix__cell.is-selected-cell.is-resisted,
+.lk-type-matrix__cell.is-selected-cell.is-immune {
+  background: var(--lk-matrix-resist-strong);
+  color: var(--lk-matrix-resist-selected-ink);
+  box-shadow: inset 0 0 0 2px rgb(var(--color-danger));
+}

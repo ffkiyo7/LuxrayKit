@@ -132,7 +132,6 @@ const legacyChromePages: ChromeKey[] = [
   'teams',
   'tools',
   'dex',
-  'typeChart',
   'profile',
   'rule',
 ];
@@ -164,7 +163,7 @@ function ToolWorkspace({
     calculator: <CalculatorPage environment={environment} selectedMemberId={selectedMemberId} onPickMember={onPickMember} presetMember={calcPreset} />,
     dex: <DexPage onOpenCalculator={onOpenCalculator} />,
     speed: environment ? <SpeedPage environment={environment} activeTeam={activeTeam} presetMember={speedPresetMember} onOpenDex={onOpenDex} /> : <PageLoading label="正在载入速度线环境数据..." />,
-    typeChart: <TypeChartPage />,
+    typeChart: <TypeChartPage environment={environment} />,
   }[view];
   const bleed = !legacyChromePages.includes(view);
 
