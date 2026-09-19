@@ -738,11 +738,16 @@ describe('App page flows', () => {
     });
   });
 
-  it('shows the import coverage notice only before the first upper-build import', async () => {
+  it('asks before every upper-build import, and imports nothing when the dialog is dismissed', async () => {
     const user = await renderEnvironmentApp();
     const region = await openUpperBuilds(user, 'singles');
     const firstImportButton = within(region).getAllByRole('button', { name: '导入为我的队伍' })[0];
     const firstImportedSample = findSampleForImportButton(firstImportButton);
+
+    await user.click(firstImportButton);
+    const cancelled = await screen.findByRole('dialog', { name: '导入确认' });
+    await user.click(within(cancelled).getAllByRole('button', { name: '关闭导入确认' })[0]);
+    expect(screen.queryByLabelText(`队伍：${firstImportedSample.title}`)).toBeNull();
 
     await user.click(firstImportButton);
     await continueFirstImportNotice(user);
@@ -754,7 +759,8 @@ describe('App page flows', () => {
     const secondImportButton = within(secondRegion).getAllByRole('button', { name: '导入为我的队伍' })[1];
     const secondImportedSample = findSampleForImportButton(secondImportButton);
     await user.click(secondImportButton);
-    expect(screen.queryByRole('dialog', { name: '导入确认' })).toBeNull();
+    // The confirmation is not a one-off notice: a second import asks again.
+    await continueFirstImportNotice(user);
     expect(await screen.findByLabelText(`队伍：${secondImportedSample.title}`)).toBeTruthy();
   });
 
@@ -900,9 +906,11 @@ describe('App page flows', () => {
     await user.click(screen.getByRole('button', { name: '单打' }));
 
     const upperBuildSection = screen.getByText('上位构筑').closest('section') as HTMLElement;
-    expect(within(upperBuildSection).getAllByRole('paragraph').length).toBeGreaterThan(0);
-    // The home carousel is a teaser only: importing happens on the pushed page.
-    expect(within(upperBuildSection).queryByRole('button', { name: '导入为我的队伍' })).toBeNull();
+    // A carousel card is an import entry: it asks first and imports nothing on its own.
+    const teaser = within(upperBuildSection).getAllByRole('button', { name: /^导入「/ })[0];
+    await user.click(teaser);
+    const dialog = await screen.findByRole('dialog', { name: '导入确认' });
+    await user.click(within(dialog).getAllByRole('button', { name: '关闭导入确认' })[0]);
 
     await user.click(screen.getByRole('button', { name: '查看全部上位构筑' }));
     expect(await screen.findByRole('heading', { name: '上位构筑' })).toBeTruthy();
@@ -955,8 +963,12 @@ describe('App page flows', () => {
 
     const related = screen.getByText('相关上位构筑').closest('section') as HTMLElement;
     expect(within(related).getByText(relatedGarchompSample.title)).toBeTruthy();
-    // 01-05 rows are navigation only: the import slab lives on the 上位构筑 cards.
-    expect(within(related).queryByRole('button', { name: '导入为我的队伍' })).toBeNull();
+
+    // A related row offers the sample rather than routing to the list; 查看全部 still does that.
+    await user.click(within(related).getByRole('button', { name: `导入「${relatedGarchompSample.title}」` }));
+    const dialog = await screen.findByRole('dialog', { name: '导入确认' });
+    expect(dialog.textContent).toContain(`导入「${relatedGarchompSample.title}」`);
+    await user.click(within(dialog).getAllByRole('button', { name: '关闭导入确认' })[0]);
 
     await user.click(within(related).getByRole('button', { name: '查看全部' }));
     expect(await screen.findByRole('heading', { name: '上位构筑' })).toBeTruthy();
@@ -968,6 +980,11 @@ describe('App page flows', () => {
     await user.click(screen.getByRole('button', { name: '单打' }));
     await user.click(within(screen.getByText('使用排行').closest('section') as HTMLElement).getByRole('button', { name: new RegExp(topSinglesPokemon.chineseName) }));
     await user.click(await screen.findByRole('button', { name: '按热门配置加入队伍' }));
+
+    // Which team it lands in is always asked; the preset team is the only one here.
+    const picker = await screen.findByRole('dialog', { name: `把${topSinglesPokemon.chineseName}加入哪支队伍` });
+    await user.click(within(picker).getByRole('button', { name: /Luxray test/ }));
+    expect((await screen.findByRole('status')).textContent).toContain('已加入Luxray test');
 
     await waitFor(async () => {
       const state = await repository.loadState();

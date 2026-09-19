@@ -1,12 +1,15 @@
 // @vitest-environment jsdom
 import 'fake-indexeddb/auto';
-import { cleanup, render, screen, within } from '@testing-library/react';
+import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { currentRegulation as catalogRegulation, type EnvironmentState, type EnvironmentTeamSample } from '../data/environment';
 import { regulationSchedule } from '../data/schedule';
+import { currentDataVersion, currentRuleSet } from '../data';
 import { pokemon } from '../data/seed/regMA/catalog';
+import { repository } from '../lib/db';
 import { AppProvider } from '../state/AppContext';
+import type { Team, TeamMember } from '../types';
 import { CatalogRegulationLagNotice, EnvironmentPage } from './EnvironmentPage';
 
 const makeEnvironment = (overallUsageBasis: EnvironmentState['overallUsageBasis']): EnvironmentState => ({
@@ -77,6 +80,37 @@ const makeTeamSampleEnvironment = (teamSamples: EnvironmentTeamSample[]): Enviro
   teamSamples: teamSamples.map((sample) => ({ regulation: 'M-B' as const, ...sample })),
 });
 
+const member = (pokemonId: string, patch: Partial<TeamMember> = {}): TeamMember => ({
+  id: `member-${pokemonId}`,
+  pokemonId,
+  moveIds: [],
+  nature: '认真',
+  statPoints: {},
+  level: 50,
+  notes: '',
+  legalityStatus: 'legal',
+  ...patch,
+});
+
+const testTeam = (id: string, name: string, members: TeamMember[]): Team => ({
+  id,
+  name,
+  ruleSetId: currentRuleSet.id,
+  dataVersionId: currentDataVersion.id,
+  createdAt: '2026-06-16T00:00:00.000Z',
+  updatedAt: '2026-06-16T00:00:00.000Z',
+  notes: '',
+  members,
+});
+
+const deleteDb = () =>
+  new Promise<void>((resolve, reject) => {
+    const request = indexedDB.deleteDatabase('pokemon-champions-assistant');
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+    request.onblocked = () => resolve();
+  });
+
 const renderEnvironment = (environment: EnvironmentState, onImportSample: (sample: EnvironmentTeamSample) => void = () => undefined) =>
   render(
     <AppProvider>
@@ -89,7 +123,10 @@ const homeRankingSection = () => screen.getByText('使用排行').closest('secti
 // to the 使用排行 section.
 const homeRow = (name: string) => within(homeRankingSection()).getByRole('button', { name: new RegExp(name) });
 
-beforeEach(() => {
+beforeEach(async () => {
+  // The picker writes real teams, so every test starts from an empty database rather than
+  // inheriting whatever the previous one saved.
+  await deleteDb();
   window.location.hash = '#/env';
   // The 数据口径 intro sheet (01-06) is shown once per browser; every test but its own starts
   // with it already acknowledged.
@@ -163,6 +200,30 @@ describe('环境首页', () => {
     unmount();
     renderEnvironment(makeEnvironment('rank-relative'));
     expect(screen.queryByRole('dialog', { name: '数据口径' })).toBeNull();
+  });
+
+  it('hands an 上位构筑 teaser card to the import flow instead of being inert', async () => {
+    const user = userEvent.setup();
+    const onImportSample = vi.fn();
+    const environment = makeTeamSampleEnvironment([
+      {
+        id: 'pokedb-singles-rank-1',
+        dataKind: 'external-snapshot',
+        author: 'PokeDB author',
+        score: 2815,
+        rank: 1,
+        title: 'すいか',
+        battleType: 'singles',
+        slots: [{ pokemonId: 'garchomp', moveIds: [] }],
+      },
+    ]);
+    renderEnvironment(environment, onImportSample);
+
+    await user.click(screen.getByRole('button', { name: '单打' }));
+    const teasers = screen.getByText('上位构筑').closest('section') as HTMLElement;
+    await user.click(within(teasers).getByRole('button', { name: '导入「すいか」' }));
+
+    expect(onImportSample).toHaveBeenCalledWith(expect.objectContaining({ id: 'pokedb-singles-rank-1' }));
   });
 });
 
@@ -367,6 +428,160 @@ describe('宝可梦详情', () => {
 
     await user.click(within(related).getByRole('button', { name: '查看全部' }));
     expect(await screen.findByRole('heading', { name: '上位构筑' })).toBeTruthy();
+  });
+
+  it('offers a related upper build for import instead of routing to the list', async () => {
+    const user = userEvent.setup();
+    const onImportSample = vi.fn();
+    const samples: EnvironmentTeamSample[] = [
+      {
+        id: 'pokedb-singles-rank-1',
+        dataKind: 'external-snapshot',
+        author: 'PokeDB author',
+        score: 2815,
+        rank: 1,
+        title: 'すいか',
+        battleType: 'singles',
+        slots: [{ pokemonId: 'garchomp', moveIds: [] }],
+      },
+    ];
+    renderEnvironment(makeTeamSampleEnvironment(samples), onImportSample);
+
+    await user.click(screen.getByRole('button', { name: '单打' }));
+    await user.click(homeRow('烈咬陆鲨'));
+    await user.click(await screen.findByRole('button', { name: '导入「すいか」' }));
+
+    expect(onImportSample).toHaveBeenCalledWith(expect.objectContaining({ id: 'pokedb-singles-rank-1' }));
+    expect(screen.queryByRole('heading', { name: '上位构筑' })).toBeNull();
+  });
+
+  it('walks back down a 常见队友 chain one detail at a time', async () => {
+    const user = userEvent.setup();
+    renderEnvironment(makeEnvironment('rank-relative'));
+
+    await user.click(screen.getByRole('button', { name: '单打' }));
+    await user.click(homeRow('烈咬陆鲨'));
+    expect(await screen.findByRole('heading', { name: '烈咬陆鲨' })).toBeTruthy();
+
+    const teammates = screen.getByText('常见队友').closest('section') as HTMLElement;
+    await user.click(within(teammates).getByRole('button', { name: /铝钢桥龙/ }));
+    expect(await screen.findByRole('heading', { name: '铝钢桥龙' })).toBeTruthy();
+
+    await user.click(screen.getByRole('button', { name: '返回' }));
+    expect(await screen.findByRole('heading', { name: '烈咬陆鲨' })).toBeTruthy();
+
+    await user.click(screen.getByRole('button', { name: '返回' }));
+    expect(await screen.findByRole('heading', { name: '今日环境' })).toBeTruthy();
+  });
+
+  it('pages with the header chevrons without stacking history entries', async () => {
+    const user = userEvent.setup();
+    renderEnvironment(makeEnvironment('rank-relative'));
+
+    await user.click(screen.getByRole('button', { name: '单打' }));
+    await user.click(homeRow('烈咬陆鲨'));
+    await user.click(await screen.findByRole('button', { name: '下一名' }));
+    expect(await screen.findByRole('heading', { name: '铝钢桥龙' })).toBeTruthy();
+
+    await user.click(screen.getByRole('button', { name: '返回' }));
+    expect(await screen.findByRole('heading', { name: '今日环境' })).toBeTruthy();
+  });
+});
+
+describe('按热门配置加入队伍', () => {
+  const openGarchompDetail = async (user: ReturnType<typeof userEvent.setup>) => {
+    renderEnvironment(makeEnvironment('rank-relative'));
+    await user.click(screen.getByRole('button', { name: '单打' }));
+    await user.click(homeRow('烈咬陆鲨'));
+    await user.click(await screen.findByRole('button', { name: '按热门配置加入队伍' }));
+    return screen.findByRole('dialog', { name: '把烈咬陆鲨加入哪支队伍' });
+  };
+
+  it('asks which team to join, writes into the chosen one and says so', async () => {
+    const user = userEvent.setup();
+    await repository.saveTeam(testTeam('team-a', '主力队', []));
+    await repository.saveTeam(testTeam('team-b', '备用队', []));
+
+    const sheet = await openGarchompDetail(user);
+    await user.click(within(sheet).getByRole('button', { name: /备用队/ }));
+
+    expect((await screen.findByRole('status')).textContent).toContain('已加入备用队');
+    await waitFor(async () => {
+      const state = await repository.loadState();
+      expect(state.teams.find((team) => team.id === 'team-b')!.members).toHaveLength(1);
+      expect(state.teams.find((team) => team.id === 'team-a')!.members).toHaveLength(0);
+    });
+  });
+
+  it('greys out a team that is full or already holds the Pokemon, Mega and form alike', async () => {
+    const user = userEvent.setup();
+    // A Mega is the same team slot as its base form, so the row must read 已在队伍中.
+    await repository.saveTeam(testTeam('team-holds', '已有队', [member('garchomp', { formId: 'mega-garchomp' })]));
+    await repository.saveTeam(
+      testTeam(
+        'team-full',
+        '满员队',
+        pokemon
+          .filter((entry) => entry.nationalDexNo !== 445)
+          .slice(0, 6)
+          .map((entry) => member(entry.id, { id: `member-${entry.id}` })),
+      ),
+    );
+
+    const sheet = await openGarchompDetail(user);
+
+    const holds = within(sheet).getByRole('button', { name: /已有队/ }) as HTMLButtonElement;
+    expect(holds.disabled).toBe(true);
+    expect(holds.textContent).toContain('已在队伍中');
+    const full = within(sheet).getByRole('button', { name: /满员队/ }) as HTMLButtonElement;
+    expect(full.disabled).toBe(true);
+    expect(full.textContent).toContain('已满 6 只');
+  });
+
+  it('never silently repeats the same Pokemon: the second visit finds the team greyed out', async () => {
+    const user = userEvent.setup();
+    await repository.saveTeam(testTeam('team-a', '主力队', []));
+
+    const sheet = await openGarchompDetail(user);
+    await user.click(within(sheet).getByRole('button', { name: /主力队/ }));
+    await screen.findByRole('status');
+
+    await user.click(screen.getByRole('button', { name: '按热门配置加入队伍' }));
+    const reopened = await screen.findByRole('dialog', { name: '把烈咬陆鲨加入哪支队伍' });
+    expect((within(reopened).getByRole('button', { name: /主力队/ }) as HTMLButtonElement).disabled).toBe(true);
+    const state = await repository.loadState();
+    expect(state.teams.find((team) => team.id === 'team-a')!.members).toHaveLength(1);
+  });
+
+  it('creates a team and joins it when asked', async () => {
+    const user = userEvent.setup();
+    await repository.saveTeam(testTeam('team-a', '主力队', []));
+
+    const sheet = await openGarchompDetail(user);
+    await user.click(within(sheet).getByRole('button', { name: '新建队伍并加入' }));
+
+    await waitFor(async () => {
+      const state = await repository.loadState();
+      const created = state.teams.find((team) => team.id !== 'team-a');
+      expect(created).toBeTruthy();
+      expect(created!.members.map((entry) => entry.pokemonId)).toEqual(['garchomp']);
+    });
+    expect((await screen.findByRole('status')).textContent).toContain('已加入');
+  });
+
+  it('leaves the item blank when a teammate already carries the popular one', async () => {
+    const user = userEvent.setup();
+    await repository.saveTeam(testTeam('team-a', '主力队', [member('incineroar', { itemId: 'focus-sash' })]));
+
+    const sheet = await openGarchompDetail(user);
+    await user.click(within(sheet).getByRole('button', { name: /主力队/ }));
+
+    await waitFor(async () => {
+      const state = await repository.loadState();
+      const added = state.teams.find((team) => team.id === 'team-a')!.members.find((entry) => entry.pokemonId === 'garchomp');
+      expect(added).toBeTruthy();
+      expect(added!.itemId).toBeUndefined();
+    });
   });
 });
 

@@ -29,7 +29,7 @@ import {
   type SeasonRankDelta,
 } from '../lib/seasonRankDelta';
 import { useHashRoute } from '../hooks/useHashRoute';
-import { KitButton, PageHeader, SearchField, SegmentedTabs, Sprite, TypeDot } from '../components/kit';
+import { auraStyle, KitButton, PageHeader, SearchField, SegmentedTabs, Sprite, TypeDot } from '../components/kit';
 import { typeLabels } from '../components/ui';
 import { TeamBrowseView } from './TeamBrowseView';
 import { sortTeamSamplesByScore } from './environmentTeamSamples';
@@ -661,6 +661,9 @@ function EnvironmentHero({ usage, onOpen }: { usage: EnvironmentPokemonUsage; on
       <button
         aria-label={`查看 ${entry.chineseName} 的环境详情`}
         className="lk-env-hero relative w-full overflow-hidden rounded-[20px] p-[22px] text-left"
+        // The halo is this Pokémon's own two type colours, as on a team member card; a Mega or
+        // form swap changes `entry.types` and the wash follows.
+        style={auraStyle(entry.types)}
         type="button"
         onClick={() => onOpen(entry.id)}
       >
@@ -694,11 +697,22 @@ function EnvironmentHero({ usage, onOpen }: { usage: EnvironmentPokemonUsage; on
   );
 }
 
-function TeamSampleTeaser({ sample }: { sample: EnvironmentTeamSample }) {
+function TeamSampleTeaser({
+  sample,
+  onSelect,
+}: {
+  sample: EnvironmentTeamSample;
+  onSelect: (sample: EnvironmentTeamSample) => void;
+}) {
   const slots = resolveSampleSlots(sample);
 
   return (
-    <div className="w-[236px] shrink-0 rounded-2xl bg-surface p-3.5">
+    <button
+      aria-label={`导入「${teamSampleTitle(sample)}」`}
+      className="w-[236px] shrink-0 rounded-2xl bg-surface p-3.5 text-left"
+      type="button"
+      onClick={() => onSelect(sample)}
+    >
       <div className="grid grid-cols-3 gap-1.5">
         {slots.map((entry, index) => (
           <span key={`${entry.id}-${index}`} className="grid h-[52px] place-items-center">
@@ -706,9 +720,11 @@ function TeamSampleTeaser({ sample }: { sample: EnvironmentTeamSample }) {
           </span>
         ))}
       </div>
-      <p className="mt-3.5 truncate text-[15px] font-bold">{teamSampleTitle(sample)}</p>
-      <p className="mt-[3px] truncate text-xs font-semibold text-textSecondary">{teamSampleMeta(sample).join(' · ')}</p>
-    </div>
+      <span className="mt-3.5 block truncate text-[15px] font-bold">{teamSampleTitle(sample)}</span>
+      <span className="mt-[3px] block truncate text-xs font-semibold text-textSecondary">
+        {teamSampleMeta(sample).join(' · ')}
+      </span>
+    </button>
   );
 }
 
@@ -793,9 +809,14 @@ export function EnvironmentPage({
           movesById={movesById}
           pokemonId={detailPokemonId}
           // back() pops the real history entry, so 返回 lands on whichever screen opened this
-          // detail (home or the full ranking) without tracking a returnView by hand.
+          // detail — the previous detail in a 常见队友 chain, or the list that started it —
+          // without tracking a returnView by hand.
           onBack={back}
-          onOpenPokemon={(pokemonId) => navigate({ name: 'env-pokemon', pokemonId }, { replace: true })}
+          onImportSample={onImportSample}
+          onOpenPokemon={openPokemon}
+          // The header chevrons page through the ranking in place; they are a control on this
+          // screen, not a new destination, so they must not each leave a history entry behind.
+          onPageToPokemon={(pokemonId) => navigate({ name: 'env-pokemon', pokemonId }, { replace: true })}
           onOpenTeams={openTeams}
         />
       </Suspense>
@@ -922,7 +943,7 @@ export function EnvironmentPage({
           </SectionHeading>
           <div className="hide-scrollbar mt-3.5 flex gap-3 overflow-x-auto px-6">
             {visibleTeamSamples.map((sample) => (
-              <TeamSampleTeaser key={sample.id} sample={sample} />
+              <TeamSampleTeaser key={sample.id} sample={sample} onSelect={onImportSample} />
             ))}
           </div>
         </section>
