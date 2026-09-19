@@ -6,7 +6,7 @@ import {
   type EnvironmentTeamSample,
 } from '../data/environment';
 import { battleTypeLabels } from './environmentChrome';
-import { sampleRegulation } from './environmentTeamSamples';
+import { sampleRegulation, teamSampleLadderScore, teamSamplePlacementLabel } from './environmentTeamSamples';
 
 /**
  * 07-01's card is four blocks and nothing else: title row (name · link glyph · amber score),
@@ -16,7 +16,7 @@ import { sampleRegulation } from './environmentTeamSamples';
  */
 export const teamSampleMeta = (sample: EnvironmentTeamSample) =>
   [
-    sample.rank ? `第 ${sample.rank} 名` : undefined,
+    teamSamplePlacementLabel(sample),
     battleTypeLabels[sample.battleType],
     sampleRegulation(sample),
   ].filter((part): part is string => Boolean(part));
@@ -24,8 +24,8 @@ export const teamSampleMeta = (sample: EnvironmentTeamSample) =>
 /** 01-05's related-build row uses the score inline instead of in an amber corner. */
 export const teamSampleScoreMeta = (sample: EnvironmentTeamSample) =>
   [
-    sample.rank ? `第 ${sample.rank} 名` : undefined,
-    sample.score > 0 ? `${sample.score} 分` : undefined,
+    teamSamplePlacementLabel(sample),
+    teamSampleLadderScore(sample) !== undefined ? `${teamSampleLadderScore(sample)} 分` : undefined,
     battleTypeLabels[sample.battleType],
   ].filter((part): part is string => Boolean(part));
 
@@ -87,6 +87,7 @@ export function TeamSampleCard({
   const [importing, setImporting] = useState(false);
   const slots = resolveSampleSlots(sample);
   const title = teamSampleTitle(sample);
+  const ladderScore = teamSampleLadderScore(sample);
 
   const handleImport = async () => {
     setImporting(true);
@@ -109,8 +110,8 @@ export function TeamSampleCard({
           </span>
         )}
         <span className="flex-1" />
-        {sample.score > 0 && (
-          <span className="shrink-0 text-[13px] font-bold tabular-nums text-data">{sample.score} 分</span>
+        {ladderScore !== undefined && (
+          <span className="shrink-0 text-[13px] font-bold tabular-nums text-data">{ladderScore} 分</span>
         )}
       </div>
       <p className="mt-[5px] text-[13px] font-semibold text-textSecondary">{teamSampleMeta(sample).join(' · ')}</p>

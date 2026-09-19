@@ -183,6 +183,13 @@ export function TeamBrowseView({
         ))}
       </div>
 
+      {/* The first cards often survive a filter unchanged, so without a count the chips look dead. */}
+      {visibleSamples.length > 0 && (activeFilters.length > 0 || searchTerm.trim()) && (
+        <p aria-live="polite" className="px-6 pt-4 text-[13px] font-semibold tabular-nums text-textSecondary">
+          {[...activeFilters.map((id) => sampleFilters.find((filter) => filter.id === id)!.label), `${visibleSamples.length} 支`].join(' · ')}
+        </p>
+      )}
+
       {visibleSamples.length > 0 ? (
         <div className="mt-5 flex flex-col gap-3.5 px-6" role="region" aria-label="上位构筑列表">
           {visibleSamples.map((sample) => (

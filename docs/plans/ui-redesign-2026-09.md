@@ -90,6 +90,8 @@ owner 原话与帧冲突时原话赢。共享层先行修复：`15d0f63`。
 - [ ] 🎮 **R13 图鉴宝可梦**（`ad34f0f`、`9764482`）：MEGA 标签已删；大图背景用 `auraStyle`。
 - [ ] 🎮 **R14 图鉴详情特性**（`9764482`、`d1d9e20`）：纯列表；梦特名 `text-fnTeal`，数据 `src/data/seed/regMA/hiddenAbilities.ts`（`npm run data:regma:hidden-abilities`，236 行，262 只全部解析）。只是标记表，不增删 Champions 的特性。
 - [ ] 🎮 **R16 图鉴详情两个 bug**：列表与详情共用 window 滚动，详情沿用了列表的偏移 → 打开详情回顶、返回列表回到原来那一行（`DexPage.test.tsx`）；大图首次打开闪矩形 = 图片未解码时 WebKit 把 `drop-shadow` 画成整个盒子的影子 → 解码完成前隐藏且不挂滤镜。
+- [ ] 🎮 **R17 上位构筑分数 / 筛选**：VGCPastes 把赛事名次同时写进 `rank` 和 `score`（「6th」→ 6 / 6），卡片照 `score` 印出「6 分」→ 只有 PokeDB 排位样本显示分数（`teamSampleLadderScore`），赛事样本在 meta 行显示「冠军 / 亚军 / N 强 / 第 N 名」；「按分数」排序改为排位样本在前、赛事按名次再按日期（原来冠军没有 `rank` 被排到最后）。筛选 chip 实测生效（379 → 247），但头几张卡不变又没有数量反馈 → 筛选 / 搜索生效时列表上方显示「带 SP · 247 支」。
+- [ ] 🎮 **R18 全站进入新页面回顶**：所有页面共用 window 滚动且没有任何重置 → 路由 push 时回顶（`useScrollResetOnPush`，返回交给浏览器恢复）；非路由的整页选择器 / 计算器编辑页进入回顶、关闭还原（`useScrollResetWhileMounted`）。
 - [ ] 🎮 **R15 Tab bar 玻璃**（`5ca9dfe`）：深色 tint 0.6 → 0.26、浅色 0.66 → 0.44、saturate 190%、标签加阴影、胶囊下方渐隐不再收到实色。验收看：近白主按钮滚到底下时是否泛银。
 
 ## 待 owner 拍板（agent 都已按最保守的理解先做完，不阻塞验收）

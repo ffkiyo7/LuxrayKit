@@ -21,7 +21,32 @@ export const isVgcPastesSample = (sample: EnvironmentTeamSample) =>
 export const teamSampleCategory = (sample: EnvironmentTeamSample) =>
   isVgcPastesSample(sample) ? 'event' : 'ranked';
 
-const teamSampleDateValue = (sample: EnvironmentTeamSample) => {
+/**
+ * Only a PokeDB ladder sample carries a rating. VGCPastes stamps an event team's placement into
+ * both `rank` and `score` (「6th」 → rank 6, score 6), so reading `score` there prints 「6 分」.
+ */
+export const teamSampleLadderScore = (sample: EnvironmentTeamSample) =>
+  !isVgcPastesSample(sample) && sample.score > 0 ? sample.score : undefined;
+
+const eventPlacement = (sample: EnvironmentTeamSample): { order: number; label: string } | undefined => {
+  const text = sample.eventRank?.trim();
+  if (!text) return undefined;
+  if (/^champion$/i.test(text)) return { order: 1, label: '冠军' };
+  if (/^runner[\s-]?up$/i.test(text)) return { order: 2, label: '亚军' };
+  const top = /^top\s*(\d+)$/i.exec(text);
+  if (top) return { order: Number(top[1]), label: `${top[1]} 强` };
+  const nth = /^(\d+)(?:st|nd|rd|th)$/i.exec(text);
+  if (nth) return { order: Number(nth[1]), label: `第 ${nth[1]} 名` };
+  return { order: Number.POSITIVE_INFINITY, label: text };
+};
+
+/** 「第 3 名」 for a ladder sample, 「冠军」/「8 强」/「第 6 名」 for an event one. */
+export const teamSamplePlacementLabel = (sample: EnvironmentTeamSample) => {
+  if (isVgcPastesSample(sample)) return eventPlacement(sample)?.label;
+  return sample.rank ? `第 ${sample.rank} 名` : undefined;
+};
+
+const teamSampleDateValue =(sample: EnvironmentTeamSample) => {
   if (!sample.dateShared) return null;
   const value = Date.parse(sample.dateShared);
   return Number.isNaN(value) ? null : value;
@@ -48,12 +73,22 @@ export const sortTeamSamplesByDate = (
   });
 
 /**
- * 07-01's default order (「按分数」): ladder rank first where the source publishes one, then raw
- * score. Samples with neither (VGCPastes event teams carry rank 0 / score 0) keep a stable id
- * order at the end rather than shuffling between renders.
+ * 07-01's default order (「按分数」). Ladder samples lead, by rank then rating — they are the only
+ * ones with a score. Event teams follow by placement (冠军 → 亚军 → 第 N 名), newest first within
+ * a placement; their `rank` is not comparable with a ladder rank, and a 冠军 has none at all.
  */
 export const sortTeamSamplesByScore = (samples: EnvironmentTeamSample[]) =>
-  [...samples].sort(compareUnknownDateSamples);
+  [...samples].sort((left, right) => {
+    const leftEvent = isVgcPastesSample(left);
+    const rightEvent = isVgcPastesSample(right);
+    if (leftEvent !== rightEvent) return leftEvent ? 1 : -1;
+    if (!leftEvent) return compareUnknownDateSamples(left, right);
+    return (
+      (eventPlacement(left)?.order ?? Number.POSITIVE_INFINITY) - (eventPlacement(right)?.order ?? Number.POSITIVE_INFINITY) ||
+      (teamSampleDateValue(right) ?? 0) - (teamSampleDateValue(left) ?? 0) ||
+      left.id.localeCompare(right.id)
+    );
+  });
 
 const seededRandom = (seed: number) => {
   let state = seed >>> 0;
