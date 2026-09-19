@@ -9,6 +9,7 @@ import './styles/p3b.css';
 import './styles/p4a.css';
 import './styles/p4b.css';
 import './styles/p6.css';
+import './styles/calculator.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
