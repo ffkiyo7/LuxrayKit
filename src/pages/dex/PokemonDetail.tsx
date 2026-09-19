@@ -225,16 +225,17 @@ export function PokemonDetail({
       <section className="px-6 pt-6">
         <SectionHeading title="种族值" trailing={`总和 ${statTotal}`} />
         <div className="mt-3 flex flex-col gap-2.5">
-          {statRows(entry.baseStats).map(([label, value]) => {
-            const isSpeed = label === '速';
+          {statRows(entry.baseStats).map(([label, value], _index, rows) => {
+            // The lit bar is this Pokémon's best stat (every one of them on a tie), not a fixed row.
+            const isBest = value === Math.max(...rows.map(([, other]) => other));
             return (
               <div key={label} className="flex items-center gap-3">
-                <span className={`w-[34px] shrink-0 text-xs ${isSpeed ? 'font-bold text-textPrimary' : 'font-semibold text-textSecondary'}`}>
+                <span className={`w-[34px] shrink-0 text-xs ${isBest ? 'font-bold text-textPrimary' : 'font-semibold text-textSecondary'}`}>
                   {statLabels[label]}
                 </span>
                 <span className="lk-p4a-stat-track h-1.5 min-w-0 flex-1 overflow-hidden rounded-full">
                   <span
-                    className={`block h-full ${isSpeed ? 'bg-data' : 'bg-btnDisabledInk'}`}
+                    className={`block h-full ${isBest ? 'bg-data' : 'bg-btnDisabledInk'}`}
                     style={{ width: `${Math.min(100, (value / STAT_BAR_CEILING) * 100)}%` }}
                   />
                 </span>
@@ -378,8 +379,9 @@ export function PokemonDetail({
       </section>
 
       {/* N04-09 anchors the two actions to the bottom edge; the floating nav sits below them, so
-          the bar's own padding keeps the buttons clear of it. */}
-      <div className="sticky bottom-0 z-10 mt-6 flex gap-2.5 bg-gradient-to-t from-page via-page/70 to-transparent px-6 pb-[86px] pt-4 backdrop-blur-xl">
+          the bar's own padding keeps the buttons clear of it — home-indicator inset included,
+          since the nav rides on top of that inset too. */}
+      <div className="sticky bottom-0 z-10 mt-6 flex gap-2.5 bg-gradient-to-t from-page via-page/70 to-transparent px-6 pb-[calc(86px+env(safe-area-inset-bottom))] pt-4 backdrop-blur-xl">
         <button
           className="lk-btn-primary inline-flex h-[50px] min-w-0 flex-1 items-center justify-center gap-2 rounded-2xl bg-accent text-base font-extrabold text-page"
           type="button"
