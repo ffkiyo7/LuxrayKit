@@ -367,9 +367,13 @@ const fetchEnvironmentSnapshot = async (
 
 /**
  * TRANSITIONAL, see `backfillStatPointStats`. The extra request only fires while the deployed
- * Worker predates the 能力ポイント parser, and the static snapshot is `force-cache`d, so in the
- * steady state this costs nothing. It pulls no JavaScript, so the `#/env` first-paint JS budget
- * (tests/pwa/first-paint-budget.spec.ts) is untouched.
+ * Worker predates the 能力ポイント parser. It pulls no JavaScript, so the `#/env` first-paint JS
+ * budget (tests/pwa/first-paint-budget.spec.ts) is untouched.
+ *
+ * `no-cache`, not `force-cache`: a browser that cached the static snapshot before it carried
+ * spreads would otherwise be handed that copy forever — and the service worker's background
+ * revalidation reuses this request's cache mode, so its copy would never heal either. The file
+ * is served with an ETag, so the steady state is a 304.
  */
 const withStatPointStatsBackfill = async (
   fetcher: typeof fetch,
@@ -377,7 +381,7 @@ const withStatPointStatsBackfill = async (
 ): Promise<PokeDbEnvironmentSnapshotPayload> => {
   if (!snapshotWantsStatPointStats(snapshot)) return snapshot;
   try {
-    const fallback = await fetchEnvironmentSnapshot(fetcher, POKEDB_ENVIRONMENT_SNAPSHOT_URL, 'force-cache');
+    const fallback = await fetchEnvironmentSnapshot(fetcher, POKEDB_ENVIRONMENT_SNAPSHOT_URL, 'no-cache');
     return backfillStatPointStats(snapshot, fallback.snapshot);
   } catch {
     return snapshot;

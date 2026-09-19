@@ -532,7 +532,8 @@ describe('statPointStats backfill', () => {
     const state = await loadEnvironmentState(fetcher as unknown as typeof fetch);
 
     expect(fetcher).toHaveBeenNthCalledWith(1, WORKER_ENVIRONMENT_SNAPSHOT_URL, expect.any(Object));
-    expect(fetcher).toHaveBeenNthCalledWith(2, POKEDB_ENVIRONMENT_SNAPSHOT_URL, expect.objectContaining({ cache: 'force-cache' }));
+    // Revalidated, never `force-cache`: a copy cached before the file carried spreads must not stick.
+    expect(fetcher).toHaveBeenNthCalledWith(2, POKEDB_ENVIRONMENT_SNAPSHOT_URL, expect.objectContaining({ cache: 'no-cache' }));
     expect(state.pokemonUsage.singles.find((usage) => usage.pokemonId === 'garchomp')?.statPointStats).toEqual(spreads);
   });
 
