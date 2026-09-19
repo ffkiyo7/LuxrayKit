@@ -9,7 +9,7 @@ export const defaultTeams: Team[] = [
     dataVersionId: currentDataVersion.id,
     createdAt: '2026-04-26T16:00:00.000Z',
     updatedAt: '2026-04-26T16:00:00.000Z',
-    notes: 'Single Luxray seed team for local editing and the hidden starter-card easter egg.',
+    notes: 'Single Luxray seed team for local editing; the list draws it as the preset card until it is opened once.',
     members: [
       {
         id: 'member-luxray',
@@ -21,7 +21,7 @@ export const defaultTeams: Team[] = [
         nature: '爽朗',
         statPoints: { attack: 32, speed: 32, hp: 1 },
         level: 50,
-        notes: 'Luxray test starter. There is a small surprise when opening this team.',
+        notes: 'Luxray test starter.',
         legalityStatus: 'needs-review',
       },
     ],

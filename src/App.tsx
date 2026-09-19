@@ -129,7 +129,6 @@ function ImportCoverageNoticeDialog({
 type ChromeKey = TabId | ToolView | 'rule';
 const legacyChromePages: ChromeKey[] = [
   'environment',
-  'teams',
   'tools',
   'dex',
   'typeChart',
@@ -322,9 +321,9 @@ function AppShell() {
   // the team as it is now.
   const shareTeam = useCallback(
     async (team: Team) => {
-      if (team.members.length === 0) return;
       try {
-        const { encodeTeamShare, teamShareUrl } = await import('./lib/teamShare');
+        const { canShareTeam, encodeTeamShare, teamShareUrl } = await import('./lib/teamShare');
+        if (!canShareTeam(team)) return;
         const url = teamShareUrl(await encodeTeamShare(team));
         if (typeof navigator.share === 'function') {
           await navigator.share({ title: `${team.name} · ${productName}`, url });
@@ -376,9 +375,12 @@ function AppShell() {
         return (
           <TeamPage
             activeTeamId={activeTeam?.id}
+            environment={environmentState}
             highlightedTeamId={highlightedImportTeamId}
             onActiveTeamChange={setActiveTeamId}
+            onBrowseUpperBuilds={() => navigate({ name: 'env-teams' })}
             onCopyReplicaCode={copyReplicaCode}
+            onImportSharedTeam={importSharedTeam}
             onShareTeam={shareTeam}
             onSendToSpeed={sendMemberToSpeed}
             onSendToCalculator={sendMemberToCalculator}
@@ -420,6 +422,7 @@ function AppShell() {
     environmentState,
     highlightedImportTeamId,
     importSampleTeam,
+    importSharedTeam,
     copyReplicaCode,
     navigate,
     openTool,

@@ -9,13 +9,13 @@ import doubleRankedTeams from '../../data/external/pokedb/s1_double_ranked_teams
 import { currentDataVersion, currentRuleSet } from '../../data';
 import { repository } from '../../lib/db';
 import { MAX_STAT_POINTS_PER_STAT, MAX_TOTAL_STAT_POINTS } from '../../lib/statPoints';
+import { encodeTeamShare, TEAM_SHARE_REQUIRED_MEMBERS } from '../../lib/teamShare';
 import type { Team, TeamMember } from '../../types';
 
 /**
- * The team editor is the app's core flow and had no test file of its own (App.test.tsx covers
- * a few slices of it end-to-end). These mount the real <App/> — TeamPage needs AppContext,
- * IndexedDB and hash routing — but every case starts from teams seeded straight into the
- * repository, so they never depend on the shipped starter team.
+ * The team list and detail are the app's core flow. These mount the real <App/> — TeamPage
+ * needs AppContext, IndexedDB and hash routing — but every case starts from teams seeded
+ * straight into the repository, so they never depend on the shipped preset team.
  */
 
 const DB_NAME = 'pokemon-champions-assistant';
@@ -59,13 +59,19 @@ const team = (id: string, name: string, members: TeamMember[] = []): Team => ({
   members,
 });
 
+/** Six distinct members — the threshold a team has to reach before it can be shared. */
+const fullRoster = (): TeamMember[] =>
+  ['garchomp', 'incineroar', 'luxray', 'charizard', 'whimsicott', 'gholdengo'].map((pokemonId) =>
+    member({ id: `member-${pokemonId}`, pokemonId, formId: pokemonId, abilityId: undefined, itemId: undefined, moveIds: [], statPoints: {} }),
+  );
+
 /** Render the app already on the teams tab (list view). */
 const renderTeamList = async () => {
   const user = userEvent.setup();
   render(<App />);
   await screen.findByRole('heading', { name: '环境' }, { timeout: 5000 });
   await user.click(screen.getByRole('button', { name: '队伍' }));
-  await screen.findByText('我的队伍');
+  await screen.findByRole('heading', { name: '我的队伍' });
   return user;
 };
 
@@ -77,10 +83,16 @@ const renderTeamDetail = async (teamId: string) => {
   return user;
 };
 
+/** Expand a member tile, then open the full editor from 「编辑配置」 (02-05 / N02-19). */
 const openMemberEditor = async (user: ReturnType<typeof userEvent.setup>, memberName: string) => {
-  await user.click(await screen.findByText(memberName));
-  await user.click(await screen.findByTitle('编辑成员'));
+  await user.click(await screen.findByRole('button', { name: `展开 ${memberName}` }));
+  await user.click(await screen.findByRole('button', { name: '编辑配置' }));
   await screen.findByText('编辑成员');
+};
+
+const openTeamMenu = async (user: ReturnType<typeof userEvent.setup>, teamName: string) => {
+  await user.click(await screen.findByRole('button', { name: `${teamName} 的更多操作` }));
+  return screen.findByRole('dialog', { name: `${teamName} 的更多操作` });
 };
 
 const saveButton = () => screen.getByRole('button', { name: '保存' }) as HTMLButtonElement;
@@ -102,27 +114,27 @@ describe('TeamPage', () => {
     await renderTeamList();
 
     expect(await screen.findByLabelText('队伍：甲队')).toBeTruthy();
-    expect(within(screen.getByLabelText('队伍：甲队')).getByText('1/6 成员')).toBeTruthy();
-    expect(within(screen.getByLabelText('队伍：乙队')).getByText('0/6 成员')).toBeTruthy();
+    expect(within(screen.getByLabelText('队伍：甲队')).getByText(/1\/6 成员/)).toBeTruthy();
+    expect(within(screen.getByLabelText('队伍：乙队')).getByText(/0\/6 成员/)).toBeTruthy();
   });
 
-  it('creates a team through the 新建 modal and opens its detail', async () => {
+  it('creates a team through the 新建队伍 sheet and opens its detail', async () => {
     // clearAll (not replaceTeams([])) — it also marks the DB initialized, so loadState does
-    // not re-seed the shipped starter team underneath us.
+    // not re-seed the shipped preset team underneath us.
     await repository.clearAll();
     const user = await renderTeamList();
 
-    expect(await screen.findByText('还没有队伍')).toBeTruthy();
-    await user.click(screen.getByRole('button', { name: /新建第一支队伍/ }));
+    expect(await screen.findByText('还没有队伍。')).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: /从空白开始/ }));
 
-    // The modal pre-fills a name so a user can just confirm; overwrite it to prove the input works.
-    const nameInput = await screen.findByRole('textbox');
+    // The sheet pre-fills a name so a user can just confirm; overwrite it to prove the input works.
+    const nameInput = await screen.findByLabelText('队伍名称');
     await user.clear(nameInput);
     await user.type(nameInput, '新生代');
-    await user.click(screen.getByRole('button', { name: '确认' }));
+    await user.click(screen.getByRole('button', { name: '建立' }));
 
     expect(await screen.findByRole('heading', { name: '新生代' })).toBeTruthy();
-    expect(screen.getByText('0/6 成员')).toBeTruthy();
+    expect(screen.getByText(/0\/6 成员/)).toBeTruthy();
     const state = await repository.loadState();
     expect(state.teams.map((entry) => entry.name)).toContain('新生代');
   });
@@ -131,12 +143,12 @@ describe('TeamPage', () => {
     await repository.clearAll();
     const user = await renderTeamList();
 
-    await user.click(await screen.findByRole('button', { name: /新建第一支队伍/ }));
-    const nameInput = await screen.findByRole('textbox');
+    await user.click(await screen.findByRole('button', { name: /从空白开始/ }));
+    const nameInput = await screen.findByLabelText('队伍名称');
     await user.clear(nameInput);
     await user.type(nameInput, '   ');
 
-    expect((screen.getByRole('button', { name: '确认' }) as HTMLButtonElement).disabled).toBe(true);
+    expect((screen.getByRole('button', { name: '建立' }) as HTMLButtonElement).disabled).toBe(true);
   });
 
   it('opens a team detail straight from the #/teams/:teamId route', async () => {
@@ -144,19 +156,19 @@ describe('TeamPage', () => {
     await renderTeamDetail('team-beta');
 
     expect(await screen.findByRole('heading', { name: '乙队' }, { timeout: 5000 })).toBeTruthy();
-    expect(screen.getByText('0/6 成员')).toBeTruthy();
+    expect(screen.getByText(/0\/6 成员/)).toBeTruthy();
     expect(screen.queryByRole('heading', { name: '甲队' })).toBeNull();
   });
 
-  it('adds a member through 添加 Pokémon and shows it on the team', async () => {
+  it('adds a member through an empty slot and shows it on the team', async () => {
     await repository.replaceTeams([team('team-alpha', '甲队')]);
     const user = await renderTeamDetail('team-alpha');
 
-    await user.click(await screen.findByRole('button', { name: /添加 Pokémon/ }, { timeout: 5000 }));
-    await user.type(await screen.findByPlaceholderText('搜索 Pokémon 名称...'), 'Garchomp');
+    await user.click((await screen.findAllByRole('button', { name: '添加成员' }, { timeout: 5000 }))[0]);
+    await user.type(await screen.findByLabelText('搜索宝可梦'), 'Garchomp');
     await user.click(await screen.findByText('烈咬陆鲨'));
 
-    expect(await screen.findByText('1/6 成员')).toBeTruthy();
+    expect(await screen.findByText(/1\/6 成员/)).toBeTruthy();
     await waitFor(async () => {
       const state = await repository.loadState();
       expect(state.teams[0].members.map((entry) => entry.pokemonId)).toEqual(['garchomp']);
@@ -209,20 +221,20 @@ describe('TeamPage', () => {
     expect(saveButton().disabled).toBe(true);
   });
 
-  it('deletes a team only after the confirmation dialog', async () => {
+  it('deletes a team from the ⋯ menu only after the confirmation sheet', async () => {
     await repository.replaceTeams([team('team-alpha', '甲队', [member()]), team('team-beta', '乙队')]);
     const user = await renderTeamList();
 
-    await user.click(within(await screen.findByLabelText('队伍：甲队')).getByRole('button', { name: '删除 甲队' }));
-    const dialog = await screen.findByRole('dialog', { name: '确认删除队伍' });
-    expect(within(dialog).getByText(/确定删除「甲队」吗/)).toBeTruthy();
+    await user.click(within(await openTeamMenu(user, '甲队')).getByRole('button', { name: '删除队伍' }));
+    const confirm = await screen.findByRole('dialog', { name: '确认删除队伍' });
+    expect(within(confirm).getByText('删除后无法恢复。')).toBeTruthy();
 
     // Cancelling leaves the team alone.
-    await user.click(within(dialog).getByRole('button', { name: '取消' }));
+    await user.click(within(confirm).getByRole('button', { name: '取消' }));
     expect(await screen.findByLabelText('队伍：甲队')).toBeTruthy();
 
-    await user.click(within(screen.getByLabelText('队伍：甲队')).getByRole('button', { name: '删除 甲队' }));
-    await user.click(within(await screen.findByRole('dialog', { name: '确认删除队伍' })).getByRole('button', { name: '确认删除' }));
+    await user.click(within(await openTeamMenu(user, '甲队')).getByRole('button', { name: '删除队伍' }));
+    await user.click(within(await screen.findByRole('dialog', { name: '确认删除队伍' })).getByRole('button', { name: '删除' }));
 
     await waitFor(() => expect(screen.queryByLabelText('队伍：甲队')).toBeNull());
     expect(screen.getByLabelText('队伍：乙队')).toBeTruthy();
@@ -230,19 +242,85 @@ describe('TeamPage', () => {
     expect(state.teams.map((entry) => entry.name)).toEqual(['乙队']);
   });
 
-  it('disables 分享 for an empty team and enables it once a member exists', async () => {
-    await repository.replaceTeams([team('team-empty', '空队'), team('team-alpha', '甲队', [member()])]);
+  it(`only allows sharing once a team reaches ${TEAM_SHARE_REQUIRED_MEMBERS} members`, async () => {
+    await repository.replaceTeams([team('team-partial', '半队', [member()]), team('team-full', '满队', fullRoster())]);
 
-    await renderTeamDetail('team-empty');
-    const shareEmpty = (await screen.findByRole('button', { name: '分享 空队' }, { timeout: 5000 })) as HTMLButtonElement;
-    expect(shareEmpty.disabled).toBe(true);
-    expect(shareEmpty.title).toBe('空队伍无法分享');
+    await renderTeamDetail('team-partial');
+    const sharePartial = (await screen.findByRole('button', { name: '分享 半队' }, { timeout: 5000 })) as HTMLButtonElement;
+    expect(sharePartial.disabled).toBe(true);
+    expect(screen.getByText(`还差 ${TEAM_SHARE_REQUIRED_MEMBERS - 1} 只才能分享`)).toBeTruthy();
 
     cleanup();
 
-    await renderTeamDetail('team-alpha');
-    const shareFilled = (await screen.findByRole('button', { name: '分享 甲队' }, { timeout: 5000 })) as HTMLButtonElement;
-    expect(shareFilled.disabled).toBe(false);
-    expect(shareFilled.title).toBe('分享队伍');
+    await renderTeamDetail('team-full');
+    const shareFull = (await screen.findByRole('button', { name: '分享 满队' }, { timeout: 5000 })) as HTMLButtonElement;
+    expect(shareFull.disabled).toBe(false);
+    expect(screen.queryByText(/才能分享/)).toBeNull();
+  });
+
+  it('hides 分享链接 from the ⋯ menu of an under-strength team', async () => {
+    await repository.replaceTeams([team('team-partial', '半队', [member()]), team('team-full', '满队', fullRoster())]);
+    const user = await renderTeamDetail('team-full');
+    await screen.findByRole('heading', { name: '满队' }, { timeout: 5000 });
+
+    expect(within(await openTeamMenu(user, '满队')).getByRole('button', { name: '分享链接' })).toBeTruthy();
+    await user.click(within(screen.getByRole('dialog', { name: '满队 的更多操作' })).getAllByRole('button', { name: '关闭' })[0]);
+
+    await user.click(screen.getByRole('button', { name: '返回队伍列表' }));
+    await user.click(await screen.findByLabelText('队伍：半队'));
+    expect(within(await openTeamMenu(user, '半队')).queryByRole('button', { name: '分享链接' })).toBeNull();
+  });
+
+  it('copies a team into a new one from the ⋯ menu', async () => {
+    await repository.replaceTeams([team('team-alpha', '甲队', [member()])]);
+    const user = await renderTeamList();
+
+    await user.click(within(await openTeamMenu(user, '甲队')).getByRole('button', { name: '复制为新队伍' }));
+
+    expect(await screen.findByLabelText('队伍：甲队 副本')).toBeTruthy();
+    const state = await repository.loadState();
+    const copy = state.teams.find((entry) => entry.name === '甲队 副本')!;
+    expect(copy.id).not.toBe('team-alpha');
+    expect(copy.members.map((entry) => entry.pokemonId)).toEqual(['garchomp']);
+    // Fresh member ids, so editing the copy cannot write through to the original.
+    expect(copy.members[0].id).not.toBe('member-garchomp');
+  });
+
+  it('imports a team from a pasted share link', async () => {
+    await repository.clearAll();
+    const user = await renderTeamList();
+    const code = await encodeTeamShare({ name: '别人的队', members: [member()] });
+
+    await user.click(await screen.findByRole('button', { name: /粘贴分享链接/ }));
+    await user.type(await screen.findByLabelText('分享链接或分享码'), `https://example.test/#/t/${code}`);
+
+    await screen.findByText(/识别到 1 个成员/, undefined, { timeout: 5000 });
+    await user.click(screen.getByRole('button', { name: '导入' }));
+
+    expect(await screen.findByRole('heading', { name: '别人的队' }, { timeout: 5000 })).toBeTruthy();
+    await waitFor(async () => {
+      const state = await repository.loadState();
+      expect(state.teams.map((entry) => entry.name)).toContain('别人的队');
+    });
+  });
+
+  it('draws the preset team as the special card until it is opened once', async () => {
+    // A fresh database seeds the shipped preset team.
+    const user = await renderTeamList();
+
+    const presetCard = await screen.findByLabelText('队伍：Luxray test');
+    expect(within(presetCard).getByText('预设')).toBeTruthy();
+    await user.click(within(presetCard).getByRole('button', { name: /接着补齐这支/ }));
+
+    await screen.findByRole('heading', { name: 'Luxray test' });
+    await user.click(screen.getByRole('button', { name: '返回队伍列表' }));
+
+    const degraded = await screen.findByLabelText('队伍：Luxray test');
+    expect(within(degraded).queryByText('预设')).toBeNull();
+    expect(within(degraded).queryByRole('button', { name: /接着补齐这支/ })).toBeNull();
+    await waitFor(async () => {
+      const state = await repository.loadState();
+      expect(state.preferences.hasOpenedPresetTeam).toBe(true);
+    });
   });
 });
