@@ -122,8 +122,11 @@ owner 原话与帧冲突时原话赢。共享层先行修复：`15d0f63`。
   - ✅ ① 数据层（合并 `35b4713`）：`EnvironmentPokemonUsage.statPointStats?: EnvironmentStatPointUsage[]`（`label` 上游缩写原文 / `primaryStatKeys` / `extraStatKeys` / `points` / `hasRemainder` / `usageRate` / `teamCount`）。取上游默认的「合算」tab；缺失 / 未知字母 / 单项 > 32 / 总和 > 66 → 只丢那一条，**不进 Worker 零容忍 audit**（不会 degraded）；归一化层新增 issue code `invalid-stat-point-spread`。Worker `tsconfig.json` 的 include 加了 `statPoints.ts`。调查只读 GET 4 次，未写 KV、未跑 wrangler、未碰刷新端点。
   - 缩写已核实：H=HP A=攻击 B=防御 C=特攻 D=特防 S=速度；大写 = 主投项，`+` 后小写 = 吃余点的项。证据是「位置 + 数值」（chip 顺序恒为 H→A→B→C→D→S，与同页种族值区块顺序一一对应；烈咬陆鲨 `AS` = 攻击 32 / 速度 32，索财灵 `CS` = 特攻 32 / 速度 32），上游没有字母 ↔ 全称的图例。owner 猜的 AS = 攻击 + 速度 正确。
   - **已知坑 `hasRemainder`**：上游把「满投项相同、余点去向不同」的配置合并成一条时只印满投项，余点印「余り」——使用率第一的那条往往正是这种（攻击 32 + 速度 32 = 64/66），不能画成完整分配。
-  - 🚧 ② 展示：三版设计稿 Opus 出稿中，owner 选定后落地。
-  - ⬜ 上线链路（都要 owner 决定时机）：合 `main` → Worker 部署；KV 要等上游下一次发布（约每天 00:30 JST，Worker 只在上游 signature 变化时重建快照）或 owner 手动 POST `/api/environment/refresh`；兜底 JSON 要跑 `npm run data:pokedb:environment`（会顺带刷新整份使用率，**未跑、未提交产物**）。在这之前界面上这一节不会有数据。
+  - 🎮 ② 展示（合并 `8cf6445`）：出过三版稿（A 文字行 / B 六格缩略图 / C 66 点总量条 + chip），**owner 选 C 的小号 chip 版**（2026-09-19；chip 22px 高、11 / 12px 字）。位置在性格之后、常见队友之前；第一条琥珀、后两条中性灰；`hasRemainder` 行条尾留虚线空段 + 「余 N 点」虚线 chip（N 用 `MAX_TOTAL_STAT_POINTS` 算）；不显示上游缩写和 `teamCount`；字段缺失或空数组 → 整节不渲染。`p2.css` 新增两个纯色变量 `--env-sp-seg2` / `--env-sp-dash`。六项中文名原有三份私有副本，抽成 `src/lib/statPoints.ts` 的 `statPointLabels`。
+  - ✅ ③ 兜底数据已重跑（owner 允许，`b7aedfd`）：`npm run data:pokedb:environment`，约 124 次只读页面请求、3 分钟，M-6，审计全 0、未补映射；`public/data/pokedb/reg-ma-environment.json` 402 KB → 513 KB（主要是 `statPointStats`）。未写 KV、未跑 wrangler。
+  - ✅ ④ 过渡回填（`06bb183`，`src/data/environment.ts` 的 `backfillStatPointStats`）：`loadEnvironmentState` 在 Worker 快照 fresh + ok 时**完全不取兜底 JSON**，所以新 Worker 上线前 preview / 生产都看不到这一节 → API payload **整份没有** `statPointStats` 键时，用兜底快照同 battleType、同 pokemonId 的条目补上；API 带了键（哪怕空数组）就完全以 API 为准；**赛季不一致不回填**（兜底是手工刷的，会跨赛季滞后）。兜底是运行时 `fetch` 的 JSON，不进 JS chunk，首屏预算不受影响（入口 +103 B、`environment.js` +811 B）。**Worker 在 `main` 上线后删掉这段**（代码里有 `TRANSITIONAL` 注释）。
+  - ⬜ 上线链路（owner 决定时机）：合 `main` → Worker 部署；KV 要等上游下一次发布（约每天 00:30 JST，Worker 只在上游 signature 变化时重建快照）或 owner 手动 POST `/api/environment/refresh`。
+  - 已知：单打的炽焰咆哮虎没有这一节是预期（不在单打前 60，上游没有详情页）。KV 快照滚到下一赛季而兜底还停在 M-6 时，回填会整体失效、这一节消失（而不是显示旧配点）。
 
 ## 待 owner 拍板（agent 都已按最保守的理解先做完，不阻塞验收）
 
