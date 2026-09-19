@@ -63,8 +63,6 @@ function MatchupGroup({
   rows: Array<{ type: PokemonType; multiplier: number }>;
 }) {
   if (rows.length === 0) return null;
-  // The frame prints the multipliers the group actually contains next to its label.
-  const legend = [...new Set(rows.map((row) => formatMultiplier(row.multiplier)))].join(' · ');
   const ink = tone === 'danger' ? 'text-danger' : 'text-success';
 
   return (
@@ -72,7 +70,6 @@ function MatchupGroup({
       <p className={`mt-4 flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.14em] ${ink}`}>
         <span className={`h-[7px] w-[7px] shrink-0 rounded-full ${tone === 'danger' ? 'bg-danger' : 'bg-success'}`} />
         {title}
-        <span className="tracking-[0.08em] tabular-nums">{legend}</span>
       </p>
       <div className="mt-2 flex flex-wrap gap-[7px]">
         {rows.map((row) => (
