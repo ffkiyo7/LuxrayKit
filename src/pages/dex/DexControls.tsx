@@ -94,10 +94,14 @@ export function ToggleChip({ label, onClick }: { label: string; onClick: () => v
 /**
  * The inline filter drawer (04-06 / N04-05): a full-bleed plane between two hairlines. It is not
  * a sheet — the list stays visible underneath and the counts update as you pick.
+ *
+ * It sits straight on the page shell, which carries no gutter of its own — every sibling adds its
+ * own `mx-6`. So the band is plain full width: a `-mx-6` bleed would push it 24px off both screen
+ * edges and drag its `px-6` children flush against them.
  */
 export function FilterPanel({ children }: { children: ReactNode }) {
   return (
-    <div className="lk-p4a-filter-panel -mx-6 mt-[18px] border-y border-[var(--hairline)] py-[18px]">{children}</div>
+    <div className="lk-p4a-filter-panel mt-[18px] w-full border-y border-[var(--hairline)] py-[18px]">{children}</div>
   );
 }
 
