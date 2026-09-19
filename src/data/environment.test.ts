@@ -7,8 +7,10 @@ import vgcPastesTeamSamples from './external/vgcpastes/reg_ma_champions_ma_team_
 import {
   POKEDB_ENVIRONMENT_SNAPSHOT_URL,
   WORKER_ENVIRONMENT_SNAPSHOT_URL,
+  backfillStatPointStats,
   createEnvironmentStateFromPokeDbSnapshot,
   loadEnvironmentState,
+  snapshotHasStatPointStats,
 } from './environment';
 import type { EnvironmentTeamSample } from './environment';
 import { sampleRegulation } from '../pages/environmentTeamSamples';
@@ -428,5 +430,120 @@ describe('environment runtime loading', () => {
     expect(state.seasonLabel).toBe('开发样例');
     expect(state.overallUsageBasis).toBe('absolute');
     expect(state.sourceLabel).not.toContain('PokeDB');
+  });
+});
+
+/** TRANSITIONAL — delete with `backfillStatPointStats` once the parsing Worker is on `main`. */
+describe('statPointStats backfill', () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  const spreads = [
+    {
+      label: 'AS',
+      primaryStatKeys: ['attack', 'speed'] as const,
+      points: { attack: 32, speed: 32 },
+      hasRemainder: true,
+      usageRate: 36.7,
+      teamCount: 96,
+    },
+  ];
+
+  const battlePayload = (rows: Array<Record<string, unknown>>, season: string) => ({
+    season,
+    seasonNumber: 6,
+    updatedAt: '2026-09-19 20:42:00',
+    resultCount: rows.length,
+    detailCount: rows.length,
+    pokemonUsage: rows,
+    audit: {
+      unknownPokemonKeys: [],
+      unknownItemNames: [],
+      unknownMoveKeys: [],
+      unknownAbilityKeys: [],
+      unknownNatureNames: [],
+      failedDetailKeys: [],
+    },
+  });
+
+  // Both battle types are populated: `createEnvironmentStateFromPokeDbSnapshot` drops to the
+  // development seed unless singles *and* doubles carry usage rows.
+  const statisticsSnapshot = (
+    rows: Array<Record<string, unknown>>,
+    season = 'M-6',
+  ) => ({
+    retrievedAt: '2026-09-19T14:43:52.529Z',
+    battles: {
+      singles: battlePayload(rows, season),
+      doubles: battlePayload(rows, season),
+    },
+  }) as unknown as Parameters<typeof backfillStatPointStats>[0];
+
+  const row = (pokemonId: string, extra: Record<string, unknown> = {}) => ({
+    pokemonId,
+    usageRate: 50,
+    teamCount: 100,
+    moveIds: [],
+    itemIds: [],
+    teammateIds: [],
+    ...extra,
+  });
+
+  const fallback = statisticsSnapshot([row('garchomp', { statPointStats: spreads }), row('archaludon')]);
+
+  const singlesRows = (snapshot: ReturnType<typeof statisticsSnapshot>) =>
+    (snapshot.battles.singles as unknown as { pokemonUsage: Array<Record<string, unknown>> }).pokemonUsage;
+
+  it('fills an old Worker payload from the static snapshot', () => {
+    const merged = backfillStatPointStats(statisticsSnapshot([row('garchomp'), row('archaludon')]), fallback);
+
+    expect(singlesRows(merged)[0].statPointStats).toEqual(spreads);
+    // A Pokémon the static snapshot has no spreads for stays without the key.
+    expect(singlesRows(merged)[1]).not.toHaveProperty('statPointStats');
+  });
+
+  it('leaves a payload that already carries the field alone, even when it is empty', () => {
+    const fresh = statisticsSnapshot([row('garchomp', { statPointStats: [] }), row('archaludon')]);
+
+    expect(backfillStatPointStats(fresh, fallback)).toBe(fresh);
+    expect(snapshotHasStatPointStats(fresh)).toBe(true);
+  });
+
+  it('refuses to graft another season’s spreads on', () => {
+    const old = statisticsSnapshot([row('garchomp'), row('archaludon')], 'M-7');
+
+    expect(backfillStatPointStats(old, fallback)).toBe(old);
+  });
+
+  it('keeps the payload as-is when the static snapshot has no spreads either', () => {
+    const old = statisticsSnapshot([row('garchomp')]);
+
+    expect(backfillStatPointStats(old, statisticsSnapshot([row('garchomp')]))).toBe(old);
+  });
+
+  it('reads the static snapshot once when a fresh Worker payload is missing the field', async () => {
+    const worker = statisticsSnapshot([row('garchomp'), row('archaludon')]);
+    const fetcher = vi.fn(async (input: RequestInfo | URL) =>
+      new Response(JSON.stringify(input === WORKER_ENVIRONMENT_SNAPSHOT_URL ? worker : fallback), {
+        status: 200,
+        headers: { 'x-luxray-cache-state': 'fresh' },
+      }),
+    );
+
+    const state = await loadEnvironmentState(fetcher as unknown as typeof fetch);
+
+    expect(fetcher).toHaveBeenNthCalledWith(1, WORKER_ENVIRONMENT_SNAPSHOT_URL, expect.any(Object));
+    expect(fetcher).toHaveBeenNthCalledWith(2, POKEDB_ENVIRONMENT_SNAPSHOT_URL, expect.objectContaining({ cache: 'force-cache' }));
+    expect(state.pokemonUsage.singles.find((usage) => usage.pokemonId === 'garchomp')?.statPointStats).toEqual(spreads);
+  });
+
+  it('does not reach for the static snapshot when the Worker payload already has the field', async () => {
+    const worker = statisticsSnapshot([row('garchomp', { statPointStats: spreads }), row('archaludon')]);
+    const fetcher = vi.fn(async () =>
+      new Response(JSON.stringify(worker), { status: 200, headers: { 'x-luxray-cache-state': 'fresh' } }),
+    );
+
+    await loadEnvironmentState(fetcher as unknown as typeof fetch);
+
+    expect(fetcher.mock.calls.map(([url]) => url)).toEqual([WORKER_ENVIRONMENT_SNAPSHOT_URL]);
   });
 });
