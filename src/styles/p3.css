@@ -45,8 +45,9 @@
   /* On paper the badge needs a halo to lift off the white card, not just a drop. */
   --lk-item-badge-shadow: drop-shadow(0 1px 2px rgb(16 24 40 / 0.28)) drop-shadow(0 0 7px rgb(255 255 255 / 0.95));
   --lk-item-ink-shadow: drop-shadow(0 1px 2px rgb(16 24 40 / 0.18));
-  /* 02-06 draws the entry in plain ink rather than the functional blue 02-05 uses. */
-  --lk-edit-entry-ink: rgb(var(--color-text-primary));
+  /* The blue entry is an owner decision made after 02-06 was drawn, so the light frame still
+     shows plain ink; the decision wins in both themes. */
+  --lk-edit-entry-ink: rgb(var(--color-fn-blue));
   --lk-preset-cta-shadow: 0 1px 2px rgb(16 24 40 / 0.12);
   --lk-preset-ring: inset 0 0 0 1px rgb(16 24 40 / 0.1), 0 1px 2px rgb(0 0 0 / 0.05), 0 8px 24px rgb(16 24 40 / 0.06);
   --lk-preset-edge-1: rgb(196 145 10 / 0.9);
