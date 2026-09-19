@@ -1,422 +1,539 @@
-import { ChevronUp, Save, Search, Trash2, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Gauge, Info, MoreHorizontal, Swords, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { abilities, currentRuleNatureOptions, items, moves, pokemon } from '../../data';
-import { currentRuleMovesForPokemon, currentRuleSelectableItemsForPokemon, natureOptionLabel } from '../../lib/currentRuleCatalog';
+import { abilities, currentRuleNatureOptions, currentRuleSet, items, moves, pokemon } from '../../data';
+import type { EnvironmentState } from '../../data/environment';
+import { currentRuleMovesForPokemon, currentRuleSelectableItemsForPokemon } from '../../lib/currentRuleCatalog';
 import { evaluateMemberLegality } from '../../lib/legality';
-import { findBattleForm } from '../../lib/pokemonForms';
+import { findBattleForm, toBaseFormView, toMegaFormView } from '../../lib/pokemonForms';
 import { MAX_STAT_POINTS_PER_STAT, MAX_TOTAL_STAT_POINTS, statPointTotal } from '../../lib/statPoints';
-import type { Item, Move, Team, TeamMember } from '../../types';
-import { StatPointPicker } from '../../components/StatPointPicker';
-import { Button, Card, PokemonAvatar, TypeBadge } from '../../components/ui';
-import { HeldItemIcon, HeldItemLine } from './HeldItem';
+import { rosterSpeciesIds } from '../../lib/teamComposition';
+import type { Team, TeamMember } from '../../types';
+import { PokemonPicker } from '../../components/PokemonPicker';
+import { auraStyle, PageHeader, Sprite, TypeDot } from '../../components/kit';
+import { typeLabels } from '../../components/ui';
+import { AbilityPickerPage } from './editor/AbilityPickerPage';
+import { ConfirmRemoveMemberSheet, DiscardChangesSheet } from './editor/EditorSheets';
+import { FormPickerPage } from './editor/FormPickerPage';
+import { ItemPickerPage } from './editor/ItemPickerPage';
+import { NatureEffect, NaturePickerPage } from './editor/NaturePickerPage';
+import { MovePickerPage } from './editor/MovePickerPage';
+import { RoundIconButton } from './editor/PickerPage';
+import { StatWheel, type StatKey } from './editor/StatWheel';
+import { applyMemberEdit, draftChanges, memberHoldingItem, NO_ITEM_LABEL, type StagedItemTransfer } from './editor/memberDraft';
 
-function FieldLabel({ children }: { children: React.ReactNode }) {
-  return <label className="mb-1 block text-[11px] uppercase tracking-wide text-textMuted">{children}</label>;
-}
+/**
+ * 03 编辑配置 — a whole page, not an overlay. Everything it touches is staged in `draft`
+ * (including an item transfer that reaches a teammate) and written in one go by 保存配置;
+ * 返回 is 取消, and asks once when there is something to throw away (N03-12).
+ */
 
-function SelectField({
+type EditorView =
+  | { kind: 'editor' }
+  | { kind: 'move'; slot: number }
+  | { kind: 'item' }
+  | { kind: 'ability' }
+  | { kind: 'nature' }
+  | { kind: 'form' };
+
+/** One row of the ⋯ menu anchored under the editor's top-right button. */
+function EditorMenuRow({
+  icon,
   label,
-  value,
-  onChange,
-  children,
+  danger,
+  disabled,
+  onClick,
 }: {
+  icon: React.ReactNode;
   label: string;
-  value: string;
-  onChange: (value: string) => void;
-  children: React.ReactNode;
+  danger?: boolean;
+  disabled?: boolean;
+  onClick: () => void;
 }) {
   return (
-    <div>
-      <FieldLabel>{label}</FieldLabel>
-      <select aria-label={label} className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm outline-none" value={value} onChange={(event) => onChange(event.target.value)}>
-        {children}
-      </select>
-    </div>
+    <button
+      className={`flex h-[46px] w-full items-center gap-3 text-left text-[15px] font-bold disabled:opacity-40 ${
+        danger ? 'text-danger' : 'text-textPrimary'
+      }`}
+      disabled={disabled}
+      role="menuitem"
+      type="button"
+      onClick={onClick}
+    >
+      <span className="inline-flex shrink-0">{icon}</span>
+      {label}
+    </button>
   );
 }
 
-const moveCategoryLabels = { Physical: '物理', Special: '特殊', Status: '变化' };
-
-const optionMatches = (query: string, ...values: Array<string | number | undefined>) => {
-  const normalized = query.trim().toLowerCase();
-  if (!normalized) return true;
-  return values.some((value) => String(value ?? '').toLowerCase().includes(normalized));
-};
-
-function ItemSearchField({
+/** 03-01's 64px labelled row: 「道具 / 妖精之羽 ›」. */
+function ConfigRow({
+  label,
+  icon,
   value,
-  options,
-  selectableIds,
-  onChange,
+  hint,
+  last,
+  onClick,
 }: {
-  value?: string;
-  options: Item[];
-  selectableIds: Set<string>;
-  onChange: (itemId: string) => void;
+  label: string;
+  icon?: React.ReactNode;
+  value: React.ReactNode;
+  hint?: string;
+  last?: boolean;
+  onClick: () => void;
 }) {
-  const [query, setQuery] = useState('');
-  const selectedItem = value ? options.find((item) => item.id === value) ?? items.find((item) => item.id === value) : undefined;
-  const filteredItems = options.filter((item) => optionMatches(query, item.chineseName, item.englishName, item.effectSummary));
+  return (
+    <button
+      aria-label={`选择${label}`}
+      className={`flex h-16 w-full items-center gap-3 ${last ? '' : 'border-b border-[var(--hairline)]'}`}
+      type="button"
+      onClick={onClick}
+    >
+      <span className="w-[52px] shrink-0 text-left text-[13px] font-semibold text-textSecondary">{label}</span>
+      {icon}
+      <span className="min-w-0 flex-1 text-left">
+        <span className="flex items-baseline gap-2 text-base font-bold tracking-[-0.01em]">{value}</span>
+        {hint && <span className="mt-[3px] block text-xs font-semibold text-textSecondary">{hint}</span>}
+      </span>
+      <span className="shrink-0 text-chevron">
+        <ChevronRight size={18} />
+      </span>
+    </button>
+  );
+}
+
+export function MemberEditor({
+  team,
+  member,
+  memberIndex,
+  environment,
+  lostItem,
+  onUndoTransfer,
+  onClose,
+  onSave,
+  onDelete,
+  onOpenSpeed,
+  onOpenCalculator,
+}: {
+  team: Team;
+  member: TeamMember;
+  /** 0-based position in the roster — 03-01's 「…的第 N 位成员」. */
+  memberIndex: number;
+  environment: EnvironmentState | null;
+  /** N03-13: an item a teammate took from this member earlier in the session. */
+  lostItem?: { itemName: string; toMemberName: string };
+  onUndoTransfer?: () => void;
+  onClose: () => void;
+  /** The whole roster, because a staged item transfer also rewrites the teammate it came from. */
+  onSave: (members: TeamMember[], transfer: StagedItemTransfer | null) => Promise<void>;
+  onDelete: () => Promise<void>;
+  /** Both tools read the saved member, so the editor saves a dirty draft before leaving. */
+  onOpenSpeed: () => void;
+  onOpenCalculator: () => void;
+}) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [draft, setDraft] = useState<TeamMember>(member);
+  const [transfer, setTransfer] = useState<StagedItemTransfer | null>(null);
+  const [view, setView] = useState<EditorView>({ kind: 'editor' });
+  const [changingPokemon, setChangingPokemon] = useState(false);
+  const [confirmDiscard, setConfirmDiscard] = useState(false);
+  const [confirmRemove, setConfirmRemove] = useState(false);
+
+  const entry = pokemon.find((candidate) => candidate.id === draft.pokemonId) ?? pokemon[0];
+  const form = findBattleForm(entry.id, draft.formId);
+  const name = form?.chineseName ?? entry.chineseName;
+  const types = form?.types ?? entry.types;
+  const baseStats = form?.baseStats ?? entry.baseStats;
+  const availableMoves = useMemo(() => currentRuleMovesForPokemon(entry.id), [entry.id]);
+  const availableItems = useMemo(() => currentRuleSelectableItemsForPokemon(entry.id), [entry.id]);
+  const availableAbilities = useMemo(() => {
+    const ids = new Set([...entry.abilities, ...(form?.abilities ?? [])]);
+    return abilities.filter((ability) => ids.has(ability.id));
+  }, [entry, form]);
+  const forms = useMemo(() => [toBaseFormView(entry), ...entry.megaForms.map(toMegaFormView)], [entry]);
+
+  const usage = environment?.pokemonUsage[currentRuleSet.battleType]?.find((row) => row.pokemonId === entry.id);
+  const selectedItem = draft.itemId ? items.find((item) => item.id === draft.itemId) : undefined;
+  const natureOption = currentRuleNatureOptions.find((option) => draft.nature.includes(option.id));
+
+  const changes = draftChanges(member, draft);
+  const total = statPointTotal(draft.statPoints);
+  const overStat = Object.values(draft.statPoints).some((value) => Number(value ?? 0) > MAX_STAT_POINTS_PER_STAT);
+  const saveDisabled = overStat || total > MAX_TOTAL_STAT_POINTS;
+
+  const natureMarker = (key: StatKey): 'up' | 'down' | null => {
+    if (!natureOption || natureOption.neutral) return null;
+    const label = { hp: 'HP', attack: '攻击', defense: '防御', specialAttack: '特攻', specialDefense: '特防', speed: '速度' }[key];
+    if ((natureOption.up as readonly string[]).includes(label)) return 'up';
+    if ((natureOption.down as readonly string[]).includes(label)) return 'down';
+    return null;
+  };
+
+  const patch = (next: Partial<TeamMember>) => setDraft((current) => ({ ...current, ...next }));
+
+  const chooseItem = (itemId: string, staged?: StagedItemTransfer) => {
+    setTransfer(staged ?? null);
+    patch({ itemId });
+    setView({ kind: 'editor' });
+  };
+
+  const chooseForm = (formId: string) => {
+    const nextForm = findBattleForm(entry.id, formId);
+    // N03-14: the stone is the item, so switching form swaps it rather than leaving a Mega
+    // that cannot legally happen.
+    const wasStone = draft.itemId ? items.find((item) => item.id === draft.itemId)?.isMegaStone : false;
+    setTransfer(null);
+    patch({
+      formId,
+      abilityId: nextForm?.abilities[0] ?? entry.abilities[0],
+      itemId: nextForm?.requiredItemId ?? (wasStone ? undefined : draft.itemId),
+    });
+    setView({ kind: 'editor' });
+  };
+
+  const setMove = (slot: number, moveId: string) => {
+    const next = [...draft.moveIds];
+    next[slot] = moveId;
+    patch({ moveIds: next.filter(Boolean).slice(0, 4) });
+    setView({ kind: 'editor' });
+  };
+
+  const setStatPoint = (key: StatKey, value: number) =>
+    setDraft((current) => ({
+      ...current,
+      statPoints: { ...current.statPoints, [key]: Math.max(0, Math.min(MAX_STAT_POINTS_PER_STAT, Math.round(value || 0))) },
+    }));
+
+  const cancel = () => {
+    if (changes.length > 0) {
+      setConfirmDiscard(true);
+      return;
+    }
+    onClose();
+  };
+
+  const persistDraft = async () => {
+    const legality = evaluateMemberLegality(draft, team);
+    await onSave(applyMemberEdit(team, { ...draft, legalityStatus: legality.status }, transfer), transfer);
+  };
+
+  const save = async () => {
+    if (saveDisabled) return;
+    await persistDraft();
+    onClose();
+  };
+
+  // A tool opened from here should show the build on screen, not the one last saved — and a
+  // draft that cannot be saved (SP over the cap) has nothing valid to hand over.
+  const dirty = changes.length > 0;
+  const toolsDisabled = dirty && saveDisabled;
+  const openTool = async (open: () => void) => {
+    setMenuOpen(false);
+    if (toolsDisabled) return;
+    if (dirty) await persistDraft();
+    open();
+  };
+
+  if (view.kind === 'move') {
+    const taken = new Map<string, number>();
+    draft.moveIds.forEach((moveId, index) => {
+      if (moveId && index !== view.slot) taken.set(moveId, index + 1);
+    });
+    return (
+      <MovePickerPage
+        availableMoves={availableMoves}
+        environmentStats={usage?.moveStats}
+        pokemonName={name}
+        selectedMoveId={draft.moveIds[view.slot]}
+        slot={view.slot}
+        takenSlots={taken}
+        onBack={() => setView({ kind: 'editor' })}
+        onPick={(moveId) => setMove(view.slot, moveId)}
+      />
+    );
+  }
+
+  if (view.kind === 'item') {
+    return (
+      <ItemPickerPage
+        availableItems={availableItems}
+        environmentStats={usage?.itemStats}
+        holderOf={(itemId) => {
+          const holder = memberHoldingItem(team, itemId, draft.id);
+          if (!holder) return undefined;
+          const holderEntry = pokemon.find((candidate) => candidate.id === holder.pokemonId);
+          return { id: holder.id, name: holderEntry?.chineseName ?? '队友' };
+        }}
+        pokemonName={name}
+        selectedItemId={draft.itemId}
+        onBack={() => setView({ kind: 'editor' })}
+        onClear={() => {
+          setTransfer(null);
+          patch({ itemId: undefined });
+          setView({ kind: 'editor' });
+        }}
+        onPick={chooseItem}
+      />
+    );
+  }
+
+  if (view.kind === 'ability') {
+    return (
+      <AbilityPickerPage
+        environmentStats={usage?.abilityStats}
+        options={availableAbilities}
+        pokemonName={name}
+        selectedAbilityId={draft.abilityId}
+        onBack={() => setView({ kind: 'editor' })}
+        onPick={(abilityId) => {
+          patch({ abilityId });
+          setView({ kind: 'editor' });
+        }}
+      />
+    );
+  }
+
+  if (view.kind === 'nature') {
+    return (
+      <NaturePickerPage
+        baseStats={baseStats}
+        environmentStats={usage?.natureStats}
+        nature={draft.nature}
+        statPoints={draft.statPoints}
+        onBack={() => setView({ kind: 'editor' })}
+        onPick={(nature) => {
+          patch({ nature });
+          setView({ kind: 'editor' });
+        }}
+      />
+    );
+  }
+
+  if (view.kind === 'form') {
+    return (
+      <FormPickerPage
+        baseEnglishName={entry.englishName}
+        baseName={entry.chineseName}
+        forms={forms}
+        selectedFormId={form?.id ?? entry.id}
+        onBack={() => setView({ kind: 'editor' })}
+        onPick={chooseForm}
+      />
+    );
+  }
 
   return (
-    <div>
-      <FieldLabel>道具</FieldLabel>
-      <div className="space-y-2 rounded-lg border border-border bg-secondary p-2">
-        <label className="flex items-center gap-2 rounded-lg border border-border bg-card px-2 py-1.5">
-          <Search size={14} className="text-textMuted" />
-          <input
-            className="min-w-0 flex-1 bg-transparent text-xs outline-none placeholder:text-textMuted"
-            placeholder="搜索携带物"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
+    <div className="pb-[120px]">
+      <div className="flex items-center justify-between px-6 pt-5">
+        <RoundIconButton label="返回队伍详情" onClick={cancel}>
+          <ChevronLeft size={20} />
+        </RoundIconButton>
+        <div className="relative">
+          <RoundIconButton label="更多操作" onClick={() => setMenuOpen((open) => !open)}>
+            <MoreHorizontal size={18} />
+          </RoundIconButton>
+          {menuOpen && (
+            <>
+              <button aria-label="关闭菜单" className="fixed inset-0 z-30 cursor-default" type="button" onClick={() => setMenuOpen(false)} />
+              <div
+                className="lk-editor-menu absolute right-0 top-[44px] z-40 w-[214px] rounded-[20px] px-[18px] py-1.5"
+                role="menu"
+              >
+                <EditorMenuRow disabled={toolsDisabled} icon={<Gauge size={17} />} label="速度线" onClick={() => openTool(onOpenSpeed)} />
+                <EditorMenuRow disabled={toolsDisabled} icon={<Swords size={17} />} label="伤害计算" onClick={() => openTool(onOpenCalculator)} />
+                <div className="my-1.5 border-t border-[var(--hairline-strong)]" />
+                <EditorMenuRow
+                  danger
+                  icon={<Trash2 size={17} />}
+                  label="删除这个成员"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setConfirmRemove(true);
+                  }}
+                />
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+
+      <div className="px-6 pt-[14px]">
+        <PageHeader subtitle={`${team.name} 的第 ${memberIndex + 1} 位成员`} title="编辑配置" />
+      </div>
+
+      {lostItem && (
+        <div className="px-6 pt-5">
+          <div className="lk-notice flex gap-2.5 rounded-[14px] p-[14px]">
+            <span className="mt-px shrink-0 text-textLabel">
+              <Info size={18} />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-extrabold tracking-[-0.01em]">
+                「{lostItem.itemName}」已转给{lostItem.toMemberName}
+              </span>
+              <span className="mt-1 block text-xs font-semibold leading-[18px] text-textSecondary">
+                这只现在没有道具，保存前请补一个。
+              </span>
+              {onUndoTransfer && (
+                <button
+                  className="mt-3 inline-flex h-11 items-center gap-[7px] rounded-[14px] bg-surface px-4 text-sm font-bold text-textLabel"
+                  type="button"
+                  onClick={onUndoTransfer}
+                >
+                  撤销转移
+                </button>
+              )}
+            </span>
+          </div>
+        </div>
+      )}
+
+      <div
+        className="lk-editor-aura mx-6 mt-5 flex items-center gap-[14px] rounded-[20px] p-4"
+        style={auraStyle(types, form?.iconRef ?? entry.iconRef)}
+      >
+        <Sprite iconRef={form?.iconRef ?? entry.iconRef} label={name} size={64} />
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-baseline gap-[7px]">
+            <h2 className="text-[20px] font-extrabold leading-[25px] tracking-[-0.01em]">{name}</h2>
+            <span className="text-[11px] font-semibold text-textSecondary">{entry.japaneseName}</span>
+          </div>
+          <p className="mt-1.5 flex items-center gap-3 text-xs font-bold tracking-[0.04em] text-textSecondary">
+            {types.map((type) => (
+              <span key={type} className="inline-flex items-center gap-1.5">
+                <TypeDot type={type} />
+                {typeLabels[type]}
+              </span>
+            ))}
+          </p>
+        </div>
+        <button
+          className="inline-flex h-8 shrink-0 items-center rounded-full bg-textPrimary/[0.07] px-3 text-xs font-bold text-textLabel"
+          type="button"
+          onClick={() => setChangingPokemon(true)}
+        >
+          换宝可梦
+        </button>
+      </div>
+
+      <section className="px-6 pt-7">
+        <h2 className="text-[22px] font-extrabold leading-[30px] tracking-[-0.01em]">配置</h2>
+        <div className="mt-2">
+          {forms.length > 1 && (
+            <ConfigRow
+              label="形态"
+              value={form?.chineseName ?? entry.chineseName}
+              onClick={() => setView({ kind: 'form' })}
+            />
+          )}
+          <ConfigRow
+            hint={!selectedItem && lostItem ? '因道具冲突被移除' : undefined}
+            icon={selectedItem?.iconRef ? <Sprite iconRef={selectedItem.iconRef} label={selectedItem.chineseName} size={26} /> : undefined}
+            label="道具"
+            value={selectedItem ? selectedItem.chineseName : <span className="text-textLabel">{NO_ITEM_LABEL}</span>}
+            onClick={() => setView({ kind: 'item' })}
           />
-        </label>
-        <p className="text-[10px] text-textMuted">当前规则可携带道具，列表完整</p>
-        <div className="max-h-44 space-y-1 overflow-y-auto pr-1">
-          <button className="flex w-full items-center rounded-lg px-2 py-1.5 text-left text-xs text-textSecondary" type="button" onClick={() => onChange('')}>
-            不携带道具
-          </button>
-          {filteredItems.map((item) => {
-            const selectable = selectableIds.has(item.id);
-            const selected = item.id === value;
+          <ConfigRow
+            label="特性"
+            value={
+              draft.abilityId ? (
+                abilities.find((ability) => ability.id === draft.abilityId)?.chineseName ?? draft.abilityId
+              ) : (
+                <span className="text-textLabel">未选</span>
+              )
+            }
+            onClick={() => setView({ kind: 'ability' })}
+          />
+          <ConfigRow
+            last
+            label="性格"
+            value={
+              <>
+                {natureOption?.id ?? draft.nature}
+                <span className="text-xs font-bold text-textSecondary">
+                  <NatureEffect option={natureOption} />
+                </span>
+              </>
+            }
+            onClick={() => setView({ kind: 'nature' })}
+          />
+        </div>
+      </section>
+
+      <StatWheel
+        baseStats={baseStats}
+        nature={draft.nature}
+        natureMarker={natureMarker}
+        statPoints={draft.statPoints}
+        onChange={setStatPoint}
+      />
+
+      <section className="px-6 pt-7">
+        <h2 className="text-[22px] font-extrabold leading-[30px] tracking-[-0.01em]">招式</h2>
+        <div className="mt-2">
+          {[0, 1, 2, 3].map((slot) => {
+            const move = draft.moveIds[slot] ? moves.find((candidate) => candidate.id === draft.moveIds[slot]) : undefined;
             return (
               <button
-                key={item.id}
-                className={`flex w-full min-w-0 items-center gap-2 rounded-lg border p-1.5 text-left ${
-                  selected ? 'border-accent bg-accent/10' : 'border-transparent bg-card'
-                } disabled:opacity-45`}
-                disabled={!selectable}
+                key={slot}
+                aria-label={`招式 ${slot + 1}${move ? ` ${move.chineseName}` : ''}`}
+                className={`flex h-[60px] w-full items-center gap-3 ${slot < 3 ? 'border-b border-[var(--hairline)]' : ''}`}
                 type="button"
-                onClick={() => onChange(item.id)}
+                onClick={() => setView({ kind: 'move', slot })}
               >
-                <HeldItemIcon iconRef={item.iconRef} label={item.chineseName} className="h-6 w-6" />
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-xs font-semibold text-textPrimary">{item.chineseName}</span>
-                  <span className="block truncate text-[11px] text-textMuted">{item.effectSummary}</span>
+                {move ? <TypeDot type={move.type} /> : <span aria-hidden="true" className="h-[9px] w-[9px] shrink-0 rounded-full bg-btn1" />}
+                <span className={`min-w-0 flex-1 truncate text-left text-base font-bold tracking-[-0.01em] ${move ? '' : 'text-textLabel'}`}>
+                  {move?.chineseName ?? `招式 ${slot + 1}`}
+                </span>
+                <span className="shrink-0 text-chevron">
+                  <ChevronRight size={18} />
                 </span>
               </button>
             );
           })}
         </div>
-      </div>
-    </div>
-  );
-}
+      </section>
 
-function MoveSlotPicker({
-  slot,
-  value,
-  availableMoves,
-  onChange,
-}: {
-  slot: number;
-  value?: string;
-  availableMoves: Move[];
-  onChange: (moveId: string) => void;
-}) {
-  const [query, setQuery] = useState('');
-  const [open, setOpen] = useState(!value);
-  const selectedMove = value ? moves.find((move) => move.id === value) : undefined;
-  const options = [
-    ...(selectedMove && !availableMoves.some((move) => move.id === selectedMove.id) ? [selectedMove] : []),
-    ...availableMoves,
-  ];
-  const filteredMoves = options
-    .filter((move) => optionMatches(query, move.chineseName, move.englishName, move.type, move.category));
-
-  return (
-    <div className="rounded-lg border border-border bg-secondary p-2">
-      <button className="flex w-full items-center justify-between gap-2 text-left" type="button" onClick={() => setOpen((current) => !current)}>
-        <span className="min-w-0">
-          <span className="block text-[11px] text-textMuted">招式 {slot + 1}</span>
-          <span className="block truncate text-xs font-semibold">{selectedMove?.chineseName ?? '空招式位'}</span>
-        </span>
-        <ChevronUp className={open ? '' : 'rotate-180'} size={14} />
-      </button>
-      {selectedMove && (
-        <div className="mt-2 grid grid-cols-[auto_1fr] gap-2 rounded-lg bg-card p-1.5">
-          <TypeBadge type={selectedMove.type} size="sm" />
-          <p className="min-w-0 text-[11px] text-textSecondary">
-            {moveCategoryLabels[selectedMove.category]} · 威力 {selectedMove.power ?? '-'} · 命中 {selectedMove.accuracy ?? '-'} · PP {selectedMove.pp}
-          </p>
-        </div>
-      )}
-      {open && (
-        <div className="mt-2 space-y-2">
-          <label className="flex items-center gap-2 rounded-lg border border-border bg-card px-2 py-1.5">
-            <Search size={14} className="text-textMuted" />
-            <input
-              className="min-w-0 flex-1 bg-transparent text-xs outline-none placeholder:text-textMuted"
-              placeholder="搜索招式"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-            />
-          </label>
-          <p className="text-[10px] text-textMuted">当前规则可学招式，列表完整</p>
-          <div className="max-h-48 space-y-1 overflow-y-auto pr-1">
-            <button className="flex w-full items-center rounded-lg px-2 py-1.5 text-left text-xs text-textSecondary" type="button" onClick={() => onChange('')}>
-              清空招式位
-            </button>
-            {filteredMoves.map((move) => {
-              const selectable = availableMoves.some((candidate) => candidate.id === move.id);
-              const selected = move.id === value;
-              return (
-                <button
-                  key={move.id}
-                  className={`grid w-full grid-cols-[auto_1fr_auto] items-start gap-2 rounded-lg border p-1.5 text-left ${
-                    selected ? 'border-accent bg-accent/10' : 'border-transparent bg-card'
-                  } disabled:opacity-45`}
-                  disabled={!selectable}
-                  type="button"
-                  onClick={() => {
-                    onChange(move.id);
-                    setQuery('');
-                    setOpen(false);
-                  }}
-                >
-                  <TypeBadge type={move.type} size="sm" />
-                  <span className="min-w-0">
-                    <span className="block truncate text-xs font-semibold text-textPrimary">{move.chineseName}</span>
-                  </span>
-                  <span className="text-right text-[10px] text-textMuted">
-                    {moveCategoryLabels[move.category]}<br />
-                    {move.power ?? '-'} / {move.accuracy ?? '-'}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-const statPointControls: Array<{ key: keyof TeamMember['statPoints']; label: string }> = [
-  { key: 'hp', label: 'HP' },
-  { key: 'attack', label: '攻击' },
-  { key: 'defense', label: '防御' },
-  { key: 'specialAttack', label: '特攻' },
-  { key: 'specialDefense', label: '特防' },
-  { key: 'speed', label: '速度' },
-];
-
-export function MemberEditor({
-  team,
-  member,
-  onClose,
-  onSave,
-  onDelete,
-}: {
-  team: Team;
-  member: TeamMember;
-  onClose: () => void;
-  onSave: (member: TeamMember) => Promise<void>;
-  onDelete: (memberId: string) => Promise<void>;
-}) {
-  const [draft, setDraft] = useState<TeamMember>(member);
-  const [editingStatKey, setEditingStatKey] = useState<keyof TeamMember['statPoints'] | null>(null);
-  const selectedPokemon = pokemon.find((entry) => entry.id === draft.pokemonId) ?? pokemon[0];
-  const selectedForm = findBattleForm(selectedPokemon.id, draft.formId);
-  const availableMoves = currentRuleMovesForPokemon(selectedPokemon.id);
-  const availableItems = currentRuleSelectableItemsForPokemon(selectedPokemon.id);
-  const selectedItem = draft.itemId ? items.find((item) => item.id === draft.itemId) : undefined;
-  const itemOptions = selectedItem && !availableItems.some((item) => item.id === selectedItem.id) ? [selectedItem, ...availableItems] : availableItems;
-  const selectableItemIds = new Set(availableItems.map((item) => item.id));
-  const availableAbilityIds = Array.from(new Set([...selectedPokemon.abilities, ...(selectedForm?.abilities ?? [])]));
-  const availableAbilities = abilities.filter((ability) => availableAbilityIds.includes(ability.id));
-  const legality = useMemo(() => evaluateMemberLegality(draft, team), [draft, team]);
-  const totalStatPoints = statPointTotal(draft.statPoints);
-  const editingStat = statPointControls.find((control) => control.key === editingStatKey);
-  const overLimitStat = statPointControls.find((control) => Number(draft.statPoints[control.key] ?? 0) > MAX_STAT_POINTS_PER_STAT);
-  const statPointMessage = overLimitStat
-    ? `${overLimitStat.label} SP 不能超过 ${MAX_STAT_POINTS_PER_STAT}。`
-    : totalStatPoints > MAX_TOTAL_STAT_POINTS
-      ? `单项最多 ${MAX_STAT_POINTS_PER_STAT}，总量最多 ${MAX_TOTAL_STAT_POINTS}。`
-      : undefined;
-  const hasDuplicateHeldItem = Boolean(
-    draft.itemId && team.members.some((candidate) => candidate.id !== draft.id && candidate.itemId === draft.itemId),
-  );
-  const duplicateHeldItemMessage = hasDuplicateHeldItem ? '当前规则不允许同队重复携带相同道具。' : undefined;
-  const saveDisabled = Boolean(statPointMessage || duplicateHeldItemMessage);
-
-  const updateDraft = (patch: Partial<TeamMember>) => {
-    setDraft((current) => ({ ...current, ...patch }));
-  };
-
-  const updateStatPoint = (key: keyof TeamMember['statPoints'], value: number) => {
-    setDraft((current) => ({
-      ...current,
-      statPoints: {
-        ...current.statPoints,
-        [key]: Math.max(0, Math.min(MAX_STAT_POINTS_PER_STAT, Math.round(value || 0))),
-      },
-    }));
-  };
-
-  const updateMoveSlot = (slot: number, moveId: string) => {
-    const nextMoves = [...draft.moveIds];
-    if (moveId) nextMoves[slot] = moveId;
-    else nextMoves.splice(slot, 1);
-    updateDraft({ moveIds: Array.from(new Set(nextMoves.filter(Boolean))).slice(0, 4) });
-  };
-
-  const save = async () => {
-    if (saveDisabled) return;
-    await onSave({ ...draft, legalityStatus: legality.status });
-    onClose();
-  };
-
-  return (
-    <div className="fixed inset-x-0 bottom-0 z-30 mx-auto max-w-[430px] rounded-t-2xl border border-border bg-card p-4 shadow-none">
-      <div className="mx-auto mb-3 h-1 w-9 rounded-full bg-disabled" />
-      <div className="mb-3 flex items-start justify-between gap-3">
-        <div>
-          <h3 className="text-base font-semibold">编辑成员</h3>
-          <p className="text-xs text-textSecondary">仅检查 SP 与同队重复道具</p>
-        </div>
-        <button className="grid h-8 w-8 place-items-center rounded-lg text-textSecondary" title="关闭" onClick={onClose}>
-          <X size={18} />
+      <div className="lk-editor-bar fixed inset-x-0 bottom-0 z-20 mx-auto flex max-w-[430px] gap-2.5 px-6 pb-[22px] pt-3.5">
+        <button className="h-[50px] w-[72px] shrink-0 text-[15px] font-bold text-textSecondary" type="button" onClick={cancel}>
+          取消
+        </button>
+        <button
+          className={`lk-slab inline-flex h-[50px] min-w-0 flex-1 items-center justify-center gap-2 rounded-2xl text-base font-extrabold tracking-[-0.01em] ${
+            saveDisabled ? 'bg-btn1 text-btnDisabledInk shadow-none' : 'bg-accent text-page'
+          }`}
+          disabled={saveDisabled}
+          type="button"
+          onClick={() => void save()}
+        >
+          保存配置{changes.length > 0 ? ` · ${changes.length} 项改动` : ''}
         </button>
       </div>
 
-      <div className="max-h-[68vh] space-y-3 overflow-y-auto pr-1">
-        <Card className="bg-secondary">
-          <div className="flex items-center gap-3">
-            <PokemonAvatar iconRef={selectedForm?.iconRef ?? selectedPokemon.iconRef} label={selectedForm?.chineseName ?? selectedPokemon.chineseName} size="md" />
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold">{selectedForm?.chineseName ?? selectedPokemon.chineseName}</p>
-              <div className="mt-1 flex flex-wrap gap-1">
-                {(selectedForm?.types ?? selectedPokemon.types).map((type) => (
-                  <TypeBadge key={type} type={type} size="sm" />
-                ))}
-              </div>
-              <HeldItemLine item={selectedItem} className="mt-2 max-w-full text-[11px]" />
-            </div>
-          </div>
-        </Card>
+      <PokemonPicker
+        open={changingPokemon}
+        takenSpeciesIds={rosterSpeciesIds(team, draft.id)}
+        onClose={() => setChangingPokemon(false)}
+        onPick={(picked) => {
+          setTransfer(null);
+          patch({ pokemonId: picked.id, formId: picked.id, abilityId: picked.abilities[0], itemId: undefined, moveIds: [] });
+          setChangingPokemon(false);
+        }}
+      />
 
-        {selectedPokemon.megaForms.length > 0 && (
-          <div>
-            <SelectField
-              label="形态预览"
-              value={selectedForm?.id ?? selectedPokemon.id}
-              onChange={(formId) => {
-                const nextForm = findBattleForm(selectedPokemon.id, formId);
-                updateDraft({
-                  formId,
-                  abilityId: nextForm?.isMega ? nextForm.abilities[0] : selectedPokemon.abilities[0],
-                });
-              }}
-            >
-              <option value={selectedPokemon.id}>原始形态</option>
-              {selectedPokemon.megaForms.map((form) => (
-                <option key={form.id} value={form.id}>
-                  {form.chineseName}
-                </option>
-              ))}
-            </SelectField>
-            <p className="mt-1 text-[11px] text-textMuted">形态预览只影响能力值 / 属性展示；Mega Stone 作为道具独立配置。</p>
-          </div>
-        )}
-
-        <div>
-          <SelectField label="特性" value={draft.abilityId ?? ''} onChange={(abilityId) => updateDraft({ abilityId })}>
-            <option value="">未选择</option>
-            {availableAbilities.map((ability) => (
-              <option key={ability.id} value={ability.id}>
-              {ability.chineseName}
-              </option>
-            ))}
-          </SelectField>
-        </div>
-
-        <div>
-          <ItemSearchField
-            value={draft.itemId}
-            options={itemOptions}
-            selectableIds={selectableItemIds}
-            onChange={(itemId) => updateDraft({ itemId: itemId || undefined })}
-          />
-          {duplicateHeldItemMessage && <p className="mt-1 text-[11px] text-danger">{duplicateHeldItemMessage}</p>}
-        </div>
-
-        <SelectField label="性格" value={draft.nature} onChange={(nature) => updateDraft({ nature })}>
-          {(() => {
-            const statPriority = { '攻击': 0, '防御': 1, '特攻': 2, '特防': 3, '速度': 4 };
-            const sorted = [...currentRuleNatureOptions].sort((a, b) => {
-              const aGroup = a.up[0] ? (statPriority[a.up[0]] ?? 5) : 5;
-              const bGroup = b.up[0] ? (statPriority[b.up[0]] ?? 5) : 5;
-              return aGroup - bGroup || a.id.localeCompare(b.id, 'zh-Hans-CN');
-            });
-            return sorted.map((opt) => (
-              <option key={opt.id} value={opt.id}>
-                {natureOptionLabel(opt.id)}
-              </option>
-            ));
-          })()}
-        </SelectField>
-
-        <div>
-          <FieldLabel>招式</FieldLabel>
-          <div className="grid grid-cols-2 gap-2">
-            {[0, 1, 2, 3].map((slot) => (
-              <MoveSlotPicker
-                key={slot}
-                slot={slot}
-                value={draft.moveIds[slot] ?? ''}
-                availableMoves={availableMoves}
-                onChange={(moveId) => updateMoveSlot(slot, moveId)}
-              />
-            ))}
-          </div>
-        </div>
-
-        <div>
-          <div className="mb-2 flex items-center justify-between">
-            <FieldLabel>SP 分配</FieldLabel>
-            <span className={`text-[11px] ${totalStatPoints > MAX_TOTAL_STAT_POINTS ? 'text-danger' : 'text-textMuted'}`}>
-              已用 {totalStatPoints}/{MAX_TOTAL_STAT_POINTS}
-            </span>
-          </div>
-          <div className="grid grid-cols-3 gap-2">
-            {statPointControls.map((control) => (
-              <button
-                key={control.key}
-                className="rounded-lg border border-border bg-secondary p-2 text-left active:scale-[0.99]"
-                type="button"
-                onClick={() => setEditingStatKey(control.key)}
-              >
-                <span className="block text-[11px] text-textMuted">{control.label}</span>
-                <span className="mt-1 block text-lg font-semibold text-textPrimary">{draft.statPoints[control.key] ?? 0}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-        <p className={`text-[11px] ${statPointMessage ? 'text-danger' : 'text-textMuted'}`}>
-          {statPointMessage ?? `单项最多 ${MAX_STAT_POINTS_PER_STAT} · 总量最多 ${MAX_TOTAL_STAT_POINTS}`}
-        </p>
-      </div>
-
-      <div className="mt-3 grid grid-cols-[1fr_1fr_1.4fr] gap-2">
-        <Button variant="danger" onClick={() => onDelete(member.id).then(onClose)}>
-          <Trash2 size={14} />
-          删除
-        </Button>
-        <Button variant="ghost" onClick={onClose}>
-          取消
-        </Button>
-        <Button onClick={save} disabled={saveDisabled}>
-          <Save size={14} />
-          保存
-        </Button>
-      </div>
-      {editingStat && (
-        <StatPointPicker
-          label={editingStat.label}
-          value={draft.statPoints[editingStat.key] ?? 0}
-          onChange={(value) => updateStatPoint(editingStat.key, value)}
-          onClose={() => setEditingStatKey(null)}
+      {confirmDiscard && (
+        <DiscardChangesSheet changes={changes} onDiscard={onClose} onKeepEditing={() => setConfirmDiscard(false)} />
+      )}
+      {confirmRemove && (
+        <ConfirmRemoveMemberSheet
+          iconRef={form?.iconRef ?? entry.iconRef}
+          member={member}
+          memberName={name}
+          team={team}
+          onCancel={() => setConfirmRemove(false)}
+          onConfirm={() => {
+            setConfirmRemove(false);
+            void onDelete();
+          }}
         />
       )}
     </div>

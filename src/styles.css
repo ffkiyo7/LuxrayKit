@@ -1,31 +1,106 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Manrope carries Latin and every numeral; it is self-hosted (Latin subset only, ~25 KB) because
+ * fonts.googleapis.com is unreachable for mainland-China users and a PWA must render offline.
+ * Chinese is never downloaded: PingFang SC on Apple platforms, the system Noto on Android.
+ */
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 800;
+  src: url('./assets/fonts/manrope-latin-wght-normal.woff2') format('woff2-variations');
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F,
+    U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/*
+ * Colour roles (design readme → "Color discipline"):
+ *   neutral  — structure and every control. `accent` is neutral ink now (near-white on dark,
+ *              page ink on light); the old blue-purple is retired everywhere.
+ *   select   — the one violet: selected chip ring/fill and focused input ring, nothing else.
+ *   data     — amber, only for invested stat points and the values they affect.
+ *   fn-*     — five function hues for icon tiles / markers on text-only screens; never a number.
+ *
+ * The second block below is the 2026-09 frame vocabulary: one dark value plus its light
+ * counterpart, read element by element off the paired frames (05-01/05-02, NL-03/NL-04).
+ *   surface / sunken        — the two inset planes inside a page: card face, then the well a
+ *                             segmented control or an embedded list sits in.
+ *   text-label / chevron    — the brighter secondary ink (values, chip text, secondary button
+ *                             labels) and the dimmer one (chevrons, idle glyphs).
+ *   btn-1 / btn-2 / btn-3   — the three secondary-button floors, named after the frame heights
+ *                             they carry (50 / 48 / 44); btn-1 also fills close buttons and
+ *                             small badges, and pairs with btn-disabled-ink when disabled.
+ *   track / knob            — switch rail and thumb (off); --track-on / --knob-on for on.
+ * Fills whose alpha differs between themes (selected pill, chip, active row, sheet, raised
+ * result card, axis marker) stay plain custom properties and are applied through the `.lk-*`
+ * classes further down, because Tailwind's `/<alpha-value>` cannot vary per theme.
+ */
 :root {
   color-scheme: dark;
-  font-family: 'DM Sans', system-ui, sans-serif;
-  --color-page: 13 13 13;
-  --color-card: 30 30 30;
-  --color-elevated: 38 38 40;
-  --color-secondary: 22 22 22;
-  --color-border: 43 43 43;
-  --color-divider: 39 39 39;
-  --color-disabled: 58 58 58;
-  --color-text-primary: 236 236 236;
-  --color-text-secondary: 138 138 138;
-  --color-text-muted: 85 85 85;
-  --color-accent: 96 106 188;
-  --color-success: 61 186 126;
-  --color-danger: 224 82 82;
-  --color-warning: 212 135 10;
-  --color-legal-bg: 13 43 30;
-  --color-review-bg: 43 31 8;
-  --color-missing-bg: 43 16 16;
+  font-family: 'Manrope', 'PingFang SC', 'Noto Sans SC', system-ui, -apple-system, sans-serif;
+  --color-page: 11 11 12;
+  --color-card: 23 23 27;
+  --color-elevated: 34 34 42;
+  --color-secondary: 20 20 26;
+  --color-border: 38 38 43;
+  --color-divider: 30 30 34;
+  --color-disabled: 58 58 66;
+  --color-text-primary: 245 245 247;
+  --color-text-secondary: 142 142 147;
+  --color-text-muted: 110 110 115;
+  --color-accent: 245 245 247;
+  --color-select: 155 154 196;
+  --color-data: 224 162 60;
+  --color-success: 71 192 127;
+  --color-danger: 226 99 95;
+  --color-warning: 224 162 60;
+  --color-fn-blue: 127 168 217;
+  --color-fn-teal: 95 199 184;
+  --color-fn-amber: 226 171 92;
+  --color-fn-pink: 231 139 163;
+  --color-fn-green: 71 192 127;
+  --color-legal-bg: 16 38 28;
+  --color-review-bg: 43 33 14;
+  --color-missing-bg: 44 20 20;
   --color-overlay: 0 0 0;
   --color-on-overlay: 255 255 255;
+  --hairline: rgb(255 255 255 / 0.07);
+  --hairline-strong: rgb(255 255 255 / 0.1);
+  --color-surface: 23 23 27;
+  --color-sunken: 15 15 18;
+  --color-text-label: 199 199 204;
+  --color-chevron: 110 110 115;
+  --color-btn-1: 34 34 42;
+  --color-btn-2: 31 31 35;
+  --color-btn-3: 23 23 27;
+  --color-btn-disabled-ink: 90 90 96;
+  --color-track: 42 42 48;
+  --color-knob: 142 142 147;
+  --color-segment-on: 45 45 52;
+  --select-fill: rgb(155 154 196 / 0.16);
+  --chip-fill: rgb(255 255 255 / 0.07);
+  --row-active: rgb(255 255 255 / 0.05);
+  --marker-fill: rgb(255 255 255 / 0.06);
+  --marker-ring: rgb(255 255 255 / 0.3);
+  --track-on: rgb(255 255 255 / 0.22);
+  --knob-on: #f5f5f7;
+  --sheet-bg: #17171b;
+  --sheet-bg-deep: #141418;
+  --sheet-overlay: rgb(0 0 0 / 0.62);
+  --sheet-shadow: 0 -0.5px 0 rgb(255 255 255 / 0.1), 0 -24px 60px rgb(0 0 0 / 0.5);
+  --raised-bg: linear-gradient(180deg, #1b1b20, #141418);
+  --raised-shadow: none;
+  --damage-bar: linear-gradient(90deg, #d4870a, #e2635f);
+  --damage-pill: rgb(212 135 10 / 0.16);
+  --btn-primary-shadow: inset 0 1px 0 rgb(255 255 255 / 0.9), inset 0 -1px 0 rgb(0 0 0 / 0.12), 0 6px 18px rgb(0 0 0 / 0.45);
+  --segment-on-shadow: none;
+  --slider-thumb-shadow: 0 2px 8px rgb(0 0 0 / 0.5);
+  --float-pill-shadow: 0 0 0 0.5px rgb(255 255 255 / 0.14), 0 12px 30px rgb(0 0 0 / 0.5);
   background: rgb(var(--color-page));
   color: rgb(var(--color-text-primary));
   font-synthesis: none;
@@ -34,27 +109,70 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Light shares every dimension and weight with dark; only the neutral ramp and ink depth change.
+   Amber and green deepen to hold 4.5:1 on paper. */
 :root[data-theme='light'] {
   color-scheme: light;
-  --color-page: 241 246 250;
-  --color-card: 255 253 248;
-  --color-elevated: 232 241 236;
-  --color-secondary: 231 238 246;
-  --color-border: 198 211 224;
-  --color-divider: 213 224 235;
-  --color-disabled: 181 195 207;
-  --color-text-primary: 30 38 50;
-  --color-text-secondary: 86 101 118;
-  --color-text-muted: 120 135 150;
-  --color-accent: 47 88 150;
-  --color-success: 22 128 86;
-  --color-danger: 190 55 51;
+  --color-page: 251 251 253;
+  --color-card: 255 255 255;
+  --color-elevated: 242 242 245;
+  --color-secondary: 242 242 245;
+  --color-border: 227 227 232;
+  --color-divider: 237 237 240;
+  --color-disabled: 199 199 204;
+  --color-text-primary: 28 28 30;
+  --color-text-secondary: 110 110 115;
+  --color-text-muted: 142 142 147;
+  --color-accent: 28 28 30;
+  --color-select: 98 97 138;
+  --color-data: 170 99 0;
+  --color-success: 18 120 74;
+  --color-danger: 192 57 47;
   --color-warning: 170 99 0;
-  --color-legal-bg: 219 244 232;
-  --color-review-bg: 255 237 198;
-  --color-missing-bg: 255 224 222;
-  --color-overlay: 20 28 38;
-  --color-on-overlay: 255 253 248;
+  --color-fn-blue: 47 95 143;
+  --color-fn-teal: 35 122 111;
+  --color-fn-amber: 150 101 26;
+  --color-fn-pink: 168 66 94;
+  --color-fn-green: 18 120 74;
+  --color-legal-bg: 224 244 233;
+  --color-review-bg: 252 238 208;
+  --color-missing-bg: 253 228 226;
+  --color-overlay: 16 24 40;
+  --color-on-overlay: 255 255 255;
+  --hairline: #ededf0;
+  --hairline-strong: rgb(0 0 0 / 0.08);
+  --color-surface: 242 242 245;
+  --color-sunken: 237 237 240;
+  --color-text-label: 72 72 74;
+  --color-chevron: 199 199 204;
+  --color-btn-1: 237 237 240;
+  --color-btn-2: 242 242 245;
+  --color-btn-3: 242 242 245;
+  --color-btn-disabled-ink: 174 174 180;
+  --color-track: 242 242 245;
+  --color-knob: 142 142 147;
+  --color-segment-on: 255 255 255;
+  --select-fill: rgb(98 97 138 / 0.1);
+  --chip-fill: #ededf0;
+  --row-active: #f7f7f9;
+  --marker-fill: #f7f7f9;
+  --marker-ring: rgb(16 24 40 / 0.14);
+  --track-on: rgb(16 24 40 / 0.14);
+  --knob-on: #1c1c1e;
+  --sheet-bg: #ffffff;
+  --sheet-bg-deep: #ffffff;
+  --sheet-overlay: rgb(28 28 30 / 0.32);
+  --sheet-shadow: 0 -1px 0 rgb(16 24 40 / 0.06), 0 -24px 60px rgb(28 28 30 / 0.32);
+  --raised-bg: #ffffff;
+  --raised-shadow: 0 1px 2px rgb(0 0 0 / 0.05), 0 8px 24px rgb(16 24 40 / 0.06);
+  --damage-bar: linear-gradient(90deg, #d4870a, #c0392f);
+  --damage-pill: rgb(212 135 10 / 0.16);
+  /* NL-01 / NL-02: on paper the ink slab carries one soft drop, not the dark theme's white seam. */
+  --btn-primary-shadow: 0 1px 2px rgb(16 24 40 / 0.12);
+  /* 06-02 / NL-05: a white tile only reads inside a #f2f2f5 well once it is lifted. */
+  --segment-on-shadow: 0 1px 2px rgb(16 24 40 / 0.1), 0 0 0 0.5px rgb(16 24 40 / 0.06);
+  --slider-thumb-shadow: 0 2px 8px rgb(28 28 30 / 0.32);
+  --float-pill-shadow: 0 0 0 0.5px rgb(16 24 40 / 0.1), 0 12px 30px rgb(28 28 30 / 0.18);
 }
 
 * {
@@ -113,24 +231,28 @@ button {
   display: none;
 }
 
-.speed-grid {
-  background-image:
-    linear-gradient(to right, rgb(var(--color-success) / 0.08), transparent 35%, transparent 65%, rgb(var(--color-danger) / 0.08)),
-    repeating-linear-gradient(to right, transparent 0, transparent calc(10% - 1px), rgb(var(--color-text-muted) / 0.16) calc(10% - 1px), rgb(var(--color-text-muted) / 0.16) 10%);
-}
-
+/* In a Safari tab `env(safe-area-inset-bottom)` is not a constant: it is 0 while the toolbar is
+   up and ~34px once it minimises, and Safari brings the toolbar back the moment a fling hits
+   the end of the page. Padding that tracks it makes the document 34px shorter exactly then, the
+   scroll position gets clamped mid-bounce and the whole page jolts (R34). Flooring it at the
+   home-indicator height keeps the document height fixed; standalone is unaffected (always 34). */
 .safe-bottom {
-  padding-bottom: calc(84px + env(safe-area-inset-bottom));
+  padding-bottom: calc(84px + max(env(safe-area-inset-bottom), 34px));
 }
 
 .app-shell {
-  background:
-    linear-gradient(180deg, rgb(var(--color-card) / 0.36), transparent 10rem),
-    rgb(var(--color-page));
+  background: rgb(var(--color-page));
 }
 
+/* Dark separates surfaces by value, not shadow (nulled below); light lifts white cards softly. */
 .surface-shadow {
-  box-shadow: 0 12px 32px rgb(10 22 38 / 0.08);
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.05),
+    0 8px 24px rgb(16 24 40 / 0.06);
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
 }
 
 :root[data-theme='dark'] .surface-shadow,
@@ -139,648 +261,289 @@ button {
 }
 
 /* ===========================================================================
-   B2 type chart — quick dial and crosshair matrix.
+   Frame fills whose alpha differs between themes — see the token comment at the top.
    =========================================================================== */
-.lk-type-dial {
-  --lk-type-color: #888;
-  position: relative;
-  height: 106px;
-  overflow: hidden;
-  border: 1px solid rgb(var(--color-border));
-  border-radius: 12px;
-  background: rgb(var(--color-card));
-  cursor: grab;
-  touch-action: pan-y;
-  user-select: none;
-  -webkit-user-select: none;
+.lk-raised {
+  background: var(--raised-bg);
+  box-shadow: var(--raised-shadow);
 }
 
-.lk-type-dial:active {
-  cursor: grabbing;
+.lk-sheet {
+  background: var(--sheet-bg);
+  box-shadow: var(--sheet-shadow);
 }
 
-.lk-type-dial:focus-visible {
-  outline: 2px solid rgb(var(--color-accent));
-  outline-offset: -2px;
+.lk-sheet--deep {
+  background: var(--sheet-bg-deep);
+  box-shadow: var(--sheet-shadow);
 }
 
-.lk-type-dial__track {
-  position: absolute;
-  inset: 0;
+.lk-sheet-overlay {
+  background: var(--sheet-overlay);
 }
 
-.lk-type-dial__spot {
-  position: absolute;
-  top: -30px;
-  left: 50%;
-  width: 170px;
-  height: 104px;
-  transform: translateX(-50%);
-  background: radial-gradient(ellipse 50% 62% at 50% 0%, var(--lk-type-color), transparent 74%);
-  opacity: 0.3;
-  pointer-events: none;
-  transition: background 300ms ease;
+.lk-row-active {
+  background: var(--row-active);
 }
 
-.lk-type-dial__needle {
-  position: absolute;
-  z-index: 3;
-  top: 3px;
-  left: 50%;
-  width: 0;
-  height: 0;
-  transform: translateX(-50%);
-  border: 5px solid transparent;
-  border-top: 7px solid var(--lk-type-color);
-  border-bottom: 0;
-  pointer-events: none;
-  transition: border-top-color 300ms ease;
+.lk-chip {
+  background: var(--chip-fill);
 }
 
-.lk-type-dial__pill {
-  --lk-type-color: #888;
-  position: absolute;
-  top: 0;
-  left: 50%;
-  display: inline-flex;
-  min-width: 46px;
-  height: 32px;
-  align-items: center;
-  justify-content: center;
-  padding: 0 10px;
-  border: 1px solid var(--lk-type-color);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--lk-type-color) 86%, rgb(var(--color-page)));
-  color: #fff;
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 1;
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.12);
-  will-change: transform, opacity;
+.lk-pill-on {
+  background: var(--select-fill);
+  box-shadow: inset 0 0 0 1.5px rgb(var(--color-select));
 }
 
-.lk-type-dial__pill[aria-pressed='true'] {
-  box-shadow:
-    0 0 0 2px rgb(var(--color-page)),
-    0 0 0 3.5px var(--lk-type-color),
-    0 0 18px color-mix(in srgb, var(--lk-type-color) 55%, transparent),
-    inset 0 1px 0 rgb(255 255 255 / 0.12);
+.lk-field-on {
+  box-shadow: inset 0 0 0 1.5px rgb(var(--color-select));
 }
 
-.lk-type-dial__tick {
-  position: absolute;
-  z-index: 0;
-  top: 0;
-  left: 50%;
-  width: 2px;
-  height: 9px;
-  border-radius: 1px;
-  background: rgb(var(--color-text-muted) / 0.55);
-  pointer-events: none;
-  will-change: transform, opacity;
+.lk-marker {
+  background: var(--marker-fill);
+  box-shadow: inset 0 0 0 1.5px var(--marker-ring);
 }
 
-.lk-type-dial__tick--minor {
-  height: 5px;
-  background: rgb(var(--color-text-muted) / 0.3);
+/* The near-white (dark) / ink (light) slab: its shadow is the only part that differs per theme. */
+.lk-btn-primary {
+  box-shadow: var(--btn-primary-shadow);
 }
 
-.lk-type-answer {
-  position: relative;
-  overflow: hidden;
-  margin-top: 12px;
-  border: 1px solid color-mix(in srgb, var(--lk-type-color) 26%, rgb(var(--color-border)));
-  border-radius: 12px;
-  background: rgb(var(--color-card));
-  transition: border-color 400ms ease;
+.lk-segment-on {
+  background: rgb(var(--color-segment-on));
+  box-shadow: var(--segment-on-shadow);
 }
 
-.lk-type-answer__content {
-  position: relative;
+/* Floating "back to me" capsule over the speed axis (05-05). */
+.lk-float-pill {
+  box-shadow: var(--float-pill-shadow);
 }
 
-.lk-type-answer__aura {
-  position: absolute;
-  inset: 0 0 auto;
-  height: 240px;
-  background:
-    radial-gradient(ellipse 85% 90% at 50% -10%, color-mix(in srgb, var(--lk-type-color) 30%, transparent), transparent 72%),
-    radial-gradient(ellipse 40% 45% at 50% 18%, color-mix(in srgb, var(--lk-type-color) 22%, transparent), transparent 70%);
-  pointer-events: none;
-  transition: background 400ms ease;
+.lk-damage-bar {
+  background: var(--damage-bar);
 }
 
-:root[data-theme='light'] .lk-type-answer__aura {
-  opacity: 0.75;
+.lk-damage-pill {
+  background: var(--damage-pill);
 }
 
-.lk-type-answer__hero {
-  position: relative;
-  display: grid;
-  min-height: 152px;
-  place-items: center;
-  padding: 14px 16px 6px;
-}
-
-.lk-type-answer__mascot {
-  position: absolute;
-  top: var(--lk-mascot-y, 50%);
-  left: var(--lk-mascot-x, 50%);
-  width: 230px;
-  height: 230px;
-  transform: translate(-50%, -50%) rotate(var(--lk-mascot-rotate, 0deg)) scale(var(--lk-mascot-scale, 1)) scaleX(var(--lk-mascot-mirror, 1));
-  background: var(--lk-type-color);
-  mask-position: center;
-  mask-size: contain;
-  mask-repeat: no-repeat;
-  opacity: 0.15;
-  pointer-events: none;
-  transition: background 400ms ease;
-  -webkit-mask-position: center;
-  -webkit-mask-size: contain;
-  -webkit-mask-repeat: no-repeat;
-}
-
-:root[data-theme='light'] .lk-type-answer__mascot {
-  background: color-mix(in srgb, var(--lk-type-color) 80%, rgb(var(--color-text-primary)));
-  opacity: 0.17;
-}
-
-.lk-type-answer__glyph {
-  position: relative;
-  z-index: 1;
+/* Speed SP rail: 6px track, 24px thumb — drawn on the native range input so the slider role,
+   keyboard stepping and value announcements stay untouched. */
+.lk-speed-slider {
+  width: 100%;
+  height: 26px;
   margin: 0;
-  color: var(--lk-type-color);
-  font-size: 84px;
-  font-weight: 900;
-  letter-spacing: 0.02em;
-  line-height: 1;
-  text-shadow: 0 2px 24px color-mix(in srgb, var(--lk-type-color) 35%, transparent);
+  background: transparent;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
-.lk-type-answer__glyph[data-length='2'] {
-  font-size: 66px;
+.lk-speed-slider::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 9999px;
+  background: linear-gradient(
+    to right,
+    rgb(var(--color-data)) var(--lk-slider-fill, 0%),
+    rgb(var(--color-text-primary) / 0.09) var(--lk-slider-fill, 0%)
+  );
 }
 
-.lk-type-answer__glyph[data-length='3'] {
-  padding: 8px 0;
-  font-size: 52px;
+.lk-speed-slider::-moz-range-track {
+  height: 6px;
+  border-radius: 9999px;
+  background: rgb(var(--color-text-primary) / 0.09);
 }
 
-:root[data-theme='light'] .lk-type-answer__glyph {
-  color: color-mix(in srgb, var(--lk-type-color) 74%, rgb(var(--color-text-primary)));
-  text-shadow: none;
+.lk-speed-slider::-moz-range-progress {
+  height: 6px;
+  border-radius: 9999px;
+  background: rgb(var(--color-data));
 }
 
-.lk-type-answer__english {
-  position: relative;
-  z-index: 1;
-  margin: 10px 0 0;
-  color: rgb(var(--color-text-secondary));
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.22em;
+.lk-speed-slider::-webkit-slider-thumb {
+  width: 24px;
+  height: 24px;
+  margin-top: -9px;
+  border: 0;
+  border-radius: 9999px;
+  background: rgb(var(--color-text-primary));
+  box-shadow: var(--slider-thumb-shadow);
+  -webkit-appearance: none;
+  appearance: none;
 }
 
-.lk-type-answer__panel {
-  position: relative;
-  padding: 6px 12px 14px;
-}
-
-.lk-type-answer__group-title {
-  margin: 8px 2px 6px;
-  padding-top: 10px;
-  border-top: 1px solid rgb(var(--color-border) / 0.8);
-}
-
-.lk-type-answer__group-title h3 {
-  margin: 0;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.lk-type-shelf {
-  display: grid;
-  grid-template-columns: 74px 1fr;
-  gap: 8px;
-  align-items: start;
-  padding: 2px;
-}
-
-.lk-type-shelf__label {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding-top: 8px;
-}
-
-.lk-type-shelf__multiplier {
-  font-size: 14px;
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-}
-
-.lk-type-shelf__name {
-  color: rgb(var(--color-text-secondary));
-  font-size: 10px;
-}
-
-.lk-type-shelf--good .lk-type-shelf__multiplier {
-  color: rgb(var(--color-success));
-}
-
-.lk-type-shelf--bad .lk-type-shelf__multiplier {
-  color: rgb(var(--color-danger));
-}
-
-.lk-type-shelf--null .lk-type-shelf__multiplier {
-  color: rgb(var(--color-accent));
-}
-
-.lk-type-shelf__badges {
-  display: flex;
-  min-height: 38px;
-  flex-wrap: wrap;
-  gap: 2px 6px;
-  align-items: center;
-}
-
-.lk-type-badge-button {
-  display: inline-grid;
-  min-width: 44px;
-  min-height: 38px;
-  place-items: center;
-  border-radius: 999px;
-  transition: transform 140ms var(--ease-spring);
-}
-
-.lk-type-badge-button:active {
-  transform: scale(0.94);
-}
-
-.lk-type-badge-button:focus-visible {
-  outline: 2px solid rgb(var(--color-accent));
-  outline-offset: -3px;
-}
-
-.lk-type-matrix__result {
-  display: flex;
-  min-height: 58px;
-  align-items: center;
-  justify-content: space-between;
-  gap: 6px;
-  padding: 8px 10px;
-  border: 1px solid rgb(var(--color-border));
-  border-radius: 10px;
-  background: rgb(var(--color-card));
-}
-
-.lk-type-matrix__result-copy {
-  display: flex;
-  min-width: 0;
-  align-items: center;
-  gap: 6px;
-  white-space: nowrap;
-}
-
-.lk-type-matrix__type-pill {
-  display: inline-flex;
-  min-width: 38px;
-  min-height: 30px;
-  flex: 0 0 auto;
-  align-items: center;
-  justify-content: center;
-  padding: 4px 10px;
-  border: 1px solid color-mix(in srgb, var(--lk-type-color) 80%, white 10%);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--lk-type-color) 72%, rgb(var(--color-secondary)));
-  color: #fff;
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.lk-type-matrix__role {
-  color: rgb(var(--color-text-secondary));
-  font-size: 11px;
-}
-
-.lk-type-matrix__outcome {
-  overflow: hidden;
-  color: rgb(var(--color-text-primary) / 0.8);
-  font-size: 11px;
-  text-overflow: ellipsis;
-}
-
-.lk-type-matrix__swap {
-  display: inline-flex;
-  min-width: 52px;
-  min-height: 42px;
-  flex: 0 0 auto;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1px;
-  border-left: 1px solid rgb(var(--color-divider));
-  color: rgb(var(--color-accent));
-  font-size: 9px;
-}
-
-.lk-type-matrix__shell {
-  position: relative;
-  overflow: hidden;
-  border: 1px solid rgb(var(--color-border));
-  border-radius: 10px;
-  background: rgb(var(--color-secondary));
-}
-
-.lk-type-matrix__viewport {
-  position: relative;
-  height: clamp(360px, calc(100dvh - 282px), 520px);
-  overflow: auto;
-  cursor: grab;
-  overscroll-behavior: contain;
-  touch-action: pan-x pan-y;
-}
-
-.lk-type-matrix__viewport:active {
-  cursor: grabbing;
-}
-
-.lk-type-matrix__grid {
-  display: grid;
-  width: max-content;
-  min-width: 100%;
-  background: rgb(var(--color-divider));
-}
-
-.lk-type-matrix__corner,
-.lk-type-matrix__column-header,
-.lk-type-matrix__row-header,
-.lk-type-matrix__cell {
-  border-right: 1px solid rgb(var(--color-divider));
-  border-bottom: 1px solid rgb(var(--color-divider));
-  background: rgb(var(--color-card));
-}
-
-.lk-type-matrix__corner {
-  position: sticky;
-  z-index: 8;
-  top: 0;
-  left: 0;
-  display: grid;
-  place-items: center;
-  color: rgb(var(--color-text-secondary));
-  font-size: 9px;
-  font-weight: 600;
-}
-
-.lk-type-matrix__column-header,
-.lk-type-matrix__row-header {
-  z-index: 4;
-  display: grid;
-  place-items: center;
-  color: var(--lk-type-color);
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.lk-type-matrix__column-header {
-  position: sticky;
-  top: 0;
-}
-
-.lk-type-matrix__row-header {
-  position: sticky;
-  left: 0;
-}
-
-.lk-type-matrix__column-header.is-selected-axis,
-.lk-type-matrix__row-header.is-selected-axis {
-  z-index: 6;
-  background: color-mix(in srgb, var(--lk-type-color) 24%, rgb(var(--color-card)));
-  color: rgb(var(--color-text-primary));
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--lk-type-color) 70%, rgb(var(--color-accent)));
-}
-
-.lk-type-matrix__cell {
-  position: relative;
-  display: grid;
-  min-width: 44px;
-  min-height: 44px;
-  place-items: center;
-  padding: 0;
-  color: rgb(var(--color-text-muted));
-  font-size: 13px;
-  font-weight: 600;
-  transition: background 140ms ease, color 140ms ease, box-shadow 140ms ease, opacity 140ms ease;
-}
-
-.lk-type-matrix__cell.is-super {
-  color: rgb(var(--color-danger));
-}
-
-.lk-type-matrix__cell.is-resisted {
-  color: #70a9eb;
-}
-
-:root[data-theme='light'] .lk-type-matrix__cell.is-resisted {
-  color: #2369a5;
-}
-
-.lk-type-matrix__cell.is-immune {
-  color: color-mix(in srgb, rgb(var(--color-accent)) 60%, #d85ee8);
-}
-
-.lk-type-matrix__cell:not(.is-row):not(.is-column) {
-  opacity: 0.48;
-}
-
-.lk-type-matrix__cell.is-row,
-.lk-type-matrix__cell.is-column {
-  background: rgb(var(--color-accent) / 0.16);
-  opacity: 1;
-}
-
-.lk-type-matrix__cell.is-row::after,
-.lk-type-matrix__cell.is-column::after {
-  position: absolute;
-  inset: 0;
-  border: solid rgb(var(--color-accent) / 0.3);
-  content: '';
-  pointer-events: none;
-}
-
-.lk-type-matrix__cell.is-row::after {
-  border-width: 1px 0;
-}
-
-.lk-type-matrix__cell.is-column::after {
-  border-width: 0 1px;
-}
-
-.lk-type-matrix__cell.is-selected-cell {
-  z-index: 3;
-  background: rgb(var(--color-accent) / 0.82);
-  color: #fff;
-  font-size: 15px;
-  font-weight: 700;
-  box-shadow: inset 0 0 0 2px color-mix(in srgb, rgb(var(--color-accent)) 55%, white), 0 0 14px rgb(var(--color-accent) / 0.45);
-  opacity: 1;
-}
-
-.lk-type-matrix__cell.is-selected-cell::after {
-  display: none;
-}
-
-.lk-type-matrix__edge-fade {
-  position: absolute;
-  z-index: 9;
-  top: 44px;
-  bottom: 0;
-  width: 16px;
-  pointer-events: none;
-}
-
-.lk-type-matrix__edge-fade--left {
-  left: 62px;
-  background: linear-gradient(90deg, rgb(var(--color-page) / 0.3), transparent);
-}
-
-.lk-type-matrix__edge-fade--right {
-  right: 0;
-  background: linear-gradient(270deg, rgb(var(--color-page) / 0.72), transparent);
-}
-
-@supports not (mask-image: linear-gradient(#000, #000)) {
-  .lk-type-answer__mascot {
-    display: none;
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .lk-type-answer__content--switching .lk-type-answer__hero,
-  .lk-type-answer__content--switching .lk-type-answer__panel {
-    animation: lkTypeAnswerRise 260ms var(--ease-spring) both;
-  }
-
-  @keyframes lkTypeAnswerRise {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
+.lk-speed-slider::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 9999px;
+  background: rgb(var(--color-text-primary));
+  box-shadow: var(--slider-thumb-shadow);
 }
 
 /* ===========================================================================
-   Onboarding — first-launch flow + "toy diorama" illustrations.
-   The product chrome stays flat; the dioramas get soft toy shadows and a
-   gentle spring so the miniature scenes feel physical. Brighter "toy" colours
-   live only inside the illustrations, never in chrome.
+   Bottom nav — floating glass pill (design 09), adjusted after device review:
+
+   - A tint floor sits under the glass. Pure "fill does nothing" glass turns into a silver
+     plate whenever something bright scrolls beneath it (a near-white primary button in dark
+     theme), and the idle labels vanish. The tint caps how bright the backdrop can get, so
+     labels hold contrast over any content while dark content still reads through.
+   - blur is 8px with no brightness() stage: a lighter filter chain is both less smeared and
+     much cheaper to recompute on every scrolled frame.
+   - Everything that moves on collapse or tab switch is transform/opacity, except the pill's
+     own width/height (4 flex children, no text reflow).
    =========================================================================== */
-:root {
-  --toy-coral: #ff6f61;
-  --toy-blue: #6c8cff;
-  --toy-yellow: #ffd166;
-  --toy-mint: #4fd1a0;
-  --toy-lilac: #b292ff;
-  --shadow-toy: 0 18px 40px -12px rgb(0 0 0 / 0.6);
-  --shadow-pop: 0 10px 30px rgb(0 0 0 / 0.45), 0 2px 6px rgb(0 0 0 / 0.3);
-  --ease-spring: cubic-bezier(0.34, 1.4, 0.5, 1);
-  --dur-slow: 340ms;
+.lk-nav-fade {
+  position: fixed;
+  z-index: 19;
+  bottom: 0;
+  left: 50%;
+  width: 100%;
+  max-width: 430px;
+  height: calc(40px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  pointer-events: none;
+  /* Not fully opaque at the foot: the pill's lower third sits over this fade, and a solid
+     floor there leaves the glass nothing to show. */
+  background: linear-gradient(0deg, rgb(var(--color-page) / 0.72), rgb(var(--color-page) / 0));
 }
 
-/* Slide entrance — a single gentle rise per step. */
-.lk-slide-anim {
-  animation: lkSlideRise var(--dur-slow) var(--ease-spring) both;
-}
-@keyframes lkSlideRise {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Progress dot grows into an accent pill when active. */
-.lk-progress-dot {
-  height: 7px;
-  width: 7px;
-  border-radius: 999px;
-  background: rgb(var(--color-elevated));
+.lk-nav-pill {
+  --lk-nav-ease: cubic-bezier(0.2, 0, 0, 1);
+  --lk-nav-ink: #dcdce0;
+  --lk-nav-ink-active: #fff;
+  --lk-nav-ink-shadow: 0 0 6px rgb(0 0 0 / 0.55), 0 1px 1px rgb(0 0 0 / 0.4);
+  position: fixed;
+  z-index: 20;
+  bottom: calc(18px + env(safe-area-inset-bottom));
+  left: 50%;
+  display: flex;
+  align-items: stretch;
+  width: min(380px, calc(100% - 50px));
+  height: 54px;
+  padding: 2px;
+  border-radius: 9999px;
+  transform: translateX(-50%);
+  /* Owner review 2026-09-19: at 0.6 the dark tint read as a painted slab. The floor drops to
+     0.26 so roughly three quarters of the backdrop comes through; saturate() goes up so what
+     shows is colour rather than grey, and the label shadow below carries the contrast the
+     tint used to. */
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 0.1), rgb(255 255 255 / 0.02) 46%, rgb(255 255 255 / 0.05)),
+    rgb(24 24 28 / 0.26);
+  -webkit-backdrop-filter: blur(9px) saturate(190%);
+  backdrop-filter: blur(9px) saturate(190%);
+  box-shadow:
+    0 0 0 0.5px rgb(255 255 255 / 0.26),
+    0 10px 28px rgb(0 0 0 / 0.38),
+    inset 0 1px 0.5px rgb(255 255 255 / 0.45),
+    inset 0 -1px 0.5px rgb(255 255 255 / 0.12);
   transition:
-    width var(--dur-slow) var(--ease-spring),
-    background 200ms var(--ease-spring);
-}
-.lk-progress-dot[data-active='true'] {
-  width: 22px;
-  background: rgb(var(--color-accent));
+    width 220ms var(--lk-nav-ease),
+    height 220ms var(--lk-nav-ease);
 }
 
-/* Diorama idle motion + focus pulse — all reduced-motion gated. */
-@media (prefers-reduced-motion: no-preference) {
-  @keyframes lkFigBob {
-    0%,
-    100% {
-      transform: translateY(0);
-    }
-    50% {
-      transform: translateY(-5px);
-    }
-  }
-  @keyframes lkFigSway {
-    0%,
-    100% {
-      transform: rotate(-2.5deg);
-    }
-    50% {
-      transform: rotate(2.5deg);
-    }
-  }
-  @keyframes lkFocusPulse {
-    0%,
-    100% {
-      box-shadow: 0 0 0 0 transparent, 0 0 14px 2px var(--lk-glow);
-    }
-    50% {
-      box-shadow: 0 0 0 5px transparent, 0 0 26px 6px var(--lk-glow);
-    }
-  }
-  @keyframes lkSpark {
-    0%,
-    100% {
-      opacity: 0.15;
-      transform: scale(0.6);
-    }
-    50% {
-      opacity: 1;
-      transform: scale(1);
-    }
-  }
-  .lk-fig-bob {
-    animation: lkFigBob 2.9s ease-in-out infinite;
-  }
-  .lk-fig-sway {
-    animation: lkFigSway 3.5s ease-in-out infinite;
-    transform-origin: 50% 92%;
-  }
-  .lk-focus-pulse {
-    animation: lkFocusPulse 2.2s ease-in-out infinite;
-  }
-  .lk-spark {
-    animation: lkSpark 1.9s ease-in-out infinite;
-  }
+.lk-nav-pill[data-collapsed='true'] {
+  width: 212px;
+  height: 48px;
+}
+
+/* The selected capsule is one element that slides; tabs themselves never repaint a background. */
+.lk-nav-indicator {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  left: 2px;
+  width: calc((100% - 4px) / var(--lk-nav-count));
+  border-radius: 9999px;
+  transform: translateX(calc(var(--lk-nav-index) * 100%));
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.26), rgb(255 255 255 / 0.1) 58%, rgb(255 255 255 / 0.16));
+  box-shadow:
+    inset 0 1px 0.5px rgb(255 255 255 / 0.6),
+    0 2px 8px rgb(0 0 0 / 0.3);
+  transition: transform 280ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.lk-nav-tab {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border: 0;
+  border-radius: 9999px;
+  background: transparent;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--lk-nav-ink);
+  text-shadow: var(--lk-nav-ink-shadow);
+  transition: color 200ms ease-out;
+}
+
+.lk-nav-tab[data-active='true'] {
+  font-weight: 800;
+  color: var(--lk-nav-ink-active);
+}
+
+.lk-nav-tab > svg {
+  transition: transform 220ms var(--lk-nav-ease);
+}
+
+.lk-nav-tab:active > svg {
+  transform: scale(0.9);
+}
+
+.lk-nav-label {
+  line-height: 14px;
+  transition:
+    opacity 140ms ease-out,
+    transform 220ms var(--lk-nav-ease);
+}
+
+/* Collapsed: the label stays in layout (no reflow) and fades; the icon slides to the centre.
+   8.5px = half of (3px gap + 14px label), the icon's offset from the group's centre. */
+.lk-nav-pill[data-collapsed='true'] .lk-nav-tab > svg {
+  transform: translateY(8.5px);
+}
+
+.lk-nav-pill[data-collapsed='true'] .lk-nav-tab:active > svg {
+  transform: translateY(8.5px) scale(0.9);
+}
+
+.lk-nav-pill[data-collapsed='true'] .lk-nav-label {
+  opacity: 0;
+  transform: translateY(4px);
+}
+
+:root[data-theme='light'] .lk-nav-pill {
+  --lk-nav-ink: #5f5357;
+  --lk-nav-ink-active: #2a2227;
+  --lk-nav-ink-shadow: 0 0 6px rgb(255 255 255 / 0.7);
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 0.5), rgb(255 246 248 / 0.12) 46%, rgb(255 246 248 / 0.24)),
+    rgb(250 244 246 / 0.44);
+  box-shadow:
+    0 0 0 0.5px rgb(74 52 58 / 0.16),
+    0 10px 28px rgb(74 52 58 / 0.14),
+    inset 0 1px 0.5px rgb(255 255 255 / 0.95);
+}
+
+:root[data-theme='light'] .lk-nav-indicator {
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.95), rgb(255 250 251 / 0.78));
+  box-shadow:
+    inset 0 0 0 0.5px rgb(74 52 58 / 0.1),
+    0 2px 8px rgb(74 52 58 / 0.14);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .lk-slide-anim {
-    animation: none;
+  .lk-nav-pill,
+  .lk-nav-indicator,
+  .lk-nav-tab,
+  .lk-nav-tab > svg,
+  .lk-nav-label {
+    transition: none;
   }
 }

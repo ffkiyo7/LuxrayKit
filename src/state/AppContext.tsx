@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { currentDataVersion, currentRuleSet, defaultPreferences } from '../data/seed/regMA/metadata';
 import { repository } from '../lib/db';
 import { createId } from '../lib/id';
+import { checkMemberWrite, type MemberWriteResult } from '../lib/teamComposition';
 import type { AppState, Team, TeamMember, UserPreference } from '../types';
 
 type Store = AppState & {
@@ -9,7 +10,7 @@ type Store = AppState & {
   saveTeam: (team: Team) => Promise<void>;
   deleteTeam: (teamId: string) => Promise<void>;
   addTeam: (name?: string) => Promise<Team>;
-  updateMember: (teamId: string, member: TeamMember) => Promise<void>;
+  updateMember: (teamId: string, member: TeamMember) => Promise<MemberWriteResult>;
   updateTheme: (theme: UserPreference['theme']) => Promise<void>;
   replacePreferences: (preferences: UserPreference) => Promise<void>;
   replaceTeams: (teams: Team[]) => Promise<void>;
@@ -41,15 +42,24 @@ const createEmptyTeam = (name?: string): Team => ({
   notes: '',
 });
 
-const normalizePreferences = (preferences?: Partial<UserPreference>): UserPreference => ({
-  ...defaultPreferences,
-  ...preferences,
-  theme: preferences?.theme ?? defaultPreferences.theme,
-  // Coerce rather than spread: an older stored record has no such field, and anything other
-  // than an explicit `true` must read as "analytics on" so the default is not silently flipped
-  // by a corrupted value.
-  analyticsOptOut: preferences?.analyticsOptOut === true,
-});
+const normalizePreferences = (preferences?: Partial<UserPreference>): UserPreference => {
+  // Dropped rather than spread: the legacy key is read once here and never written back, so a
+  // record saved from this session carries only `hasOpenedPresetTeam`.
+  const { hasSeenLuxrayEasterEgg, ...stored } = preferences ?? {};
+
+  return {
+    ...defaultPreferences,
+    ...stored,
+    theme: stored.theme ?? defaultPreferences.theme,
+    // Coerce rather than spread: an older stored record has no such field, and anything other
+    // than an explicit `true` must read as "analytics on" so the default is not silently flipped
+    // by a corrupted value.
+    analyticsOptOut: stored.analyticsOptOut === true,
+    // Records written before the 2026-09 rename only carry the old key; without this fall-back
+    // every existing user would be shown the preset team's special card a second time.
+    hasOpenedPresetTeam: stored.hasOpenedPresetTeam ?? hasSeenLuxrayEasterEgg ?? false,
+  };
+};
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
@@ -98,12 +108,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [teams]);
 
   const updateMember = useCallback(
-    async (teamId: string, member: TeamMember) => {
+    async (teamId: string, member: TeamMember): Promise<MemberWriteResult> => {
       const team = teams.find((item) => item.id === teamId);
-      if (!team) return;
+      if (!team) return { ok: false, code: 'team-full', message: '队伍不存在。' };
+      // Composition rules are enforced here rather than in `saveTeam`, which also carries
+      // imports and whole-team rewrites — those must be able to land data that already breaks
+      // the rules (it is reported, never silently edited).
+      const check = checkMemberWrite(team, member);
+      if (!check.ok) return check;
       const exists = team.members.some((item) => item.id === member.id);
-      const nextMembers = exists ? team.members.map((item) => (item.id === member.id ? member : item)) : [...team.members, member].slice(0, 6);
+      const nextMembers = exists ? team.members.map((item) => (item.id === member.id ? member : item)) : [...team.members, member];
       await saveTeam({ ...team, members: nextMembers });
+      return { ok: true };
     },
     [saveTeam, teams],
   );

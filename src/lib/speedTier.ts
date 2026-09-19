@@ -1,6 +1,7 @@
 import { pokemon } from '../data';
 import type { EnvironmentState } from '../data/environment';
 import type { SpeedTierSnapshot } from '../data/speedTiers';
+import type { Team } from '../types';
 import type { EnvironmentBattleType } from './environmentDataset';
 import { calculateSpeed } from './calculations';
 import { clampStatPointValue, MAX_STAT_POINTS_PER_STAT } from './statPoints';
@@ -111,6 +112,49 @@ export const resolveTierPokemon = (ref: RawTierPokemon): ResolvedTierPokemon => 
   const match = aliasMatch ?? nameMatch ?? (canUseDexFallback ? dexIndex?.get(ref.dexNo) : undefined);
   if (match) return { key, id: match.id, pokemonId: match.pokemonId, displayName: match.chineseName, iconRef: match.iconRef, matched: true };
   return { key, displayName: ref.japaneseName, matched: false };
+};
+
+/**
+ * Which Pokémon the speed tool opens on when nothing has been recorded yet. One source of truth
+ * so 04-01's card and the page itself can never name two different Pokémon: newest team's lead →
+ * the environment's most-used species → the catalog's own first entry.
+ */
+export type SpeedSubject = { pokemonId: string; formId?: string; label: string; iconRef?: string };
+
+const subjectFromCatalog = (pokemonId: string, formId?: string): SpeedSubject | undefined => {
+  if (!idIndex) buildIndices();
+  const species = idIndex?.get(pokemonId);
+  if (!species) return undefined;
+  const form = formId && formId !== pokemonId ? idIndex?.get(formId) : undefined;
+  return {
+    pokemonId,
+    formId: form ? formId : undefined,
+    label: (form ?? species).chineseName,
+    iconRef: (form ?? species).iconRef,
+  };
+};
+
+export const resolveDefaultSpeedSubject = ({
+  teams,
+  environment,
+  battleType,
+}: {
+  teams?: Team[];
+  environment?: EnvironmentState | null;
+  battleType: EnvironmentBattleType;
+}): SpeedSubject => {
+  const newestTeam = [...(teams ?? [])].sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))[0];
+  const lead = newestTeam?.members[0];
+  // A team slot can still be empty, in which case it names nobody and the chain moves on.
+  const fromTeam = lead?.pokemonId ? subjectFromCatalog(lead.pokemonId, lead.formId) : undefined;
+  if (fromTeam) return fromTeam;
+
+  const mostUsed = [...(environment?.pokemonUsage[battleType] ?? [])].sort((left, right) => right.usageRate - left.usageRate)[0];
+  const fromEnvironment = mostUsed ? subjectFromCatalog(mostUsed.pokemonId) : undefined;
+  if (fromEnvironment) return fromEnvironment;
+
+  const fallback = pokemon[0];
+  return { pokemonId: fallback.id, label: fallback.chineseName, iconRef: fallback.iconRef };
 };
 
 // Collapse chips that resolve to the same catalog entry (e.g. Aegislash shield &

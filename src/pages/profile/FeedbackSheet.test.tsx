@@ -40,12 +40,12 @@ describe('FeedbackSheet', () => {
     expect((send as HTMLButtonElement).disabled).toBe(true);
 
     await user.type(screen.getByLabelText('留言内容'), '  太短  ');
-    expect(screen.getByText('至少 5 字，还差 3 字（不计首尾空格）')).toBeTruthy();
+    expect(screen.getByText('再写 3 个字就能发送。')).toBeTruthy();
     expect((send as HTMLButtonElement).disabled).toBe(true);
 
     await user.clear(screen.getByLabelText('留言内容'));
     await user.type(screen.getByLabelText('留言内容'), '  刚好五个字  ');
-    expect(screen.getByText('已达到最低字数')).toBeTruthy();
+    expect(screen.queryByText(/再写 \d+ 个字就能发送。/)).toBeNull();
     expect((send as HTMLButtonElement).disabled).toBe(false);
     expect(fetchMock).not.toHaveBeenCalled();
   });
@@ -55,12 +55,12 @@ describe('FeedbackSheet', () => {
     const fetchMock = stubFetch(jsonResponse(created, 201));
     render(<FeedbackSheet onClose={() => {}} route="/tools/speed" />);
 
-    await user.click(screen.getByRole('button', { name: '问题' }));
+    await user.click(screen.getByRole('button', { name: '遇到问题' }));
     await user.type(screen.getByLabelText('留言内容'), '  速度线页面在小屏上被裁切  ');
     await user.type(screen.getByLabelText('联系方式（可选）'), 'me@example.com');
     await user.click(screen.getByRole('button', { name: /发送/ }));
 
-    expect(await screen.findByText('已收到，谢谢！')).toBeTruthy();
+    expect(await screen.findByText('已收到')).toBeTruthy();
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(fetchMock.mock.calls[0][0]).toBe('/api/feedback');
 
@@ -79,12 +79,12 @@ describe('FeedbackSheet', () => {
     expect(screen.queryByLabelText('留言内容')).toBeNull();
   });
 
-  it('defaults to 建议 and reports it when the user never touches the chips', async () => {
+  it('defaults to 想要功能 and reports it when the user never touches the chips', async () => {
     const user = userEvent.setup();
     const fetchMock = stubFetch(jsonResponse(created, 201));
     render(<FeedbackSheet onClose={() => {}} />);
 
-    expect(screen.getByRole('button', { name: '建议' }).getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByRole('button', { name: '想要功能' }).getAttribute('aria-pressed')).toBe('true');
     await user.type(screen.getByLabelText('留言内容'), '想要一个深色的图鉴');
     await user.click(screen.getByRole('button', { name: /发送/ }));
 
@@ -113,9 +113,9 @@ describe('FeedbackSheet', () => {
   });
 
   it.each([
-    [429, '今天留言太多了，明天再来。'],
-    [503, '留言功能暂时不可用，稍后再试。'],
-    [400, '这条留言没能通过校验，改一改再发。'],
+    [429, '刚刚已经发过一条，稍后可以再发。草稿已保留。'],
+    [503, '留言服务暂时不可用。草稿已保留，稍后重试。'],
+    [400, '这条内容没法提交，换个说法再试。'],
   ])('explains a %s without losing the draft', async (status, expected) => {
     const user = userEvent.setup();
     stubFetch(jsonResponse({ error: 'nope' }, status));
@@ -126,7 +126,7 @@ describe('FeedbackSheet', () => {
 
     expect((await screen.findByRole('alert')).textContent).toBe(expected);
     expect((screen.getByLabelText('留言内容') as HTMLTextAreaElement).value).toBe('这是一条正常长度的留言');
-    expect(screen.queryByText('已收到，谢谢！')).toBeNull();
+    expect(screen.queryByText('已收到')).toBeNull();
   });
 
   it('keeps the draft and allows retry after an actual offline request failure', async () => {
@@ -140,12 +140,12 @@ describe('FeedbackSheet', () => {
     await user.type(screen.getByLabelText('留言内容'), '这是一条正常长度的留言');
     await user.click(screen.getByRole('button', { name: /发送/ }));
 
-    expect((await screen.findByRole('alert')).textContent).toBe('发送失败，草稿还在，可以再试一次。');
+    expect((await screen.findByRole('alert')).textContent).toBe('网络没连上，没有发出去。草稿已保留。');
     expect(window.sessionStorage.getItem('luxraykit:feedback-draft')).toContain('这是一条正常长度的留言');
     expect((screen.getByRole('button', { name: /^发送$/ }) as HTMLButtonElement).disabled).toBe(false);
     const retryFetch = stubFetch(jsonResponse(created, 201));
     await user.click(screen.getByRole('button', { name: /^发送$/ }));
-    expect(await screen.findByText('已收到，谢谢！')).toBeTruthy();
+    expect(await screen.findByText('已收到')).toBeTruthy();
     expect(retryFetch).toHaveBeenCalledTimes(1);
   });
 
@@ -160,11 +160,11 @@ describe('FeedbackSheet', () => {
 
     expect((screen.getByLabelText('留言内容') as HTMLTextAreaElement).value).toBe('没写完就手滑关掉了');
     expect((screen.getByLabelText('联系方式（可选）') as HTMLInputElement).value).toBe('me@example.com');
-    expect(screen.getByRole('button', { name: '其他' }).getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByRole('button', { name: '数据有误' }).getAttribute('aria-pressed')).toBe('true');
 
     await user.click(screen.getByRole('button', { name: /发送/ }));
 
-    expect(await screen.findByText('已收到，谢谢！')).toBeTruthy();
+    expect(await screen.findByText('已收到')).toBeTruthy();
     expect(window.sessionStorage.getItem('luxraykit:feedback-draft')).toBeNull();
   });
 
@@ -179,7 +179,7 @@ describe('FeedbackSheet', () => {
     expect((screen.getByRole('button', { name: /^发送$/ }) as HTMLButtonElement).disabled).toBe(false);
     expect(screen.getByText(/浏览器提示当前离线/)).toBeTruthy();
     await user.click(screen.getByRole('button', { name: /^发送$/ }));
-    expect(await screen.findByText('已收到，谢谢！')).toBeTruthy();
+    expect(await screen.findByText('已收到')).toBeTruthy();
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 

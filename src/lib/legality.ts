@@ -1,6 +1,7 @@
 import { abilities, items, moves, pokemon } from '../data';
 import type { LegalityStatus, Team, TeamMember } from '../types';
 import { findBattleForm, findMegaFormByItem } from './pokemonForms';
+import { teammateWithSameSpecies } from './teamComposition';
 import { MAX_STAT_POINTS_PER_STAT, MAX_TOTAL_STAT_POINTS, statPointKeys, statPointTotal } from './statPoints';
 
 export type LegalityIssue = {
@@ -10,6 +11,7 @@ export type LegalityIssue = {
     | 'pokemon-not-in-rule'
     | 'item-not-in-rule'
     | 'duplicate-held-item'
+    | 'duplicate-species'
     | 'ability-mismatch'
     | 'move-mismatch'
     | 'mega-item-mismatch'
@@ -52,6 +54,12 @@ export function evaluateMemberLegality(member: TeamMember, team?: Team): Legalit
       status: 'illegal',
       issues: [error('当前 Pokémon 不存在于本地数据版本。', 'pokemon-not-in-rule')],
     };
+  }
+
+  // Species, not form: a Mega and its base form are the same Pokémon, so a roster may hold
+  // only one of them.
+  if (teammateWithSameSpecies(team ?? { members: [] }, member)) {
+    issues.push(error('同一队伍里每只宝可梦只能出现一次。', 'duplicate-species'));
   }
 
   if (!entry.legalInCurrentRule) {

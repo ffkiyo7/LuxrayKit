@@ -23,6 +23,7 @@
 - 提交前至少跑 `npm test`；涉及前端行为的改动跑 `npm run build`（含 `tsc -b` 全量类型检查）。
 - **视觉回归是 CI-only**：开发在 macOS，本机无法产出 Linux 基线（且 Playwright 快照名只带平台不带架构，arm64 会静默覆盖 CI 的 amd64 基线）。校验靠 CI 的 `visual` 阻塞门禁，重建走 `gh workflow run visual-baseline.yml --ref <当前分支>`。
 - 视觉用例吃冻结数据（fixture + 固定时钟），**不要为了"让截图跟上最新数据"去改用例或放宽阈值**——这层解耦是为了让日常数据刷新不卡住 auto-merge。
+- **视觉改动由用户肉眼验收**：凡涉及视觉的改动，Agent 交付时说明改了哪些页面 / 状态、怎么看到（路由 + 操作步骤），由用户自己看。验收环境就是 preview：push 任意非 `main`、非 `automation/` 分支 → 影子 Worker 构建 → 预览链接自动推到 Discord `luxraykit-dev`（链接形如 `<分支 slug>-luxraykit-app-preview.ffkiyo7.workers.dev`，同一分支地址固定；preview 无留言箱 DO，留言接口恒 503）。**禁止**用 computer use、浏览器截图或临时 Playwright 脚本自行"验收"视觉；也不要为视觉改动新增回归用例——基线保持少而稳，只有用户明确要求时才增删。
 
 ## 4. 文件操作规范
 

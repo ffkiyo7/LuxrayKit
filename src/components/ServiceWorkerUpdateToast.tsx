@@ -26,21 +26,21 @@ export function ServiceWorkerUpdateToast() {
 
   return (
     <div
-      className="fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+4.5rem)] z-50 flex items-center gap-3 rounded-xl border border-border bg-elevated px-3 py-2.5 text-sm shadow-lg"
+      className="lk-float fixed inset-x-5 bottom-[calc(env(safe-area-inset-bottom)+84px)] z-50 mx-auto flex max-w-[390px] items-center gap-3 rounded-[18px] bg-btn1 py-3.5 pl-4 pr-3.5"
       role="status"
     >
-      <span className="min-w-0 flex-1">新版本已就绪，刷新以更新</span>
+      <RefreshCw aria-hidden="true" className="shrink-0 text-textLabel" size={18} />
+      <span className="min-w-0 flex-1 text-sm font-extrabold tracking-[-0.01em]">新版本已下载</span>
       <button
-        className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-page active:scale-[0.98]"
+        className="inline-flex h-9 shrink-0 items-center rounded-xl bg-accent px-3.5 text-sm font-extrabold text-page active:scale-[0.98]"
         type="button"
         onClick={() => window.location.reload()}
       >
-        <RefreshCw size={13} aria-hidden="true" />
-        刷新
+        重载
       </button>
       <button
         aria-label="忽略更新提示"
-        className="shrink-0 text-textMuted"
+        className="grid h-[30px] w-[30px] shrink-0 place-items-center rounded-full text-textSecondary"
         type="button"
         onClick={() => setVisible(false)}
       >

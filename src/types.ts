@@ -262,9 +262,16 @@ export type UserPreference = {
   theme: 'dark' | 'light';
   cachedRuleSetId: string;
   lastDataRefreshAt: string;
-  hasSeenEnvironmentImportNotice: boolean;
   hasCompletedOnboarding: boolean;
-  hasSeenLuxrayEasterEgg: boolean;
+  // Set the first time the shipped preset team is opened: 02-02 draws it as a special card and
+  // N02-15 as an ordinary one afterwards. Older stored preferences simply lack the key (the
+  // repository does not merge defaults), which reads as false — the card shows once more.
+  hasOpenedPresetTeam: boolean;
+  /**
+   * The pre-2026-09 name of `hasOpenedPresetTeam`, kept optional so stored records written
+   * before the rename still read as "already opened". Nothing writes it any more.
+   */
+  hasSeenLuxrayEasterEgg?: boolean;
   // Opt *out*, so the default (false) keeps the anonymous page-view ping on. See lib/analytics.ts
   // for exactly what it sends — no cookie, no identifier, no user content.
   analyticsOptOut: boolean;

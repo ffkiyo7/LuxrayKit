@@ -9,6 +9,7 @@
 | Pokémon 名称、商标、角色图像和道具图标 | `public/assets/pokemon/**`、`public/assets/items/**`、PWA 图标及包含这些素材的截图 | 来源包括 PokeAPI sprites、PokéBase、Serebii 和相关权利方。它们仍归各自权利方所有，不因进入本仓库而改为 MIT。 |
 | 外部环境统计与队伍样本 | `src/data/external/**`、`public/data/pokedb/**` | 来源包括 PokeDB、VGCPastes 及原队伍作者。仓库保留来源标记；再使用时还需遵守对应来源的条款。 |
 | 外部整理的名称、描述、规则与图鉴数据 | `src/data/seed/regMA/**`、`src/data/pokemonFacts.ts` | 来源包括 Pokémon 官方页面、PokeAPI、PokéBase、神奇宝贝百科及其他公开资料。事实字段与引用文本的权利状态不同，本项目不对外部内容重新授权。 |
+| Manrope 字体（拉丁 + 数字子集） | `src/assets/fonts/manrope-latin-wght-normal.woff2` | The Manrope Project Authors，SIL Open Font License 1.1；许可全文随字体保存在 `src/assets/fonts/Manrope-OFL.txt`。子集文件取自 Fontsource 的 `@fontsource-variable/manrope` 5.3.0。 |
 | npm 依赖 | `package.json`、`package-lock.json` | 每个依赖继续适用其自身许可证；安装包中的许可证和版权声明必须保留。 |
 
 详细来源与风险分级记录在 [`src/data/seed/regMA/metadata.ts`](./src/data/seed/regMA/metadata.ts) 的 `dataSourceManifest` 和 [`docs/research/ASSET_SOURCE_AUDIT.md`](./docs/research/ASSET_SOURCE_AUDIT.md)。

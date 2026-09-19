@@ -1,27 +1,32 @@
-import { ArrowLeft, BarChart3, ExternalLink, ShieldCheck, UserCircle, Users, Wrench } from 'lucide-react';
+import { ArrowLeft, BarChart3, Import, UserCircle, Users, Wrench, X } from 'lucide-react';
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
-import { BottomNav } from './components/BottomNav';
+import { AutoHideBottomNav } from './components/BottomNav';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import { Header } from './components/Header';
-import { Onboarding } from './components/onboarding/Onboarding';
 import { ServiceWorkerUpdateToast } from './components/ServiceWorkerUpdateToast';
-import { Button } from './components/ui';
+import { Toast } from './components/kit/Toast';
+import { EnvironmentErrorView, EnvironmentLoadingView } from './pages/EnvironmentStates';
 import { productName } from './branding';
-import { productContextLabel } from './data/schedule';
 import type { EnvironmentState, EnvironmentTeamSample } from './data/environment';
-import { useAutoHideBottomNav } from './hooks/useAutoHideBottomNav';
 import { useHashRoute } from './hooks/useHashRoute';
-import { routeForTab, routePattern, tabForRoute, type Route, type ToolRouteId } from './lib/hashRoute';
+import { useScrollResetOnPush } from './hooks/useScrollReset';
+import { buildHash, routeForTab, routePattern, tabForRoute, type Route, type ToolRouteId } from './lib/hashRoute';
 import { trackRoute } from './lib/analytics';
 import { AppProvider, useAppStore } from './state/AppContext';
 import type { Team, TeamMember } from './types';
 import type { ToolView } from './pages/ToolsPage';
 import type { CalcSide } from './pages/CalculatorPage';
+import type { DexTab } from './pages/dex/dexShared';
+import type { RecentDexEntry } from './lib/toolActivity';
 
 const CalculatorPage = lazy(() => import('./pages/CalculatorPage').then((module) => ({ default: module.CalculatorPage })));
 const DexPage = lazy(() => import('./pages/DexPage').then((module) => ({ default: module.DexPage })));
 const EnvironmentPage = lazy(() => import('./pages/EnvironmentPage').then((module) => ({ default: module.EnvironmentPage })));
 const ProfilePage = lazy(() => import('./pages/ProfilePage').then((module) => ({ default: module.ProfilePage })));
+const AboutPage = lazy(() => import('./pages/profile/AboutPage').then((module) => ({ default: module.AboutPage })));
+const BackupPage = lazy(() => import('./pages/profile/BackupPage').then((module) => ({ default: module.BackupPage })));
+const InstallPage = lazy(() => import('./pages/profile/InstallPage').then((module) => ({ default: module.InstallPage })));
+const OfflineCachePage = lazy(() => import('./pages/profile/OfflineCachePage').then((module) => ({ default: module.OfflineCachePage })));
+const FeedbackSheet = lazy(() => import('./pages/profile/FeedbackSheet').then((module) => ({ default: module.FeedbackSheet })));
 const RulePage = lazy(() => import('./pages/RulePage').then((module) => ({ default: module.RulePage })));
 const SpeedPage = lazy(() => import('./pages/SpeedPage').then((module) => ({ default: module.SpeedPage })));
 const TeamPage = lazy(() => import('./pages/TeamPage').then((module) => ({ default: module.TeamPage })));
@@ -30,7 +35,6 @@ const ToolsPage = lazy(() => import('./pages/ToolsPage').then((module) => ({ def
 const TypeChartPage = lazy(() => import('./pages/TypeChartPage').then((module) => ({ default: module.TypeChartPage })));
 
 export type TabId = 'environment' | 'teams' | 'tools' | 'profile';
-export type OverlayPage = 'rule' | null;
 
 const tabs = [
   { id: 'environment', label: '环境', icon: BarChart3 },
@@ -69,28 +73,38 @@ type AppToast = {
   tone?: 'success' | 'warning';
 };
 
-const importCoverageItems = (sample: EnvironmentTeamSample) => [
-  'Pokémon',
-  '道具',
-  sample.hasSpread ? 'SP分配' : undefined,
-  sample.hasMoves ? '配招' : undefined,
-  sample.replicaCode ? '队伍码' : undefined,
-].filter((item): item is string => Boolean(item));
-
-const missingImportCoverageItems = (sample: EnvironmentTeamSample) => [
-  sample.hasSpread ? undefined : 'SP分配',
-  sample.hasMoves ? undefined : '配招',
-  sample.replicaCode ? undefined : '队伍码',
-].filter((item): item is string => Boolean(item));
-
-function PageLoading({ label = '正在载入页面...' }: { label?: string }) {
+/** Page-level placeholder (N08-15): the shape of a page, not a spinner. */
+function PageLoading({ label = '正在载入页面' }: { label?: string }) {
   return (
-    <div className="rounded-lg border border-border bg-card px-4 py-8 text-center text-sm text-textSecondary">
-      {label}
+    <div>
+      <div className="px-6 pt-11">
+        <span className="block h-[34px] w-[46%] rounded-xl bg-textPrimary/[0.09]" />
+        <span className="mt-3 block h-[13px] w-[68%] rounded-full bg-textPrimary/[0.06]" />
+        <span className="mt-[22px] block h-11 rounded-[14px] bg-textPrimary/[0.05]" />
+      </div>
+      <div className="flex flex-col gap-3.5 px-6 pt-[22px]">
+        {[0.05, 0.05, 0.04, 0.03].map((alpha, index) => (
+          <span key={index} className="block h-[68px] rounded-2xl" style={{ background: `rgb(var(--color-text-primary) / ${alpha})` }} />
+        ))}
+      </div>
+      <div className="flex items-center gap-2.5 px-6 pt-7">
+        <span className="inline-block h-3 w-14 rounded-full bg-textPrimary/[0.09]" />
+        <span className="text-[13px] font-semibold text-textSecondary" role="status">
+          {label}
+        </span>
+      </div>
     </div>
   );
 }
 
+const TEAM_SIZE = 6;
+
+/**
+ * 07-04 — what a sample actually carries, and the confirmation step every upper-build import
+ * goes through: the card on 环境 首页, the 相关上位构筑 row on a Pokémon detail and the 上位构筑
+ * list card all raise this one dialog. The frame lists only what is *missing* below the count
+ * line, so a fully-covered sample shows the counts and nothing else.
+ */
 function ImportCoverageNoticeDialog({
   sample,
   onCancel,
@@ -100,26 +114,61 @@ function ImportCoverageNoticeDialog({
   onCancel: () => void;
   onContinue: () => void;
 }) {
-  const coverageItems = importCoverageItems(sample);
-  const missingItems = missingImportCoverageItems(sample);
+  const itemCount = sample.slots.filter((slot) => slot.itemId).length;
+  const spreadCount = sample.slots.filter((slot) => Object.keys(slot.statPoints ?? {}).length > 0).length;
+  const moveCount = sample.slots.filter((slot) => slot.moveIds.length > 0).length;
+  const counts = [
+    `宝可梦 ${sample.slots.length} / ${TEAM_SIZE}`,
+    `道具 ${itemCount} / ${TEAM_SIZE}`,
+    ...(spreadCount > 0 ? [`SP ${spreadCount} / ${TEAM_SIZE}`] : []),
+    ...(moveCount > 0 ? [`配招 ${moveCount} / ${TEAM_SIZE}`] : []),
+  ].join(' · ');
 
   return (
-    <div className="fixed inset-0 z-50 mx-auto max-w-[430px]" role="dialog" aria-label="导入配置提示" aria-modal="true" data-bottom-nav-lock="true">
-      <button className="absolute inset-0 h-full w-full bg-black/70" type="button" aria-label="关闭导入配置提示" onClick={onCancel} />
-      <section className="surface-shadow absolute inset-x-4 top-1/2 -translate-y-1/2 rounded-xl border border-border bg-card p-4">
-        <h2 className="text-base font-semibold">导入配置提示</h2>
-        <p className="mt-2 text-sm leading-6 text-textSecondary">
-          这份样本可带入{coverageItems.join('、')}。{missingItems.length > 0 ? `未公开的${missingItems.join('、')}需要手动确认。` : '公开配置已随队伍带入。'}
-        </p>
-        <div className="mt-4 grid grid-cols-2 gap-2">
-          <Button variant="ghost" type="button" onClick={() => window.open(sample.reportUrl, '_blank', 'noopener,noreferrer')}>
-            <ExternalLink size={14} />
-            队报链接
-          </Button>
-          <Button type="button" onClick={onContinue}>
-            继续导入
-          </Button>
+    <div className="fixed inset-0 z-50 mx-auto max-w-[430px]" role="dialog" aria-label="导入确认" aria-modal="true" data-bottom-nav-lock="true">
+      <button className="lk-sheet-overlay absolute inset-0 h-full w-full" type="button" aria-label="关闭导入确认" onClick={onCancel} />
+      <section className="lk-sheet absolute inset-x-4 top-1/2 -translate-y-1/2 rounded-[20px] p-[22px]">
+        <div className="flex items-start gap-3">
+          <h2 className="m-0 flex-1 text-[22px] font-extrabold leading-[30px] tracking-[-0.01em]">
+            导入「{sample.title}」
+          </h2>
+          <button
+            aria-label="关闭导入确认"
+            className="-mr-1 -mt-0.5 grid h-[30px] w-[30px] shrink-0 place-items-center rounded-full bg-btn1 text-textLabel"
+            type="button"
+            onClick={onCancel}
+          >
+            <X size={17} />
+          </button>
         </div>
+        <p className="mt-2 text-sm leading-[21px] text-textLabel">这份样本可带入宝可梦、道具、SP 分配。</p>
+        <div className="mt-4 flex flex-col gap-3">
+          <div className="flex items-center gap-2.5">
+            <span className="inline-block h-[7px] w-[7px] shrink-0 rounded-full bg-textLabel" />
+            <span className="text-sm font-bold tabular-nums">{counts}</span>
+          </div>
+          {!sample.hasMoves && (
+            <div className="flex items-center gap-2.5">
+              <span className="inline-block h-[7px] w-[7px] shrink-0 rounded-full bg-data" />
+              <span className="text-sm font-bold text-data">配招未公开</span>
+            </div>
+          )}
+          {!sample.replicaCode && (
+            <div className="flex items-center gap-2.5">
+              <span className="inline-block h-[7px] w-[7px] shrink-0 rounded-full bg-disabled" />
+              <span className="text-sm font-bold text-textSecondary">无队伍码</span>
+            </div>
+          )}
+        </div>
+        <div className="mt-[18px] h-px bg-[var(--hairline)]" />
+        <button
+          className="lk-env-slab mt-[18px] flex h-11 w-full items-center justify-center gap-[7px] rounded-[14px] bg-accent text-[15px] font-extrabold text-page"
+          type="button"
+          onClick={onContinue}
+        >
+          <Import aria-hidden="true" size={16} />
+          继续导入
+        </button>
       </section>
     </div>
   );
@@ -131,31 +180,47 @@ function ToolWorkspace({
   selectedMemberId,
   onPickMember,
   onOpenCalculator,
+  onOpenDex,
   environment,
+  teams,
   activeTeam,
   speedPresetMember,
   calcPreset,
+  dexTab,
 }: {
   view: ToolView;
   onBack: () => void;
   selectedMemberId?: string;
   onPickMember: (memberId: string) => void;
   onOpenCalculator: (pokemonId: string) => void;
+  onOpenDex: () => void;
   environment: EnvironmentState | null;
+  teams?: Team[];
   activeTeam?: Team;
   speedPresetMember?: TeamMember;
   calcPreset?: { memberId: string; side: CalcSide };
+  dexTab?: DexTab;
 }) {
   const content = {
-    calculator: <CalculatorPage selectedMemberId={selectedMemberId} onPickMember={onPickMember} presetMember={calcPreset} />,
-    dex: <DexPage onOpenCalculator={onOpenCalculator} />,
-    speed: environment ? <SpeedPage environment={environment} activeTeam={activeTeam} presetMember={speedPresetMember} /> : <PageLoading label="正在载入速度线环境数据..." />,
-    typeChart: <TypeChartPage />,
+    calculator: <CalculatorPage environment={environment} selectedMemberId={selectedMemberId} onPickMember={onPickMember} presetMember={calcPreset} />,
+    dex: <DexPage initialTab={dexTab} onOpenCalculator={onOpenCalculator} />,
+    speed: environment ? (
+      <SpeedPage
+        environment={environment}
+        teams={teams}
+        activeTeam={activeTeam}
+        presetMember={speedPresetMember}
+        onOpenDex={onOpenDex}
+      />
+    ) : (
+      <PageLoading label="正在载入速度线" />
+    ),
+    typeChart: <TypeChartPage environment={environment} />,
   }[view];
 
   return (
-    <div className="space-y-3">
-      <button className="inline-flex items-center gap-2 text-sm text-textSecondary" type="button" onClick={onBack}>
+    <div>
+      <button className="mx-6 mt-4 inline-flex items-center gap-2 text-sm text-textSecondary" type="button" onClick={onBack}>
         <ArrowLeft size={16} />
         返回工具
       </button>
@@ -169,29 +234,30 @@ function AppShell() {
   // button, deep links and share links all need it. Only ephemeral, id-bearing presets
   // stay in memory below.
   const { route, navigate, back } = useHashRoute();
+  useScrollResetOnPush(buildHash(route));
   const activeTab: TabId = tabForRoute(route);
   const toolView = toolViewForRoute(route);
-  // RulePage stays deliberately unreachable — kept rendered behind a state that nothing
-  // sets, and intentionally *not* given a route. See AGENTS.md / DEVELOPER_GUIDE §4.1.
-  const [overlay, setOverlay] = useState<OverlayPage>(null);
   const [calculatorMemberId, setCalculatorMemberId] = useState<string | undefined>();
   const [speedPresetMemberId, setSpeedPresetMemberId] = useState<string | undefined>();
   const [calcPreset, setCalcPreset] = useState<{ memberId: string; side: CalcSide } | undefined>();
+  // Which dex tab a 「最近用过」 chip on the tools page asks for. Like the calculator presets it is
+  // a one-shot hint, not a destination, so it stays out of the route.
+  const [dexTab, setDexTab] = useState<DexTab | undefined>();
   const [activeTeamId, setActiveTeamId] = useState<string | undefined>();
   const [importToast, setImportToast] = useState<AppToast | null>(null);
   const [highlightedImportTeamId, setHighlightedImportTeamId] = useState<string | undefined>();
   const [pendingImportSample, setPendingImportSample] = useState<EnvironmentTeamSample | null>(null);
   const [environmentState, setEnvironmentState] = useState<EnvironmentState | null>(null);
   const [environmentLoadFailed, setEnvironmentLoadFailed] = useState(false);
-  const { loading, teams, preferences, replacePreferences, saveTeam } = useAppStore();
+  const { loading, teams, preferences, saveTeam } = useAppStore();
 
   const activeTeam = teams.find((team) => team.id === activeTeamId) ?? teams[0];
   const speedPresetMember = teams.flatMap((team) => team.members).find((member) => member.id === speedPresetMemberId);
-  const bottomNavAutoHideEnabled = !overlay && (activeTab === 'environment' || (activeTab === 'tools' && toolView === 'dex'));
-  const bottomNavAutoHide = useAutoHideBottomNav({
-    enabled: bottomNavAutoHideEnabled,
-    lock: Boolean(pendingImportSample),
-  });
+  const bottomNavAutoHideEnabled = activeTab === 'environment' || (activeTab === 'tools' && toolView === 'dex');
+  // 我的 second-level screens are drawn without the floating nav (08-02, N08-01, N08-10, N08-16):
+  // they are a drill-down, and the frames give them no room for it. 写留言 is a sheet over 我的,
+  // so it keeps the tab root underneath and locks the nav the usual way.
+  const profileSubPage = route.name.startsWith('profile-') && route.name !== 'profile-feedback';
 
   useEffect(() => {
     if (teams.length === 0) {
@@ -212,6 +278,14 @@ function AppShell() {
     return () => window.clearTimeout(timeoutId);
   }, [highlightedImportTeamId, importToast]);
 
+  // Bumped by 重试 on the failure screen (01-08) and by the 离线 / 可能过期 notices (01-09,
+  // N01-14); re-running the effect is the whole retry, there is no separate fetch path.
+  const [environmentLoadAttempt, setEnvironmentLoadAttempt] = useState(0);
+  const retryEnvironmentLoad = useCallback(() => {
+    setEnvironmentLoadFailed(false);
+    setEnvironmentLoadAttempt((attempt) => attempt + 1);
+  }, []);
+
   useEffect(() => {
     let active = true;
     import('./data/environment')
@@ -229,14 +303,28 @@ function AppShell() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [environmentLoadAttempt]);
 
   const openTool = useCallback(
     (view: ToolView) => {
       if (view === 'calculator') setCalculatorMemberId(undefined);
       setCalcPreset(undefined);
       setSpeedPresetMemberId(undefined);
+      setDexTab(undefined);
       navigate({ name: 'tool', tool: routeIdByToolView[view] });
+    },
+    [navigate],
+  );
+
+  const openDexEntry = useCallback(
+    (entry: RecentDexEntry) => {
+      if (entry.kind === 'pokemon') {
+        setDexTab('pokemon');
+        navigate({ name: 'dex-pokemon', pokemonId: entry.id });
+        return;
+      }
+      setDexTab(entry.kind === 'move' ? 'moves' : entry.kind === 'item' ? 'items' : 'abilities');
+      navigate({ name: 'tool', tool: 'dex' });
     },
     [navigate],
   );
@@ -268,18 +356,10 @@ function AppShell() {
     if (activeTab !== 'tools' || toolView !== 'speed') {
       setSpeedPresetMemberId(undefined);
     }
+    if (activeTab !== 'tools' || toolView !== 'dex') {
+      setDexTab(undefined);
+    }
   }, [activeTab, toolView]);
-
-  const completeOnboarding = useCallback(() => {
-    void replacePreferences({ ...preferences, hasCompletedOnboarding: true });
-  }, [preferences, replacePreferences]);
-
-  // Onboarding's feedback entries land on the message form. Finishing the tour first matters:
-  // otherwise the overlay would still be on top of the sheet the user just asked for.
-  const openFeedbackFromOnboarding = useCallback(() => {
-    completeOnboarding();
-    navigate({ name: 'profile-feedback' });
-  }, [completeOnboarding, navigate]);
 
   const performImportSampleTeam = useCallback(
     async (sample: EnvironmentTeamSample) => {
@@ -288,39 +368,33 @@ function AppShell() {
       await saveTeam(importedTeam);
       setActiveTeamId(importedTeam.id);
       setHighlightedImportTeamId(importedTeam.id);
-      setImportToast({ title: '已导入配置' });
+      setImportToast({ title: `已导入「${sample.title}」` });
       navigate({ name: 'teams' });
     },
     [environmentState?.dataStatusLabel, navigate, saveTeam],
   );
 
-  const importSampleTeam = useCallback(
-    async (sample: EnvironmentTeamSample) => {
-      if (!preferences.hasSeenEnvironmentImportNotice) {
-        setPendingImportSample(sample);
-        return;
-      }
-      await performImportSampleTeam(sample);
-    },
-    [performImportSampleTeam, preferences.hasSeenEnvironmentImportNotice],
-  );
+  // Importing replaces nothing and creates a team, so it always asks first — a tap on a sample
+  // card is an interest in the sample, not yet a decision to take it.
+  const importSampleTeam = useCallback((sample: EnvironmentTeamSample) => {
+    setPendingImportSample(sample);
+  }, []);
 
   const continuePendingImport = useCallback(async () => {
     if (!pendingImportSample) return;
     const sample = pendingImportSample;
     setPendingImportSample(null);
-    await replacePreferences({ ...preferences, hasSeenEnvironmentImportNotice: true });
     await performImportSampleTeam(sample);
-  }, [pendingImportSample, performImportSampleTeam, preferences, replacePreferences]);
+  }, [pendingImportSample, performImportSampleTeam]);
 
   // Share flow: navigator.share where the platform has it (Android/iOS sheet), clipboard
   // otherwise. The code is generated on demand rather than stored — it must always reflect
   // the team as it is now.
   const shareTeam = useCallback(
     async (team: Team) => {
-      if (team.members.length === 0) return;
       try {
-        const { encodeTeamShare, teamShareUrl } = await import('./lib/teamShare');
+        const { canShareTeam, encodeTeamShare, teamShareUrl } = await import('./lib/teamShare');
+        if (!canShareTeam(team)) return;
         const url = teamShareUrl(await encodeTeamShare(team));
         if (typeof navigator.share === 'function') {
           await navigator.share({ title: `${team.name} · ${productName}`, url });
@@ -349,6 +423,13 @@ function AppShell() {
     [navigate, saveTeam],
   );
 
+  // Loaded on demand: backupFile reaches the data barrel, and a static import from the shell
+  // pins the move catalog into the first-paint bundle (tests/pwa/first-paint-budget.spec.ts).
+  const exportBackup = useCallback(async () => {
+    const { downloadBackup } = await import('./pages/profile/backupFile');
+    downloadBackup(teams, preferences);
+  }, [preferences, teams]);
+
   const copyReplicaCode = useCallback(async (replicaCode: string) => {
     try {
       await navigator.clipboard.writeText(replicaCode);
@@ -359,22 +440,33 @@ function AppShell() {
   }, []);
 
   const page = useMemo(() => {
-    if (overlay === 'rule') return <RulePage onBack={() => setOverlay(null)} />;
-
     switch (activeTab) {
       case 'environment':
-        return environmentState ? (
-          <EnvironmentPage environment={environmentState} onImportSample={importSampleTeam} />
+        if (environmentState) {
+          return (
+            <EnvironmentPage
+              environment={environmentState}
+              onImportSample={importSampleTeam}
+              onOpenRule={() => navigate({ name: 'profile-rule' })}
+              onRetryLoad={retryEnvironmentLoad}
+            />
+          );
+        }
+        return environmentLoadFailed ? (
+          <EnvironmentErrorView onOpenTeams={() => navigate({ name: 'teams' })} onRetry={retryEnvironmentLoad} />
         ) : (
-          <PageLoading label={environmentLoadFailed ? '环境数据加载失败，请稍后重试。' : '正在载入环境数据...'} />
+          <EnvironmentLoadingView />
         );
       case 'teams':
         return (
           <TeamPage
             activeTeamId={activeTeam?.id}
+            environment={environmentState}
             highlightedTeamId={highlightedImportTeamId}
             onActiveTeamChange={setActiveTeamId}
+            onBrowseUpperBuilds={() => navigate({ name: 'env-teams' })}
             onCopyReplicaCode={copyReplicaCode}
+            onImportSharedTeam={importSharedTeam}
             onShareTeam={shareTeam}
             onSendToSpeed={sendMemberToSpeed}
             onSendToCalculator={sendMemberToCalculator}
@@ -391,16 +483,34 @@ function AppShell() {
               setCalculatorMemberId(pokemonId);
               navigate({ name: 'tool', tool: 'calculator' });
             }}
+            onOpenDex={() => navigate({ name: 'tool', tool: 'dex' })}
             environment={environmentState}
+            teams={teams}
             activeTeam={activeTeam}
             speedPresetMember={speedPresetMember}
             calcPreset={calcPreset}
+            dexTab={dexTab}
           />
         ) : (
-          <ToolsPage onOpenTool={openTool} />
+          <ToolsPage environment={environmentState} teams={teams} onOpenDexEntry={openDexEntry} onOpenTool={openTool} />
         );
       case 'profile':
-        return <ProfilePage />;
+        switch (route.name) {
+          case 'profile-backup':
+            return <BackupPage onBack={back} onGoToTeams={() => navigate({ name: 'teams' })} />;
+          case 'profile-cache':
+            return (
+              <OfflineCachePage environment={environmentState} onBack={back} onOpenMethodology={() => navigate({ name: 'env-methodology' })} />
+            );
+          case 'profile-install':
+            return <InstallPage onBack={back} />;
+          case 'profile-rule':
+            return <RulePage onBack={back} />;
+          case 'profile-about':
+            return <AboutPage onBack={back} onExportBackup={exportBackup} />;
+          default:
+            return <ProfilePage />;
+        }
     }
   }, [
     activeTab,
@@ -408,6 +518,8 @@ function AppShell() {
     back,
     calculatorMemberId,
     calcPreset,
+    dexTab,
+    openDexEntry,
     speedPresetMember,
     sendMemberToSpeed,
     sendMemberToCalculator,
@@ -415,17 +527,22 @@ function AppShell() {
     environmentState,
     highlightedImportTeamId,
     importSampleTeam,
+    importSharedTeam,
     copyReplicaCode,
+    exportBackup,
     navigate,
     openTool,
+    preferences,
+    retryEnvironmentLoad,
+    route,
     shareTeam,
-    overlay,
+    teams,
     toolView,
   ]);
 
   useEffect(() => {
-    document.title = overlay === 'rule' ? `当前规则 · ${productName}` : productName;
-  }, [overlay]);
+    document.title = route.name === 'profile-rule' ? `当前规则 · ${productName}` : productName;
+  }, [route.name]);
 
   // Anonymous page view, one per distinct route. Lives here rather than inside useHashRoute
   // because the opt-out preference is only reachable through the store — and because the hook
@@ -440,41 +557,41 @@ function AppShell() {
     document.documentElement.dataset.theme = preferences.theme;
   }, [preferences.theme]);
 
+  // 08-05: the very first paint, before IndexedDB has answered. No product name, no logo —
+  // one line about what is happening and one about where the data lives.
   if (loading) {
     return (
-      <div className="grid min-h-screen place-items-center bg-page px-6 text-center text-textSecondary">
-        <div>
-          <ShieldCheck className="mx-auto mb-3 text-accent" size={32} />
-          <p className="text-sm">正在载入本地缓存与规则数据...</p>
+      <main className="app-shell relative mx-auto min-h-screen max-w-[430px] text-textPrimary">
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <p className="text-[15px] font-semibold text-textSecondary" role="status">
+            正在载入本地数据
+          </p>
+          <div className="mt-[22px] h-[3px] w-[132px] overflow-hidden rounded-full bg-textPrimary/[0.09]">
+            <div className="h-[3px] w-[52px] rounded-full bg-textLabel" />
+          </div>
         </div>
-      </div>
+        <p className="absolute inset-x-6 bottom-7 text-center text-xs font-semibold text-textLabel/70">队伍与偏好都存在本机，不需要账号</p>
+      </main>
     );
   }
 
+  // Pages own their 24px gutter and their big title; the shell only reserves room for the nav.
   return (
     <main className="app-shell mx-auto min-h-screen max-w-[430px] text-textPrimary">
-      <div className="safe-bottom min-h-screen px-4 pt-4">
-        <Header contextLabel={productContextLabel(environmentState?.seasonLabel)} />
+      <div className={`min-h-screen ${profileSubPage ? '' : 'safe-bottom'}`}>
         <Suspense fallback={<PageLoading />}>{page}</Suspense>
       </div>
       {importToast && (
-        <div
-          role="status"
-          aria-live="polite"
-          className={`fixed inset-x-4 top-4 z-50 mx-auto flex max-w-[360px] items-start rounded-lg border bg-card px-3 py-2 text-sm font-semibold text-textPrimary shadow-[0_10px_32px_rgb(0_0_0/0.28)] ${
-            importToast.tone === 'warning' ? 'border-warning/45' : 'border-success/40'
-          }`}
-        >
-          <span className={`mr-2 mt-1.5 inline-block h-2 w-2 shrink-0 rounded-full ${importToast.tone === 'warning' ? 'bg-warning' : 'bg-success'}`} />
-          <span className="min-w-0">
-            <span className="block">{importToast.title}</span>
-            {importToast.description && <span className="mt-0.5 block text-xs font-medium text-textSecondary">{importToast.description}</span>}
-          </span>
-        </div>
+        <Toast description={importToast.description} title={importToast.title} tone={importToast.tone === 'warning' ? 'danger' : 'success'} />
+      )}
+      {route.name === 'profile-feedback' && (
+        <Suspense fallback={null}>
+          <FeedbackSheet onClose={back} />
+        </Suspense>
       )}
       {route.name === 'share' && (
         <Suspense fallback={null}>
-          <SharedTeamPreview code={route.code} onClose={back} onImport={importSharedTeam} />
+          <SharedTeamPreview code={route.code} onClose={back} onGoToTeams={() => navigate({ name: 'teams' })} onImport={importSharedTeam} />
         </Suspense>
       )}
       {pendingImportSample && (
@@ -486,16 +603,16 @@ function AppShell() {
           }}
         />
       )}
-      {!overlay && (
-        <BottomNav
+      {/* 03 draws the member editor with its own bottom action bar and no tab bar — the two
+          cannot share the same 22px of screen. */}
+      {!profileSubPage && route.name !== 'member-editor' && (
+        <AutoHideBottomNav
           activeTab={activeTab}
           tabs={tabs}
           onChange={(tab) => navigate(routeForTab(tab))}
-          hidden={bottomNavAutoHide.hidden}
+          autoHideEnabled={bottomNavAutoHideEnabled}
+          lock={Boolean(pendingImportSample)}
         />
-      )}
-      {!preferences.hasCompletedOnboarding && (
-        <Onboarding onComplete={completeOnboarding} onOpenFeedback={openFeedbackFromOnboarding} />
       )}
     </main>
   );

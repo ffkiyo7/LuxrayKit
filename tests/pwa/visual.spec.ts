@@ -118,20 +118,16 @@ const openApp = async (page: Page) => {
       }
       return originalGetRandomValues(array as never);
     }) as typeof crypto.getRandomValues;
+    // 01-06 is a once-per-browser sheet over 环境. Every frame below is the screen *behind*
+    // it, so it is marked as already seen instead of dismissed with a click.
+    try {
+      window.localStorage.setItem('luxraykit.env.methodologySeen', '1');
+    } catch {
+      // Blocked storage makes the sheet render; the 01 shot would then show it.
+    }
   });
   await page.goto('/');
-  // First launch shows the onboarding tour (a z-[60] full-screen overlay).
-  // Dismiss it (跳过 → 开始探索) so screenshots capture the real screens
-  // instead of the tour, and so its overlay never intercepts later clicks.
-  const skip = page.getByRole('button', { name: '跳过' });
-  try {
-    await skip.waitFor({ state: 'visible', timeout: 5_000 });
-    await skip.click();
-    await page.getByRole('button', { name: '开始探索' }).click();
-  } catch {
-    // Onboarding already completed in this context — nothing to dismiss.
-  }
-  await expect(page.getByRole('heading', { name: '环境' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '今日环境' })).toBeVisible();
 };
 
 const scrollTop = async (page: Page) => {
@@ -143,8 +139,8 @@ test('captures the mobile visual regression smoke set', { timeout: 60_000 }, asy
 
   await expect(page).toHaveScreenshot('01-environment-home.png', screenshotOptions);
 
-  await page.getByRole('button', { name: '查看全部宝可梦' }).click();
-  await expect(page.getByRole('heading', { name: '完整宝可梦榜' })).toBeVisible();
+  await page.getByRole('button', { name: '查看完整使用排行' }).click();
+  await expect(page.getByRole('heading', { name: '使用排行' })).toBeVisible();
   await expect(page).toHaveScreenshot('02-environment-ranking.png', screenshotOptions);
 
   await page.getByRole('button', { name: /烈咬陆鲨/ }).click();
@@ -156,55 +152,65 @@ test('captures the mobile visual regression smoke set', { timeout: 60_000 }, asy
   await expect(page.getByText('相关上位构筑')).toBeVisible();
   await expect(page).toHaveScreenshot('03-pokemon-environment-detail.png', screenshotOptions);
 
-  await page.getByRole('button', { name: '返回环境' }).click();
-  await page.getByRole('button', { name: '返回环境' }).click();
-  await expect(page.getByRole('heading', { name: '环境' })).toBeVisible();
+  // Every pushed environment screen now carries the same 返回 chevron (environmentChrome's
+  // PushHeader / hero button); it pops real history, so two taps walk detail → ranking → home.
+  await page.getByRole('button', { name: '返回' }).click();
+  await page.getByRole('button', { name: '返回' }).click();
+  await expect(page.getByRole('heading', { name: '今日环境' })).toBeVisible();
 
-  await page.getByRole('button', { name: '查看数据口径' }).click();
+  // 数据口径 is its own route (#/env/methodology) and the home no longer links to it — only the
+  // 数据源异常 notice and 我的 · 离线缓存 do, neither of which this frozen snapshot raises. Go
+  // there by hash, which is the same navigation the app performs.
+  await page.evaluate(() => {
+    window.location.hash = '#/env/methodology';
+  });
   await expect(page.getByRole('heading', { name: '数据口径' })).toBeVisible();
   await expect(page).toHaveScreenshot('14-environment-methodology.png', screenshotOptions);
-  await page.getByRole('button', { name: '返回环境' }).click();
+  await page.getByRole('button', { name: '返回' }).click();
+  await expect(page.getByRole('heading', { name: '今日环境' })).toBeVisible();
 
-  await page.getByRole('button', { name: '查看全部队伍' }).click();
-  await expect(page.getByRole('heading', { name: '队伍一览' })).toBeVisible();
-  await page.getByRole('button', { name: '双打' }).click();
+  // 07-01 has no battle-type tabs of its own — the browse list inherits 环境's toggle, which
+  // starts on the rule set's own format.
+  await page.getByRole('button', { name: '查看全部上位构筑' }).click();
+  await expect(page.getByRole('heading', { name: '上位构筑', exact: true })).toBeVisible();
   await expect(page).toHaveScreenshot('15-team-browse.png', screenshotOptions);
 
-  // Keep the inspiration draw inside the frozen PokeDB fixture. Event samples are
-  // generated separately and refresh without this fixture or its visual baseline;
-  // including them here makes the pinned shuffle seed select a different card after
-  // an otherwise unrelated data refresh.
-  const rankedFilter = page.getByRole('button', { name: '排位高分' });
-  await rankedFilter.click();
-  await expect(rankedFilter).toHaveAttribute('aria-pressed', 'true');
-  await page.getByRole('button', { name: '试试灵感' }).click();
-  const inspirationDialog = page.getByRole('dialog', { name: '队伍灵感' });
+  // 07-05's 随机一队 draws from whatever the list currently holds. The redesign dropped the
+  // 排位高分 / 赛事 filter that used to keep the draw inside the frozen PokeDB fixture, so this
+  // shot now also depends on the VGCPastes sample files: a curated-sample refresh can make the
+  // pinned shuffle seed land on a different card and redden this baseline. There is no filter
+  // left to re-isolate it; rebuild 16 when that happens.
+  await page.getByRole('button', { name: '随机一队' }).click();
+  const inspirationDialog = page.getByRole('dialog', { name: '随机一队' });
   await expect(inspirationDialog).toBeVisible();
   await expect(page).toHaveScreenshot('16-team-inspiration.png', screenshotOptions);
-  await inspirationDialog.getByRole('button', { name: '关闭试试灵感' }).last().click();
-  await page.getByRole('button', { name: '返回环境' }).click();
+  await inspirationDialog.getByRole('button', { name: '关闭随机一队' }).last().click();
+  await page.getByRole('button', { name: '返回' }).click();
 
   await page.getByRole('button', { name: '队伍', exact: true }).click();
   await expect(page.getByText('我的队伍')).toBeVisible();
   await expect(page).toHaveScreenshot('04-team-list.png', screenshotOptions);
 
-  const teamCard = page.getByLabel('队伍：Luxray test');
-  await teamCard.click();
-  await expect(page.getByRole('heading', { name: 'Luxray test' })).toBeVisible();
-  await page.getByRole('button', { name: '继续编辑' }).click();
+  // The fixture team is the shipped preset on its first appearance (02-02's card), which is a
+  // section, not a button: only 「接着补齐这支」 opens it. The team name is a heading on the list
+  // card too, so the detail page is confirmed by its member tile instead.
+  await page.getByLabel('队伍：Luxray test').getByRole('button', { name: '接着补齐这支' }).click();
+  const luxrayTile = page.getByRole('button', { name: /^展开 伦琴猫/ });
+  await expect(luxrayTile).toBeVisible();
   await expect(page).toHaveScreenshot('05-team-detail.png', screenshotOptions);
 
-  await page.getByRole('button', { name: /^伦琴猫 / }).click();
-  await expect(page.getByText('能力值 / SP')).toBeVisible();
+  await luxrayTile.click();
+  await expect(page.getByText('能力值', { exact: true })).toBeVisible();
 
-  await page.getByTitle('编辑成员').click();
-  await expect(page.getByText('编辑成员')).toBeVisible();
+  // 03 draws the member editor as a whole page (#/teams/:id/members/:id), not a sheet, and the
+  // SP picker is the inline 能力分配 wheel rather than an overlay.
+  await page.getByRole('button', { name: /编辑配置/ }).click();
+  await expect(page.getByRole('heading', { name: '编辑配置' })).toBeVisible();
   await expect(page).toHaveScreenshot('06-member-editor.png', screenshotOptions);
-  await page.getByRole('button', { name: /速度\s*32/ }).click();
-  await expect(page.getByText('拖动滑条，或直接设为最小 / 最大')).toBeVisible();
+  await page.getByRole('button', { name: '调整速度' }).click();
+  await expect(page.getByRole('slider', { name: '速度 SP' })).toBeVisible();
   await expect(page).toHaveScreenshot('07-member-editor-sp-picker.png', screenshotOptions);
-  await page.getByTitle('关闭 SP 调整').click();
-  await page.getByTitle('关闭').click();
+  await page.getByRole('button', { name: '返回队伍详情' }).click();
 
   await page.getByRole('button', { name: '工具', exact: true }).click();
   await expect(page.getByRole('heading', { name: '工具' })).toBeVisible();
@@ -212,11 +218,11 @@ test('captures the mobile visual regression smoke set', { timeout: 60_000 }, asy
 
   await page.getByRole('button', { name: /伤害计算/ }).click();
   await scrollTop(page);
-  await expect(page.getByText('选择进攻方', { exact: true })).toBeVisible();
+  await expect(page.getByText('请先选择进攻方、防守方和招式。')).toBeVisible();
   await expect(page).toHaveScreenshot('09-calculator-selector.png', screenshotOptions);
 
   await page.getByRole('button', { name: '返回工具' }).click();
-  await page.getByRole('button', { name: /速度线计算/ }).click();
+  await page.getByRole('button', { name: /^速度线/ }).click();
   await expect(page.getByRole('heading', { name: '速度线' })).toBeVisible();
   const speedMarker = page.locator('[data-speed-marker]');
   await expect(speedMarker).toBeVisible();
@@ -228,21 +234,23 @@ test('captures the mobile visual regression smoke set', { timeout: 60_000 }, asy
 
   await page.getByRole('button', { name: /规则图鉴/ }).click();
   await scrollTop(page);
-  await expect(page.getByText('规则内图鉴')).toBeVisible();
+  await expect(page.getByRole('heading', { name: '规则内图鉴' })).toBeVisible();
   await expect(page).toHaveScreenshot('10-dex.png', screenshotOptions);
   await page.getByRole('button', { name: /^烈咬陆鲨 / }).click();
   await expect(page.getByRole('heading', { name: '可学会招式' })).toBeVisible();
   await expect(page).toHaveScreenshot('11-dex-detail.png', screenshotOptions);
   await page.getByRole('button', { name: /返回图鉴列表/ }).click();
-  await page.getByRole('button', { name: '打开图鉴过滤' }).click();
-  await expect(page.getByText('最多选择 2 个属性')).toBeVisible();
+  // 04-06's filter is an inline drawer opened by a disclosure chip (属性 / 类别), not a sheet;
+  // 收起筛选 in its footer is what closes it.
+  await page.getByRole('button', { name: '属性', exact: true }).click();
+  await expect(page.getByText('属性 · 最多选 2 个')).toBeVisible();
   await expect(page).toHaveScreenshot('12-dex-type-filter.png', screenshotOptions);
-  await page.getByTitle('关闭属性筛选').click();
-  await page.getByRole('button', { name: '道具' }).click();
-  await page.getByRole('button', { name: '打开道具类别筛选' }).click();
-  await expect(page.getByText('道具类别筛选')).toBeVisible();
+  await page.getByRole('button', { name: '收起筛选' }).click();
+  await page.getByRole('button', { name: '道具', exact: true }).click();
+  await page.getByRole('button', { name: '类别', exact: true }).click();
+  await expect(page.getByRole('button', { name: '收起筛选' })).toBeVisible();
   await expect(page).toHaveScreenshot('18-dex-item-filter.png', screenshotOptions);
-  await page.getByTitle('关闭道具类别筛选').click();
+  await page.getByRole('button', { name: '收起筛选' }).click();
 
   await page.getByRole('button', { name: '我的', exact: true }).click();
   await scrollTop(page);

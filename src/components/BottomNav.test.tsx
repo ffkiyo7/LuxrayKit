@@ -1,31 +1,38 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen } from '@testing-library/react';
-import { Wrench } from 'lucide-react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { Users, Wrench } from 'lucide-react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { BottomNav } from './BottomNav';
 
-const tabs = [{ id: 'tools' as const, label: '工具', icon: Wrench }];
+const tabs = [
+  { id: 'teams' as const, label: '队伍', icon: Users },
+  { id: 'tools' as const, label: '工具', icon: Wrench },
+];
 
 describe('BottomNav', () => {
-  afterEach(() => {
-    cleanup();
-    document.documentElement.style.removeProperty('--lk-bottom-nav-offset');
-  });
+  afterEach(cleanup);
 
-  it('keeps shown and hidden positions independent of visual viewport offsets', () => {
-    const rendered = render(
-      <BottomNav activeTab="tools" tabs={tabs} onChange={() => {}} />,
-    );
+  it('collapses in place instead of leaving the screen, and stays tappable while collapsed', () => {
+    const onChange = vi.fn();
+    const rendered = render(<BottomNav activeTab="tools" tabs={tabs} onChange={onChange} />);
     const nav = screen.getByRole('navigation');
 
-    expect(nav.style.bottom).toBe('0px');
-    expect(nav.style.transform).toBe('translate3d(0, 0, 0)');
+    expect(nav.dataset.collapsed).toBe('false');
+    // Positioning is pure CSS: no inline transform that could push the bar off-screen.
+    expect(nav.style.transform).toBe('');
 
-    rendered.rerender(
-      <BottomNav activeTab="tools" tabs={tabs} onChange={() => {}} hidden />,
-    );
+    rendered.rerender(<BottomNav activeTab="tools" tabs={tabs} onChange={onChange} collapsed />);
 
-    expect(nav.style.transform).toBe('translate3d(0, 100%, 0)');
-    expect(document.documentElement.style.getPropertyValue('--lk-bottom-nav-offset')).toBe('');
+    expect(nav.dataset.collapsed).toBe('true');
+    // Labels fade out visually when collapsed, so the accessible name must not depend on them.
+    screen.getByRole('button', { name: '队伍' }).click();
+    expect(onChange).toHaveBeenCalledWith('teams');
+  });
+
+  it('marks the active tab for assistive tech', () => {
+    render(<BottomNav activeTab="tools" tabs={tabs} onChange={() => {}} />);
+
+    expect(screen.getByRole('button', { name: '工具' }).getAttribute('aria-current')).toBe('page');
+    expect(screen.getByRole('button', { name: '队伍' }).getAttribute('aria-current')).toBeNull();
   });
 });

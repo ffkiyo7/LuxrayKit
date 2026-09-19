@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import type { EnvironmentTeamSample } from '../data/environment';
-import { sampleRegulation } from './environmentTeamSamples';
+import {
+  sampleRegulation,
+  sortTeamSamplesByScore,
+  teamSampleLadderScore,
+  teamSamplePlacementLabel,
+} from './environmentTeamSamples';
 
 const baseSample = (overrides: Partial<EnvironmentTeamSample> = {}): EnvironmentTeamSample => ({
   id: 'sample-1',
@@ -12,6 +17,45 @@ const baseSample = (overrides: Partial<EnvironmentTeamSample> = {}): Environment
   reportUrl: 'https://example.com',
   slots: [],
   ...overrides,
+});
+
+describe('event placement vs ladder score', () => {
+  const event = (overrides: Partial<EnvironmentTeamSample>) =>
+    baseSample({ sourceId: 'vgcpastes-champions-mb', ...overrides });
+
+  it('never prints an event placement as a score', () => {
+    // VGCPastes stamps 「6th」 into both rank and score.
+    const top8 = event({ id: 'vgcpastes-a', rank: 6, score: 6, eventRank: '6th' });
+    expect(teamSampleLadderScore(top8)).toBeUndefined();
+    expect(teamSamplePlacementLabel(top8)).toBe('第 6 名');
+    expect(teamSampleLadderScore(baseSample({ id: 'pokedb-doubles-rank-3', rank: 3, score: 2651 }))).toBe(2651);
+  });
+
+  it('labels the placements the source actually uses', () => {
+    expect(teamSamplePlacementLabel(event({ eventRank: 'Champion' }))).toBe('冠军');
+    expect(teamSamplePlacementLabel(event({ eventRank: 'Runner Up' }))).toBe('亚军');
+    expect(teamSamplePlacementLabel(event({ eventRank: 'Top 8', rank: 8 }))).toBe('8 强');
+    expect(teamSamplePlacementLabel(event({ eventRank: '21st', rank: 21 }))).toBe('第 21 名');
+    expect(teamSamplePlacementLabel(event({}))).toBeUndefined();
+    expect(teamSamplePlacementLabel(baseSample({ rank: 2 }))).toBe('第 2 名');
+  });
+
+  it('orders ladder samples first, then event teams by placement and recency', () => {
+    const sorted = sortTeamSamplesByScore([
+      event({ id: 'vgcpastes-3rd', eventRank: '3rd', rank: 3, score: 3 }),
+      event({ id: 'vgcpastes-champ-old', eventRank: 'Champion', dateShared: '2026-07-01' }),
+      baseSample({ id: 'pokedb-doubles-rank-5', rank: 5, score: 2600 }),
+      event({ id: 'vgcpastes-champ-new', eventRank: 'Champion', dateShared: '2026-08-01' }),
+      baseSample({ id: 'pokedb-doubles-rank-1', rank: 1, score: 2724 }),
+    ]);
+    expect(sorted.map((sample) => sample.id)).toEqual([
+      'pokedb-doubles-rank-1',
+      'pokedb-doubles-rank-5',
+      'vgcpastes-champ-new',
+      'vgcpastes-champ-old',
+      'vgcpastes-3rd',
+    ]);
+  });
 });
 
 describe('sampleRegulation', () => {

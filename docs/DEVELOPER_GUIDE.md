@@ -90,7 +90,7 @@ src/
     seed/regMA/         # 版本化规则 seed（历史目录名，与当前规则无关）：catalog/moves/items/abilities/allowlist/metadata...
     external/           # 外部抓取产物（pokedb/ 快照、vgcpastes/ 样本、pokeapi/ 事实、名称映射）
   pages/                # 各页面（懒加载）：Environment / Team / Tools / Calculator / Dex / Speed / TypeChart / Profile / Rule
-  components/           # BottomNav / Header / PokemonPicker / onboarding / ui 等
+  components/           # BottomNav / Header / PokemonPicker / ui 等
   hooks/                # useHashRoute / useAutoHideBottomNav / useVisualViewportMetrics
 
 cloudflare/environment-worker/   # 生产 Worker（前端 + API + cron + DO）
@@ -204,7 +204,7 @@ main.tsx
 - **道具图标预缓存表是构建产物**：`vite.config.ts` 的 `luxraykit-precache-manifest` 插件在 `closeBundle` 调 `scripts/precache-manifest.mjs`，从道具 catalog 的 `iconRef` 写出 `dist/precache-manifest.json`（`{ generatedAt, itemIcons }`，当前 166 条）；SW 在 install 时 fetch 它再逐个 `cache.add`（单个图标失败、manifest 缺失或无法解析都不阻塞安装）。**改道具不用改 `sw.js`**——那里曾经是手写数组，每次加道具都会漂移。
 - **`CACHE_NAME` 当前 `champions-tool-v8`**，改版本要同步 `docs/qa/PWA_OFFLINE_CHECKLIST.md`。
 - **新版本提示**：SW 保持 `skipWaiting` + `clients.claim`，部署会在打开着的标签页下面换掉 controller，而页面仍跑旧 chunk。`src/main.tsx` 监听 `controllerchange`，**仅当页面此前已有 controller**（首次安装不提示）时派发 `luxraykit:service-worker-updated`，由 `components/ServiceWorkerUpdateToast.tsx` 渲染刷新 toast。用 CustomEvent 是为了让注册侧保持几行纯 DOM，不进 `AppShell` 的 state。
-- **CSP**：`public/_headers` 的 `Content-Security-Policy` 以同源为主，两处刻意放宽：`style-src 'unsafe-inline'`（React 写 inline style 属性）与 Google Fonts 两个域名（`src/styles.css` 首行远程 `@import` DM Sans，Vite 无法内联）。`_headers` **只在 Cloudflare 生效**，`vite preview` 与 Playwright 都看不到它——改动后只能上线后在生产 DevTools 人工核对。
+- **CSP**：`public/_headers` 的 `Content-Security-Policy` 以同源为主，只有一处刻意放宽：`style-src 'unsafe-inline'`（React 写 inline style 属性）。字体不放行任何外域：Manrope 自托管在 `src/assets/fonts/`（仅拉丁 + 数字子集，OFL），中文走系统字体（PingFang SC / 系统 Noto）——不要再加远程 `@import`，CSP 会静默丢掉它。`_headers` **只在 Cloudflare 生效**，`vite preview` 与 Playwright 都看不到它——改动后只能上线后在生产 DevTools 人工核对。
 
 ### 4.6 队伍分享链接（`lib/teamShare.ts`）
 
@@ -428,7 +428,7 @@ npm run worker:app:types   # 改 binding 后重新生成 worker-configuration.d.
 
 ### 6.8 站内留言箱（Durable Object SQLite）
 
-「我的 → 留言」与引导末页都走 `#/profile/feedback` 的表单（`src/pages/profile/FeedbackSheet.tsx`）。
+「我的 → 留言」走 `#/profile/feedback` 的表单（`src/pages/profile/FeedbackSheet.tsx`）。
 **私信箱**：用户提交后只看到「已收到」，留言不公开、站内任何地方都不展示。
 
 表单明确提示 trim 后的最低 5 字要求及还差字数；不足 5 字或发送中禁用发送。浏览器离线状态仅作提示，不阻止尝试发送；实际请求失败时显示错误、保留草稿并允许重试。

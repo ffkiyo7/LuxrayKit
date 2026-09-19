@@ -65,9 +65,8 @@ export const defaultPreferences: UserPreference = {
   theme: 'dark',
   cachedRuleSetId: currentRuleSet.id,
   lastDataRefreshAt: currentDataVersion.updatedAt,
-  hasSeenEnvironmentImportNotice: false,
   hasCompletedOnboarding: false,
-  hasSeenLuxrayEasterEgg: false,
+  hasOpenedPresetTeam: false,
   analyticsOptOut: false,
 };
 

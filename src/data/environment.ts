@@ -175,6 +175,81 @@ const isStatisticsPayload = (
   payload: PokeDbRankedTeamsPayload | PokeDbTrainerListPayload | PokeDbPokemonStatisticsPayload | undefined,
 ): payload is PokeDbPokemonStatisticsPayload => Boolean(payload && 'pokemonUsage' in payload && 'detailCount' in payload);
 
+const snapshotBattleTypes = ['singles', 'doubles'] as const;
+
+const statisticsUsageRows = (
+  payload: PokeDbRankedTeamsPayload | PokeDbTrainerListPayload | PokeDbPokemonStatisticsPayload | undefined,
+): EnvironmentPokemonUsage[] | undefined => (isStatisticsPayload(payload) ? payload.pokemonUsage : undefined);
+
+/**
+ * True as soon as one usage row carries the key at all — an empty array counts. A snapshot the
+ * running Worker built with the 能力ポイント parser always has it on its detailed rows; one built
+ * by an older Worker has it nowhere.
+ */
+export const snapshotHasStatPointStats = (snapshot: PokeDbEnvironmentSnapshotPayload): boolean =>
+  snapshotBattleTypes.some((battleType) =>
+    (statisticsUsageRows(snapshot.battles[battleType]) ?? []).some((usage) => 'statPointStats' in usage),
+  );
+
+/**
+ * Only an 宝可梦使用率统计 payload ever carries spreads. The older ranked-teams / trainer-list
+ * shapes have no 能力ポイント source at all, so they are not "missing" the field and must not
+ * trigger a second request.
+ */
+const snapshotWantsStatPointStats = (snapshot: PokeDbEnvironmentSnapshotPayload): boolean =>
+  snapshotBattleTypes.some((battleType) => isStatisticsPayload(snapshot.battles[battleType]))
+  && !snapshotHasStatPointStats(snapshot);
+
+/**
+ * TRANSITIONAL — delete once the 能力ポイント-parsing Worker is live on `main`.
+ *
+ * `/api/environment/latest` is served from a KV snapshot that only the deployed Worker writes, so
+ * between this branch landing in the app bundle and the Worker shipping, the API returns rows with
+ * no `statPointStats` while the bundled static snapshot already has them and SP 分配 would never
+ * render. When the API payload is missing the field *everywhere*, each row takes the spreads the
+ * static snapshot recorded for the same battle type, Pokémon and season. A payload that carries
+ * the field — even as an empty array — is authoritative and is returned untouched, so the day the
+ * Worker ships this function stops doing anything and can be removed along with its call sites.
+ *
+ * The season guard matters: the static file is refreshed by hand and can lag a ladder rollover, and
+ * last season's spreads pinned onto this season's usage rows would be a quiet lie.
+ */
+export const backfillStatPointStats = (
+  snapshot: PokeDbEnvironmentSnapshotPayload,
+  fallback: PokeDbEnvironmentSnapshotPayload,
+): PokeDbEnvironmentSnapshotPayload => {
+  if (!snapshotWantsStatPointStats(snapshot)) return snapshot;
+
+  const battles = { ...snapshot.battles };
+  let changed = false;
+  snapshotBattleTypes.forEach((battleType) => {
+    const payload = snapshot.battles[battleType];
+    const fallbackPayload = fallback.battles[battleType];
+    const rows = statisticsUsageRows(payload);
+    const fallbackRows = statisticsUsageRows(fallbackPayload);
+    if (!rows || !fallbackRows || !isStatisticsPayload(payload) || !isStatisticsPayload(fallbackPayload)) return;
+    if (payload.season !== fallbackPayload.season) return;
+
+    const spreadsByPokemonId = new Map(
+      fallbackRows
+        .filter((usage) => usage.statPointStats && usage.statPointStats.length > 0)
+        .map((usage) => [usage.pokemonId, usage.statPointStats!] as const),
+    );
+    if (spreadsByPokemonId.size === 0) return;
+
+    changed = true;
+    battles[battleType] = {
+      ...payload,
+      pokemonUsage: rows.map((usage) => {
+        const statPointStats = spreadsByPokemonId.get(usage.pokemonId);
+        return statPointStats ? { ...usage, statPointStats } : usage;
+      }),
+    };
+  });
+
+  return changed ? { ...snapshot, battles } : snapshot;
+};
+
 export const createPokeDbEnvironmentDatasetFromSnapshot = (
   snapshot: PokeDbEnvironmentSnapshotPayload,
   extraTeamSamples: EnvironmentTeamSample[] = [],
@@ -290,6 +365,29 @@ const fetchEnvironmentSnapshot = async (
   };
 };
 
+/**
+ * TRANSITIONAL, see `backfillStatPointStats`. The extra request only fires while the deployed
+ * Worker predates the 能力ポイント parser. It pulls no JavaScript, so the `#/env` first-paint JS
+ * budget (tests/pwa/first-paint-budget.spec.ts) is untouched.
+ *
+ * `no-cache`, not `force-cache`: a browser that cached the static snapshot before it carried
+ * spreads would otherwise be handed that copy forever — and the service worker's background
+ * revalidation reuses this request's cache mode, so its copy would never heal either. The file
+ * is served with an ETag, so the steady state is a 304.
+ */
+const withStatPointStatsBackfill = async (
+  fetcher: typeof fetch,
+  snapshot: PokeDbEnvironmentSnapshotPayload,
+): Promise<PokeDbEnvironmentSnapshotPayload> => {
+  if (!snapshotWantsStatPointStats(snapshot)) return snapshot;
+  try {
+    const fallback = await fetchEnvironmentSnapshot(fetcher, POKEDB_ENVIRONMENT_SNAPSHOT_URL, 'no-cache');
+    return backfillStatPointStats(snapshot, fallback.snapshot);
+  } catch {
+    return snapshot;
+  }
+};
+
 const withRefreshedAt = (state: EnvironmentState, refreshedAt: string | undefined): EnvironmentState =>
   refreshedAt ? { ...state, updatedAt: refreshedAt } : state;
 
@@ -356,8 +454,9 @@ export const loadEnvironmentState = async (
 
     if (workerMetadata.freshness === 'fresh' && workerMetadata.sourceStatus === 'ok') {
       const vgcPastesTeamSamples = await loadVgcPastesTeamSamples();
+      const snapshot = await withStatPointStatsBackfill(fetcher, result.snapshot);
       return withRefreshedAt(
-        createEnvironmentStateFromPokeDbSnapshot(result.snapshot, workerMetadata, vgcPastesTeamSamples),
+        createEnvironmentStateFromPokeDbSnapshot(snapshot, workerMetadata, vgcPastesTeamSamples),
         result.refreshedAt,
       );
     }
@@ -369,7 +468,13 @@ export const loadEnvironmentState = async (
       const staticResult = await fetchEnvironmentSnapshot(fetcher, POKEDB_ENVIRONMENT_SNAPSHOT_URL, 'force-cache');
       const vgcPastesTeamSamples = await loadVgcPastesTeamSamples();
       const workerState = withRefreshedAt(
-        createEnvironmentStateFromPokeDbSnapshot(result.snapshot, workerMetadata, vgcPastesTeamSamples),
+        createEnvironmentStateFromPokeDbSnapshot(
+          // TRANSITIONAL, see `backfillStatPointStats`. The static snapshot is already in hand here,
+          // so this branch never pays for a second request.
+          backfillStatPointStats(result.snapshot, staticResult.snapshot),
+          workerMetadata,
+          vgcPastesTeamSamples,
+        ),
         result.refreshedAt,
       );
       const staticState = createEnvironmentStateFromPokeDbSnapshot(staticResult.snapshot, {

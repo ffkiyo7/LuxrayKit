@@ -1,0 +1,148 @@
+/*
+ * P4a (04 工具与图鉴) frame fills that styles.css has no token for yet. Each entry is one dark
+ * value plus its light counterpart; the light column is read off 04-02 where that frame draws
+ * the element, and inferred otherwise (the 04 set has no light dex frame) — see the delivery
+ * report for which are which.
+ */
+:root {
+  /* 04-01 tool card face: a flat panel on dark, a white slab with elevation on light (04-02). */
+  --p4a-card-bg: #17171b;
+  --p4a-card-shadow: none;
+  /* N04-11 未开放 card, 04-08 ability-owner tile, N04-09 sheet-depth insets. */
+  --p4a-muted-bg: #141418;
+  /* 04-01 search preview field / 04-06 filter panel plane. */
+  --p4a-field-bg: rgb(255 255 255 / 0.07);
+  --p4a-recent-chip-bg: rgb(255 255 255 / 0.06);
+  --p4a-filter-panel-bg: #101013;
+  /* 04-05 removable chip's × badge. */
+  --p4a-chip-x-bg: rgb(255 255 255 / 0.14);
+  /* 04-09 base-stat rail vs 04-01 damage meter — two different alphas in the frames. */
+  --p4a-stat-track: rgb(255 255 255 / 0.08);
+  --p4a-meter-track: rgb(255 255 255 / 0.09);
+  /* 04-01 speed sparkline: the member's own bar, then the bars that are not. Both sit below the
+     `fn-*` label ink, which has to hold 4.5:1 on paper while a 4px bar does not. */
+  --p4a-spark-on: #e2ab5c;
+  --p4a-spark-idle: rgb(255 255 255 / 0.14);
+  /* 04-01 damage meter, the max-roll half of the fill. */
+  --p4a-damage-soft: rgb(95 199 184 / 0.4);
+  /* 04-01 「148–176」: the dash between the two rolls, dimmer than the digits. */
+  --p4a-range-dash: #6e6e73;
+  /* N04-10 artwork on the type-tinted plane. */
+  --p4a-artwork-shadow: 0 18px 28px rgb(0 0 0 / 0.5);
+  /* 04-04 list chevrons sit a step dimmer than the `chevron` token used on controls. */
+  --p4a-list-chevron: #48484a;
+  /* 04-08 owner stack: the disc behind each overlapped sprite is the page itself plus a hairline,
+     so the sprite in front reads as cut out of the one behind it. */
+  --p4a-owner-disc-bg: #0b0b0c;
+  --p4a-owner-disc-ring: rgb(255 255 255 / 0.12);
+  /* 04-01 tool cards: the 26px sprites in the matchup line sit on the card's own face plus a
+     hairline — one step brighter than 04-08's stack, which is cut out of the page instead. */
+  --p4a-tool-disc-bg: #17171b;
+  --p4a-tool-disc-ring: rgb(255 255 255 / 0.18);
+}
+
+:root[data-theme='light'] {
+  --p4a-card-bg: #ffffff;
+  --p4a-card-shadow: 0 1px 2px rgb(0 0 0 / 0.05), 0 8px 24px rgb(16 24 40 / 0.06);
+  --p4a-muted-bg: #f2f2f5;
+  --p4a-field-bg: #f2f2f5;
+  --p4a-recent-chip-bg: #f2f2f5;
+  /* 04-06 puts `surface` chips on this band, so on paper the band has to be the whiter plane of
+     the two; its own hairlines are what separate it from the #fbfbfd page. */
+  --p4a-filter-panel-bg: #ffffff;
+  --p4a-chip-x-bg: rgb(28 28 30 / 0.1);
+  --p4a-stat-track: #e8e8ec;
+  --p4a-meter-track: #e8e8ec;
+  --p4a-spark-on: #c98f26;
+  --p4a-spark-idle: #e0e0e5;
+  --p4a-damage-soft: #8cc7be;
+  --p4a-range-dash: #aeaeb2;
+  --p4a-artwork-shadow: 0 18px 28px rgb(16 24 40 / 0.18);
+  --p4a-list-chevron: #c7c7cc;
+  --p4a-owner-disc-bg: #fbfbfd;
+  --p4a-owner-disc-ring: rgb(28 28 30 / 0.1);
+  --p4a-tool-disc-bg: #fbfbfd;
+  --p4a-tool-disc-ring: rgb(28 28 30 / 0.1);
+}
+
+.lk-p4a-card {
+  background: var(--p4a-card-bg);
+  box-shadow: var(--p4a-card-shadow);
+}
+
+.lk-p4a-muted {
+  background: var(--p4a-muted-bg);
+}
+
+.lk-p4a-field {
+  background: var(--p4a-field-bg);
+}
+
+.lk-p4a-recent-chip {
+  background: var(--p4a-recent-chip-bg);
+}
+
+.lk-p4a-filter-panel {
+  background: var(--p4a-filter-panel-bg);
+}
+
+.lk-p4a-chip-x {
+  background: var(--p4a-chip-x-bg);
+}
+
+.lk-p4a-stat-track {
+  background: var(--p4a-stat-track);
+}
+
+.lk-p4a-meter-track {
+  background: var(--p4a-meter-track);
+}
+
+.lk-p4a-spark-on {
+  background: var(--p4a-spark-on);
+}
+
+.lk-p4a-spark-idle {
+  background: var(--p4a-spark-idle);
+}
+
+.lk-p4a-damage-soft {
+  background: var(--p4a-damage-soft);
+}
+
+.lk-p4a-range-dash {
+  color: var(--p4a-range-dash);
+}
+
+.lk-p4a-artwork {
+  filter: drop-shadow(var(--p4a-artwork-shadow));
+}
+
+.lk-p4a-list-chevron {
+  color: var(--p4a-list-chevron);
+}
+
+.lk-p4a-owner-disc {
+  background: var(--p4a-owner-disc-bg);
+  box-shadow: inset 0 0 0 1px var(--p4a-owner-disc-ring);
+}
+
+.lk-p4a-tool-disc {
+  background: var(--p4a-tool-disc-bg);
+  box-shadow: 0 0 0 1px var(--p4a-tool-disc-ring);
+}
+
+/* N04-10 — the artwork plane takes the Pokémon's own body colours, sampled off that very artwork.
+   Same gradient shape as the team member card's `.lk-member-aura`, and it reads p3.css's
+   `--lk-aura-s*` stops on purpose, so the two surfaces can never drift apart;
+   `auraStyle(types, iconRef)` feeds the two colours, falling back to the type colours. */
+.lk-p4a-artwork-aura {
+  background:
+    radial-gradient(
+      90% 120% at 86% 6%,
+      color-mix(in srgb, var(--lk-aura-c1) var(--lk-aura-s1), transparent),
+      color-mix(in srgb, var(--lk-aura-c2) var(--lk-aura-s2), transparent) 52%,
+      transparent 74%
+    ),
+    rgb(var(--color-page));
+}

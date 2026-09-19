@@ -8,7 +8,8 @@ describe('safe bottom spacing', () => {
   it('reserves only the fixed nav and safe-area height', () => {
     const rule = styles.match(/\.safe-bottom\s*\{([^}]*)\}/)?.[1];
 
-    expect(rule).toContain('84px + env(safe-area-inset-bottom)');
+    // Floored so the document height does not move with Safari's toolbar (R34).
+    expect(rule).toContain('84px + max(env(safe-area-inset-bottom), 34px)');
     expect(rule).not.toContain('--lk-bottom-nav-offset');
   });
 });

@@ -137,7 +137,7 @@ PR #59（merge `9101dca`，**已合并进 main**，CI 含 `visual` 门禁一次�
 - 深浅主题和滚动时自动隐藏底部导航。
 - **URL hash 路由**：四个 Tab 与所有二级页面可深链、可收藏、可用物理返回键后退（路由表见开发指南 §4.1）。
 - **队伍分享链接** `#/t/<code>`：详情页一键生成，对方先看预览与失效项 warning 再决定导入（格式见开发指南 §4.6）。
-- **站内留言**：引导末页与「我的 → 留言」都进 `#/profile/feedback` 表单，**不需要 GitHub 账号**；留言不公开，存 Cloudflare Durable Object SQLite，新留言推 Discord（见开发指南 §6.8）。「我的 → 关于」可一键复制版本信息，并保留一个 GitHub issue 出口。
+- **站内留言**：「我的 → 留言」进 `#/profile/feedback` 表单，**不需要 GitHub 账号**；留言不公开，存 Cloudflare Durable Object SQLite，新留言推 Discord（见开发指南 §6.8）。「我的 → 关于」可一键复制版本信息，并保留一个 GitHub issue 出口。
 
 ### 数据
 
@@ -193,11 +193,10 @@ npm run test:visual
 - **M-C 阶段 B 的 Task 7–9 已落地**（PR #68，Draft）：`currentRuleSet` 为 `reg-mc`，allowlist / catalog / Mega / 道具 / 招式 / 特性 / 立绘全部补齐，哨兵占位行已消失。**Task 10（计算器草场地形与 Aura Guard）仍未做**，另开 PR。
 - `src/data/schedule.ts` 的 `seasonSchedule` 需在每个赛季更替时追加新条目（缺表的赛季 `sampleRegulation` 返回 `undefined`，其高分队样本只在「全部规则」视图可见，不再静默归 M-A）。**当前补到 M-6**（M-C 赛季）；下一个赛季的公告出现后追加（格式照 M-5/M-6 的 `sourceUrl`）。
 - **PokeDB 尚未发布 M-C**：最新赛季仍是 M-5（`?season=6` 返回 404），所以 `speedTiers.ts` 与静态环境兜底都停在 M-5 的数据上，6 块新 Mega 石的日文名为推断值、`aura-guard` 的 PokeDB resource key 留空。PokeDB 上线 M-6 后需复跑真实刷新并复核这三项。
-- （**非待办**）`src/pages/RulePage.tsx` 没有入口是**有意为之**，规则口径页由 owner 主动隐藏，勿改成可达。
+- `src/pages/RulePage.tsx` 目前没有入口（此前由 owner 主动隐藏）。**2026-09-18 owner 决定随 UI 改造重新开放**，入口与时机见 `docs/plans/ui-redesign-2026-09.md`；在那之前不要单独改成可达。
 - 属性速查工具没有视觉基线（四个工具里唯一未覆盖）。
 - 分享链接预览浮层（`#/t/<code>`）没有视觉基线：用例得先决定合法 code 从哪来（写死会随 catalog 变动失效）。当前由 `App.test.tsx` 的 RTL 用例覆盖。
 - `#/api/ping` 上线后需人工确认 Analytics Engine 里确实出现 `luxraykit_pageviews` 数据集并有行写入（AE 数据集是首次写入才创建，本地 dry-run 只能验证 binding 存在）。
-- `src/styles.css` 首行远程 `@import` Google Fonts（DM Sans）：Vite 无法内联，所以 CSP 必须放行两个字体域名。自托管字体后可收紧。
 - `scripts/generate-ability-effects.mjs --check` 对 `catalog.ts` 抽到 0 条特性行（该文件的数组名是 `abilityRows`，`extractAbilityRows` 匹配不到）。改动前既有行为，目前不影响（`catalog.ts` 里的 Champions 专属特性是手写中文），但若日后直接在 `catalog.ts` 加特性行会被漏扫。
 - `src/lib/dataAudit.test.ts` 写死各项总数（当前 pokemon 262 / Mega 81 / 道具 166 / 招式 566 / 特性 214 / form 39）与招式接触基准集：每次加数据都会变红，属预期门禁，届时按实际数量更新并在注释里写清算式。
 

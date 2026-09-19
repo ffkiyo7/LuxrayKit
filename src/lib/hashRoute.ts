@@ -6,9 +6,11 @@
  * it without the bundle cost. Everything URL-shaped lives here; `hooks/useHashRoute.ts`
  * owns the browser wiring.
  *
- * Only *navigational* state belongs in a Route. Filters, search boxes, battle-type toggles
- * and member-editor overlays stay local component state — they are cheap to re-pick and
- * would otherwise turn every keystroke into a history entry.
+ * Only *navigational* state belongs in a Route. Filters, search boxes and battle-type toggles
+ * stay local component state — they are cheap to re-pick and would otherwise turn every
+ * keystroke into a history entry. The member editor is a destination (03 draws it as a whole
+ * page, and 返回 must leave it rather than the team), so it does carry a route; its own four
+ * picker sub-pages stay local, because they only ever stage a value the editor may discard.
  */
 
 export type ToolRouteId = 'calculator' | 'dex' | 'speed' | 'typechart';
@@ -21,11 +23,17 @@ export type Route =
   | { name: 'env-pokemon'; pokemonId: string }
   | { name: 'teams' }
   | { name: 'team-detail'; teamId: string }
+  | { name: 'member-editor'; teamId: string; memberId: string }
   | { name: 'tools' }
   | { name: 'tool'; tool: ToolRouteId }
   | { name: 'dex-pokemon'; pokemonId: string }
   | { name: 'profile' }
   | { name: 'profile-feedback' }
+  | { name: 'profile-backup' }
+  | { name: 'profile-cache' }
+  | { name: 'profile-install' }
+  | { name: 'profile-rule' }
+  | { name: 'profile-about' }
   | { name: 'share'; code: string };
 
 export type RouteTabId = 'environment' | 'teams' | 'tools' | 'profile';
@@ -56,7 +64,7 @@ export function parseHashRoute(hash: string | undefined | null): Route {
 
   if (segments.length === 0) return defaultRoute;
 
-  const [first, second, third] = segments;
+  const [first, second, third, fourth] = segments;
 
   if (first === 'env') {
     if (!second) return { name: 'env' };
@@ -70,6 +78,9 @@ export function parseHashRoute(hash: string | undefined | null): Route {
   if (first === 'teams') {
     if (!second) return { name: 'teams' };
     if (!third) return { name: 'team-detail', teamId: second };
+    if (third === 'members' && fourth && segments.length === 4) {
+      return { name: 'member-editor', teamId: second, memberId: fourth };
+    }
     return defaultRoute;
   }
 
@@ -83,6 +94,11 @@ export function parseHashRoute(hash: string | undefined | null): Route {
   if (first === 'profile') {
     if (!second) return { name: 'profile' };
     if (second === 'feedback' && !third) return { name: 'profile-feedback' };
+    if (second === 'backup' && !third) return { name: 'profile-backup' };
+    if (second === 'cache' && !third) return { name: 'profile-cache' };
+    if (second === 'install' && !third) return { name: 'profile-install' };
+    if (second === 'rule' && !third) return { name: 'profile-rule' };
+    if (second === 'about' && !third) return { name: 'profile-about' };
     return defaultRoute;
   }
 
@@ -108,6 +124,8 @@ export function buildHash(route: Route): string {
       return '#/teams';
     case 'team-detail':
       return `#/teams/${encodeSegment(route.teamId)}`;
+    case 'member-editor':
+      return `#/teams/${encodeSegment(route.teamId)}/members/${encodeSegment(route.memberId)}`;
     case 'tools':
       return '#/tools';
     case 'tool':
@@ -118,6 +136,16 @@ export function buildHash(route: Route): string {
       return '#/profile';
     case 'profile-feedback':
       return '#/profile/feedback';
+    case 'profile-backup':
+      return '#/profile/backup';
+    case 'profile-cache':
+      return '#/profile/cache';
+    case 'profile-install':
+      return '#/profile/install';
+    case 'profile-rule':
+      return '#/profile/rule';
+    case 'profile-about':
+      return '#/profile/about';
     case 'share':
       return `#/t/${encodeSegment(route.code)}`;
   }
@@ -137,11 +165,18 @@ export function parentRoute(route: Route): Route {
     case 'team-detail':
     case 'share':
       return { name: 'teams' };
+    case 'member-editor':
+      return { name: 'team-detail', teamId: route.teamId };
     case 'tool':
       return { name: 'tools' };
     case 'dex-pokemon':
       return { name: 'tool', tool: 'dex' };
     case 'profile-feedback':
+    case 'profile-backup':
+    case 'profile-cache':
+    case 'profile-install':
+    case 'profile-rule':
+    case 'profile-about':
       return { name: 'profile' };
     default:
       return route;
@@ -159,6 +194,7 @@ export function tabForRoute(route: Route): RouteTabId {
       return 'environment';
     case 'teams':
     case 'team-detail':
+    case 'member-editor':
     case 'share':
       return 'teams';
     case 'tools':
@@ -167,6 +203,11 @@ export function tabForRoute(route: Route): RouteTabId {
       return 'tools';
     case 'profile':
     case 'profile-feedback':
+    case 'profile-backup':
+    case 'profile-cache':
+    case 'profile-install':
+    case 'profile-rule':
+    case 'profile-about':
       return 'profile';
   }
 }
@@ -206,6 +247,8 @@ export function routePattern(route: Route): string {
       return '/teams';
     case 'team-detail':
       return '/teams/:id';
+    case 'member-editor':
+      return '/teams/:id/members/:id';
     case 'tools':
       return '/tools';
     case 'tool':
@@ -216,6 +259,16 @@ export function routePattern(route: Route): string {
       return '/profile';
     case 'profile-feedback':
       return '/profile/feedback';
+    case 'profile-backup':
+      return '/profile/backup';
+    case 'profile-cache':
+      return '/profile/cache';
+    case 'profile-install':
+      return '/profile/install';
+    case 'profile-rule':
+      return '/profile/rule';
+    case 'profile-about':
+      return '/profile/about';
     case 'share':
       return '/t/:code';
   }
@@ -230,10 +283,16 @@ export const routePatterns: string[] = [
   '/env/pokemon/:id',
   '/teams',
   '/teams/:id',
+  '/teams/:id/members/:id',
   '/tools',
   ...toolRouteIds.map((tool) => `/tools/${tool}`),
   '/tools/dex/:id',
   '/profile',
   '/profile/feedback',
+  '/profile/backup',
+  '/profile/cache',
+  '/profile/install',
+  '/profile/rule',
+  '/profile/about',
   '/t/:code',
 ];
