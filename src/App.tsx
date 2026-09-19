@@ -4,7 +4,6 @@ import { AutoHideBottomNav } from './components/BottomNav';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ServiceWorkerUpdateToast } from './components/ServiceWorkerUpdateToast';
 import { Toast } from './components/kit/Toast';
-import { downloadBackup } from './pages/profile/backupFile';
 import { EnvironmentErrorView, EnvironmentLoadingView } from './pages/EnvironmentStates';
 import { productName } from './branding';
 import type { EnvironmentState, EnvironmentTeamSample } from './data/environment';
@@ -415,6 +414,13 @@ function AppShell() {
     [navigate, saveTeam],
   );
 
+  // Loaded on demand: backupFile reaches the data barrel, and a static import from the shell
+  // pins the move catalog into the first-paint bundle (tests/pwa/first-paint-budget.spec.ts).
+  const exportBackup = useCallback(async () => {
+    const { downloadBackup } = await import('./pages/profile/backupFile');
+    downloadBackup(teams, preferences);
+  }, [preferences, teams]);
+
   const copyReplicaCode = useCallback(async (replicaCode: string) => {
     try {
       await navigator.clipboard.writeText(replicaCode);
@@ -491,7 +497,7 @@ function AppShell() {
           case 'profile-rule':
             return <RulePage onBack={back} />;
           case 'profile-about':
-            return <AboutPage onBack={back} onExportBackup={() => downloadBackup(teams, preferences)} />;
+            return <AboutPage onBack={back} onExportBackup={exportBackup} />;
           default:
             return <ProfilePage />;
         }
@@ -513,6 +519,7 @@ function AppShell() {
     importSampleTeam,
     importSharedTeam,
     copyReplicaCode,
+    exportBackup,
     navigate,
     openTool,
     preferences,

@@ -9,7 +9,7 @@ import {
   RefreshCw,
   TriangleAlert,
 } from 'lucide-react';
-import { useCallback, useEffect, useLayoutEffect, useMemo, useState, type ReactNode } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useState, type ReactNode } from 'react';
 import {
   currentRegulation as catalogRegulation,
   getEnvironmentPokemon,
@@ -31,7 +31,6 @@ import {
 import { useHashRoute } from '../hooks/useHashRoute';
 import { KitButton, PageHeader, SearchField, SegmentedTabs, Sprite, TypeDot } from '../components/kit';
 import { typeLabels } from '../components/ui';
-import { EnvironmentPokemonDetail } from './EnvironmentPokemonDetail';
 import { TeamBrowseView } from './TeamBrowseView';
 import { sortTeamSamplesByScore } from './environmentTeamSamples';
 import {
@@ -43,6 +42,12 @@ import {
 } from './environmentChrome';
 import { teamSampleMeta, teamSampleTitle, resolveSampleSlots } from './TeamSampleCard';
 import type { Move } from '../types';
+
+// The detail page builds a team member (「按热门配置加入队伍」), which reaches the move catalog;
+// loading it on demand keeps that chunk out of the #/env first paint.
+const EnvironmentPokemonDetail = lazy(() =>
+  import('./EnvironmentPokemonDetail').then((module) => ({ default: module.EnvironmentPokemonDetail })),
+);
 
 const POKEDB_SITE_URL = 'https://champs.pokedb.tokyo/';
 const HOME_RANKING_ROWS = 5;
@@ -781,17 +786,19 @@ export function EnvironmentPage({
 
   if (detailPokemonId) {
     return (
-      <EnvironmentPokemonDetail
-        battleType={battleType}
-        environment={environment}
-        movesById={movesById}
-        pokemonId={detailPokemonId}
-        // back() pops the real history entry, so 返回 lands on whichever screen opened this
-        // detail (home or the full ranking) without tracking a returnView by hand.
-        onBack={back}
-        onOpenPokemon={(pokemonId) => navigate({ name: 'env-pokemon', pokemonId }, { replace: true })}
-        onOpenTeams={openTeams}
-      />
+      <Suspense fallback={null}>
+        <EnvironmentPokemonDetail
+          battleType={battleType}
+          environment={environment}
+          movesById={movesById}
+          pokemonId={detailPokemonId}
+          // back() pops the real history entry, so 返回 lands on whichever screen opened this
+          // detail (home or the full ranking) without tracking a returnView by hand.
+          onBack={back}
+          onOpenPokemon={(pokemonId) => navigate({ name: 'env-pokemon', pokemonId }, { replace: true })}
+          onOpenTeams={openTeams}
+        />
+      </Suspense>
     );
   }
 
