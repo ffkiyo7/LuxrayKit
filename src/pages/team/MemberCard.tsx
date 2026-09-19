@@ -1,5 +1,5 @@
-import { ChevronRight, ChevronUp, Gauge, Plus, Swords } from 'lucide-react';
-import { abilities, currentRuleNatureOptions, items, pokemon } from '../../data';
+import { ChevronRight, ChevronUp, Plus } from 'lucide-react';
+import { abilities, currentRuleNatureOptions, items, moves, pokemon } from '../../data';
 import { memberBattleStats, memberLabel } from '../../lib/calculations';
 import { getMemberBattleForm } from '../../lib/pokemonForms';
 import { MAX_TOTAL_STAT_POINTS, statPointTotal } from '../../lib/statPoints';
@@ -62,14 +62,10 @@ export function ExpandedMemberCard({
   member,
   onCollapse,
   onEdit,
-  onOpenSpeed,
-  onOpenCalculator,
 }: {
   member: TeamMember;
   onCollapse: () => void;
   onEdit: () => void;
-  onOpenSpeed: () => void;
-  onOpenCalculator: () => void;
 }) {
   const entry = pokemon.find((item) => item.id === member.pokemonId);
   const form = getMemberBattleForm(member);
@@ -79,6 +75,9 @@ export function ExpandedMemberCard({
   const types = form?.types ?? entry?.types ?? [];
   const stats = memberBattleStats(member);
   const baseStats = memberBattleStats({ ...member, statPoints: {} });
+  const memberMoves = member.moveIds
+    .map((moveId) => moves.find((move) => move.id === moveId))
+    .filter((move): move is NonNullable<typeof move> => Boolean(move));
   const natureOption = currentRuleNatureOptions.find((candidate) => member.nature.includes(candidate.id));
 
   const natureMarker = (label: string): 'up' | 'down' | null => {
@@ -128,6 +127,18 @@ export function ExpandedMemberCard({
         </button>
       </div>
 
+      {/* Owner design 2026-09-19: the four moves as a 2×2 of chips; an unused slot stays blank. */}
+      {memberMoves.length > 0 && (
+        <ul aria-label={`${name} 的招式`} className="m-0 mt-4 grid list-none grid-cols-2 gap-2 p-0">
+          {memberMoves.map((move) => (
+            <li key={move.id} className="flex h-11 min-w-0 items-center gap-2.5 rounded-[14px] bg-btn2 px-3.5">
+              <TypeDot type={move.type} />
+              <span className="truncate text-[15px] font-bold">{move.chineseName}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+
       <div className="mt-[18px] flex items-baseline justify-between">
         <p className="m-0 text-[13px] font-bold text-textLabel">能力值</p>
         <p className="m-0 inline-flex items-center gap-1.5 text-xs font-semibold text-textSecondary">
@@ -146,25 +157,6 @@ export function ExpandedMemberCard({
             value={stats[row.key]}
           />
         ))}
-      </div>
-
-      <div className="mt-[18px] flex gap-2">
-        <button
-          className="inline-flex h-11 min-w-0 flex-1 items-center justify-center gap-[7px] rounded-[14px] bg-btn1 text-sm font-bold text-textLabel"
-          type="button"
-          onClick={onOpenSpeed}
-        >
-          <Gauge size={16} />
-          速度线
-        </button>
-        <button
-          className="inline-flex h-11 min-w-0 flex-1 items-center justify-center gap-[7px] rounded-[14px] bg-btn1 text-sm font-bold text-textLabel"
-          type="button"
-          onClick={onOpenCalculator}
-        >
-          <Swords size={16} />
-          伤害计算
-        </button>
       </div>
 
       <button

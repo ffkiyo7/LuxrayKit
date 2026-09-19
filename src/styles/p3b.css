@@ -172,6 +172,22 @@
   box-shadow: var(--lk-row-pending-ring);
 }
 
+/* The editor's ⋯ menu (owner design, 2026-09-19): a raised panel anchored under the button.
+   Dark lifts one step above the page; light is paper with the shared menu shadow. */
+.lk-editor-menu {
+  background: #202024;
+  box-shadow:
+    0 0 0 0.5px rgb(255 255 255 / 0.08),
+    var(--lk-menu-shadow);
+}
+
+:root[data-theme='light'] .lk-editor-menu {
+  background: #ffffff;
+  box-shadow:
+    0 0 0 0.5px rgb(16 24 40 / 0.1),
+    var(--lk-menu-shadow);
+}
+
 /* 03-11 nature grid: the five diagonal cells carry no modifier, the current one is filled. */
 .lk-nature-cell-on {
   background: var(--lk-nature-on);

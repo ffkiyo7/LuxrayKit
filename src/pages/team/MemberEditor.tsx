@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Info, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Gauge, Info, MoreHorizontal, Swords, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { abilities, currentRuleNatureOptions, currentRuleSet, items, moves, pokemon } from '../../data';
 import type { EnvironmentState } from '../../data/environment';
@@ -34,6 +34,36 @@ type EditorView =
   | { kind: 'ability' }
   | { kind: 'nature' }
   | { kind: 'form' };
+
+/** One row of the ⋯ menu anchored under the editor's top-right button. */
+function EditorMenuRow({
+  icon,
+  label,
+  danger,
+  disabled,
+  onClick,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  danger?: boolean;
+  disabled?: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      className={`flex h-[46px] w-full items-center gap-3 text-left text-[15px] font-bold disabled:opacity-40 ${
+        danger ? 'text-danger' : 'text-textPrimary'
+      }`}
+      disabled={disabled}
+      role="menuitem"
+      type="button"
+      onClick={onClick}
+    >
+      <span className="inline-flex shrink-0">{icon}</span>
+      {label}
+    </button>
+  );
+}
 
 /** 03-01's 64px labelled row: 「道具 / 妖精之羽 ›」. */
 function ConfigRow({
@@ -81,6 +111,8 @@ export function MemberEditor({
   onClose,
   onSave,
   onDelete,
+  onOpenSpeed,
+  onOpenCalculator,
 }: {
   team: Team;
   member: TeamMember;
@@ -94,7 +126,11 @@ export function MemberEditor({
   /** The whole roster, because a staged item transfer also rewrites the teammate it came from. */
   onSave: (members: TeamMember[], transfer: StagedItemTransfer | null) => Promise<void>;
   onDelete: () => Promise<void>;
+  /** Both tools read the saved member, so the editor saves a dirty draft before leaving. */
+  onOpenSpeed: () => void;
+  onOpenCalculator: () => void;
 }) {
+  const [menuOpen, setMenuOpen] = useState(false);
   const [draft, setDraft] = useState<TeamMember>(member);
   const [transfer, setTransfer] = useState<StagedItemTransfer | null>(null);
   const [view, setView] = useState<EditorView>({ kind: 'editor' });
@@ -175,11 +211,26 @@ export function MemberEditor({
     onClose();
   };
 
-  const save = async () => {
-    if (saveDisabled) return;
+  const persistDraft = async () => {
     const legality = evaluateMemberLegality(draft, team);
     await onSave(applyMemberEdit(team, { ...draft, legalityStatus: legality.status }, transfer), transfer);
+  };
+
+  const save = async () => {
+    if (saveDisabled) return;
+    await persistDraft();
     onClose();
+  };
+
+  // A tool opened from here should show the build on screen, not the one last saved — and a
+  // draft that cannot be saved (SP over the cap) has nothing valid to hand over.
+  const dirty = changes.length > 0;
+  const toolsDisabled = dirty && saveDisabled;
+  const openTool = async (open: () => void) => {
+    setMenuOpen(false);
+    if (toolsDisabled) return;
+    if (dirty) await persistDraft();
+    open();
   };
 
   if (view.kind === 'move') {
@@ -276,9 +327,33 @@ export function MemberEditor({
         <RoundIconButton label="返回队伍详情" onClick={cancel}>
           <ChevronLeft size={20} />
         </RoundIconButton>
-        <RoundIconButton label={`从队伍移除${name}`} tone="muted" onClick={() => setConfirmRemove(true)}>
-          <Trash2 size={17} />
-        </RoundIconButton>
+        <div className="relative">
+          <RoundIconButton label="更多操作" onClick={() => setMenuOpen((open) => !open)}>
+            <MoreHorizontal size={18} />
+          </RoundIconButton>
+          {menuOpen && (
+            <>
+              <button aria-label="关闭菜单" className="fixed inset-0 z-30 cursor-default" type="button" onClick={() => setMenuOpen(false)} />
+              <div
+                className="lk-editor-menu absolute right-0 top-[44px] z-40 w-[214px] rounded-[20px] px-[18px] py-1.5"
+                role="menu"
+              >
+                <EditorMenuRow disabled={toolsDisabled} icon={<Gauge size={17} />} label="速度线" onClick={() => openTool(onOpenSpeed)} />
+                <EditorMenuRow disabled={toolsDisabled} icon={<Swords size={17} />} label="伤害计算" onClick={() => openTool(onOpenCalculator)} />
+                <div className="my-1.5 border-t border-[var(--hairline-strong)]" />
+                <EditorMenuRow
+                  danger
+                  icon={<Trash2 size={17} />}
+                  label="删除这个成员"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setConfirmRemove(true);
+                  }}
+                />
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       <div className="px-6 pt-[14px]">

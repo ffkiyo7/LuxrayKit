@@ -364,6 +364,8 @@ export function TeamPage({
           memberIndex={editingMemberIndex}
           team={editorTeam}
           onClose={() => navigate({ name: 'team-detail', teamId: editorTeam.id })}
+          onOpenCalculator={() => onSendToCalculator(editingMember.id, 'attacker')}
+          onOpenSpeed={() => onSendToSpeed(editingMember.id)}
           onDelete={async () => {
             await saveTeam({ ...editorTeam, members: editorTeam.members.filter((entry) => entry.id !== editingMember.id) });
             setExpandedMemberId((current) => (current === editingMember.id ? null : current));
@@ -492,8 +494,6 @@ export function TeamPage({
                 member={member}
                 onCollapse={() => setExpandedMemberId(null)}
                 onEdit={() => navigate({ name: 'member-editor', teamId: activeTeam.id, memberId: member.id })}
-                onOpenCalculator={() => onSendToCalculator(member.id, 'attacker')}
-                onOpenSpeed={() => onSendToSpeed(member.id)}
               />
             ) : (
               <MemberTile key={member.id} member={member} onExpand={() => setExpandedMemberId(member.id)} />

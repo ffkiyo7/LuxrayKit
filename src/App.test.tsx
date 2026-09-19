@@ -562,7 +562,8 @@ describe('App page flows', () => {
 
     expect(await screen.findByText(/1\/6 成员/)).toBeTruthy();
     await openMemberEditor(user, '伦琴猫');
-    await user.click(screen.getByRole('button', { name: '从队伍移除伦琴猫' }));
+    await user.click(screen.getByRole('button', { name: '更多操作' }));
+    await user.click(screen.getByRole('menuitem', { name: '删除这个成员' }));
     await user.click(within(await screen.findByRole('dialog', { name: '确认移除成员' })).getByRole('button', { name: '移除成员' }));
 
     expect(await screen.findByText(/0\/6 成员/)).toBeTruthy();

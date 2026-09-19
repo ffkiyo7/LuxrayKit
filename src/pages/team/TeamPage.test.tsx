@@ -275,7 +275,8 @@ describe('TeamPage', () => {
     const user = await renderTeamDetail('team-alpha');
     await openMemberEditor(user, '烈咬陆鲨');
 
-    await user.click(screen.getByRole('button', { name: '从队伍移除烈咬陆鲨' }));
+    await user.click(screen.getByRole('button', { name: '更多操作' }));
+    await user.click(screen.getByRole('menuitem', { name: '删除这个成员' }));
     const confirm = await screen.findByRole('dialog', { name: '确认移除成员' });
     expect(within(confirm).getByText('这支队伍会变成 0/6。')).toBeTruthy();
     await user.click(within(confirm).getByRole('button', { name: '移除成员' }));
@@ -285,6 +286,25 @@ describe('TeamPage', () => {
       const state = await repository.loadState();
       expect(state.teams[0].members).toEqual([]);
     });
+  });
+
+  it('lists the moves on the expanded card and keeps the tool entries in the editor ⋯ menu', async () => {
+    await repository.replaceTeams([team('team-alpha', '甲队', [member()])]);
+    const user = await renderTeamDetail('team-alpha');
+
+    await user.click(await screen.findByRole('button', { name: '展开 烈咬陆鲨' }));
+    const moveList = screen.getByRole('list', { name: '烈咬陆鲨 的招式' });
+    expect(within(moveList).getAllByRole('listitem').map((item) => item.textContent)).toEqual(['地震', '守住']);
+    expect(screen.queryByRole('button', { name: '速度线' })).toBeNull();
+    expect(screen.queryByRole('button', { name: '伤害计算' })).toBeNull();
+
+    await user.click(screen.getByRole('button', { name: '编辑配置' }));
+    await screen.findByRole('heading', { name: '编辑配置' });
+    await user.click(screen.getByRole('button', { name: '更多操作' }));
+    expect(screen.getByRole('menuitem', { name: '伤害计算' })).toBeTruthy();
+    await user.click(screen.getByRole('menuitem', { name: '速度线' }));
+
+    expect(await screen.findByRole('heading', { name: '速度线' })).toBeTruthy();
   });
 
   it('deletes a team from the ⋯ menu only after the confirmation sheet', async () => {
