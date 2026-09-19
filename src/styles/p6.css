@@ -12,15 +12,33 @@
   --lk-panel-ring: inset 0 0 0 1px rgb(255 255 255 / 0.07);
   --lk-field-bg: #0f0f12;
   --lk-chip-ring: rgb(255 255 255 / 0.12);
+  /* 08-08 / NL-07 info dot: #c7c7cc in both themes, which is `text-label` here and `chevron`
+     on light — no single token spans it. */
+  --lk-toast-dot-info: rgb(var(--color-text-label));
+  /* The near-white primary button (08-07, N08-01, 08-10). Dark glosses it with an inset
+     highlight over a deep drop; on light the same button is near-black ink, and every light
+     frame that draws it (NL-01, NL-02) carries a single soft 1px lift instead. */
+  --lk-primary-shadow: inset 0 1px 0 rgb(255 255 255 / 0.9), inset 0 -1px 0 rgb(0 0 0 / 0.12), 0 6px 18px rgb(0 0 0 / 0.45);
+  --lk-primary-shadow-flat: inset 0 1px 0 rgb(255 255 255 / 0.9), inset 0 -1px 0 rgb(0 0 0 / 0.12);
+  /* Floating over the page (service-worker toast). */
+  --lk-float-shadow: 0 12px 32px rgb(0 0 0 / 0.5);
+  --lk-dialog-overlay: rgb(16 24 40 / 0.7);
 }
 
 :root[data-theme='light'] {
   --lk-tile-alpha: 0.1;
   --lk-toast-shadow: 0 1px 2px rgb(0 0 0 / 0.05), 0 8px 24px rgb(16 24 40 / 0.06);
   --lk-panel-bg: #ffffff;
-  --lk-panel-ring: inset 0 0 0 1px rgb(16 24 40 / 0.06);
+  /* A white panel on the #fbfbfd page needs elevation, not just a 6% hairline, to read as a
+     separate plane (light frame convention). */
+  --lk-panel-ring: 0 1px 2px rgb(0 0 0 / 0.05), 0 8px 24px rgb(16 24 40 / 0.06), inset 0 0 0 1px rgb(16 24 40 / 0.06);
   --lk-field-bg: #f2f2f5;
   --lk-chip-ring: rgb(16 24 40 / 0.1);
+  --lk-toast-dot-info: #c7c7cc;
+  --lk-primary-shadow: 0 1px 2px rgb(16 24 40 / 0.12);
+  --lk-primary-shadow-flat: 0 1px 2px rgb(16 24 40 / 0.12);
+  --lk-float-shadow: 0 1px 2px rgb(0 0 0 / 0.05), 0 8px 24px rgb(16 24 40 / 0.06);
+  --lk-dialog-overlay: rgb(28 28 30 / 0.32);
 }
 
 /* 32px rounded tile behind a list row's icon (08-01, N08-10, N08-16). */
@@ -73,4 +91,25 @@
 .lk-chip-outline {
   background: var(--row-active);
   box-shadow: inset 0 0 0 1px var(--lk-chip-ring);
+}
+
+.lk-toast-dot-info {
+  background: var(--lk-toast-dot-info);
+}
+
+.lk-btn-primary {
+  box-shadow: var(--lk-primary-shadow);
+}
+
+.lk-btn-primary--flat {
+  box-shadow: var(--lk-primary-shadow-flat);
+}
+
+.lk-float {
+  box-shadow: var(--lk-float-shadow);
+}
+
+/* 08-09 分享的队伍: a centred dialog, so its scrim is heavier than a sheet's. */
+.lk-dialog-overlay {
+  background: var(--lk-dialog-overlay);
 }

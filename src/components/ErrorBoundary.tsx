@@ -48,7 +48,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
           <div className="mt-6 flex flex-col gap-2.5">
             <button
-              className="flex h-[50px] items-center justify-center gap-2 rounded-2xl bg-accent text-base font-extrabold text-page shadow-[inset_0_1px_0_rgb(255_255_255/0.9),inset_0_-1px_0_rgb(0_0_0/0.12),0_6px_18px_rgb(0_0_0/0.45)]"
+              className="lk-btn-primary flex h-[50px] items-center justify-center gap-2 rounded-2xl bg-accent text-base font-extrabold text-page"
               type="button"
               onClick={() => window.location.reload()}
             >
@@ -79,7 +79,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                 复制
               </button>
             </div>
-            <p className="mt-2.5 whitespace-pre-line break-all font-mono text-xs leading-[18px] text-chevron">{this.state.detail}</p>
+            <p className="mt-2.5 whitespace-pre-line break-all font-mono text-xs leading-[18px] text-textMuted">{this.state.detail}</p>
             <p className="mt-3 text-xs font-semibold leading-[18px] text-textMuted">{meta}</p>
           </div>
         </div>

@@ -113,14 +113,14 @@ function ExpiredLink({ onClose, onGoToTeams }: { onClose: () => void; onGoToTeam
         </p>
         <div className="mt-6 flex flex-col gap-2.5">
           <button
-            className="flex h-[50px] items-center justify-center rounded-2xl bg-accent text-base font-extrabold tracking-[-0.01em] text-page shadow-[inset_0_1px_0_rgb(255_255_255/0.9),inset_0_-1px_0_rgb(0_0_0/0.12),0_6px_18px_rgb(0_0_0/0.45)]"
+            className="lk-btn-primary flex h-[50px] items-center justify-center rounded-2xl bg-accent text-base font-extrabold tracking-[-0.01em] text-page"
             type="button"
             onClick={onGoToTeams}
           >
             去我的队伍
           </button>
         </div>
-        <p className="mt-[18px] text-xs font-semibold leading-[18px] text-chevron">本机已有的队伍不受影响。</p>
+        <p className="mt-[18px] text-xs font-semibold leading-[18px] text-textMuted">本机已有的队伍不受影响。</p>
       </div>
     </div>
   );
@@ -178,8 +178,8 @@ export function SharedTeamPreview({
 
   return (
     <div className="fixed inset-0 z-50 mx-auto max-w-[430px]" role="dialog" aria-label="分享的队伍" aria-modal="true" data-bottom-nav-lock="true">
-      <button className="absolute inset-0 h-full w-full bg-overlay/70" type="button" aria-label="关闭分享的队伍" onClick={onClose} />
-      <section className="lk-panel absolute inset-x-4 top-1/2 max-h-[calc(100vh-2rem)] -translate-y-1/2 overflow-y-auto rounded-[20px] p-[18px] shadow-[0_24px_60px_rgb(0_0_0/0.5)]">
+      <button className="lk-dialog-overlay absolute inset-0 h-full w-full" type="button" aria-label="关闭分享的队伍" onClick={onClose} />
+      <section className="lk-panel absolute inset-x-4 top-1/2 max-h-[calc(100vh-2rem)] -translate-y-1/2 overflow-y-auto rounded-[20px] p-[18px]">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-textSecondary">Shared team</p>
