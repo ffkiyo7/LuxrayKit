@@ -26,28 +26,8 @@ const environment: EnvironmentState = {
   },
 };
 
-const installVisualViewport = (height: number, offsetTop = 0) => {
-  const viewport = {
-    width: 390,
-    height,
-    offsetLeft: 0,
-    offsetTop,
-    pageLeft: 0,
-    pageTop: offsetTop,
-    scale: 1,
-    onresize: null,
-    onscroll: null,
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    dispatchEvent: vi.fn(),
-  } as unknown as VisualViewport;
-  Object.defineProperty(window, 'visualViewport', { configurable: true, value: viewport });
-  return viewport;
-};
-
 afterEach(() => {
   cleanup();
-  Object.defineProperty(window, 'visualViewport', { configurable: true, value: undefined });
 });
 
 const teamWithFastLeadoff = (): Team => ({
@@ -82,10 +62,11 @@ describe('SpeedPage', () => {
 
     // Neutral default (max SP, no speed nature), not the member's 4 SP / 爽朗 / choice-scarf.
     expect(screen.getByRole('slider', { name: '速度 SP' }).getAttribute('value')).toBe('32');
-    expect(screen.getByRole('button', { name: '+ 速度性格' }).getAttribute('aria-pressed')).toBe('false');
+    expect(screen.getByRole('button', { name: '＋ 速度性格' }).getAttribute('aria-pressed')).toBe('false');
+    expect(screen.getByRole('switch', { name: '讲究围巾' }).getAttribute('aria-checked')).toBe('false');
   });
 
-  it('updates the real axis marker from SP and nature controls', async () => {
+  it('updates the final speed and the axis marker from SP and nature controls', async () => {
     const user = userEvent.setup();
     render(<SpeedPage environment={environment} />);
 
@@ -93,31 +74,34 @@ describe('SpeedPage', () => {
     const slider = screen.getByRole('slider', { name: '速度 SP' });
     expect(slider.getAttribute('value')).toBe('32');
     const marker = document.querySelector('[data-speed-marker]') as HTMLElement;
-    const initialTop = marker.style.top;
+    const initialSpeed = marker.textContent;
 
     fireEvent.change(slider, { target: { value: '0' } });
     expect(slider.getAttribute('value')).toBe('0');
-    expect(marker.style.top).not.toBe(initialTop);
+    expect((document.querySelector('[data-speed-marker]') as HTMLElement).textContent).not.toBe(initialSpeed);
 
-    await user.click(screen.getByRole('button', { name: '+ 速度性格' }));
-    expect(screen.getByRole('button', { name: '+ 速度性格' }).getAttribute('aria-pressed')).toBe('true');
+    await user.click(screen.getByRole('button', { name: '＋ 速度性格' }));
+    expect(screen.getByRole('button', { name: '＋ 速度性格' }).getAttribute('aria-pressed')).toBe('true');
+  });
 
-    const axis = document.querySelector('[data-speed-axis]') as HTMLElement;
-    Object.defineProperty(axis, 'clientHeight', { configurable: true, value: 340 });
-    axis.scrollTop = 0;
-    fireEvent.scroll(axis);
-    expect(screen.getByRole('button', { name: '跳回我那只，位于下方' })).toBeTruthy();
+  it('applies a speed-up toggle to the final speed', async () => {
+    const user = userEvent.setup();
+    render(<SpeedPage environment={environment} />);
+
+    const before = Number((document.querySelector('[data-speed-marker]') as HTMLElement).textContent?.match(/\d+/)?.[0]);
+    await user.click(screen.getByRole('switch', { name: '顺风' }));
+    const after = Number((document.querySelector('[data-speed-marker]') as HTMLElement).textContent?.match(/\d+/)?.[0]);
+
+    expect(after).toBe(before * 2);
   });
 
   it('searches by English name and opens an outspeed plan from a reference tier', async () => {
     const user = userEvent.setup();
     render(<SpeedPage environment={environment} />);
 
-    await user.click(screen.getByRole('button', { name: '搜索宝可梦' }));
     await user.type(screen.getByRole('textbox', { name: '搜索宝可梦' }), 'Staraptor');
-    const staraptorResult = screen.getByText('Staraptor').closest('button');
-    expect(staraptorResult).toBeTruthy();
-    await user.click(staraptorResult!);
+    await user.click(screen.getByRole('button', { name: '姆克鹰 Staraptor' }));
+    expect(screen.queryByText(/个结果/)).toBeNull();
 
     const tierButton = screen.getAllByRole('button', { name: /^超速 / }).find((button) => button.textContent?.includes('153'));
     expect(tierButton).toBeTruthy();
@@ -127,7 +111,19 @@ describe('SpeedPage', () => {
     expect(applyButtons.length).toBeGreaterThan(0);
     await user.click(applyButtons[0]);
     expect(screen.queryByRole('dialog', { name: /^超速 / })).toBeNull();
-    expect(screen.getByRole('button', { name: '+ 速度性格' }).getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByRole('button', { name: '＋ 速度性格' }).getAttribute('aria-pressed')).toBe('true');
+  });
+
+  it('explains a name that is outside the current rule instead of showing an empty list', async () => {
+    const user = userEvent.setup();
+    render(<SpeedPage environment={environment} onOpenDex={vi.fn()} />);
+
+    await user.type(screen.getByRole('textbox', { name: '搜索宝可梦' }), '不存在的宝可梦');
+
+    expect(screen.getByText('0 个结果')).toBeTruthy();
+    expect(screen.getByRole('heading', { name: '当前规则里没有这只' })).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: /显示全部/ }));
+    expect((screen.getByRole('textbox', { name: '搜索宝可梦' }) as HTMLInputElement).value).toBe('');
   });
 
   it('does not render the Mega Z placeholder 151-family tier on either axis', async () => {
@@ -138,26 +134,5 @@ describe('SpeedPage', () => {
 
     await user.click(screen.getByRole('button', { name: '单打' }));
     expect(screen.queryByRole('button', { name: /种族151/ })).toBeNull();
-  });
-
-  it('keeps pokemon search results usable inside a reduced visual viewport', async () => {
-    const user = userEvent.setup();
-    installVisualViewport(320);
-    render(<SpeedPage environment={environment} />);
-
-    await user.click(screen.getByRole('button', { name: '搜索宝可梦' }));
-    const results = document.querySelector('[data-speed-search-results]') as HTMLElement | null;
-    expect(results).toBeTruthy();
-    expect(results?.className).toContain('overflow-y-auto');
-    expect(Number.parseFloat(results?.style.maxHeight ?? '')).toBeGreaterThan(0);
-    expect(Number.parseFloat(results?.style.maxHeight ?? '')).toBeLessThanOrEqual(208);
-
-    const search = screen.getByRole('textbox', { name: '搜索宝可梦' });
-    await user.type(search, 'Staraptor');
-    const staraptorResult = screen.getByText('Staraptor').closest('button');
-    expect(staraptorResult).toBeTruthy();
-    await user.click(staraptorResult!);
-
-    expect(screen.queryByRole('textbox', { name: '搜索宝可梦' })).toBeNull();
   });
 });

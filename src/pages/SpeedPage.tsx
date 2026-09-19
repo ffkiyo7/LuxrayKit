@@ -1,5 +1,5 @@
-import { ArrowDown, ArrowUp, Check, ChevronDown, Search, Wind, X, Zap } from 'lucide-react';
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { ChevronDown, ChevronRight, ChevronUp, Wind } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { currentRuleNatureOptions, currentRuleSet, pokemon } from '../data';
 import type { EnvironmentState } from '../data/environment';
 import { speedTierSeason, speedTierSnapshots } from '../data/speedTiers';
@@ -16,7 +16,6 @@ import {
   markerInsertIndex,
   sortVariantsByUsage,
   SCARF_SUGGESTION_USAGE_THRESHOLD,
-  speedNatureLabel,
   type OutspeedPlanOption,
   type SpeedAbilityProfile,
   type SpeedBuild,
@@ -24,24 +23,18 @@ import {
   type SpeedTierGroup,
 } from '../lib/speedTier';
 import { MAX_STAT_POINTS_PER_STAT } from '../lib/statPoints';
-import { useVisualViewportMetrics } from '../hooks/useVisualViewportMetrics';
 import type { Pokemon, Team, TeamMember } from '../types';
-import { Button, Card, OverlappingAvatars, PokemonAvatar } from '../components/ui';
+import { ListRow, PageHeader, Pill, SearchField, SectionLabel, Sheet, Sprite, Switch } from '../components/kit';
 
 type BattleType = 'singles' | 'doubles';
-type ScrollDirection = 'up' | 'down' | null;
-
-const ROW_HEIGHT = 46;
-const AXIS_PAD = 64;
-const AXIS_AVATAR_LIMIT = 5;
-const SHEET_AVATAR_LIMIT = 12;
-
-// Axis avatars must match the displayed label = the primary (top) variant only;
-// other same-speed variants live in the tap sheet so the row never misleads.
-const groupAvatarItems = (group: SpeedTierGroup) =>
-  (group.variants[0]?.pokemon ?? []).map((entry) => ({ key: entry.key, iconRef: entry.iconRef, label: entry.displayName }));
+type MarkerOffscreen = 'up' | 'down' | null;
 
 const groupPrimaryLabel = (group: SpeedTierGroup) => group.variants[0].displayLabel;
+
+const groupRoster = (group: SpeedTierGroup) =>
+  group.variants.flatMap((variant) =>
+    variant.pokemon.map((entry) => ({ key: `${variant.code}-${entry.key}`, label: entry.displayName, variant: variant.label, iconRef: entry.iconRef })),
+  );
 
 const natureFromMember = (member?: TeamMember): SpeedNature => {
   const option = currentRuleNatureOptions.find((candidate) => member?.nature.includes(candidate.id));
@@ -59,60 +52,38 @@ const createBuild = (entry: Pokemon, form: BattleFormView | undefined, member?: 
   tailwind: false,
 });
 
-function PlanCard({ option, recommended, onApply }: { option: OutspeedPlanOption; recommended?: boolean; onApply: (option: OutspeedPlanOption) => void }) {
-  return (
-    <section className={`rounded-lg border p-3 ${recommended ? 'border-accent bg-accent/10 shadow-[0_0_18px_rgb(var(--color-accent)/0.15)]' : 'border-border bg-secondary'}`}>
-      <div className="flex items-center justify-between gap-3">
-        <p className="flex min-w-0 items-center gap-1.5 text-sm font-semibold">
-          {recommended && <span className="shrink-0 rounded bg-accent px-1.5 py-0.5 text-[9px] font-bold text-page">推荐</span>}
-          <span className="truncate">{option.deltas.join(' + ')}</span>
-        </p>
-        <div className="shrink-0 text-right">
-          <p className="text-lg font-bold leading-none text-accent">{option.finalSpeed}</p>
-          <p className="mt-0.5 text-[10px] text-success">超出 +{option.margin}</p>
-        </div>
-      </div>
-      <Button className="mt-3 w-full" type="button" onClick={() => onApply(option)}>
-        <Check size={14} />
-        应用此方案
-      </Button>
-    </section>
-  );
-}
+// ── Outspeed sheet (05-06 / N05-17 / N05-18) ──
 
-function VariantRoster({ variant }: { variant: SpeedTierGroup['variants'][number] }) {
-  const [expanded, setExpanded] = useState(false);
+function PlanRow({
+  option,
+  currentFinal,
+  onApply,
+  divider,
+}: {
+  option: OutspeedPlanOption;
+  currentFinal: number;
+  onApply: (option: OutspeedPlanOption) => void;
+  divider: boolean;
+}) {
+  const leading = option.build.scarf ? (
+    <Sprite iconRef="/assets/items/choice-scarf.png" label="讲究围巾" size={26} />
+  ) : option.build.tailwind ? (
+    <span className="grid h-[26px] w-[26px] shrink-0 place-items-center text-textSecondary">
+      <Wind size={20} />
+    </span>
+  ) : undefined;
+
   return (
-    <div className="rounded-lg border border-border bg-secondary p-2.5">
-      <div className="flex items-center gap-2">
-        <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: variant.color }} />
-        <span className="min-w-0 flex-1 truncate text-xs font-semibold">{variant.displayLabel}</span>
-        <button
-          className="shrink-0 text-[11px] font-semibold text-accent"
-          type="button"
-          aria-expanded={expanded}
-          onClick={() => setExpanded((value) => !value)}
-        >
-          {expanded ? '收起' : '展开'}
-        </button>
-      </div>
-      {expanded ? (
-        <div className="mt-2 grid grid-cols-2 gap-1.5 border-t border-divider pt-2">
-          {variant.pokemon.map((entry) => (
-            <div key={entry.key} className="flex min-w-0 items-center gap-1.5">
-              <PokemonAvatar iconRef={entry.iconRef} label={entry.displayName} size="xs" />
-              <span className="truncate text-[11px]">{entry.displayName}</span>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <OverlappingAvatars
-          className="mt-2"
-          items={variant.pokemon.map((entry) => ({ key: entry.key, iconRef: entry.iconRef, label: entry.displayName }))}
-          limit={SHEET_AVATAR_LIMIT}
-        />
-      )}
-    </div>
+    <ListRow
+      ariaLabel="应用此方案"
+      divider={divider}
+      height={60}
+      leading={leading}
+      subtitle={`${currentFinal} → ${option.finalSpeed} · 超出 ${option.margin}`}
+      title={<span className="text-[15px]">{option.deltas.join(' + ')}</span>}
+      trailing={<span className="shrink-0 text-[13px] font-bold text-textPrimary">应用</span>}
+      onClick={() => onApply(option)}
+    />
   );
 }
 
@@ -133,84 +104,160 @@ function OutspeedSheet({
 }) {
   const scarfEligible = scarfUsageRate >= SCARF_SUGGESTION_USAGE_THRESHOLD;
   const plan = buildOutspeedPlan({ target: group.speed, current: build, scarfEligible, speedAbility: ability });
+  const roster = groupRoster(group).slice(0, 8);
 
   return (
-    <div className="fixed inset-0 z-50 mx-auto max-w-[430px]" role="dialog" aria-label={`超速 实数 ${group.speed}`} aria-modal="true">
-      <button className="absolute inset-0 h-full w-full bg-overlay/75" type="button" aria-label="关闭超速方案" onClick={onClose} />
-      <section className="surface-shadow absolute inset-x-0 bottom-0 max-h-[82vh] overflow-y-auto rounded-t-2xl border-t border-border bg-card px-4 pb-[calc(18px+env(safe-area-inset-bottom))] pt-3">
-        <div className="mx-auto mb-3 h-1 w-9 rounded-full bg-disabled" />
-        <div className="mb-4 flex items-center justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-[11px] text-textSecondary">超速目标</p>
-            <p className="text-lg font-bold tabular-nums">实数 {group.speed}</p>
-          </div>
-          <button className="grid h-8 w-8 place-items-center rounded-lg text-textSecondary" type="button" aria-label="关闭超速方案" onClick={onClose}>
-            <X size={18} />
-          </button>
-        </div>
+    <Sheet label={`超速 ${group.speed}`} variant="handle" onClose={onClose}>
+      <SectionLabel>超速目标</SectionLabel>
+      <p className="mt-1.5 flex items-baseline gap-2.5">
+        <span className="text-[28px] font-extrabold leading-none tracking-[-0.02em] tabular-nums">{group.speed}</span>
+        <span className="text-sm font-bold text-textSecondary">{groupPrimaryLabel(group)}</span>
+      </p>
 
-        <div className="mb-4 space-y-2">
-          <p className="text-[11px] font-semibold text-textSecondary">这条线上的宝可梦</p>
-          {group.variants.map((variant) => (
-            <VariantRoster key={`${variant.label}-${variant.code}`} variant={variant} />
-          ))}
-        </div>
+      <SectionLabel className="pt-3.5">这条线上的宝可梦</SectionLabel>
+      <div className="mt-2 flex flex-wrap gap-2.5">
+        {roster.map((entry) => (
+          <Sprite key={entry.key} iconRef={entry.iconRef} label={entry.label} size={40} />
+        ))}
+      </div>
 
-        {plan.status === 'already' && (
-          <div className="rounded-lg border border-success/30 bg-legalBg p-4">
-            <p className="font-semibold text-success">你已经更快 +{plan.gap}</p>
-            <p className="mt-1 text-xs text-textSecondary">当前配置无需调整。</p>
-          </div>
-        )}
-
-        {plan.status === 'infeasible' && (
-          <div className="rounded-lg border border-warning/30 bg-reviewBg p-4">
-            <p className="font-semibold text-warning">当前手段无法超速</p>
-            <p className="mt-1 text-xs text-textSecondary">全部可用手段叠加后，最高只能到 {plan.bestFinal}。</p>
-          </div>
-        )}
-
-        {plan.status === 'suggestions' && (
-          <div className="space-y-2">
-            <p className="text-[11px] font-semibold text-textSecondary">超速方案</p>
-            <PlanCard option={plan.primary} recommended onApply={onApply} />
-            {plan.safer && <PlanCard option={plan.safer} onApply={onApply} />}
-          </div>
-        )}
-
-        {!scarfEligible && !build.scarf && (
-          <p className="mt-3 text-[11px] leading-5 text-textMuted">
-            围巾环境携带率 {scarfUsageRate.toFixed(1)}%，未达 {SCARF_SUGGESTION_USAGE_THRESHOLD}% 门槛，本次建议不占用围巾。
+      {plan.status === 'already' && (
+        <div className="mt-4 rounded-[14px] bg-success/[0.12] p-3.5">
+          <p className="text-sm font-extrabold text-success">已经更快 · 快 {plan.gap} 点</p>
+          <p className="mt-1 text-xs font-semibold leading-[18px] text-textLabel">
+            当前 {plan.currentFinal}，这条线 {group.speed}。不需要任何手段。
           </p>
-        )}
-      </section>
-    </div>
+        </div>
+      )}
+
+      {plan.status === 'infeasible' && (
+        <div className="mt-4 rounded-[14px] bg-surface p-3.5">
+          <p className="text-sm font-extrabold">当前手段无法超速</p>
+          <p className="mt-1 text-xs font-semibold leading-[18px] text-textLabel">
+            速度 SP 拉满 {MAX_STAT_POINTS_PER_STAT}、换讲究围巾、开顺风全用上，最高 {plan.bestFinal}，仍然差 {group.speed - plan.bestFinal + 1} 点。
+          </p>
+        </div>
+      )}
+
+      {plan.status === 'suggestions' && (
+        <>
+          <div className="mt-4 rounded-[14px] bg-danger/[0.12] p-3.5">
+            <p className="text-sm font-extrabold text-danger">还差 {group.speed - plan.currentFinal + 1} 点</p>
+            <p className="mt-1 text-xs font-semibold text-textLabel">
+              当前 {plan.currentFinal}，需要 {group.speed + 1} 才能先手。
+            </p>
+          </div>
+          <SectionLabel className="pt-4">超速方案</SectionLabel>
+          <div className="mt-2">
+            <PlanRow currentFinal={plan.currentFinal} divider={Boolean(plan.safer)} option={plan.primary} onApply={onApply} />
+            {plan.safer && <PlanRow currentFinal={plan.currentFinal} divider={false} option={plan.safer} onApply={onApply} />}
+          </div>
+        </>
+      )}
+
+      {!scarfEligible && !build.scarf && (
+        <p className="mt-3 text-xs font-semibold leading-[18px] text-textSecondary">
+          围巾环境携带率 {scarfUsageRate.toFixed(1)}%，未过 {SCARF_SUGGESTION_USAGE_THRESHOLD}% 门槛，默认不建议占用围巾位。
+        </p>
+      )}
+    </Sheet>
   );
 }
 
-export function SpeedPage({ environment, activeTeam, presetMember }: { environment: EnvironmentState; activeTeam?: Team; presetMember?: TeamMember }) {
+/**
+ * One tier line (05-05) plus N05-16's form breakdown. The row itself opens the outspeed sheet
+ * — the frame's 「点档位看方案」 — so the expander is its own button rather than a nested
+ * click target inside it.
+ */
+function TierRow({
+  group,
+  difference,
+  expanded,
+  onToggle,
+  onOpen,
+}: {
+  group: SpeedTierGroup;
+  difference: number;
+  expanded: boolean;
+  onToggle: () => void;
+  onOpen: () => void;
+}) {
+  const roster = groupRoster(group);
+  const expandable = roster.length > 1;
+
+  return (
+    <>
+      <div className="flex items-center border-b border-[var(--hairline)]">
+        <button
+          aria-label={`超速 实数 ${group.speed}，${groupPrimaryLabel(group)}，共 ${group.pokemonCount} 只`}
+          className="flex h-[60px] min-w-0 flex-1 items-center gap-3 text-left"
+          type="button"
+          onClick={onOpen}
+        >
+          <span className="w-11 shrink-0 text-[20px] font-extrabold tabular-nums text-textSecondary">{group.speed}</span>
+          <span className="min-w-0 flex-1 truncate text-[13px] font-semibold text-textSecondary">{groupPrimaryLabel(group)}</span>
+          <span className={`shrink-0 text-xs font-bold ${difference > 0 ? 'text-danger' : difference < 0 ? 'text-success' : 'text-textLabel'}`}>
+            {difference > 0 ? `快 ${difference}` : difference < 0 ? `慢 ${-difference}` : '同速'}
+          </span>
+        </button>
+        {expandable && (
+          <button
+            aria-expanded={expanded}
+            aria-label={`${group.speed} 这条线上的 ${roster.length} 个形态`}
+            className="grid h-[60px] w-8 shrink-0 place-items-center text-chevron"
+            type="button"
+            onClick={onToggle}
+          >
+            {expanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+          </button>
+        )}
+      </div>
+      {expandable && expanded && (
+        <div className="-mx-6 border-b border-[var(--hairline)] bg-sunken px-6 py-1.5">
+          {roster.map((entry, index) => (
+            <div key={entry.key} className={`flex h-11 items-center gap-3 ${index > 0 ? 'border-t border-[var(--hairline)]' : ''}`}>
+              <span className="w-11 shrink-0" />
+              <span className="min-w-0 flex-1 truncate text-[13px] font-semibold text-textLabel">{entry.label}</span>
+              <span className="inline-flex h-[22px] shrink-0 items-center rounded-full bg-btn1 px-2.5 text-[11px] font-extrabold text-textLabel">
+                {entry.variant}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </>
+  );
+}
+
+// ── Page ──
+
+export function SpeedPage({
+  environment,
+  activeTeam,
+  presetMember,
+  onOpenDex,
+}: {
+  environment: EnvironmentState;
+  activeTeam?: Team;
+  presetMember?: TeamMember;
+  onOpenDex?: () => void;
+}) {
   // Open on a neutral default that is independent of any team. Carrying a specific member's
-  // config only happens via an explicit "send to speed" (presetMember, below). Seeding the
-  // default from activeTeam made the tool silently inherit the last-opened team's first
-  // Pokémon and its SP/nature/item — surprising when opening the tool on its own.
+  // config only happens via an explicit "send to speed" (presetMember, below).
   const defaultPokemon = pokemon.find((entry) => entry.id === 'staraptor') ?? pokemon[0];
   const [battleType, setBattleType] = useState<BattleType>(currentRuleSet.battleType);
   const [selectedPokemonId, setSelectedPokemonId] = useState(defaultPokemon.id);
   const [selectedFormId, setSelectedFormId] = useState<string | undefined>(undefined);
   const [build, setBuild] = useState(() => createBuild(defaultPokemon, findBattleForm(defaultPokemon.id, undefined)));
   const [query, setQuery] = useState('');
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [searchResultsMaxHeight, setSearchResultsMaxHeight] = useState(208);
   const [selectedTier, setSelectedTier] = useState<SpeedTierGroup | null>(null);
-  const [jumpDirection, setJumpDirection] = useState<ScrollDirection>(null);
-  const [centerRequest, setCenterRequest] = useState(0);
-  const axisScrollRef = useRef<HTMLDivElement>(null);
-  const searchPanelRef = useRef<HTMLDivElement>(null);
-  const nextScrollBehaviorRef = useRef<ScrollBehavior>('auto');
-  const searchViewport = useVisualViewportMetrics(searchOpen);
+  const [expandedTier, setExpandedTier] = useState<number | null>(null);
+  const [markerOffscreen, setMarkerOffscreen] = useState<MarkerOffscreen>(null);
+  const markerRef = useRef<HTMLDivElement>(null);
 
   const selected = pokemon.find((entry) => entry.id === selectedPokemonId) ?? defaultPokemon;
   const selectedForm = findBattleForm(selected.id, selectedFormId) ?? findBattleForm(selected.id, selected.id);
+  const selectedName = selectedForm?.chineseName ?? selected.chineseName;
   const matchingMember = activeTeam?.members.find(
     (member) => member.pokemonId === selected.id && (member.formId ?? selected.id) === (selectedForm?.id ?? selected.id),
   );
@@ -223,77 +270,50 @@ export function SpeedPage({ environment, activeTeam, presetMember }: { environme
     () => sortVariantsByUsage(groupTiersBySpeed(snapshot.tiers), (pid) => getPokemonUsageRate(environment, pid, battleType)),
     [snapshot, environment, battleType],
   );
-  // Rank-ordered, evenly spaced rows (PokeDB style) instead of value-proportional
-  // spacing — keeps the axis short to scroll and gives the marker its own slot.
   const markerIndex = markerInsertIndex(tiers, finalSpeed);
-  const axisHeight = (tiers.length + 1) * ROW_HEIGHT + AXIS_PAD * 2;
-  const rowTop = useCallback((index: number) => AXIS_PAD + index * ROW_HEIGHT, []);
-  const markerTop = rowTop(markerIndex);
-  const markerCenter = markerTop + ROW_HEIGHT / 2;
 
-  // Base species + mega forms as independent entries (dex mapping), so a mega is
-  // searchable on its own instead of via a separate form picker.
-  const allForms = useMemo(() => getDexFormEntries().filter((entry) => entry.legalInCurrentRule), []);
-  const filteredForms = useMemo(() => {
-    const trimmed = query.trim();
-    if (!trimmed) return allForms;
-    const needle = trimmed.toLowerCase();
-    return allForms.filter((entry) =>
-      entry.chineseName.includes(trimmed) ||
-      entry.englishName.toLowerCase().includes(needle) ||
-      String(entry.baseStats.speed).includes(needle),
-    );
-  }, [allForms, query]);
-
-  useLayoutEffect(() => {
-    if (!searchOpen) return;
-    const visibleBottom = searchViewport.offsetTop + searchViewport.height;
-    const panelTop = searchPanelRef.current?.getBoundingClientRect().top ?? 0;
-    const inputAndSpacing = 58;
-    setSearchResultsMaxHeight(
-      Math.max(48, Math.min(208, visibleBottom - panelTop - inputAndSpacing - 12)),
-    );
-  }, [searchOpen, searchViewport.height, searchViewport.offsetTop]);
-
-  const updateJumpDirection = useCallback(() => {
-    const viewport = axisScrollRef.current;
-    if (!viewport) return;
-    const top = viewport.scrollTop + 18;
-    const bottom = viewport.scrollTop + viewport.clientHeight - 18;
-    if (markerCenter < top) setJumpDirection('up');
-    else if (markerCenter > bottom) setJumpDirection('down');
-    else setJumpDirection(null);
-  }, [markerCenter]);
-
-  const centerMarker = useCallback(
-    (behavior: ScrollBehavior) => {
-      const viewport = axisScrollRef.current;
-      if (!viewport) return;
-      const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-      viewport.scrollTo({
-        top: Math.max(0, markerCenter - viewport.clientHeight / 2),
-        behavior: reducedMotion ? 'auto' : behavior,
-      });
-      window.requestAnimationFrame(updateJumpDirection);
+  // Base species + mega forms as independent entries (dex mapping), so a mega is searchable on
+  // its own instead of via a separate form picker.
+  const legalForms = useMemo(() => getDexFormEntries().filter((entry) => entry.legalInCurrentRule), []);
+  const trimmedQuery = query.trim();
+  const matchesQuery = useCallback(
+    (entry: DexFormEntry) => {
+      const needle = trimmedQuery.toLowerCase();
+      return (
+        entry.chineseName.includes(trimmedQuery) ||
+        entry.englishName.toLowerCase().includes(needle) ||
+        String(entry.baseStats.speed).includes(needle)
+      );
     },
-    [markerCenter, updateJumpDirection],
+    [trimmedQuery],
   );
+  const searchResults = useMemo(() => (trimmedQuery ? legalForms.filter(matchesQuery) : []), [legalForms, matchesQuery, trimmedQuery]);
 
-  useLayoutEffect(() => {
-    centerMarker(nextScrollBehaviorRef.current);
-    const frame = window.requestAnimationFrame(() => centerMarker(nextScrollBehaviorRef.current));
-    return () => window.cancelAnimationFrame(frame);
-  }, [axisHeight, centerMarker, centerRequest]);
+  const updateMarkerOffscreen = useCallback(() => {
+    const node = markerRef.current;
+    if (!node) return;
+    const rect = node.getBoundingClientRect();
+    // jsdom (and an unlaid-out tree) reports a zero-height rect; treat that as "in view".
+    if (rect.height === 0) {
+      setMarkerOffscreen(null);
+      return;
+    }
+    if (rect.bottom < 72) setMarkerOffscreen('up');
+    else if (rect.top > window.innerHeight - 120) setMarkerOffscreen('down');
+    else setMarkerOffscreen(null);
+  }, []);
 
-  const requestCenter = (behavior: ScrollBehavior) => {
-    nextScrollBehaviorRef.current = behavior;
-    setCenterRequest((value) => value + 1);
-  };
+  useEffect(() => {
+    updateMarkerOffscreen();
+    window.addEventListener('scroll', updateMarkerOffscreen, { passive: true });
+    window.addEventListener('resize', updateMarkerOffscreen);
+    return () => {
+      window.removeEventListener('scroll', updateMarkerOffscreen);
+      window.removeEventListener('resize', updateMarkerOffscreen);
+    };
+  }, [updateMarkerOffscreen]);
 
-  const updateBuild = (patch: Partial<SpeedBuild>, behavior: ScrollBehavior) => {
-    setBuild((current) => ({ ...current, ...patch }));
-    requestCenter(behavior);
-  };
+  const updateBuild = (patch: Partial<SpeedBuild>) => setBuild((current) => ({ ...current, ...patch }));
 
   const selectForm = (entry: DexFormEntry) => {
     const member = activeTeam?.members.find(
@@ -310,8 +330,6 @@ export function SpeedPage({ environment, activeTeam, presetMember }: { environme
       tailwind: false,
     });
     setQuery('');
-    setSearchOpen(false);
-    requestCenter('smooth');
   };
 
   // Jump-in from a team member: carry the saved pokemon/form/nature/scarf/SP.
@@ -321,247 +339,221 @@ export function SpeedPage({ environment, activeTeam, presetMember }: { environme
     const entry = pokemon.find((candidate) => candidate.id === presetMember.pokemonId);
     if (!entry) return;
     presetAppliedRef.current = presetMember.id;
-    const form = findBattleForm(entry.id, presetMember.formId);
     setSelectedPokemonId(entry.id);
     setSelectedFormId(presetMember.formId);
-    setBuild(createBuild(entry, form, presetMember));
-    requestCenter('smooth');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    setBuild(createBuild(entry, findBattleForm(entry.id, presetMember.formId), presetMember));
   }, [presetMember]);
 
-  const natureCardLabel = build.nature === 'neutral' ? '无修正' : `${speedNatureLabel[build.nature]}性格`;
-  const markerDetails = [
-    `性格${speedNatureLabel[build.nature]}`,
-    `SP${build.statPoints}`,
-    build.scarf ? '围巾' : undefined,
-    build.speedAbility ? availableAbility?.label : undefined,
-    build.tailwind ? '顺风' : undefined,
-  ].filter(Boolean).join(' · ');
+  const scrollToMarker = () => markerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+  const speedAfter = (patch: Partial<SpeedBuild>) => calculateSpeedForBuild({ ...build, ...patch });
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <h2 className="text-lg font-semibold">速度线</h2>
-          <p className="text-[11px] text-textMuted">PokeDB M-{speedTierSeason} 静态参照</p>
-        </div>
-        <div className="flex rounded-full border border-border bg-secondary p-0.5">
-          {(['singles', 'doubles'] as const).map((type) => (
-            <button
-              key={type}
-              className={`rounded-full px-3 py-1.5 text-xs font-semibold ${battleType === type ? 'bg-accent text-page' : 'text-textSecondary'}`}
-              type="button"
-              onClick={() => {
-                setBattleType(type);
-                requestCenter('smooth');
-              }}
-            >
-              {type === 'singles' ? '单打' : '双打'}
-            </button>
-          ))}
-        </div>
-      </div>
+    <div className="pb-8">
+      <PageHeader
+        className="px-6 pt-5"
+        subtitle={trimmedQuery ? '换一只来看它在哪一档' : `PokeDB M-${speedTierSeason} 静态参照 · 上下滑动看档位`}
+        title="速度线"
+      />
 
-      <Card className="p-3">
-        <div className="flex items-center gap-3">
-          <PokemonAvatar iconRef={selectedForm?.iconRef ?? selected.iconRef} label={selectedForm?.chineseName ?? selected.chineseName} size="lg" />
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-base font-semibold">{selectedForm?.chineseName ?? selected.chineseName}</p>
-            <p className="mt-0.5 text-[11px] text-textSecondary">速度种族值 {build.baseSpeed} · {natureCardLabel}</p>
-          </div>
-          <div className="text-right">
-            <p className="text-[38px] font-bold leading-none tabular-nums">{finalSpeed}</p>
-            <p className="mt-1 text-[11px] font-semibold text-textSecondary">最终速度</p>
-          </div>
-        </div>
-      </Card>
+      <SearchField className="mx-6 mt-4" label="搜索宝可梦" placeholder="名称 / 速度种族值" value={query} onChange={setQuery} />
 
-      <div className="relative z-20">
-        <button
-          className="flex w-full items-center gap-2 rounded-lg border border-border bg-card px-3 py-2.5 text-left"
-          type="button"
-          aria-expanded={searchOpen}
-          onClick={() => setSearchOpen((value) => !value)}
-        >
-          <Search size={16} className="text-textMuted" />
-          <span className="flex-1 text-sm">搜索宝可梦</span>
-          <ChevronDown size={16} className="text-textMuted" />
-        </button>
-        {searchOpen && (
-          <div ref={searchPanelRef} className="surface-shadow absolute inset-x-0 top-full mt-1 overflow-hidden rounded-lg border border-border bg-card p-2">
+      {trimmedQuery ? (
+        <>
+          <p className="px-6 pt-2.5 text-xs font-semibold text-textSecondary">{searchResults.length} 个结果</p>
+          <div className="mt-2 px-6">
+            {searchResults.slice(0, 40).map((entry, index) => (
+              <ListRow
+                key={entry.id}
+                active={entry.id === (selectedForm?.id ?? selected.id)}
+                ariaLabel={`${entry.chineseName} ${entry.englishName}`}
+                bleed
+                divider={index < Math.min(searchResults.length, 40) - 1}
+                height={68}
+                leading={<Sprite iconRef={entry.iconRef} label={entry.chineseName} size={48} />}
+                subtitle={`${entry.englishName} · 速度种族值 ${entry.baseStats.speed}`}
+                title={entry.chineseName}
+                onClick={() => selectForm(entry)}
+              />
+            ))}
+          </div>
+          {searchResults.length === 0 && (
+            <div className="px-6 pt-5">
+              <h2 className="text-[20px] font-extrabold leading-7 tracking-[-0.01em]">当前规则里没有这只</h2>
+              <p className="mt-2 text-[13px] font-semibold leading-5 text-textSecondary">
+                「{trimmedQuery}」不在 {currentRuleSet.name} 规则内，所以速度线里没有它的档位。
+              </p>
+              <div className="mt-4 flex gap-2">
+                <Pill onClick={() => setQuery('')}>显示全部 {legalForms.length} 只</Pill>
+                {onOpenDex && (
+                  <Pill onClick={onOpenDex}>
+                    去规则内图鉴
+                    <ChevronRight size={14} />
+                  </Pill>
+                )}
+              </div>
+            </div>
+          )}
+        </>
+      ) : (
+        <>
+          <div className="mx-6 mt-4 flex gap-2">
+            <Pill selected={battleType === 'doubles'} onClick={() => setBattleType('doubles')}>
+              双打
+            </Pill>
+            <Pill selected={battleType === 'singles'} onClick={() => setBattleType('singles')}>
+              单打
+            </Pill>
+          </div>
+
+          <section className="mx-6 mt-[18px] rounded-[18px] bg-surface p-4">
+            <div className="flex items-center gap-3.5">
+              <Sprite iconRef={selectedForm?.iconRef ?? selected.iconRef} label={selectedName} size={48} />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-[17px] font-extrabold tracking-[-0.01em]">{selectedName}</p>
+                <p className="mt-[3px] text-xs font-semibold text-textSecondary">速度种族值 {build.baseSpeed}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-[11px] font-bold uppercase tracking-[0.1em] text-textSecondary">最终速度</p>
+                <p className="mt-0.5 text-[28px] font-extrabold leading-none tracking-[-0.02em] tabular-nums text-data">{finalSpeed}</p>
+              </div>
+            </div>
+
+            <div className="mt-3.5 flex gap-2">
+              <Pill
+                grow
+                selected={build.nature === 'increased'}
+                tone="plain"
+                onClick={() => updateBuild({ nature: 'increased' })}
+              >
+                ＋ 速度性格
+              </Pill>
+              <Pill grow selected={build.nature === 'neutral'} tone="plain" onClick={() => updateBuild({ nature: 'neutral' })}>
+                无修正
+              </Pill>
+              <Pill
+                grow
+                selected={build.nature === 'decreased'}
+                tone="plain"
+                onClick={() => updateBuild({ nature: 'decreased' })}
+              >
+                − 速度性格
+              </Pill>
+            </div>
+
+            <div className="mt-3.5 flex items-baseline justify-between">
+              <span className="text-xs font-semibold text-textSecondary">速度 SP</span>
+              <span className="text-sm font-extrabold tabular-nums text-data">
+                {build.statPoints} / {MAX_STAT_POINTS_PER_STAT}
+              </span>
+            </div>
             <input
-              autoFocus
-              aria-label="搜索宝可梦"
-              className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm outline-none focus:border-accent"
-              placeholder="名称 / 速度种族值"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
+              aria-label="速度 SP"
+              className="lk-speed-slider mt-2"
+              max={MAX_STAT_POINTS_PER_STAT}
+              min={0}
+              step={1}
+              style={{ '--lk-slider-fill': `${(build.statPoints / MAX_STAT_POINTS_PER_STAT) * 100}%` } as React.CSSProperties}
+              type="range"
+              value={build.statPoints}
+              onChange={(event) => updateBuild({ statPoints: Number(event.target.value) })}
             />
-            <div
-              className="mt-2 overflow-y-auto"
-              data-speed-search-results
-              style={{ maxHeight: `${searchResultsMaxHeight}px` }}
-            >
-              {filteredForms.map((entry) => (
-                <button key={entry.id} className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left hover:bg-secondary" type="button" onClick={() => selectForm(entry)}>
-                  <PokemonAvatar iconRef={entry.iconRef} label={entry.chineseName} size="xs" />
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-semibold">{entry.chineseName}</span>
-                    <span className="block truncate text-[10px] text-textMuted">{entry.englishName}</span>
-                  </span>
-                  <span className="text-xs font-semibold text-textSecondary">种族 {entry.baseStats.speed}</span>
-                </button>
+          </section>
+
+          <div className="px-6 pt-[22px]">
+            <SectionLabel>加速手段</SectionLabel>
+            <div className="mt-1.5">
+              <ListRow
+                height={60}
+                subtitle={`×1.5 · ${finalSpeed} → ${speedAfter({ scarf: !build.scarf })}，锁一招`}
+                title={<span className="text-[15px]">讲究围巾</span>}
+                trailing={<Switch checked={build.scarf} label="讲究围巾" onChange={(next) => updateBuild({ scarf: next })} />}
+              />
+              <ListRow
+                divider={Boolean(availableAbility)}
+                height={60}
+                subtitle={`×2 · ${finalSpeed} → ${speedAfter({ tailwind: !build.tailwind })}，四回合内有效`}
+                title={<span className="text-[15px]">顺风</span>}
+                trailing={<Switch checked={build.tailwind} label="顺风" onChange={(next) => updateBuild({ tailwind: next })} />}
+              />
+              {availableAbility && (
+                <ListRow
+                  divider={false}
+                  height={60}
+                  subtitle={`速度特性 · ${availableAbility.requirement} ×2`}
+                  title={<span className="text-[15px]">{availableAbility.label}</span>}
+                  trailing={
+                    <Switch
+                      checked={build.speedAbility}
+                      label={availableAbility.label}
+                      onChange={(next) => updateBuild({ speedAbility: next })}
+                    />
+                  }
+                />
+              )}
+            </div>
+          </div>
+
+          <div className="px-6 pt-[22px]">
+            <SectionLabel trailing="点档位看方案">环境速度梯队</SectionLabel>
+            <div className="mt-2.5" data-speed-axis>
+              {tiers.map((group, index) => (
+                <div key={group.speed}>
+                  {index === markerIndex && renderMarker()}
+                  <TierRow
+                    difference={group.speed - finalSpeed}
+                    expanded={expandedTier === group.speed}
+                    group={group}
+                    onOpen={() => setSelectedTier(group)}
+                    onToggle={() => setExpandedTier(expandedTier === group.speed ? null : group.speed)}
+                  />
+                </div>
               ))}
-              {filteredForms.length === 0 && <p className="px-2 py-4 text-center text-xs text-textMuted">没有匹配结果</p>}
+              {markerIndex >= tiers.length && renderMarker()}
             </div>
           </div>
-        )}
-      </div>
 
-      <Card className="space-y-3 bg-secondary">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-semibold">速度 SP</p>
-            <p className="text-[11px] text-textSecondary">拖动时实时跟随 marker</p>
-          </div>
-          <span className="text-lg font-bold text-accent">{build.statPoints}</span>
-        </div>
-        <input
-          aria-label="速度 SP"
-          aria-valuemin={0}
-          aria-valuemax={MAX_STAT_POINTS_PER_STAT}
-          aria-valuenow={build.statPoints}
-          className="h-8 w-full accent-accent"
-          max={MAX_STAT_POINTS_PER_STAT}
-          min={0}
-          step={1}
-          type="range"
-          value={build.statPoints}
-          onChange={(event) => updateBuild({ statPoints: Number(event.target.value) }, 'auto')}
-        />
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            aria-pressed={build.nature === 'increased'}
-            className={`rounded-lg border px-3 py-2 text-xs font-semibold ${build.nature === 'increased' ? 'border-accent bg-accent/15 text-accent' : 'border-border bg-card text-textSecondary'}`}
-            type="button"
-            onClick={() => updateBuild({ nature: build.nature === 'increased' ? 'neutral' : 'increased' }, 'smooth')}
-          >
-            + 速度性格
-          </button>
-          <button
-            aria-pressed={build.nature === 'decreased'}
-            className={`rounded-lg border px-3 py-2 text-xs font-semibold ${build.nature === 'decreased' ? 'border-accent bg-accent/15 text-accent' : 'border-border bg-card text-textSecondary'}`}
-            type="button"
-            onClick={() => updateBuild({ nature: build.nature === 'decreased' ? 'neutral' : 'decreased' }, 'smooth')}
-          >
-            − 速度性格
-          </button>
-          <button
-            aria-pressed={build.scarf}
-            className={`inline-flex items-center justify-center gap-1 rounded-lg border px-3 py-2 text-xs font-semibold ${build.scarf ? 'border-accent bg-accent/15 text-accent' : 'border-border bg-card text-textSecondary'}`}
-            type="button"
-            onClick={() => updateBuild({ scarf: !build.scarf }, 'smooth')}
-          >
-            <img src="/assets/items/choice-scarf.png" alt="" className="h-4 w-4 shrink-0" /> 围巾 ×1.5
-          </button>
-          <button
-            aria-pressed={build.tailwind}
-            className={`inline-flex items-center justify-center gap-1 rounded-lg border px-3 py-2 text-xs font-semibold ${build.tailwind ? 'border-accent bg-accent/15 text-accent' : 'border-border bg-card text-textSecondary'}`}
-            type="button"
-            onClick={() => updateBuild({ tailwind: !build.tailwind }, 'smooth')}
-          >
-            <Wind size={13} /> 顺风 ×2
-          </button>
-        </div>
-        {availableAbility && (
-          <button
-            aria-pressed={build.speedAbility}
-            className={`flex w-full items-center justify-between rounded-lg border px-3 py-2 text-left ${build.speedAbility ? 'border-accent bg-accent/15 text-accent' : 'border-border bg-card text-textSecondary'}`}
-            type="button"
-            onClick={() => updateBuild({ speedAbility: !build.speedAbility }, 'smooth')}
-          >
-            <span className="inline-flex items-center gap-1.5 text-xs font-semibold"><Zap size={13} />{availableAbility.label} ×2</span>
-            <span className="text-[10px]">{availableAbility.requirement}</span>
-          </button>
-        )}
-      </Card>
-
-      <div className="flex items-center justify-between px-0.5">
-        <p className="text-[11px] font-semibold tracking-wide text-textSecondary">环境速度梯队</p>
-        <p className="text-[11px] text-textMuted">上下滑动 · 点档位看方案</p>
-      </div>
-
-      <div className="relative h-[calc(100dvh-480px)] min-h-[340px] max-h-[60vh] overflow-hidden rounded-lg border border-border bg-secondary">
-        <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-12 bg-gradient-to-b from-secondary to-transparent" />
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-12 bg-gradient-to-t from-secondary to-transparent" />
-        <span className="pointer-events-none absolute left-3 top-2 z-20 text-[10px] font-bold text-textMuted">↑ 快</span>
-        <span className="pointer-events-none absolute bottom-2 left-3 z-20 text-[10px] font-bold text-textMuted">↓ 慢</span>
-
-        <div ref={axisScrollRef} data-speed-axis className="hide-scrollbar absolute inset-0 overflow-y-auto overscroll-contain" onScroll={updateJumpDirection}>
-          <div className="relative" style={{ height: axisHeight }}>
-            {tiers.map((group, groupIndex) => {
-              const rowIndex = groupIndex < markerIndex ? groupIndex : groupIndex + 1;
-              const difference = group.speed - finalSpeed;
-              const relation = difference > 0 ? '▲' : difference < 0 ? '▼' : '=';
-              const items = groupAvatarItems(group);
-              return (
-                <button
-                  key={group.speed}
-                  aria-label={`超速 实数 ${group.speed}，${groupPrimaryLabel(group)}，共 ${group.pokemonCount} 只`}
-                  className="absolute inset-x-0 flex items-center gap-2 pl-3 pr-2 text-left"
-                  style={{ top: rowTop(rowIndex), height: ROW_HEIGHT }}
-                  type="button"
-                  onClick={() => setSelectedTier(group)}
-                >
-                  <span className="w-9 shrink-0 text-sm font-bold tabular-nums">{group.speed}</span>
-                  <span className={`w-3 shrink-0 text-[10px] ${difference > 0 ? 'text-danger' : difference < 0 ? 'text-success' : 'text-accent'}`}>{relation}</span>
-                  <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: group.variants[0].color }} />
-                  <span className="min-w-0 flex-1 truncate text-[11px] text-textSecondary">{groupPrimaryLabel(group)}</span>
-                  <OverlappingAvatars items={items} limit={AXIS_AVATAR_LIMIT} className="shrink-0 pr-1" />
-                </button>
-              );
-            })}
-
-            <div
-              data-speed-marker
-              className="absolute inset-x-2 z-10 flex items-center gap-2 rounded-lg border border-accent bg-card pl-3 pr-2 shadow-[0_0_22px_rgb(var(--color-accent)/0.2)]"
-              style={{ top: markerTop, height: ROW_HEIGHT }}
+          {markerOffscreen && (
+            <button
+              aria-label={`回到我，位于${markerOffscreen === 'up' ? '上方' : '下方'}`}
+              className="fixed bottom-[88px] left-1/2 z-30 inline-flex h-11 -translate-x-1/2 items-center gap-2 rounded-full bg-elevated/90 px-[18px] text-sm font-bold text-textPrimary backdrop-blur-lg shadow-[0_0_0_0.5px_rgb(255_255_255/0.14),0_12px_30px_rgb(0_0_0/0.5)]"
+              type="button"
+              onClick={scrollToMarker}
             >
-              <span className="w-9 shrink-0 text-lg font-bold leading-none tabular-nums text-accent">{finalSpeed}</span>
-              <span className="shrink-0 rounded bg-accent/15 px-1 text-[10px] font-semibold text-accent">我的</span>
-              <span className="min-w-0 flex-1 truncate text-[10px] text-textSecondary">{selectedForm?.chineseName ?? selected.chineseName} · {markerDetails}</span>
-              <PokemonAvatar iconRef={selectedForm?.iconRef ?? selected.iconRef} label={selectedForm?.chineseName ?? selected.chineseName} size="xs" />
-            </div>
-          </div>
-        </div>
-
-        {jumpDirection && (
-          <button
-            className={`absolute right-3 z-30 inline-flex items-center gap-1 rounded-full border border-accent bg-card px-3 py-2 text-[11px] font-semibold text-accent ${jumpDirection === 'up' ? 'top-3' : 'bottom-3'}`}
-            type="button"
-            aria-label={`跳回我那只，位于${jumpDirection === 'up' ? '上方' : '下方'}`}
-            onClick={() => centerMarker('smooth')}
-          >
-            {jumpDirection === 'up' ? <ArrowUp size={14} /> : <ArrowDown size={14} />}
-            我那只
-          </button>
-        )}
-      </div>
+              {markerOffscreen === 'up' ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+              回到我 · {finalSpeed}
+            </button>
+          )}
+        </>
+      )}
 
       {selectedTier && (
         <OutspeedSheet
-          group={selectedTier}
-          build={build}
-          scarfUsageRate={scarfUsageRate}
           ability={availableAbility}
-          onClose={() => setSelectedTier(null)}
+          build={build}
+          group={selectedTier}
+          scarfUsageRate={scarfUsageRate}
           onApply={(option) => {
             setBuild(option.build);
             setSelectedTier(null);
-            requestCenter('smooth');
           }}
+          onClose={() => setSelectedTier(null)}
         />
       )}
     </div>
   );
+
+  function renderMarker() {
+    return (
+      <div
+        key="speed-marker"
+        ref={markerRef}
+        className="lk-marker flex h-[60px] items-center gap-3 rounded-[14px] px-3"
+        data-speed-marker
+      >
+        <span className="w-11 shrink-0 text-[20px] font-extrabold tabular-nums text-textPrimary">{finalSpeed}</span>
+        <span className="min-w-0 flex-1 truncate text-sm font-extrabold text-textPrimary">我的{selectedName}</span>
+      </div>
+    );
+  }
 }

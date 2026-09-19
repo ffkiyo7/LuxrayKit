@@ -123,12 +123,18 @@ function ImportCoverageNoticeDialog({
   );
 }
 
+// The redesigned tool pages (05) carry their own 24px gutter and their own big title, so the
+// shell drops its padding and the product Header for them. The Header itself stays in place
+// for every page that has not been reworked yet.
+const bleedToolViews: ToolView[] = ['calculator', 'speed'];
+
 function ToolWorkspace({
   view,
   onBack,
   selectedMemberId,
   onPickMember,
   onOpenCalculator,
+  onOpenDex,
   environment,
   activeTeam,
   speedPresetMember,
@@ -139,21 +145,27 @@ function ToolWorkspace({
   selectedMemberId?: string;
   onPickMember: (memberId: string) => void;
   onOpenCalculator: (pokemonId: string) => void;
+  onOpenDex: () => void;
   environment: EnvironmentState | null;
   activeTeam?: Team;
   speedPresetMember?: TeamMember;
   calcPreset?: { memberId: string; side: CalcSide };
 }) {
   const content = {
-    calculator: <CalculatorPage selectedMemberId={selectedMemberId} onPickMember={onPickMember} presetMember={calcPreset} />,
+    calculator: <CalculatorPage environment={environment} selectedMemberId={selectedMemberId} onPickMember={onPickMember} presetMember={calcPreset} />,
     dex: <DexPage onOpenCalculator={onOpenCalculator} />,
-    speed: environment ? <SpeedPage environment={environment} activeTeam={activeTeam} presetMember={speedPresetMember} /> : <PageLoading label="正在载入速度线环境数据..." />,
+    speed: environment ? <SpeedPage environment={environment} activeTeam={activeTeam} presetMember={speedPresetMember} onOpenDex={onOpenDex} /> : <PageLoading label="正在载入速度线环境数据..." />,
     typeChart: <TypeChartPage />,
   }[view];
+  const bleed = bleedToolViews.includes(view);
 
   return (
-    <div className="space-y-3">
-      <button className="inline-flex items-center gap-2 text-sm text-textSecondary" type="button" onClick={onBack}>
+    <div className={bleed ? '' : 'space-y-3'}>
+      <button
+        className={`inline-flex items-center gap-2 text-sm text-textSecondary ${bleed ? 'mx-6 mt-4' : ''}`}
+        type="button"
+        onClick={onBack}
+      >
         <ArrowLeft size={16} />
         返回工具
       </button>
@@ -374,6 +386,7 @@ function AppShell() {
               setCalculatorMemberId(pokemonId);
               navigate({ name: 'tool', tool: 'calculator' });
             }}
+            onOpenDex={() => navigate({ name: 'tool', tool: 'dex' })}
             environment={environmentState}
             activeTeam={activeTeam}
             speedPresetMember={speedPresetMember}
@@ -434,10 +447,12 @@ function AppShell() {
     );
   }
 
+  const bleedPage = activeTab === 'tools' && toolView !== null && bleedToolViews.includes(toolView);
+
   return (
     <main className="app-shell mx-auto min-h-screen max-w-[430px] text-textPrimary">
-      <div className="safe-bottom min-h-screen px-4 pt-4">
-        <Header contextLabel={productContextLabel(environmentState?.seasonLabel)} />
+      <div className={`safe-bottom min-h-screen ${bleedPage ? '' : 'px-4 pt-4'}`}>
+        {!bleedPage && <Header contextLabel={productContextLabel(environmentState?.seasonLabel)} />}
         <Suspense fallback={<PageLoading />}>{page}</Suspense>
       </div>
       {importToast && (

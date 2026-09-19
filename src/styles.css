@@ -25,6 +25,20 @@
  *   select   — the one violet: selected chip ring/fill and focused input ring, nothing else.
  *   data     — amber, only for invested stat points and the values they affect.
  *   fn-*     — five function hues for icon tiles / markers on text-only screens; never a number.
+ *
+ * The second block below is the 2026-09 frame vocabulary: one dark value plus its light
+ * counterpart, read element by element off the paired frames (05-01/05-02, NL-03/NL-04).
+ *   surface / sunken        — the two inset planes inside a page: card face, then the well a
+ *                             segmented control or an embedded list sits in.
+ *   text-label / chevron    — the brighter secondary ink (values, chip text, secondary button
+ *                             labels) and the dimmer one (chevrons, idle glyphs).
+ *   btn-1 / btn-2 / btn-3   — the three secondary-button floors, named after the frame heights
+ *                             they carry (50 / 48 / 44); btn-1 also fills close buttons and
+ *                             small badges, and pairs with btn-disabled-ink when disabled.
+ *   track / knob            — switch rail and thumb (off); --track-on / --knob-on for on.
+ * Fills whose alpha differs between themes (selected pill, chip, active row, sheet, raised
+ * result card, axis marker) stay plain custom properties and are applied through the `.lk-*`
+ * classes further down, because Tailwind's `/<alpha-value>` cannot vary per theme.
  */
 :root {
   color-scheme: dark;
@@ -57,6 +71,32 @@
   --color-on-overlay: 255 255 255;
   --hairline: rgb(255 255 255 / 0.07);
   --hairline-strong: rgb(255 255 255 / 0.1);
+  --color-surface: 23 23 27;
+  --color-sunken: 15 15 18;
+  --color-text-label: 199 199 204;
+  --color-chevron: 110 110 115;
+  --color-btn-1: 34 34 42;
+  --color-btn-2: 31 31 35;
+  --color-btn-3: 23 23 27;
+  --color-btn-disabled-ink: 90 90 96;
+  --color-track: 42 42 48;
+  --color-knob: 142 142 147;
+  --color-segment-on: 45 45 52;
+  --select-fill: rgb(155 154 196 / 0.16);
+  --chip-fill: rgb(255 255 255 / 0.07);
+  --row-active: rgb(255 255 255 / 0.05);
+  --marker-fill: rgb(255 255 255 / 0.06);
+  --marker-ring: rgb(255 255 255 / 0.3);
+  --track-on: rgb(255 255 255 / 0.22);
+  --knob-on: #f5f5f7;
+  --sheet-bg: #17171b;
+  --sheet-bg-deep: #141418;
+  --sheet-overlay: rgb(0 0 0 / 0.62);
+  --sheet-shadow: 0 -0.5px 0 rgb(255 255 255 / 0.1), 0 -24px 60px rgb(0 0 0 / 0.5);
+  --raised-bg: linear-gradient(180deg, #1b1b20, #141418);
+  --raised-shadow: none;
+  --damage-bar: linear-gradient(90deg, #d4870a, #e2635f);
+  --damage-pill: rgb(212 135 10 / 0.16);
   background: rgb(var(--color-page));
   color: rgb(var(--color-text-primary));
   font-synthesis: none;
@@ -97,6 +137,32 @@
   --color-on-overlay: 255 255 255;
   --hairline: #ededf0;
   --hairline-strong: rgb(0 0 0 / 0.08);
+  --color-surface: 242 242 245;
+  --color-sunken: 237 237 240;
+  --color-text-label: 72 72 74;
+  --color-chevron: 199 199 204;
+  --color-btn-1: 237 237 240;
+  --color-btn-2: 242 242 245;
+  --color-btn-3: 242 242 245;
+  --color-btn-disabled-ink: 174 174 180;
+  --color-track: 242 242 245;
+  --color-knob: 142 142 147;
+  --color-segment-on: 255 255 255;
+  --select-fill: rgb(98 97 138 / 0.1);
+  --chip-fill: #ededf0;
+  --row-active: #f7f7f9;
+  --marker-fill: #f7f7f9;
+  --marker-ring: rgb(16 24 40 / 0.14);
+  --track-on: rgb(16 24 40 / 0.14);
+  --knob-on: #1c1c1e;
+  --sheet-bg: #ffffff;
+  --sheet-bg-deep: #ffffff;
+  --sheet-overlay: rgb(28 28 30 / 0.32);
+  --sheet-shadow: 0 -1px 0 rgb(16 24 40 / 0.06), 0 -24px 60px rgb(28 28 30 / 0.32);
+  --raised-bg: #ffffff;
+  --raised-shadow: 0 1px 2px rgb(0 0 0 / 0.05), 0 8px 24px rgb(16 24 40 / 0.06);
+  --damage-bar: linear-gradient(90deg, #d4870a, #c0392f);
+  --damage-pill: rgb(212 135 10 / 0.16);
 }
 
 * {
@@ -183,6 +249,112 @@ button {
 :root[data-theme='dark'] .surface-shadow,
 :root:not([data-theme]) .surface-shadow {
   box-shadow: none;
+}
+
+/* ===========================================================================
+   Frame fills whose alpha differs between themes — see the token comment at the top.
+   =========================================================================== */
+.lk-raised {
+  background: var(--raised-bg);
+  box-shadow: var(--raised-shadow);
+}
+
+.lk-sheet {
+  background: var(--sheet-bg);
+  box-shadow: var(--sheet-shadow);
+}
+
+.lk-sheet--deep {
+  background: var(--sheet-bg-deep);
+  box-shadow: var(--sheet-shadow);
+}
+
+.lk-sheet-overlay {
+  background: var(--sheet-overlay);
+}
+
+.lk-row-active {
+  background: var(--row-active);
+}
+
+.lk-chip {
+  background: var(--chip-fill);
+}
+
+.lk-pill-on {
+  background: var(--select-fill);
+  box-shadow: inset 0 0 0 1.5px rgb(var(--color-select));
+}
+
+.lk-field-on {
+  box-shadow: inset 0 0 0 1.5px rgb(var(--color-select));
+}
+
+.lk-marker {
+  background: var(--marker-fill);
+  box-shadow: inset 0 0 0 1.5px var(--marker-ring);
+}
+
+.lk-damage-bar {
+  background: var(--damage-bar);
+}
+
+.lk-damage-pill {
+  background: var(--damage-pill);
+}
+
+/* Speed SP rail: 6px track, 24px thumb — drawn on the native range input so the slider role,
+   keyboard stepping and value announcements stay untouched. */
+.lk-speed-slider {
+  width: 100%;
+  height: 26px;
+  margin: 0;
+  background: transparent;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.lk-speed-slider::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 9999px;
+  background: linear-gradient(
+    to right,
+    rgb(var(--color-data)) var(--lk-slider-fill, 0%),
+    rgb(var(--color-text-primary) / 0.09) var(--lk-slider-fill, 0%)
+  );
+}
+
+.lk-speed-slider::-moz-range-track {
+  height: 6px;
+  border-radius: 9999px;
+  background: rgb(var(--color-text-primary) / 0.09);
+}
+
+.lk-speed-slider::-moz-range-progress {
+  height: 6px;
+  border-radius: 9999px;
+  background: rgb(var(--color-data));
+}
+
+.lk-speed-slider::-webkit-slider-thumb {
+  width: 24px;
+  height: 24px;
+  margin-top: -9px;
+  border: 0;
+  border-radius: 9999px;
+  background: rgb(var(--color-text-primary));
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.5);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.lk-speed-slider::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 9999px;
+  background: rgb(var(--color-text-primary));
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.5);
 }
 
 /* ===========================================================================
