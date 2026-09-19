@@ -2,13 +2,11 @@ import { ArrowLeft, BarChart3, Import, UserCircle, Users, Wrench, X } from 'luci
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { AutoHideBottomNav } from './components/BottomNav';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import { Header } from './components/Header';
 import { ServiceWorkerUpdateToast } from './components/ServiceWorkerUpdateToast';
 import { Toast } from './components/kit/Toast';
 import { downloadBackup } from './pages/profile/backupFile';
 import { EnvironmentErrorView, EnvironmentLoadingView } from './pages/EnvironmentStates';
 import { productName } from './branding';
-import { productContextLabel } from './data/schedule';
 import type { EnvironmentState, EnvironmentTeamSample } from './data/environment';
 import { useHashRoute } from './hooks/useHashRoute';
 import { routeForTab, routePattern, tabForRoute, type Route, type ToolRouteId } from './lib/hashRoute';
@@ -175,13 +173,6 @@ function ImportCoverageNoticeDialog({
   );
 }
 
-// Redesigned pages carry their own 24px gutter and big title, so the shell gives them neither
-// padding nor the product Header. Pages listed here are still on the old chrome; each redesign
-// stage deletes its own entries, and the list (with Header.tsx) goes away with the last one.
-type ChromeKey = TabId | ToolView;
-const legacyChromePages: ChromeKey[] = [
-];
-
 function ToolWorkspace({
   view,
   onBack,
@@ -213,15 +204,10 @@ function ToolWorkspace({
     speed: environment ? <SpeedPage environment={environment} activeTeam={activeTeam} presetMember={speedPresetMember} onOpenDex={onOpenDex} /> : <PageLoading label="正在载入速度线" />,
     typeChart: <TypeChartPage environment={environment} />,
   }[view];
-  const bleed = !legacyChromePages.includes(view);
 
   return (
-    <div className={bleed ? '' : 'space-y-3'}>
-      <button
-        className={`inline-flex items-center gap-2 text-sm text-textSecondary ${bleed ? 'mx-6 mt-4' : ''}`}
-        type="button"
-        onClick={onBack}
-      >
+    <div>
+      <button className="mx-6 mt-4 inline-flex items-center gap-2 text-sm text-textSecondary" type="button" onClick={onBack}>
         <ArrowLeft size={16} />
         返回工具
       </button>
@@ -572,13 +558,10 @@ function AppShell() {
     );
   }
 
-  const chromeKey: ChromeKey = activeTab === 'tools' && toolView ? toolView : activeTab;
-  const bleedPage = !legacyChromePages.includes(chromeKey);
-
+  // Pages own their 24px gutter and their big title; the shell only reserves room for the nav.
   return (
     <main className="app-shell mx-auto min-h-screen max-w-[430px] text-textPrimary">
-      <div className={`min-h-screen ${profileSubPage ? '' : 'safe-bottom'} ${bleedPage ? '' : 'px-4 pt-4'}`}>
-        {!bleedPage && <Header contextLabel={productContextLabel(environmentState?.seasonLabel)} />}
+      <div className={`min-h-screen ${profileSubPage ? '' : 'safe-bottom'}`}>
         <Suspense fallback={<PageLoading />}>{page}</Suspense>
       </div>
       {importToast && (
