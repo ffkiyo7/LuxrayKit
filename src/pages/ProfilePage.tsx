@@ -1,4 +1,4 @@
-import { BarChart3, Database, Info, MessageSquare, MoonStar, CloudOff, ScrollText, Smartphone } from 'lucide-react';
+import { BarChart3, Database, Info, MessageSquare, Moon, CloudOff, ScrollText, Smartphone, Sun } from 'lucide-react';
 import { useHashRoute } from '../hooks/useHashRoute';
 import { isStandaloneDisplay } from './profile/installState';
 import { useAppStore } from '../state/AppContext';
@@ -23,7 +23,13 @@ export function ProfilePage() {
         <SectionLabel>显示</SectionLabel>
         <div className="mt-1.5">
           <ProfileRow
-            icon={<MoonStar size={tileIconSize} />}
+            icon={
+              preferences.theme === 'dark' ? (
+                <Moon aria-hidden size={tileIconSize} />
+              ) : (
+                <Sun aria-hidden size={tileIconSize} />
+              )
+            }
             subtitle={preferences.theme === 'dark' ? '深色工具界面' : '浅色工具界面'}
             tile="lk-tile--select"
             title="主题"
