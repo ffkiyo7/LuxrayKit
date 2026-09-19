@@ -438,7 +438,7 @@ export function PokemonDetail({
       </section>
 
       <section className="px-6 pt-[26px]">
-        <SectionHeading title="可学会招式" trailing={String(entryMoves.length)} />
+        <SectionHeading title="可学会招式" />
         <label className="mt-3 flex h-10 items-center gap-2.5 rounded-xl bg-surface px-3">
           <Search className="shrink-0 text-chevron" size={16} />
           <input
