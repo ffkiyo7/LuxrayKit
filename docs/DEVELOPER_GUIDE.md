@@ -610,6 +610,10 @@ npm run data:vgcpastes:pr -- --dry-run    # 分支/index/worktree 不变，不�
 
 M-A 的队伍库已于 2026-09-20 整体下架（规则 2026-06-17 结束，99 支在任何现行规则下都不合法），摄入配置一并删除；要找回历史 M-A 队伍须从 git history 恢复脚本与产物。
 
+**队伍名在摄入端就截断**：上游 `Team Description` 是自由文本，偶尔会长到 110+ 字（多为结尾的出处括号，如 `… Champion Team (Recreation of …)`）。`shortenTitle` 先在剩余部分仍可用时砍掉结尾括号，再按词边界截到 64 字。卡片标题是单行，与其塞进去再用省略号盖掉，不如在入库时处理。`tournament` / `eventRank` / `author` 不动，赛事信息仍在 meta 行。卡片侧另有 `min-w-0 truncate` 兜底 —— PokeDB 天梯样本与用户导入的队伍不受这个上限约束，而标题换行是唯一能改变卡片高度的东西。
+
+**排序默认值**：首页「上位构筑」横滑与队伍库列表（07-01）都**默认按时间最新优先**。不要改回 `sortTeamSamplesByScore`：只有 PokeDB 天梯样本带分数，该 sorter 会把它们全部排在赛事队之前，而天梯样本来自滞后数月的 PokeDB 快照 —— 结果就是队伍库每周刷新、界面却纹丝不动。「按分数」仍在，点一下即可切换。
+
 脚本在 push 和创建 ready PR 前读取本轮 audit：任一 regulation 的 issues 超过 10、M-B 或 M-C 少于 20 支都会失败退出且恢复生成文件，不污染后续 cron。通过后，PR 仍须经过契约单测、应用 build、Playwright 队伍库渲染断言和 Worker dry-run；`daily-auto-merge.yml` 只会合并白名单分支上的非 draft、无 `hold` 标签、包含最新 `main` 且指定 CI check 成功的 PR。
 
 需要人工暂停自动合并时，给 PR 添加 `hold` 标签。虽然 workflow 本身也跳过 draft，但刷新脚本下次复用该自动化 PR 时会把它转回 ready，因此 draft 不是持久暂停开关。
