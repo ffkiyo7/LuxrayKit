@@ -404,7 +404,8 @@ let vgcPastesTeamSamplesPromise: Promise<EnvironmentTeamSample[]> | undefined;
 // Each regulation's curated VGCPastes set is its own build-time chunk. They load
 // independently so a missing/failed file for one regulation never blanks out the other
 // (a regression Task 8 hardened against). The regulation is stamped here from the file the
-// rows came from — sampleRegulation no longer guesses M-A for untagged rows.
+// rows came from — sampleRegulation no longer guesses M-A for untagged rows. The M-A set
+// itself was dropped on 2026-09-20 (regulation ended 2026-06-17, teams no longer legal).
 const loadVgcPastesRegulationFile = async (
   loader: () => Promise<{ default: unknown }>,
   regulation: RegulationId,
@@ -421,8 +422,8 @@ const loadVgcPastesRegulationFile = async (
 
 const loadVgcPastesTeamSamples = async (): Promise<EnvironmentTeamSample[]> => {
   vgcPastesTeamSamplesPromise ??= Promise.all([
-    loadVgcPastesRegulationFile(() => import('./external/vgcpastes/reg_ma_champions_ma_team_samples.json'), 'M-A'),
     loadVgcPastesRegulationFile(() => import('./external/vgcpastes/reg_mb_champions_mb_team_samples.json'), 'M-B'),
+    loadVgcPastesRegulationFile(() => import('./external/vgcpastes/reg_mc_champions_mc_team_samples.json'), 'M-C'),
   ])
     .then((groups) => groups.flat())
     .catch((error) => {

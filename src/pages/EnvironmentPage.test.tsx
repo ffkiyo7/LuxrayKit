@@ -412,7 +412,7 @@ describe('宝可梦详情', () => {
       {
         id: 'vgcpastes-other',
         dataKind: 'external-snapshot',
-        sourceId: 'vgcpastes-champions-ma',
+        sourceId: 'vgcpastes-champions-mc',
         author: 'Other author',
         score: 0,
         title: 'Unrelated Team',

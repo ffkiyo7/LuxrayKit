@@ -10,66 +10,31 @@ import * as esbuild from 'esbuild';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
 const checkOnly = process.argv.includes('--check');
-const regArg = (process.argv.find((arg) => arg.startsWith('--reg=')) ?? '').split('=')[1] ?? 'ma';
+const regArg = (process.argv.find((arg) => arg.startsWith('--reg=')) ?? '').split('=')[1] ?? 'mc';
 const SHEET_ID = '1axlwmzPA49rYkqXh7zHvAtSP-TKbM0ijGYBPRflLSWw';
 
 function eventOf(row) {
   return (row['Tournament / Event'] ?? '').trim();
 }
 
-// --- Regulation M-A curation: prestige allowlist + capped large fields + recency. ---
-// Keep only the highest-prestige Regulation M-A events (official live national
-// championships + CP Regionals/Specials). Lower-tier online/community tournaments and
-// ladder shares are dropped. PJCS is the largest field, so it is capped to its top
-// placements to keep the bundled set under ~100 teams.
-const MA_FULL_EVENTS = new Set([
-  'Indianapolis Regional 2026',
-  'Turin SPE 2026',
-  'Korea PTC 2026',
-  'Singapore MBL 2026',
-  'Thailand MBL 2026',
-]);
-const MA_CAPPED_EVENTS = { 'PJCS 2026': 14 };
-// Recency window (30 days before the 2026-06-19 curation date). Fixed for deterministic
-// output; raise when refreshing the curated set.
-const MA_MIN_SHARED_DATE = new Date('2026-05-20T00:00:00Z');
+// --- Named-event curation (M-B, M-C). Keep every team tied to a named competitive event —
+// dropping eventless ladder/casual shares and pure content rows (video/report/ladder) —
+// capped per event so no single tournament dominates. Loosen or switch to a Featured-only
+// tab once the format matures and offline results appear.
+//
+// M-A used a different policy (a hand-written prestige allowlist of offline majors, with
+// PJCS capped to its top 14). It was dropped along with the M-A set on 2026-09-20 — M-A ended
+// 2026-06-17 and the curated 99 teams were no longer legal under any current rule set. Recover
+// it from git history if a historical M-A library is ever wanted again. ---
+const NAMED_EVENT_EXCLUDED_EVENTS = new Set(['', '-', 'Video', 'Team Report', 'Showdown Ladder']);
+const NAMED_EVENT_PER_EVENT_CAP = 20;
 
-function curateChampionsMa(rows) {
+function curateByNamedEvent(rows, minSharedDate) {
   const candidateRows = rows.filter((row) => {
     if (!extractPokepasteId(row.Pokepaste ?? '')) return false;
-    if (!MA_FULL_EVENTS.has(eventOf(row)) && !(eventOf(row) in MA_CAPPED_EVENTS)) return false;
+    if (NAMED_EVENT_EXCLUDED_EVENTS.has(eventOf(row))) return false;
     const sharedAt = parseDateShared(row['Date Shared'] ?? '');
-    return sharedAt && sharedAt >= MA_MIN_SHARED_DATE;
-  });
-  // For capped events keep only the best-placing teams (lowest numeric rank first;
-  // unranked rows sort last and are dropped once the cap is reached).
-  const cappedKeep = new Set();
-  for (const [event, limit] of Object.entries(MA_CAPPED_EVENTS)) {
-    candidateRows
-      .filter((row) => eventOf(row) === event)
-      .map((row) => ({ row, rank: rankNumber(row.Rank ?? '') ?? Number.POSITIVE_INFINITY }))
-      .sort((a, b) => a.rank - b.rank)
-      .slice(0, limit)
-      .forEach(({ row }) => cappedKeep.add(row));
-  }
-  return candidateRows.filter((row) => MA_FULL_EVENTS.has(eventOf(row)) || cappedKeep.has(row));
-}
-
-// --- Regulation M-B curation. M-B opened 2026-06-17 with no offline majors yet, so the
-// M-A prestige allowlist would match nothing. Instead keep every team tied to a named
-// competitive event — dropping eventless ladder/casual shares and pure content rows
-// (video/report/ladder) — capped per event so no single tournament dominates. Loosen or
-// switch to a Featured-only tab once the format matures and offline results appear. ---
-const MB_EXCLUDED_EVENTS = new Set(['', '-', 'Video', 'Team Report', 'Showdown Ladder']);
-const MB_PER_EVENT_CAP = 20;
-const MB_MIN_SHARED_DATE = new Date('2026-06-17T00:00:00Z');
-
-function curateChampionsMb(rows) {
-  const candidateRows = rows.filter((row) => {
-    if (!extractPokepasteId(row.Pokepaste ?? '')) return false;
-    if (MB_EXCLUDED_EVENTS.has(eventOf(row))) return false;
-    const sharedAt = parseDateShared(row['Date Shared'] ?? '');
-    return sharedAt && sharedAt >= MB_MIN_SHARED_DATE;
+    return sharedAt && sharedAt >= minSharedDate;
   });
   const eventGroups = new Map();
   for (const row of candidateRows) {
@@ -82,27 +47,22 @@ function curateChampionsMb(rows) {
     group
       .map((row) => ({ row, rank: rankNumber(row.Rank ?? '') ?? Number.POSITIVE_INFINITY }))
       .sort((a, b) => a.rank - b.rank)
-      .slice(0, MB_PER_EVENT_CAP)
+      .slice(0, NAMED_EVENT_PER_EVENT_CAP)
       .forEach(({ row }) => keep.add(row));
   }
   return candidateRows.filter((row) => keep.has(row));
 }
 
+// M-B opened 2026-06-17.
+const curateChampionsMb = (rows) => curateByNamedEvent(rows, new Date('2026-06-17T00:00:00Z'));
+// M-C opened 2026-09-09T02:00Z (see currentRuleSet in src/data/seed/regMA/metadata.ts).
+// `Date Shared` is day-granular, so the window starts on that calendar day.
+const curateChampionsMc = (rows) => curateByNamedEvent(rows, new Date('2026-09-09T00:00:00Z'));
+
 // Per-regulation ingestion config. The Champions workbook keeps one master tab per
 // regulation, all sharing the same column layout, so only the curation policy, sheet
 // gid, source identity, season tag, and output paths differ between regulations.
 const REGULATIONS = {
-  ma: {
-    regulation: 'M-A',
-    sheetGid: '791705272',
-    sourceId: 'vgcpastes-champions-ma',
-    sourceLabel: 'VGCPastes Champions M-A',
-    season: 'reg-ma',
-    csvEnvVar: 'VGCPASTES_CHAMPIONS_MA_CSV_URL',
-    sampleFile: 'reg_ma_champions_ma_team_samples.json',
-    auditFile: 'reg_ma_champions_ma_audit.json',
-    curate: curateChampionsMa,
-  },
   mb: {
     regulation: 'M-B',
     sheetGid: '1458357160',
@@ -114,11 +74,22 @@ const REGULATIONS = {
     auditFile: 'reg_mb_champions_mb_audit.json',
     curate: curateChampionsMb,
   },
+  mc: {
+    regulation: 'M-C',
+    sheetGid: '2001945654',
+    sourceId: 'vgcpastes-champions-mc',
+    sourceLabel: 'VGCPastes Champions M-C',
+    season: 'reg-mc',
+    csvEnvVar: 'VGCPASTES_CHAMPIONS_MC_CSV_URL',
+    sampleFile: 'reg_mc_champions_mc_team_samples.json',
+    auditFile: 'reg_mc_champions_mc_audit.json',
+    curate: curateChampionsMc,
+  },
 };
 
 const REG = REGULATIONS[regArg];
 if (!REG) {
-  console.error(`Unknown --reg=${regArg}. Use --reg=ma or --reg=mb.`);
+  console.error(`Unknown --reg=${regArg}. Use --reg=mc (default) or --reg=mb.`);
   process.exit(1);
 }
 
@@ -432,9 +403,10 @@ async function buildSamples() {
         season: REG.season,
         score: rank ?? 0,
         ...(rank ? { rank } : {}),
-        // M-A is the implicit default (older samples carry no regulation), so only stamp
-        // non-default regulations to keep the existing M-A output byte-identical.
-        ...(REG.regulation !== 'M-A' ? { regulation: REG.regulation } : {}),
+        // Every sample carries its regulation explicitly. This used to be skipped for M-A (the
+        // implicit default of the old `sampleRegulation` guess); that regulation and its
+        // untagged output are both gone, so there is no default to fall back on any more.
+        regulation: REG.regulation,
         title,
         battleType: 'doubles',
         reportUrl,

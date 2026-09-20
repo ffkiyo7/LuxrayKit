@@ -40,7 +40,7 @@
 | 历史规则窗口引用 `currentRuleSet`，改元数据会连历史一起改坏 | `src/data/schedule.ts:46`、`:51-52`、`:65`、`:80` |
 | `RegulationId` 只支持两个值 | `src/lib/environmentDataset.ts:51` |
 | `reg-mb ? M-B : M-A` 两分支推导 | `src/data/environment.ts:40` |
-| 队伍库筛选按钮只有 M-A / M-B | `src/pages/TeamBrowseView.tsx:43-47` |
+| 队伍库筛选按钮只有 M-A / M-B（**已作废**：2026-09-20 核实，规则筛选按钮后来被移除，现仅剩带配招 / 带 SP / 有队伍码） | `src/pages/TeamBrowseView.tsx:43-47` |
 | 未知赛季静默归为 M-A | `src/pages/environmentTeamSamples.ts:13` |
 | catalog 生成器批次写死为 5（batch 006 已存在） | `scripts/generate-catalog-batch.mjs:9-10` |
 | 特性生成器只扫到 `catalog-batch-005` | `scripts/generate-ability-effects.mjs:12-16` |
@@ -76,7 +76,8 @@
    ⚠️ 已公布的轰擂金刚猩（#812）、戟脊龙（#998）**不是最终数量**：官方原文是「更多宝可梦可用」+「完整细节稍后公布」，实际新增名单大概率更长。本文所有「2 只」的表述一律读作**当前已确认的下限**，排期与工作量估算不要按 2 来算。
 
 7. **VGCPastes 摄入不属于「脚本硬编码」问题。**
-   `scripts/ingest-vgcpastes-champions.mjs:94-119` 已经是 per-regulation 配置表，加 M-C 只是加一条配置 + 新 sheet gid。且 M-C 开赛初期没有成熟样本。本轮不做（见 §3）。
+   `scripts/ingest-vgcpastes-champions.mjs` 已经是 per-regulation 配置表，加 M-C 只是加一条配置 + 新 sheet gid。**2026-09-20 已落地**：上游新开了 `Champions M-C` 页（gid `2001945654`，310 支），加 `mc` 配置 + 复用 M-B 的「有名赛事 + 每赛事上限 20」筛选（min date 2026-09-09），摄入 46 支、audit 零 issue。
+   同日修掉一个跨规则的真实缺口：`generate-mega-forms.mjs` 把 Mega 特性 id 写进 `mega-catalog.ts` 却从不生成对应 Ability 行，`generate-catalog-batch.mjs` 又只看本体从 PokeAPI 拿到的特性 —— 于是超级耿鬼的 `shadow-tag`、超级袋兽的 `parental-bond` 从 M-A 起就**根本没有特性行**，任何带这两只的 pokepaste 会整队被丢（M-C 就丢了 1 支）。现已补行 + 给 `generate-ability-effects.mjs` 加「引用的特性 id 必须有行」门禁 + `dataAudit.test.ts` 加同名 CI 门禁。
 
 ---
 
@@ -132,8 +133,8 @@
 - `RegulationId` 扩为 `'M-A' | 'M-B' | 'M-C'`。
 - `environment.ts:40` 的三元推导改为从 `currentRuleSet.id` 到 `RegulationId` 的显式映射表；映射缺失时**抛错或构建期失败**，不要兜底到 `M-A`。
 - `sampleRegulation` 返回类型改为 `RegulationId | undefined`：赛季表里查不到的样本返回 `undefined`，不再静默算作 M-A。
-- 队伍库筛选按钮**由 `regulationSchedule` 派生**，不再手写数组 —— 这样 Task 7 加完 M-C 窗口后按钮自动出现。未标注规则的样本在「全部」视图仍可见，选中具体规则时不出现。
-- `environment.ts:291-292` 的 VGCPastes 文件加载保持现状（M-C 样本文件本轮不存在）。
+- ~~队伍库筛选按钮**由 `regulationSchedule` 派生**，不再手写数组 —— 这样 Task 7 加完 M-C 窗口后按钮自动出现。未标注规则的样本在「全部」视图仍可见，选中具体规则时不出现。~~ ❌ 已作废（2026-09-20 核实）：`TeamBrowseView.tsx` 的 `sampleFilters` 现在只有「带配招 / 带 SP / 有队伍码」三个，**前端根本没有规则筛选按钮**；上面 §0 表格里「队伍库筛选按钮只有 M-A / M-B」是 spike 当时的状态，之后被移除了。规则只经 `sampleRegulation` 显示在 `TeamSampleCard` 的徽标上。要不要重新加规则筛选是独立决定，不是本迁移的遗留项。
+- ~~`environment.ts:291-292` 的 VGCPastes 文件加载保持现状（M-C 样本文件本轮不存在）。~~ ✅ 2026-09-20 已补：`loadVgcPastesTeamSamples` 加载第三个文件 `reg_mc_champions_mc_team_samples.json`，标签 `M-C`。
 
 **验收边界**
 - `npm test` + `npm run build` 通过；`tsc -b` 对三值联合类型的穷尽性检查无 `default` 吞掉分支。
@@ -372,7 +373,7 @@
 
 ## 3. 明确不做 / 延后
 
-- **M-C 的 VGCPastes 赛事队伍库**：开赛初期没有成熟样本，先靠 PokeDB。摄入脚本已是配置化的，届时加一条配置即可。
+- ~~**M-C 的 VGCPastes 赛事队伍库**：开赛初期没有成熟样本，先靠 PokeDB。摄入脚本已是配置化的，届时加一条配置即可。~~ ✅ 2026-09-20 已落地（见 §0 第 7 条）：`--reg=mc` 摄入 46 支，`data:vgcpastes:pr` 的默认规则改为 M-C。同日**下架整个 M-A 队伍库**（99 支 + 摄入配置 + npm 脚本），M-A 规则 2026-06-17 已结束，队伍在任何现行规则下都不合法。
 - **多规则 catalog 切换功能**：M-C 是累加规则，本轮只需把「现行 catalog」切过去。
 - **重命名 `seed/regMA/` 目录与 `reg-ma-environment.json` 路径**：难看但不是上线阻塞项，且改动面大、风险高。
 - **IndexedDB / Worker API / KV 结构 / 新依赖**：一律不变。特别注意 IndexedDB 库名 `pokemon-champions-assistant` **永不可改**。

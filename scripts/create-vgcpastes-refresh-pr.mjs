@@ -15,7 +15,7 @@ const commitMessage = 'data: refresh VGCPastes team library';
 const prTitle = 'data: refresh VGCPastes team library';
 const dryRun = process.argv.includes('--dry-run');
 const requestedRegulations = (
-  process.argv.find((argument) => argument.startsWith('--reg='))?.slice('--reg='.length) ?? 'mb'
+  process.argv.find((argument) => argument.startsWith('--reg='))?.slice('--reg='.length) ?? 'mc'
 )
   .split(',')
   .map((value) => value.trim().toLowerCase())
@@ -24,20 +24,20 @@ const requestedRegulations = (
 // These floors and the issue ceiling are intentionally conservative. The curation
 // runbook owns raising them as the library grows; crossing one stops publication.
 const MAX_AUDIT_ISSUES = 10;
-const MIN_IMPORTED_TEAMS = { ma: 90, mb: 20 };
+const MIN_IMPORTED_TEAMS = { mb: 20, mc: 20 };
 
 const regulationConfig = {
-  ma: {
-    label: 'M-A',
-    npmScript: 'data:vgcpastes:champions-ma',
-    samplePath: 'src/data/external/vgcpastes/reg_ma_champions_ma_team_samples.json',
-    auditPath: 'src/data/external/vgcpastes/reg_ma_champions_ma_audit.json',
-  },
   mb: {
     label: 'M-B',
     npmScript: 'data:vgcpastes:champions-mb',
     samplePath: 'src/data/external/vgcpastes/reg_mb_champions_mb_team_samples.json',
     auditPath: 'src/data/external/vgcpastes/reg_mb_champions_mb_audit.json',
+  },
+  mc: {
+    label: 'M-C',
+    npmScript: 'data:vgcpastes:champions-mc',
+    samplePath: 'src/data/external/vgcpastes/reg_mc_champions_mc_team_samples.json',
+    auditPath: 'src/data/external/vgcpastes/reg_mc_champions_mc_audit.json',
   },
 };
 const generatedSnapshotPaths = Object.values(regulationConfig).flatMap(({ samplePath, auditPath }) => [
@@ -88,7 +88,7 @@ async function commandExists(commandName, args = ['--version']) {
 function validateArguments() {
   const unknown = requestedRegulations.filter((regulation) => !(regulation in regulationConfig));
   if (requestedRegulations.length === 0 || unknown.length > 0) {
-    throw new Error(`Invalid --reg value. Use --reg=mb (default) or --reg=mb,ma.`);
+    throw new Error(`Invalid --reg value. Use --reg=mc (default) or --reg=mc,mb.`);
   }
   if (new Set(requestedRegulations).size !== requestedRegulations.length) {
     throw new Error('Duplicate regulation in --reg value.');

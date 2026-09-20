@@ -3,7 +3,7 @@ import singleRankedTeams from './external/pokedb/s1_single_ranked_teams.json';
 import doubleRankedTeams from './external/pokedb/s1_double_ranked_teams.json';
 import moveStats from './external/pokedb/s1_move_stats.json';
 import teamSamples from './external/pokedb/s1_team_samples.json';
-import vgcPastesTeamSamples from './external/vgcpastes/reg_ma_champions_ma_team_samples.json';
+import vgcPastesTeamSamples from './external/vgcpastes/reg_mc_champions_mc_team_samples.json';
 import {
   POKEDB_ENVIRONMENT_SNAPSHOT_URL,
   WORKER_ENVIRONMENT_SNAPSHOT_URL,
@@ -27,7 +27,7 @@ const pokedbSnapshot = {
 
 describe('environment runtime loading', () => {
   afterEach(() => {
-    vi.doUnmock('./external/vgcpastes/reg_ma_champions_ma_team_samples.json');
+    vi.doUnmock('./external/vgcpastes/reg_mc_champions_mc_team_samples.json');
     vi.restoreAllMocks();
   });
 
@@ -72,9 +72,11 @@ describe('environment runtime loading', () => {
     expect(state.seasonLabel).toBe('M-1');
     expect(state.updatedAt).toBe(pokedbSnapshot.retrievedAt);
     expect(state.sourceUpdatedAt).toBe('2026-06-04T23:08:02.000+09:00');
-    const vgcPastesSamples = state.teamSamples.filter((sample) => sample.sourceId === 'vgcpastes-champions-ma');
+    const vgcPastesSamples = state.teamSamples.filter((sample) => sample.sourceId === 'vgcpastes-champions-mc');
+    // Counted against the bundled file, not a literal: M-C is the live regulation and its
+    // curated set grows on every weekly refresh, so a pinned number would fail auto-merge.
     expect(vgcPastesSamples).toHaveLength(vgcPastesTeamSamples.length);
-    expect(vgcPastesSamples).toHaveLength(99);
+    expect(vgcPastesSamples.length).toBeGreaterThanOrEqual(20);
     expect(vgcPastesSamples[0].title).toBe((vgcPastesTeamSamples as typeof vgcPastesSamples)[0].title);
     expect(vgcPastesSamples[0].title).not.toContain('分');
     expect(vgcPastesSamples.find((sample) => sample.replicaCode)).toMatchObject({
@@ -137,7 +139,7 @@ describe('environment runtime loading', () => {
 
   it('keeps PokeDB environment data when the VGCPastes enrichment chunk cannot load', async () => {
     vi.resetModules();
-    vi.doMock('./external/vgcpastes/reg_ma_champions_ma_team_samples.json', () => {
+    vi.doMock('./external/vgcpastes/reg_mc_champions_mc_team_samples.json', () => {
       throw new Error('chunk missing');
     });
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -153,13 +155,13 @@ describe('environment runtime loading', () => {
 
     expect(state.loadStatus).toBe('pokedb');
     expect(state.sourceKind).toBe('worker');
-    expect(state.teamSamples.filter((sample) => sample.sourceId === 'vgcpastes-champions-ma')).toHaveLength(0);
+    expect(state.teamSamples.filter((sample) => sample.sourceId === 'vgcpastes-champions-mc')).toHaveLength(0);
     expect(state.teamSamples.filter((sample) => sample.battleType === 'singles').length).toBeGreaterThan(0);
-    // Each regulation's chunk loads independently, so a failed M-A chunk must not take the
+    // Each regulation's chunk loads independently, so a failed M-C chunk must not take the
     // M-B teams (or PokeDB data) down with it.
     expect(state.teamSamples.filter((sample) => sample.sourceId === 'vgcpastes-champions-mb').length).toBeGreaterThan(0);
     expect(errorSpy).toHaveBeenCalledWith(
-      'Failed to load VGCPastes M-A team samples; continuing without them.',
+      'Failed to load VGCPastes M-C team samples; continuing without them.',
       expect.any(Error),
     );
   });
@@ -412,7 +414,9 @@ describe('environment runtime loading', () => {
     expect(state.sourceKind).toBe('static');
     expect(state.freshness).toBe('stale');
     expect(state.seasonLabel).toBe('M-1');
-    expect(state.teamSamples.filter((sample) => sample.sourceId === 'vgcpastes-champions-ma')).toHaveLength(99);
+    expect(state.teamSamples.filter((sample) => sample.sourceId === 'vgcpastes-champions-mc')).toHaveLength(
+      vgcPastesTeamSamples.length,
+    );
   });
 
   it('falls back to the development environment seed when the snapshot cannot load', async () => {

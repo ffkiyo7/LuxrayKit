@@ -121,7 +121,7 @@ npm run data:pokedb:environment        # 抓取 / 刷新 PokeDB 环境快照
 npm run data:pokedb:environment:check  # 仅校验是否需要更新
 npm run data:pokedb:speed              # 重新生成速度线参照档静态快照
 npm run data:pokedb:speed:check        # 仅校验速度档快照是否过期
-npm run data:vgcpastes:champions-ma    # 摄入 VGCPastes「Champions M-A」构筑
+npm run data:vgcpastes:champions-mc    # 摄入 VGCPastes「Champions M-C」构筑（当前规则）
 npm run data:vgcpastes:champions-mb    # 摄入 VGCPastes「Champions M-B」构筑
 ```
 
