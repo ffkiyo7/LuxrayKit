@@ -1,4 +1,15 @@
+import { configure } from '@testing-library/dom';
 import { beforeEach } from 'vitest';
+
+// Every page in App.tsx is `lazy()`, so the first `findBy*` after a route change is waiting on
+// a dynamic import, not on a render. Testing Library's 1000ms default is enough on a developer
+// machine and not enough on a loaded one: the Cloudflare production build (where App.test.tsx
+// takes ~70s instead of ~25s) failed on the 写留言 sheet at 1402ms and blocked the deploy,
+// while GitHub CI stayed green on the same commit. Individual waits already opt into
+// `{ timeout: 5000 }` one at a time; this makes that the floor everywhere so the next lazy
+// route added does not have to remember. A genuinely missing element now takes 5s to report
+// instead of 1s — only paid on failure.
+configure({ asyncUtilTimeout: 5000 });
 
 // Hash routing keeps navigation in `location.hash`, and jsdom carries the URL (plus its
 // session history state) across tests inside a file. Reset both before every test so a
