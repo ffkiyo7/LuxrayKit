@@ -473,6 +473,44 @@ describe('宝可梦详情', () => {
     expect(await screen.findByRole('heading', { name: '上位构筑' })).toBeTruthy();
   });
 
+  // Owner call (2026-09-20): the list opens on 按时间, not 按分数. 按分数 leads with the PokeDB
+  // ladder samples, which lag the curated library by months, so the list read as static.
+  it('opens 上位构筑 on 按时间 with the newest sample first', async () => {
+    const user = userEvent.setup();
+    const samples: EnvironmentTeamSample[] = [
+      {
+        id: 'pokedb-stale-but-scored',
+        dataKind: 'external-snapshot',
+        author: 'PokeDB author',
+        score: 2815,
+        rank: 1,
+        title: '天梯旧样本',
+        battleType: 'doubles',
+        dateShared: '2026-05-02',
+        slots: [{ pokemonId: 'garchomp', moveIds: [] }],
+      },
+      {
+        id: 'vgcpastes-champions-mc-newest',
+        dataKind: 'external-snapshot',
+        sourceId: 'vgcpastes-champions-mc',
+        author: 'Event author',
+        score: 0,
+        title: '刚入库的赛事队',
+        battleType: 'doubles',
+        dateShared: '2026-09-16',
+        slots: [{ pokemonId: 'archaludon', moveIds: [] }],
+      },
+    ];
+    renderEnvironment(makeTeamSampleEnvironment(samples));
+
+    await user.click(screen.getByRole('button', { name: '查看全部上位构筑' }));
+    expect(await screen.findByRole('heading', { name: '上位构筑', exact: true })).toBeTruthy();
+    expect(screen.getByRole('button', { name: '按时间' })).toBeTruthy();
+
+    const list = screen.getByRole('region', { name: '上位构筑列表' });
+    expect(within(list).getAllByRole('heading', { level: 3 })[0].textContent).toBe('刚入库的赛事队');
+  });
+
   it('offers a related upper build for import instead of routing to the list', async () => {
     const user = userEvent.setup();
     const onImportSample = vi.fn();

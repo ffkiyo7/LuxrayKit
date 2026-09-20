@@ -776,7 +776,7 @@ export function EnvironmentPage({
   // Newest first, not 07-01's 「按分数」 order. That sorter puts ladder samples ahead of every
   // event team (they are the only ones carrying a score), and the ladder samples come from the
   // PokeDB snapshot, which lags the VGCPastes library by months — so the home strip looked
-  // frozen while the library refreshed weekly. The browse list keeps 按分数 as its default.
+  // frozen while the library refreshed weekly. The browse list now opens the same way.
   const teamSamples = useMemo(
     () => sortTeamSamplesByDate(environment.teamSamples.filter((sample) => sample.battleType === battleType), 'newest'),
     [battleType, environment.teamSamples],
