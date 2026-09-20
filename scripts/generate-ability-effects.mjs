@@ -28,6 +28,56 @@ async function discoverCatalogFiles() {
 
 const FILES = await discoverCatalogFiles();
 
+/**
+ * mega-catalog.ts and its per-regulation siblings. These hold `PokemonForm` rows, not
+ * `Ability[]`, so they are NOT part of FILES — but every `abilities: ['x']` they name has to
+ * resolve to a row in FILES. `generate-mega-forms.mjs` writes those ids from a hand-written
+ * table and never emits the matching Ability row, and `generate-catalog-batch.mjs` only sees a
+ * base form's PokeAPI abilities, so a Mega-only ability used to fall through both generators
+ * unnoticed (shadow-tag / parental-bond did, for the whole M-A → M-C run).
+ */
+async function discoverMegaCatalogFiles() {
+  return (await readdir(DATA_DIR))
+    .filter((file) => /^mega-catalog(-\w+)?\.ts$/.test(file))
+    .sort()
+    .map((file) => resolve(DATA_DIR, file));
+}
+
+const MEGA_FILES = await discoverMegaCatalogFiles();
+
+/**
+ * Every ability id declared in the file, from EVERY `Ability[]` array in it.
+ *
+ * Deliberately broader than `extractAbilityRows`, which powers the rewrite pass and only sees
+ * the first *exported* `Ability[]` — that skips catalog.ts's non-exported `abilityRows`, whose
+ * hand-written Champions-only rows have no zhwiki page and must not be rewritten. For the
+ * coverage gate those rows still count as present, so it needs its own scan.
+ */
+function extractAbilityRowIds(text) {
+  const ids = new Set();
+  const declRe = /(?:export\s+)?const\s+\w+\s*:\s*Ability\[\]\s*=\s*\[/g;
+  let decl;
+  while ((decl = declRe.exec(text))) {
+    const range = findArrayRange(text, decl.index);
+    if (!range) continue;
+    for (const block of splitTopLevelObjects(text.slice(range.start + 1, range.end - 1))) {
+      const id = block.match(/id:\s*'([^']+)'/)?.[1];
+      if (id) ids.add(id);
+    }
+  }
+  return ids;
+}
+
+function extractReferencedAbilityIds(text) {
+  const ids = new Set();
+  const arrayRe = /abilities:\s*\[([^\]]*)\]/g;
+  let match;
+  while ((match = arrayRe.exec(text))) {
+    for (const id of match[1].matchAll(/'([^']+)'/g)) ids.add(id[1]);
+  }
+  return ids;
+}
+
 const API = 'https://wiki.52poke.com/api.php';
 const POKEAPI = 'https://pokeapi.co/api/v2';
 const USER_AGENT = 'PokemonChampionsToolDataSync/0.1 (local seed generation)';
@@ -113,18 +163,34 @@ function splitTopLevelObjects(arrayText) {
   return objects;
 }
 
+/**
+ * Rows this script is allowed to refresh, from EVERY `Ability[]` array in the file.
+ *
+ * It used to read only the first *exported* array, which meant catalog.ts's non-exported
+ * `abilityRows` was skipped entirely — 25 main-series rows there had never been refreshed, and
+ * a newly hand-added row (shadow-tag / parental-bond) would keep its placeholder text forever.
+ *
+ * Rows tagged `championsAbilityRefs` are excluded on purpose: Champions-only abilities have no
+ * main-series counterpart, so zhwiki either 404s or — worse — matches a same-named unrelated
+ * page and would overwrite curated text. Their source of truth is manual review, not this script.
+ */
 function extractAbilityRows(text) {
-  const match = text.match(/export const \w+\s*:\s*Ability\[\]\s*=\s*\[/);
-  if (!match) return [];
-  const range = findArrayRange(text, match.index);
-  if (!range) return [];
-  return splitTopLevelObjects(text.slice(range.start + 1, range.end - 1))
-    .map((block) => ({
-      id: block.match(/id:\s*'([^']+)'/)?.[1],
-      chineseName: block.match(/chineseName:\s*'((?:\\'|[^'])*)'/)?.[1]?.replace(/\\'/g, "'"),
-      englishName: block.match(/englishName:\s*'((?:\\'|[^'])*)'/)?.[1]?.replace(/\\'/g, "'"),
-    }))
-    .filter((row) => row.id && row.chineseName);
+  const rows = [];
+  const declRe = /(?:export\s+)?const\s+\w+\s*:\s*Ability\[\]\s*=\s*\[/g;
+  let decl;
+  while ((decl = declRe.exec(text))) {
+    const range = findArrayRange(text, decl.index);
+    if (!range) continue;
+    for (const block of splitTopLevelObjects(text.slice(range.start + 1, range.end - 1))) {
+      if (/sourceRefs:\s*championsAbilityRefs/.test(block)) continue;
+      rows.push({
+        id: block.match(/id:\s*'([^']+)'/)?.[1],
+        chineseName: block.match(/chineseName:\s*'((?:\\'|[^'])*)'/)?.[1]?.replace(/\\'/g, "'"),
+        englishName: block.match(/englishName:\s*'((?:\\'|[^'])*)'/)?.[1]?.replace(/\\'/g, "'"),
+      });
+    }
+  }
+  return rows.filter((row) => row.id && row.chineseName);
 }
 
 function normalizeWikiText(value) {
@@ -313,6 +379,33 @@ async function main() {
 
   console.log(`Found ${rowsById.size} unique ability rows.`);
 
+  // A referenced-but-missing ability is not cosmetic: pokepaste import maps ability names
+  // through the catalog, so a team carrying one is dropped wholesale with a single
+  // `unknown-ability` audit line. Fail loudly instead of refreshing the rows that do exist.
+  const knownAbilityIds = new Set();
+  for (const file of FILES) {
+    for (const id of extractAbilityRowIds(await readFile(file, 'utf8'))) knownAbilityIds.add(id);
+  }
+
+  const missingReferences = new Map();
+  for (const file of [...FILES, ...MEGA_FILES]) {
+    const text = await readFile(file, 'utf8');
+    for (const id of extractReferencedAbilityIds(text)) {
+      if (knownAbilityIds.has(id)) continue;
+      const where = file.slice(ROOT.length + 1);
+      missingReferences.set(id, [...(missingReferences.get(id) ?? []), where]);
+    }
+  }
+  if (missingReferences.size > 0) {
+    console.error(`\n${missingReferences.size} referenced ability id(s) have no Ability row:`);
+    for (const [id, files] of missingReferences) {
+      console.error(`  - ${id} (referenced by ${[...new Set(files)].join(', ')})`);
+    }
+    console.error('\nAdd the row to the hand-written block in catalog.ts, then rerun this script');
+    console.error('to fill its chineseName / effectSummary from PokeAPI + zhwiki.');
+    process.exit(1);
+  }
+
   if (CHECK_ONLY) {
     console.log(`\nWould process ${FILES.length} catalog files:`);
     for (const file of FILES) {
@@ -320,6 +413,7 @@ async function main() {
       const rows = extractAbilityRows(text);
       console.log(`  ${file.slice(ROOT.length + 1)} — ${rows.length} ability rows`);
     }
+    console.log(`\nChecked ability references in ${MEGA_FILES.length} mega catalog file(s): all resolve.`);
     console.log('\n--check: no network requests made and no files written.');
     return;
   }
