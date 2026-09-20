@@ -265,7 +265,7 @@ npm run data:pokemon-facts:check  # 只校验现有快照，不访问网络；CI
 2. **静态快照**：`/data/pokedb/reg-ma-environment.json`（`cache: 'force-cache'`）。供 Worker 降级比较、纯静态部署与离线使用。
 3. **内置 seed**：`environmentFallbackState`（来自 `environmentDatasetSeed.ts`），始终可用的开发样例。
 
-每级成功拿到 base 快照后，再**并行**懒加载 VGCPastes 锦标赛样本（`loadVgcPastesTeamSamples`）合并进去。VGCPastes 按 regulation 拆成独立 build chunk（`reg_ma_*` / `reg_mb_*`），单个文件失败只是少一批样本，不会让整页空白（`loadVgcPastesRegulationFile` 各自 try/catch）。
+每级成功拿到 base 快照后，再**并行**懒加载 VGCPastes 锦标赛样本（`loadVgcPastesTeamSamples`）合并进去。VGCPastes 按 regulation 拆成独立 build chunk（`reg_ma_*` / `reg_mb_*` / `reg_mc_*`），单个文件失败只是少一批样本，不会让整页空白（`loadVgcPastesRegulationFile` 各自 try/catch）。
 
 `PokeDbEnvironmentSnapshotPayload` 支持三种 PokeDB 形态（statistics / trainer-list / open-data ranked-teams），由 `isStatisticsPayload` / `isTrainerListPayload` 分派到对应 builder。
 
@@ -513,11 +513,11 @@ npm run data:pokedb:environment:check  # 仅校验是否需要更新
 npm run data:pokedb:environment:pr     # 刷新静态快照并创建/更新自动化 PR
 npm run data:pokedb:speed              # 重新生成速度线参照档 src/data/speedTiers.ts
 npm run data:pokedb:speed:check
-npm run data:vgcpastes:champions-ma    # 摄入 VGCPastes「Champions M-A」样本
+npm run data:vgcpastes:champions-mc    # 摄入 VGCPastes「Champions M-C」样本（--reg=mc，默认，sheet gid 2001945654）
 npm run data:vgcpastes:champions-mb    # M-B 同上（--reg=mb）
-npm run data:vgcpastes:champions-ma:check  # 只校验 M-A 产物是否与来源一致
+npm run data:vgcpastes:champions-mc:check  # 只校验 M-C 产物是否与来源一致
 npm run data:vgcpastes:champions-mb:check  # M-B 同上
-npm run data:vgcpastes:pr              # 默认刷新 M-B 并创建/更新自动化 PR
+npm run data:vgcpastes:pr              # 默认刷新 M-C 并创建/更新自动化 PR
 npm run data:regma:abilities            # 按目录扫描 catalog.ts + 全部 catalog-batch-*.ts，补特性中文名与效果
 npm run data:regma:abilities:check      # 只列出会处理哪些文件与特性行数，不联网、不写文件
 npm run data:regma:catalog-batch        # 生成新的 catalog-batch-NNN.ts 并接线进 catalog.ts
@@ -601,14 +601,20 @@ VGCPastes 队伍库刷新与 §7.1 使用相同的白名单分支、PR 和 CI �
 手动执行：
 
 ```bash
-npm run data:vgcpastes:pr                 # 默认只刷新活跃增长的 M-B
-npm run data:vgcpastes:pr -- --reg=mb,ma  # 明确需要时同时刷新 M-B、M-A
+npm run data:vgcpastes:pr                 # 默认只刷新活跃增长的 M-C
+npm run data:vgcpastes:pr -- --reg=mc,mb  # 明确需要时同时刷新 M-C、M-B
 npm run data:vgcpastes:pr -- --dry-run    # 分支/index/worktree 不变，不推送、不创建 PR
 ```
 
-`scripts/create-vgcpastes-refresh-pr.mjs` 从最新 `origin/main` 重建 `automation/vgcpastes-team-refresh`，运行既有摄入脚本，并只允许提交 `src/data/external/vgcpastes/` 下四个生成 JSON。默认不重跑筛选窗口已冻结的 M-A，以避免约 100 次无效 pokepast.es 请求。
+`scripts/create-vgcpastes-refresh-pr.mjs` 从最新 `origin/main` 重建 `automation/vgcpastes-team-refresh`，运行既有摄入脚本，并只允许提交 `src/data/external/vgcpastes/` 下四个生成 JSON（M-B / M-C 各一对 samples / audit）。默认只跑当前规则 M-C，不重跑增长已停的 M-B。
 
-脚本在 push 和创建 ready PR 前读取本轮 audit：任一 regulation 的 issues 超过 10、M-A 少于 90 支或 M-B 少于 20 支都会失败退出且恢复生成文件，不污染后续 cron。通过后，PR 仍须经过契约单测、应用 build、Playwright 队伍库渲染断言和 Worker dry-run；`daily-auto-merge.yml` 只会合并白名单分支上的非 draft、无 `hold` 标签、包含最新 `main` 且指定 CI check 成功的 PR。
+M-A 的队伍库已于 2026-09-20 整体下架（规则 2026-06-17 结束，99 支在任何现行规则下都不合法），摄入配置一并删除；要找回历史 M-A 队伍须从 git history 恢复脚本与产物。
+
+**队伍名在摄入端就截断**：上游 `Team Description` 是自由文本，偶尔会长到 110+ 字（多为结尾的出处括号，如 `… Champion Team (Recreation of …)`）。`shortenTitle` 先在剩余部分仍可用时砍掉结尾括号，再按词边界截到 64 字。卡片标题是单行，与其塞进去再用省略号盖掉，不如在入库时处理。`tournament` / `eventRank` / `author` 不动，赛事信息仍在 meta 行。卡片侧另有 `min-w-0 truncate` 兜底 —— PokeDB 天梯样本与用户导入的队伍不受这个上限约束，而标题换行是唯一能改变卡片高度的东西。
+
+**排序默认值**：首页「上位构筑」横滑与队伍库列表（07-01）都**默认按时间最新优先**。不要改回 `sortTeamSamplesByScore`：只有 PokeDB 天梯样本带分数，该 sorter 会把它们全部排在赛事队之前，而天梯样本来自滞后数月的 PokeDB 快照 —— 结果就是队伍库每周刷新、界面却纹丝不动。「按分数」仍在，点一下即可切换。
+
+脚本在 push 和创建 ready PR 前读取本轮 audit：任一 regulation 的 issues 超过 10、M-B 或 M-C 少于 20 支都会失败退出且恢复生成文件，不污染后续 cron。通过后，PR 仍须经过契约单测、应用 build、Playwright 队伍库渲染断言和 Worker dry-run；`daily-auto-merge.yml` 只会合并白名单分支上的非 draft、无 `hold` 标签、包含最新 `main` 且指定 CI check 成功的 PR。
 
 需要人工暂停自动合并时，给 PR 添加 `hold` 标签。虽然 workflow 本身也跳过 draft，但刷新脚本下次复用该自动化 PR 时会把它转回 ready，因此 draft 不是持久暂停开关。
 

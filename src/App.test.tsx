@@ -8,7 +8,7 @@ import singleRankedTeams from './data/external/pokedb/s1_single_ranked_teams.jso
 import doubleRankedTeams from './data/external/pokedb/s1_double_ranked_teams.json';
 import moveStats from './data/external/pokedb/s1_move_stats.json';
 import teamSamples from './data/external/pokedb/s1_team_samples.json';
-import vgcPastesSamples from './data/external/vgcpastes/reg_ma_champions_ma_team_samples.json';
+import vgcPastesSamples from './data/external/vgcpastes/reg_mc_champions_mc_team_samples.json';
 import {
   createEnvironmentStateFromPokeDbSnapshot,
   getEnvironmentPokemon,

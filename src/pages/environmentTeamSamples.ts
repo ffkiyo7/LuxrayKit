@@ -70,7 +70,8 @@ export const sortTeamSamplesByDate = (
   });
 
 /**
- * 07-01's default order (「按分数」). Ladder samples lead, by rank then rating — they are the only
+ * 07-01's 「按分数」 order — no longer the opening one (the browse list opens on 按时间 since
+ * 2026-09-20), but one tap away. Ladder samples lead, by rank then rating — they are the only
  * ones with a score. Event teams follow by placement (冠军 → 亚军 → 第 N 名), newest first within
  * a placement; their `rank` is not comparable with a ladder rank, and a 冠军 has none at all.
  */

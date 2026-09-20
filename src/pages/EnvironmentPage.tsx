@@ -32,7 +32,7 @@ import { useHashRoute } from '../hooks/useHashRoute';
 import { auraStyle, KitButton, PageHeader, SearchField, SegmentedTabs, Sprite, TypeDot } from '../components/kit';
 import { typeLabels } from '../components/ui';
 import { TeamBrowseView } from './TeamBrowseView';
-import { sortTeamSamplesByScore } from './environmentTeamSamples';
+import { sortTeamSamplesByDate } from './environmentTeamSamples';
 import {
   battleTypeLabels,
   environmentSubtitle,
@@ -773,8 +773,12 @@ export function EnvironmentPage({
   }, []);
 
   const rankings = useMemo(() => environment.pokemonUsage[battleType], [battleType, environment.pokemonUsage]);
+  // Newest first, not 07-01's 「按分数」 order. That sorter puts ladder samples ahead of every
+  // event team (they are the only ones carrying a score), and the ladder samples come from the
+  // PokeDB snapshot, which lags the VGCPastes library by months — so the home strip looked
+  // frozen while the library refreshed weekly. The browse list now opens the same way.
   const teamSamples = useMemo(
-    () => sortTeamSamplesByScore(environment.teamSamples.filter((sample) => sample.battleType === battleType)),
+    () => sortTeamSamplesByDate(environment.teamSamples.filter((sample) => sample.battleType === battleType), 'newest'),
     [battleType, environment.teamSamples],
   );
   const visibleTeamSamples = useMemo(() => teamSamples.slice(0, HOME_TEAM_SAMPLES), [teamSamples]);

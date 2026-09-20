@@ -69,11 +69,11 @@ P1–P7 代码已全部落地并 push `dev`（2026-09-19，`0bde919`），**owne
 - [x] ~~✅ **P6 我的 + 全局**（`690b932`，owner 验收 2026-09-19）：「我的」索引 + 备份 / 离线缓存 / 添加到主屏幕 / 当前规则 / 关于与数据五个子页、规则页改正式路由（文案未动）、Toast、错误页、链接失效页、写留言各状态。~~
 - [x] ~~✅ **P7 浅色主题走查**（`3a15580`、`c261584`、`b5cb6e4`、`bb6b238`，owner 验收 2026-09-19）。视觉基线重建、合 `main` 见下方「合 `main`」。~~
 - [x] ~~**e2e 与首屏预算**（2026-09-19，`21adf1e`、`5845f7e`）：`tests/pwa/` 三个功能性 spec 跟上新 UI，本机 3/3 通过；改版把 `regma-moves` 拖进了 `#/env` 首屏（303 KB，超 260 KB 预算），备份模块与环境详情页改按需加载后回到 235 KB。`visual.spec.ts` 只更新了导航步骤，基线未动；其中「随机一队」那条现在的抽队池含 VGCPastes 样本，数据刷新可能让它变红（旧 UI 靠已删除的「排位高分」筛选锁定 fixture）。~~
-- [ ] 🚧 **合 `main`**（owner 2026-09-19 拍板开 PR）：① 从 `main` 同步 → ② `gh workflow run visual-baseline.yml --ref dev` 重建视觉基线 → ③ Draft PR `dev` → `main`，CI 全绿后由 owner 合并（合并即上线）。
+- [x] ~~✅ **合 `main`**（owner 2026-09-19 拍板开 PR，2026-09-20 拍板合并；已上线）：① 从 `main` 同步 → ② `gh workflow run visual-baseline.yml --ref dev` 重建视觉基线 → ③ Draft PR `dev` → `main`，CI 全绿后由 owner 合并（合并即上线）。~~
   - ✅ ~~① `main` 上没有 `dev` 缺的提交，无需同步（2026-09-19）。~~
   - ✅ ~~② 基线已重建（`mode=all`，18 张，`f692d40`）。第一次跑失败：`visual.spec.ts` 的导航步骤过期——fixture 队伍首次出现是 02-02 预设卡（`<section>`，不是按钮），点卡片不进详情，而队伍名在列表卡上也是 heading，所以「05-team-detail」其实截的还是列表 → 改为点「接着补齐这支」、以成员 tile 可见确认进了详情（`a34757f`）。只改导航，未动阈值与 fixture。~~
-  - 🚧 ③ Draft PR：<https://github.com/ffkiyo7/LuxrayKit/pull/70>。**已知坑**：基线 workflow 用 `GITHUB_TOKEN` push，不会触发 CI，重建后要再推一个普通提交 PR 上才有检查。
-  - 合并后：Worker 部署、SP 分配走正式数据（见 R33 上线链路），再删 `TRANSITIONAL` 回填。
+  - ✅ ~~③ PR <https://github.com/ffkiyo7/LuxrayKit/pull/70> 已合并（merge commit `8909e5c`，2026-09-19T16:08Z；owner 拍板「转 ready 合并」）。`main` 上 CI、视觉回归、生产 Workers Builds 三项 success；`https://luxraykit.com/` 200。**已知坑**：基线 workflow 用 `GITHUB_TOKEN` push，不会触发 CI，重建后要再推一个普通提交 PR 上才有检查。~~
+  - ⬜ 合并后待办：生产 `/api/environment/latest` 目前仍无 `statPointStats` 键（只读 GET 核对，预期：KV 要等上游下一次发布约 00:30 JST 或手动 POST `/api/environment/refresh`），此期间生产靠回填显示 SP 分配；KV 带上该键后删 `TRANSITIONAL` 回填（见 R33 上线链路）。
 - [ ] **收尾**：架构复盘见 [architecture-review-2026-09.md](architecture-review-2026-09.md)（只有建议，未动手）。
 
 ## 第一轮验收反馈（owner，2026-09-19，preview `414da20`）

@@ -79,7 +79,10 @@ export function TeamBrowseView({
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilters, setActiveFilters] = useState<SampleFilterId[]>([]);
-  const [sort, setSort] = useState<SampleSort>('score');
+  // Opens on 按时间. 按分数 leads with the PokeDB ladder samples (the only ones carrying a
+  // score), which lag the VGCPastes library by months, so the list looked static across weekly
+  // refreshes — same reason the home strip is newest-first. 按分数 is still one tap away.
+  const [sort, setSort] = useState<SampleSort>('date');
   const [drawnSample, setDrawnSample] = useState<EnvironmentTeamSample | null>(null);
 
   const battleSamples = useMemo(

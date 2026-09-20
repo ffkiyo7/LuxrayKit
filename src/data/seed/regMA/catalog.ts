@@ -124,6 +124,34 @@ const abilityRows: Ability[] = [
     legalInCurrentRule: true,
     sourceRefs: championsAbilityRefs,
   },
+  // Abilities carried only by an old-gen Mega form. `generate-mega-forms.mjs` writes the
+  // ability id into mega-catalog.ts but has never emitted a matching Ability row, and the
+  // batch generator only sees base-form abilities from PokeAPI — so these two were referenced
+  // by Mega Gengar / Mega Kangaskhan with nothing to resolve to, which silently dropped any
+  // imported team using them. `abilityCatalogCoverage` in dataAudit.test.ts is now the gate.
+  {
+    id: 'shadow-tag',
+    chineseName: '踩影',
+    englishName: 'Shadow Tag',
+    effectSummary: '踩住对手的影子使其无法逃走或替换。',
+    pokemonIds: [],
+    // Trapping only — it never changes a damage roll, same as the other 'none' rows.
+    calculationImpact: 'none',
+    legalInCurrentRule: true,
+    sourceRefs: abilityRefs,
+  },
+  {
+    id: 'parental-bond',
+    chineseName: '亲子爱',
+    englishName: 'Parental Bond',
+    effectSummary: '亲子俩可以合计攻击２次。',
+    pokemonIds: [],
+    // @smogon/calc implements it, but this repo has no test pinning the damage result, so it
+    // stays 'pending' rather than claiming 'confirmed'.
+    calculationImpact: 'pending',
+    legalInCurrentRule: true,
+    sourceRefs: abilityRefs,
+  },
   {
     id: 'spicy-spray',
     chineseName: 'Spicy Spray',
@@ -404,7 +432,7 @@ const abilityRows: Ability[] = [
     id: 'surge-surfer',
     chineseName: '冲浪之尾',
     englishName: 'Surge Surfer',
-    effectSummary: '电气场地时，速度会变为2倍。',
+    effectSummary: '电气场地时，速度会变为２倍。',
     pokemonIds: [],
     calculationImpact: 'pending',
     legalInCurrentRule: true,

@@ -2,7 +2,7 @@ import { ChevronDown, ChevronRight, ChevronUp, Wind } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { currentRuleNatureOptions, currentRuleSet, pokemon } from '../data';
 import type { EnvironmentState } from '../data/environment';
-import { speedTierSeason, speedTierSnapshots } from '../data/speedTiers';
+import { speedTierSnapshots } from '../data/speedTiers';
 import { findBattleForm, getDexFormEntries, type BattleFormView, type DexFormEntry } from '../lib/pokemonForms';
 import {
   buildOutspeedPlan,
@@ -446,7 +446,7 @@ export function SpeedPage({
     <div className="pb-8">
       <PageHeader
         className="px-6 pt-5"
-        subtitle={trimmedQuery ? '换一只来看它在哪一档' : `PokeDB M-${speedTierSeason} 静态参照 · 上下滑动看档位`}
+        subtitle={trimmedQuery ? '换一只来看它在哪一档' : '热门速度线参照 · 上下滑动看档位'}
         title="速度线"
       />
 

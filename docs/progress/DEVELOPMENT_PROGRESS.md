@@ -95,7 +95,7 @@
 - **「图鉴更新中」提示**：schedule 解析出的当前规则与 catalog 的规则不一致时，环境首页头部渲染一条提示（两个规则号都从数据推导，下次滚动无需改文案）。
 - **未知宝可梦不再从榜单整行剔除**：以前 `pokemonKeyToId` 查不到就丢行，导致下面所有名次整体上移一位（UI 的名次就是数组下标）。现在保留为 `pokedb:<key>` 哨兵，前端渲染不可点的占位行 + 「图鉴待补」chip，完整榜搜索按页面原名匹配。审计契约不变：key 照旧进 `unknownPokemonKeys`，Worker 零容忍审计该 degraded 仍 degraded。队伍样本 slot 里的未知宝可梦维持剔除，未扩。
 - **静态回退层新鲜度**：刷新 PR 脚本以前只在 Worker 不健康时抓取，Worker 一直健康 = 第二层永不更新（实测停在 2026-07-18 的 M-4）。现在额外比较本地快照 `battles.*.updatedAt` 与响应头 `x-luxray-latest-source-updated-at`，落后超过 `STATIC_SNAPSHOT_MAX_LAG_DAYS`（默认 7）天也刷。
-- **生成产物刷新到 M-5**：静态环境快照 → 2026-09-07 07:18；`speedTiers.ts` 从 M-3 → M-5（`speedTierSeason` 3→5，SpeedPage 头部文案随之改变）。视觉基线 **未**重建：`visual-baseline.yml` 实测 18 张全部与现状一致，因为速度线用例截图前 `scrollBy(0, 120)` 已把「PokeDB M-{season} 静态参照」头部滚出视口——这条文案不在视觉门禁覆盖范围内，缺口已记入 `docs/qa/MOBILE_VISUAL_REGRESSION.md`。
+- **生成产物刷新到 M-5**：静态环境快照 → 2026-09-07 07:18；`speedTiers.ts` 从 M-3 → M-5（`speedTierSeason` 3→5，SpeedPage 头部文案随之改变）。视觉基线 **未**重建：`visual-baseline.yml` 实测 18 张全部与现状一致，因为速度线用例截图前 `scrollBy(0, 120)` 已把「PokeDB M-{season} 静态参照」头部滚出视口——这条文案不在视觉门禁覆盖范围内，缺口已记入 `docs/qa/MOBILE_VISUAL_REGRESSION.md`。（2026-09-20 起该行改为「热门速度线参照 · 上下滑动看档位」，不再渲染赛季号，`speedTierSeason` 只剩 `speedTiers.ts` 自身导出。）
 - **SW 预缓存 manifest**：`sw.js` 里手写的 ~120 条道具图标路径改为构建期从道具 catalog 的 `iconRef` 生成 `dist/precache-manifest.json`（当前 148 条），`CACHE_NAME` 升到 `champions-tool-v8`；新增「新版本已就绪，刷新以更新」toast。
 - **CSP**：`public/_headers` 加 `Content-Security-Policy`（同源为主；`style-src`/`font-src` 额外放行 Google Fonts，因为 `styles.css` 的 DM Sans 远程 `@import` 无法被 Vite 内联）。`_headers` 只在 Cloudflare 生效，**上线后需人工在生产 DevTools 确认无违规**。
 - **死代码清理**：见下方「已知代码层待办」。

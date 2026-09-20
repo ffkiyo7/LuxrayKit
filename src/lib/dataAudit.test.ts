@@ -212,6 +212,34 @@ describe('seed data audit', () => {
     expect(pokemon.flatMap((entry) => entry.megaForms)).toHaveLength(81);
   });
 
+  // The Champions-only Mega coverage matrix in damageAdapter.test.ts already asserts its 24
+  // forms resolve to an ability row, but old-gen Megas fall outside it — which is how Mega
+  // Gengar's shadow-tag and Mega Kangaskhan's parental-bond sat unresolved from M-A through
+  // M-C. A referenced-but-missing ability is silent in the UI and drops the whole team on
+  // pokepaste import, so gate every ability reference, base form and Mega alike.
+  it('resolves every referenced ability id to an ability catalog row', () => {
+    const knownAbilityIds = new Set(abilities.map((ability) => ability.id));
+    const missing = new Map<string, string[]>();
+
+    for (const entry of pokemon) {
+      const referenced: Array<[string, string]> = [
+        ...entry.abilities.map((id): [string, string] => [id, entry.id]),
+        ...entry.megaForms.flatMap((form) =>
+          form.abilities.map((id): [string, string] => [id, form.id]),
+        ),
+      ];
+      for (const [abilityId, holder] of referenced) {
+        if (knownAbilityIds.has(abilityId)) continue;
+        missing.set(abilityId, [...(missing.get(abilityId) ?? []), holder]);
+      }
+    }
+
+    expect(
+      Object.fromEntries(missing),
+      'every ability id on a Pokemon or Mega form needs a row in the ability catalog',
+    ).toEqual({});
+  });
+
   it('connects Champions-added Mega forms to Pokemon, stones, and local assets', () => {
     const expectedForms = [
       ['skarmory', 'mega-skarmory', 'skarmorite'],
@@ -569,11 +597,12 @@ describe('seed data audit', () => {
   });
 
   it('keeps ability text complete and maps abilities back to current Pokemon', () => {
-    // 214 = 198 + the 14 abilities the M-C roster introduced via catalog-batch-007 (emergency-exit,
+    // 216 = 198 + the 14 abilities the M-C roster introduced via catalog-batch-007 (emergency-exit,
     // grass-pelt, grassy-surge, guard-dog, libero, liquid-ooze, psychic-surge, punk-rock, rattled,
-    // run-away, seed-sower, stakeout, steely-spirit, thermal-exchange) + the 2 Mega-only abilities
-    // hand-written in catalog.ts because no base Pokémon carries them (aura-guard, aerilate).
-    expect(abilities).toHaveLength(214);
+    // run-away, seed-sower, stakeout, steely-spirit, thermal-exchange) + the 4 Mega-only abilities
+    // hand-written in catalog.ts because no base Pokémon carries them (aura-guard, aerilate, and
+    // — added 2026-09-20, previously missing outright — shadow-tag, parental-bond).
+    expect(abilities).toHaveLength(216);
     expect(abilities.every((ability) => ability.effectSummary && !ability.effectSummary.includes('待确认'))).toBe(true);
 
     const expectedPokemonIdsByAbility = new Map<string, string[]>();
