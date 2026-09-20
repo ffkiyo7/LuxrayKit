@@ -8,5 +8,6 @@ export { SectionLabel } from './SectionLabel';
 export { SegmentedTabs } from './SegmentedTabs';
 export { Sheet } from './Sheet';
 export { Sprite } from './Sprite';
+export { SpriteDisc } from './SpriteDisc';
 export { Switch } from './Switch';
 export { TypeDot } from './TypeDot';
