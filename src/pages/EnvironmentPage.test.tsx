@@ -230,6 +230,44 @@ describe('环境首页', () => {
 
     expect(onImportSample).toHaveBeenCalledWith(expect.objectContaining({ id: 'pokedb-singles-rank-1' }));
   });
+
+  // The home strip used to reuse 07-01's 按分数 order, which sorts every scored ladder sample
+  // ahead of every event team. Ladder samples come from the PokeDB snapshot and lag the
+  // VGCPastes library by months, so the strip stayed frozen through weekly refreshes.
+  it('leads the 上位构筑 strip with the newest sample, not the highest-scoring one', () => {
+    const environment = makeTeamSampleEnvironment([
+      {
+        id: 'pokedb-stale-but-scored',
+        dataKind: 'external-snapshot',
+        author: 'PokeDB author',
+        score: 2815,
+        rank: 1,
+        title: '天梯旧样本',
+        battleType: 'doubles',
+        dateShared: '2026-05-02',
+        slots: [{ pokemonId: 'garchomp', moveIds: [] }],
+      },
+      {
+        id: 'vgcpastes-champions-mc-newest',
+        dataKind: 'external-snapshot',
+        sourceId: 'vgcpastes-champions-mc',
+        author: 'Event author',
+        score: 0,
+        title: '刚入库的赛事队',
+        battleType: 'doubles',
+        dateShared: '2026-09-16',
+        slots: [{ pokemonId: 'archaludon', moveIds: [] }],
+      },
+    ]);
+    renderEnvironment(environment);
+
+    const teasers = screen.getByText('上位构筑').closest('section') as HTMLElement;
+    const titles = within(teasers)
+      .getAllByRole('button', { name: /^导入「/ })
+      .map((button) => button.getAttribute('aria-label'));
+
+    expect(titles[0]).toBe('导入「刚入库的赛事队」');
+  });
 });
 
 describe('使用排行', () => {

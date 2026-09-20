@@ -304,6 +304,35 @@ function firstPresent(...values) {
   return values.find((value) => typeof value === 'string' && value.trim())?.trim() ?? '';
 }
 
+/**
+ * Upstream `Team Description` is free text and occasionally runs very long, e.g.
+ * "ayoitsbenji's WCG VGC Challenge Champion Team (Recreation of MichaelderBeste's VR September
+ * Challenge Champion Team)". The card title is a single line, so an unbounded string is dead
+ * weight behind an ellipsis — trim it at the source instead of shipping it and hiding it.
+ *
+ * Two steps, both conservative:
+ *   1. Drop a trailing parenthetical. It is almost always provenance ("(Recreation of …)",
+ *      "(adapted from …)") rather than what the team is, and the paste link keeps the full story.
+ *      Only dropped when what remains is still a usable title.
+ *   2. Hard-cap the result, cutting on a word boundary and appending an ellipsis.
+ *
+ * `tournament` / `eventRank` / `author` are untouched — the meta line still carries the event.
+ */
+const TITLE_MAX_LENGTH = 64;
+
+function shortenTitle(value) {
+  let title = value.trim().replace(/\s+/g, ' ');
+  if (title.length <= TITLE_MAX_LENGTH) return title;
+
+  const withoutTrailingParenthetical = title.replace(/\s*\([^()]*\)\s*$/, '').trim();
+  if (withoutTrailingParenthetical.length >= 12) title = withoutTrailingParenthetical;
+  if (title.length <= TITLE_MAX_LENGTH) return title;
+
+  const clipped = title.slice(0, TITLE_MAX_LENGTH);
+  const lastSpace = clipped.lastIndexOf(' ');
+  return `${(lastSpace > TITLE_MAX_LENGTH / 2 ? clipped.slice(0, lastSpace) : clipped).trimEnd()}…`;
+}
+
 function columnValue(row, exactName, prefixPattern) {
   if (row[exactName]) return row[exactName];
   const key = Object.keys(row).find((candidate) => prefixPattern.test(candidate));
@@ -393,7 +422,9 @@ async function buildSamples() {
       const rank = rankNumber(row.Rank ?? '');
       const sharedAtIso = parseDateShared(row['Date Shared'] ?? '')?.toISOString().slice(0, 10);
       const reportUrl = firstPresent(extractUrl(row['Link to Source'] ?? ''), extractUrl(row['Report / Video'] ?? ''), extractUrl(row.Pokepaste ?? ''));
-      const title = firstPresent(row['Team Description'], row['Tournament / Event'], `VGCPastes ${teamId}`);
+      const title = shortenTitle(
+        firstPresent(row['Team Description'], row['Tournament / Event'], `VGCPastes ${teamId}`),
+      );
       samples.push({
         id: `${REG.sourceId}-${slug(teamId || pokepasteId || String(index + 1)) || index + 1}`,
         dataKind: 'external-snapshot',

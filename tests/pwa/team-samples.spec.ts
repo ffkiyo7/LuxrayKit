@@ -5,8 +5,9 @@ import { currentRuleSet } from '../../src/data/seed/regMA/metadata';
 
 /**
  * Guards that the generated team-sample library actually reaches 上位构筑 (#/env/teams):
- * the curated VGCPastes files for *both* regulations plus the PokeDB high-score samples, all
- * scoped to the rule set's own battle type, each stamped with the regulation it came from.
+ * the curated VGCPastes files for *every live regulation* (M-B + M-C; M-A was dropped on
+ * 2026-09-20) plus the PokeDB high-score samples, all scoped to the rule set's own battle
+ * type, each stamped with the regulation it came from.
  *
  * The old 赛事 / M-B filters are gone with the redesign — 07-01 has four chips
  * (全部 / 带配招 / 带 SP / 有队伍码) and no category or regulation picker. So the counts are
@@ -44,8 +45,8 @@ test('renders the generated VGCPastes team library', async ({ page, context }) =
   // is scoped to it, so the expected counts are too.
   const battleType = currentRuleSet.battleType as 'singles' | 'doubles';
 
-  const [maSamples, mbSamples, snapshot] = await Promise.all([
-    readJson<Sample[]>('src/data/external/vgcpastes/reg_ma_champions_ma_team_samples.json'),
+  const [mcSamples, mbSamples, snapshot] = await Promise.all([
+    readJson<Sample[]>('src/data/external/vgcpastes/reg_mc_champions_mc_team_samples.json'),
     readJson<Sample[]>('src/data/external/vgcpastes/reg_mb_champions_mb_team_samples.json'),
     // `vite preview` has no Worker, so the app falls through to the bundled static snapshot.
     readJson<{ teamSamples?: Partial<Record<'singles' | 'doubles', Sample[]>> }>(
@@ -55,8 +56,8 @@ test('renders the generated VGCPastes team library', async ({ page, context }) =
   const inBattleType = (samples: Sample[]) => samples.filter((sample) => sample.battleType === battleType);
   const expectedSamples = [
     ...(snapshot.teamSamples?.[battleType] ?? []),
-    ...inBattleType(maSamples),
     ...inBattleType(mbSamples),
+    ...inBattleType(mcSamples),
   ];
   const expectedWithMoves = expectedSamples.filter((sample) => Boolean(sample.hasMoves)).length;
 

@@ -105,7 +105,15 @@ export function TeamSampleCard({
       className={`box-border rounded-[20px] p-[18px] ${variant === 'draw' ? 'rounded-[18px] bg-sunken' : 'surface-shadow bg-card'}`}
     >
       <div className="flex items-baseline gap-2.5">
-        <h3 className="text-[20px] font-extrabold leading-7 tracking-[-0.01em]">{title}</h3>
+        {/*
+          One line, always. The ingest script already caps VGCPastes titles, but PokeDB ladder
+          samples and imported teams are not under that cap, and a wrapped title is the one thing
+          that can change this card's height. `min-w-0` is what lets a flex child shrink far
+          enough to actually truncate.
+        */}
+        <h3 className="min-w-0 truncate text-[20px] font-extrabold leading-7 tracking-[-0.01em]" title={title}>
+          {title}
+        </h3>
         {reportUrl && (
           // Same 15px glyph as the frame; the padding / negative margin only widens the tap target.
           <a
