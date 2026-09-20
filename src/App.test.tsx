@@ -408,7 +408,11 @@ describe('App page flows', () => {
 
     await user.click(screen.getByRole('button', { name: /留言/ }));
     expect(window.location.hash).toBe('#/profile/feedback');
-    const sheet = await screen.findByRole('dialog', { name: '写留言' });
+    // FeedbackSheet is lazy-loaded (App.tsx), so this needs the same generous window as the
+    // other lazy waits in this file. On the default 1000ms it flaked on a loaded machine —
+    // the Cloudflare production build, where this file takes ~70s instead of ~25s, failed here
+    // at 1402ms and blocked the deploy while GitHub CI stayed green.
+    const sheet = await screen.findByRole('dialog', { name: '写留言' }, { timeout: 5000 });
     expect(within(sheet).getByLabelText('留言内容')).toBeTruthy();
 
     // 返回 closes the sheet without leaving the profile tab.
