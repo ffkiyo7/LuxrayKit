@@ -20,7 +20,7 @@ import {
   type TypeChartToolResult,
 } from '../lib/toolActivity';
 import { typeColors, typeLabels } from '../components/ui';
-import { Sprite } from '../components/kit';
+import { Sprite, SpriteDisc } from '../components/kit';
 
 export type ToolView = 'calculator' | 'dex' | 'speed' | 'typeChart';
 
@@ -76,7 +76,7 @@ function CardLabel({ children }: { children: ReactNode }) {
 function SubjectRow({ subject, caption }: { subject: Combatant; caption?: string }) {
   return (
     <div className="mt-2 flex items-center gap-1.5">
-      <ToolDisc iconRef={subject.iconRef} label={subject.label} />
+      <SpriteDisc iconRef={subject.iconRef} label={subject.label} />
       {caption && <span className="min-w-0 truncate text-xs font-bold text-textLabel">{caption}</span>}
     </div>
   );
@@ -93,28 +93,16 @@ function DamageMeter({ minPercent, maxPercent }: { minPercent: number; maxPercen
   );
 }
 
-/**
- * 04-01's tool cards put their sprites on a coin: the card's own face plus a hairline, so a
- * transparent artwork still reads as one object at 26px.
- */
-function ToolDisc({ iconRef, label }: { iconRef?: string; label: string }) {
-  return (
-    <span className="lk-p4a-tool-disc grid h-[26px] w-[26px] shrink-0 place-items-center rounded-full">
-      <Sprite iconRef={iconRef} label={label} size={22} />
-    </span>
-  );
-}
-
 type Combatant = { label: string; iconRef?: string };
 
 /** 「进攻方 · 招式 → 防守方」. Only the move name may truncate; neither sprite ever does. */
 function MatchupRow({ attacker, move, defender }: { attacker: Combatant; move: string; defender: Combatant }) {
   return (
     <div className="mt-2 flex items-center gap-1.5">
-      <ToolDisc iconRef={attacker.iconRef} label={attacker.label} />
+      <SpriteDisc iconRef={attacker.iconRef} label={attacker.label} />
       <span className="min-w-0 truncate text-xs font-bold text-textLabel">{move}</span>
       <ArrowRight aria-hidden="true" className="shrink-0 text-textSecondary" size={14} strokeWidth={2.2} />
-      <ToolDisc iconRef={defender.iconRef} label={defender.label} />
+      <SpriteDisc iconRef={defender.iconRef} label={defender.label} />
     </div>
   );
 }

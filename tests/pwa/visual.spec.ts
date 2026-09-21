@@ -258,3 +258,59 @@ test('captures the mobile visual regression smoke set', { timeout: 60_000 }, asy
   await expect(page.getByText('本地备份')).toBeVisible();
   await expect(page).toHaveScreenshot('13-profile.png', screenshotOptions);
 });
+
+/**
+ * The light theme's own pass. The set above runs entirely on the default dark theme, so every
+ * light value shipped in P7 was until now covered by nothing — a regression in `--segment-on-shadow`
+ * or a card that forgets `--raised-shadow` is invisible on dark and reddens no gate.
+ *
+ * Six screens, deliberately not eighteen: one page per surface family (list, card grid, editor,
+ * tool cards, data rows, settings rows), which between them carry the light theme's whole
+ * vocabulary. The baselines stay few and stable, as `AGENTS.md` §3 asks.
+ *
+ * The theme is switched through the product's own control (我的 · 主题), not by stamping
+ * `data-theme`: the switch writes the preference to IndexedDB and `App` mirrors it onto the root,
+ * so this also covers that the persisted value survives navigation.
+ */
+test('captures the light-theme set', { timeout: 60_000 }, async ({ page }) => {
+  await openApp(page);
+
+  await page.getByRole('button', { name: '我的', exact: true }).click();
+  await expect(page.getByRole('heading', { name: '我的' })).toBeVisible();
+  await page.getByRole('switch', { name: '切换深色和浅色主题' }).click();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+  await scrollTop(page);
+  await expect(page.getByText('本地备份')).toBeVisible();
+  await expect(page).toHaveScreenshot('19-light-profile.png', screenshotOptions);
+
+  await page.getByRole('button', { name: '环境', exact: true }).click();
+  await expect(page.getByRole('heading', { name: '今日环境' })).toBeVisible();
+  await page.getByRole('button', { name: '查看完整使用排行' }).click();
+  await expect(page.getByRole('heading', { name: '使用排行' })).toBeVisible();
+  await expect(page).toHaveScreenshot('20-light-environment-ranking.png', screenshotOptions);
+
+  await page.getByRole('button', { name: '队伍', exact: true }).click();
+  await expect(page.getByText('我的队伍')).toBeVisible();
+  await page.getByLabel('队伍：Luxray test').getByRole('button', { name: '接着补齐这支' }).click();
+  const luxrayTile = page.getByRole('button', { name: /^展开 伦琴猫/ });
+  await expect(luxrayTile).toBeVisible();
+  await expect(page).toHaveScreenshot('21-light-team-detail.png', screenshotOptions);
+
+  await luxrayTile.click();
+  await expect(page.getByText('能力值', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: /编辑配置/ }).click();
+  await expect(page.getByRole('heading', { name: '编辑配置' })).toBeVisible();
+  await expect(page).toHaveScreenshot('22-light-member-editor.png', screenshotOptions);
+  await page.getByRole('button', { name: '返回队伍详情' }).click();
+
+  await page.getByRole('button', { name: '工具', exact: true }).click();
+  await expect(page.getByRole('heading', { name: '工具' })).toBeVisible();
+  await expect(page).toHaveScreenshot('23-light-tools.png', screenshotOptions);
+
+  await page.getByRole('button', { name: /规则图鉴/ }).click();
+  await scrollTop(page);
+  await expect(page.getByRole('heading', { name: '规则内图鉴' })).toBeVisible();
+  await page.getByRole('button', { name: /^烈咬陆鲨 / }).click();
+  await expect(page.getByRole('heading', { name: '可学会招式' })).toBeVisible();
+  await expect(page).toHaveScreenshot('24-light-dex-detail.png', screenshotOptions);
+});

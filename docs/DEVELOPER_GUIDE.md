@@ -105,6 +105,8 @@ docs/                            # product/ research/ qa/ progress/ automation/ 
 
 ## 4. 前端架构
 
+视觉层（颜色 token、字阶、控件档位、材质、`src/components/kit/`）见 [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md)。
+
 ### 4.1 组件树与路由
 
 无路由库，导航状态放在 URL hash 里：
