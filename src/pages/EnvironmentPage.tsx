@@ -656,11 +656,16 @@ function EnvironmentHero({ usage, onOpen }: { usage: EnvironmentPokemonUsage; on
   const entry = getEnvironmentPokemon(usage.pokemonId);
   if (!entry) return null;
 
+  // The title is sized against the name's own length (see `.lk-env-hero__name` in p2.css): the
+  // text column is a fixed share of the card, so 五字 names never fit at the frame's 34px on a
+  // narrow phone. Everything at or past 8 characters shares the smallest step.
+  const nameLength = Math.min(Math.max([...entry.chineseName].length, 4), 8);
+
   return (
-    <div className="px-6">
+    <div className="lk-env-hero-shell px-6">
       <button
         aria-label={`查看 ${entry.chineseName} 的环境详情`}
-        className="lk-env-hero relative w-full overflow-hidden rounded-[20px] p-[22px] text-left"
+        className="lk-env-hero relative w-full overflow-hidden text-left"
         // The halo is this Pokémon's own body colours sampled off its artwork, as on a team member
         // card; a Mega or form swap changes `entry.iconRef` and the wash follows. A sprite with no
         // sampled row falls back to its two type colours.
@@ -668,30 +673,34 @@ function EnvironmentHero({ usage, onOpen }: { usage: EnvironmentPokemonUsage; on
         type="button"
         onClick={() => onOpen(entry.id)}
       >
-        <span className="relative z-10 flex items-end gap-3">
+        <span className="lk-env-hero__row relative z-10 flex items-end">
           <span className="min-w-0 flex-1">
-            <span className="lk-on-hero-strong inline-flex h-6 items-center rounded-full px-2.5 text-[11px] font-bold tracking-[0.06em]">
+            <span className="lk-env-hero__badge lk-on-hero-strong inline-flex items-center rounded-full font-bold tracking-[0.06em]">
               本赛季 No.1
             </span>
-            <span className="mt-3 block truncate text-[34px] font-extrabold leading-[42px] tracking-[-0.02em]">
+            <span
+              className="lk-env-hero__name block truncate font-extrabold tracking-[-0.02em]"
+              data-len={nameLength}
+            >
               {entry.chineseName}
             </span>
-            <span className="mt-1 block text-[13px] font-semibold tracking-[0.04em] text-textSecondary">
+            <span className="lk-env-hero__meta block font-semibold tracking-[0.04em] text-textSecondary">
               {entry.englishName.toLocaleUpperCase()} · NO.{entry.nationalDexNo}
             </span>
-            <span className="mt-3.5 flex items-center gap-2">
+            <span className="lk-env-hero__types flex items-center">
               {entry.types.map((type) => (
-                <span
-                  key={type}
-                  className="lk-on-hero inline-flex h-[30px] items-center gap-[7px] rounded-full px-3 text-xs font-bold"
-                >
+                <span key={type} className="lk-env-hero__pill lk-on-hero inline-flex items-center rounded-full font-bold">
                   <TypeDot size={8} type={type} />
                   {typeLabels[type]}
                 </span>
               ))}
             </span>
           </span>
-          <Sprite iconRef={entry.iconRef} label={entry.chineseName} size={132} />
+          <Sprite
+            iconRef={entry.iconRef}
+            label={entry.chineseName}
+            size="var(--lk-hero-art)"
+          />
         </span>
       </button>
     </div>

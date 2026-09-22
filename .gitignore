@@ -33,6 +33,7 @@ test-results
 playwright-report
 .superpowers/
 tmp/
+promo/out/
 .wrangler/
 design-qa.md
 

@@ -77,9 +77,30 @@
   --env-draw-again-bg: #ffffff;
 }
 
+/*
+ * 01-01 hero — the No.1 card. Every metric below is a fraction of the *card's* width rather than a
+ * fixed px, so a narrow phone shrinks the whole card instead of squeezing the text column alone
+ * (the sprite + padding + gap are fixed px otherwise, and they eat the title's room first).
+ *
+ * The basis is the 390 design frame: the card is 390 − 2×24 (the page's px-6) = 342px wide there,
+ * so every metric reads `min(<frame px>, 100cqw * <frame px> / 342)` — exactly the frame value at
+ * 390, scaled down below it, and capped by the frame px above it so nothing grows past the design.
+ *
+ * `container-type` has to sit on the wrapper, not on the card: an element's own padding cannot be
+ * expressed in its own container units.
+ */
+.lk-env-hero-shell {
+  container-type: inline-size;
+  container-name: lk-env-hero;
+}
+
 /* The Pokémon's own two body colours, sampled off its artwork (`auraStyle(types, iconRef)` on the
    element, type colours as the fallback), washed over the face. */
 .lk-env-hero {
+  /* 132px artwork at 390; read by <Sprite size="var(--lk-hero-art)"> so the img scales with it. */
+  --lk-hero-art: min(132px, 100cqw * 132 / 342);
+  padding: min(22px, 100cqw * 22 / 342);
+  border-radius: min(20px, 100cqw * 20 / 342);
   background:
     radial-gradient(
       90% 120% at 86% 6%,
@@ -89,6 +110,69 @@
     ),
     var(--env-hero-face);
   box-shadow: var(--env-hero-shadow);
+}
+
+.lk-env-hero__row {
+  gap: min(12px, 100cqw * 12 / 342);
+}
+
+.lk-env-hero__badge {
+  height: min(24px, 100cqw * 24 / 342);
+  padding-inline: min(10px, 100cqw * 10 / 342);
+  font-size: min(11px, 100cqw * 11 / 342);
+}
+
+/*
+ * 大标题. Single line, always — `line-clamp` is not an option, the frame gives the name one line.
+ *
+ * Scaling alone cannot save it: the text column is a *fixed share* of the card (100 − 2×22 − 132 −
+ * 12, over 342 ≈ 45%), so a purely proportional title truncates a 5-character name at every width,
+ * not only the narrow ones — 五字 at 34px is 167px and the column is 154px even in the 390 frame.
+ * So the title is also sized to the name's own length. ≤4 characters keep the frame's 34px; the
+ * `data-len` steps below are the largest sizes at which 5 / 6 / 7 / 8 characters still fit that
+ * column (a CJK glyph advances ~0.98em at this tracking), written as their px value at 390. The
+ * 34px cap still applies, so a 5-character name is back at full frame size by 430.
+ *
+ * `truncate` stays on the element as the last line of defence for a 9+ character name.
+ */
+.lk-env-hero__name {
+  margin-top: min(12px, 100cqw * 12 / 342);
+  font-size: min(34px, 100cqw * 34 / 342);
+  /* 42 / 34 — the frame's leading, kept as a ratio so it follows the font down. */
+  line-height: 1.2353;
+}
+
+.lk-env-hero__name[data-len='5'] {
+  font-size: min(34px, 100cqw * 31 / 342);
+}
+
+.lk-env-hero__name[data-len='6'] {
+  font-size: min(34px, 100cqw * 25 / 342);
+}
+
+.lk-env-hero__name[data-len='7'] {
+  font-size: min(34px, 100cqw * 21.5 / 342);
+}
+
+.lk-env-hero__name[data-len='8'] {
+  font-size: min(34px, 100cqw * 19 / 342);
+}
+
+.lk-env-hero__meta {
+  margin-top: min(4px, 100cqw * 4 / 342);
+  font-size: min(13px, 100cqw * 13 / 342);
+}
+
+.lk-env-hero__types {
+  margin-top: min(14px, 100cqw * 14 / 342);
+  gap: min(8px, 100cqw * 8 / 342);
+}
+
+.lk-env-hero__pill {
+  height: min(30px, 100cqw * 30 / 342);
+  gap: min(7px, 100cqw * 7 / 342);
+  padding-inline: min(12px, 100cqw * 12 / 342);
+  font-size: min(12px, 100cqw * 12 / 342);
 }
 
 .lk-env-detail-hero {

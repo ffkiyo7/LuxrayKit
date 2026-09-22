@@ -5,7 +5,21 @@ import { useState } from 'react';
  * artwork straight on the surface. Falls back to the name's first character when the icon is
  * missing or fails to load.
  */
-export function Sprite({ iconRef, label, size, className = '' }: { iconRef?: string; label: string; size: number; className?: string }) {
+/**
+ * `size` is normally a px number. It also takes a raw CSS length so a caller can hand the sprite a
+ * container-relative size (the 01-01 hero passes `var(--lk-hero-art)`, which scales with the card).
+ */
+export function Sprite({
+  iconRef,
+  label,
+  size,
+  className = '',
+}: {
+  iconRef?: string;
+  label: string;
+  size: number | string;
+  className?: string;
+}) {
   // Keyed by src: a recycled row that once failed must not stay on the letter fallback after
   // its `iconRef` changes.
   const [failedSrc, setFailedSrc] = useState<string | undefined>();
@@ -16,7 +30,11 @@ export function Sprite({ iconRef, label, size, className = '' }: { iconRef?: str
       <span
         aria-hidden="true"
         className={`grid shrink-0 place-items-center rounded-full bg-elevated font-bold text-textSecondary ${className}`}
-        style={{ width: size, height: size, fontSize: Math.round(size * 0.4) }}
+        style={{
+          width: size,
+          height: size,
+          fontSize: typeof size === 'number' ? Math.round(size * 0.4) : `calc(${size} * 0.4)`,
+        }}
       >
         {label.charAt(0)}
       </span>
