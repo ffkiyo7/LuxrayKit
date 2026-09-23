@@ -1,17 +1,19 @@
 import { Check } from 'lucide-react';
 import { ListRow, Sheet } from '../../components/kit';
 
-/** N05-10's 天气 sheet: one 60px row per option, the active one highlighted gutter to gutter. */
+/** N05-10's 天气 / 场地 sheet: one 60px row per option, the active one highlighted gutter to gutter. */
 export function OptionSheet({
   title,
   options,
   selectedId,
+  footnote,
   onSelect,
   onClose,
 }: {
   title: string;
   options: Array<{ id: string; label: string; note?: string }>;
   selectedId?: string;
+  footnote?: string;
   onSelect: (id: string) => void;
   onClose: () => void;
 }) {
@@ -38,6 +40,7 @@ export function OptionSheet({
           />
         ))}
       </div>
+      {footnote && <p className="mt-3.5 text-xs font-semibold leading-[18px] text-textSecondary">{footnote}</p>}
     </Sheet>
   );
 }

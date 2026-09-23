@@ -13,7 +13,9 @@ import {
   buildCalcConfigFromTeamMember,
   buildTemporaryCalcConfig,
   calcSpeciesId,
+  clampMoveCounter,
   computeDamage,
+  surgeTerrainFor,
   totalStatPoints,
   validateStatPoints,
   type CalcSideConfig,
@@ -2543,5 +2545,115 @@ describe('damageAdapter', () => {
     expect(result.status).toBe('experimental-success');
     expect(result.attackerBattleForm?.id).toBe('mega-starmie');
     expect(result.attackerBattleForm?.baseStats.attack).toBe(100);
+  });
+});
+
+describe('move tiers and terrain', () => {
+  const basculegion = makeConfig({
+    pokemonId: 'basculegion-male',
+    abilityId: 'adaptability',
+    itemId: 'choice-scarf',
+    nature: '固执',
+    statPoints: { attack: 32, speed: 32 },
+    moveIds: ['last-respects'],
+    selectedMoveId: 'last-respects',
+  });
+  const incineroar = makeConfig({
+    pokemonId: 'incineroar',
+    abilityId: 'intimidate',
+    itemId: 'sitrus-berry',
+    nature: '慎重',
+    statPoints: { hp: 32, defense: 14, specialDefense: 20 },
+  });
+  const rillaboom = makeConfig({
+    pokemonId: 'rillaboom',
+    abilityId: 'grassy-surge',
+    itemId: 'miracle-seed',
+    nature: '固执',
+    statPoints: { hp: 32, attack: 32 },
+    moveIds: ['wood-hammer'],
+    selectedMoveId: 'wood-hammer',
+  });
+  const gardevoir = makeConfig({
+    pokemonId: 'gardevoir',
+    abilityId: 'trace',
+    nature: '内敛',
+    statPoints: { specialAttack: 32, speed: 32 },
+    moveIds: ['expanding-force'],
+    selectedMoveId: 'expanding-force',
+  });
+
+  it('powers 扫墓 by fainted allies and says so on the card', () => {
+    const base = { ...defaults, attacker: basculegion, defender: incineroar };
+    const none = computeDamage({ ...base, moveCounter: 0 });
+    const two = computeDamage({ ...base, moveCounter: 2 });
+    expect([none.minDamage, none.maxDamage, none.effectiveBasePower]).toEqual([28, 33, 50]);
+    expect([two.minDamage, two.maxDamage, two.effectiveBasePower]).toEqual([82, 97, 150]);
+    expect(two.conditionEffects).toContain('扫墓 · 倒下 2 只 · 威力 150');
+  });
+
+  it('caps the tiers by format and ignores them on other moves', () => {
+    expect(clampMoveCounter('last-respects', 5, 'doubles')).toBe(3);
+    expect(clampMoveCounter('last-respects', 5, 'singles')).toBe(2);
+    expect(clampMoveCounter('rage-fist', 9, 'doubles')).toBe(6);
+    expect(clampMoveCounter('dragon-claw', 2, 'doubles')).toBe(0);
+    const claw = computeDamage({ ...defaults, moveCounter: 3 });
+    expect(claw.conditionEffects).toEqual([]);
+  });
+
+  it('powers 愤怒之拳 by hits taken, capped at 350', () => {
+    const annihilape = makeConfig({
+      pokemonId: 'annihilape',
+      abilityId: 'defiant',
+      nature: '固执',
+      statPoints: { hp: 32, attack: 32 },
+      moveIds: ['rage-fist'],
+      selectedMoveId: 'rage-fist',
+    });
+    const three = computeDamage({ ...defaults, attacker: annihilape, defender: rillaboom, moveCounter: 3 });
+    expect([three.minDamage, three.maxDamage, three.effectiveBasePower]).toEqual([187, 222, 200]);
+    const six = computeDamage({ ...defaults, attacker: annihilape, defender: rillaboom, moveCounter: 6 });
+    expect(six.effectiveBasePower).toBe(350);
+  });
+
+  it('boosts grounded attackers on terrain and names it', () => {
+    const plain = computeDamage({ ...defaults, attacker: rillaboom, defender: basculegion });
+    const grassy = computeDamage({ ...defaults, attacker: rillaboom, defender: basculegion, terrain: '青草场地' });
+    expect([plain.minDamage, plain.maxDamage]).toEqual([372, 438]);
+    expect([grassy.minDamage, grassy.maxDamage]).toEqual([480, 566]);
+    expect(grassy.conditionEffects).toEqual(['青草场地 ×1.3']);
+  });
+
+  it('turns 广域战力 into a 120-power spread move on Psychic Terrain in doubles', () => {
+    const plain = computeDamage({ ...defaults, attacker: gardevoir, defender: rillaboom });
+    expect([plain.minDamage, plain.maxDamage, plain.derivedSpreadDamage]).toEqual([97, 115, false]);
+
+    const psychic = computeDamage({ ...defaults, attacker: gardevoir, defender: rillaboom, terrain: '精神场地' });
+    expect([psychic.minDamage, psychic.maxDamage]).toEqual([142, 168]);
+    expect(psychic.effectiveBasePower).toBe(120);
+    expect(psychic.derivedSpreadDamage).toBe(true);
+    expect(psychic.spreadMultiplier).toBe(0.75);
+    expect(psychic.conditionEffects).toEqual(['精神场地 ×1.3', '广域战力 · 精神场地下威力 120']);
+
+    const singles = computeDamage({ ...defaults, attacker: gardevoir, defender: rillaboom, terrain: '精神场地', battleType: 'singles' });
+    expect(singles.derivedSpreadDamage).toBe(false);
+  });
+
+  it('leaves airborne attackers out of the terrain boost', () => {
+    const floating = computeDamage({ ...defaults, attacker: { ...rillaboom, abilityId: 'levitate' }, defender: basculegion, terrain: '青草场地' });
+    expect(floating.conditionEffects).toEqual([]);
+  });
+
+  it('maps surge abilities to their terrain', () => {
+    expect(surgeTerrainFor('grassy-surge')).toBe('青草场地');
+    expect(surgeTerrainFor('psychic-surge')).toBe('精神场地');
+    expect(surgeTerrainFor('electric-surge')).toBe('电气场地');
+    expect(surgeTerrainFor('overgrow')).toBeUndefined();
+  });
+
+  it('starts a dex pick on the preferred ability only when the Pokémon can have it', () => {
+    expect(buildTemporaryCalcConfig({ pokemonId: 'rillaboom', role: 'attacker' }).abilityId).toBe('overgrow');
+    expect(buildTemporaryCalcConfig({ pokemonId: 'rillaboom', role: 'attacker', preferredAbilityId: 'grassy-surge' }).abilityId).toBe('grassy-surge');
+    expect(buildTemporaryCalcConfig({ pokemonId: 'rillaboom', role: 'attacker', preferredAbilityId: 'levitate' }).abilityId).toBe('overgrow');
   });
 });

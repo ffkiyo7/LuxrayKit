@@ -6,10 +6,14 @@ import { currentRuleMovesForPokemon } from '../lib/currentRuleCatalog';
 import {
   buildCalcConfigFromTeamMember,
   buildTemporaryCalcConfig,
+  clampMoveCounter,
   computeDamage,
+  MOVE_COUNTERS,
+  surgeTerrainFor,
   validateStatPoints,
   type BattleTypeOption,
   type CalcSideConfig,
+  type TerrainOption,
 } from '../lib/damageAdapter';
 import { findBattleForm } from '../lib/pokemonForms';
 import { recordToolResult } from '../lib/toolActivity';
@@ -17,6 +21,7 @@ import { useAppStore } from '../state/AppContext';
 import type { TeamMember } from '../types';
 import { ListRow, PageHeader, Pill, SectionLabel, Switch, TypeDot } from '../components/kit';
 import { moveMetaLine, type CalcSide } from './calculator/calcSummary';
+import { MoveCounterControl } from './calculator/MoveCounterControl';
 import { OptionSheet } from './calculator/OptionSheet';
 import { ResultCard } from './calculator/ResultCard';
 import { SideCard } from './calculator/SideCard';
@@ -34,6 +39,14 @@ const weatherOptions: Array<{ id: string; note?: string }> = [
   { id: '雨天', note: '水 ×1.5 · 火 ×0.5' },
   { id: '沙暴', note: '岩石 特防 ×1.5' },
   { id: '雪天', note: '冰 防御 ×1.5' },
+];
+
+const terrainOptions: Array<{ id: TerrainOption; note?: string }> = [
+  { id: '无场地' },
+  { id: '电气场地', note: '电 ×1.3' },
+  { id: '青草场地', note: '草 ×1.3 · 地震减半' },
+  { id: '精神场地', note: '超能力 ×1.3' },
+  { id: '薄雾场地', note: '龙 ×0.5' },
 ];
 
 const buildBlankCalcConfig = (role: CalcSide): CalcSideConfig => buildTemporaryCalcConfig({ pokemonId: '', role });
@@ -68,10 +81,17 @@ export function CalculatorPage({
   const [defenderDirty, setDefenderDirty] = useState(false);
   const [battleType, setBattleType] = useState<BattleTypeOption>(currentRuleSet.battleType);
   const [weather, setWeather] = useState(weatherOptions[0].id);
+  const [terrain, setTerrain] = useState<TerrainOption>('无场地');
+  const [moveCounter, setMoveCounter] = useState(0);
   const [isCritical, setIsCritical] = useState(false);
   const [pickerSide, setPickerSide] = useState<CalcSide | null>(null);
   const [editor, setEditor] = useState<{ side: CalcSide; view: SideEditorView } | null>(null);
-  const [weatherOpen, setWeatherOpen] = useState(false);
+  const [fieldSheet, setFieldSheet] = useState<'weather' | 'terrain' | null>(null);
+
+  // A dex pick starts on the ability the environment actually runs — 轰擂金刚猩 is listed with
+  // 茂盛 first, but nobody brings it without 青草制造者.
+  const topAbilityFor = (pokemonId: string) =>
+    environment?.pokemonUsage[battleType]?.find((row) => row.pokemonId === pokemonId)?.abilityIds?.[0];
 
   const configFor = (side: CalcSide) => (side === 'attacker' ? attackerConfig : defenderConfig);
   const setConfigFor = (side: CalcSide, next: CalcSideConfig, dirty: boolean) => {
@@ -109,10 +129,16 @@ export function CalculatorPage({
     const pokeId = pokemon.find((entry) => entry.id === selectedMemberId)?.id;
     if (pokeId) {
       const firstMove = currentRuleMovesForPokemon(pokeId).find((move) => move.category !== 'Status');
-      const cfg = buildTemporaryCalcConfig({ pokemonId: pokeId, role: 'attacker', moveCategory: firstMove?.category ?? 'unknown' });
+      const cfg = buildTemporaryCalcConfig({
+        pokemonId: pokeId,
+        role: 'attacker',
+        moveCategory: firstMove?.category ?? 'unknown',
+        preferredAbilityId: topAbilityFor(pokeId),
+      });
       setAttackerConfig(firstMove ? { ...cfg, selectedMoveId: firstMove.id, moveIds: [firstMove.id] } : cfg);
       setAttackerDirty(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedMemberId, teams]);
 
   // Jump-in from a team member: carry the saved build into the chosen side, but reset moves to
@@ -137,6 +163,36 @@ export function CalculatorPage({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [presetMember, teams]);
 
+  // A 「XX制造者」 on either side lays its terrain the moment it lands on the board. When the side
+  // that brought it loses it, the terrain goes with it unless the other side still brings one;
+  // a terrain the user picked by hand is left alone until a surge ability changes again.
+  const attackerSurge = surgeTerrainFor(attackerConfig.abilityId);
+  const defenderSurge = surgeTerrainFor(defenderConfig.abilityId);
+  const surgeRef = useRef<{ attacker?: TerrainOption; defender?: TerrainOption }>({});
+  useEffect(() => {
+    const previous = surgeRef.current;
+    surgeRef.current = { attacker: attackerSurge, defender: defenderSurge };
+    const arrived =
+      attackerSurge && attackerSurge !== previous.attacker
+        ? attackerSurge
+        : defenderSurge && defenderSurge !== previous.defender
+          ? defenderSurge
+          : undefined;
+    if (arrived) {
+      setTerrain(arrived);
+      return;
+    }
+    const left = [previous.attacker, previous.defender].filter(
+      (surge): surge is TerrainOption => Boolean(surge) && surge !== attackerSurge && surge !== defenderSurge,
+    );
+    if (left.length > 0) setTerrain((current) => (left.includes(current) ? attackerSurge ?? defenderSurge ?? '无场地' : current));
+  }, [attackerSurge, defenderSurge]);
+
+  // The tier belongs to the move: a new move starts from 0, and 单打 caps 扫墓 lower than 双打.
+  useEffect(() => setMoveCounter(0), [attackerConfig.selectedMoveId]);
+  const moveCounterSpec = attackerConfig.selectedMoveId ? MOVE_COUNTERS[attackerConfig.selectedMoveId] : undefined;
+  const activeMoveCounter = clampMoveCounter(attackerConfig.selectedMoveId, moveCounter, battleType);
+
   const currentMove = attackerConfig.selectedMoveId ? moves.find((move) => move.id === attackerConfig.selectedMoveId) : undefined;
   // 代入能力值 shows the two stats the damage formula actually used, not always 攻击 / 防御: a special
   // move reads 特攻 / 特防, 扑击 (body press) attacks with 防御, and the 精神冲击 family is special
@@ -145,7 +201,12 @@ export function CalculatorPage({
 
   function pickPokemon(side: CalcSide, pokemonId: string) {
     const firstMove = currentRuleMovesForPokemon(pokemonId).find((move) => move.category !== 'Status');
-    const cfg = buildTemporaryCalcConfig({ pokemonId, role: side, moveCategory: firstMove?.category ?? 'unknown' });
+    const cfg = buildTemporaryCalcConfig({
+      pokemonId,
+      role: side,
+      moveCategory: firstMove?.category ?? 'unknown',
+      preferredAbilityId: topAbilityFor(pokemonId),
+    });
     const next = firstMove
       ? { ...cfg, selectedMoveId: firstMove.id, moveIds: Array.from(new Set([firstMove.id, ...cfg.moveIds.filter(Boolean)])).slice(0, 4) }
       : cfg;
@@ -172,14 +233,32 @@ export function CalculatorPage({
   const defenderSpIssues = validateStatPoints(defenderConfig.statPoints);
   const blockedBySp = attackerSpIssues.length > 0 || defenderSpIssues.length > 0;
 
-  const damageKey = `${attackerConfig.pokemonId}|${attackerConfig.formId}|${attackerConfig.selectedMoveId}|${attackerConfig.nature}|${JSON.stringify(attackerConfig.statPoints)}|${JSON.stringify(attackerConfig.statStages)}|${attackerConfig.abilityId}|${attackerConfig.itemId}||${defenderConfig.pokemonId}|${defenderConfig.formId}|${defenderConfig.nature}|${JSON.stringify(defenderConfig.statPoints)}|${JSON.stringify(defenderConfig.statStages)}|${defenderConfig.abilityId}|${defenderConfig.itemId}||${battleType}|${weather}|${isCritical}|${currentMove?.category}`;
+  const damageKey = `${attackerConfig.pokemonId}|${attackerConfig.formId}|${attackerConfig.selectedMoveId}|${attackerConfig.nature}|${JSON.stringify(attackerConfig.statPoints)}|${JSON.stringify(attackerConfig.statStages)}|${attackerConfig.abilityId}|${attackerConfig.itemId}||${defenderConfig.pokemonId}|${defenderConfig.formId}|${defenderConfig.nature}|${JSON.stringify(defenderConfig.statPoints)}|${JSON.stringify(defenderConfig.statStages)}|${defenderConfig.abilityId}|${defenderConfig.itemId}||${battleType}|${weather}|${terrain}|${activeMoveCounter}|${isCritical}|${currentMove?.category}`;
   const damageResult = useMemo(() => {
     if (!attackerConfig.selectedMoveId || !attackerConfig.pokemonId || !defenderConfig.pokemonId) return null;
     if (currentMove?.category === 'Status') return null;
     if (blockedBySp) return null;
-    return computeDamage({ attacker: attackerConfig, defender: defenderConfig, battleType, weather, isCritical, attackStage: 0 });
+    return computeDamage({
+      attacker: attackerConfig,
+      defender: defenderConfig,
+      battleType,
+      weather,
+      terrain,
+      moveCounter: activeMoveCounter,
+      isCritical,
+      attackStage: 0,
+    });
     // eslint-disable-next-line
   }, [damageKey]);
+
+  // The move row shows the power the formula used (扫墓's tier, 广域战力 on Psychic Terrain), and
+  // falls back to the tier's own figure while the other side is still unpicked.
+  const displayedPower =
+    damageResult?.status === 'experimental-success'
+      ? damageResult.effectiveBasePower
+      : moveCounterSpec
+        ? moveCounterSpec.power(activeMoveCounter)
+        : currentMove?.power;
 
   // 04-01 shows the last run on the tools landing. Wait for the inputs to settle so dragging an
   // SP slider does not write a row per frame.
@@ -296,8 +375,12 @@ export function CalculatorPage({
             单打
           </Pill>
           <span className="flex-1" />
-          <Pill ariaLabel={`天气 ${weather}`} className="px-[13px]" onClick={() => setWeatherOpen(true)}>
+          <Pill ariaLabel={`天气 ${weather}`} className="px-[13px]" onClick={() => setFieldSheet('weather')}>
             {weather}
+            <ChevronDown size={14} />
+          </Pill>
+          <Pill ariaLabel={`场地 ${terrain}`} className="px-[13px]" onClick={() => setFieldSheet('terrain')}>
+            {terrain}
             <ChevronDown size={14} />
           </Pill>
         </div>
@@ -312,11 +395,19 @@ export function CalculatorPage({
           ariaLabel={currentMove ? `招式 ${currentMove.chineseName}` : '选择招式'}
           height={68}
           leading={currentMove ? <TypeDot type={currentMove.type} /> : <span className="h-[9px] w-[9px] shrink-0 rounded-full bg-disabled" />}
-          subtitle={currentMove ? moveMetaLine(currentMove) : '从进攻方的可学招式里选'}
+          subtitle={currentMove ? moveMetaLine(currentMove, false, displayedPower) : '从进攻方的可学招式里选'}
           title={currentMove?.chineseName ?? '未选招式'}
           trailing={<ChevronRight className="shrink-0 text-chevron" size={18} />}
           onClick={() => openEditor('attacker', 'move')}
         />
+        {moveCounterSpec && (
+          <MoveCounterControl
+            max={moveCounterSpec.max(battleType)}
+            spec={moveCounterSpec}
+            value={activeMoveCounter}
+            onChange={setMoveCounter}
+          />
+        )}
       </div>
 
       <ResultCard
@@ -353,15 +444,28 @@ export function CalculatorPage({
         <p className="mt-3 text-xs font-semibold text-textSecondary">公式 Gen9 · 招式参数取自 Champions 目录 · 结果为实验性近似</p>
       </div>
 
-      {weatherOpen && (
+      {fieldSheet === 'weather' && (
         <OptionSheet
           options={weatherOptions.map((option) => ({ id: option.id, label: option.id, note: option.note }))}
           selectedId={weather}
           title="天气"
-          onClose={() => setWeatherOpen(false)}
+          onClose={() => setFieldSheet(null)}
           onSelect={(id) => {
             setWeather(id);
-            setWeatherOpen(false);
+            setFieldSheet(null);
+          }}
+        />
+      )}
+      {fieldSheet === 'terrain' && (
+        <OptionSheet
+          footnote="只对着地的宝可梦生效，飞行属性和漂浮特性不受影响"
+          options={terrainOptions.map((option) => ({ id: option.id, label: option.id, note: option.note }))}
+          selectedId={terrain}
+          title="场地"
+          onClose={() => setFieldSheet(null)}
+          onSelect={(id) => {
+            setTerrain(id as TerrainOption);
+            setFieldSheet(null);
           }}
         />
       )}

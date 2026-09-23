@@ -127,6 +127,7 @@ export function ResultCard({
     (result.stabMultiplier ?? 1) !== 1 ? `本系 ×${result.stabMultiplier}` : '本系 ×1',
     `属性 ×${typeMultiplier}`,
     (result.weatherMultiplier ?? 1) !== 1 ? `${result.weatherText} ×${result.weatherMultiplier}` : undefined,
+    ...(result.conditionEffects ?? []),
     result.derivedSpreadDamage ? `分摊 ×${result.spreadMultiplier}` : undefined,
     ...(result.abilityEffects ?? []).map((effect) => `${effect.label} · ${effect.text}`),
     ...(result.itemEffects ?? []).map((effect) => `${effect.label} · ${effect.text}`),

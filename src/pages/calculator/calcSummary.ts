@@ -37,11 +37,12 @@ export const memberPickLine = (member: TeamMember) => {
   return invested.map((entry) => `${entry.label} ${entry.value}`).join(' / ');
 };
 
-export const moveMetaLine = (move: AppMove, withAccuracy = false) => {
+/** `power` overrides the catalog figure when the calculator knows the effective one (扫墓's tier, terrain). */
+export const moveMetaLine = (move: AppMove, withAccuracy = false, power = move.power) => {
   const category = move.category === 'Physical' ? '物理' : move.category === 'Special' ? '特殊' : '变化';
-  const power = move.power ? `威力 ${move.power}` : undefined;
+  const powerText = power ? `威力 ${power}` : undefined;
   const accuracy = withAccuracy && move.accuracy ? `命中 ${move.accuracy}` : undefined;
-  return [move.type, category, power, accuracy].filter(Boolean).join(' · ');
+  return [move.type, category, powerText, accuracy].filter(Boolean).join(' · ');
 };
 
 /** Overflow rows for the result card (N05-12): one per breached limit, per side. */
