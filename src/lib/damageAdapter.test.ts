@@ -2669,6 +2669,19 @@ describe('move tiers and terrain', () => {
     expect(cfg.statPoints).toEqual({});
   });
 
+  it('passes over 击掌奇袭 for the calculated move but keeps it in the move list', () => {
+    const cfg = buildTemporaryCalcConfig({
+      pokemonId: 'incineroar',
+      role: 'attacker',
+      preset: { moveIds: ['fake-out', 'flare-blitz', 'parting-shot', 'throat-chop'] },
+    });
+    expect(cfg.selectedMoveId).toBe('flare-blitz');
+    expect(cfg.moveIds).toEqual(['flare-blitz', 'fake-out', 'throat-chop']);
+
+    const onlyFakeOut = buildTemporaryCalcConfig({ pokemonId: 'incineroar', role: 'attacker', preset: { moveIds: ['fake-out'] } });
+    expect(onlyFakeOut.selectedMoveId).toBe('fake-out');
+  });
+
   it('skips preset entries the Pokémon cannot use', () => {
     const cfg = buildTemporaryCalcConfig({
       pokemonId: 'rillaboom',
