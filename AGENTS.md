@@ -8,7 +8,7 @@
 
 - **Champions SP 不是主线 EV**：每项 0–32、总计上限 66（`src/lib/statPoints.ts`）；速度为 `floor((种族值 + SP + 20) × 性格修正)`（`src/lib/calculations.ts`）。这是已确认的固定机制，不要向主线 EV / IV / 等级公式"纠偏"。
 - **Regulation 与 Season 是两条独立时间轴**：规则（M-A / M-B…）决定可用池子，赛季（M-1…）是排位周期。一律读 `src/data/schedule.ts` 与 `src/data/seed/regMA/metadata.ts` 的 `currentRuleSet`，**不要在任何地方硬编码当前赛季或规则**。
-- **`regMA/` 是历史目录名**，与当前规则无关（当前承载 M-B 数据）。
+- **`regMA/` 是历史目录名**，与当前规则无关（承载的是 `currentRuleSet` 对应的当前规则数据）。
 - **产品边界**：伤害计算保持"实验性近似"，不要扩展成战斗流程模拟器。详见 `docs/product/PRODUCT_SCOPE_AND_TOOL_BOUNDARIES.md`。
 
 ## 2. 部署与数据红线

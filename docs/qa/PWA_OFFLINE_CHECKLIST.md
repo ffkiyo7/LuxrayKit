@@ -11,34 +11,34 @@
 - 导航返回本版缓存里的 shell，hashed chunk 缓存优先，其余同源 GET 缓存优先 + 后台更新。
 - 新版本提示：新 SW 装好后 waiting，页面显示「新版本已下载 · 重载」，点重载才接管并自动刷新；忽略则下次完全关闭 App 后生效。App 回到前台时主动检查更新。首次安装不提示。纯 PokeDB 数据部署不换版本、不提示。
 - 环境页在线优先请求 Worker API，失败后读取预缓存的最新赛季静态 snapshot。
-- 队伍和偏好保存在 IndexedDB v2。
+- 队伍和偏好保存在 IndexedDB `pokemon-champions-assistant`（`DB_VERSION = 2`，`src/lib/db.ts`）。
 
 ## 自动化
 
 ```bash
-npm run test:pwa
+npm run test:pwa   # chrome-mobile-390：offline / team-samples / first-paint-budget，本机可跑
 ```
 
 当前 `tests/pwa/offline.spec.ts` 验证：
 
-- Service Worker 已激活。
-- 在线重载后环境页可见。
+- Service Worker 已激活；环境页「使用排行」渲染（快照已加载），在线重载后仍可见。
 - **离线重载后停在重载前那个页面**（`#/tools`）——导航状态在 URL hash 里，重载不再回首页；SPA fallback 对 hash 路由天然生效（hash 不发给服务器）。
+- 工具页「规则图鉴」卡离线仍渲染「N 只 · M-x」（证明本地 catalog 在设备上）。
 - 创建的本地队伍在离线重载后仍存在。
 - 在线时从没打开过的伤害计算页，离线时能直接打开（chunk 来自 install 预缓存）。
-- “我的”中的备份和离线缓存入口可见。
-- 速度线工具在线和离线都可用（`toBeEnabled()` + 档位内容渲染）。
+- “我的 · 本地备份”可进入（「导出 JSON」可见），“离线缓存”入口可见。
+- 速度线入口在线和离线都是可用态（只断言 `toBeEnabled()`，不打开页面、不检查档位内容）。
 
 `src/sw.test.ts` 跑通 install / activate / fetch 全流程（见开发指南 §8）；`src/lib/serviceWorker.test.ts` 守住提示与 reload 时机；`scripts/precache-manifest.test.mjs` 守住清单内容、版本号只随代码变、占位行注入。
 
 ## 手动验收
 
-- [ ] 首次在线打开，确认环境页完成加载。
+- [ ] 首次在线打开，关掉「数据口径」首次说明（「知道了」），确认环境页「使用排行」完成加载。
 - [ ] 创建并编辑一支队伍。
-- [ ] 导出本地备份。
+- [ ] 导出本地备份（我的 · 本地备份 · 导出 JSON）。
 - [ ] 切换为离线并重载，确认停在重载前那个页面而不是回首页。
 - [ ] 离线状态下按 Android 物理返回键，确认在 App 内层层后退而不是直接退出。
-- [ ] 环境页使用静态 snapshot，而不是开发 seed。
+- [ ] 环境页出现「离线中，看的是本地数据」提示，且使用静态 snapshot 而不是开发 seed（数据口径页「来源」应为 PokeDB，而非「内置开发样例」）。
 - [ ] 队伍仍可查看和编辑。
 - [ ] 图鉴与伤害计算（包括在线时没打开过的）可打开。
 - [ ] “我的”页可见，主题和本地数据正常。
@@ -54,4 +54,4 @@ npm run test:pwa
 - Worker API 响应不在安装时预缓存；离线依赖最新赛季静态 snapshot。
 - 首次访问会在后台下载全部 chunk（约 2.7 MB 未压缩）；之后每次代码部署只下载变了 hash 的 chunk。
 - 升级前还开着旧版页面（旧 `main.tsx`）的用户看不到新提示：新 SW 会 waiting 到 App 完全关闭，下次打开即是新版。
-- UI 暂未显示当前来自 Worker、stale KV、静态 snapshot 还是开发 seed。
+- UI 会提示离线 / 可能过期 / 数据源异常，数据口径页区分 PokeDB 与开发 seed，但不显示当前来自 Worker 还是静态 snapshot。
