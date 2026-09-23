@@ -68,6 +68,7 @@ export const defaultPreferences: UserPreference = {
   hasCompletedOnboarding: false,
   hasOpenedPresetTeam: false,
   analyticsOptOut: false,
+  splashOptOut: false,
 };
 
 export const dataSourceManifest: DataSourceManifest = {

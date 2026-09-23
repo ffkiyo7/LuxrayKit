@@ -111,12 +111,13 @@ chunk 划分见 `vite.config.ts` 的 `manualChunks`（`vendor-helpers` / `calc-e
 
 手写，无 Workbox。每个构建一份缓存，install 时预缓存 shell 与**全部** hashed chunk；`/api/*` **永不**读写离线缓存。
 
-- **清单由构建注入 `dist/sw.js`**：`vite.config.ts` 的 `luxraykit-precache-manifest` 插件在 `closeBundle` 调 `scripts/precache-manifest.mjs`，把 `public/sw.js` 开头的占位行 `const BUILD = { version: 'dev', assets: [], itemIcons: [] };` 换成真实值（`assets` = `dist/assets/` 顶层全部文件，约 71 个、2.7 MB 未压缩；`itemIcons` = 道具 `iconRef`，当前 166 条；`version` = 两者 + `index.html` 的 sha256 前 12 位）。占位行找不到就构建失败。清单必须内嵌在 `sw.js` 里（不要改成另发 JSON）：浏览器只在 `sw.js` 字节变化时才安装新版。
+- **清单由构建注入 `dist/sw.js`**：`vite.config.ts` 的 `luxraykit-precache-manifest` 插件在 `closeBundle` 调 `scripts/precache-manifest.mjs`，把 `public/sw.js` 开头的占位行 `const BUILD = { version: 'dev', assets: [], itemIcons: [] };` 换成真实值（`assets` = `dist/assets/` 顶层全部文件，约 71 个、2.7 MB 未压缩；`itemIcons` = 道具 `iconRef`，当前 166 条；`version` = 两者 + `index.html` + `splash.js` 的 sha256 前 12 位）。占位行找不到就构建失败。清单必须内嵌在 `sw.js` 里（不要改成另发 JSON）：浏览器只在 `sw.js` 字节变化时才安装新版。
 - **缓存**：`luxraykit-shell-<version>`（shell + 快照 + chunk，随版本整份替换）；`luxraykit-runtime`（精灵图、道具图标，按 id 命名，跨版本保留）。activate 删其余所有缓存（含旧的 `champions-tool-v*`）。install 复制旧版已有的同名 chunk 不重下；shell 用 `cache: 'reload'` 取，并校验 `index.html` 引用的 `/assets/*` 都在本版清单里，否则 install 失败、保留旧版。chunk 缺失让 install 失败，单个道具图标失败不会。
 - **请求策略**：导航一律返回**本版缓存的 shell**（不走网络优先），页面与 chunk 永远同一构建。chunk 缓存优先；快照、精灵图等其余同源 GET 缓存优先 + 后台更新。所有 `caches.match` 必须带 `ignoreVary`（服务器回 `Vary: Origin` 时——`vite preview` 就会——不带就全部 miss）。
 - **新版本提示**：**不自动 `skipWaiting`**；新版 waiting 期间已开的标签页继续用旧缓存。`lib/serviceWorker.ts` 在 `updatefound → installed`（或启动时已有 `registration.waiting`）且页面已有 controller 时派发 `luxraykit:service-worker-updated`，`ServiceWorkerUpdateToast` 显示「新版本已下载 · 重载」；点重载发 `SKIP_WAITING`，`controllerchange` 后所有旧标签页必须 reload（旧缓存已删，未加载的 chunk 会 404）。忽略提示则下次冷启动生效。回到前台（`visibilitychange`）主动 `registration.update()`。首次安装不提示。
 - **构建号**：`__APP_BUILD__` 取 `git log -1 -- . ':(exclude)public/data'`，不要改成 HEAD——它编进 index chunk，用 HEAD 会让每天的纯数据部署都换 chunk hash、每天弹一次更新。shallow clone 时退化为 HEAD。
 - **CSP**（`public/_headers`）以同源为主，只放宽 `style-src 'unsafe-inline'`（React inline style）。字体不放行外域：Manrope 自托管在 `src/assets/fonts/`（拉丁 + 数字子集，OFL），中文走系统字体；不要加远程 `@import`（CSP 会静默丢掉）。`_headers` **只在 Cloudflare 生效**，`vite preview` 与 Playwright 看不到，改动只能上线后在生产 DevTools 人工核对。
+- **开屏动画**（`public/splash.js`）：`index.html` 里的同步经典脚本（CSP 不许内联 `<script>`，module 又要排在 bundle 后面）。只在 standalone + 本会话首次（`sessionStorage`）+ 未关闭时播放；偏好在 IndexedDB 读不到，靠 `lib/splashMirror.ts` 镜像到 `localStorage`（`luxraykit-splash` / `luxraykit-theme`）。动画到 1.5 s 且 App 派发 `luxraykit:app-ready`（本地数据载入完）后才淡出；立绘 900 ms 内没解码好就直接撤掉，App 8 s 没就绪也强制淡出。`splash.js` 与 `artwork/405.png` 在 `APP_SHELL` 里随 shell 预缓存。Playwright 不是 standalone，天然不触发。
 
 ### 4.6 队伍分享链接（`lib/teamShare.ts`）
 

@@ -12,6 +12,7 @@ import { useHashRoute } from './hooks/useHashRoute';
 import { useScrollResetOnPush } from './hooks/useScrollReset';
 import { buildHash, routeForTab, routePattern, tabForRoute, type Route, type ToolRouteId } from './lib/hashRoute';
 import { trackRoute } from './lib/analytics';
+import { mirrorSplashPreferences, signalAppReady } from './lib/splashMirror';
 import { AppProvider, useAppStore } from './state/AppContext';
 import type { Team, TeamMember } from './types';
 import type { ToolView } from './pages/ToolsPage';
@@ -567,6 +568,17 @@ function AppShell() {
   useEffect(() => {
     document.documentElement.dataset.theme = preferences.theme;
   }, [preferences.theme]);
+
+  // The PWA splash (public/splash.js) reads these before the next launch's bundle runs, and waits
+  // for the ready signal before fading out. Skipped while loading: the defaults would overwrite
+  // the user's stored choice for a moment.
+  useEffect(() => {
+    if (!loading) mirrorSplashPreferences({ splashOptOut: preferences.splashOptOut, theme: preferences.theme });
+  }, [loading, preferences.splashOptOut, preferences.theme]);
+
+  useEffect(() => {
+    if (!loading) signalAppReady();
+  }, [loading]);
 
   // 08-05: the very first paint, before IndexedDB has answered. No product name, no logo —
   // one line about what is happening and one about where the data lives.

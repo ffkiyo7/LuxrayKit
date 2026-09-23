@@ -64,7 +64,7 @@ function loadWorker({
     const path = pathOf(input);
     if (path in network) return new Response(network[path], { status: 200 });
     if (path === '/') return new Response(SHELL_HTML);
-    if (path === '/assets/items/leftovers.png' || path.startsWith('/assets/pokemon/') || path.startsWith('/icon') || path.startsWith('/apple') || path.startsWith('/manifest') || path.startsWith('/data/')) {
+    if (path === '/assets/items/leftovers.png' || path.startsWith('/assets/pokemon/') || path.startsWith('/icon') || path.startsWith('/apple') || path.startsWith('/manifest') || path.startsWith('/data/') || path === '/splash.js') {
       return new Response(path);
     }
     if (path.includes('missing')) return new Response('', { status: 404 });
