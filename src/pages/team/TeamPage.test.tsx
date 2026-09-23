@@ -186,6 +186,12 @@ describe('TeamPage', () => {
 
     await user.click(screen.getByRole('button', { name: '返回队伍详情' }));
     expect(await screen.findByRole('heading', { name: '甲队' })).toBeTruthy();
+
+    // The detail page's own 返回 must reach the list, not walk back into the editor (the editor
+    // used to push the detail page again, so the two looped).
+    await user.click(screen.getByRole('button', { name: '返回队伍列表' }));
+    expect(await screen.findByRole('heading', { name: '我的队伍' })).toBeTruthy();
+    expect(window.location.hash).toBe('#/teams');
   });
 
   it('blocks saving while a single stat is over the per-stat SP cap', async () => {

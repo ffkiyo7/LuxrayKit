@@ -67,6 +67,20 @@ describe('TypeChartPage', () => {
     expect(screen.queryByText('×4')).toBeNull();
   });
 
+  it("ignores the primary's own type in an empty second slot instead of doubling it", async () => {
+    const user = userEvent.setup();
+    render(<TypeChartPage environment={null} />);
+
+    await user.click(screen.getByRole('button', { name: '双属性' }));
+    expect(screen.getByText('正在选副属性')).toBeTruthy();
+    // The dual tab opens on 龙 as the primary type.
+    await user.click(within(screen.getByRole('group', { name: '选择属性' })).getByRole('button', { name: '龙' }));
+
+    // [龙, 龙] would square every multiplier into ×4 / ×¼.
+    expect(screen.queryByText('×4')).toBeNull();
+    expect(screen.queryByText('×¼')).toBeNull();
+  });
+
   it('shows the matrix legend until a cell is picked, then the spotlight result', async () => {
     const user = userEvent.setup();
     render(<TypeChartPage environment={null} />);

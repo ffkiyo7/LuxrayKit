@@ -201,9 +201,13 @@ export function EnvironmentPokemonDetail({
   onPageToPokemon: (pokemonId: string) => void;
   onOpenTeams: () => void;
 }) {
-  const [movesExpanded, setMovesExpanded] = useState(false);
+  // Keyed by Pokémon: the header chevrons page by replacing the route, so this component instance
+  // is reused and a plain boolean carried 展开全部 over to the next Pokémon.
+  const [movesExpandedFor, setMovesExpandedFor] = useState<string | null>(null);
+  const movesExpanded = movesExpandedFor === pokemonId;
+  const setMovesExpanded = (expanded: boolean) => setMovesExpandedFor(expanded ? pokemonId : null);
   const [pickingTeam, setPickingTeam] = useState(false);
-  const [addedToTeamName, setAddedToTeamName] = useState<string>();
+  const [toastTitle, setToastTitle] = useState<string>();
   const { teams, addTeam, saveTeam, updateMember } = useAppStore();
   const rankings = environment.pokemonUsage[battleType];
   const entry = getEnvironmentPokemon(pokemonId);
@@ -221,10 +225,10 @@ export function EnvironmentPokemonDetail({
   const current = pageIndex >= 0 ? pageable[pageIndex] : undefined;
 
   useEffect(() => {
-    if (!addedToTeamName) return;
-    const timeoutId = window.setTimeout(() => setAddedToTeamName(undefined), ADDED_TOAST_DURATION_MS);
+    if (!toastTitle) return;
+    const timeoutId = window.setTimeout(() => setToastTitle(undefined), ADDED_TOAST_DURATION_MS);
     return () => window.clearTimeout(timeoutId);
-  }, [addedToTeamName]);
+  }, [toastTitle]);
 
   if (!entry) return null;
 
@@ -287,8 +291,9 @@ export function EnvironmentPokemonDetail({
 
   const addToTeam = async (team: Team) => {
     setPickingTeam(false);
-    await updateMember(team.id, buildPopularMember(team));
-    setAddedToTeamName(team.name);
+    // A full team or a duplicate species is refused; say so instead of claiming 已加入.
+    const result = await updateMember(team.id, buildPopularMember(team));
+    setToastTitle(result.ok ? `已加入${team.name}` : result.message);
   };
 
   const addToNewTeam = async () => {
@@ -297,7 +302,7 @@ export function EnvironmentPokemonDetail({
     // through the returned object instead of going back through `updateMember`.
     const team = await addTeam();
     await saveTeam({ ...team, members: [buildPopularMember(team)] });
-    setAddedToTeamName(team.name);
+    setToastTitle(`已加入${team.name}`);
   };
 
   return (
@@ -403,7 +408,7 @@ export function EnvironmentPokemonDetail({
             <button
               className="mt-3.5 flex h-11 w-full items-center justify-center gap-1.5 rounded-xl bg-surface text-[13px] font-bold text-textLabel"
               type="button"
-              onClick={() => setMovesExpanded((expanded) => !expanded)}
+              onClick={() => setMovesExpanded(!movesExpanded)}
             >
               {movesExpanded ? '收起招式' : `展开全部 ${moveRows.length} 个招式`}
               {movesExpanded ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
@@ -541,7 +546,7 @@ export function EnvironmentPokemonDetail({
           onPick={(team) => void addToTeam(team)}
         />
       )}
-      {addedToTeamName && <Toast title={`已加入${addedToTeamName}`} />}
+      {toastTitle && <Toast title={toastTitle} />}
     </div>
   );
 }

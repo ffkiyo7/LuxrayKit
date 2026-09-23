@@ -1,5 +1,5 @@
 import { ChevronDown, ChevronRight, ChevronUp, Wind } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { currentRuleNatureOptions, currentRuleSet, pokemon } from '../data';
 import type { EnvironmentState } from '../data/environment';
 import { speedTierSnapshots } from '../data/speedTiers';
@@ -345,6 +345,12 @@ export function SpeedPage({
     else if (rect.top > window.innerHeight - 120) setMarkerOffscreen('down');
     else setMarkerOffscreen(null);
   }, []);
+
+  // The marker also moves without any scroll: a SP drag or 应用方案 re-slots it in the tier list,
+  // so the 回到我 pill has to be re-measured after that layout, not only on scroll/resize.
+  useLayoutEffect(() => {
+    updateMarkerOffscreen();
+  }, [markerIndex, finalSpeed, updateMarkerOffscreen]);
 
   useEffect(() => {
     updateMarkerOffscreen();
