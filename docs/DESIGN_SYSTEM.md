@@ -4,7 +4,7 @@
 
 **取信顺序不变**（见 [ui-redesign-2026-09.md](plans/ui-redesign-2026-09.md)）：
 `01`–`09` 定稿帧 ＞ 补画帧 ＞ **本文档** ＞ 设计项目的 `readme.md` / `tokens` / `ui_kits`。
-帧里同一类控件在不同页用不同档位是**有意的**，本文档记录的是「系统里存在哪些档位」，不是「全站必须统一成一档」。拿本文档去改帧里的控件，属于 AGENTS.md §3 的红线②。
+帧里同一类控件在不同页用不同档位是**有意的**，本文档记录的是「系统里存在哪些档位」，不是「全站必须统一成一档」。拿本文档去改帧里的控件，属于 [ui-redesign-2026-09.md](plans/ui-redesign-2026-09.md)「三条红线」的②。
 
 ---
 
@@ -13,7 +13,7 @@
 | 项 | 值 | 位置 |
 | --- | --- | --- |
 | 画布宽 | `max-w-[430px]`，`mx-auto`，`min-h-screen` | `App.tsx` `<main className="app-shell …">` |
-| 页面左右留白 | **24px**（`px-6`），全站唯一档 | 171 处 |
+| 页面左右留白 | **24px**（`px-6`），全站唯一档 | `.tsx` 中约 170 处 |
 | Tab 根页顶部 | `pt-11`（44px）后接 `PageHeader` | `ProfilePage` / `ToolsPage` / `EnvironmentStates` |
 | 二级页顶部 | `px-6 pt-5` → 36px 圆返回钮 → `PageHeader className="pt-3.5"` | `profile/SubPageHeader.tsx` |
 | 区块间距 | `pt-5`（20）/ `pt-[22px]` / `pt-6`；卡片列表 `gap-3.5`（14） | 各页 |
@@ -188,7 +188,7 @@ radial-gradient(90% 120% at 86% 6%,
 
 | 位置 | 时长 / 曲线 |
 | --- | --- |
-| 导航胶囊展开 / 收起 | width+height 220ms `cubic-bezier(.2,0,0,1)` |
+| 导航胶囊展开 / 收起 | width+height 220ms `cubic-bezier(.2,0,0,1)`（`--lk-nav-ease`）；随之 tab 图标 transform 220ms、标签 opacity 140ms、墨色 color 200ms |
 | 导航选中胶囊滑动 | transform 280ms `cubic-bezier(.32,.72,0,1)` |
 | SP 滚轮项 | transform / color / opacity 140ms ease-out |
 | 属性矩阵格 | background / color / box-shadow 140ms ease |
@@ -222,3 +222,4 @@ radial-gradient(90% 120% at 86% 6%,
 - **死 token**：`secondary`、`divider`、`legalBg`、`reviewBg`、`missingBg`、`overlay`、`onOverlay`、`fnGreen` 在 `tailwind.config.js` 里仍然映射，但 `src/` 里 Tailwind class 与 CSS `var()` 引用均为 0。`border` / `card` 各只剩 1 处引用。清理前需确认没有 `dist/` 之外的消费方。
 - **推定值**：`05-04` 两列选择卡（`calculator.css`）与 `N01-14` 数据状态的浅色值没有对应浅色帧，是按同角色 token 推的，已在各自文件里标注。
 - **玻璃材质只有导航一处**，没有第二个使用场景来验证它是否成体系。
+- **运动规则有两处未对齐**（2026-09-23 核对）：属性矩阵格的 140ms 过渡动的是 background / color / box-shadow，且 `src/styles/p4b.css` 没有对应的 `prefers-reduced-motion` 关闭分支；导航 tab 的 color 200ms 过渡同样不属 transform / opacity（它在 `styles.css` 的 reduced-motion 分支里）。

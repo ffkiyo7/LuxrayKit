@@ -535,7 +535,7 @@ const methodologyRows = (environment: EnvironmentState, battleType: EnvironmentB
       text: `${environmentSubtitle(environment).split(' · ').slice(0, 2).join(' · ')} · ${battleTypeLabels[battleType]}，${battleTypeLabels[otherBattleType]}榜分开出。`,
     },
     { label: '排行', text: '榜单只给名次和名次变化，不给登场率百分比。' },
-    { label: '详情', text: '前 60 名有招式、道具、特性、性格的使用率，60 名之外不出统计段。' },
+    { label: '详情', text: '前 60 名有招式、道具、特性、性格、SP 的样本占比，60 名之外不出统计段。' },
     ...(environment.previousSeason ? [{ label: '变动', text: 'NEW / ↑n / ↓n / – 对比上一次更新。' }] : []),
     { label: '构筑', text: '上位构筑是原始样本本身，带作者、名次与分数。' },
   ];

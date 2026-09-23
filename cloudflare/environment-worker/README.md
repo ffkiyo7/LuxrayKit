@@ -1,122 +1,49 @@
 # Luxray Kit App Worker
 
-This Worker is the migration target for running Luxray Kit as one Cloudflare Workers app:
+The single production Worker `luxraykit-app`: it serves the Vite `dist/` frontend, the `/api/*` endpoints, the cron + Durable Object PokeDB refresh pipeline, the anonymous page-view counter and the feedback inbox. Production routes are `luxraykit.com` and `www.luxraykit.com`.
 
-- Static assets serve the Vite `dist` frontend.
-- `/api/*` routes run in the Worker.
-- Production routes are `https://luxraykit.com/*` and `https://www.luxraykit.com/*`.
-- Scheduled cron probes PokeDB on a few fixed times per day; when the source changes it creates a refresh job that a Durable Object alarm steps to completion (see "Refresh pipeline" below).
-- KV stores the latest usable snapshot.
-- The app reads `GET /api/environment/latest`.
-- Pokemon-specific recommendations read `GET /api/pokemon/:pokemonId/teams?battleType=singles`.
-- Optional admin refresh uses `POST /api/environment/refresh` with `Authorization: Bearer <token>`.
+**The full reference lives in [docs/DEVELOPER_GUIDE.md §6](../../docs/DEVELOPER_GUIDE.md)** (Chinese). This README is only an index; add new facts there, not here.
 
-The Worker dynamically detects the latest PokeDB season, caches Pokemon ranking/detail statistics, adds report-linked team samples from the previous season, and exposes audit health in `/api/environment/status`.
-
-## Refresh pipeline (cron + Durable Object alarm)
-
-Refreshes are driven by cron + a Durable Object alarm, not by `env.SELF.fetch` self-chaining.
-
-1. **Probe (`scheduled` handler):** each cron tick (times in `wrangler.jsonc`, clustered around PokeDB's ~00:30 JST daily publish plus sparse safety-net checks) waits a random jitter (`SCHEDULED_MAX_JITTER_MS`), fetches one cheap list page, and compares a `season + updated-date` content signature. Unchanged ⇒ cheap exit. Changed ⇒ create a refresh job in KV (`environment:refresh-job`).
-2. **Step (`EnvironmentRefreshDurableObject.alarm`):** the alarm runs `runRefreshJobStep` every `REFRESH_ALARM_DELAY_MS` (1s), advancing the cursor-batched detail fetch until the job is `done`, then deletes the job and the alarm.
-3. **Retry:** a failed step increments `failureCount`; at `MAX_REFRESH_JOB_FAILURES` (6) the job is abandoned (logged), otherwise it retries after `REFRESH_ALARM_FAILURE_RETRY_MS` (10min).
-
-Why a DO instead of cron self-chaining: the Workers free plan caps **50 external subrequests per invocation**, so details are fetched in cursor batches (`POKEDB_DETAIL_CHUNK_SIZE`). The old self-chain lost its `waitUntil` subrequests when the cron parent invocation ended, freezing jobs and leaving data stale. The DO alarm owns the stepping instead.
-
-`POST /api/environment/refresh` (admin-only) triggers the same job manually; `?step=1&jobId=<id>` runs a single step. The cron/DO path needs no token.
+| Topic | Guide section |
+| --- | --- |
+| API routes, `ETag` / 304 semantics, `x-luxray-*` headers | §6.1 |
+| KV keys (`ENVIRONMENT_CACHE`) | §6.2 |
+| Refresh pipeline (cron probe → DO alarm steps → retry), previous-season ranks | §6.3 |
+| Custom domains | §6.4 |
+| Diagnosing stale data, unsticking a refresh job | §6.5 |
+| Local dev, secrets, one-time setup, priming an empty KV | §6.6 |
+| Analytics Engine page views (`/api/ping`) | §6.7 |
+| Feedback inbox (`/api/feedback`, DO SQLite) | §6.8 |
+| Preview shadow Worker, deploy, CI | §9 |
 
 ## Files
 
-- `wrangler.jsonc` - Worker config, static assets, cron trigger, KV binding, public vars.
-- `wrangler.preview.jsonc` - Read-only preview Worker config for non-production branches.
-- `src/index.ts` - Worker fetch and scheduled handlers.
-- `src/index.test.ts` - Worker API and refresh-pipeline tests.
-- `src/worker-configuration.d.ts` - Generated Cloudflare runtime and binding types.
+- `wrangler.jsonc` — production config: assets, cron triggers, vars, KV / DO / Analytics Engine bindings, DO migrations (append-only; `v1` must never change).
+- `wrangler.preview.jsonc` — preview shadow Worker `luxraykit-app-preview`: no DO, no cron, no custom domain, no admin secret; **shares the production KV**, so treat KV as read-only there.
+- `src/index.ts` — fetch / scheduled handlers, refresh pipeline, `EnvironmentRefreshDurableObject`.
+- `src/feedbackInbox.ts` — feedback validation, rate limiting and `FeedbackInboxDurableObject`.
+- `src/index.test.ts`, `src/feedbackInbox.test.ts` — run by the root `npm test`.
+- `src/worker-configuration.d.ts` — generated; rerun `npm run worker:app:types` after changing bindings, never edit by hand.
 
-## One-Time Cloudflare Setup
-
-Install/authenticate Wrangler:
-
-```bash
-npm install -D wrangler
-npx wrangler login
-```
-
-Create KV namespaces:
+## Quick commands
 
 ```bash
-npx wrangler kv namespace create ENVIRONMENT_CACHE --config cloudflare/environment-worker/wrangler.jsonc
-npx wrangler kv namespace create ENVIRONMENT_CACHE --preview --config cloudflare/environment-worker/wrangler.jsonc
-```
+npm run worker:app:dev     # build the frontend, then wrangler dev --test-scheduled
+npm run worker:app:check   # build + deploy dry-run (CI runs worker:environment:check)
 
-Copy the returned `id` and `preview_id` into `cloudflare/environment-worker/wrangler.jsonc`.
-
-Regenerate Worker types after changing bindings:
-
-```bash
-npm run worker:app:types
-```
-
-Set an admin refresh token:
-
-```bash
-npx wrangler secret put ADMIN_REFRESH_TOKEN --config cloudflare/environment-worker/wrangler.jsonc
-```
-
-Deploy:
-
-```bash
-npm run worker:app:deploy
-```
-
-Prime the cache once:
-
-```bash
-curl -X POST "https://luxraykit-app.ffkiyo7.workers.dev/api/environment/refresh" \
-  -H "Authorization: Bearer <ADMIN_REFRESH_TOKEN>"
-```
-
-Read the latest snapshot:
-
-```bash
 curl "https://luxraykit.com/api/environment/latest"
-```
-
-Read refresh status and audit health:
-
-```bash
-curl "https://luxraykit.com/api/environment/status"
-```
-
-`ENVIRONMENT_AUDIT_UNKNOWN_THRESHOLD` defaults to `0`, so any unknown Pokemon, item, move, ability, nature, or failed detail key marks status as degraded.
-
-Read teams related to a Pokemon:
-
-```bash
+curl "https://luxraykit.com/api/environment/status"   # refresh status + audit health
 curl "https://luxraykit.com/api/pokemon/garchomp/teams?battleType=singles"
 ```
 
-## Local Development
+Locally: `http://localhost:8787/health`, `/api/environment/status`, `/api/pokemon/garchomp/teams?battleType=singles`, and `/__scheduled` to fire the scheduled handler.
 
-```bash
-npm run worker:app:dev
-```
+`ENVIRONMENT_AUDIT_UNKNOWN_THRESHOLD` defaults to `0`: any unknown Pokemon, item, move, ability, nature, or failed detail key marks the status as degraded.
 
-Then visit:
+## Ideas not implemented
 
-- `http://localhost:8787/health`
-- `http://localhost:8787/api/environment/status`
-- `http://localhost:8787/api/pokemon/garchomp/teams?battleType=singles`
-- `http://localhost:8787/__scheduled` to trigger the scheduled handler locally
+From the original integration plan; the frontend already does the rest (Worker snapshot first, bundled JSON as offline fallback, newer-snapshot selection — see guide §5.3).
 
-## Product Integration Plan
-
-1. Deploy this Worker with `assets.directory = "../../dist"` so it serves the frontend and API together.
-2. Keep the bundled JSON as the offline and first-paint fallback.
-3. On the environment page, fetch the Worker snapshot in the background.
-4. If the Worker snapshot audits cleanly and is newer, replace the in-memory environment state.
-5. Add a small "检查更新" button that re-reads Worker cache. Do not let public users trigger PokeDB fetches directly.
-6. For Pokemon detail pages, prefer `/api/pokemon/:pokemonId/teams` over downloading the full snapshot repeatedly.
-7. Later, move structured team lookup to D1 with indexes if the KV team index becomes too limited.
-
-D1 is deliberately not configured for the first deployment. The API shape is stable enough to add D1 later behind the same endpoints.
+- A "检查更新" button that re-reads the Worker cache. Public users must never trigger PokeDB fetches directly.
+- Pokemon detail pages reading `/api/pokemon/:pokemonId/teams` instead of the full snapshot (the endpoint exists; the frontend does not call it yet).
+- Moving structured team lookup to D1 if the KV team index becomes too limited. D1 is deliberately not configured; the API shape allows adding it behind the same endpoints.

@@ -139,7 +139,7 @@ export function AboutPage({ onBack, onExportBackup }: { onBack: () => void; onEx
       <section className="px-6 pt-6">
         <SectionLabel>数据来源</SectionLabel>
         <p className="mt-2 text-[13px] font-semibold leading-[18px] text-textLabel">
-          环境数据为 PokeDB 上位构筑样本，给出的是名次，不是官方使用率。当前版本使用本地 seed 数据，远程刷新入口待接入审核流程后开放。
+          环境数据为 PokeDB 上位构筑样本，给出的是名次，不是官方使用率。榜单每天自动刷新，离线时显示本机缓存的最近一份。
         </p>
         <div className="mt-3 rounded-[14px] p-3.5" style={{ background: 'rgb(var(--color-data) / 0.12)' }}>
           <p className="text-sm font-extrabold text-data">机制待确认</p>

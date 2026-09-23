@@ -109,7 +109,7 @@ function StatPointSpreadRow({
   const spoken = [
     terms.map((term) => `${term.label} ${term.value}`).join('、'),
     ...(remainder > 0 ? [`余 ${remainder} 点`] : []),
-    `使用率 ${rate}`,
+    `占比 ${rate}`,
   ].join('，');
 
   return (
