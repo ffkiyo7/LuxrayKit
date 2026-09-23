@@ -20,7 +20,7 @@ import { recordToolResult } from '../lib/toolActivity';
 import { useAppStore } from '../state/AppContext';
 import type { TeamMember } from '../types';
 import { ListRow, PageHeader, Pill, SectionLabel, Switch, TypeDot } from '../components/kit';
-import { moveMetaLine, type CalcSide } from './calculator/calcSummary';
+import { moveMetaLine, statPointSpreadText, type CalcSide } from './calculator/calcSummary';
 import { MoveCounterControl } from './calculator/MoveCounterControl';
 import { OptionSheet } from './calculator/OptionSheet';
 import { ResultCard } from './calculator/ResultCard';
@@ -51,15 +51,6 @@ const terrainOptions: Array<{ id: TerrainOption; note?: string }> = [
 
 const buildBlankCalcConfig = (role: CalcSide): CalcSideConfig => buildTemporaryCalcConfig({ pokemonId: '', role });
 
-const PHYSICAL_DEFENSE_SPECIAL_MOVES = new Set(['psyshock', 'psystrike', 'secret-sword']);
-
-const usedStatsForMove = (move: { id: string; category: string } | undefined) => {
-  const special = move?.category === 'Special';
-  const attackKey = move?.id === 'body-press' ? 'defense' : special ? 'specialAttack' : 'attack';
-  const defenseKey = special && !PHYSICAL_DEFENSE_SPECIAL_MOVES.has(move?.id ?? '') ? 'specialDefense' : 'defense';
-  const label = { attack: '攻击', defense: '防御', specialAttack: '特攻', specialDefense: '特防' } as const;
-  return { attackKey, attackLabel: label[attackKey], defenseKey, defenseLabel: label[defenseKey] } as const;
-};
 
 export function CalculatorPage({
   selectedMemberId,
@@ -88,10 +79,14 @@ export function CalculatorPage({
   const [editor, setEditor] = useState<{ side: CalcSide; view: SideEditorView } | null>(null);
   const [fieldSheet, setFieldSheet] = useState<'weather' | 'terrain' | null>(null);
 
-  // A dex pick starts on the ability the environment actually runs — 轰擂金刚猩 is listed with
-  // 茂盛 first, but nobody brings it without 青草制造者.
-  const topAbilityFor = (pokemonId: string) =>
-    environment?.pokemonUsage[battleType]?.find((row) => row.pokemonId === pokemonId)?.abilityIds?.[0];
+  // A dex pick starts on the environment's most-used build for the current format (move, item,
+  // ability, nature — SP stays 0), so 轰擂金刚猩 arrives as 青草滑梯 / 奇迹种子 / 青草制造者 / 固执.
+  const freshConfig = (pokemonId: string, role: CalcSide) =>
+    buildTemporaryCalcConfig({
+      pokemonId,
+      role,
+      preset: environment?.pokemonUsage[battleType]?.find((row) => row.pokemonId === pokemonId),
+    });
 
   const configFor = (side: CalcSide) => (side === 'attacker' ? attackerConfig : defenderConfig);
   const setConfigFor = (side: CalcSide, next: CalcSideConfig, dirty: boolean) => {
@@ -128,14 +123,7 @@ export function CalculatorPage({
 
     const pokeId = pokemon.find((entry) => entry.id === selectedMemberId)?.id;
     if (pokeId) {
-      const firstMove = currentRuleMovesForPokemon(pokeId).find((move) => move.category !== 'Status');
-      const cfg = buildTemporaryCalcConfig({
-        pokemonId: pokeId,
-        role: 'attacker',
-        moveCategory: firstMove?.category ?? 'unknown',
-        preferredAbilityId: topAbilityFor(pokeId),
-      });
-      setAttackerConfig(firstMove ? { ...cfg, selectedMoveId: firstMove.id, moveIds: [firstMove.id] } : cfg);
+      setAttackerConfig(freshConfig(pokeId, 'attacker'));
       setAttackerDirty(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -194,23 +182,15 @@ export function CalculatorPage({
   const activeMoveCounter = clampMoveCounter(attackerConfig.selectedMoveId, moveCounter, battleType);
 
   const currentMove = attackerConfig.selectedMoveId ? moves.find((move) => move.id === attackerConfig.selectedMoveId) : undefined;
-  // 代入能力值 shows the two stats the damage formula actually used, not always 攻击 / 防御: a special
-  // move reads 特攻 / 特防, 扑击 (body press) attacks with 防御, and the 精神冲击 family is special
-  // but hits 防御.
-  const usedStats = usedStatsForMove(currentMove);
+  const spreadRows = (['attacker', 'defender'] as const).map((side) => {
+    const config = configFor(side);
+    const entry = pokemon.find((candidate) => candidate.id === config.pokemonId);
+    const name = findBattleForm(entry?.id ?? '', config.formId)?.chineseName ?? entry?.chineseName;
+    return { side, name: name ?? '—', spread: name ? statPointSpreadText(config.statPoints) : '—' };
+  });
 
   function pickPokemon(side: CalcSide, pokemonId: string) {
-    const firstMove = currentRuleMovesForPokemon(pokemonId).find((move) => move.category !== 'Status');
-    const cfg = buildTemporaryCalcConfig({
-      pokemonId,
-      role: side,
-      moveCategory: firstMove?.category ?? 'unknown',
-      preferredAbilityId: topAbilityFor(pokemonId),
-    });
-    const next = firstMove
-      ? { ...cfg, selectedMoveId: firstMove.id, moveIds: Array.from(new Set([firstMove.id, ...cfg.moveIds.filter(Boolean)])).slice(0, 4) }
-      : cfg;
-    setConfigFor(side, next, false);
+    setConfigFor(side, freshConfig(pokemonId, side), false);
     if (side === 'attacker') onPickMember(pokemonId);
     setPickerSide(null);
   }
@@ -419,27 +399,19 @@ export function CalculatorPage({
       />
 
       <div className="px-6 pt-5">
-        <SectionLabel>代入能力值</SectionLabel>
+        {/* The SP each side was entered with, in the series' shorthand (「32ATK 32SPE」) — the
+            figure players quote, rather than the derived stat. */}
+        <SectionLabel>SP 分配</SectionLabel>
         <div className="mt-2">
-          <ListRow
-            height={44}
-            title={<span className="text-[13px] font-semibold text-textSecondary">进攻方 {usedStats.attackLabel} / 速度</span>}
-            trailing={
-              <span className="shrink-0 text-sm font-extrabold tabular-nums">
-                {damageResult?.attackerStats ? `${damageResult.attackerStats[usedStats.attackKey]} / ${damageResult.attackerStats.speed}` : '— / —'}
-              </span>
-            }
-          />
-          <ListRow
-            divider={false}
-            height={44}
-            title={<span className="text-[13px] font-semibold text-textSecondary">防守方 HP / {usedStats.defenseLabel}</span>}
-            trailing={
-              <span className="shrink-0 text-sm font-extrabold tabular-nums">
-                {damageResult?.defenderStats ? `${damageResult.defenderStats.hp} / ${damageResult.defenderStats[usedStats.defenseKey]}` : '— / —'}
-              </span>
-            }
-          />
+          {spreadRows.map((row, index) => (
+            <ListRow
+              key={row.side}
+              divider={index < spreadRows.length - 1}
+              height={44}
+              title={<span className="text-[13px] font-semibold text-textSecondary">{row.name}</span>}
+              trailing={<span className="shrink-0 text-sm font-extrabold tabular-nums">{row.spread}</span>}
+            />
+          ))}
         </div>
         <p className="mt-3 text-xs font-semibold text-textSecondary">公式 Gen9 · 招式参数取自 Champions 目录 · 结果为实验性近似</p>
       </div>

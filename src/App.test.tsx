@@ -1112,7 +1112,6 @@ describe('App page flows', () => {
     const initialHpText = screen.getByText(/对方 HP/).textContent ?? '';
     const initialHp = Number(initialHpText.match(/对方 HP (\d+)/)?.[1]);
     expect(Number.isFinite(initialHp)).toBe(true);
-    expect(screen.getByText('防守方 HP / 防御')).toBeTruthy();
 
     await editCalculatorSide(user, 'defender', async () => {
       await setCalculatorStatPoints(user, 'HP', 32);
@@ -1121,6 +1120,8 @@ describe('App page flows', () => {
     await waitFor(() => {
       expect(screen.getByText(new RegExp(`对方 HP ${initialHp + 32}`))).toBeTruthy();
     });
+    // SP 分配 quotes the entered spread in shorthand, not the derived stat.
+    expect(screen.getByText('32HP')).toBeTruthy();
   });
 
   it('keeps calculator move search results synced with the selected move', async () => {

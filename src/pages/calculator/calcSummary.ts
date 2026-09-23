@@ -23,7 +23,19 @@ export const STAGE_LABELS: Array<{ key: keyof NonNullable<CalcSideConfig['statSt
   { key: 'speed', label: '速度' },
 ];
 
-export const sideLabelText = (side: CalcSide) => (side === 'attacker' ? '进攻方' : '防守方');
+const STAT_ABBREVIATIONS: Record<keyof StatPoints, string> = {
+  hp: 'HP', attack: 'ATK', defense: 'DEF', specialAttack: 'SPA', specialDefense: 'SPD', speed: 'SPE',
+};
+
+/** Invested SP in the series' shorthand, stat order: 「32ATK 32SPE」. */
+export const statPointSpreadText = (statPoints: StatPoints) => {
+  const parts = STAT_LABELS.map(({ key }) => ({ key, value: clampStatPointValue(statPoints[key] ?? 0) }))
+    .filter((entry) => entry.value > 0)
+    .map((entry) => `${entry.value}${STAT_ABBREVIATIONS[entry.key]}`);
+  return parts.length > 0 ? parts.join(' ') : '0 SP';
+};
+
+export const sideLabelText =(side: CalcSide) => (side === 'attacker' ? '进攻方' : '防守方');
 
 const investedStats = (statPoints: StatPoints) =>
   STAT_LABELS.map(({ key, label }) => ({ label, value: clampStatPointValue(statPoints[key] ?? 0) }))

@@ -2651,9 +2651,43 @@ describe('move tiers and terrain', () => {
     expect(surgeTerrainFor('overgrow')).toBeUndefined();
   });
 
-  it('starts a dex pick on the preferred ability only when the Pokémon can have it', () => {
-    expect(buildTemporaryCalcConfig({ pokemonId: 'rillaboom', role: 'attacker' }).abilityId).toBe('overgrow');
-    expect(buildTemporaryCalcConfig({ pokemonId: 'rillaboom', role: 'attacker', preferredAbilityId: 'grassy-surge' }).abilityId).toBe('grassy-surge');
-    expect(buildTemporaryCalcConfig({ pokemonId: 'rillaboom', role: 'attacker', preferredAbilityId: 'levitate' }).abilityId).toBe('overgrow');
+  it('starts a dex pick on the environment’s most-used build, SP left at 0', () => {
+    const cfg = buildTemporaryCalcConfig({
+      pokemonId: 'rillaboom',
+      role: 'attacker',
+      preset: {
+        moveIds: ['protect', 'grassy-glide', 'fake-out', 'wood-hammer'],
+        itemIds: ['miracle-seed', 'life-orb'],
+        abilityIds: ['grassy-surge', 'overgrow'],
+        natureIds: ['固执', '勇敢'],
+      },
+    });
+    // 守住 is a status move, so the first attacking move leads.
+    expect(cfg.selectedMoveId).toBe('grassy-glide');
+    expect(cfg.moveIds).toEqual(['grassy-glide', 'fake-out', 'wood-hammer']);
+    expect([cfg.itemId, cfg.abilityId, cfg.nature, cfg.formId]).toEqual(['miracle-seed', 'grassy-surge', '固执', undefined]);
+    expect(cfg.statPoints).toEqual({});
+  });
+
+  it('skips preset entries the Pokémon cannot use', () => {
+    const cfg = buildTemporaryCalcConfig({
+      pokemonId: 'rillaboom',
+      role: 'attacker',
+      preset: { itemIds: ['gardevoirite', 'life-orb'], abilityIds: ['levitate'], natureIds: ['not-a-nature'] },
+    });
+    expect(cfg.itemId).toBe('life-orb');
+    expect(cfg.abilityId).toBe('overgrow');
+    expect(cfg.nature).toBe(buildTemporaryCalcConfig({ pokemonId: 'rillaboom', role: 'attacker' }).nature);
+  });
+
+  it('lets a preset Mega Stone bring its Mega form and ability', () => {
+    const cfg = buildTemporaryCalcConfig({
+      pokemonId: 'gardevoir',
+      role: 'attacker',
+      preset: { itemIds: ['gardevoirite'], abilityIds: ['trace'] },
+    });
+    expect(cfg.itemId).toBe('gardevoirite');
+    expect(cfg.formId).toBe('mega-gardevoir');
+    expect(cfg.abilityId).toBe('pixilate');
   });
 });

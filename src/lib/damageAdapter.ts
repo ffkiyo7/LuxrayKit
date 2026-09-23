@@ -17,7 +17,8 @@ import {
   pokemon,
 } from '../data';
 import { calculateBattleStats, defensiveMatchupMultiplier } from './calculations';
-import { findBattleForm, type BattleFormView } from './pokemonForms';
+import { currentRuleMovesForPokemon, currentRuleSelectableItemsForPokemon } from './currentRuleCatalog';
+import { findBattleForm, findMegaFormByItem, type BattleFormView } from './pokemonForms';
 import type { Move as AppMove, PokemonType, TeamMember } from '../types';
 import type { StatPoints } from '../types';
 import { clampStatPointValue } from './statPoints';
@@ -821,31 +822,56 @@ export function buildCalcConfigFromTeamMember(member: TeamMember): CalcSideConfi
 export type CalcRole = 'attacker' | 'defender';
 export type MoveCategoryHint = 'Physical' | 'Special' | 'Status' | 'unknown';
 
-/** Build a temporary calc config without copying team SP or other persisted member tuning. */
+/** One Pokémon's environment usage, each list in PokeDB's usage order (most-used first). */
+export type CalcEnvironmentPreset = {
+  moveIds?: string[];
+  itemIds?: string[];
+  abilityIds?: string[];
+  natureIds?: string[];
+};
+
+/**
+ * Build a temporary calc config without copying team SP or other persisted member tuning.
+ *
+ * With a `preset`, a fresh pick starts on what the environment runs — the most-used attacking
+ * move, item, ability and nature that are legal for it (轰擂金刚猩: 青草滑梯 / 奇迹种子 /
+ * 青草制造者 / 固执). A Mega Stone brings its Mega form and that form's ability, the same rule as
+ * the editor's form picker. SP is never preset: spreads vary too much to guess.
+ */
 export function buildTemporaryCalcConfig(params: {
   pokemonId: string;
   role: CalcRole;
   moveCategory?: MoveCategoryHint;
-  /** The environment's most-used ability; wins over the dex order when the Pokémon can have it. */
-  preferredAbilityId?: string;
+  preset?: CalcEnvironmentPreset;
 }): CalcSideConfig {
   const entry = pokemon.find((p) => p.id === params.pokemonId);
-  const abilityId =
-    params.preferredAbilityId && entry?.abilities.includes(params.preferredAbilityId)
-      ? params.preferredAbilityId
-      : entry?.abilities[0];
-  const moveIds = entry ? [entry.learnableMoves[0] ?? 'protect'].filter(Boolean) : [];
+  const preset = params.preset ?? {};
+
+  const attackingMoves = entry ? currentRuleMovesForPokemon(entry.id).filter((move) => move.category !== 'Status') : [];
+  const usedAttackingMoveIds = (preset.moveIds ?? []).filter((id) => attackingMoves.some((move) => move.id === id));
+  const selectedMoveId = usedAttackingMoveIds[0] ?? attackingMoves[0]?.id;
+  const moveIds = selectedMoveId
+    ? Array.from(new Set([selectedMoveId, ...usedAttackingMoveIds])).slice(0, 4)
+    : entry
+      ? [entry.learnableMoves[0] ?? 'protect']
+      : [];
+
+  const selectableItemIds = new Set(entry ? currentRuleSelectableItemsForPokemon(entry.id).map((item) => item.id) : []);
+  const itemId = (preset.itemIds ?? []).find((id) => selectableItemIds.has(id));
+  const megaForm = entry ? findMegaFormByItem(entry, itemId) : undefined;
+  const abilityId = megaForm?.abilities[0] ?? (preset.abilityIds ?? []).find((id) => entry?.abilities.includes(id)) ?? entry?.abilities[0];
 
   const statPoints: StatPoints = {};
   let nature: string = currentRuleNatureOptions.find((option) => option.neutral)?.id ?? '认真';
   if (!currentRuleNatureOptions.some((option) => option.id === nature)) nature = currentRuleNatureOptions[0]?.id ?? '爽朗';
+  nature = (preset.natureIds ?? []).find((id) => currentRuleNatureOptions.some((option) => option.id === id)) ?? nature;
 
   return {
     source: 'temporary',
     pokemonId: params.pokemonId,
-    formId: undefined,
+    formId: megaForm?.id,
     abilityId,
-    itemId: undefined,
+    itemId,
     moveIds,
     selectedMoveId: moveIds[0],
     nature,
