@@ -57,7 +57,7 @@ npm run test:pwa   # Playwright PWA / 离线测试（用本机 Chrome，不含�
 
 `npm run test:visual` / `test:visual:update` 是 **CI-only** 的，macOS 本机跑不了也不该跑——见 §8。
 
-> PWA 提示：开发期 Service Worker 可能缓存旧资源。改动未生效时，在 DevTools → Application → Service Workers 注销后硬刷新。
+> PWA 提示：`npm run dev` 不注册 Service Worker；但以前装过的 SW 还在时（或在 `npm run preview` 下）可能拿到旧资源，在 DevTools → Application → Service Workers 注销后硬刷新。
 
 ---
 
@@ -65,7 +65,7 @@ npm run test:pwa   # Playwright PWA / 离线测试（用本机 Chrome，不含�
 
 ```
 src/
-  main.tsx              # 入口：挂载 App + 注册 service worker
+  main.tsx              # 入口：挂载 App + 注册 service worker（逻辑在 lib/serviceWorker.ts）
   App.tsx               # AppShell：从 hash 路由派生页面，环境数据加载，导入 / 分享流程
   branding.ts           # 产品名等品牌常量
   types.ts              # 全局领域类型（Pokemon/Move/Item/Team/UserPreference 等）
@@ -201,11 +201,13 @@ main.tsx
 
 ### 4.5 Service Worker（`public/sw.js`）
 
-手写 SW，无 Workbox。install 预缓存 app shell + 静态环境快照；同源 GET 走缓存优先 + 后台更新；`/api/*` **永不**读写离线缓存。
+手写 SW，无 Workbox。每个构建一份缓存，install 时把 shell 和**全部** hashed chunk 预缓存进去；`/api/*` **永不**读写离线缓存。
 
-- **道具图标预缓存表是构建产物**：`vite.config.ts` 的 `luxraykit-precache-manifest` 插件在 `closeBundle` 调 `scripts/precache-manifest.mjs`，从道具 catalog 的 `iconRef` 写出 `dist/precache-manifest.json`（`{ generatedAt, itemIcons }`，当前 166 条）；SW 在 install 时 fetch 它再逐个 `cache.add`（单个图标失败、manifest 缺失或无法解析都不阻塞安装）。**改道具不用改 `sw.js`**——那里曾经是手写数组，每次加道具都会漂移。
-- **`CACHE_NAME` 当前 `champions-tool-v8`**，改版本要同步 `docs/qa/PWA_OFFLINE_CHECKLIST.md`。
-- **新版本提示**：SW 保持 `skipWaiting` + `clients.claim`，部署会在打开着的标签页下面换掉 controller，而页面仍跑旧 chunk。`src/main.tsx` 监听 `controllerchange`，**仅当页面此前已有 controller**（首次安装不提示）时派发 `luxraykit:service-worker-updated`，由 `components/ServiceWorkerUpdateToast.tsx` 渲染刷新 toast。用 CustomEvent 是为了让注册侧保持几行纯 DOM，不进 `AppShell` 的 state。
+- **预缓存清单由构建注入 `dist/sw.js`**：`vite.config.ts` 的 `luxraykit-precache-manifest` 插件在 `closeBundle` 调 `scripts/precache-manifest.mjs`，把 `public/sw.js` 开头的占位行 `const BUILD = { version: 'dev', assets: [], itemIcons: [] };` 换成 `{ version, assets, itemIcons }`：`assets` = `dist/assets/` 顶层全部文件（JS/CSS/字体，约 71 个、2.7 MB 未压缩），`itemIcons` = 道具 catalog 的 `iconRef`（当前 166 条），`version` = 两者 + `index.html` 的 sha256 前 12 位。占位行找不到就构建失败。清单内嵌而不是另发 JSON，是为了**每次改代码的部署都得到字节不同的 `sw.js`**（浏览器只在 sw.js 变了时才装新版），且清单和产出它的构建绑死。`vite dev` 不注册 SW（`import.meta.env.PROD`）。
+- **缓存**：`luxraykit-shell-<version>`（shell + 快照 + hashed chunk，随版本整份替换）；`luxraykit-runtime`（精灵图、道具图标，按 id 命名跨版本不变，不随版本删）。activate 删掉其余所有缓存，包括 2026-09 之前的 `champions-tool-v*`。install 时旧版本缓存里已有的同名 hashed chunk 直接复制，不重下；shell 用 `cache: 'reload'` 取，并校验 `index.html` 引用的 `/assets/*` 都在本版清单里，否则 install 失败、保留旧版等下次重试（防止部署竞态把新 index 配旧 chunk）。chunk 缺失会让 install 失败；单个道具图标失败不会。
+- **请求策略**：导航到 `/` 一律返回**本版缓存里的 shell**（不走网络优先）——页面和它要的 chunk 永远同一个构建，这就是修掉的「新 index + 旧预缓存 → 离线白屏」。hashed chunk 缓存优先；快照、精灵图等其余同源 GET 缓存优先 + 后台更新。所有 `caches.match` 带 `ignoreVary`：预缓存是 SW 自己 fetch 的（无 Origin），页面的 module script 是带 Origin 的 CORS 请求，服务器回 `Vary: Origin`（`vite preview` 就会）时不忽略就全部 miss。
+- **新版本提示**：SW **不自动 `skipWaiting`**。新版装好后处于 waiting，正在跑的标签页继续用旧版缓存（包括还没打开过的 lazy chunk）。`src/lib/serviceWorker.ts` 在 `updatefound → installed` 或启动时已有 `registration.waiting`、且页面已有 controller 时派发 `luxraykit:service-worker-updated`，`components/ServiceWorkerUpdateToast.tsx` 显示「新版本已下载 · 重载」；点重载向 waiting worker 发 `SKIP_WAITING`，`controllerchange` 后所有旧版标签页自动 reload（旧版缓存已被删，不 reload 的话没加载过的 chunk 会 404）。忽略提示则等 App 完全关闭后下次打开生效。App 回到前台（`visibilitychange`）时主动 `registration.update()`，常驻后台的 PWA 不靠导航也能发现新版。首次安装不提示也不 reload。
+- **构建号不跟着纯数据部署变**：`__APP_BUILD__` 取 `git log -1 -- . ':(exclude)public/data'` 而不是 HEAD——它被编进 index chunk，用 HEAD 的话每天的 PokeDB JSON 刷新都会换 chunk hash → 新 sw.js → 每天弹一次更新。静态快照是运行时 fetch 的，由 SW 后台更新。shallow clone 时退化为 HEAD。
 - **CSP**：`public/_headers` 的 `Content-Security-Policy` 以同源为主，只有一处刻意放宽：`style-src 'unsafe-inline'`（React 写 inline style 属性）。字体不放行任何外域：Manrope 自托管在 `src/assets/fonts/`（仅拉丁 + 数字子集，OFL），中文走系统字体（PingFang SC / 系统 Noto）——不要再加远程 `@import`，CSP 会静默丢掉它。`_headers` **只在 Cloudflare 生效**，`vite preview` 与 Playwright 都看不到它——改动后只能上线后在生产 DevTools 人工核对。
 
 ### 4.6 队伍分享链接（`lib/teamShare.ts`）
@@ -639,7 +641,7 @@ VGCPastes 脚本发现脏工作区会直接拒跑；若前一次生成任务失�
 
 - **单元/组件**：Vitest + jsdom + `@testing-library` + `fake-indexeddb`。`npm test`，CI 必跑；其中 `src/data/vgcpastesTeamSamples.contract.test.ts` 对队伍库生成 JSON 做数量、字段、唯一性与 audit 对齐门禁，`src/data/pokemonFacts.test.ts` 验证事实池只引用当前规则宝可梦且每日序列稳定不重复。CI 还会在测试前运行不联网的 `npm run data:pokemon-facts:check`。配置见 `vite.config.ts` 的 `test` 段与 `vitest.setup.ts`。
   - `npm test` 的收集范围**不止 `src/`**：还包括 Worker 单测 `cloudflare/environment-worker/src/index.test.ts` 与脚本工具单测 `scripts/*.test.mjs`（PokeDB 解析、速度档位、Worker 回退门与静态快照落后判定、SW 预缓存 manifest）。改这两处代码同样由 `npm test` 把关。
-  - `src/sw.test.ts` 直接读 `public/sw.js` 源码做断言（`new Function` 注入假 `self`/`caches`/`fetch`）：`/api/*` 永不读写离线缓存、不预缓存已下线的 `/data/vgcpastes/` 与 `reg-ma-s1-environment.json`、道具图标只走构建期 manifest（源码里不得再出现 `'/assets/items/` 字面量）。
+  - `src/sw.test.ts` 把 `public/sw.js` 注入清单后用 `new Function` 跑起来（假 `self`/`caches`/`fetch`/`Request`，内存 CacheStorage），走 install / activate / message / fetch：按版本预缓存全部 chunk、复用旧版已缓存 chunk、index 与清单不符时 install 失败、不自动 skipWaiting、activate 只留本版与 runtime 缓存、导航不走网络、`/api/*` 永不读写离线缓存；另断言源码不含已下线的 `/data/vgcpastes/`、`reg-ma-s1-environment.json` 与手写 `'/assets/items/` 列表。`src/lib/serviceWorker.test.ts` 覆盖页面侧的提示 / SKIP_WAITING / reload 时机。
   - 例外：`cloudflare/build-notifier/worker.node-test.mjs` 刻意用 `-test.mjs` 而非 `.test.mjs` 命名以避开 vitest 收集，只能手动 `node --test` 跑，**不在 CI 内**。
   - `src/lib/teamShare.test.ts` 刻意跑在 **node** environment：jsdom 没有 `CompressionStream`，在 jsdom 下每个 code 都会静默走未压缩的 `p1` 分支，长度断言就测错了东西（`p1` 分支另有独立用例）。
   - `vitest.setup.ts` 在每个用例前 `history.replaceState` 清掉 hash 与 `lkDepth`：jsdom 的 URL 和会话历史在同一文件内跨用例保留，不清的话一个用例会继承上一个用例停留的页面。

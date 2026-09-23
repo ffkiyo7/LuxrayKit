@@ -103,7 +103,7 @@ npm run dev
 
 开发服务器默认绑定 `127.0.0.1`。建议使用浏览器移动端模拟器或真实手机调试，本项目界面以手机优先。
 
-> 提示：本项目是 PWA，开发期 Service Worker 可能缓存旧资源。若改动未生效，可在浏览器 DevTools → Application → Service Workers 注销后硬刷新。
+> 提示：本项目是 PWA。`npm run dev` 不注册 Service Worker，但以前装过的 SW 或 `npm run preview` 下可能拿到旧资源；若改动未生效，可在浏览器 DevTools → Application → Service Workers 注销后硬刷新。
 
 ## 构建与部署
 

@@ -1,8 +1,9 @@
 import { expect, test, type Page } from '@playwright/test';
 
 /**
- * Two behaviours, both unchanged by the 2026-09 redesign:
+ * Three behaviours:
  *  - the shell, all four tabs and the bundled catalog stay usable with the network cut;
+ *  - a lazy page never opened online still loads offline (every chunk is precached at install);
  *  - a team written while online survives an offline reload (IndexedDB, not the HTTP cache).
  *
  * Only the selectors moved. 环境 is now the 今日环境 home; 导出备份 became 我的 · 本地备份 ·
@@ -69,6 +70,13 @@ test('keeps app shell, teams, and the local catalog available offline', async ({
   await expect(page.getByRole('heading', { name: '工具', exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: /规则图鉴/ })).toContainText(/\d+ 只 · M-/);
   await expect(page.getByRole('button', { name: /^速度线/ })).toBeEnabled();
+
+  // Never opened while online: its lazy chunk (and the calc engine) must come from the install-time
+  // precache, not from having been visited. This is what used to white-screen.
+  await page.getByRole('button', { name: /伤害计算/ }).click();
+  await expect(page.getByRole('heading', { name: '伤害计算' })).toBeVisible();
+  await page.goBack();
+  await expect(page.getByRole('heading', { name: '工具', exact: true })).toBeVisible();
 
   await page.getByRole('button', { name: '环境', exact: true }).click();
   await expect(page.getByRole('heading', { name: '今日环境' })).toBeVisible();
