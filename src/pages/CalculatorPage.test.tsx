@@ -145,4 +145,19 @@ describe('CalculatorPage', () => {
     await user.click(screen.getByRole('button', { name: '编辑进攻方配置' }));
     expect(screen.getByText('0 / 66')).toBeTruthy();
   });
+
+  it('keeps the same search input when the first letter switches the picker into search mode', async () => {
+    // An IME's first pinyin letter arrives as a change; a remounted input would abort the
+    // composition and commit that letter, so Chinese names could never be typed.
+    const user = userEvent.setup();
+    await renderCalculator();
+    await user.click(screen.getByRole('button', { name: '选择进攻方' }));
+
+    const search = screen.getByRole('textbox', { name: '搜索名称' });
+    await user.type(search, 'z');
+
+    expect(screen.queryByRole('heading', { name: '选择进攻方' })).toBeNull();
+    expect(screen.getByRole('textbox', { name: '搜索名称' })).toBe(search);
+    expect(document.activeElement).toBe(search);
+  });
 });
