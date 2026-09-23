@@ -11,7 +11,9 @@ const CACHE_NAME = `${CACHE_PREFIX}shell-${BUILD.version}`;
 /** Sprites and item icons: named by id, stable across deploys, not worth re-downloading each one. */
 const RUNTIME_CACHE = `${CACHE_PREFIX}runtime`;
 const SHELL_URL = '/';
-const APP_SHELL = [SHELL_URL, '/manifest.webmanifest', '/icon-192.png', '/icon-512.png', '/icon-maskable.png', '/apple-touch-icon.png', '/data/pokedb/reg-ma-environment.json'];
+// The splash script and its artwork ride with the shell: a cold offline launch must not show the
+// splash waiting on a network fetch (it would give up and skip).
+const APP_SHELL = [SHELL_URL, '/splash.js', '/assets/pokemon/artwork/405.png', '/manifest.webmanifest', '/icon-192.png', '/icon-512.png', '/icon-maskable.png', '/apple-touch-icon.png', '/data/pokedb/reg-ma-environment.json'];
 const HASHED_ASSETS = new Set(BUILD.assets);
 const SHELL_PATHS = new Set(APP_SHELL);
 /**

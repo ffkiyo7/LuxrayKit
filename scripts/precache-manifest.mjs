@@ -49,11 +49,12 @@ export async function collectBuildAssets(outDir) {
 
 /**
  * Changes exactly when a returning user needs new code: hashed asset names cover every chunk,
- * index.html covers the shell. A data-only deploy (the daily PokeDB JSON) leaves it alone, so it
- * does not raise an update prompt for a file the worker refreshes in the background anyway.
+ * index.html and splash.js (unhashed, loaded by index.html) cover the shell. A data-only deploy
+ * (the daily PokeDB JSON) leaves it alone, so it does not raise an update prompt for a file the
+ * worker refreshes in the background anyway.
  */
-export function buildVersion({ assets, itemIcons, indexHtml }) {
-  return createHash('sha256').update(JSON.stringify({ assets, itemIcons, indexHtml })).digest('hex').slice(0, 12);
+export function buildVersion({ assets, itemIcons, indexHtml, splashScript = '' }) {
+  return createHash('sha256').update(JSON.stringify({ assets, itemIcons, indexHtml, splashScript })).digest('hex').slice(0, 12);
 }
 
 /**
@@ -61,10 +62,10 @@ export function buildVersion({ assets, itemIcons, indexHtml }) {
  * drifted from the catalog every time an item was added. Generate it from the same `iconRef`
  * fields the UI renders instead.
  */
-export async function buildPrecacheManifest({ assets = [], indexHtml = '' } = {}) {
+export async function buildPrecacheManifest({ assets = [], indexHtml = '', splashScript = '' } = {}) {
   const { items } = await loadCatalog();
   const itemIcons = collectItemIcons(items);
-  return { version: buildVersion({ assets, itemIcons, indexHtml }), assets, itemIcons };
+  return { version: buildVersion({ assets, itemIcons, indexHtml, splashScript }), assets, itemIcons };
 }
 
 /** Swap the placeholder line for the manifest; a missing placeholder is a broken build, not a no-op. */
@@ -80,12 +81,13 @@ export function injectPrecacheManifest(source, manifest) {
 export async function writePrecacheManifest(outDir, { root = ROOT } = {}) {
   const target = resolve(root, outDir);
   const swPath = resolve(target, 'sw.js');
-  const [assets, indexHtml, swSource] = await Promise.all([
+  const [assets, indexHtml, splashScript, swSource] = await Promise.all([
     collectBuildAssets(target),
     readFile(resolve(target, 'index.html'), 'utf8'),
+    readFile(resolve(target, 'splash.js'), 'utf8'),
     readFile(swPath, 'utf8'),
   ]);
-  const manifest = await buildPrecacheManifest({ assets, indexHtml });
+  const manifest = await buildPrecacheManifest({ assets, indexHtml, splashScript });
   await writeFile(swPath, injectPrecacheManifest(swSource, manifest));
   return manifest;
 }

@@ -42,6 +42,8 @@ describe('service worker precache manifest', () => {
     expect(buildVersion(base)).toBe(buildVersion({ ...base }));
     expect(buildVersion({ ...base, assets: ['/assets/index-b.js'] })).not.toBe(buildVersion(base));
     expect(buildVersion({ ...base, indexHtml: '<b>' })).not.toBe(buildVersion(base));
+    // public/splash.js is unhashed, so its bytes have to count on their own.
+    expect(buildVersion({ ...base, splashScript: '1' })).not.toBe(buildVersion({ ...base, splashScript: '2' }));
   });
 
   it('lists only the files Vite emitted directly under dist/assets', async () => {

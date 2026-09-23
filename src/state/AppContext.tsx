@@ -57,6 +57,7 @@ const normalizePreferences = (preferences?: Partial<UserPreference>): UserPrefer
     // than an explicit `true` must read as "analytics on" so the default is not silently flipped
     // by a corrupted value.
     analyticsOptOut: stored.analyticsOptOut === true,
+    splashOptOut: stored.splashOptOut === true,
     // Records written before the 2026-09 rename only carry the old key; without this fall-back
     // every existing user would be shown the preset team's special card a second time.
     hasOpenedPresetTeam: stored.hasOpenedPresetTeam ?? hasSeenLuxrayEasterEgg ?? false,

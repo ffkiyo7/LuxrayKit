@@ -1,4 +1,4 @@
-import { BarChart3, Database, Info, MessageSquare, Moon, CloudOff, ScrollText, Smartphone, Sun } from 'lucide-react';
+import { BarChart3, Database, Info, MessageSquare, Moon, CloudOff, ScrollText, Smartphone, Sparkles, Sun } from 'lucide-react';
 import { useHashRoute } from '../hooks/useHashRoute';
 import { isStandaloneDisplay } from './profile/installState';
 import { useAppStore } from '../state/AppContext';
@@ -41,6 +41,22 @@ export function ProfilePage() {
               />
             }
           />
+          {/* Only the home-screen app plays the splash (public/splash.js), so a browser tab hides it. */}
+          {installed && (
+            <ProfileRow
+              icon={<Sparkles aria-hidden size={tileIconSize} />}
+              subtitle="从主屏幕打开时播放"
+              tile="lk-tile--neutral"
+              title="开屏动画"
+              trailing={
+                <Switch
+                  checked={!preferences.splashOptOut}
+                  label="切换开屏动画"
+                  onChange={(next) => void replacePreferences({ ...preferences, splashOptOut: !next })}
+                />
+              }
+            />
+          )}
           <ProfileRow
             divider={false}
             height={68}

@@ -275,6 +275,9 @@ export type UserPreference = {
   // Opt *out*, so the default (false) keeps the anonymous page-view ping on. See lib/analytics.ts
   // for exactly what it sends — no cookie, no identifier, no user content.
   analyticsOptOut: boolean;
+  // 开屏动画, also opt-out so older records keep it on. Only the installed PWA plays it
+  // (public/splash.js); lib/splashMirror.ts copies it to localStorage for that script.
+  splashOptOut: boolean;
 };
 
 export type AppState = {
