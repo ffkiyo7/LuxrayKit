@@ -966,7 +966,7 @@ describe('App page flows', () => {
     window.location.hash = '#/env/methodology';
     expect(await screen.findByRole('heading', { name: '数据口径' })).toBeTruthy();
     expect(screen.getByText('榜单只给名次和名次变化，不给登场率百分比。')).toBeTruthy();
-    expect(screen.getByText('前 60 名有招式、道具、特性、性格的使用率，60 名之外不出统计段。')).toBeTruthy();
+    expect(screen.getByText('前 60 名有招式、道具、特性、性格、SP 的样本占比，60 名之外不出统计段。')).toBeTruthy();
     // The sample-pool card and the per-battle-type 队 counts are gone with the 数据口径 decision.
     expect(screen.queryByText('528 队')).toBeNull();
     expect(screen.queryByText('71 队')).toBeNull();

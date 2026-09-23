@@ -633,9 +633,9 @@ describe('SP 分配', () => {
     const rows = within(section).getAllByRole('group');
     expect(rows).toHaveLength(3);
     expect(rows.map((row) => row.getAttribute('aria-label'))).toEqual([
-      '攻击 32、速度 32，余 2 点，使用率 32.2%',
-      'HP 32、防御 14、特防 20，使用率 18.6%',
-      '防御 5、特攻 31、速度 30，使用率 4.2%',
+      '攻击 32、速度 32，余 2 点，占比 32.2%',
+      'HP 32、防御 14、特防 20，占比 18.6%',
+      '防御 5、特攻 31、速度 30，占比 4.2%',
     ]);
     // A full 66-point row carries no leftover chip at all.
     expect(within(rows[1]).queryByText('余')).toBeNull();
@@ -775,7 +775,7 @@ describe('数据口径页', () => {
     expect(screen.getByRole('heading', { name: '数据口径' })).toBeTruthy();
     expect(screen.getByText('PokeDB 公开的上位构筑样本。')).toBeTruthy();
     expect(screen.getByText('榜单只给名次和名次变化，不给登场率百分比。')).toBeTruthy();
-    expect(screen.getByText('前 60 名有招式、道具、特性、性格的使用率，60 名之外不出统计段。')).toBeTruthy();
+    expect(screen.getByText('前 60 名有招式、道具、特性、性格、SP 的样本占比，60 名之外不出统计段。')).toBeTruthy();
     expect(screen.getByText('这不是官方使用率')).toBeTruthy();
     // No previous season in this fixture: the 变动 row must not be invented.
     expect(screen.queryByText(/NEW \/ ↑n/)).toBeNull();
