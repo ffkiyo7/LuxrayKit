@@ -823,11 +823,12 @@ export type CalcRole = 'attacker' | 'defender';
 export type MoveCategoryHint = 'Physical' | 'Special' | 'Status' | 'unknown';
 
 /**
- * Attacking moves nobody brings for the damage, passed over when a preset picks the move to
- * calculate. Only 击掌奇袭 so far: across both formats' top 60 it is the one such move that ever
- * tops a Pokémon's attacking list (炽焰咆哮虎, 长耳兔); damaging priority like 神速 / 突袭 stays.
+ * Doubles attacks brought for the effect rather than the damage, passed over when a preset picks
+ * the move to calculate. Only 击掌奇袭 so far: in the doubles top 60 it is the one such move that
+ * ever tops a Pokémon's attacking list (炽焰咆哮虎). Singles keeps it — there it is free STAB chip
+ * (Mega 长耳兔) — and damaging priority like 神速 / 突袭 stays in both formats.
  */
-const PRESET_SKIPPED_MOVE_IDS = new Set(['fake-out']);
+const DOUBLES_PRESET_SKIPPED_MOVE_IDS = new Set(['fake-out']);
 
 /** One Pokémon's environment usage, each list in PokeDB's usage order (most-used first). */
 export type CalcEnvironmentPreset = {
@@ -850,14 +851,17 @@ export function buildTemporaryCalcConfig(params: {
   role: CalcRole;
   moveCategory?: MoveCategoryHint;
   preset?: CalcEnvironmentPreset;
+  /** The format the preset came from; decides which utility attacks the preset passes over. */
+  battleType?: BattleTypeOption;
 }): CalcSideConfig {
   const entry = pokemon.find((p) => p.id === params.pokemonId);
   const preset = params.preset ?? {};
 
   const attackingMoves = entry ? currentRuleMovesForPokemon(entry.id).filter((move) => move.category !== 'Status') : [];
   const usedAttackingMoveIds = (preset.moveIds ?? []).filter((id) => attackingMoves.some((move) => move.id === id));
+  const skipped = params.battleType === 'doubles' ? DOUBLES_PRESET_SKIPPED_MOVE_IDS : new Set<string>();
   const selectedMoveId =
-    usedAttackingMoveIds.find((id) => !PRESET_SKIPPED_MOVE_IDS.has(id)) ?? usedAttackingMoveIds[0] ?? attackingMoves[0]?.id;
+    usedAttackingMoveIds.find((id) => !skipped.has(id)) ?? usedAttackingMoveIds[0] ?? attackingMoves[0]?.id;
   const moveIds = selectedMoveId
     ? Array.from(new Set([selectedMoveId, ...usedAttackingMoveIds])).slice(0, 4)
     : entry

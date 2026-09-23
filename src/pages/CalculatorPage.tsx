@@ -86,6 +86,7 @@ export function CalculatorPage({
       pokemonId,
       role,
       preset: environment?.pokemonUsage[battleType]?.find((row) => row.pokemonId === pokemonId),
+      battleType,
     });
 
   const configFor = (side: CalcSide) => (side === 'attacker' ? attackerConfig : defenderConfig);

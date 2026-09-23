@@ -2669,17 +2669,33 @@ describe('move tiers and terrain', () => {
     expect(cfg.statPoints).toEqual({});
   });
 
-  it('passes over 击掌奇袭 for the calculated move but keeps it in the move list', () => {
+  it('passes over 击掌奇袭 in doubles but keeps it in the move list', () => {
     const cfg = buildTemporaryCalcConfig({
       pokemonId: 'incineroar',
       role: 'attacker',
+      battleType: 'doubles',
       preset: { moveIds: ['fake-out', 'flare-blitz', 'parting-shot', 'throat-chop'] },
     });
     expect(cfg.selectedMoveId).toBe('flare-blitz');
     expect(cfg.moveIds).toEqual(['flare-blitz', 'fake-out', 'throat-chop']);
 
-    const onlyFakeOut = buildTemporaryCalcConfig({ pokemonId: 'incineroar', role: 'attacker', preset: { moveIds: ['fake-out'] } });
+    const onlyFakeOut = buildTemporaryCalcConfig({
+      pokemonId: 'incineroar',
+      role: 'attacker',
+      battleType: 'doubles',
+      preset: { moveIds: ['fake-out'] },
+    });
     expect(onlyFakeOut.selectedMoveId).toBe('fake-out');
+  });
+
+  it('keeps 击掌奇袭 as the calculated move in singles, where it is the damage', () => {
+    const cfg = buildTemporaryCalcConfig({
+      pokemonId: 'lopunny',
+      role: 'attacker',
+      battleType: 'singles',
+      preset: { moveIds: ['fake-out', 'close-combat'] },
+    });
+    expect(cfg.selectedMoveId).toBe('fake-out');
   });
 
   it('skips preset entries the Pokémon cannot use', () => {
