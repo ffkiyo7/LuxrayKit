@@ -146,6 +146,53 @@ describe('team schema migration', () => {
     });
   });
 
+  it('replaces wrongly typed member fields instead of storing them', () => {
+    const [team] = migrateTeamExportPayload({
+      schemaVersion: 2,
+      teams: [
+        {
+          id: 'typed',
+          name: 'Typed',
+          ruleSetId: currentRuleSet.id,
+          dataVersionId: currentDataVersion.id,
+          updatedAt: 5 as unknown as string,
+          members: [
+            {
+              id: 7 as unknown as string,
+              pokemonId: 'garchomp',
+              nature: 123 as unknown as string,
+              moveIds: ['earthquake', 3, null] as unknown as string[],
+              level: 0.4,
+              legalityStatus: 'bogus' as never,
+              statPoints: { hp: -30, attack: 32, defense: 'x', specialAttack: 32, speed: 40 } as never,
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(typeof team.updatedAt).toBe('string');
+    expect(team.members[0]).toMatchObject({
+      id: 'imported-member-1',
+      nature: currentRuleNatureOptions.find((option) => option.neutral)?.id ?? '认真',
+      moveIds: ['earthquake'],
+      level: 50,
+      legalityStatus: 'needs-review',
+      // Negative values no longer offset the 66 total; each stat is held to 0–32.
+      statPoints: { hp: 0, attack: 32, defense: 0, specialAttack: 32, speed: 32 },
+    });
+    expect(team.members[0].statPoints).not.toHaveProperty('specialDefense');
+  });
+
+  it('rejects a team whose id is not a string', () => {
+    expect(() =>
+      migrateTeamExportPayload({
+        schemaVersion: 2,
+        teams: [{ ...defaultTeams[0], id: true as unknown as string }],
+      }),
+    ).toThrow('缺少 id、name 或 members');
+  });
+
   it('rejects unsupported future schema versions', () => {
     expect(() => migrateTeamExportPayload({ schemaVersion: 99, teams: defaultTeams })).toThrow('不支持的 schemaVersion: 99');
   });

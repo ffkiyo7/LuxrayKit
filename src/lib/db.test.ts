@@ -143,6 +143,18 @@ describe('IndexedDB repository', () => {
     expect(state.teams[0].id).toBe('replacement-team');
   });
 
+  it('keeps every existing team when one row of a replacement cannot be stored', async () => {
+    const before = await repository.loadState();
+    const good = cloneTeam(defaultTeams[0], { id: 'good-team', name: 'Good team' });
+    // Not a valid IndexedDB key: `put` throws synchronously after `clear()` was already queued.
+    const bad = cloneTeam(defaultTeams[0], { id: true as unknown as string, name: 'Bad team' });
+
+    await expect(repository.replaceTeams([good, bad])).rejects.toBeTruthy();
+    const after = await repository.loadState();
+
+    expect(after.teams.map((team) => team.id)).toEqual(before.teams.map((team) => team.id));
+  });
+
   it('clears local teams and preferences', async () => {
     await repository.loadState();
 

@@ -38,7 +38,9 @@ export function downloadBackup(teams: Team[], preferences: UserPreference) {
   anchor.href = url;
   anchor.download = `champions-backup-${new Date().toISOString().slice(0, 10)}.json`;
   anchor.click();
-  URL.revokeObjectURL(url);
+  // Revoked on a delay: some Safari / iOS builds start the download after `click()` returns and
+  // fail silently if the URL is already gone.
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 /**
