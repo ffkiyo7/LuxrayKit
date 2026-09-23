@@ -566,12 +566,16 @@ describe('App page flows', () => {
     await openDefaultTeam(user);
 
     expect(await screen.findByText(/1\/6 成员/)).toBeTruthy();
+    const detailDepth = (window.history.state as { lkDepth?: number } | null)?.lkDepth;
     await openMemberEditor(user, '伦琴猫');
     await user.click(screen.getByRole('button', { name: '更多操作' }));
     await user.click(screen.getByRole('menuitem', { name: '删除这个成员' }));
     await user.click(within(await screen.findByRole('dialog', { name: '确认移除成员' })).getByRole('button', { name: '移除成员' }));
 
     expect(await screen.findByText(/0\/6 成员/)).toBeTruthy();
+    // Removal pops the editor's history entry (not a push of the detail page). history.back() is
+    // async; wait for it here, or its popstate lands in the next test and navigates that one away.
+    await waitFor(() => expect((window.history.state as { lkDepth?: number } | null)?.lkDepth).toBe(detailDepth));
   });
 
   it('creates a team after all teams have been deleted', async () => {

@@ -292,6 +292,9 @@ describe('TeamPage', () => {
       const state = await repository.loadState();
       expect(state.teams[0].members).toEqual([]);
     });
+    // The editor's entry is popped, not covered by a pushed detail page; history.back() is async,
+    // so wait for it rather than let its popstate reach the next test.
+    await waitFor(() => expect((window.history.state as { lkDepth?: number } | null)?.lkDepth ?? 0).toBe(0));
   });
 
   it('lists the moves on the expanded card and keeps the tool entries in the editor ⋯ menu', async () => {
