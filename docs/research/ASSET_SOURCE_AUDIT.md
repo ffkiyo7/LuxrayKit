@@ -9,16 +9,16 @@
 
 | 资产类别 | 数据源 | 接入位置 | 落地形式 |
 | --- | --- | --- | --- |
-| 宝可梦图片（立绘/缩略图） | PokeAPI sprites `raw.githubusercontent.com/PokeAPI/sprites` | `scripts/generate-pokemon-icons.mjs` / `scripts/update-mb-assets.mjs` | 本地 `public/assets/pokemon/{artwork,thumbs}`；`670` 花叶蒂按 Champions 规则使用 PokeAPI `10061` 永恒之花形态 |
-| M-B 新 Mega 立绘 | i.pokebase.app CDN | `scripts/update-mb-assets.mjs`（从 `/pokemon` 页抽 CDN URL） | 本地 PNG |
-| 道具图标 | PokéBase `/items` + i.pokebase CDN 硬编码 URL + PokeAPI sprites/items + Serebii ZA | `scripts/generate-item-icons.mjs` / `scripts/update-mb-assets.mjs` | 本地 `public/assets/items` |
+| 宝可梦图片（立绘/缩略图） | PokeAPI sprites `raw.githubusercontent.com/PokeAPI/sprites` | `scripts/generate-pokemon-icons.mjs`；M-B / M-C 新增图用 `scripts/archive/update-{mb,mc}-assets.mjs` 一次性抓取 | 本地 `public/assets/pokemon/{artwork,thumbs}`；`670` 花叶蒂按 Champions 规则使用 PokeAPI `10061` 永恒之花形态 |
+| M-B 新 Mega 立绘 | i.pokebase.app CDN | `scripts/archive/update-mb-assets.mjs`（一次性；从 `/pokemon` 页抽 CDN URL） | 本地 PNG |
+| 道具图标 | PokéBase `/items` + i.pokebase CDN 硬编码 URL + PokeAPI sprites/items + Serebii ZA | `scripts/audit-item-catalog.mjs --write` / `scripts/generate-item-icons.mjs --mapping-only`；M-B / M-C 新道具图用 `scripts/archive/update-{mb,mc}-assets.mjs` 一次性抓取 | 本地 `public/assets/items` |
 | 属性 icon | 无外部依赖 —— `ui.tsx` 内联 `typeColors` 十六进制色板 + 中文名映射 | `src/components/ui.tsx:75` | 纯代码，零资产风险 |
 | 图鉴文本（招式中文名/描述） | 42arch/pokemon-dataset-zh（主）+ PokeAPI（回退）+ 手动覆写 | `scripts/generate-champions-moves.mjs` | `src/data/seed/regMA/move-catalog.ts` |
 | 图鉴文本（特性中文/效果） | 52poke wiki `api.php`（主）+ PokeAPI | `scripts/generate-ability-effects.mjs` | catalog batches |
 | 宝可梦自身数据（种族值/属性/特性） | PokeAPI + PokéBase Champions `/pokemon` + 人工复核 | catalog batches / `mega-catalog*.ts` | seed 数据 |
 | 招式可学习关系（learnset） | PokéBase Champions `/pokemon` | `scripts/generate-champions-moves.mjs` | `src/data/seed/regMA/move-catalog.ts` |
-| 性格 | PokeAPI nature | `scripts/generate-natures.mjs` | seed |
-| Mega 形态数据 | 硬编码旧世代竞技数据（`mega-catalog.ts`）+ PokéBase（`mega-catalog-mb.ts`） | `scripts/generate-mega-forms.mjs` + 人工 | 两份 mega 目录合并 |
+| 性格 | PokeAPI nature | `scripts/archive/generate-natures.mjs`（一次性；产物后已手工维护） | seed |
+| Mega 形态数据 | 硬编码旧世代竞技数据（`mega-catalog.ts`）+ PokéBase（`mega-catalog-mb.ts`） | `scripts/archive/generate-mega-forms.mjs`（一次性）+ 人工；之后手工维护 | 两份 mega 目录合并 |
 | 规则元数据 | champions.pokemon.com + 历史 web-view.app.pokemonchampions.jp | `src/data/seed/regMA/metadata.ts` | seed |
 | 道具合法性快照 | rotompicks.com | `src/data/seed/regMA/metadata.ts` | seed |
 | 环境数据（静态回退） | champs.pokedb.tokyo HTML 页（`/pokemon/list`、`/pokemon/show`、`/trainer/list`，动态探测最新赛季） | `scripts/update-pokedb-environment.mjs` 复用 Worker 解析器 | `public/data/pokedb/reg-ma-environment.json` |

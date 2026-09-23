@@ -1,6 +1,6 @@
-// Auto-generated mega form catalog
-// Source: competitive Pokemon data + PokeAPI names
-// Generated on 2026-05-01T17:50:00.101Z
+// Mega form catalog — HAND-MAINTAINED. First generated on 2026-05-01 by the one-off
+// scripts/archive/generate-mega-forms.mjs (competitive Pokemon data + PokeAPI names), then edited
+// by hand (e.g. Japanese names, 2026-06-21). Do not re-run the archived script: it would revert them.
 
 import type { PokemonForm } from '../../../types';
 

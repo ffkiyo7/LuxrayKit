@@ -1,7 +1,8 @@
 import type { EligiblePokemon } from '../../../types';
 
-// HAND-MAINTAINED since M-B. `scripts/generate-regma-allowlist.mjs` is an M-A-only historical
-// generator and refuses to run against this file; append new regulations' rows by hand.
+// HAND-MAINTAINED since M-B; append new regulations' rows by hand. The M-A-only generator
+// (`scripts/generate-regma-allowlist.mjs`) was deleted on 2026-09-23 — it could only rewrite this
+// file wholesale from the M-A payload. Recover it from git history if ever needed.
 //
 // Rows are the *current rule's* eligible pool, one per official `championsFormId`, kept in
 // ascending form-id order within each `reg-m?-` block. The M-C block was diffed row-by-row

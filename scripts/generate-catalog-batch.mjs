@@ -263,7 +263,7 @@ async function fetchPokemonData(entry) {
 
 /**
  * Chinese names PokeAPI cannot supply, keyed by catalog id. Same role (and same manual-verification
- * caveat) as the ZH_FALLBACKS table in scripts/generate-form-catalog.mjs: PokeAPI has no `zh-hans`
+ * caveat) as the ZH_FALLBACKS table in scripts/archive/generate-form-catalog.mjs: PokeAPI has no `zh-hans`
  * entry in these forms' `form_names`, so without an override both Squawkabilly plumages would get
  * the bare species name `怒鹦哥` and be indistinguishable in the Dex.
  */
@@ -273,7 +273,7 @@ const ZH_FALLBACKS = {
 };
 
 /**
- * Chinese display name. Mirrors scripts/generate-form-catalog.mjs so form rows produced here read
+ * Chinese display name. Mirrors scripts/archive/generate-form-catalog.mjs so form rows produced here read
  * the same as the ones in catalog-forms.ts (`雷丘（阿罗拉的样子）`, `南瓜怪人（特大）`, ...).
  */
 function buildChineseName(speciesZhName, formNameZh, pokemonId) {
@@ -473,8 +473,8 @@ async function main() {
   // row (`persian-alola` shares dex 53 with `persian`) and would also drop a form row whose sibling
   // lands in the same batch. Rows without `pokemonId` are legacy M-A rows whose id is only knowable
   // after a PokeAPI fetch, so they keep the original dex-number heuristic, including the
-  // `formName` skip that kept unmapped form rows out (those are handled by
-  // scripts/generate-form-catalog.mjs).
+  // `formName` skip that kept unmapped form rows out (those came from the archived
+  // scripts/archive/generate-form-catalog.mjs; catalog-forms.ts is hand-maintained since).
   const candidates = allowlist.filter((e) => {
     if (e.pokemonId) return !existingPokeIds.has(e.pokemonId);
     if (e.formName) return false;

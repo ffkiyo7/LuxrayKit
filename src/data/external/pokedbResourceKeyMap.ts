@@ -1,4 +1,6 @@
-// Generated from PokeAPI numeric resource keys; used only for PokeDB key mapping.
+// HAND-MAINTAINED (no generator script): PokeDB numeric move / ability keys → catalog ids, keyed
+// by PokeAPI resource numbers. Used only for PokeDB key mapping; add a row when the Worker audit
+// reports an unknown key.
 export const pokedbMoveKeyToId: Record<number, string> = {
   1: 'pound',
   7: 'fire-punch',

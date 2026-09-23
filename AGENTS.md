@@ -13,7 +13,7 @@
 
 ## 2. 部署与数据红线
 
-- **push `main` 即上线**：部署只走 Cloudflare Workers Builds，`main` 无分支保护。GitHub Actions 只做 CI 与 daily auto-merge，不部署；auto-merge 仅限 `automation/pokedb-environment-refresh` 与 `automation/vgcpastes-team-refresh` 两个分支的纯数据 PR。
+- **合并进 `main` 即上线**：部署只走 Cloudflare Workers Builds。`main` 由 ruleset 保护（只能经 PR 合并，必需 check 为 test 与 visual）。GitHub Actions 只做 CI 与 daily auto-merge，不部署；auto-merge 仅限 `automation/pokedb-environment-refresh` 与 `automation/vgcpastes-team-refresh` 两个分支、且只改生成数据文件的 PR。
 - **preview 与生产共享同一 KV namespace**：在 preview 上一律把 KV 当生产数据，只读。
 - **IndexedDB 库名 `pokemon-champions-assistant` 永不可改**（改名 = 老用户本地数据全丢）。
 
