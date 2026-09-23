@@ -203,7 +203,14 @@ async function buildCurrentSeasonSnapshot(tools, detailLimit, fetcher, pageWait,
           samples = buildTeamSamples(payload, battleType);
           console.log(`Fetched ${battleType} team samples from ${payload.season}: ${samples.length}.`);
         } catch (error) {
-          console.warn(`Team sample refresh failed for ${battleType}: ${error instanceof Error ? error.message : String(error)}`);
+          const message = error instanceof Error ? error.message : String(error);
+          // Only "this season published no teams" is a reason to look one season further back. A
+          // 403 / timeout used to be swallowed the same way, walk down to M-1 and write `[]` over
+          // the committed samples — and exit 0, so the empty snapshot could be auto-merged.
+          if (!message.includes('has no public trainer teams')) {
+            throw new Error(`Team sample refresh failed for ${battleType} season M-${season}: ${message}`);
+          }
+          console.warn(`No public ${battleType} trainer teams in M-${season}; trying the season before.`);
         }
       }
       teamSampleEntries.push([battleType, samples]);
