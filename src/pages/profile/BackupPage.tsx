@@ -48,6 +48,9 @@ export function BackupPage({ onBack, onGoToTeams }: { onBack: () => void; onGoTo
     try {
       await applyImport(await readBackupFile(picked));
       setPicked(null);
+    } catch {
+      // replaceTeams writes before it shows anything, so a failed write leaves this device as it was.
+      setOutcome({ tone: 'danger', title: '导入没有完成', body: '本机存储写入失败（可能是空间不足）。本机数据没有变化。' });
     } finally {
       setImporting(false);
       if (inputRef.current) inputRef.current.value = '';

@@ -54,24 +54,56 @@ const openDb = () =>
     request.onerror = () => reject(request.error);
   });
 
-const runStore = async <T>(
-  storeName: StoreName,
+/**
+ * Runs `work` in one transaction and settles only when the transaction does. A request's
+ * `onsuccess` is not durability: a quota failure surfaces at commit time as an `abort` event, so
+ * resolving on the request would report a save that is then rolled back. If `work` throws (an
+ * invalid key makes `put` throw synchronously), the transaction is aborted, so nothing it already
+ * queued — a `clear()` in particular — gets committed.
+ */
+const runTransaction = async <T>(
+  storeNames: StoreName | StoreName[],
   mode: IDBTransactionMode,
-  operation: (store: IDBObjectStore) => IDBRequest<T>,
+  work: (transaction: IDBTransaction) => () => T,
 ) => {
   const db = await openDb();
   return new Promise<T>((resolve, reject) => {
-    const transaction = db.transaction(storeName, mode);
-    const request = operation(transaction.objectStore(storeName));
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-    transaction.oncomplete = () => db.close();
-    transaction.onerror = () => {
+    const transaction = db.transaction(storeNames, mode);
+    let settled = false;
+    const fail = (error: unknown) => {
+      if (settled) return;
+      settled = true;
       db.close();
-      reject(transaction.error);
+      reject(error ?? new Error('IndexedDB transaction aborted.'));
     };
+    let readResult: () => T;
+    try {
+      readResult = work(transaction);
+    } catch (error) {
+      try {
+        transaction.abort();
+      } catch {
+        // Already finished; the error below is still the one to report.
+      }
+      fail(error);
+      return;
+    }
+    transaction.oncomplete = () => {
+      if (settled) return;
+      settled = true;
+      db.close();
+      resolve(readResult());
+    };
+    transaction.onerror = () => fail(transaction.error);
+    transaction.onabort = () => fail(transaction.error);
   });
 };
+
+const runStore = <T>(storeName: StoreName, mode: IDBTransactionMode, operation: (store: IDBObjectStore) => IDBRequest<T>) =>
+  runTransaction(storeName, mode, (transaction) => {
+    const request = operation(transaction.objectStore(storeName));
+    return () => request.result;
+  });
 
 const teamOrderValue = (team: Team, fallbackIndex: number) =>
   typeof team.sortOrder === 'number' && Number.isFinite(team.sortOrder) ? team.sortOrder : fallbackIndex;
@@ -141,40 +173,24 @@ export const repository = {
     return runStore<IDBValidKey>(META_STORE, 'readwrite', (store) => store.put({ key: 'preferences', value: preferences }));
   },
 
-  async replaceTeams(teams: Team[]) {
-    const db = await openDb();
-    return new Promise<void>((resolve, reject) => {
-      const transaction = db.transaction(TEAM_STORE, 'readwrite');
+  // All-or-nothing: the clear and every put share one transaction, and a put that throws aborts
+  // it (see runTransaction), so a bad row in an import can never leave the store emptied.
+  replaceTeams(teams: Team[]) {
+    return runTransaction<void>(TEAM_STORE, 'readwrite', (transaction) => {
       const store = transaction.objectStore(TEAM_STORE);
       store.clear();
       teams.forEach((team) => store.put(team));
-      transaction.oncomplete = () => {
-        db.close();
-        resolve();
-      };
-      transaction.onerror = () => {
-        db.close();
-        reject(transaction.error);
-      };
+      return () => undefined;
     });
   },
 
-  async clearAll() {
-    const db = await openDb();
-    return new Promise<void>((resolve, reject) => {
-      const transaction = db.transaction([TEAM_STORE, META_STORE], 'readwrite');
+  clearAll() {
+    return runTransaction<void>([TEAM_STORE, META_STORE], 'readwrite', (transaction) => {
       transaction.objectStore(TEAM_STORE).clear();
       const metaStore = transaction.objectStore(META_STORE);
       metaStore.clear();
       metaStore.put({ key: 'initialized', value: true });
-      transaction.oncomplete = () => {
-        db.close();
-        resolve();
-      };
-      transaction.onerror = () => {
-        db.close();
-        reject(transaction.error);
-      };
+      return () => undefined;
     });
   },
 };
