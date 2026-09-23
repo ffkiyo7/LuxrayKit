@@ -159,6 +159,21 @@ export function SideEditorPage({
     );
   }
 
+  // Same rule as the team editor's chooseForm (N03-14): a form brings its own ability, and a Mega
+  // brings its stone. Only the form id used to change, so Mega Charizard Y kept 猛火 and never
+  // set sun, and the result card silently computed the wrong number.
+  const chooseForm = (formId: string | undefined) => {
+    if (!entry) return;
+    const nextForm = formId ? findBattleForm(entry.id, formId) : undefined;
+    const wasStone = config.itemId ? allItems.find((candidate) => candidate.id === config.itemId)?.isMegaStone : false;
+    onChange({
+      ...config,
+      formId,
+      abilityId: nextForm?.abilities[0] ?? entry.abilities[0],
+      itemId: nextForm?.requiredItemId ?? (wasStone ? undefined : config.itemId),
+    });
+  };
+
   const natureOption = currentRuleNatureOptions.find((option) => config.nature.includes(option.id));
   const natureMarker = (key: StatKey): 'up' | 'down' | null => {
     if (!natureOption || natureOption.neutral) return null;
@@ -198,11 +213,11 @@ export function SideEditorPage({
         <>
           <SectionLabel className="px-6 pt-6">形态</SectionLabel>
           <div className="mt-2.5 flex gap-2 overflow-x-auto px-6">
-            <Pill height={32} selected={(config.formId ?? entry.id) === entry.id} onClick={() => onChange({ ...config, formId: undefined })}>
+            <Pill height={32} selected={(config.formId ?? entry.id) === entry.id} onClick={() => chooseForm(undefined)}>
               普通
             </Pill>
             {entry.megaForms.map((form) => (
-              <Pill key={form.id} height={32} selected={config.formId === form.id} onClick={() => onChange({ ...config, formId: form.id })}>
+              <Pill key={form.id} height={32} selected={config.formId === form.id} onClick={() => chooseForm(form.id)}>
                 {form.chineseName}
               </Pill>
             ))}

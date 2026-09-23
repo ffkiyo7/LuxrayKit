@@ -93,6 +93,63 @@ export function configuredMaxLagDays(value = process.env.STATIC_SNAPSHOT_MAX_LAG
   return Number.isFinite(parsed) && parsed >= 0 ? parsed : DEFAULT_STATIC_SNAPSHOT_MAX_LAG_DAYS;
 }
 
+/**
+ * Gate reasons under which the Worker itself is healthy and only the committed static file is old.
+ * Then the static file is copied from the Worker's own snapshot instead of crawling PokeDB: the
+ * Worker already crawled and audited exactly this data, and PokeDB answers the VPS (an AWS address)
+ * with 403, so a crawl from there cannot succeed anyway.
+ */
+const WORKER_HEALTHY_REASONS = new Set(['static-snapshot-lagging', 'static-snapshot-unreadable']);
+
+export const canCopyFromWorker = (reason) => WORKER_HEALTHY_REASONS.has(reason);
+
+const AUDIT_UNKNOWN_FIELDS = ['unknownPokemonKeys', 'unknownItemNames', 'unknownMoveKeys', 'unknownAbilityKeys', 'unknownNatureNames'];
+
+export function snapshotUnknownCount(snapshot) {
+  return Object.values(snapshot?.battles ?? {}).reduce(
+    (total, battle) =>
+      total + AUDIT_UNKNOWN_FIELDS.reduce((sum, field) => sum + (Array.isArray(battle?.audit?.[field]) ? battle.audit[field].length : 0), 0),
+    0,
+  );
+}
+
+/**
+ * What a static snapshot must satisfy before it is committed, whichever way it was produced. This
+ * is the same zero-tolerance line the Worker's audit holds for KV: an unknown name means a missing
+ * hand-written mapping (src/data/external/pokedb*Map.ts), and the rows it touches would be dropped
+ * from the rankings the fallback serves.
+ */
+export function assertPublishableSnapshot(snapshot) {
+  const problems = [];
+  for (const battleType of ['singles', 'doubles']) {
+    const battle = snapshot?.battles?.[battleType];
+    if (!battle) problems.push(`missing battles.${battleType}`);
+    else if (!Array.isArray(battle.pokemonUsage) || battle.pokemonUsage.length === 0) problems.push(`battles.${battleType} has no rankings`);
+  }
+  const unknown = snapshotUnknownCount(snapshot);
+  if (unknown > 0) problems.push(`${unknown} unknown audit entr${unknown === 1 ? 'y' : 'ies'} (add the missing name mappings first)`);
+  if (problems.length > 0) throw new Error(`Refusing to publish the static snapshot: ${problems.join('; ')}.`);
+}
+
+/** The Worker's current snapshot, validated, serialized exactly as update-pokedb-environment writes. */
+export async function fetchWorkerSnapshotText({
+  fetcher = fetch,
+  url = process.env.LUXRAYKIT_ENVIRONMENT_LATEST_URL ?? DEFAULT_ENVIRONMENT_LATEST_URL,
+  timeoutMs = Number(process.env.LUXRAYKIT_WORKER_HEALTH_TIMEOUT_MS ?? 15_000),
+} = {}) {
+  const response = await fetcher(`${url}?static-copy=${Date.now()}`, {
+    cache: 'no-store',
+    headers: { Accept: 'application/json' },
+    signal: AbortSignal.timeout(timeoutMs),
+  });
+  if (!response.ok) throw new Error(`Worker snapshot request returned ${response.status}.`);
+  const workerStatus = response.headers.get('x-luxray-worker-status');
+  if (workerStatus !== 'ok') throw new Error(`Worker reports status "${workerStatus ?? 'missing'}"; not copying its snapshot.`);
+  const snapshot = await response.json();
+  assertPublishableSnapshot(snapshot);
+  return `${JSON.stringify(snapshot)}\n`;
+}
+
 export async function checkWorkerEnvironmentHealth({
   fetcher = fetch,
   url = process.env.LUXRAYKIT_ENVIRONMENT_LATEST_URL ?? DEFAULT_ENVIRONMENT_LATEST_URL,

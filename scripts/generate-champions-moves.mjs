@@ -262,6 +262,8 @@ const MANUAL_ZH = {
   },
 };
 
+const enrichmentFailures = [];
+
 async function enrichMove(move) {
   const normKey = normalizeMoveName(move.englishName);
   const manualOverride = MANUAL_ZH[move.id];
@@ -288,6 +290,10 @@ async function enrichMove(move) {
       pp: data.pp ?? move.pp,
     };
   } catch (error) {
+    // The fallback below guesses targetScope / affectedByProtect, which damageAdapter reads for the
+    // doubles spread modifier, while the name/effect check further down still passes (those come
+    // from 42arch). So a transient PokeAPI error must fail the run instead of writing the guess.
+    enrichmentFailures.push(move.id);
     console.warn(`WARN could not enrich move ${move.id}: ${error.message}`);
     const chineseName = zhEntry?.name_zh ? cleanChineseText(zhEntry.name_zh) : undefined;
     const effectSummary = zhEntry?.description ? cleanChineseText(zhEntry.description) : undefined;
@@ -443,7 +449,12 @@ if (englishEffects.length > 0) {
   console.error(`\nERROR: ${englishEffects.length} moves have English or missing effectSummary:`);
   console.error(englishEffects.join(', '));
 }
-if (englishNames.length > 0 || englishEffects.length > 0) {
+if (enrichmentFailures.length > 0) {
+  console.error(`\nERROR: ${enrichmentFailures.length} moves could not be enriched from PokeAPI (target / protect would be guessed):`);
+  console.error(enrichmentFailures.join(', '));
+  console.error('Nothing was written. Re-run once PokeAPI answers.');
+}
+if (englishNames.length > 0 || englishEffects.length > 0 || enrichmentFailures.length > 0) {
   process.exit(1);
 }
 

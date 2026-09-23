@@ -578,6 +578,9 @@ export function TypeChartPage({ environment }: { environment: EnvironmentState |
       if (secondary === type) setSecondary(primary);
       setPrimary(type);
       recordToolResult({ tool: 'typeChart', type });
+    } else if (primary === type && !secondary) {
+      // Nothing to swap with: the pick would read [龙, 龙] and square every multiplier. Picking the
+      // primary's own type for an empty second slot just leaves the single type in place.
     } else {
       if (primary === type) setPrimary(secondary ?? primary);
       setSecondary(type);

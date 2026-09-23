@@ -38,6 +38,16 @@ const weatherOptions: Array<{ id: string; note?: string }> = [
 
 const buildBlankCalcConfig = (role: CalcSide): CalcSideConfig => buildTemporaryCalcConfig({ pokemonId: '', role });
 
+const PHYSICAL_DEFENSE_SPECIAL_MOVES = new Set(['psyshock', 'psystrike', 'secret-sword']);
+
+const usedStatsForMove = (move: { id: string; category: string } | undefined) => {
+  const special = move?.category === 'Special';
+  const attackKey = move?.id === 'body-press' ? 'defense' : special ? 'specialAttack' : 'attack';
+  const defenseKey = special && !PHYSICAL_DEFENSE_SPECIAL_MOVES.has(move?.id ?? '') ? 'specialDefense' : 'defense';
+  const label = { attack: '攻击', defense: '防御', specialAttack: '特攻', specialDefense: '特防' } as const;
+  return { attackKey, attackLabel: label[attackKey], defenseKey, defenseLabel: label[defenseKey] } as const;
+};
+
 export function CalculatorPage({
   selectedMemberId,
   onPickMember,
@@ -128,6 +138,10 @@ export function CalculatorPage({
   }, [presetMember, teams]);
 
   const currentMove = attackerConfig.selectedMoveId ? moves.find((move) => move.id === attackerConfig.selectedMoveId) : undefined;
+  // 代入能力值 shows the two stats the damage formula actually used, not always 攻击 / 防御: a special
+  // move reads 特攻 / 特防, 扑击 (body press) attacks with 防御, and the 精神冲击 family is special
+  // but hits 防御.
+  const usedStats = usedStatsForMove(currentMove);
 
   function pickPokemon(side: CalcSide, pokemonId: string) {
     const firstMove = currentRuleMovesForPokemon(pokemonId).find((move) => move.category !== 'Status');
@@ -318,20 +332,20 @@ export function CalculatorPage({
         <div className="mt-2">
           <ListRow
             height={44}
-            title={<span className="text-[13px] font-semibold text-textSecondary">进攻方 攻击 / 速度</span>}
+            title={<span className="text-[13px] font-semibold text-textSecondary">进攻方 {usedStats.attackLabel} / 速度</span>}
             trailing={
               <span className="shrink-0 text-sm font-extrabold tabular-nums">
-                {damageResult?.attackerStats ? `${damageResult.attackerStats.attack} / ${damageResult.attackerStats.speed}` : '— / —'}
+                {damageResult?.attackerStats ? `${damageResult.attackerStats[usedStats.attackKey]} / ${damageResult.attackerStats.speed}` : '— / —'}
               </span>
             }
           />
           <ListRow
             divider={false}
             height={44}
-            title={<span className="text-[13px] font-semibold text-textSecondary">防守方 HP / 防御</span>}
+            title={<span className="text-[13px] font-semibold text-textSecondary">防守方 HP / {usedStats.defenseLabel}</span>}
             trailing={
               <span className="shrink-0 text-sm font-extrabold tabular-nums">
-                {damageResult?.defenderStats ? `${damageResult.defenderStats.hp} / ${damageResult.defenderStats.defense}` : '— / —'}
+                {damageResult?.defenderStats ? `${damageResult.defenderStats.hp} / ${damageResult.defenderStats[usedStats.defenseKey]}` : '— / —'}
               </span>
             }
           />

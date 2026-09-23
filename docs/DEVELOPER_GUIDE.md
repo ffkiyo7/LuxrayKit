@@ -578,7 +578,15 @@ npm run data:pokedb:environment:pr -- --force  # 忽略 Worker 状态，强制�
 1. **Worker 不健康**：返回 `stale` / `degraded`、非 2xx，或健康检查不可达。
 2. **静态快照落后**（2026-09 新增）：Worker 健康时，比较本地 `public/data/pokedb/reg-ma-environment.json` 的 `battles.*.updatedAt` 最大值与响应头 `x-luxray-latest-source-updated-at`，落后超过 `STATIC_SNAPSHOT_MAX_LAG_DAYS`（默认 7）天就刷新。**为什么需要它**：旧逻辑只在 Worker 出问题时刷新，而 Worker 一直健康就意味着第二层回退永远不更新——线上实测它停在 2026-07-18 的 M-4 数据、赛季已经走到 M-5。本地文件读不到（缺失 / 损坏）同样触发刷新；响应头缺失则**不**触发，不靠猜测启动抓取。
 
-两条都不满足时脚本直接成功退出，正常日只产生一次轻量同源健康检查，不访问 PokeDB。`--force` 保留人工应急刷新能力。需要刷新时，脚本只提交以下两个生成文件，并用 `gh` 创建或更新 PR：
+两条都不满足时脚本直接成功退出，正常日只产生一次轻量同源健康检查，不访问 PokeDB。
+
+**数据从哪来**（2026-09-23 起）：
+- **Worker 健康、只是静态快照落后**（条件 2）：直接复制 Worker 的 `/api/environment/latest` 写成两个静态 JSON，**不访问 PokeDB**。Worker 已经抓取并审计过同一份数据；而 VPS 是 AWS 地址，PokeDB 对它返回 403（换静态 IP 后依旧），在 VPS 上抓取不会成功。复制前要求响应头 `x-luxray-worker-status: ok`。
+- **Worker 不健康**（条件 1）或 `--force`：照旧由 `npm run data:pokedb:environment` 直接抓 PokeDB。注意在 VPS 上这条路径目前会 403 失败，需要时在能访问 PokeDB 的机器上手动跑。
+- 两种来源提交前都要过同一道门禁（`assertPublishableSnapshot`）：singles / doubles 都在且有排行、审计 unknown 为 **0**（与 Worker 零容忍审计同一条线）。不通过就还原生成文件并失败退出，不开 PR。
+- 高分队伍样本抓取时，只有上游明确返回「该赛季没有公开队伍」才会往前一个赛季找；403 / 超时直接失败，不再静默写入空的 `teamSamples`。
+
+需要刷新时，脚本只提交以下两个生成文件，并用 `gh` 创建或更新 PR：
 
 ```text
 src/data/external/pokedb/current_environment_snapshot.json

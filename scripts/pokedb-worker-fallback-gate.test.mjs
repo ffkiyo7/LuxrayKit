@@ -3,8 +3,12 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 import {
+  assertPublishableSnapshot,
+  canCopyFromWorker,
   checkWorkerEnvironmentHealth,
   configuredMaxLagDays,
+  fetchWorkerSnapshotText,
+  snapshotUnknownCount,
   evaluateStaticSnapshotLag,
   evaluateWorkerEnvironmentHealth,
   parsePokeDbSourceTime,
@@ -159,5 +163,41 @@ describe('static fallback freshness', () => {
       sourceStatus: 'ok',
       latestSourceUpdatedAt: '2026-09-05 23:58:00',
     });
+  });
+});
+
+const battle = (audit = {}) => ({ pokemonUsage: [{ pokemonId: 'garchomp' }], audit });
+const publishable = { battles: { singles: battle(), doubles: battle() } };
+
+describe('static snapshot source and publish gate', () => {
+  it('copies from the Worker only when the Worker itself is healthy', () => {
+    expect(canCopyFromWorker('static-snapshot-lagging')).toBe(true);
+    expect(canCopyFromWorker('static-snapshot-unreadable')).toBe(true);
+    // Worker trouble is exactly when its snapshot must not be trusted: crawl instead.
+    expect(canCopyFromWorker('worker-cache-stale')).toBe(false);
+    expect(canCopyFromWorker('worker-health-check-failed')).toBe(false);
+  });
+
+  it('refuses a snapshot with unknown names or a missing battle type', () => {
+    expect(() => assertPublishableSnapshot(publishable)).not.toThrow();
+    const withUnknown = { battles: { singles: battle({ unknownItemNames: ['ペンドラナイト'] }), doubles: battle() } };
+    expect(snapshotUnknownCount(withUnknown)).toBe(1);
+    expect(() => assertPublishableSnapshot(withUnknown)).toThrow('1 unknown audit entry');
+    expect(() => assertPublishableSnapshot({ battles: { singles: battle() } })).toThrow('missing battles.doubles');
+    expect(() => assertPublishableSnapshot({ battles: { singles: battle(), doubles: { pokemonUsage: [] } } })).toThrow(
+      'battles.doubles has no rankings',
+    );
+  });
+
+  it('serializes the Worker body the way the crawler writes it, and only from a healthy Worker', async () => {
+    const ok = vi.fn(async () =>
+      new Response(JSON.stringify(publishable), { status: 200, headers: { 'x-luxray-worker-status': 'ok' } }),
+    );
+    await expect(fetchWorkerSnapshotText({ fetcher: ok, timeoutMs: 1000 })).resolves.toBe(`${JSON.stringify(publishable)}\n`);
+
+    const degraded = vi.fn(async () =>
+      new Response(JSON.stringify(publishable), { status: 200, headers: { 'x-luxray-worker-status': 'degraded' } }),
+    );
+    await expect(fetchWorkerSnapshotText({ fetcher: degraded, timeoutMs: 1000 })).rejects.toThrow('degraded');
   });
 });

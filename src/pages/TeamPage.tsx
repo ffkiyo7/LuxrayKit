@@ -174,19 +174,27 @@ export function TeamPage({
     setShowPicker(false);
   };
 
+  // A double tap on 建立 (or Enter plus a tap) used to create two identically named teams: the
+  // sheet stays open until the write resolves. The ref is synchronous, unlike state.
+  const nameSubmittingRef = useRef(false);
   const confirmName = async () => {
     const name = nameDraft.trim().slice(0, TEAM_NAME_MAX_LENGTH);
-    if (!name || !nameSheet) return;
-    if (nameSheet.mode === 'create') {
-      const team = await addTeam(name);
-      onActiveTeamChange(team.id);
-      navigate({ name: 'team-detail', teamId: team.id });
-      setExpandedMemberId(null);
-    } else {
-      const team = teams.find((candidate) => candidate.id === nameSheet.teamId);
-      if (team && name !== team.name) await saveTeam({ ...team, name });
+    if (!name || !nameSheet || nameSubmittingRef.current) return;
+    nameSubmittingRef.current = true;
+    try {
+      if (nameSheet.mode === 'create') {
+        const team = await addTeam(name);
+        onActiveTeamChange(team.id);
+        navigate({ name: 'team-detail', teamId: team.id });
+        setExpandedMemberId(null);
+      } else {
+        const team = teams.find((candidate) => candidate.id === nameSheet.teamId);
+        if (team && name !== team.name) await saveTeam({ ...team, name });
+      }
+      setNameSheet(null);
+    } finally {
+      nameSubmittingRef.current = false;
     }
-    setNameSheet(null);
   };
 
   const confirmDeleteTeam = async () => {
@@ -206,11 +214,18 @@ export function TeamPage({
     setPendingDeleteTeamId(null);
   };
 
+  const duplicatingRef = useRef(false);
   const confirmDuplicate = async (team: Team) => {
-    const copy = duplicateTeam(team);
-    await saveTeam(copy);
-    setMenuTeamId(null);
-    onActiveTeamChange(copy.id);
+    if (duplicatingRef.current) return;
+    duplicatingRef.current = true;
+    try {
+      const copy = duplicateTeam(team);
+      await saveTeam(copy);
+      setMenuTeamId(null);
+      onActiveTeamChange(copy.id);
+    } finally {
+      duplicatingRef.current = false;
+    }
   };
 
   // A member-editor deep link whose member has since been removed lands on its team instead of
@@ -363,13 +378,16 @@ export function TeamPage({
           member={editingMember}
           memberIndex={editingMemberIndex}
           team={editorTeam}
-          onClose={() => navigate({ name: 'team-detail', teamId: editorTeam.id })}
+          // Pop, not push: pushing the detail page again left [detail, editor, detail] on the stack,
+          // so the detail page's own 返回 walked back into the editor and the two looped. `back()`
+          // falls through to the parent route when the editor was opened from a cold deep link.
+          onClose={back}
           onOpenCalculator={() => onSendToCalculator(editingMember.id, 'attacker')}
           onOpenSpeed={() => onSendToSpeed(editingMember.id)}
           onDelete={async () => {
             await saveTeam({ ...editorTeam, members: editorTeam.members.filter((entry) => entry.id !== editingMember.id) });
             setExpandedMemberId((current) => (current === editingMember.id ? null : current));
-            navigate({ name: 'team-detail', teamId: editorTeam.id });
+            back();
           }}
           onSave={async (members, transfer) => {
             await saveTeam({ ...editorTeam, members });
