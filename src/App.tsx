@@ -1,5 +1,6 @@
 import { ArrowLeft, BarChart3, Import, UserCircle, Users, Wrench, X } from 'lucide-react';
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useDialogFocus } from './hooks/useDialogFocus';
 import { AutoHideBottomNav } from './components/BottomNav';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ServiceWorkerUpdateToast } from './components/ServiceWorkerUpdateToast';
@@ -114,6 +115,8 @@ function ImportCoverageNoticeDialog({
   onCancel: () => void;
   onContinue: () => void;
 }) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useDialogFocus(dialogRef, onCancel);
   const itemCount = sample.slots.filter((slot) => slot.itemId).length;
   const spreadCount = sample.slots.filter((slot) => Object.keys(slot.statPoints ?? {}).length > 0).length;
   const moveCount = sample.slots.filter((slot) => slot.moveIds.length > 0).length;
@@ -125,7 +128,15 @@ function ImportCoverageNoticeDialog({
   ].join(' · ');
 
   return (
-    <div className="fixed inset-0 z-50 mx-auto max-w-[430px]" role="dialog" aria-label="导入确认" aria-modal="true" data-bottom-nav-lock="true">
+    <div
+      ref={dialogRef}
+      className="fixed inset-0 z-50 mx-auto max-w-[430px] outline-none"
+      role="dialog"
+      aria-label="导入确认"
+      aria-modal="true"
+      data-bottom-nav-lock="true"
+      tabIndex={-1}
+    >
       <button className="lk-sheet-overlay absolute inset-0 h-full w-full" type="button" aria-label="关闭导入确认" onClick={onCancel} />
       <section className="lk-sheet absolute inset-x-4 top-1/2 -translate-y-1/2 rounded-[20px] p-[22px]">
         <div className="flex items-start gap-3">

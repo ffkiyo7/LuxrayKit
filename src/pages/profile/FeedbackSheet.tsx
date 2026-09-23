@@ -1,5 +1,6 @@
 import { AtSign, Send, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { useDialogFocus } from '../../hooks/useDialogFocus';
 import { currentDataVersion } from '../../data';
 
 /**
@@ -88,6 +89,8 @@ export function FeedbackSheet({ onClose, route = '/profile' }: { onClose: () => 
   // Honeypot. Kept in state (not a ref) so it is sent verbatim with the body: a bot that
   // fills every input gets a fake success, and nothing is written server-side.
   const [website, setWebsite] = useState('');
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useDialogFocus(dialogRef, onClose);
   const messageRef = useRef<HTMLTextAreaElement>(null);
   const online = useOnlineStatus();
 
@@ -169,7 +172,15 @@ export function FeedbackSheet({ onClose, route = '/profile' }: { onClose: () => 
         : { background: 'rgb(var(--color-text-primary) / 0.06)' };
 
   return (
-    <div className="fixed inset-0 z-50 mx-auto max-w-[430px]" role="dialog" aria-label="写留言" aria-modal="true" data-bottom-nav-lock="true">
+    <div
+      ref={dialogRef}
+      className="fixed inset-0 z-50 mx-auto max-w-[430px] outline-none"
+      role="dialog"
+      aria-label="写留言"
+      aria-modal="true"
+      data-bottom-nav-lock="true"
+      tabIndex={-1}
+    >
       <button className="lk-sheet-overlay absolute inset-0 h-full w-full" type="button" aria-label="关闭留言" onClick={onClose} />
       <section className="lk-sheet--deep absolute inset-x-0 bottom-0 max-h-[88vh] overflow-y-auto rounded-t-3xl px-5 pb-[calc(28px+env(safe-area-inset-bottom))] pt-3.5">
         <span className="mx-auto mb-4 block h-1 w-[38px] rounded-full bg-textPrimary/20" />

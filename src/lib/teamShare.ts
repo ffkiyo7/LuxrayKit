@@ -104,11 +104,43 @@ const deflate = async (bytes: Uint8Array): Promise<Uint8Array | null> => {
   }
 };
 
+/**
+ * A full team is well under 1 KB of text (60-char name, six members of short ids). Both caps
+ * leave an order of magnitude of headroom and only exist so a crafted link cannot make the page
+ * inflate megabytes: deflate reaches ~1000:1, so a URL-sized code could otherwise decode to
+ * hundreds of MB before any field is checked.
+ */
+export const MAX_TEAM_SHARE_CODE_LENGTH = 4096;
+export const MAX_TEAM_SHARE_PAYLOAD_BYTES = 16 * 1024;
+
 const inflate = async (bytes: Uint8Array): Promise<Uint8Array> => {
   if (typeof DecompressionStream === 'undefined') {
     throw new TeamShareDecodeError('当前浏览器不支持解压这种分享链接。');
   }
-  return streamThrough(bytes, new DecompressionStream('deflate-raw'));
+  const reader = new Blob([bytes as BlobPart])
+    .stream()
+    .pipeThrough(new DecompressionStream('deflate-raw') as unknown as ReadableWritablePair<Uint8Array, Uint8Array>)
+    .getReader();
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  // Read chunk by chunk and stop at the cap, instead of buffering whatever the stream produces.
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    size += value.byteLength;
+    if (size > MAX_TEAM_SHARE_PAYLOAD_BYTES) {
+      await reader.cancel().catch(() => undefined);
+      throw new TeamShareDecodeError('分享链接内容过大，不是有效的队伍分享。');
+    }
+    chunks.push(value);
+  }
+  const output = new Uint8Array(size);
+  let offset = 0;
+  for (const chunk of chunks) {
+    output.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return output;
 };
 
 const serializeStatPoints = (statPoints: StatPoints) => {
@@ -254,6 +286,7 @@ const decodeMember = (record: string, index: number, warnings: string[]): TeamMe
 export async function decodeTeamShare(code: string): Promise<DecodedTeamShare> {
   const trimmed = (code ?? '').trim();
   if (!trimmed) throw new TeamShareDecodeError('分享链接为空。');
+  if (trimmed.length > MAX_TEAM_SHARE_CODE_LENGTH) throw new TeamShareDecodeError('分享链接内容过大，不是有效的队伍分享。');
 
   const prefix = trimmed.slice(0, 2);
   const body = trimmed.slice(2);

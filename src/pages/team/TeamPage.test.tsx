@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import 'fake-indexeddb/auto';
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { App } from '../../App';
@@ -274,6 +274,49 @@ describe('TeamPage', () => {
     expect(await screen.findByRole('heading', { name: '甲队' })).toBeTruthy();
     const state = await repository.loadState();
     expect(state.teams[0].members[0].statPoints.speed).toBe(32);
+  });
+
+  it('asks before the hardware back button throws a draft away, and keeps asking', async () => {
+    await repository.replaceTeams([team('team-alpha', '甲队', [member()])]);
+    const user = await renderTeamDetail('team-alpha');
+    await openMemberEditor(user, '烈咬陆鲨');
+    fireEvent.change(screen.getByRole('slider', { name: '速度 SP' }), { target: { value: '8' } });
+
+    act(() => window.history.back());
+    const discard = await screen.findByRole('dialog', { name: '放弃改动确认' });
+    expect(window.location.hash).toBe('#/teams/team-alpha/members/member-garchomp');
+    await user.click(within(discard).getByRole('button', { name: '继续编辑' }));
+
+    // A second press asks again rather than leaving: the guard entry went back on.
+    act(() => window.history.back());
+    await user.click(within(await screen.findByRole('dialog', { name: '放弃改动确认' })).getByRole('button', { name: '放弃' }));
+    expect(await screen.findByRole('heading', { name: '甲队' })).toBeTruthy();
+    expect(window.location.hash).toBe('#/teams/team-alpha');
+  });
+
+  it('closes a picker on hardware back and keeps what was already changed', async () => {
+    await repository.replaceTeams([team('team-alpha', '甲队', [member()])]);
+    const user = await renderTeamDetail('team-alpha');
+    await openMemberEditor(user, '烈咬陆鲨');
+    fireEvent.change(screen.getByRole('slider', { name: '速度 SP' }), { target: { value: '8' } });
+
+    await user.click(screen.getByRole('button', { name: '选择道具' }));
+    await screen.findByLabelText('搜索道具名');
+    act(() => window.history.back());
+
+    expect(await screen.findByRole('heading', { name: '编辑配置' })).toBeTruthy();
+    expect(screen.queryByRole('dialog', { name: '放弃改动确认' })).toBeNull();
+    expect((screen.getByRole('slider', { name: '速度 SP' }) as HTMLInputElement).value).toBe('8');
+  });
+
+  it('leaves at once on hardware back when nothing changed', async () => {
+    await repository.replaceTeams([team('team-alpha', '甲队', [member()])]);
+    const user = await renderTeamDetail('team-alpha');
+    await openMemberEditor(user, '烈咬陆鲨');
+
+    act(() => window.history.back());
+    expect(await screen.findByRole('heading', { name: '甲队' })).toBeTruthy();
+    expect(screen.queryByRole('dialog', { name: '放弃改动确认' })).toBeNull();
   });
 
   it('removes a member only after 02-14 confirms it', async () => {

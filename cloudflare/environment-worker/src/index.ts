@@ -1670,6 +1670,37 @@ async function handlePokemonTeams(url: URL, env: AppEnv, pokemonId: string) {
  * Every invalid body is dropped silently with the same 204 a good one gets: this endpoint has
  * no failure mode worth telling a client about, and a chatty 4xx would only invite probing.
  */
+/**
+ * Read a request body as text, but never more than `maxBytes` of it: a declared Content-Length
+ * over the cap is refused unread, and a chunked body is cut off as soon as it passes the cap,
+ * so an oversized POST costs one chunk of memory instead of all of it. `null` = too large.
+ */
+export async function readBodyCapped(request: Request, maxBytes: number): Promise<string | null> {
+  const declared = Number(request.headers.get('content-length'));
+  if (Number.isFinite(declared) && declared > maxBytes) return null;
+  if (!request.body) return '';
+  const reader = request.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    size += value.byteLength;
+    if (size > maxBytes) {
+      await reader.cancel().catch(() => undefined);
+      return null;
+    }
+    chunks.push(value);
+  }
+  const bytes = new Uint8Array(size);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return new TextDecoder().decode(bytes);
+}
+
 const PING_ROUTE_PATTERNS = new Set(routePatterns);
 const MAX_PING_ROUTE_LENGTH = 64;
 const MAX_PING_BODY_BYTES = 512;
@@ -1691,8 +1722,8 @@ async function handlePing(request: Request, env: AppEnv): Promise<Response> {
 
   let payload: PingPayload | null = null;
   try {
-    const body = await request.text();
-    if (body.length > MAX_PING_BODY_BYTES) return discard();
+    const body = await readBodyCapped(request, MAX_PING_BODY_BYTES);
+    if (body === null) return discard();
     payload = parsePingPayload(JSON.parse(body));
   } catch {
     return discard();
@@ -1734,10 +1765,29 @@ const feedbackStub = (env: AppEnv) => {
 const feedbackUnavailable = (env: AppEnv) =>
   jsonResponse(env, { error: 'feedback_unavailable' }, { status: 503, headers: noStore });
 
-async function handleFeedbackSubmit(request: Request, env: AppEnv, ctx: ExecutionContext): Promise<Response> {
-  const body = await request.text();
-  // Byte length, not string length: 1000 CJK characters are ~3 KB of UTF-8.
-  if (new TextEncoder().encode(body).length > MAX_FEEDBACK_BODY_BYTES) {
+/**
+ * The in-app sheet posts from the same origin. A browser always sends Origin on POST, so a
+ * different one is another site making its visitors submit on its behalf — which would also
+ * spread the spam across their IPs and past the per-client rate limit. No Origin at all is a
+ * non-browser client, which could forge the header anyway; the rate limit handles those.
+ */
+const isCrossSiteBrowserPost = (request: Request, url: URL) => {
+  const origin = request.headers.get('origin');
+  return origin !== null && origin !== url.origin;
+};
+
+async function handleFeedbackSubmit(request: Request, env: AppEnv, ctx: ExecutionContext, url: URL): Promise<Response> {
+  if (isCrossSiteBrowserPost(request, url)) {
+    return jsonResponse(env, { error: 'feedback_forbidden_origin' }, { status: 403, headers: noStore });
+  }
+  // JSON only. Also keeps the endpoint out of reach of plain HTML forms, which can only send
+  // form-encoded or text/plain bodies without a CORS preflight.
+  if (!(request.headers.get('content-type') ?? '').toLowerCase().startsWith('application/json')) {
+    return jsonResponse(env, { error: 'feedback_unsupported_media_type' }, { status: 415, headers: noStore });
+  }
+  // Byte cap, not string length: 1000 CJK characters are ~3 KB of UTF-8.
+  const body = await readBodyCapped(request, MAX_FEEDBACK_BODY_BYTES);
+  if (body === null) {
     return jsonResponse(env, { error: 'feedback_too_large' }, { status: 413, headers: noStore });
   }
 
@@ -1894,7 +1944,7 @@ export default {
     }
 
     if (url.pathname === '/api/feedback') {
-      if (request.method === 'POST') return handleFeedbackSubmit(request, env, ctx);
+      if (request.method === 'POST') return handleFeedbackSubmit(request, env, ctx, url);
       if (request.method === 'GET') return handleFeedbackList(request, env, url);
     }
 

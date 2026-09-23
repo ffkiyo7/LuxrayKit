@@ -143,6 +143,11 @@ main.tsx
   - `navigate()` 用 `pushState` / `replaceState` 而不是赋值 `location.hash`：这样能把深度计数写进 `history.state`，且状态更新是同步的。仍然订阅 `hashchange` + `popstate`，所以浏览器前进/后退、Android 物理返回键、以及测试里直接改 `window.location.hash` 都能同步。
   - `back()` 只在 `history.state.lkDepth > 0`（下面那条确实是本 app 压的）时调 `history.back()`；否则 `replace` 到父路由。**冷启动打开深链后点「返回」不会跳出站外**，这是这套深度计数存在的唯一理由。
 - **只有「去哪个页面」进 URL**。筛选、搜索框、`battleType` 切换、成员编辑器 / 选人弹窗 / 命名弹窗、以及队伍成员「带入」工具的预设（`calcPreset` / `speedPresetMemberId` / `calculatorMemberId`，都带本地成员 id）一律留在内存 state。
+  - **例外：成员编辑器**用 `hooks/useHistoryLayer.ts` 压**同 URL** 的历史记录（`lkDepth + 1`），让物理返回键不会直接弹出编辑器路由、丢掉未保存的草稿：
+    - **守卫层**：编辑器一打开就压一条（不是等到第一次改动才压，这样选择页总叠在它上面，不会出现 push 与未完成的 pop 竞争）。返回键弹出它时，有改动 → 弹「放弃改动确认」并重新压回（再按一次还是问）；没改动 → 直接离开。编辑器内所有出口（保存、放弃、打开速度线 / 伤害计算、移除成员）都走 `leave()` = `close(then)`：先把守卫层 `history.back()` 掉，**等 popstate 到了**再执行离开动作——连着两次 `history.back()` 会读到过期的深度并互相竞争。
+    - **选择页层**：招式 / 道具 / 特性 / 性格 / 形态整屏选择页与换宝可梦弹窗各压一条，返回键只关选择页。选择页自己关闭（返回 / 选中）时 `close()` 把它弹掉。
+    - 卸载时**不**自动 `history.back()`：那时通常是别处的 `replace` 导航或重置拆掉了页面，弹一下会把新路由弹掉；最坏只是多留一条同 URL 记录。也因此**不要推广到所有 Sheet**。
+- **弹层的键盘与焦点**：`kit/Sheet` 与 7 个手写 `role="dialog"` 都走 `hooks/useDialogFocus.ts`——打开时焦点移入（里面已有 autofocus 的输入框则不抢），Esc 只关最上层，关闭后焦点还给打开它的按钮。新写弹层直接用 `Sheet`；非用手写不可时，容器加 `ref` + `tabIndex={-1}` 并调这个 hook。
 - `AppShell` 仍保留的 state：`overlay: 'rule' | null`。
   - **`RulePage` 当前没有入口，这是有意的**：`App.tsx` 会在 `overlay === 'rule'` 时渲染它，但全仓库没有任何地方调用 `setOverlay('rule')`，也**刻意没有给它路由**——规则口径页由 owner 主动隐藏，代码保留待用。**不要把它「修复」成可达。**
 - `toolView` 由路由派生（四个工具**全部已上线**，`ToolsPage` 里那个「未开放」分支当前没有任何工具会命中）。代码里的 `typeChart` 与 URL 里的 `typechart` 通过 `App.tsx` 顶部两张映射表互转，别在别处再写一份。
@@ -179,7 +184,7 @@ main.tsx
 - 两个 object store：`teams`（keyPath `id`）、`meta`（keyPath `key`，存 `preferences` / `initialized` / `schemaVersion`）。
 - 首次启动且未初始化时写入 `defaultTeams` + `defaultPreferences`，并置 `initialized=true`。
 - **Schema 迁移**：`onupgradeneeded` 中按 `oldVersion` 升级。v2 迁移把旧 EV 字段迁到 `statPoints`（`migrateLegacyEvStatPoints`）。
-- **数据迁移**：`migrateLegacyStarterTeam` 把历史「M-A 测试队」starter 替换为当前 `defaultTeams[0]`。
+- **数据迁移**：`migrateLegacyStarterTeam` 把历史「M-A 测试队」starter 替换为当前 `defaultTeams[0]`，**仅当它从没被编辑过**（`updatedAt` 仍是种子时间 `2026-04-26T16:00:00.000Z`；每次保存都会改写它）。用户改过名、换过成员的那支原样保留。
 - 改 schema 时务必递增 `DB_VERSION` 并在 `onupgradeneeded` 补迁移，否则老用户库会报错。
 
 ### 4.4 构建分包
@@ -229,6 +234,8 @@ record 1.. : 每个成员一条，字段定序，缺省留空
 ```
 
 `formId` 等于 `pokemonId` 时省略、SP 末尾的 0 截掉、`level === 50` 省略、成员记录末尾的空字段整段截掉。六只满配约 400 字符。
+
+**解码上限**：code 超过 `MAX_TEAM_SHARE_CODE_LENGTH`（4096 字符）直接拒绝；`z1` 边读边解压，输出超过 `MAX_TEAM_SHARE_PAYLOAD_BYTES`（16 KB）立即中止。deflate 压缩比可达约 1000:1，不设上限的话一条 URL 长度的链接能在任何字段校验之前解出几百 MB。两个上限都比满配队伍大一个数量级。
 
 **为什么用字符串 id 而不是 catalog 下标**：下标在换规则、catalog 重排之后会**静默指向另一个招式**；字符串 id 顶多是「查不到」，可以点名。所以 `decodeTeamShare` 逐个字段对当前 catalog（`pokemon` / `moves` / `items` / `abilities` / `currentRuleNatureOptions`）核对，查不到时**保留该成员、清掉该字段、push 一条中文 warning**，SP 用 `clampStatPointValue` 夹紧、总量超 66 也记 warning。预览浮层把 warnings 全列出来再让用户决定导不导。
 
@@ -455,6 +462,8 @@ feedback(id TEXT PK, created_at TEXT, kind TEXT, message TEXT, contact TEXT,
 ```
 
 `kind` ∈ `bug` / `idea` / `other`，`status` ∈ `new` / `read`。
+
+**入口检查**（`handleFeedbackSubmit`，先于解析）：带 `Origin` 且不是本站 → 403（别的网站让访客代发，还能借访客 IP 绕过按客户端限流；不带 Origin 的非浏览器客户端照常放行，由限流兜底）；`Content-Type` 不是 `application/json` → 415（纯 HTML 表单发不出 JSON）；body 用 `readBodyCapped` 读，声明的 `Content-Length` 超限直接 413 不读，chunked 读到超限即停。`/api/ping` 同样用 `readBodyCapped`（512 B）。
 
 **校验**（`parseFeedbackBody`）：body ≤ 4 KB（按 UTF-8 字节，1000 个汉字约 3 KB）；`message`
 trim 后 5–1000 字符；`contact` ≤ 120；`appBuild` / `dataVersion` ≤ 40；`route` 必须在

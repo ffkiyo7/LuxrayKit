@@ -1,5 +1,6 @@
 import { Dices, SlidersHorizontal, X } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useDialogFocus } from '../hooks/useDialogFocus';
 import { PageHeader, SearchField } from '../components/kit';
 import {
   getEnvironmentPokemon,
@@ -84,6 +85,8 @@ export function TeamBrowseView({
   // refreshes — same reason the home strip is newest-first. 按分数 is still one tap away.
   const [sort, setSort] = useState<SampleSort>('date');
   const [drawnSample, setDrawnSample] = useState<EnvironmentTeamSample | null>(null);
+  const drawnDialogRef = useRef<HTMLDivElement>(null);
+  useDialogFocus(drawnDialogRef, () => setDrawnSample(null), drawnSample !== null);
 
   const battleSamples = useMemo(
     () => samples.filter((sample) => sample.battleType === battleType),
@@ -232,11 +235,13 @@ export function TeamBrowseView({
 
       {drawnSample && (
         <div
+          ref={drawnDialogRef}
           aria-label="随机一队"
           aria-modal="true"
-          className="fixed inset-0 z-50 mx-auto max-w-[430px]"
+          className="fixed inset-0 z-50 mx-auto max-w-[430px] outline-none"
           data-bottom-nav-lock="true"
           role="dialog"
+          tabIndex={-1}
         >
           <button
             aria-label="关闭随机一队"

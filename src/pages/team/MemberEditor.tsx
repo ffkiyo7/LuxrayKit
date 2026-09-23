@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight, Gauge, Info, MoreHorizontal, Swords, Trash2 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { abilities, currentRuleNatureOptions, currentRuleSet, items, moves, pokemon } from '../../data';
 import type { EnvironmentState } from '../../data/environment';
 import { currentRuleMovesForPokemon, currentRuleSelectableItemsForPokemon } from '../../lib/currentRuleCatalog';
@@ -9,6 +9,7 @@ import { MAX_STAT_POINTS_PER_STAT, MAX_TOTAL_STAT_POINTS, statPointTotal } from 
 import { rosterSpeciesIds } from '../../lib/teamComposition';
 import type { Team, TeamMember } from '../../types';
 import { PokemonPicker } from '../../components/PokemonPicker';
+import { useHistoryLayer } from '../../hooks/useHistoryLayer';
 import { auraStyle, PageHeader, Sprite, TypeDot } from '../../components/kit';
 import { typeLabels } from '../../components/ui';
 import { AbilityPickerPage } from './editor/AbilityPickerPage';
@@ -133,8 +134,22 @@ export function MemberEditor({
   const [menuOpen, setMenuOpen] = useState(false);
   const [draft, setDraft] = useState<TeamMember>(member);
   const [transfer, setTransfer] = useState<StagedItemTransfer | null>(null);
-  const [view, setView] = useState<EditorView>({ kind: 'editor' });
-  const [changingPokemon, setChangingPokemon] = useState(false);
+  const [view, setViewState] = useState<EditorView>({ kind: 'editor' });
+  // Each picker is its own history layer, so the hardware back button closes the picker and
+  // keeps the draft instead of leaving the editor.
+  const pickerLayer = useHistoryLayer(() => setViewState({ kind: 'editor' }));
+  const setView = (next: EditorView) => {
+    if (next.kind === 'editor') pickerLayer.close();
+    else pickerLayer.open();
+    setViewState(next);
+  };
+  const [changingPokemon, setChangingPokemonState] = useState(false);
+  const speciesLayer = useHistoryLayer(() => setChangingPokemonState(false));
+  const setChangingPokemon = (open: boolean) => {
+    if (open) speciesLayer.open();
+    else speciesLayer.close();
+    setChangingPokemonState(open);
+  };
   const [confirmDiscard, setConfirmDiscard] = useState(false);
   const [confirmRemove, setConfirmRemove] = useState(false);
 
@@ -203,12 +218,33 @@ export function MemberEditor({
       statPoints: { ...current.statPoints, [key]: Math.max(0, Math.min(MAX_STAT_POINTS_PER_STAT, Math.round(value || 0))) },
     }));
 
+  const dirty = changes.length > 0;
+
+  // The hardware back button must ask before a draft is thrown away, like 返回 does. The editor
+  // keeps one same-URL history entry of its own for as long as it is open (pushed on open, not
+  // on the first edit, so the pickers always stack above it and no push races a pending pop).
+  // Back pops that entry: with changes, the discard sheet opens and the entry goes back on; with
+  // none, the editor leaves. Every in-app exit takes the entry off first, then leaves.
+  const guard = useHistoryLayer(() => {
+    if (!dirty) {
+      onClose();
+      return;
+    }
+    setConfirmDiscard(true);
+    guard.open();
+  });
+  const openGuard = guard.open;
+  useEffect(() => {
+    openGuard();
+  }, [openGuard]);
+  const leave = (then: () => void = onClose) => guard.close(then);
+
   const cancel = () => {
-    if (changes.length > 0) {
+    if (dirty) {
       setConfirmDiscard(true);
       return;
     }
-    onClose();
+    leave();
   };
 
   const persistDraft = async () => {
@@ -219,18 +255,17 @@ export function MemberEditor({
   const save = async () => {
     if (saveDisabled) return;
     await persistDraft();
-    onClose();
+    leave();
   };
 
   // A tool opened from here should show the build on screen, not the one last saved — and a
   // draft that cannot be saved (SP over the cap) has nothing valid to hand over.
-  const dirty = changes.length > 0;
   const toolsDisabled = dirty && saveDisabled;
   const openTool = async (open: () => void) => {
     setMenuOpen(false);
     if (toolsDisabled) return;
     if (dirty) await persistDraft();
-    open();
+    leave(open);
   };
 
   if (view.kind === 'move') {
@@ -521,7 +556,7 @@ export function MemberEditor({
       />
 
       {confirmDiscard && (
-        <DiscardChangesSheet changes={changes} onDiscard={onClose} onKeepEditing={() => setConfirmDiscard(false)} />
+        <DiscardChangesSheet changes={changes} onDiscard={() => leave()} onKeepEditing={() => setConfirmDiscard(false)} />
       )}
       {confirmRemove && (
         <ConfirmRemoveMemberSheet
@@ -532,7 +567,7 @@ export function MemberEditor({
           onCancel={() => setConfirmRemove(false)}
           onConfirm={() => {
             setConfirmRemove(false);
-            void onDelete();
+            leave(() => void onDelete());
           }}
         />
       )}

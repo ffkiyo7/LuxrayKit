@@ -107,6 +107,22 @@ describe('IndexedDB repository', () => {
     expect(state.teams[0].members[0].pokemonId).toBe('luxray');
   });
 
+  it('keeps a legacy starter the user has edited', async () => {
+    const editedStarter = cloneTeam(defaultTeams[0], {
+      name: 'M-A 测试队',
+      updatedAt: '2026-05-20T08:00:00.000Z',
+      members: [
+        { ...defaultTeams[0].members[0], id: 'member-garchomp', pokemonId: 'garchomp', moveIds: ['earthquake', 'dragon-claw'] },
+      ],
+    });
+    await createV1DbWithTeam(editedStarter);
+
+    const state = await repository.loadState();
+
+    expect(state.teams[0]).toMatchObject({ id: defaultTeams[0].id, name: 'M-A 测试队' });
+    expect(state.teams[0].members[0]).toMatchObject({ pokemonId: 'garchomp', moveIds: ['earthquake', 'dragon-claw'] });
+  });
+
   it('saves and reloads a team', async () => {
     await repository.loadState();
     const savedTeam = cloneTeam(defaultTeams[0], {

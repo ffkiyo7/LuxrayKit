@@ -1,5 +1,6 @@
 import { Download, TriangleAlert, Unlink, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useDialogFocus } from '../hooks/useDialogFocus';
 import { abilities, currentDataVersion, currentRuleSet, items, moves } from '../data';
 import { createId } from '../lib/id';
 import { getMemberBattleForm } from '../lib/pokemonForms';
@@ -81,13 +82,17 @@ function LoadingBody() {
 
 /** 08-10: the link itself is unusable, so there is nothing to preview — a whole screen, not a card. */
 function ExpiredLink({ onClose, onGoToTeams }: { onClose: () => void; onGoToTeams: () => void }) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useDialogFocus(dialogRef, onClose);
   return (
     <div
+      ref={dialogRef}
       aria-label="分享链接已失效"
       aria-modal="true"
-      className="fixed inset-0 z-50 mx-auto max-w-[430px] overflow-y-auto bg-page"
+      className="fixed inset-0 z-50 mx-auto max-w-[430px] overflow-y-auto bg-page outline-none"
       data-bottom-nav-lock="true"
       role="dialog"
+      tabIndex={-1}
     >
       <div className="flex justify-end px-6 pt-5">
         <button aria-label="关闭分享的队伍" className="grid h-9 w-9 place-items-center rounded-full bg-surface text-textLabel" type="button" onClick={onClose}>
@@ -163,12 +168,24 @@ export function SharedTeamPreview({
     }
   };
 
+  // Owned here, above the early return, so the hook order is the same whichever view renders.
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useDialogFocus(dialogRef, onClose, !failed);
+
   if (failed) return <ExpiredLink onClose={onClose} onGoToTeams={onGoToTeams} />;
 
   const empty = decoded?.members.length === 0;
 
   return (
-    <div className="fixed inset-0 z-50 mx-auto max-w-[430px]" role="dialog" aria-label="分享的队伍" aria-modal="true" data-bottom-nav-lock="true">
+    <div
+      ref={dialogRef}
+      className="fixed inset-0 z-50 mx-auto max-w-[430px] outline-none"
+      role="dialog"
+      aria-label="分享的队伍"
+      aria-modal="true"
+      data-bottom-nav-lock="true"
+      tabIndex={-1}
+    >
       <button className="lk-dialog-overlay absolute inset-0 h-full w-full" type="button" aria-label="关闭分享的队伍" onClick={onClose} />
       <section className="lk-panel absolute inset-x-4 top-1/2 max-h-[calc(100vh-2rem)] -translate-y-1/2 overflow-y-auto rounded-[20px] p-[18px]">
         <div className="flex items-start justify-between gap-3">

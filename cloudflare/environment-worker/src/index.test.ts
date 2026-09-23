@@ -1912,6 +1912,31 @@ describe('/api/feedback in-app message inbox', () => {
     expect(doFetch).not.toHaveBeenCalled();
   });
 
+  it('refuses a declared oversize body without reading it', async () => {
+    const { env, doFetch } = feedbackEnv();
+    const response = await post(env, validBody(), { headers: { 'content-length': '999999' } });
+    expect(response.status).toBe(413);
+    expect(doFetch).not.toHaveBeenCalled();
+  });
+
+  it('accepts its own origin and refuses a post another site makes a visitor send', async () => {
+    const { env, doFetch } = feedbackEnv();
+
+    const own = await post(env, validBody(), { headers: { origin: 'https://luxraykit.com' } });
+    expect(own.status).toBe(201);
+
+    const crossSite = await post(env, validBody(), { headers: { origin: 'https://spam.example' } });
+    expect(crossSite.status).toBe(403);
+    expect(doFetch).toHaveBeenCalledOnce();
+  });
+
+  it('only takes JSON, which a plain HTML form cannot send', async () => {
+    const { env, doFetch } = feedbackEnv();
+    const response = await post(env, JSON.stringify(validBody()), { headers: { 'content-type': 'text/plain' } });
+    expect(response.status).toBe(415);
+    expect(doFetch).not.toHaveBeenCalled();
+  });
+
   it('passes the Durable Object rate-limit verdict through as a 429', async () => {
     const { env } = feedbackEnv();
     env.FEEDBACK_INBOX.get = vi.fn(() => ({

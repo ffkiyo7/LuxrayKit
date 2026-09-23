@@ -1,5 +1,6 @@
 import { CloudOff, Copy, Database, SlidersHorizontal, Users } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import { useDialogFocus } from '../../hooks/useDialogFocus';
 import { currentDataVersion, currentRuleSet, dataSourceManifest } from '../../data';
 import { productName } from '../../branding';
 import { currentSeasonLabel, seasonSchedule } from '../../data/schedule';
@@ -47,14 +48,18 @@ function ClearDataSheet({ teamCount, onCancel, onConfirm, onExport }: { teamCoun
     { icon: <SlidersHorizontal size={15} />, text: '显示偏好与主题' },
     { icon: <CloudOff size={15} />, text: '离线缓存索引' },
   ];
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useDialogFocus(dialogRef, onCancel);
 
   return (
     <div
+      ref={dialogRef}
       aria-label="清除本地数据"
       aria-modal="true"
-      className="fixed inset-0 z-50 mx-auto max-w-[430px]"
+      className="fixed inset-0 z-50 mx-auto max-w-[430px] outline-none"
       data-bottom-nav-lock="true"
       role="dialog"
+      tabIndex={-1}
     >
       <button aria-label="取消清除本地数据" className="lk-sheet-overlay absolute inset-0 h-full w-full" type="button" onClick={onCancel} />
       <section className="lk-sheet absolute inset-x-0 bottom-0 max-h-[86vh] overflow-y-auto rounded-t-[20px] px-6 pb-7 pt-6">
