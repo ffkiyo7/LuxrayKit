@@ -1,5 +1,5 @@
-// Auto-generated M-B Mega form catalog
-// Generated from PokéBase Champions on 2026-06-17T16:11:18.954Z
+// M-B Mega form catalog — HAND-MAINTAINED. Transcribed from PokéBase Champions on 2026-06-17;
+// no generator script exists in the repo, so edit this file directly.
 import type { PokemonForm } from '../../../types';
 
 const mbMegaRefs = ['reg-mb-official-mega-list', 'pokebase-champions-mega-data', 'manual-seed-review'];

@@ -6,7 +6,8 @@ name: Daily auto-merge to main
 # manually. Merging into main triggers the Cloudflare Workers Builds production
 # deploy, so anything this workflow merges goes live.
 #
-# A PR is merged only when its CI ("Test, build, and validate Worker") is green,
+# A PR is merged only when it comes from this repo, changes nothing but the files its
+# refresh script generates, its CI ("Test, build, and validate Worker") is green,
 # it is conflict-free, and its head contains the current main branch. A stale PR
 # is left open for the automation to rebuild from the latest main and rerun CI.
 #
@@ -60,6 +61,37 @@ jobs:
               sha=$(printf '%s' "$row" | cut -f2)
               head=$(printf '%s' "$row" | cut -f3)
               echo "::group::PR #$num ($head)"
+
+              # The branch name alone proves nothing: anyone who can push can put a code or
+              # workflow change on an automation branch, and it would go live unreviewed.
+              # Require a same-repo PR whose every file is one its refresh script generates
+              # (generatedSnapshotPaths in scripts/create-*-refresh-pr.mjs). This also keeps a
+              # PR from rewriting ci.yml to hand itself a green check of the same name.
+              case "$head" in
+                automation/pokedb-environment-refresh)
+                  allowed='^(src/data/external/pokedb/current_environment_snapshot\.json|public/data/pokedb/reg-ma-environment\.json)$' ;;
+                automation/vgcpastes-team-refresh)
+                  allowed='^src/data/external/vgcpastes/reg_[a-z0-9_]+_(team_samples|audit)\.json$' ;;
+                *)
+                  allowed='^$' ;;
+              esac
+
+              cross_repo=$(gh pr view "$num" --repo "$REPO" --json isCrossRepository --jq '.isCrossRepository' 2>/dev/null || echo "")
+              if [ "$cross_repo" != "false" ]; then
+                echo "SKIP: PR comes from a fork (or its origin could not be read)."
+                skipped=$((skipped+1)); echo "::endgroup::"; continue
+              fi
+
+              if ! files=$(gh api --paginate "repos/$REPO/pulls/$num/files" --jq '.[].filename' 2>/dev/null) || [ -z "$files" ]; then
+                echo "SKIP: could not list the PR's changed files."
+                skipped=$((skipped+1)); echo "::endgroup::"; continue
+              fi
+              unexpected=$(printf '%s\n' "$files" | grep -v -E "$allowed" || true)
+              if [ -n "$unexpected" ]; then
+                echo "SKIP: PR touches files outside its generated data set — merge it by hand after review:"
+                printf '  %s\n' $unexpected
+                skipped=$((skipped+1)); echo "::endgroup::"; continue
+              fi
 
               conclusion=$(gh api "repos/$REPO/commits/$sha/check-runs" \
                 --jq "[.check_runs[] | select(.name==\"$CHECK_NAME\")] | sort_by(.started_at) | last | .conclusion" 2>/dev/null || echo "")

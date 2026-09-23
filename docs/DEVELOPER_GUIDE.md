@@ -529,12 +529,15 @@ npm run data:regma:physical-metrics:check # 只校验 physicalMetrics.ts 是否�
 npm run data:regma:moves                # 重生成 move-catalog.ts（learnset + 招式数据）
 npm run data:regma:move-ids             # 从 move-catalog.ts 派生 move-ids.ts（只含 id 数组，不联网）
 npm run data:regma:move-ids:check       # 只校验 move-ids.ts 是否与 catalog 一致
-npm run data:regma:allowlist            # ⚠️ M-A 历史脚本，见下方说明；当前仓库状态下会安全拒绝执行
 npm run data:items:audit                # 只读核验 166 条当前规则道具的中英文名称、类别与本地图片
 npm run data:items:refresh              # 仅用来源图刷新不匹配的本地道具图片
+npm run data:items:icon-mapping         # 离线：按 catalog 与已落盘的 PNG 重生成 item-icon-mapping.ts（不下载图片）
+npm run data:pokemon-icons              # 补缺失的宝可梦立绘/缩略图（已有的跳过）
 ```
 
-**`data:regma:allowlist` 是 M-A 时代的历史脚本，不要用它接入新规则。** 它全量重写 `src/data/seed/regMA/allowlist.ts`，来源是官方 M-A web-view 端点（至今仍返回同一份 213 行 payload），且脚本内只有 6 条 `英文名 → pokemonId` 映射。现有 `allowlist.ts` 是 262 条（212 条 `reg-ma-` + 22 条 `reg-mb-` + 28 条 `reg-mc-`，后两批都是**手工追加**的）。跑它会删掉手工行、把 `regMaPokemonAllowlistExpectedCount` 打回 213、并把文件头 sourceRef 改回 M-A。因此脚本开头加了守卫：只要文件里存在非 `reg-ma-` 的行就直接报错退出（**无 bypass 参数，不要为跑通而放宽**）。新规则的行照 M-B 先例手工追加。
+**`allowlist.ts` 自 M-B 起手工维护**：新规则的行照 M-B / M-C 先例手工追加。M-A 时代的生成脚本 `generate-regma-allowlist.mjs` 只能用 M-A payload 全量重写这个文件，已于 2026-09-23 删除（需要时从 git 历史找回）。
+
+**`scripts/archive/`**：规则上线时的一次性脚本（`update-mb-assets` / `update-mc-assets`，以及产物后来被手改过的 `generate-natures` / `generate-form-catalog` / `generate-mega-forms`）。只作为出处记录保留，**不要运行**，原因见该目录的 README。
 
 `data:regma:catalog-batch` 不再写死批次号 / 批次大小 / 来源标签：
 
@@ -639,7 +642,7 @@ VGCPastes 脚本发现脏工作区会直接拒跑；若前一次生成任务失�
 
   | 目的 | 入口 |
   | --- | --- |
-  | 校验 | `.github/workflows/ci.yml` 的 `visual` job（**阻塞门禁**，`needs: test`） |
+  | 校验 | `.github/workflows/ci.yml` 的 `visual` job（**阻塞门禁**，只在 PR 改到可能影响渲染的文件时运行，见 §9） |
   | 重建 | `.github/workflows/visual-baseline.yml`（手动 `workflow_dispatch`） |
 
   ```bash
@@ -655,7 +658,8 @@ VGCPastes 脚本发现脏工作区会直接拒跑；若前一次生成任务失�
 - **视觉用例刻意与刷新中的数据解耦**，否则它没法当门禁用——环境快照的时间戳和榜单会直接印进截图，每次数据刷新都会让门禁变红、卡住 daily auto-merge：
   - `tests/pwa/fixtures/environment-snapshot.json` 是 `public/data/pokedb/reg-ma-environment.json` 的冻结副本，用例用 `page.route` 把运行时那次 fetch 拦截掉换成它。要让门禁看到更新后的数据，把线上文件复制过来覆盖 fixture，再重建基线——这是一次有意的动作，不是自动的。
   - `page.clock.setFixedTime` 把时钟钉在 **`currentRuleSet.startAt` + 11 天 12:00 UTC**（由 `metadata.ts` 推导，不写字面量）：赛季/规则 header 与「规则已切换」提示都由挂钟时间推导，时钟若落在上一规则窗口会渲染反向提示。fixture 的 `retrievedAt` / `updatedAt` / 赛季标签在 `page.route` 里按该时钟改写，JSON 本身不动。换规则后基线仍需重建（header 文案变了），用 `-f mode=all` 强制全量重写。
-  - **残留耦合**：VGCPastes 队伍库是 build-time 动态 `import()` 的 bundle 产物，拦不住。`automation/vgcpastes-team-refresh`（周级）如果改到截图里可见的靠前队伍，视觉门禁会红——这时人工确认后重建基线即可。PokeDB 环境刷新（日级，churn 的大头）已经被 fixture 完全隔离。
+  - VGCPastes 队伍库同样冻结：`tests/pwa/fixtures/vgcpastes/*_team_samples.json` 是两份队伍库的副本。它们不是 fetch 来的，而是 `import()` 打进各自的 `assets/<文件名>-<hash>.js` chunk，所以用例拦截的是这个 chunk 请求，返回 `export default <fixture>`；若 chunk 改名导致拦截落空，`openApp` 里的断言会直接失败，不会静默显示线上队伍库。刷新方式与环境 fixture 相同：复制过来、重建基线。
+  - 两份数据都被隔离之后，PokeDB 与 VGCPastes 的数据 PR 都不会改动截图，CI 对它们直接跳过 `visual`（§9）。
 
 ---
 
@@ -663,12 +667,14 @@ VGCPastes 脚本发现脏工作区会直接拒跑；若前一次生成任务失�
 
 - **部署**：经 **Cloudflare Workers Builds（Git 集成）**——push 到 `main` 自动构建并 `wrangler deploy`。preview 走**影子 Worker `luxraykit-app-preview`**：它有自己的 Workers Builds 配置（同一 repo，非 main 分支触发，deploy 为 `wrangler versions upload --config cloudflare/environment-worker/wrangler.preview.jsonc`），产出 per-version preview URL（`<版本前8位>-luxraykit-app-preview.<subdomain>.workers.dev`）做 UI+API 冒烟。三个来之不易的事实：①带 Durable Object 的 Worker 不生成 preview URL（生产 Worker 因此无法直接出 preview）；②Workers Builds 把部署钉死在所连接的 Worker 上，不能在生产 Worker 的 builds 里"上传到别的 worker"，preview 触发器必须建在影子 Worker 自己名下；③wrangler 需配置显式 `preview_urls: true`。影子 Worker 刻意不带 DO/cron/自定义域名/admin secret，刷新路径天然失效。**cron 不在 preview 触发**，但 preview 与生产**共享同一 KV**，对 preview 上的 KV 操作要当作直接影响生产、只读对待。
 - **Preview Discord 通知**：Cloudflare Event Subscription 把 `luxraykit-app-preview` 的成功构建写入 `luxraykit-build-events` Queue，由无公开路由的 `luxraykit-build-notifier` consumer 通过 Discord Webhook 发送通知。consumer 只接受影子 Worker 的成功事件，排除 `main` 与全部 `automation/` 分支；Webhook URL 只存 Cloudflare secret。源码与运维说明见 `cloudflare/build-notifier/`。
-- **CI**（`.github/workflows/ci.yml`）：两个 job，**不部署**。
+- **`main` 的保护**：GitHub ruleset「Protect main」——必须走 PR、禁止 force-push 与删除，必需 check 为 `Test, build, and validate Worker` 与 `Mobile visual regression`；仓库所有者的 bypass 也只在 PR 内生效，不能直接 push。合并进 `main` 即触发 Workers Builds 生产部署。
+- **CI**（`.github/workflows/ci.yml`）：三个 job，**不部署**。
   - `test`：`npm run data:pokemon-facts:check` + `npm test` + `npm run build` + Playwright 离线 / 队伍库渲染 / 首屏预算冒烟 + `npm run worker:environment:check`。
-  - `visual`：`needs: test`，跑 `npm run test:visual`（即容器内的视觉回归），**阻塞门禁**；失败时把 expected/actual/diff 三联图作为 `visual-diffs` artifact 上传。挂在 `test` 后面是为了避免构建已经失败时仍拉取大型浏览器镜像。
+  - `changes`：用 PR 的文件列表决定是否需要视觉回归。采用**排除名单**：只有改动**全部**落在已知不影响渲染的路径（`docs/`、`*.md`、`cloudflare/`、`scripts/*.mjs`、其余 workflow、已被 fixture 冻结的 PokeDB / VGCPastes 数据）时才跳过；新增的目录或配置默认会触发检查。push `main` 总是运行。
+  - `visual`：与 `test` 并行，跑 `npm run test:visual`（容器内视觉回归），**阻塞门禁**；被 `changes` 判为跳过时，skipped 视同通过必需 check。`changes` 本身失败时照常运行，不会误跳。失败时把 expected/actual/diff 三联图作为 `visual-diffs` artifact 上传。注意跳过只能在 job 级用 `if:` 做，不能在 workflow 级用 `paths-ignore`，否则必需 check 永远停在 Expected，PR 合不进去。
 - **视觉基线重建**（`.github/workflows/visual-baseline.yml`）：仅手动触发，只允许在功能分支更新 Linux 基线并提交回当前分支；拒绝直接改 `main`。
-- **daily-auto-merge**（`.github/workflows/daily-auto-merge.yml`）：每日 20:00 UTC 只自动合并 head 为 `automation/pokedb-environment-refresh` 或 `automation/vgcpastes-team-refresh` 的绿色非 draft PR；功能 / Agent PR 一律人工合并。`main` 无分支保护，合并即触发 Workers Builds 生产部署。
-- **Claude PR 助手**（`.github/workflows/claude.yml`）：Issue / PR 中出现 `@claude` 时调用 `anthropics/claude-code-action@v1`；action 默认只接受拥有仓库写权限的触发者，凭据只从 GitHub Secret `CLAUDE_CODE_OAUTH_TOKEN` 读取。
+- **daily-auto-merge**（`.github/workflows/daily-auto-merge.yml`）：每日 20:00 UTC 只自动合并 head 为 `automation/pokedb-environment-refresh` 或 `automation/vgcpastes-team-refresh` 的绿色非 draft PR，并且要求 PR 来自本仓库（不是 fork）、改动文件**全部**是对应刷新脚本的生成产物（两份 `generatedSnapshotPaths`）；多改一个文件就跳过，留给人工合并。功能 / Agent PR 一律人工合并。
+- **Claude PR 助手**（`.github/workflows/claude.yml`）：Issue / PR 中出现 `@claude` 时调用 `anthropics/claude-code-action`（钉在 v1 对应的 commit SHA，升级时手动改）；action 默认只接受拥有仓库写权限的触发者，凭据只从 GitHub Secret `CLAUDE_CODE_OAUTH_TOKEN` 读取。
 - 仓库 `.github/workflows/` 目前共四个 workflow，均不负责生产部署。不要假设 GitHub Actions 负责部署；生产仍只由 Cloudflare Workers Builds 在 `main` 更新后触发。
 
 ---

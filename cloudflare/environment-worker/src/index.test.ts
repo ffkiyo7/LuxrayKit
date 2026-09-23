@@ -1,12 +1,14 @@
 import { describe, expect, it, vi } from 'vitest';
 import { regMaPokemonAllowlist } from '../../../src/data/seed/regMA/allowlist';
 import {
+  buildLatestEtag,
   detectLatestPokeDbSeason,
   fetchPokemonStatisticsBattle,
   fetchTrainerBattlePages,
   isSnapshotBehindSource,
   nextPageDelayMs,
   probePokeDbFreshness,
+  putSnapshot,
   resolvePreviousSeasonRanks,
   seasonRanksFromSnapshot,
   EnvironmentRefreshDurableObject,
@@ -86,6 +88,7 @@ const pokemonDetailHtml = `
 
 const createKvEnv = (initial: Record<string, string> = {}, overrides: Record<string, string> = {}) => {
   const values = new Map(Object.entries(initial));
+  const metadata = new Map<string, unknown>();
   const env = {
     POKEDB_BASE_URL: 'https://example.com',
     POKEDB_DETAIL_LIMIT: '60',
@@ -94,15 +97,22 @@ const createKvEnv = (initial: Record<string, string> = {}, overrides: Record<str
     ...overrides,
     ENVIRONMENT_CACHE: {
       get: vi.fn(async (key: string) => values.get(key) ?? null),
-      put: vi.fn(async (key: string, value: string) => {
+      getWithMetadata: vi.fn(async (key: string) => ({
+        value: values.get(key) ?? null,
+        metadata: metadata.get(key) ?? null,
+      })),
+      put: vi.fn(async (key: string, value: string, options?: { metadata?: unknown }) => {
         values.set(key, value);
+        if (options?.metadata === undefined) metadata.delete(key);
+        else metadata.set(key, options.metadata);
       }),
       delete: vi.fn(async (key: string) => {
         values.delete(key);
+        metadata.delete(key);
       }),
     },
   };
-  return { env: env as never, values };
+  return { env: env as never, values, metadata };
 };
 
 const recordSchedule = (scheduled: string[]) => (jobId: string) => {
@@ -1601,7 +1611,9 @@ describe('GET /api/environment/latest conditional requests', () => {
     const { env } = createKvEnv({ 'environment:latest': snapshotBody, 'environment:status': statusRecord() });
     const first = await latest(env);
     const etag = first.headers.get('etag') ?? '';
-    (env as { ENVIRONMENT_CACHE: { get: { mockClear: () => void } } }).ENVIRONMENT_CACHE.get.mockClear();
+    const cache = (env as { ENVIRONMENT_CACHE: Record<'get' | 'getWithMetadata', { mockClear: () => void }> }).ENVIRONMENT_CACHE;
+    cache.get.mockClear();
+    cache.getWithMetadata.mockClear();
 
     const conditional = await latest(env, { 'if-none-match': etag });
 
@@ -1621,6 +1633,32 @@ describe('GET /api/environment/latest conditional requests', () => {
       ([key]) => key,
     );
     expect(readKeys).not.toContain('environment:latest');
+    const metadataReads = (env as { ENVIRONMENT_CACHE: { getWithMetadata: { mock: { calls: string[][] } } } })
+      .ENVIRONMENT_CACHE.getWithMetadata.mock.calls;
+    expect(metadataReads).toHaveLength(0);
+  });
+
+  it('labels a 200 with the ETag stored on the snapshot, not the one derived from a newer status', async () => {
+    // Right after a publish, an edge can read the new status beside the previous snapshot.
+    const staleEtag = await buildLatestEtag(JSON.parse(statusRecord()));
+    const newStatus = statusRecord({ sourceUpdatedAt: '2026-06-12 23:58:00' });
+    const { env, metadata } = createKvEnv({ 'environment:latest': snapshotBody, 'environment:status': newStatus });
+    metadata.set('environment:latest', { etag: staleEtag });
+
+    const response = await latest(env);
+    expect(response.status).toBe(200);
+    expect(response.headers.get('etag')).toBe(staleEtag);
+
+    // The browser now revalidates with the old tag. It must get a body again rather than a 304
+    // that would pin the old one until the next upstream change.
+    const revalidated = await latest(env, { 'if-none-match': staleEtag });
+    expect(revalidated.status).toBe(200);
+  });
+
+  it('stores the published status ETag as metadata on the snapshot', async () => {
+    const { env, metadata } = createKvEnv();
+    await putSnapshot(env, JSON.parse(snapshotBody), JSON.parse(statusRecord()));
+    expect(metadata.get('environment:latest')).toEqual({ etag: await buildLatestEtag(JSON.parse(statusRecord())) });
   });
 
   it('returns a full 200 body when If-None-Match does not match', async () => {

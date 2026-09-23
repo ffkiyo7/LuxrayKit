@@ -16,6 +16,17 @@ const ENVIRONMENT_SNAPSHOT_FIXTURE = fileURLToPath(
   new URL('./fixtures/environment-snapshot.json', import.meta.url),
 );
 
+// Frozen copies of the VGCPastes team library (src/data/external/vgcpastes/*_team_samples.json).
+// Unlike the PokeDB snapshot these are not fetched: each file is `import()`ed and bundled into its
+// own `assets/<file name>-<hash>.js` chunk, so the chunk request is answered with the fixture
+// instead. Without this, the weekly automation/vgcpastes-team-refresh PR would change the teams
+// on 15-team-browse / 16-team-inspiration and redden the gate on whichever UI PR came next.
+// Refresh deliberately, like the environment fixture above: copy the live files over, rebuild.
+const VGCPASTES_FIXTURES = ['reg_mb_champions_mb_team_samples', 'reg_mc_champions_mc_team_samples'].map((name) => ({
+  name,
+  path: fileURLToPath(new URL(`./fixtures/vgcpastes/${name}.json`, import.meta.url)),
+}));
+
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 // The season/regulation header and the catalog-lag notice are both derived from the wall
@@ -109,6 +120,14 @@ const openApp = async (page: Page) => {
   await page.route('**/data/pokedb/reg-ma-environment.json', (route) =>
     route.fulfill({ body: snapshotBody, contentType: 'application/json' }),
   );
+  const servedTeamFixtures = new Set<string>();
+  for (const fixture of VGCPASTES_FIXTURES) {
+    const moduleBody = `export default ${await readFile(fixture.path, 'utf8')};`;
+    await page.route(`**/assets/${fixture.name}-*.js`, (route) => {
+      servedTeamFixtures.add(fixture.name);
+      return route.fulfill({ body: moduleBody, contentType: 'text/javascript' });
+    });
+  }
   await page.addInitScript(() => {
     const originalGetRandomValues = crypto.getRandomValues.bind(crypto);
     crypto.getRandomValues = ((array: ArrayBufferView | null) => {
@@ -128,6 +147,10 @@ const openApp = async (page: Page) => {
   });
   await page.goto('/');
   await expect(page.getByRole('heading', { name: '今日环境' })).toBeVisible();
+  // A renamed chunk would slip past the glob and quietly put the live library back on screen.
+  await expect
+    .poll(() => [...servedTeamFixtures].sort(), { message: 'VGCPastes chunks were not served from the fixture' })
+    .toEqual(VGCPASTES_FIXTURES.map((fixture) => fixture.name).sort());
 };
 
 const scrollTop = async (page: Page) => {

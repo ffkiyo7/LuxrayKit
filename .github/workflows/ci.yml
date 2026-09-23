@@ -59,11 +59,66 @@ jobs:
       - name: Validate Worker bundle
         run: npm run worker:environment:check
 
-  # Blocking UI gate. Runs after `test` so a broken build doesn't also burn the
-  # image pull — Actions minutes are metered on this private repo.
+  # Decides whether a PR can change pixels. Deny-list, not allow-list: the visual
+  # job is skipped only when EVERY changed file sits under a path known not to reach
+  # the rendered UI, so a new directory or config file is checked by default instead
+  # of slipping through. Pushes to main always run it.
+  #
+  # Skipped on purpose:
+  #   docs, Markdown, the Worker (screenshots are served fixtures, never the API),
+  #   maintenance scripts, workflows other than this one, and the data files the
+  #   visual spec replaces with frozen fixtures — the PokeDB snapshot and the
+  #   VGCPastes team library (tests/pwa/fixtures/). That last part is what keeps the
+  #   automation/* data PRs off this gate.
+  changes:
+    name: Detect UI-affecting changes
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      visual: ${{ steps.filter.outputs.visual }}
+    steps:
+      - id: filter
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          if [ -z "$PR_NUMBER" ]; then
+            echo "Not a pull request: run the visual gate."
+            echo "visual=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          gh api --paginate "repos/$REPO/pulls/$PR_NUMBER/files" --jq '.[].filename' > changed.txt
+          echo "Changed files:"; cat changed.txt
+          ui_files=$(grep -v -E \
+            -e '^docs/' \
+            -e '\.md$' \
+            -e '^LICENSE$' \
+            -e '^cloudflare/' \
+            -e '^scripts/.*\.(mjs|test\.mjs)$' \
+            -e '^\.github/workflows/(claude|daily-auto-merge|visual-baseline)\.yml$' \
+            -e '^public/data/pokedb/' \
+            -e '^src/data/external/pokedb/' \
+            -e '^src/data/external/vgcpastes/' \
+            changed.txt || true)
+          if [ -n "$ui_files" ]; then
+            echo "UI-affecting changes:"; echo "$ui_files"
+            echo "visual=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No UI-affecting changes: skipping the visual gate."
+            echo "visual=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  # Blocking UI gate, run alongside `test` (the repo is public, so parallel runs
+  # cost wall-clock time, not metered minutes). A skipped run satisfies the
+  # required check; the condition is written so that a failed `changes` job
+  # (empty output) runs the gate rather than silently skipping it.
   visual:
     name: Mobile visual regression
-    needs: test
+    needs: changes
+    if: ${{ !cancelled() && needs.changes.outputs.visual != 'false' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read

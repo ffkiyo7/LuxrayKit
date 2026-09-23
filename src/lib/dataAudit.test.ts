@@ -57,7 +57,7 @@ const championsMegaStoneIconHashes = {
   'metagrossite': 'fab43b56ff84fa2dfa6ca9ebf6da498561e6963a2e2da2db9cfce7eec14b2021',
   'sceptilite': '561aab606d7427b1a80c3c2992ea7bad7ad462ab0783c2c5b4a7654e7b1b6ba1',
   'swampertite': '88e97754c9d55ed4113dcc1d74e8fc9cb3441defec999302c0256bcb28011baa',
-  // Reg M-C stones, snapshotted from PokéBase Champions by scripts/update-mc-assets.mjs
+  // Reg M-C stones, snapshotted from PokéBase Champions by scripts/archive/update-mc-assets.mjs
   'absolite-z': '8f9fd3358be6c4a72545cfd131b9ad93fbfda3adb65968259e28e673e275fa3c',
   'garchompite-z': 'f454e31fda488507aa31044c96d04e28c76a70bf7bda3a41fe82f3342525918e',
   'lucarionite-z': 'a4cdae3ffffdd794ded281bb5ece74f5bf4f9841c6cdc06c929a825b4368bf9f',
@@ -619,7 +619,7 @@ describe('seed data audit', () => {
   });
 
   it('keeps all 39 form Pokemon entries in the catalog with type distinctions', () => {
-    // The first 32 live in catalog-forms.ts (Reg M-A, scripts/generate-form-catalog.mjs); the last 7
+    // The first 32 live in catalog-forms.ts (Reg M-A, scripts/archive/generate-form-catalog.mjs); the last 7
     // are the Regulation M-C form rows, which came out of the batch generator into
     // catalog-batch-007.ts rather than catalog-forms.ts. Both files feed the same `pokemon` array,
     // so the distinction is only about which script owns the row.

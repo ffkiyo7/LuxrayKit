@@ -124,8 +124,8 @@ const abilityRows: Ability[] = [
     legalInCurrentRule: true,
     sourceRefs: championsAbilityRefs,
   },
-  // Abilities carried only by an old-gen Mega form. `generate-mega-forms.mjs` writes the
-  // ability id into mega-catalog.ts but has never emitted a matching Ability row, and the
+  // Abilities carried only by an old-gen Mega form. `scripts/archive/generate-mega-forms.mjs` wrote
+  // the ability id into mega-catalog.ts but never emitted a matching Ability row, and the
   // batch generator only sees base-form abilities from PokeAPI — so these two were referenced
   // by Mega Gengar / Mega Kangaskhan with nothing to resolve to, which silently dropped any
   // imported team using them. `abilityCatalogCoverage` in dataAudit.test.ts is now the gate.

@@ -15,7 +15,7 @@ const UA = 'PokemonChampionsTool/1.0 (data ingestion script)';
 
 // `--mapping-only` regenerates item-icon-mapping.ts from the catalog and the PNGs already on disk,
 // with no network access and no image writes. Use it when the catalog gains items whose icons were
-// fetched by another script (e.g. update-mc-assets.mjs): a full run re-downloads all ~166 images and
+// fetched by another script (e.g. archive/update-mc-assets.mjs): a full run re-downloads all ~166 images and
 // would churn snapshots that dataAudit.test.ts pins by hash, for no reason.
 const MAPPING_ONLY = process.argv.includes('--mapping-only');
 

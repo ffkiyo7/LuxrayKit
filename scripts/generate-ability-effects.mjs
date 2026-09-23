@@ -31,8 +31,8 @@ const FILES = await discoverCatalogFiles();
 /**
  * mega-catalog.ts and its per-regulation siblings. These hold `PokemonForm` rows, not
  * `Ability[]`, so they are NOT part of FILES — but every `abilities: ['x']` they name has to
- * resolve to a row in FILES. `generate-mega-forms.mjs` writes those ids from a hand-written
- * table and never emits the matching Ability row, and `generate-catalog-batch.mjs` only sees a
+ * resolve to a row in FILES. `archive/generate-mega-forms.mjs` wrote those ids from a hand-written
+ * table and never emitted the matching Ability row, and `generate-catalog-batch.mjs` only sees a
  * base form's PokeAPI abilities, so a Mega-only ability used to fall through both generators
  * unnoticed (shadow-tag / parental-bond did, for the whole M-A → M-C run).
  */
