@@ -6,9 +6,9 @@ import react from '@vitejs/plugin-react';
 import { writePrecacheManifest } from './scripts/precache-manifest.mjs';
 
 /**
- * Emits dist/precache-manifest.json (item icon paths, straight from the item catalog's iconRef)
- * for public/sw.js to read at install time. The service worker used to carry a hand-written copy
- * of this list, which drifted from the catalog on every item change.
+ * Writes this build's precache manifest (version, every dist/assets file, the item icons straight
+ * from the catalog's iconRef) into dist/sw.js. The embedded list is what makes each deploy a new
+ * service worker and keeps the precache tied to the build that produced it.
  */
 const precacheManifestPlugin = (): Plugin => {
   let root = '';
@@ -22,7 +22,7 @@ const precacheManifestPlugin = (): Plugin => {
     },
     async closeBundle() {
       const manifest = await writePrecacheManifest(outDir, { root });
-      this.info(`precache-manifest.json: ${manifest.itemIcons.length} item icons`);
+      this.info(`sw.js ${manifest.version}: ${manifest.assets.length} assets, ${manifest.itemIcons.length} item icons`);
     },
   };
 };
@@ -33,10 +33,16 @@ const precacheManifestPlugin = (): Plugin => {
  * resolves. When git is unavailable (a tarball build, a shallow checkout without .git) we fall
  * back to a build timestamp — less precise, but still enough to tell two builds apart, and
  * never a hard build failure over a diagnostics string.
+ *
+ * The SHA is the last commit that touched anything outside public/data/, not HEAD: it is compiled
+ * into the index chunk, so HEAD would give the daily PokeDB JSON refresh new chunk hashes, a new
+ * sw.js and an update prompt for a file the service worker already refreshes on its own. The JSON
+ * is fetched at runtime, so that commit still describes exactly the code being run. A shallow
+ * checkout degrades to HEAD.
  */
 const resolveBuildId = () => {
   try {
-    return execSync('git rev-parse --short HEAD', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim() || null;
+    return execSync("git log -1 --format=%h -- . ':(exclude)public/data'", { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim() || null;
   } catch {
     return null;
   }

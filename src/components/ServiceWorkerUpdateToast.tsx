@@ -1,17 +1,11 @@
 import { RefreshCw, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { applyServiceWorkerUpdate, SERVICE_WORKER_UPDATE_EVENT } from '../lib/serviceWorker';
 
 /**
- * Dispatched on `window` by the registration code in main.tsx when a *new* service worker takes
- * over a page that already had one. Kept as a CustomEvent so the registration side stays a few
- * lines of plain DOM code and never has to reach into React state.
- */
-export const SERVICE_WORKER_UPDATE_EVENT = 'luxraykit:service-worker-updated';
-
-/**
- * sw.js does skipWaiting + clients.claim, so a deploy swaps the controller under a running tab:
- * the shell keeps serving the old chunks until a reload. Say so instead of leaving the user on
- * a silently stale build. Renders nothing until that actually happens.
+ * A new build is downloaded and waiting (lib/serviceWorker.ts). The running tab stays on its own
+ * build until 重载 hands the new worker control; dismissing leaves it waiting until the app is
+ * next fully closed. Renders nothing until that actually happens.
  */
 export function ServiceWorkerUpdateToast() {
   const [visible, setVisible] = useState(false);
@@ -34,7 +28,7 @@ export function ServiceWorkerUpdateToast() {
       <button
         className="inline-flex h-9 shrink-0 items-center rounded-xl bg-accent px-3.5 text-sm font-extrabold text-page active:scale-[0.98]"
         type="button"
-        onClick={() => window.location.reload()}
+        onClick={applyServiceWorkerUpdate}
       >
         重载
       </button>
