@@ -22,10 +22,8 @@ export function MoveCounterControl({
   if (max <= 3) {
     return (
       <div className="pb-1 pt-3.5" data-calc-move-counter>
-        <div className="flex items-baseline justify-between gap-3">
-          <span className="text-[13px] font-semibold text-textSecondary">{spec.label}</span>
-          <span className="text-xs text-textSecondary">{hint}</span>
-        </div>
+        {/* No 「最多 n 只」: the pills already stop at the format's cap, and players know it. */}
+        <span className="text-[13px] font-semibold text-textSecondary">{spec.label}</span>
         <div className="mt-2.5 flex gap-2">
           {Array.from({ length: max + 1 }, (_, count) => (
             <Pill
