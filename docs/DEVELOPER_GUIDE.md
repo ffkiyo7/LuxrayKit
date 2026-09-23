@@ -143,7 +143,10 @@ main.tsx
   - `navigate()` 用 `pushState` / `replaceState` 而不是赋值 `location.hash`：这样能把深度计数写进 `history.state`，且状态更新是同步的。仍然订阅 `hashchange` + `popstate`，所以浏览器前进/后退、Android 物理返回键、以及测试里直接改 `window.location.hash` 都能同步。
   - `back()` 只在 `history.state.lkDepth > 0`（下面那条确实是本 app 压的）时调 `history.back()`；否则 `replace` 到父路由。**冷启动打开深链后点「返回」不会跳出站外**，这是这套深度计数存在的唯一理由。
 - **只有「去哪个页面」进 URL**。筛选、搜索框、`battleType` 切换、成员编辑器 / 选人弹窗 / 命名弹窗、以及队伍成员「带入」工具的预设（`calcPreset` / `speedPresetMemberId` / `calculatorMemberId`，都带本地成员 id）一律留在内存 state。
-  - **例外：成员编辑器的整屏选择页**（招式 / 道具 / 特性 / 性格 / 形态）和换宝可梦弹窗用 `hooks/useHistoryLayer.ts` 压一条**同 URL** 的历史记录（`lkDepth + 1`）。否则物理返回键会越过它们直接弹出编辑器路由，未保存的草稿就丢了。选择页自己关闭（返回 / 选中）时 `close()` 会把这条记录 `history.back()` 掉，不留死记录。**不要推广到所有 Sheet**：弹窗里的操作若 `navigate(..., { replace: true })`，卸载时的 `history.back()` 会把刚替换的路由弹掉。
+  - **例外：成员编辑器**用 `hooks/useHistoryLayer.ts` 压**同 URL** 的历史记录（`lkDepth + 1`），让物理返回键不会直接弹出编辑器路由、丢掉未保存的草稿：
+    - **守卫层**：编辑器一打开就压一条（不是等到第一次改动才压，这样选择页总叠在它上面，不会出现 push 与未完成的 pop 竞争）。返回键弹出它时，有改动 → 弹「放弃改动确认」并重新压回（再按一次还是问）；没改动 → 直接离开。编辑器内所有出口（保存、放弃、打开速度线 / 伤害计算、移除成员）都走 `leave()` = `close(then)`：先把守卫层 `history.back()` 掉，**等 popstate 到了**再执行离开动作——连着两次 `history.back()` 会读到过期的深度并互相竞争。
+    - **选择页层**：招式 / 道具 / 特性 / 性格 / 形态整屏选择页与换宝可梦弹窗各压一条，返回键只关选择页。选择页自己关闭（返回 / 选中）时 `close()` 把它弹掉。
+    - 卸载时**不**自动 `history.back()`：那时通常是别处的 `replace` 导航或重置拆掉了页面，弹一下会把新路由弹掉；最坏只是多留一条同 URL 记录。也因此**不要推广到所有 Sheet**。
 - **弹层的键盘与焦点**：`kit/Sheet` 与 7 个手写 `role="dialog"` 都走 `hooks/useDialogFocus.ts`——打开时焦点移入（里面已有 autofocus 的输入框则不抢），Esc 只关最上层，关闭后焦点还给打开它的按钮。新写弹层直接用 `Sheet`；非用手写不可时，容器加 `ref` + `tabIndex={-1}` 并调这个 hook。
 - `AppShell` 仍保留的 state：`overlay: 'rule' | null`。
   - **`RulePage` 当前没有入口，这是有意的**：`App.tsx` 会在 `overlay === 'rule'` 时渲染它，但全仓库没有任何地方调用 `setOverlay('rule')`，也**刻意没有给它路由**——规则口径页由 owner 主动隐藏，代码保留待用。**不要把它「修复」成可达。**
