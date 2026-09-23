@@ -1,5 +1,6 @@
 import { X } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { useRef, type ReactNode } from 'react';
+import { useDialogFocus } from '../../hooks/useDialogFocus';
 import { useVisualViewportMetrics } from '../../hooks/useVisualViewportMetrics';
 
 /**
@@ -27,14 +28,18 @@ export function Sheet({
 }) {
   const handle = variant === 'handle';
   const viewport = useVisualViewportMetrics();
+  const dialog = useRef<HTMLDivElement>(null);
+  useDialogFocus(dialog, onClose);
 
   return (
     <div
+      ref={dialog}
       aria-label={label ?? title}
       aria-modal="true"
-      className="fixed inset-0 z-50 mx-auto max-w-[430px]"
+      className="fixed inset-0 z-50 mx-auto max-w-[430px] outline-none"
       data-bottom-nav-lock="true"
       role="dialog"
+      tabIndex={-1}
     >
       <button aria-label="关闭" className="lk-sheet-overlay absolute inset-0 h-full w-full" type="button" onClick={onClose} />
       <section

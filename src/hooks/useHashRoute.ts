@@ -49,10 +49,20 @@ type HistoryState = { lkDepth?: number } | null;
  * Stored in `history.state` (not a module variable) so it survives reloads and stays
  * correct after the user presses the browser's own back/forward buttons.
  */
-const currentDepth = () => {
+export const currentDepth = () => {
   if (typeof window === 'undefined') return 0;
   const state = window.history.state as HistoryState;
   return typeof state?.lkDepth === 'number' && state.lkDepth > 0 ? state.lkDepth : 0;
+};
+
+/**
+ * Push an entry for the *same* URL, one level deeper, so the hardware back button has
+ * something inside the current screen to pop (see useHistoryLayer). Returns its depth.
+ */
+export const pushHistoryLayer = () => {
+  const depth = currentDepth() + 1;
+  window.history.pushState({ lkDepth: depth }, '', window.location.href);
+  return depth;
 };
 
 export type NavigateOptions = { replace?: boolean };

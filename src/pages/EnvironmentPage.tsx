@@ -9,7 +9,8 @@ import {
   RefreshCw,
   TriangleAlert,
 } from 'lucide-react';
-import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useState, type ReactNode } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useDialogFocus } from '../hooks/useDialogFocus';
 import {
   currentRegulation as catalogRegulation,
   getEnvironmentPokemon,
@@ -621,14 +622,19 @@ function MethodologyIntroSheet({
     `榜单每日更新，当前为 ${environmentSubtitle(environment)}。`,
     '来源与数据版本写在 我的 · 关于与数据。',
   ];
+  // No close button in the frame, but Esc means the same as 知道了.
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useDialogFocus(dialogRef, onDismiss);
 
   return (
     <div
+      ref={dialogRef}
       aria-label="数据口径"
       aria-modal="true"
-      className="fixed inset-0 z-50 mx-auto max-w-[430px]"
+      className="fixed inset-0 z-50 mx-auto max-w-[430px] outline-none"
       data-bottom-nav-lock="true"
       role="dialog"
+      tabIndex={-1}
     >
       <div className="lk-sheet-overlay absolute inset-0" />
       <section className="lk-sheet absolute inset-x-0 bottom-0 rounded-t-[20px] px-6 pb-7 pt-6">

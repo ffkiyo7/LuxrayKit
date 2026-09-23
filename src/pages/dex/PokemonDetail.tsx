@@ -1,5 +1,6 @@
 import { ChevronDown, ChevronLeft, ChevronUp, Search, Swords, X } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useDialogFocus } from '../../hooks/useDialogFocus';
 import { abilities } from '../../data';
 import { pokemonPhysicalMetricsByDexNo } from '../../data/seed/regMA/physicalMetrics';
 import { attackingTypes, defensiveMatchupMultiplier, statRows } from '../../lib/calculations';
@@ -158,14 +159,18 @@ function LargeArtwork({ entry, onClose }: { entry: DexFormEntry; onClose: () => 
   // the shadow of the whole 132px box — a grey rectangle on the first open, gone once cached.
   const [loadedSrc, setLoadedSrc] = useState<string | undefined>();
   const loaded = loadedSrc === src;
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useDialogFocus(dialogRef, onClose);
 
   return (
     <div
+      ref={dialogRef}
       aria-label={`${entry.chineseName}大图`}
       aria-modal="true"
-      className="lk-p4a-artwork-aura fixed inset-0 z-50 mx-auto max-w-[430px]"
+      className="lk-p4a-artwork-aura fixed inset-0 z-50 mx-auto max-w-[430px] outline-none"
       data-bottom-nav-lock="true"
       role="dialog"
+      tabIndex={-1}
       style={auraStyle(entry.types, entry.iconRef)}
     >
       <div className="flex justify-end px-6 pt-5">

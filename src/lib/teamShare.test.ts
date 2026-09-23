@@ -10,6 +10,7 @@ import { currentRuleMovesForPokemon, currentRuleSelectableItemsForPokemon } from
 import { MAX_TOTAL_STAT_POINTS } from './statPoints';
 import {
   MAX_SHARED_TEAM_NAME_LENGTH,
+  MAX_TEAM_SHARE_CODE_LENGTH,
   TeamShareDecodeError,
   decodeTeamShare,
   encodeTeamShare,
@@ -250,6 +251,23 @@ describe('decodeTeamShare bounds free text', () => {
     const code = await encodeTeamShare({ name: '队'.repeat(500), members: [] });
     const decoded = await decodeTeamShare(code);
     expect(decoded.name).toBe('队'.repeat(MAX_SHARED_TEAM_NAME_LENGTH));
+  });
+
+  it('stops inflating a small code that expands past the payload cap', async () => {
+    // 1 MB of one byte deflates to about 1 KB: a URL-sized code that would expand 1000x.
+    const bomb = await encodeTeamShare({ name: 'a'.repeat(1024 * 1024), members: [] });
+    expect(bomb.length).toBeLessThan(MAX_TEAM_SHARE_CODE_LENGTH);
+    await expect(decodeTeamShare(bomb)).rejects.toThrow('分享链接内容过大');
+  });
+
+  it('refuses an oversized code before decoding it', async () => {
+    await expect(decodeTeamShare(`p1${'A'.repeat(MAX_TEAM_SHARE_CODE_LENGTH)}`)).rejects.toThrow('分享链接内容过大');
+  });
+
+  it('still accepts a full six-member team comfortably under both caps', async () => {
+    const code = await encodeTeamShare({ name: '队'.repeat(MAX_SHARED_TEAM_NAME_LENGTH), members: fullyLoadedMembers() });
+    expect(code.length).toBeLessThan(MAX_TEAM_SHARE_CODE_LENGTH / 4);
+    expect((await decodeTeamShare(code)).members).toHaveLength(6);
   });
 });
 

@@ -10,6 +10,7 @@ const META_STORE = 'meta';
 const STARTER_TEAM_ID = 'team-starter';
 const LEGACY_STARTER_TEAM_NAME = 'M-A 测试队';
 const LEGACY_STARTER_MEMBER_IDS = new Set(['member-garchomp', 'member-incineroar']);
+const LEGACY_STARTER_UPDATED_AT = '2026-04-26T16:00:00.000Z';
 
 type StoreName = typeof TEAM_STORE | typeof META_STORE;
 
@@ -117,8 +118,15 @@ const sortTeamsForList = (teams: Team[]) =>
     })
     .map(({ team }) => team);
 
+/**
+ * The pre-2026-06 seed team, still exactly as seeded. Every save stamps `updatedAt`, so a team
+ * that still carries the seed's timestamp was never edited; one the user renamed, rebuilt or
+ * added members to is theirs now and must not be swapped for the Luxray starter.
+ */
 const isLegacyStarterTeam = (team: Team) =>
-  team.id === STARTER_TEAM_ID && (team.name === LEGACY_STARTER_TEAM_NAME || team.members.some((member) => LEGACY_STARTER_MEMBER_IDS.has(member.id)));
+  team.id === STARTER_TEAM_ID
+  && team.updatedAt === LEGACY_STARTER_UPDATED_AT
+  && (team.name === LEGACY_STARTER_TEAM_NAME || team.members.some((member) => LEGACY_STARTER_MEMBER_IDS.has(member.id)));
 
 const migrateLegacyStarterTeam = (teams: Team[]) => {
   let changed = false;

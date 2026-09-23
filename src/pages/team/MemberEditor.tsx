@@ -9,6 +9,7 @@ import { MAX_STAT_POINTS_PER_STAT, MAX_TOTAL_STAT_POINTS, statPointTotal } from 
 import { rosterSpeciesIds } from '../../lib/teamComposition';
 import type { Team, TeamMember } from '../../types';
 import { PokemonPicker } from '../../components/PokemonPicker';
+import { useHistoryLayer } from '../../hooks/useHistoryLayer';
 import { auraStyle, PageHeader, Sprite, TypeDot } from '../../components/kit';
 import { typeLabels } from '../../components/ui';
 import { AbilityPickerPage } from './editor/AbilityPickerPage';
@@ -133,8 +134,22 @@ export function MemberEditor({
   const [menuOpen, setMenuOpen] = useState(false);
   const [draft, setDraft] = useState<TeamMember>(member);
   const [transfer, setTransfer] = useState<StagedItemTransfer | null>(null);
-  const [view, setView] = useState<EditorView>({ kind: 'editor' });
-  const [changingPokemon, setChangingPokemon] = useState(false);
+  const [view, setViewState] = useState<EditorView>({ kind: 'editor' });
+  // Each picker is its own history layer, so the hardware back button closes the picker and
+  // keeps the draft instead of leaving the editor.
+  const pickerLayer = useHistoryLayer(() => setViewState({ kind: 'editor' }));
+  const setView = (next: EditorView) => {
+    if (next.kind === 'editor') pickerLayer.close();
+    else pickerLayer.open();
+    setViewState(next);
+  };
+  const [changingPokemon, setChangingPokemonState] = useState(false);
+  const speciesLayer = useHistoryLayer(() => setChangingPokemonState(false));
+  const setChangingPokemon = (open: boolean) => {
+    if (open) speciesLayer.open();
+    else speciesLayer.close();
+    setChangingPokemonState(open);
+  };
   const [confirmDiscard, setConfirmDiscard] = useState(false);
   const [confirmRemove, setConfirmRemove] = useState(false);
 
