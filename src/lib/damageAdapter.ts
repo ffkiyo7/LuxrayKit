@@ -17,7 +17,8 @@ import {
   pokemon,
 } from '../data';
 import { calculateBattleStats, defensiveMatchupMultiplier } from './calculations';
-import { findBattleForm, type BattleFormView } from './pokemonForms';
+import { currentRuleMovesForPokemon, currentRuleSelectableItemsForPokemon } from './currentRuleCatalog';
+import { findBattleForm, findMegaFormByItem, type BattleFormView } from './pokemonForms';
 import type { Move as AppMove, PokemonType, TeamMember } from '../types';
 import type { StatPoints } from '../types';
 import { clampStatPointValue } from './statPoints';
@@ -44,11 +45,69 @@ export type CalcSideConfig = {
 
 export type BattleTypeOption = 'singles' | 'doubles';
 
+export const TERRAIN_OPTIONS = ['无场地', '电气场地', '青草场地', '精神场地', '薄雾场地'] as const;
+export type TerrainOption = (typeof TERRAIN_OPTIONS)[number];
+
+const TERRAIN_MAP: Record<TerrainOption, 'Electric' | 'Grassy' | 'Psychic' | 'Misty' | undefined> = {
+  无场地: undefined, 电气场地: 'Electric', 青草场地: 'Grassy', 精神场地: 'Psychic', 薄雾场地: 'Misty',
+};
+
+/** The field a 「XX制造者」 ability lays on entry; the calculator starts from it. */
+const SURGE_TERRAIN: Record<string, TerrainOption> = {
+  'electric-surge': '电气场地',
+  'grassy-surge': '青草场地',
+  'psychic-surge': '精神场地',
+  'misty-surge': '薄雾场地',
+};
+
+export function surgeTerrainFor(abilityId?: string): TerrainOption | undefined {
+  return abilityId ? SURGE_TERRAIN[abilityId] : undefined;
+}
+
+/**
+ * Moves whose power grows with a battle-history count the calculator cannot see (Champions
+ * doubles brings 4, so at most 3 allies can be down; singles brings 3). @smogon/calc 0.11 does
+ * not model either move, so the power goes in as a base-power override.
+ */
+export type MoveCounterSpec = {
+  label: string;
+  chipLabel: string;
+  unit: string;
+  max: (battleType: BattleTypeOption) => number;
+  power: (count: number) => number;
+};
+
+export const MOVE_COUNTERS: Record<string, MoveCounterSpec> = {
+  'last-respects': {
+    label: '已倒下队友',
+    chipLabel: '倒下',
+    unit: '只',
+    max: (battleType) => (battleType === 'doubles' ? 3 : 2),
+    power: (count) => 50 + 50 * count,
+  },
+  'rage-fist': {
+    label: '已被击中',
+    chipLabel: '被击中',
+    unit: '次',
+    max: () => 6,
+    power: (count) => Math.min(350, 50 + 50 * count),
+  },
+};
+
+export function clampMoveCounter(moveId: string | undefined, count: number, battleType: BattleTypeOption): number {
+  const spec = moveId ? MOVE_COUNTERS[moveId] : undefined;
+  if (!spec) return 0;
+  return Math.max(0, Math.min(spec.max(battleType), Math.floor(count)));
+}
+
 export type DamageAdapterInput = {
   attacker: CalcSideConfig;
   defender: CalcSideConfig;
   battleType: BattleTypeOption;
   weather: string;
+  terrain?: TerrainOption;
+  /** 扫墓's fainted allies / 愤怒之拳's hits taken; ignored by every other move. */
+  moveCounter?: number;
   isCritical?: boolean;
   attackStage: number;
   defenseStage?: number;
@@ -98,6 +157,10 @@ export type DamageAdapterResult = {
   typeEffectivenessText?: string;
   weatherMultiplier?: number;
   weatherText?: string;
+  /** Terrain and counter chips for the result card, e.g. 「精神场地 ×1.3」「扫墓 · 倒下 2 只 · 威力 150」. */
+  conditionEffects?: string[];
+  /** Power after counters, terrain and weather — what the move row shows. */
+  effectiveBasePower?: number;
   spreadMultiplier?: number;
   dataVersionId: string;
   ruleSetId: string;
@@ -381,9 +444,32 @@ function weatherBallType(weather: string): PokemonType | undefined {
   return undefined;
 }
 
-function effectiveMoveType(move: AppMove, attackerAbilityId?: string, weather = '无天气'): PokemonType {
+const TERRAIN_BOOST_TYPE: Partial<Record<TerrainOption, PokemonType>> = {
+  电气场地: 'Electric', 青草场地: 'Grass', 精神场地: 'Psychic',
+};
+const TERRAIN_PULSE_TYPE: Partial<Record<TerrainOption, PokemonType>> = {
+  电气场地: 'Electric', 青草场地: 'Grass', 精神场地: 'Psychic', 薄雾场地: 'Fairy',
+};
+const GRASSY_HALVED_MOVE_IDS = new Set(['earthquake', 'bulldoze', 'magnitude']);
+
+/** Terrain only touches Pokémon on the ground (no Gravity / Iron Ball in this calculator). */
+function isGrounded(types: PokemonType[], abilityId?: string, itemId?: string): boolean {
+  return !types.includes('Flying') && abilityId !== 'levitate' && itemId !== 'air-balloon';
+}
+
+function effectiveMoveType(
+  move: AppMove,
+  attackerAbilityId?: string,
+  weather = '无天气',
+  terrain: TerrainOption = '无场地',
+  attackerGrounded = true,
+): PokemonType {
   if (move.id === 'weather-ball') {
     const type = weatherBallType(weather);
+    if (type) return type;
+  }
+  if (move.id === 'terrain-pulse' && attackerGrounded) {
+    const type = TERRAIN_PULSE_TYPE[terrain];
     if (type) return type;
   }
 
@@ -398,9 +484,12 @@ function effectiveMoveType(move: AppMove, attackerAbilityId?: string, weather = 
   return move.type;
 }
 
-function projectMoveOverrides(move: AppMove, attackerAbilityId?: string, weather = '无天气') {
+function projectMoveOverrides(move: AppMove, attackerAbilityId?: string, weather = '无天气', moveCounter = 0) {
   let type = move.type;
   let basePower = move.power;
+
+  const counter = MOVE_COUNTERS[move.id];
+  if (counter) basePower = counter.power(moveCounter);
 
   if (move.id === 'weather-ball') {
     const weatherType = weatherBallType(weather);
@@ -733,26 +822,68 @@ export function buildCalcConfigFromTeamMember(member: TeamMember): CalcSideConfi
 export type CalcRole = 'attacker' | 'defender';
 export type MoveCategoryHint = 'Physical' | 'Special' | 'Status' | 'unknown';
 
-/** Build a temporary calc config without copying team SP or other persisted member tuning. */
+/**
+ * Doubles attacks brought for the effect rather than the damage, passed over when a preset picks
+ * the move to calculate. Only 击掌奇袭 so far: in the doubles top 60 it is the one such move that
+ * ever tops a Pokémon's attacking list (炽焰咆哮虎). Singles keeps it — there it is free STAB chip
+ * (Mega 长耳兔) — and damaging priority like 神速 / 突袭 stays in both formats.
+ */
+const DOUBLES_PRESET_SKIPPED_MOVE_IDS = new Set(['fake-out']);
+
+/** One Pokémon's environment usage, each list in PokeDB's usage order (most-used first). */
+export type CalcEnvironmentPreset = {
+  moveIds?: string[];
+  itemIds?: string[];
+  abilityIds?: string[];
+  natureIds?: string[];
+};
+
+/**
+ * Build a temporary calc config without copying team SP or other persisted member tuning.
+ *
+ * With a `preset`, a fresh pick starts on what the environment runs — the most-used attacking
+ * move, item, ability and nature that are legal for it (轰擂金刚猩: 青草滑梯 / 奇迹种子 /
+ * 青草制造者 / 固执). A Mega Stone brings its Mega form and that form's ability, the same rule as
+ * the editor's form picker. SP is never preset: spreads vary too much to guess.
+ */
 export function buildTemporaryCalcConfig(params: {
   pokemonId: string;
   role: CalcRole;
   moveCategory?: MoveCategoryHint;
+  preset?: CalcEnvironmentPreset;
+  /** The format the preset came from; decides which utility attacks the preset passes over. */
+  battleType?: BattleTypeOption;
 }): CalcSideConfig {
   const entry = pokemon.find((p) => p.id === params.pokemonId);
-  const abilityId = entry?.abilities[0];
-  const moveIds = entry ? [entry.learnableMoves[0] ?? 'protect'].filter(Boolean) : [];
+  const preset = params.preset ?? {};
+
+  const attackingMoves = entry ? currentRuleMovesForPokemon(entry.id).filter((move) => move.category !== 'Status') : [];
+  const usedAttackingMoveIds = (preset.moveIds ?? []).filter((id) => attackingMoves.some((move) => move.id === id));
+  const skipped = params.battleType === 'doubles' ? DOUBLES_PRESET_SKIPPED_MOVE_IDS : new Set<string>();
+  const selectedMoveId =
+    usedAttackingMoveIds.find((id) => !skipped.has(id)) ?? usedAttackingMoveIds[0] ?? attackingMoves[0]?.id;
+  const moveIds = selectedMoveId
+    ? Array.from(new Set([selectedMoveId, ...usedAttackingMoveIds])).slice(0, 4)
+    : entry
+      ? [entry.learnableMoves[0] ?? 'protect']
+      : [];
+
+  const selectableItemIds = new Set(entry ? currentRuleSelectableItemsForPokemon(entry.id).map((item) => item.id) : []);
+  const itemId = (preset.itemIds ?? []).find((id) => selectableItemIds.has(id));
+  const megaForm = entry ? findMegaFormByItem(entry, itemId) : undefined;
+  const abilityId = megaForm?.abilities[0] ?? (preset.abilityIds ?? []).find((id) => entry?.abilities.includes(id)) ?? entry?.abilities[0];
 
   const statPoints: StatPoints = {};
   let nature: string = currentRuleNatureOptions.find((option) => option.neutral)?.id ?? '认真';
   if (!currentRuleNatureOptions.some((option) => option.id === nature)) nature = currentRuleNatureOptions[0]?.id ?? '爽朗';
+  nature = (preset.natureIds ?? []).find((id) => currentRuleNatureOptions.some((option) => option.id === id)) ?? nature;
 
   return {
     source: 'temporary',
     pokemonId: params.pokemonId,
-    formId: undefined,
+    formId: megaForm?.id,
     abilityId,
-    itemId: undefined,
+    itemId,
     moveIds,
     selectedMoveId: moveIds[0],
     nature,
@@ -877,8 +1008,11 @@ export function computeDamage(input: DamageAdapterInput): DamageAdapterResult {
     spd: defenderBoosts.spd || input.specialDefenseStage || input.defenseStage || 0,
   };
 
+  const terrain: TerrainOption = input.terrain ?? '无场地';
+  const moveCounter = clampMoveCounter(projectMove.id, input.moveCounter ?? 0, input.battleType);
+
   try {
-    const runCalculation = (mode: 'actual' | 'without-attacker-ability' | 'without-defender-ability' | 'without-attacker-item' | 'without-defender-item') => {
+    const runCalculation = (mode: 'actual' | 'without-attacker-ability' | 'without-defender-ability' | 'without-attacker-item' | 'without-defender-item' | 'without-terrain') => {
       const activeAttackerAbilityId = mode === 'without-attacker-ability' ? undefined : attackerConfig.abilityId;
       const activeDefenderAbilityId = mode === 'without-defender-ability' ? undefined : defenderConfig.abilityId;
       const calcWeather = effectiveWeatherForMove(input.weather, activeAttackerAbilityId);
@@ -886,11 +1020,12 @@ export function computeDamage(input: DamageAdapterInput): DamageAdapterResult {
       const field = new (Field as any)({
         gameType: input.battleType === 'doubles' ? 'Doubles' : 'Singles',
         weather: WEATHER_MAP[calcWeather],
+        terrain: mode === 'without-terrain' ? undefined : TERRAIN_MAP[terrain],
         attackerSide: new Side(), defenderSide: new Side(),
       });
       const calcMoveObj = new Move(9, calcMove.name, {
         isCrit: input.isCritical,
-        overrides: projectMoveOverrides(projectMove, activeAttackerAbilityId, calcWeather),
+        overrides: projectMoveOverrides(projectMove, activeAttackerAbilityId, calcWeather, moveCounter),
       });
       const attackerPoke = new Pokemon(9, calcAttackerSpecies.name, {
         level: 50,
@@ -917,7 +1052,11 @@ export function computeDamage(input: DamageAdapterInput): DamageAdapterResult {
       const calcResult = calculate(gen, attackerPoke, defenderPoke, calcMoveObj, field);
       const damageData = (calcResult as unknown as Record<string, unknown>)?.damage;
       const damages = normalizeDamageRolls(damageData);
-      return { attackerPoke, defenderPoke, damages };
+      // The engine rewrites power (扫墓 via our override, 广域战力 / 大地波动 / 气象球 by field) and
+      // turns 广域战力 into a spread move on Psychic Terrain; read both back rather than re-derive.
+      const basePower = calcResult.rawDesc.moveBP ?? calcMoveObj.bp;
+      const hitsAllFoes = calcResult.move.target === 'allAdjacentFoes' || calcResult.move.target === 'allAdjacent';
+      return { attackerPoke, defenderPoke, damages, basePower, hitsAllFoes };
     };
 
     const actualCalc = runCalculation('actual');
@@ -946,7 +1085,27 @@ export function computeDamage(input: DamageAdapterInput): DamageAdapterResult {
     const offensiveStatValue = projectMove.category === 'Physical' ? actualCalc.attackerPoke.rawStats.atk : actualCalc.attackerPoke.rawStats.spa;
     const defensiveStatValue = projectMove.category === 'Physical' ? actualCalc.defenderPoke.rawStats.def : actualCalc.defenderPoke.rawStats.spd;
     const displayedWeather = effectiveWeatherForMove(input.weather, attackerConfig.abilityId);
-    const displayedMoveType = effectiveMoveType(projectMove, attackerConfig.abilityId, displayedWeather);
+    const attackerGrounded = isGrounded(attackerForm.types, attackerConfig.abilityId, attackerConfig.itemId);
+    const defenderGrounded = isGrounded(defenderForm.types, defenderConfig.abilityId, defenderConfig.itemId);
+    const displayedMoveType = effectiveMoveType(projectMove, attackerConfig.abilityId, displayedWeather, terrain, attackerGrounded);
+    const hitsAllFoes = spread || (input.battleType === 'doubles' && actualCalc.hitsAllFoes);
+
+    const conditionEffects: string[] = [];
+    const counter = MOVE_COUNTERS[projectMove.id];
+    if (counter) {
+      conditionEffects.push(`${projectMove.chineseName} · ${counter.chipLabel} ${moveCounter} ${counter.unit} · 威力 ${counter.power(moveCounter)}`);
+    }
+    if (terrain !== '无场地') {
+      const withoutTerrain = runCalculation('without-terrain');
+      if (!sameDamageRolls(damages, withoutTerrain.damages)) {
+        if (attackerGrounded && TERRAIN_BOOST_TYPE[terrain] === displayedMoveType) conditionEffects.push(`${terrain} ×1.3`);
+        if (defenderGrounded && terrain === '薄雾场地' && displayedMoveType === 'Dragon') conditionEffects.push(`${terrain} ×0.5`);
+        if (defenderGrounded && terrain === '青草场地' && GRASSY_HALVED_MOVE_IDS.has(projectMove.id)) conditionEffects.push(`${terrain} · 伤害减半`);
+        if (actualCalc.basePower !== withoutTerrain.basePower) {
+          conditionEffects.push(`${projectMove.chineseName} · ${terrain}下威力 ${actualCalc.basePower}`);
+        }
+      }
+    }
     const attackerStabTypes = attackerTypesForStab(attackerForm.types, displayedMoveType, attackerConfig.abilityId);
     const typeEffectiveness = displayedTypeEffectiveness(displayedMoveType, defenderForm.types, attackerConfig.abilityId);
     const weather = weatherImpact(displayedMoveType, displayedWeather);
@@ -1005,7 +1164,7 @@ export function computeDamage(input: DamageAdapterInput): DamageAdapterResult {
       attacker: attackerForm, defender: defenderForm,
       attackerBattleForm: attackerForm, defenderBattleForm: defenderForm,
       attackerConfig, defenderConfig,
-      move: projectMove, derivedSpreadDamage: spread,
+      move: projectMove, derivedSpreadDamage: hitsAllFoes,
       damageRolls: damages, minDamage: minDmg, maxDamage: maxDmg,
       minPercent: minPct, maxPercent: maxPct, possibleHkoText,
       oneHitKoChance,
@@ -1026,7 +1185,9 @@ export function computeDamage(input: DamageAdapterInput): DamageAdapterResult {
       typeEffectivenessText: typeEffectivenessText(typeEffectiveness),
       weatherMultiplier: weather.multiplier,
       weatherText: weather.text,
-      spreadMultiplier: spread ? 0.75 : 1,
+      conditionEffects,
+      effectiveBasePower: actualCalc.basePower,
+      spreadMultiplier: hitsAllFoes ? 0.75 : 1,
     };
   } catch (error) {
     blockedReasons.push(`计算引擎内部错误: ${error instanceof Error ? error.message : String(error)}`);

@@ -23,7 +23,19 @@ export const STAGE_LABELS: Array<{ key: keyof NonNullable<CalcSideConfig['statSt
   { key: 'speed', label: '速度' },
 ];
 
-export const sideLabelText = (side: CalcSide) => (side === 'attacker' ? '进攻方' : '防守方');
+const STAT_ABBREVIATIONS: Record<keyof StatPoints, string> = {
+  hp: 'HP', attack: 'ATK', defense: 'DEF', specialAttack: 'SPA', specialDefense: 'SPD', speed: 'SPE',
+};
+
+/** Invested SP in the series' shorthand, stat order: 「32ATK 32SPE」. */
+export const statPointSpreadText = (statPoints: StatPoints) => {
+  const parts = STAT_LABELS.map(({ key }) => ({ key, value: clampStatPointValue(statPoints[key] ?? 0) }))
+    .filter((entry) => entry.value > 0)
+    .map((entry) => `${entry.value}${STAT_ABBREVIATIONS[entry.key]}`);
+  return parts.length > 0 ? parts.join(' ') : '0 SP';
+};
+
+export const sideLabelText =(side: CalcSide) => (side === 'attacker' ? '进攻方' : '防守方');
 
 const investedStats = (statPoints: StatPoints) =>
   STAT_LABELS.map(({ key, label }) => ({ label, value: clampStatPointValue(statPoints[key] ?? 0) }))
@@ -37,11 +49,12 @@ export const memberPickLine = (member: TeamMember) => {
   return invested.map((entry) => `${entry.label} ${entry.value}`).join(' / ');
 };
 
-export const moveMetaLine = (move: AppMove, withAccuracy = false) => {
+/** `power` overrides the catalog figure when the calculator knows the effective one (扫墓's tier, terrain). */
+export const moveMetaLine = (move: AppMove, withAccuracy = false, power = move.power) => {
   const category = move.category === 'Physical' ? '物理' : move.category === 'Special' ? '特殊' : '变化';
-  const power = move.power ? `威力 ${move.power}` : undefined;
+  const powerText = power ? `威力 ${power}` : undefined;
   const accuracy = withAccuracy && move.accuracy ? `命中 ${move.accuracy}` : undefined;
-  return [move.type, category, power, accuracy].filter(Boolean).join(' · ');
+  return [move.type, category, powerText, accuracy].filter(Boolean).join(' · ');
 };
 
 /** Overflow rows for the result card (N05-12): one per breached limit, per side. */

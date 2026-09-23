@@ -145,4 +145,55 @@ describe('CalculatorPage', () => {
     await user.click(screen.getByRole('button', { name: '编辑进攻方配置' }));
     expect(screen.getByText('0 / 66')).toBeTruthy();
   });
+
+  it('starts a picked Pokémon on the environment build and lays its surge terrain', async () => {
+    const user = userEvent.setup();
+    render(
+      <AppProvider>
+        <CalculatorPage
+          environment={{
+            pokemonUsage: {
+              singles: [],
+              doubles: [{
+                pokemonId: 'rillaboom',
+                usageRate: 20,
+                teamCount: 20,
+                moveIds: ['grassy-glide', 'fake-out'],
+                itemIds: ['miracle-seed'],
+                abilityIds: ['grassy-surge'],
+                natureIds: ['固执'],
+                teammateIds: [],
+              }],
+            },
+          } as never}
+          onPickMember={vi.fn()}
+        />
+      </AppProvider>,
+    );
+    await screen.findByRole('heading', { name: '伤害计算' });
+
+    await user.click(screen.getByRole('button', { name: '选择进攻方' }));
+    await user.click(screen.getAllByRole('button', { name: '轰擂金刚猩' })[0]);
+
+    expect(sideCard('attacker').textContent).toContain('固执');
+    expect(sideCard('attacker').textContent).toContain('青草制造者');
+    expect(screen.getByRole('button', { name: '招式 青草滑梯' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: '场地 青草场地' })).toBeTruthy();
+    expect(screen.getByText('0 SP')).toBeTruthy();
+  });
+
+  it('keeps the same search input when the first letter switches the picker into search mode', async () => {
+    // An IME's first pinyin letter arrives as a change; a remounted input would abort the
+    // composition and commit that letter, so Chinese names could never be typed.
+    const user = userEvent.setup();
+    await renderCalculator();
+    await user.click(screen.getByRole('button', { name: '选择进攻方' }));
+
+    const search = screen.getByRole('textbox', { name: '搜索名称' });
+    await user.type(search, 'z');
+
+    expect(screen.queryByRole('heading', { name: '选择进攻方' })).toBeNull();
+    expect(screen.getByRole('textbox', { name: '搜索名称' })).toBe(search);
+    expect(document.activeElement).toBe(search);
+  });
 });

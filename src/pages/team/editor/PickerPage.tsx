@@ -68,23 +68,12 @@ export function PickerPage({
   // Pickers are swapped in by editor state, not by a route, so the router's reset misses them.
   useScrollResetWhileMounted();
 
+  // The field must stay the same DOM input across both layouts. An IME emits its first pinyin
+  // letter as a change, which flips `searching`; if that swapped in a new input, the composition
+  // would be torn down and the lone letter committed, so Chinese could never be typed.
   return (
     <div className="pb-8">
-      {searching && search ? (
-        <div className="flex items-center gap-3 px-6 pt-5">
-          <RoundIconButton label={backLabel} onClick={onBack}>
-            <ChevronLeft size={20} />
-          </RoundIconButton>
-          <SearchField
-            autoFocus
-            className="min-w-0 flex-1"
-            label={search.label}
-            placeholder={search.placeholder}
-            value={search.value}
-            onChange={search.onChange}
-          />
-        </div>
-      ) : (
+      {!searching && (
         <>
           <div className="flex items-center justify-between px-6 pt-5">
             <RoundIconButton label={backLabel} onClick={onBack}>
@@ -99,18 +88,27 @@ export function PickerPage({
           <div className="px-6 pt-[14px]">
             <h1 className="text-[34px] font-extrabold leading-[42px] tracking-[-0.02em]">{title}</h1>
             {subtitle && <p className="mt-1.5 text-[13px] leading-[18px] text-textSecondary">{subtitle}</p>}
-            {search && (
-              <SearchField
-                className="mt-4"
-                label={search.label}
-                placeholder={search.placeholder}
-                value={search.value}
-                onChange={search.onChange}
-              />
-            )}
-            {filters}
           </div>
         </>
+      )}
+      {(search || filters) && (
+        <div className={searching ? 'flex items-center gap-3 px-6 pt-5' : 'px-6'}>
+          {searching && (
+            <RoundIconButton label={backLabel} onClick={onBack}>
+              <ChevronLeft size={20} />
+            </RoundIconButton>
+          )}
+          {search && (
+            <SearchField
+              className={searching ? 'min-w-0 flex-1' : 'mt-4'}
+              label={search.label}
+              placeholder={search.placeholder}
+              value={search.value}
+              onChange={search.onChange}
+            />
+          )}
+          {!searching && filters}
+        </div>
       )}
       {children}
     </div>
