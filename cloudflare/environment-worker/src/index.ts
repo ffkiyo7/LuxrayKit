@@ -961,7 +961,7 @@ async function publishRefreshJob(
   };
 
   await Promise.all([
-    env.ENVIRONMENT_CACHE.put(SNAPSHOT_KEY, JSON.stringify(snapshot)),
+    putSnapshot(env, snapshot, status),
     env.ENVIRONMENT_CACHE.put(STATUS_KEY, JSON.stringify(status)),
     env.ENVIRONMENT_CACHE.put(TEAM_INDEX_KEY, JSON.stringify(teamIndex)),
   ]);
@@ -1048,10 +1048,7 @@ export async function startRefreshJob(
         audit: buildEnvironmentAuditStatus(snapshot, auditThreshold(env)),
       };
       await Promise.all([
-        env.ENVIRONMENT_CACHE.put(SNAPSHOT_KEY, JSON.stringify({
-          ...snapshot,
-          retrievedAt: refreshedAt,
-        })),
+        putSnapshot(env, { ...snapshot, retrievedAt: refreshedAt }, status),
         env.ENVIRONMENT_CACHE.put(STATUS_KEY, JSON.stringify(status)),
       ]);
       console.log(JSON.stringify({
@@ -1486,6 +1483,22 @@ export const buildLatestEtag = async (status: CacheStatus | undefined) => {
   return `"${(await sha256Hex(identity)).slice(0, 16)}"`;
 };
 
+type SnapshotMetadata = { etag?: string };
+
+/**
+ * Writes the snapshot with the ETag of the status it is published with, as KV metadata on the
+ * same key. `environment:latest` and `environment:status` are separate keys that each edge
+ * caches independently, so for up to a minute after a publish one location can read a new
+ * status beside an old snapshot. An ETag computed from the status alone would then label the
+ * old body with the new tag, and every later revalidation would 304 the browser onto stale data
+ * until the next upstream change. Metadata travels with the value it describes, so a 200 body
+ * and its ETag always agree.
+ */
+export async function putSnapshot(env: AppEnv, snapshot: EnvironmentSnapshot, status: CacheStatus) {
+  const metadata: SnapshotMetadata = { etag: await buildLatestEtag(status) };
+  await env.ENVIRONMENT_CACHE.put(SNAPSHOT_KEY, JSON.stringify(snapshot), { metadata });
+}
+
 const etagMatches = (ifNoneMatch: string | null, etag: string) =>
   Boolean(
     ifNoneMatch &&
@@ -1516,7 +1529,15 @@ async function handleLatest(request: Request, env: AppEnv) {
   // Older KV entries predate that field and fall through to the full 200 path.
   const conditionalHit = Boolean(status?.audit) && etagMatches(request.headers.get('if-none-match'), etag);
 
-  const snapshotText = conditionalHit ? undefined : await env.ENVIRONMENT_CACHE.get(SNAPSHOT_KEY);
+  // A 304 is keyed on the status-derived tag: if the snapshot read beside it would have been an
+  // older one, the browser's copy is at worst the newer body, which is still the right answer.
+  // A 200 is labelled with the tag stored on the snapshot itself (see putSnapshot); entries
+  // written before that metadata existed fall back to the status-derived tag.
+  const snapshotEntry = conditionalHit
+    ? undefined
+    : await env.ENVIRONMENT_CACHE.getWithMetadata<SnapshotMetadata>(SNAPSHOT_KEY);
+  const snapshotText = snapshotEntry?.value ?? undefined;
+  const responseEtag = snapshotEntry?.metadata?.etag ?? etag;
 
   if (!conditionalHit && !snapshotText) {
     return jsonResponse(
@@ -1553,7 +1574,7 @@ async function handleLatest(request: Request, env: AppEnv) {
   // fresh/stale/degraded from them even when the body came from the HTTP cache.
   const headers = jsonHeaders(env, {
     'cache-control': 'private, no-cache',
-    etag,
+    etag: responseEtag,
     'x-luxray-cache-state': cacheState,
     'x-luxray-worker-status': workerStatus,
     'x-luxray-source-status': sourceStatus,
