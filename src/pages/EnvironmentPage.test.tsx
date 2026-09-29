@@ -646,6 +646,30 @@ describe('SP 分配', () => {
     expect(within(section).queryByText(/69/)).toBeNull();
   });
 
+  it('prints a 31+ lower bound as a bound, never as an exact value, and caps the leftover', async () => {
+    const user = userEvent.setup();
+    renderEnvironment(
+      makeSpreadEnvironment([
+        {
+          label: 'HB',
+          primaryStatKeys: ['hp', 'defense'],
+          points: { hp: 31, defense: 32 },
+          hasRemainder: true,
+          lowerBoundStatKeys: ['hp'],
+          usageRate: 64.4,
+          teamCount: 139,
+        },
+      ]),
+    );
+    await openGarchomp(user);
+
+    const section = screen.getByText('SP 分配').closest('section') as HTMLElement;
+    const [row] = within(section).getAllByRole('group');
+    expect(row.getAttribute('aria-label')).toBe('HP 31 以上、防御 32，余 至多 3 点，占比 64.4%');
+    expect(within(row).getByText('31+')).toBeTruthy();
+    expect(within(row).getByText('≤3')).toBeTruthy();
+  });
+
   it('drops the whole section — heading included — when the snapshot carries no spreads', async () => {
     const user = userEvent.setup();
     renderEnvironment(makeSpreadEnvironment(undefined));

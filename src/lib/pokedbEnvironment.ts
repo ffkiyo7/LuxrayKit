@@ -270,6 +270,8 @@ const STAT_POINT_HEAD_PATTERN =
   /usage-name usage-name--stats">\s*([^<]*?)\s*<\/span>\s*<span class="usage-rate[^"]*">\s*([\d.]+)%/;
 const STAT_POINT_CHIP_PATTERN =
   /pokemon-stat-spread__label">\s*([^<\s]+)\s*<\/span>\s*<span class="pokemon-stat-spread__value[^"]*">\s*([^<]+?)\s*<\/span>/g;
+// An exact count, or a lower bound (`31+`) when a merged row folds e.g. H31 and H32 together.
+const STAT_POINT_VALUE_PATTERN = /^(\d+)(\+)?$/;
 // PokeDB shows the merged rows' unassigned points as a 「余り」 chip under a `+` label.
 const STAT_POINT_REMAINDER_LABEL = '+';
 /** Only the leading spreads are worth carrying in the snapshot; the tail is a long 0.x% list. */
@@ -304,6 +306,7 @@ const parseStatPointStats = (html: string, teamCount: number, limit: number): En
     if (!primaryStatKeys || !extraStatKeys) return [];
 
     const points: EnvironmentStatPointUsage['points'] = {};
+    const lowerBoundStatKeys: EnvironmentStatPointKey[] = [];
     let hasRemainder = false;
     for (const chip of head.matchAll(STAT_POINT_CHIP_PATTERN)) {
       const [, chipLabel, chipValue] = chip;
@@ -312,9 +315,10 @@ const parseStatPointStats = (html: string, teamCount: number, limit: number): En
         continue;
       }
       const key = STAT_POINT_KEY_BY_POKEDB_LETTER[chipLabel];
-      const value = Number(chipValue);
-      if (!key || !Number.isFinite(value)) return [];
-      points[key] = value;
+      const valueMatch = chipValue.match(STAT_POINT_VALUE_PATTERN);
+      if (!key || !valueMatch) return [];
+      points[key] = Number(valueMatch[1]);
+      if (valueMatch[2]) lowerBoundStatKeys.push(key);
     }
 
     const stat: EnvironmentStatPointUsage = {
@@ -323,6 +327,7 @@ const parseStatPointStats = (html: string, teamCount: number, limit: number): En
       ...(extraStatKeys.length > 0 ? { extraStatKeys } : {}),
       points,
       ...(hasRemainder ? { hasRemainder: true } : {}),
+      ...(lowerBoundStatKeys.length > 0 ? { lowerBoundStatKeys } : {}),
       usageRate,
       teamCount: approximateCount(usageRate, teamCount),
     };

@@ -32,6 +32,10 @@ export type EnvironmentStatPointKey = keyof BaseStats;
  * `points` holds the numbers PokeDB printed on the row. When PokeDB merged several spreads into
  * one row it prints the leftover as 「余り」 instead of a number: `hasRemainder` marks that, and
  * `points` then only covers `primaryStatKeys`.
+ *
+ * A merged row can also fold spreads that differ on one stat, e.g. H31 and H32 — PokeDB then
+ * prints that chip as `31+`. `points` keeps the bound (31) and `lowerBoundStatKeys` lists the
+ * stats whose value means "at least", so nothing downstream reads it as an exact 31.
  */
 export type EnvironmentStatPointUsage = {
   label: string;
@@ -39,6 +43,7 @@ export type EnvironmentStatPointUsage = {
   extraStatKeys?: EnvironmentStatPointKey[];
   points: StatPoints;
   hasRemainder?: boolean;
+  lowerBoundStatKeys?: EnvironmentStatPointKey[];
   usageRate: number;
   teamCount: number;
 };
@@ -59,7 +64,14 @@ export const isValidStatPointUsage = (stat: EnvironmentStatPointUsage): boolean 
   if (entries.some(([, value]) => !Number.isInteger(value) || value < 0 || value > MAX_STAT_POINTS_PER_STAT)) {
     return false;
   }
+  // Summing the bounds is still a valid check: the real values are only ever higher.
   if (entries.reduce((total, [, value]) => total + (value ?? 0), 0) > MAX_TOTAL_STAT_POINTS) return false;
+  const lowerBoundStatKeys = stat.lowerBoundStatKeys ?? [];
+  if (new Set(lowerBoundStatKeys).size !== lowerBoundStatKeys.length) return false;
+  // A bound at the per-stat cap would be exact, so it is markup we no longer understand.
+  if (lowerBoundStatKeys.some((key) => (stat.points[key] ?? MAX_STAT_POINTS_PER_STAT) >= MAX_STAT_POINTS_PER_STAT)) {
+    return false;
+  }
   if (!Number.isFinite(stat.usageRate) || stat.usageRate < 0 || stat.usageRate > 100) return false;
   return Number.isInteger(stat.teamCount) && stat.teamCount >= 0;
 };
