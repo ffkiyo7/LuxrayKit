@@ -1,6 +1,8 @@
 // HAND-MAINTAINED (no generator script): PokeDB numeric move / ability keys → catalog ids, keyed
-// by PokeAPI resource numbers. Used only for PokeDB key mapping; add a row when the Worker audit
-// reports an unknown key.
+// by the games' internal index, which is what PokeDB uses. PokeAPI's resource numbers match it for
+// every move below and for abilities up to 298 only (see the Gen 9 DLC note below), so read any
+// newer key off PokeDB rather than PokeAPI. Used only for PokeDB key mapping; add a row when the
+// Worker audit reports an unknown key.
 export const pokedbMoveKeyToId: Record<number, string> = {
   1: 'pound',
   7: 'fire-punch',
@@ -740,22 +742,29 @@ export const pokedbAbilityKeyToId: Record<number, string> = {
   295: 'toxic-debris',
   296: 'armor-tail',
   297: 'earth-eater',
-  299: 'minds-eye',
-  300: 'supersweet-syrup',
-  301: 'hospitality',
-  309: 'dragonize',
-  310: 'mega-sol',
-  311: 'spicy-spray',
-  // Reg M-C Mega abilities. Both keys are the abilities' real PokeAPI numeric ids, which is what
-  // PokeDB uses for every ability that also exists in the main series. (The M-6 refresh also added
-  // 194 / 227 / 229 / 236 above and six move keys to the table above; each was read off a PokeDB
-  // season M-6 page and its Japanese name matched against PokeAPI's entry for the same number.)
+  // Gen 9 DLC abilities, where PokeAPI stops following the in-game index: it folds Embody Aspect's
+  // four indexes into one and orders the rest differently. In-game: 299 Hospitality, 300 Mind's
+  // Eye, 301–304 Embody Aspect, 305 Toxic Chain, 306 Supersweet Syrup (PKHeX's `Ability` enum and
+  // Showdown's `num` agree). PokeDB follows the game: 来悲粗茶, which can only have Hospitality or
+  // Heatproof, charts key 299 beside Heatproof's 85. PokeAPI's 299 is Mind's Eye, so don't key
+  // these rows by PokeAPI. Embody Aspect and Toxic Chain are not in the catalog and stay unmapped.
+  299: 'hospitality',
+  300: 'minds-eye',
+  306: 'supersweet-syrup',
+  // Reg M-C Mega abilities. Both are main-series abilities below 299, so the key is also their
+  // PokeAPI id. (The M-6 refresh also added 194 / 227 / 229 / 236 above and six move keys to the
+  // table above; each was read off a PokeDB season M-6 page and its Japanese name matched against
+  // PokeAPI's entry for the same number.)
   184: 'aerilate',
   270: 'thermal-exchange',
-  // `aura-guard` (Mega Lucario Z's signature) is Champions-only, so it has no PokeAPI id. Key 317 is
-  // PokeDB's own extension of the numbering (like 309–311 above) and was read off the live season
-  // M-6 page `/pokemon/show/0448-00?season=6`, whose form payload reads:
+  // `aura-guard` (Mega Lucario Z's signature) is Champions-only, and neither PokeAPI (314) nor
+  // Showdown (319) has PokeDB's number for it, so key 317 was read off the live season M-6 page
+  // `/pokemon/show/0448-00?season=6`, whose form payload reads:
   //   "0448-02": { "display_name": "メガルカリオＺ",
   //                "abilities": [{ "ability_key": 317, "name": "はどうのぼうご", ... }] }
+  // Dragonize / Mega Sol / Spicy Spray get rows only once their keys are read off PokeDB the same
+  // way: their PokeAPI ids 309–311 are Teraform Zero / Poison Puppeteer / Piercing Drill in-game.
+  // Usage charts list a Mega's base-form ability anyway (Lucario at 93% `lucarionite-z` charts
+  // 精神力 / 不屈之心 / 正义之心), so these keys never reach the parser.
   317: 'aura-guard',
 };
