@@ -1,3 +1,4 @@
+import { typeLabels } from '../../components/ui';
 import { totalStatPoints, type CalcSideConfig } from '../../lib/damageAdapter';
 import { clampStatPointValue, MAX_STAT_POINTS_PER_STAT, MAX_TOTAL_STAT_POINTS } from '../../lib/statPoints';
 import type { Move as AppMove, StatPoints, TeamMember } from '../../types';
@@ -54,7 +55,7 @@ export const moveMetaLine = (move: AppMove, withAccuracy = false, power = move.p
   const category = move.category === 'Physical' ? '物理' : move.category === 'Special' ? '特殊' : '变化';
   const powerText = power ? `威力 ${power}` : undefined;
   const accuracy = withAccuracy && move.accuracy ? `命中 ${move.accuracy}` : undefined;
-  return [move.type, category, powerText, accuracy].filter(Boolean).join(' · ');
+  return [typeLabels[move.type], category, powerText, accuracy].filter(Boolean).join(' · ');
 };
 
 /** Overflow rows for the result card (N05-12): one per breached limit, per side. */
