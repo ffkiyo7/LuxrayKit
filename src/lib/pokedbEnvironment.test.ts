@@ -344,6 +344,77 @@ describe('PokeDB environment ingestion', () => {
     ]);
   });
 
+  it('keeps a merged SP row whose chip is a 31+ lower bound instead of dropping it', () => {
+    // Trimmed from イエッサン(メス) 0876-01 (M-6 doubles): the top row folds H31 and H32 spreads,
+    // so PokeDB prints H as `31+`; the nested details list keeps each member's exact chips.
+    const chip = (label: string, value: string) => `
+      <span class="pokemon-stat-spread__chip pokemon-stat-spread__chip--red">
+        <span class="pokemon-stat-spread__label">${label}</span>
+        <span class="pokemon-stat-spread__value is-family-monospace">${value}</span>
+      </span>
+    `;
+    const html = `
+      <div class="column is-one-fifth-widescreen pokemon-trend__column-stats">
+        <div x-show="statViewMode === 'aggregated'">
+          <ul class="usage-list usage-list--stats">
+            <li class="usage-list-item usage-list-item--stats" x-data="{ open: false }">
+              <div class="usage-list-item__inner-row usage-list-item__inner-row--stats">
+                <span class="usage-name usage-name--stats">HB</span>
+                <span class="usage-rate is-family-monospace">64.4%</span>
+              </div>
+              <div class="pokemon-stat-spread">${chip('H', '31+')}${chip('B', '32')}${chip('+', '余り')}</div>
+              <p class="pokemon-stat-spread__meta"><a href="#"><span>9件を合算</span></a></p>
+              <ul class="pokemon-stat-spread__details">
+                <li class="pokemon-stat-spread__detail">
+                  <span class="pokemon-stat-spread__detail-name">HB + d</span>
+                  <span class="pokemon-stat-spread__detail-rate is-family-monospace">53.5%</span>
+                  <div class="pokemon-stat-spread pokemon-stat-spread__detail-chips">
+                    ${chip('H', '32')}${chip('B', '32')}${chip('D', '2')}
+                  </div>
+                </li>
+                <li class="pokemon-stat-spread__detail">
+                  <span class="pokemon-stat-spread__detail-name">HB + d</span>
+                  <span class="pokemon-stat-spread__detail-rate is-family-monospace">1.8%</span>
+                  <div class="pokemon-stat-spread pokemon-stat-spread__detail-chips">
+                    ${chip('H', '31')}${chip('B', '32')}${chip('D', '3')}
+                  </div>
+                </li>
+              </ul>
+            </li>
+            ${/* 32+ would be an exact cap dressed as a bound: markup we don't understand, dropped */ ''}
+            <li class="usage-list-item usage-list-item--stats" x-data="{ open: false }">
+              <div class="usage-list-item__inner-row usage-list-item__inner-row--stats">
+                <span class="usage-name usage-name--stats">HD</span>
+                <span class="usage-rate is-family-monospace">5.0%</span>
+              </div>
+              <div class="pokemon-stat-spread">${chip('H', '32+')}${chip('D', '32')}</div>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="column pokemon-trend__column-same_team"></div>
+    `;
+
+    expect(parsePokeDbPokemonDetailPage(html, {
+      teamCount: 1000,
+      pokemonKeyToId,
+      itemNameToId,
+      moveKeyToId: {},
+      abilityKeyToId: {},
+      natureNameToId: {},
+    }).statPointStats).toEqual([
+      {
+        label: 'HB',
+        primaryStatKeys: ['hp', 'defense'],
+        points: { hp: 31, defense: 32 },
+        hasRemainder: true,
+        lowerBoundStatKeys: ['hp'],
+        usageRate: 64.4,
+        teamCount: 644,
+      },
+    ]);
+  });
+
   it('leaves statPointStats empty when the detail page has no 能力ポイント panel', () => {
     expect(parsePokeDbPokemonDetailPage('<div class="column pokemon-trend__column-same_team"></div>', {
       teamCount: 100,

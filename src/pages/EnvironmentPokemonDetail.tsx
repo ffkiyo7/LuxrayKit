@@ -101,14 +101,22 @@ function StatPointSpreadRow({
   divider: boolean;
 }) {
   const terms = statPointKeys
-    .map((key) => ({ key, label: statPointLabels[key], value: Number(stat.points[key] ?? 0) }))
+    .map((key) => ({
+      key,
+      label: statPointLabels[key],
+      value: Number(stat.points[key] ?? 0),
+      isLowerBound: stat.lowerBoundStatKeys?.includes(key) ?? false,
+    }))
     .filter((term) => term.value > 0);
+  // A `31+` term is drawn at its bound, so the leftover it leaves is only an upper bound too.
+  const isInexact = terms.some((term) => term.isLowerBound);
   const assigned = terms.reduce((total, term) => total + term.value, 0);
   const remainder = stat.hasRemainder ? Math.max(0, MAX_TOTAL_STAT_POINTS - assigned) : 0;
+  const remainderText = `${isInexact ? '≤' : ''}${remainder}`;
   const rate = formatRate(stat.usageRate);
   const spoken = [
-    terms.map((term) => `${term.label} ${term.value}`).join('、'),
-    ...(remainder > 0 ? [`余 ${remainder} 点`] : []),
+    terms.map((term) => `${term.label} ${term.value}${term.isLowerBound ? ' 以上' : ''}`).join('、'),
+    ...(remainder > 0 ? [`余 ${isInexact ? '至多 ' : ''}${remainder} 点`] : []),
     `占比 ${rate}`,
   ].join('，');
 
@@ -145,13 +153,14 @@ function StatPointSpreadRow({
                 className={`text-xs font-extrabold leading-[14px] tabular-nums ${lead ? 'text-data' : 'text-textLabel'}`}
               >
                 {term.value}
+                {term.isLowerBound && '+'}
               </span>
             </span>
           ))}
           {remainder > 0 && (
             <span className="inline-flex h-[22px] items-baseline gap-1 rounded-full border border-dashed border-[var(--env-sp-dash)] px-[7px] pt-[3px]">
               <span className="text-[11px] font-bold leading-[14px] text-textSecondary">余</span>
-              <span className="text-xs font-extrabold leading-[14px] tabular-nums text-textSecondary">{remainder}</span>
+              <span className="text-xs font-extrabold leading-[14px] tabular-nums text-textSecondary">{remainderText}</span>
               <span className="text-[10px] font-bold leading-[14px] text-textSecondary">点</span>
             </span>
           )}
