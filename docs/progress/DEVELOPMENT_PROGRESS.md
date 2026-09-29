@@ -58,7 +58,7 @@
 4. `src/data/seed/regMA/allowlist.ts` 手工追加 `reg-mX-` 行，同步 `regMaPokemonAllowlistExpectedCount`。
 5. 本体用 `scripts/generate-catalog-batch.mjs` 生成（批次号 / 大小 / sourceRefs 走命令行参数）；新 Mega 另建 `mega-catalog-<reg>.ts`；Mega 引用的特性 id 必须有 Ability 行。
 6. 每块新 Mega 石：独立道具，`requiredItemId` 与 `applicablePokemonIds` 对齐，加道具图标，`pokedbItemNameMap.ts` 加日文名（Z 石用全角 Ｚ，半角行留作别名）。新道具英文名以 PokéBase slug 为准，翻完 PokéBase 道具页全部分页再定数。
-7. PokeDB 键映射：招式 / 特性键逐个用日文名对上 PokeAPI 同号条目后写进 `pokedbResourceKeyMap.ts`；Mega 特性以 PokeDB 形态 payload 的 `ability_key` 为准，不信 PokémonDB / `@smogon/calc`。
+7. PokeDB 键映射：招式 / 特性键逐个用日文名对上 PokeAPI 同号条目后写进 `pokedbResourceKeyMap.ts`；特性从 299 起 PokeDB 用游戏内序号、与 PokeAPI 编号错开（299 = おもてなし，PokeAPI 的 299 是心眼），这段按日文名找条目、不按同号；Mega 特性以 PokeDB 形态 payload 的 `ability_key` 为准，不信 PokémonDB / `@smogon/calc`。
 8. 每个新本体在 `physicalMetrics.ts` 补一条（按 `nationalDexNo`，形态 / Mega 不补）；本体与 Mega 补立绘，在 `scripts/` 下新写脚本，不运行 `scripts/archive/update-mc-assets.mjs`。
 9. `currentRuleSet`：同步 `id` / 名称 / `displayName` / `startAt` / `endAt`，升 `dataVersionId`；战斗参数（`battleType` / `allowMega` / `megaLimitPerBattle` / `duplicateHeldItemsAllowed` / `timers`）逐项对照官方公告；`dataSourceManifest` 加新来源并保留历史来源；新行 `verificationStatus: manual-review`；`RegulationId` 映射表加一条。
 10. 切规则、catalog 增补、全量重生成放在同一个 PR。重生成：`data:pokemon-facts`、`data:pokedb:speed`、`data:pokedb:environment`、`data:items:audit`、`worker:app:types`、`worker:environment:check`；更新 `dataAudit.test.ts` 的总数。

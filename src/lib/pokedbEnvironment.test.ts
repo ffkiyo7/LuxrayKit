@@ -25,18 +25,37 @@ it('maps audited PokeDB ability keys to abilities in the current catalog', () =>
     84: pokedbAbilityKeyToId[84],
     182: pokedbAbilityKeyToId[182],
     299: pokedbAbilityKeyToId[299],
+    300: pokedbAbilityKeyToId[300],
+    306: pokedbAbilityKeyToId[306],
   }).toEqual({
     21: 'suction-cups',
     45: 'sand-stream',
     84: 'unburden',
     182: 'pixilate',
-    299: 'minds-eye',
+    299: 'hospitality',
+    300: 'minds-eye',
+    306: 'supersweet-syrup',
   });
 
   const abilityIds = new Set(abilities.map((ability) => ability.id));
-  [21, 45, 84, 182, 299].forEach((key) => {
+  [21, 45, 84, 182, 299, 300, 306].forEach((key) => {
     expect(abilityIds.has(pokedbAbilityKeyToId[key]), `ability key ${key} should resolve`).toBe(true);
   });
+});
+
+it('keys the Gen 9 DLC abilities by in-game index, so pool Pokémon resolve to abilities they can have', () => {
+  // PokeAPI's 299 / 300 / 301 are Mind's Eye / Supersweet Syrup / Hospitality; PokeDB, like the
+  // games, uses 299 Hospitality / 306 Supersweet Syrup. Keyed the PokeAPI way, 来悲粗茶 read as
+  // Mind's Eye and the calc preset fell back to Heatproof.
+  const holders: Array<[key: number, pokemonId: string, abilityId: string]> = [
+    [299, 'sinistcha', 'hospitality'],
+    [306, 'hydrapple', 'supersweet-syrup'],
+  ];
+  holders.forEach(([key, pokemonId, abilityId]) => {
+    expect(pokedbAbilityKeyToId[key], `ability key ${key}`).toBe(abilityId);
+    expect(pokemon.find((entry) => entry.id === pokemonId)?.abilities).toContain(abilityId);
+  });
+  expect(pokedbAbilityKeyToId[301], '301 is Embody Aspect in-game').toBeUndefined();
 });
 
 it('maps the PokeDB Malamarite label to the current item catalog', () => {
@@ -206,6 +225,30 @@ describe('PokeDB environment ingestion', () => {
       abilityStats: [{ id: 'rough-skin', usageRate: 99.4, teamCount: 99 }],
       natureStats: [{ id: '爽朗', usageRate: 51.4, teamCount: 51 }],
     });
+  });
+
+  it("reads 来悲粗茶's ability chart as Hospitality through the shared key map", () => {
+    // Keys and rates of the M-6 doubles chart: 299 beside Heatproof's 85. The parser ignores names.
+    const html = `
+      <div class="card" x-data="window.usagePieChart([{&quot;ability_key&quot;:299,&quot;name&quot;:&quot;おもてなし&quot;,&quot;rate&quot;:98.4},{&quot;ability_key&quot;:85,&quot;name&quot;:&quot;たいねつ&quot;,&quot;rate&quot;:1.6}])"></div>
+    `;
+
+    const detail = parsePokeDbPokemonDetailPage(html, {
+      teamCount: 237,
+      pokemonKeyToId,
+      itemNameToId,
+      moveKeyToId: {},
+      abilityKeyToId: pokedbAbilityKeyToId,
+      natureNameToId: {},
+    });
+
+    expect(detail.abilityStats).toEqual([
+      { id: 'hospitality', usageRate: 98.4, teamCount: 233 },
+      { id: 'heatproof', usageRate: 1.6, teamCount: 4 },
+    ]);
+    expect(detail.audit.unknownAbilityKeys).toEqual([]);
+    const sinistchaAbilities = pokemon.find((entry) => entry.id === 'sinistcha')?.abilities ?? [];
+    detail.abilityStats.forEach((stat) => expect(sinistchaAbilities).toContain(stat.id));
   });
 
   it('reads the top SP spreads from the 能力ポイント panel and drops rows it cannot map', () => {
