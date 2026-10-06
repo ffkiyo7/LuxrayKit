@@ -8,7 +8,7 @@ import { currentRuleMovesForPokemon } from '../../lib/currentRuleCatalog';
 import { evaluateMemberLegality } from '../../lib/legality';
 import type { DexFormEntry } from '../../lib/pokemonForms';
 import { createDefaultTeamMember } from '../../lib/teamMemberDefaults';
-import { offensiveProfile } from '../../lib/typeChart';
+import { offensiveRows, type OffensiveRow } from '../../lib/typeChart';
 import { useAppStore } from '../../state/AppContext';
 import type { PokemonType, Team, TeamMember } from '../../types';
 import { auraStyle, Sprite, TypeDot } from '../../components/kit';
@@ -47,16 +47,12 @@ function SectionHeading({ title, trailing }: { title: string; trailing?: string 
   );
 }
 
-type MatchupRow = {
-  type: PokemonType;
-  multiplier: number;
-  /** Which of the Pokémon's own types produce this line — only 「攻击时」 fills it in. */
-  sources?: PokemonType[];
-};
+/** `sources` (which of the Pokémon's own types produce this line) — only 「进攻时」 fills it in. */
+type MatchupRow = OffensiveRow;
 
 /**
  * 04-09 matchup chip: a type dot, the type name and its multiplier on one neutral capsule. The
- * 攻击时 list adds the source type behind a hairline, since the same defender can show up under two
+ * 进攻时 list adds the source type behind a hairline, since the same defender can show up under two
  * different shelves depending on which of the attacker's own types is throwing the move.
  */
 function MatchupChip({ type, multiplier, sources }: MatchupRow) {
@@ -105,48 +101,9 @@ function MatchupGroup({ title, tone, rows }: { title: string; tone: 'danger' | '
 type MatchupView = 'defense' | 'offense';
 
 const matchupViews: Array<{ id: MatchupView; label: string }> = [
-  { id: 'defense', label: '受击时' },
-  { id: 'offense', label: '攻击时' },
+  { id: 'defense', label: '防守时' },
+  { id: 'offense', label: '进攻时' },
 ];
-
-/**
- * 攻击时 asks the chart once per own type and keeps both answers: 烈咬陆鲨 resists nothing as a whole,
- * but 钢 is ×2 for its 地面 moves and ×½ for its 龙 moves, so the same defender belongs on two
- * shelves. Only when both own types land on the same shelf with the same multiplier do they share a
- * chip (火焰鸡: 冰 ×2 from 火 and 格斗 alike), so one shelf never prints the same type twice.
- */
-function offensiveRows(types: PokemonType[]): Record<'superEffective' | 'notVery' | 'noEffect', MatchupRow[]> {
-  const shelves = {
-    superEffective: { multiplier: 2, rows: new Map<PokemonType, MatchupRow>() },
-    notVery: { multiplier: 0.5, rows: new Map<PokemonType, MatchupRow>() },
-    noEffect: { multiplier: 0, rows: new Map<PokemonType, MatchupRow>() },
-  } as const;
-  const dual = types.length > 1;
-
-  for (const own of types) {
-    const profile = offensiveProfile(own);
-    for (const key of ['superEffective', 'notVery', 'noEffect'] as const) {
-      for (const defender of profile[key]) {
-        const shelf = shelves[key];
-        const existing = shelf.rows.get(defender);
-        if (existing) existing.sources!.push(own);
-        else shelf.rows.set(defender, { type: defender, multiplier: shelf.multiplier, sources: [own] });
-      }
-    }
-  }
-
-  const sorted = (rows: Map<PokemonType, MatchupRow>) =>
-    [...rows.values()]
-      .sort((a, b) => typeOrder[a.type] - typeOrder[b.type])
-      // A single-type Pokémon has one possible source, so the hairline and its label are noise.
-      .map((row) => (dual ? row : { type: row.type, multiplier: row.multiplier }));
-
-  return {
-    superEffective: sorted(shelves.superEffective.rows),
-    notVery: sorted(shelves.notVery.rows),
-    noEffect: sorted(shelves.noEffect.rows),
-  };
-}
 
 /**
  * N04-10: the artwork alone on a plane tinted with the Pokémon's own body colours — the same halo
@@ -216,7 +173,7 @@ export function PokemonDetail({
   const [expandedMoveId, setExpandedMoveId] = useState<string | null>(null);
   const [moveQuery, setMoveQuery] = useState('');
   const [moveSortKey, setMoveSortKey] = useState<MoveSortKey>('power-asc');
-  // Every entry opens on 受击时, including a switch from one Pokémon to another: the view the last
+  // Every entry opens on 防守时, including a switch from one Pokémon to another: the view the last
   // Pokémon was left on is not a preference, so it is stored against the entry it was chosen for.
   const [matchupChoice, setMatchupChoice] = useState<{ entryId: string; view: MatchupView }>({
     entryId: entry.id,
@@ -258,8 +215,9 @@ export function PokemonDetail({
     .filter(({ multiplier }) => multiplier > 1)
     .sort((a, b) => b.multiplier - a.multiplier || typeOrder[a.type] - typeOrder[b.type]);
   const resistances = matchups
-    .filter(({ multiplier }) => multiplier < 1)
+    .filter(({ multiplier }) => multiplier > 0 && multiplier < 1)
     .sort((a, b) => b.multiplier - a.multiplier || typeOrder[a.type] - typeOrder[b.type]);
+  const immunities = matchups.filter(({ multiplier }) => multiplier === 0);
   const offense = useMemo(() => offensiveRows(entry.types), [entry.types]);
 
   const metrics = pokemonPhysicalMetricsByDexNo[entry.basePokemon.nationalDexNo];
@@ -382,14 +340,15 @@ export function PokemonDetail({
         {matchupView === 'defense' ? (
           <>
             <MatchupGroup rows={weaknesses} title="弱点" tone="danger" />
-            <MatchupGroup rows={resistances} title="抵抗与免疫" tone="success" />
+            <MatchupGroup rows={resistances} title="抵抗" tone="success" />
+            <MatchupGroup rows={immunities} title="免疫" tone="success" />
           </>
         ) : (
           <>
             {/* 打得动 = 绿, the same reading 属性速查 gives an attacker (`SingleTypeView`). */}
             <MatchupGroup rows={offense.superEffective} title="效果绝佳" tone="success" />
             <MatchupGroup rows={offense.notVery} title="效果不好" tone="danger" />
-            <MatchupGroup rows={offense.noEffect} title="无效" tone="danger" />
+            <MatchupGroup rows={offense.noEffect} title="没有效果" tone="danger" />
           </>
         )}
       </section>
