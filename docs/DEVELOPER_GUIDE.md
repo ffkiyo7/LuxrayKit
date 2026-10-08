@@ -166,7 +166,6 @@ record 0   : 队伍名；record 1.. 每个成员一条，字段定序、缺省�
 3. **内置 seed** `environmentFallbackState`：始终可用。
 
 - 拿到 base 快照后懒加载 VGCPastes 样本（`loadVgcPastesTeamSamples`），按 regulation 拆成独立 build chunk（当前 `reg_mb_*` / `reg_mc_*`），`loadVgcPastesRegulationFile` 各自 try/catch，单文件失败只少一批样本。
-- **过渡代码 `backfillStatPointStats`**（标 `TRANSITIONAL`，能力ポイント 解析的 Worker 上线 `main` 后连调用点一起删）：API 快照**所有行**都缺 `statPointStats` 时，按同 battle type / 宝可梦 / **同赛季**从静态快照补，跨赛季不补；字段存在（哪怕空数组）即权威。Worker fresh 时补数据额外以 `no-cache`（不要用 `force-cache`）请求一次静态快照。
 - `PokeDbEnvironmentSnapshotPayload` 支持 statistics / trainer-list / open-data ranked-teams 三种形态，由 `isStatisticsPayload` / `isTrainerListPayload` 分派。
 
 #### 未知宝可梦的哨兵占位行
