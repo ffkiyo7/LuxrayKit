@@ -26,7 +26,7 @@
 
 ### 其他
 
-- [ ] ⬜ **删 R33 的 `TRANSITIONAL` 回填**：`src/data/environment.ts` 的 `backfillStatPointStats` 与它多发的那次 fetch，连同 `environment.test.ts` 里对应用例。前置已满足（生产 `/api/environment/latest` 已带 `statPointStats`，2026-09-23）。
+- [x] ✅ 2026-10-08 **删 R33 的 `TRANSITIONAL` 回填**：`src/data/environment.ts` 的 `backfillStatPointStats` 与它多发的那次 fetch，连同 `environment.test.ts` 里对应用例。前置已满足（生产 `/api/environment/latest` 已带 `statPointStats`，2026-09-23）。
 - [ ] ⬜ **Task 13 队报链接重做 + 双来源统一**（spike 先行）：PokeDB 队报链接多数落在没有实际加点的 X 截图贴，换落点或弱化入口。
 - [ ] ⬜ 属性速查页补视觉基线。
 - [ ] ⬜ 分享链接预览浮层（`#/t/<code>`）补视觉基线：先定合法 code 从哪来（写死会随 catalog 变动失效）。现由 `App.test.tsx` 覆盖。

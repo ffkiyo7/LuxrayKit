@@ -49,7 +49,7 @@
 
 ## 开放项
 
-- [ ] ⬜ **删 R33 的 `TRANSITIONAL` 回填**：删 `src/data/environment.ts` 的 `backfillStatPointStats` 及 `:369` 起为它做的额外取数、`environment.test.ts` 对应用例（代码里有 `TRANSITIONAL` 注释）。前置已满足：生产 `/api/environment/latest` 已带 `statPointStats`（2026-09-23 核对）。
+- [x] ✅ 2026-10-08 **删 R33 的 `TRANSITIONAL` 回填**：删 `src/data/environment.ts` 的 `backfillStatPointStats` 及 `:369` 起为它做的额外取数、`environment.test.ts` 对应用例（代码里有 `TRANSITIONAL` 注释）。前置已满足：生产 `/api/environment/latest` 已带 `statPointStats`（2026-09-23 核对）。
 
 ## 已知坑
 
