@@ -17,7 +17,7 @@
 - **允许改动**：`src/lib/damageAdapter.ts` / `damageAdapter.test.ts`、计算器场地选择器所在组件、`docs/research/DAMAGE_CALC_FIXTURES.md`。
 - **现状（2026-10-08）**：
   - ✅ 草场：场地选择器与四种场地修正已随 6eb1b26（2026-09-23）上线，草招 ×1.3、地震 / 重踏 / 震级打着地目标减半，Surge 特性自动带出场地。
-  - ✅ Aura Guard（A 建模）：防守方为波导防护时，按引擎的接触判定把伤害减半（拳击手套去接触、远隔、破格系特性无视均已处理），`calculationImpact` 改为 `confirmed`。与命玉等其他最终修正叠加时可能差 1 HP。
+  - ✅ Aura Guard（A 建模）：防守方为波导防护时，按引擎的接触判定把伤害减半（拳击手套去接触、远隔、破格系特性无视均已处理），`calculationImpact` 改为 `confirmed`。与生命宝珠等其他最终修正叠加时可能差 1 HP。
   - ✅ 四种 Seed（A 建模）：`@smogon/calc` 的 `checkSeedBoost` 已按场地给持有者 +1 防御 / 特防，结果卡沿用道具标签显示，补了测试。
   - ❌ 不做：青草滑梯先制、精神场地挡先制（只影响出手 / 出招判定，不改伤害，超出计算器边界）；Terrain Extender（只延长回合数，不改伤害）。
 - **要求**：每个机制二选一，不许既不建模也不提示。
