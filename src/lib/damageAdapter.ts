@@ -534,6 +534,24 @@ function normalizeDamageRolls(damageData: unknown): number[] {
   return [];
 }
 
+/**
+ * 波导防护 (Aura Guard, Champions-only) halves contact damage. @smogon/calc does not know it, so
+ * the halving is applied to the engine's rolls here, mirroring its Fluffy contact branch: the
+ * engine's own contact flag (Punching Glove already cleared it), bypassed by Long Reach and by
+ * Mold Breaker-family attackers. Halving the finished roll matches an in-chain ×0.5 final modifier
+ * exactly when no other final modifier applies, and can drift by 1 HP alongside Life Orb etc.
+ */
+function auraGuardApplies(defenderAbilityId: string | undefined, attackerAbilityId: string | undefined, makesContact: boolean): boolean {
+  return defenderAbilityId === 'aura-guard'
+    && makesContact
+    && attackerAbilityId !== 'long-reach'
+    && !MOLD_BREAKER_ABILITIES.has(attackerAbilityId ?? '');
+}
+
+function halveDamageRolls(damages: number[]): number[] {
+  return damages.map((damage) => (damage > 0 ? Math.max(1, Math.floor(damage / 2)) : damage));
+}
+
 function specificAbilityEffectText(abilityId: string, direction: DamageAbilityEffect['direction'], move: AppMove): string | undefined {
   const typeText = TYPE_IMMUNITY_ABILITY_TEXT[abilityId]?.[move.type];
   if (direction === 'immunity' && typeText) return typeText;
@@ -558,6 +576,7 @@ function specificAbilityEffectText(abilityId: string, direction: DamageAbilityEf
     if (abilityId === 'fur-coat' && move.category === 'Physical') return '物理招式伤害减半';
     if (abilityId === 'ice-scales' && move.category === 'Special') return '特殊招式伤害减半';
     if (abilityId === 'multiscale') return '满 HP 伤害减弱';
+    if (abilityId === 'aura-guard') return '接触招式伤害减半';
   }
 
   if (direction === 'boost') {
@@ -1051,7 +1070,10 @@ export function computeDamage(input: DamageAdapterInput): DamageAdapterResult {
       });
       const calcResult = calculate(gen, attackerPoke, defenderPoke, calcMoveObj, field);
       const damageData = (calcResult as unknown as Record<string, unknown>)?.damage;
-      const damages = normalizeDamageRolls(damageData);
+      const engineDamages = normalizeDamageRolls(damageData);
+      const damages = auraGuardApplies(activeDefenderAbilityId, activeAttackerAbilityId, Boolean(calcResult.move.flags.contact))
+        ? halveDamageRolls(engineDamages)
+        : engineDamages;
       // The engine rewrites power (扫墓 via our override, 广域战力 / 大地波动 / 气象球 by field) and
       // turns 广域战力 into a spread move on Psychic Terrain; read both back rather than re-derive.
       const basePower = calcResult.rawDesc.moveBP ?? calcMoveObj.bp;
