@@ -15,6 +15,8 @@ import {
   calcSpeciesId,
   clampMoveCounter,
   computeDamage,
+  entryHazardDamage,
+  NO_ENTRY_HAZARDS,
   surgeTerrainFor,
   totalStatPoints,
   validateStatPoints,
@@ -2718,5 +2720,121 @@ describe('move tiers and terrain', () => {
     expect(cfg.itemId).toBe('gardevoirite');
     expect(cfg.formId).toBe('mega-gardevoir');
     expect(cfg.abilityId).toBe('pixilate');
+  });
+});
+
+describe('Aura Guard and terrain seeds', () => {
+  const megaLucarioZ = makeConfig({
+    pokemonId: 'lucario',
+    formId: 'mega-lucario-z',
+    abilityId: 'aura-guard',
+    itemId: 'lucarionite-z',
+    nature: '认真',
+    statPoints: { hp: 32, defense: 32 },
+  });
+  const garchomp = (moveId: string, abilityId?: string) =>
+    makeConfig({ pokemonId: 'garchomp', abilityId, nature: '固执', statPoints: { attack: 32 }, moveIds: [moveId], selectedMoveId: moveId });
+  const run = (attacker: CalcSideConfig, defender: CalcSideConfig, terrain?: DamageAdapterInput['terrain']) =>
+    computeDamage({ ...defaults, battleType: 'singles', attacker, defender, terrain });
+
+  it('halves contact damage taken by an Aura Guard holder', () => {
+    const contact = run(garchomp('dragon-claw'), megaLucarioZ);
+    const plain = run(garchomp('dragon-claw'), { ...megaLucarioZ, abilityId: undefined });
+    expect(contact.status).toBe('experimental-success');
+    expect(contact.move?.makesContact).toBe(true);
+    expect(contact.damageRolls).toEqual(plain.damageRolls!.map((damage) => Math.floor(damage / 2)));
+    expect(contact.abilityEffects).toEqual([
+      expect.objectContaining({ side: 'defender', abilityId: 'aura-guard', direction: 'reduction', text: '接触招式伤害减半' }),
+    ]);
+  });
+
+  it('leaves non-contact moves into Aura Guard untouched', () => {
+    const quake = run(garchomp('earthquake'), megaLucarioZ);
+    const plain = run(garchomp('earthquake'), { ...megaLucarioZ, abilityId: undefined });
+    expect(quake.status).toBe('experimental-success');
+    expect(quake.move?.makesContact).toBe(false);
+    expect(quake.damageRolls).toEqual(plain.damageRolls);
+    expect(quake.abilityEffects).toEqual([]);
+  });
+
+  it('lets Mold Breaker attackers ignore Aura Guard', () => {
+    const moldBreaker = run(garchomp('dragon-claw', 'mold-breaker'), megaLucarioZ);
+    const plain = run(garchomp('dragon-claw', 'mold-breaker'), { ...megaLucarioZ, abilityId: undefined });
+    expect(moldBreaker.status).toBe('experimental-success');
+    expect(moldBreaker.damageRolls).toEqual(plain.damageRolls);
+  });
+
+  it('halves Earthquake into a grounded target on Grassy Terrain', () => {
+    const target = makeConfig({ pokemonId: 'incineroar', nature: '慎重', statPoints: { hp: 32, defense: 14, specialDefense: 20 } });
+    const plain = run(garchomp('earthquake'), target);
+    const grassy = run(garchomp('earthquake'), target, '青草场地');
+    expect(grassy.maxDamage).toBeLessThan(plain.maxDamage!);
+    expect(grassy.conditionEffects).toEqual(['青草场地 · 伤害减半']);
+  });
+
+  it('raises the holder’s Defense with a Grassy Seed only on Grassy Terrain', () => {
+    const target = makeConfig({ pokemonId: 'incineroar', itemId: 'grassy-seed', nature: '慎重', statPoints: { hp: 32, defense: 14, specialDefense: 20 } });
+    const noTerrain = run(garchomp('dragon-claw'), target);
+    const grassy = run(garchomp('dragon-claw'), target, '青草场地');
+    const grassyNoSeed = run(garchomp('dragon-claw'), { ...target, itemId: undefined }, '青草场地');
+    expect(noTerrain.status).toBe('experimental-success');
+    expect(noTerrain.damageRolls).toEqual(grassyNoSeed.damageRolls);
+    expect(grassy.maxDamage).toBeLessThan(grassyNoSeed.maxDamage!);
+    expect(grassy.itemEffects).toEqual([
+      expect.objectContaining({ side: 'defender', itemId: 'grassy-seed', direction: 'reduction' }),
+    ]);
+    expect(noTerrain.itemEffects).toEqual([]);
+  });
+});
+
+describe('entry hazards', () => {
+  it('scales 隐形岩 by Rock effectiveness and skips 撒菱 for Pokémon off the ground', () => {
+    const hazards = { stealthRock: true, spikesLayers: 3 } as const;
+    expect(entryHazardDamage({ hazards, maxHp: 181, types: ['Fire', 'Flying'] })).toEqual({
+      damage: 90,
+      chips: ['隐形岩 ×4 · 入场 -90', '撒菱 · 未着地不受影响'],
+    });
+    expect(entryHazardDamage({ hazards, maxHp: 200, types: ['Steel', 'Ground'] })).toEqual({
+      damage: 6 + 50,
+      chips: ['隐形岩 ×0.25 · 入场 -6','撒菱 3 层 · 入场 -50'],
+    });
+    expect(entryHazardDamage({ hazards: { stealthRock: false, spikesLayers: 2 }, maxHp: 200, types: ['Normal'], abilityId: 'levitate' }).damage).toBe(0);
+    expect(entryHazardDamage({ hazards, maxHp: 200, types: ['Fire'], abilityId: 'magic-guard' })).toEqual({
+      damage: 0,
+      chips: ['魔法防守 · 不受入场伤害'],
+    });
+    expect(entryHazardDamage({ hazards: NO_ENTRY_HAZARDS, maxHp: 200, types: ['Fire'] })).toEqual({ damage: 0, chips: [] });
+  });
+
+  it('keeps the move damage and counts the hazard chip in the KO odds', () => {
+    const plain = computeDamage(defaults);
+    const withHazards = computeDamage({ ...defaults, hazards: { stealthRock: true, spikesLayers: 1 } });
+    const hp = plain.defenderHp!;
+    const chip = Math.floor((hp * 2) / 8) + Math.floor(hp / 8);
+
+    expect(withHazards.status).toBe('experimental-success');
+    expect(withHazards.damageRolls).toEqual(plain.damageRolls);
+    expect(withHazards.hazardDamage).toBe(chip);
+    expect(withHazards.conditionEffects).toEqual(expect.arrayContaining([`隐形岩 ×2 · 入场 -${Math.floor((hp * 2) / 8)}`]));
+    expect(withHazards.twoHitKoChance).toBeGreaterThanOrEqual(plain.twoHitKoChance!);
+    expect(withHazards.possibleHkoText).toMatch(/（含入场伤害）$/);
+  });
+
+  it('drops Multiscale once hazards have chipped the defender', () => {
+    const defender = makeConfig({
+      pokemonId: 'dragonite',
+      formId: 'mega-dragonite',
+      abilityId: 'multiscale',
+      itemId: 'dragoninite',
+      nature: '认真',
+      statPoints: { hp: 32, defense: 32 },
+    });
+    const attacker = makeConfig({ nature: '固执', statPoints: { attack: 32 } });
+    const full = computeDamage({ ...defaults, attacker, defender, battleType: 'singles' });
+    const chipped = computeDamage({ ...defaults, attacker, defender, battleType: 'singles', hazards: { stealthRock: true, spikesLayers: 0 } });
+    const noAbility = computeDamage({ ...defaults, attacker, defender: { ...defender, abilityId: undefined }, battleType: 'singles' });
+
+    expect(chipped.damageRolls).toEqual(noAbility.damageRolls);
+    expect(chipped.maxDamage).toBeGreaterThan(full.maxDamage!);
   });
 });

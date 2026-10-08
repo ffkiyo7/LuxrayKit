@@ -4,18 +4,11 @@
 
 ## 待办（按顺序）
 
-- [ ] **1. App.test 瘦身**（其余重构的前置）。`src/App.test.tsx` 现 1512 行 / 49 条，约占全量测试耗时 42%（2026-09-23：54 文件 / 674 条，约 54.5 s）。
-  - 单页行为下沉到各页测试，直接 render 页面组件 + 传 props（照 `CalculatorPage.test.tsx` / `SpeedPage.test.tsx` / `EnvironmentPage.test.tsx` 的形态）。App.test 里的图鉴用例（按两个属性过滤、共用搜索框过滤招式 / 道具 / 特性）下沉到 `DexPage.test.tsx` 或 `dex/*.test.tsx`。
-  - App.test 只留跨页流程（tab ↔ hash 路由、分享链接导入、上位构筑导入 → 队伍列表高亮 → toast、环境详情 → 加入队伍、从队伍成员代入计算器），目标 ≤ 12 条。
-  - 队伍用例只留一处：`src/pages/team/TeamPage.test.tsx`（27 条）或 App.test（约 14 条），二选一。
-  - 顺手删断言 class / 内联样式的用例；在 `CONTRIBUTING.md` 写规则：单测断言角色 / 可访问名 / 行为结果，不断言 class 和内联样式（例外：`Sheet` 跟随软键盘的 `bottom` / `maxHeight`）。
-  - 保留不动：`src/lib/damageAdapter.test.ts`、`cloudflare/environment-worker/src/index.test.ts`、`dataAudit.test.ts`、`hashRoute.test.ts` 的 `routePatterns` 全覆盖门禁。
-- [ ] **2. `src/App.tsx` 拆三块**（641 行；不引入新库；需第 1 条先做）：
-  - `src/app/routes.tsx`：route → 页面元素的装配（现在的 `page` useMemo + `ToolWorkspace`）。
-  - `src/app/useTeamImport.ts`：`importSampleTeam` / `continuePendingImport` / `importSharedTeam` / `shareTeam` / `copyReplicaCode` + `importToast` / `highlightedImportTeamId`。
-  - `ImportCoverageNoticeDialog` → `src/pages/environment/`，`PageLoading` → `src/components/kit/`。
-- [ ] **3. 样式文件按领域改名**：`src/styles/p2.css` / `p3.css` / `p3b.css` / `p4a.css` / `p4b.css` / `p6.css` → `environment.css` / `teams.css` / `team-editor.css` / `dex.css` / `type-chart.css` / `profile.css`，同步 `main.tsx` 的 import。顺手收敛：`p4b.css` 的 `.lk-type-segment-on` 与全局 `.lk-segment-on` 等价；`p2.css` 的 `.lk-env-slab`、`p3b.css` 的 `.lk-slab` 与全局 `.lk-btn-primary` 是同一族主按钮阴影（深色外发光半径略有不同，合并前先确认）。
-- [ ] **4. `src/components/ui.tsx` 退役**：只剩 `typeColors` / `typeLabels`（被 kit 的 `TypeDot` 引用），挪到 `src/lib/typePresentation.ts`（或 `src/components/kit/typeColors.ts`）后删文件。
+- [x] **1. App.test 瘦身**（✅ 2026-10-08）：49 条 → 10 条跨页流程，单文件约 82 s → 23 s；单页用例下沉到 `TeamPage` / `CalculatorPage` / `DexPage` / `ToolsPage` / `ProfilePage` 测试与 `environmentImport.test.ts`，队伍用例只留 `TeamPage.test.tsx`；规则写进 `CONTRIBUTING.md`。
+- [x] **2. `src/App.tsx` 拆分**（✅ 2026-10-08）：`src/app/routes.tsx`（RoutedPage + 路由弹层）、`useTeamImport.ts`、`useToolPresets.ts`、`useEnvironmentState.ts`；`ImportCoverageNoticeDialog` → `src/pages/environment/`，`PageLoading` → `src/components/kit/`。
+- [x] **3. 样式文件按领域改名**（✅ 2026-10-08）：`src/styles/p2.css` / `p3.css` / `p3b.css` / `p4a.css` / `p4b.css` / `p6.css` → `environment.css` / `teams.css` / `team-editor.css` / `dex.css` / `type-chart.css` / `profile.css`，`main.tsx` 的 import 已同步；`.lk-type-segment-on` 已并入全局 `.lk-segment-on`。类名 / 变量前缀（`lk-p4a-*`、`--p4a-*`）未改。
+  - [ ] 剩一项待 owner 确认：`environment.css` 的 `.lk-env-slab`、`team-editor.css` 的 `.lk-slab` 与全局 `.lk-btn-primary` 是同一族主按钮阴影（深色外发光半径略有不同，合并前先确认）。
+- [x] **4. `src/components/ui.tsx` 退役**（✅ 2026-10-08）：`typeColors` / `typeLabels` 挪到 `src/lib/typePresentation.ts`，原文件已删。
 - [ ] **5. 死代码**（每条等 owner 点头）：
   - `src/data/pokemonFacts.ts` + 测试 + `scripts/generate-pokemon-facts.mjs` + `package.json` 的 `data:pokemon-facts`（无消费者）。待定：这 80 多条冷知识以后是否还用。
   - `src/branding.ts` 的 `feedbackLinks`（无消费者）。待定：「关于与数据」要不要加回 GitHub issue 外链（见改版计划待拍板）。

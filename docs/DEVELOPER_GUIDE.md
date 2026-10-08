@@ -33,7 +33,12 @@
 
 ```
 src/
-  App.tsx               # AppShell：从 hash 路由派生页面，环境数据加载，导入 / 分享流程
+  App.tsx               # AppShell：组装下面四块 + 主题 / 统计 / 启动屏等全局副作用
+  app/
+    routes.tsx          # route → 页面元素（RoutedPage）与路由弹层（写留言、分享预览）；页面全部 lazy
+    useTeamImport.ts    # 上位构筑导入确认、分享链接导入 / 导出、队伍码复制，及共用的 toast 与列表高亮
+    useToolPresets.ts   # 「带入」到计算器 / 速度线 / 图鉴的一次性预设（只在内存，不进 URL）
+    useEnvironmentState.ts # 环境数据加载与重试
   state/AppContext.tsx  # 全局 store（§4.2）
   lib/                  # 纯逻辑层（无 React，便于单测）
     hashRoute.ts        # ★ 路由表唯一真源；Worker 的 /api/ping、/api/feedback 白名单也复用它
@@ -76,7 +81,7 @@ docs/                            # archive/ 不代表现状；plans/ 是待实�
   - **选择页层**：招式 / 道具 / 特性 / 性格 / 形态选择页与换宝可梦弹窗各压一条，返回键只关选择页；选择页自己关闭时 `close()` 弹掉它。
   - 卸载时**不**自动 `history.back()`（最坏多留一条同 URL 记录）。**不要推广到所有 Sheet**。
 - **弹层键盘与焦点**：`kit/Sheet` 与各处手写 `role="dialog"` 都走 `hooks/useDialogFocus.ts`——打开时焦点移入（已有 autofocus 输入框则不抢），Esc 只关最上层，关闭后焦点还给触发按钮。新弹层用 `Sheet`；非手写不可时容器加 `ref` + `tabIndex={-1}` 并调这个 hook。
-- 代码里的 `typeChart` 与 URL 里的 `typechart` 由 `App.tsx` 顶部两张映射表互转，不要在别处再写一份。
+- 代码里的 `typeChart` 与 URL 里的 `typechart` 由 `app/routes.tsx` 顶部两张映射表互转，不要在别处再写一份。
 - 刷新页面停在当前页（`tests/pwa/offline.spec.ts` 断言）；页面全部 `React.lazy` 懒加载（§4.4）。
 - 队伍页子组件在 `src/pages/team/`（编辑器相关在 `team/editor/`）。**没有拖拽排序**：⋯ 菜单「移至首位」写 `sortOrder`。**SP 选择只有一份** `team/editor/StatWheel.tsx`，编辑器与伤害计算器（`pages/calculator/SideEditorPage.tsx`）共用。
 
@@ -117,7 +122,7 @@ chunk 划分见 `vite.config.ts` 的 `manualChunks`（`vendor-helpers` / `calc-e
 - **新版本提示**：**不自动 `skipWaiting`**；新版 waiting 期间已开的标签页继续用旧缓存。`lib/serviceWorker.ts` 在 `updatefound → installed`（或启动时已有 `registration.waiting`）且页面已有 controller 时派发 `luxraykit:service-worker-updated`，`ServiceWorkerUpdateToast` 显示「新版本已下载 · 重载」；点重载发 `SKIP_WAITING`，`controllerchange` 后所有旧标签页必须 reload（旧缓存已删，未加载的 chunk 会 404）。忽略提示则下次冷启动生效。回到前台（`visibilitychange`）主动 `registration.update()`。首次安装不提示。
 - **构建号**：`__APP_BUILD__` 取 `git log -1 -- . ':(exclude)public/data'`，不要改成 HEAD——它编进 index chunk，用 HEAD 会让每天的纯数据部署都换 chunk hash、每天弹一次更新。shallow clone 时退化为 HEAD。
 - **CSP**（`public/_headers`）以同源为主，只放宽 `style-src 'unsafe-inline'`（React inline style）。字体不放行外域：Manrope 自托管在 `src/assets/fonts/`（拉丁 + 数字子集，OFL），中文走系统字体；不要加远程 `@import`（CSP 会静默丢掉）。`_headers` **只在 Cloudflare 生效**，`vite preview` 与 Playwright 看不到，改动只能上线后在生产 DevTools 人工核对。
-- **开屏动画**（`public/splash.js`）：`index.html` 里的同步经典脚本（CSP 不许内联 `<script>`，module 又要排在 bundle 后面）。只在 standalone + 本会话首次（`sessionStorage`）+ 未关闭时播放；偏好在 IndexedDB 读不到，靠 `lib/splashMirror.ts` 镜像到 `localStorage`（`luxraykit-splash` / `luxraykit-theme`）。动画到 1.5 s 且 App 派发 `luxraykit:app-ready`（本地数据载入完）后才淡出；立绘 900 ms 内没解码好就直接撤掉，App 8 s 没就绪也强制淡出。`splash.js` 与 `artwork/405.png` 在 `APP_SHELL` 里随 shell 预缓存。Playwright 不是 standalone，天然不触发。
+- **开屏动画**（`public/splash.js`）：`index.html` 里的同步经典脚本（CSP 不许内联 `<script>`，module 又要排在 bundle 后面）。只在 standalone + UTC+8 当天首次（`localStorage` 的 `luxraykit-splash-day` 记日期；`sessionStorage` 兜底防同会话重载重播）+ 未关闭时播放，后台恢复不会重跑脚本；偏好在 IndexedDB 读不到，靠 `lib/splashMirror.ts` 镜像到 `localStorage`（`luxraykit-splash` / `luxraykit-theme`）。动画到 1.5 s 且 App 派发 `luxraykit:app-ready`（本地数据载入完）后才淡出；立绘 900 ms 内没解码好就直接撤掉，App 8 s 没就绪也强制淡出。`splash.js` 与 `artwork/405.png` 在 `APP_SHELL` 里随 shell 预缓存。Playwright 不是 standalone，天然不触发。
 
 ### 4.6 队伍分享链接（`lib/teamShare.ts`）
 
@@ -166,7 +171,6 @@ record 0   : 队伍名；record 1.. 每个成员一条，字段定序、缺省�
 3. **内置 seed** `environmentFallbackState`：始终可用。
 
 - 拿到 base 快照后懒加载 VGCPastes 样本（`loadVgcPastesTeamSamples`），按 regulation 拆成独立 build chunk（当前 `reg_mb_*` / `reg_mc_*`），`loadVgcPastesRegulationFile` 各自 try/catch，单文件失败只少一批样本。
-- **过渡代码 `backfillStatPointStats`**（标 `TRANSITIONAL`，能力ポイント 解析的 Worker 上线 `main` 后连调用点一起删）：API 快照**所有行**都缺 `statPointStats` 时，按同 battle type / 宝可梦 / **同赛季**从静态快照补，跨赛季不补；字段存在（哪怕空数组）即权威。Worker fresh 时补数据额外以 `no-cache`（不要用 `force-cache`）请求一次静态快照。
 - `PokeDbEnvironmentSnapshotPayload` 支持 statistics / trainer-list / open-data ranked-teams 三种形态，由 `isStatisticsPayload` / `isTrainerListPayload` 分派。
 
 #### 未知宝可梦的哨兵占位行

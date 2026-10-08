@@ -64,6 +64,18 @@ describe('ToolsPage', () => {
     expect(screen.queryByText('我的成员')).toBeNull();
   });
 
+  it('lays the landing out as 04-01 cards, the dex card leading with its catalog size', () => {
+    renderPage();
+
+    expect(screen.getByRole('heading', { name: '工具' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /规则图鉴 \d+ 只 · M-\w/ })).toBeTruthy();
+    expect(screen.getByRole('button', { name: '在图鉴里搜索' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /伤害计算/ })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /速度线/ })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /属性速查/ })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: '当前规则' })).toBeNull();
+  });
+
   it('keeps the 最近用过 heading standing with nothing under it', () => {
     renderPage();
 

@@ -94,6 +94,56 @@ export const MOVE_COUNTERS: Record<string, MoveCounterSpec> = {
   },
 };
 
+/**
+ * Entry hazards on the defender's side, chipped off before the hit lands. Only the two that deal
+ * damage and are legal in the current rule: 隐形岩 (Rock-effectiveness × 1/8) and 撒菱 1–3 层
+ * (1/8 · 1/6 · 1/4, grounded only). 魔法防守 ignores both.
+ */
+export type EntryHazards = { stealthRock: boolean; spikesLayers: 0 | 1 | 2 | 3 };
+
+export const NO_ENTRY_HAZARDS: EntryHazards = { stealthRock: false, spikesLayers: 0 };
+
+const SPIKES_DIVISOR: Record<1 | 2 | 3, number> = { 1: 8, 2: 6, 3: 4 };
+
+export function entryHazardDamage({
+  hazards,
+  maxHp,
+  types,
+  abilityId,
+  itemId,
+}: {
+  hazards: EntryHazards;
+  maxHp: number;
+  types: PokemonType[];
+  abilityId?: string;
+  itemId?: string;
+}): { damage: number; chips: string[] } {
+  if (!hazards.stealthRock && hazards.spikesLayers === 0) return { damage: 0, chips: [] };
+  if (abilityId === 'magic-guard') {
+    const name = abilities.find((ability) => ability.id === abilityId)?.chineseName ?? abilityId;
+    return { damage: 0, chips: [`${name} · 不受入场伤害`] };
+  }
+  let damage = 0;
+  const chips: string[] = [];
+  if (hazards.stealthRock) {
+    const multiplier = defensiveMatchupMultiplier('Rock', types);
+    const rock = Math.max(1, Math.floor((maxHp * multiplier) / 8));
+    damage += rock;
+    chips.push(`隐形岩 ×${multiplier} · 入场 -${rock}`);
+  }
+  const layers = hazards.spikesLayers;
+  if (layers !== 0) {
+    if (isGrounded(types, abilityId, itemId)) {
+      const spikes = Math.max(1, Math.floor(maxHp / SPIKES_DIVISOR[layers]));
+      damage += spikes;
+      chips.push(`撒菱 ${layers} 层 · 入场 -${spikes}`);
+    } else {
+      chips.push('撒菱 · 未着地不受影响');
+    }
+  }
+  return { damage, chips };
+}
+
 export function clampMoveCounter(moveId: string | undefined, count: number, battleType: BattleTypeOption): number {
   const spec = moveId ? MOVE_COUNTERS[moveId] : undefined;
   if (!spec) return 0;
@@ -108,6 +158,8 @@ export type DamageAdapterInput = {
   terrain?: TerrainOption;
   /** 扫墓's fainted allies / 愤怒之拳's hits taken; ignored by every other move. */
   moveCounter?: number;
+  /** Hazards the defender switches into before the hit; KO odds count the chip. */
+  hazards?: EntryHazards;
   isCritical?: boolean;
   attackStage: number;
   defenseStage?: number;
@@ -145,6 +197,8 @@ export type DamageAdapterResult = {
   itemEffects?: DamageItemEffect[];
   eventEffects?: DamageEventEffect[];
   defenderHp?: number;
+  /** HP the defender loses to entry hazards before the hit; damage figures exclude it. */
+  hazardDamage?: number;
   attackerStats?: ReturnType<typeof calculateBattleStats>;
   defenderStats?: ReturnType<typeof calculateBattleStats>;
   offensiveStatLabel?: string;
@@ -534,6 +588,24 @@ function normalizeDamageRolls(damageData: unknown): number[] {
   return [];
 }
 
+/**
+ * 波导防护 (Aura Guard, Champions-only) halves contact damage. @smogon/calc does not know it, so
+ * the halving is applied to the engine's rolls here, mirroring its Fluffy contact branch: the
+ * engine's own contact flag (Punching Glove already cleared it), bypassed by Long Reach and by
+ * Mold Breaker-family attackers. Halving the finished roll matches an in-chain ×0.5 final modifier
+ * exactly when no other final modifier applies, and can drift by 1 HP alongside Life Orb etc.
+ */
+function auraGuardApplies(defenderAbilityId: string | undefined, attackerAbilityId: string | undefined, makesContact: boolean): boolean {
+  return defenderAbilityId === 'aura-guard'
+    && makesContact
+    && attackerAbilityId !== 'long-reach'
+    && !MOLD_BREAKER_ABILITIES.has(attackerAbilityId ?? '');
+}
+
+function halveDamageRolls(damages: number[]): number[] {
+  return damages.map((damage) => (damage > 0 ? Math.max(1, Math.floor(damage / 2)) : damage));
+}
+
 function specificAbilityEffectText(abilityId: string, direction: DamageAbilityEffect['direction'], move: AppMove): string | undefined {
   const typeText = TYPE_IMMUNITY_ABILITY_TEXT[abilityId]?.[move.type];
   if (direction === 'immunity' && typeText) return typeText;
@@ -558,6 +630,7 @@ function specificAbilityEffectText(abilityId: string, direction: DamageAbilityEf
     if (abilityId === 'fur-coat' && move.category === 'Physical') return '物理招式伤害减半';
     if (abilityId === 'ice-scales' && move.category === 'Special') return '特殊招式伤害减半';
     if (abilityId === 'multiscale') return '满 HP 伤害减弱';
+    if (abilityId === 'aura-guard') return '接触招式伤害减半';
   }
 
   if (direction === 'boost') {
@@ -1010,6 +1083,15 @@ export function computeDamage(input: DamageAdapterInput): DamageAdapterResult {
 
   const terrain: TerrainOption = input.terrain ?? '无场地';
   const moveCounter = clampMoveCounter(projectMove.id, input.moveCounter ?? 0, input.battleType);
+  const hazard = entryHazardDamage({
+    hazards: input.hazards ?? NO_ENTRY_HAZARDS,
+    maxHp: defenderStats.hp,
+    types: defenderForm.types,
+    abilityId: defenderConfig.abilityId,
+    itemId: defenderConfig.itemId,
+  });
+  // The hit lands on what the hazards left, so 多重鳞片 and other full-HP effects drop out.
+  const defenderCurrentHp = Math.max(1, defenderStats.hp - hazard.damage);
 
   try {
     const runCalculation = (mode: 'actual' | 'without-attacker-ability' | 'without-defender-ability' | 'without-attacker-item' | 'without-defender-item' | 'without-terrain') => {
@@ -1043,7 +1125,7 @@ export function computeDamage(input: DamageAdapterInput): DamageAdapterResult {
         ability: activeDefenderAbilityId ? calcAbilityName(activeDefenderAbilityId) : NO_ABILITY,
         item: mode === 'without-defender-item' ? undefined : defenderConfig.itemId ? calcItemName(defenderConfig.itemId) : undefined,
         nature: calcNatureName(defenderConfig.nature),
-        curHP: defenderStats.hp,
+        curHP: defenderCurrentHp,
         ivs: BASE_STATS_DECLARATION.ivs,
         evs: statPointsToEvs(defenderConfig.statPoints),
         boosts: legacyDefenderBoosts,
@@ -1051,7 +1133,10 @@ export function computeDamage(input: DamageAdapterInput): DamageAdapterResult {
       });
       const calcResult = calculate(gen, attackerPoke, defenderPoke, calcMoveObj, field);
       const damageData = (calcResult as unknown as Record<string, unknown>)?.damage;
-      const damages = normalizeDamageRolls(damageData);
+      const engineDamages = normalizeDamageRolls(damageData);
+      const damages = auraGuardApplies(activeDefenderAbilityId, activeAttackerAbilityId, Boolean(calcResult.move.flags.contact))
+        ? halveDamageRolls(engineDamages)
+        : engineDamages;
       // The engine rewrites power (扫墓 via our override, 广域战力 / 大地波动 / 气象球 by field) and
       // turns 广域战力 into a spread move on Psychic Terrain; read both back rather than re-derive.
       const basePower = calcResult.rawDesc.moveBP ?? calcMoveObj.bp;
@@ -1068,17 +1153,22 @@ export function computeDamage(input: DamageAdapterInput): DamageAdapterResult {
     const minPct = hp > 0 ? Math.round((minDmg / hp) * 1000) / 10 : 0;
     const maxPct = hp > 0 ? Math.round((maxDmg / hp) * 1000) / 10 : 0;
 
-    const oneHitKoChance = damages.length > 0 ? (damages.filter((damage) => damage >= hp).length / damages.length) * 100 : 0;
+    // Damage and percentages stay the move's own; the KO odds run against the HP left after hazards.
+    const hazardFainted = hazard.damage >= hp;
+    const remainingHp = hp - hazard.damage;
+    const oneHitKoChance = hazardFainted ? 100 : damages.length > 0 ? (damages.filter((damage) => damage >= remainingHp).length / damages.length) * 100 : 0;
     const twoHitKoCombos = damages.flatMap((first) => damages.map((second) => first + second));
-    const twoHitKoChance = twoHitKoCombos.length > 0 ? (twoHitKoCombos.filter((damage) => damage >= hp).length / twoHitKoCombos.length) * 100 : 0;
+    const twoHitKoChance = hazardFainted ? 100 : twoHitKoCombos.length > 0 ? (twoHitKoCombos.filter((damage) => damage >= remainingHp).length / twoHitKoCombos.length) * 100 : 0;
 
     let possibleHkoText: string | undefined;
-    if (maxDmg <= 0) possibleHkoText = '无法造成伤害';
+    if (hazardFainted) possibleHkoText = '入场时即被击倒';
+    else if (maxDmg <= 0) possibleHkoText = '无法造成伤害';
     else if (oneHitKoChance >= 100) possibleHkoText = '确定一击击杀';
     else if (oneHitKoChance > 0) possibleHkoText = `一击击杀概率 ${percentText(oneHitKoChance)}`;
     else if (twoHitKoChance >= 100) possibleHkoText = '确定两击击杀';
     else if (twoHitKoChance > 0) possibleHkoText = `两击击杀概率 ${percentText(twoHitKoChance)}`;
     else possibleHkoText = '通常需要三次以上攻击';
+    if (hazard.damage > 0 && !hazardFainted && maxDmg > 0) possibleHkoText += '（含入场伤害）';
 
     const offensiveStatLabel = projectMove.category === 'Physical' ? '攻击' : '特攻';
     const defensiveStatLabel = projectMove.category === 'Physical' ? '防御' : '特防';
@@ -1106,6 +1196,7 @@ export function computeDamage(input: DamageAdapterInput): DamageAdapterResult {
         }
       }
     }
+    conditionEffects.push(...hazard.chips);
     const attackerStabTypes = attackerTypesForStab(attackerForm.types, displayedMoveType, attackerConfig.abilityId);
     const typeEffectiveness = displayedTypeEffectiveness(displayedMoveType, defenderForm.types, attackerConfig.abilityId);
     const weather = weatherImpact(displayedMoveType, displayedWeather);
@@ -1140,7 +1231,7 @@ export function computeDamage(input: DamageAdapterInput): DamageAdapterResult {
     const eventEffects = damageEventEffects({
       defenderAbilityId: defenderConfig.abilityId,
       damages,
-      defenderHp: hp,
+      defenderHp: remainingHp,
       attackerTypes: attackerForm.types,
     });
 
@@ -1153,7 +1244,9 @@ export function computeDamage(input: DamageAdapterInput): DamageAdapterResult {
       `防守方 HP: ${defenderStats.hp}, Def: ${defenderStats.defense}, SpD: ${defenderStats.specialDefense}`,
     );
     if (input.isCritical) assumptions.push('Battle context: move is treated as a critical hit.');
-    if (defenderConfig.abilityId === 'multiscale') {
+    if (hazard.damage > 0) {
+      assumptions.push(`Battle context: defender loses ${hazard.damage} HP to entry hazards before the hit.`);
+    } else if (defenderConfig.abilityId === 'multiscale') {
       assumptions.push('Battle context: defender is treated as full HP for Multiscale.');
     }
 
@@ -1173,6 +1266,7 @@ export function computeDamage(input: DamageAdapterInput): DamageAdapterResult {
       itemEffects,
       eventEffects,
       defenderHp: defenderStats.hp,
+      hazardDamage: hazard.damage,
       attackerStats,
       defenderStats,
       offensiveStatLabel,

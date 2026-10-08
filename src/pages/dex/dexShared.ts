@@ -1,5 +1,5 @@
 import { attackingTypes } from '../../lib/calculations';
-import { typeLabels } from '../../components/ui';
+import { typeLabels } from '../../lib/typePresentation';
 import type { ItemCategory, Move, PokemonType } from '../../types';
 
 export type DexTab = 'pokemon' | 'moves' | 'items' | 'abilities';

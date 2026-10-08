@@ -1,4 +1,4 @@
-import { typeColors, typeLabels } from '../ui';
+import { typeColors, typeLabels } from '../../lib/typePresentation';
 import type { PokemonType } from '../../types';
 
 /** The 9px (7px in dual-type rows) type dot the frames use instead of a filled type badge. */

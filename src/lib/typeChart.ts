@@ -30,6 +30,54 @@ export const defensiveProfile = (type: PokemonType): DefensiveProfile => ({
   immuneTo: attackingTypes.filter((attacker) => typeMatchups[attacker].immune?.includes(type)),
 });
 
+export type OffensiveRow = {
+  type: PokemonType;
+  multiplier: number;
+  /** Which of the attacker's own types produce this line — only set for a dual type. */
+  sources?: PokemonType[];
+};
+
+export type OffensiveRows = Record<keyof OffensiveProfile, OffensiveRow[]>;
+
+/**
+ * 进攻时 for a (possibly dual) type asks the chart once per own type and keeps both answers:
+ * 烈咬陆鲨 resists nothing as a whole, but 钢 is ×2 for its 地面 moves and ×½ for its 龙 moves, so the
+ * same defender belongs on two shelves. Only when both own types land on the same shelf do they
+ * share a row (火焰鸡: 冰 ×2 from 火 and 格斗 alike), so one shelf never lists the same type twice.
+ */
+export const offensiveRows = (types: PokemonType[]): OffensiveRows => {
+  const shelves = {
+    superEffective: { multiplier: 2, rows: new Map<PokemonType, OffensiveRow>() },
+    notVery: { multiplier: 0.5, rows: new Map<PokemonType, OffensiveRow>() },
+    noEffect: { multiplier: 0, rows: new Map<PokemonType, OffensiveRow>() },
+  } as const;
+  const dual = types.length > 1;
+
+  for (const own of types) {
+    const profile = offensiveProfile(own);
+    for (const key of ['superEffective', 'notVery', 'noEffect'] as const) {
+      for (const defender of profile[key]) {
+        const shelf = shelves[key];
+        const existing = shelf.rows.get(defender);
+        if (existing) existing.sources!.push(own);
+        else shelf.rows.set(defender, { type: defender, multiplier: shelf.multiplier, sources: [own] });
+      }
+    }
+  }
+
+  const sorted = (rows: Map<PokemonType, OffensiveRow>) =>
+    [...rows.values()]
+      .sort((a, b) => attackingTypes.indexOf(a.type) - attackingTypes.indexOf(b.type))
+      // A single type has one possible source, so naming it is noise.
+      .map((row) => (dual ? row : { type: row.type, multiplier: row.multiplier }));
+
+  return {
+    superEffective: sorted(shelves.superEffective.rows),
+    notVery: sorted(shelves.notVery.rows),
+    noEffect: sorted(shelves.noEffect.rows),
+  };
+};
+
 export type DefenseBucket = { multiplier: number; types: PokemonType[] };
 
 /**

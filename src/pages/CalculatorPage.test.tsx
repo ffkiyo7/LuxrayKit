@@ -196,4 +196,138 @@ describe('CalculatorPage', () => {
     expect(screen.getByRole('textbox', { name: '搜索名称' })).toBe(search);
     expect(document.activeElement).toBe(search);
   });
+
+  it('opens on a blank state, and a fresh mount starts blank again', async () => {
+    const user = userEvent.setup();
+    await renderCalculator();
+
+    expect(screen.getAllByText('未选').length).toBeGreaterThanOrEqual(2);
+    expect(screen.getByText('请先选择进攻方、防守方和招式。')).toBeTruthy();
+    expect(screen.queryByText(/伤害 \/ 对方 HP/)).toBeNull();
+
+    await selectPokemon(user, '进攻方', 'Garchomp', '烈咬陆鲨');
+    await selectPokemon(user, '防守方', 'Torkoal', '煤炭龟');
+    expect(await screen.findByText(/伤害 \/ 对方 HP/)).toBeTruthy();
+    expect(screen.getByText(/公式 Gen9/)).toBeTruthy();
+    expect(screen.getByText(/临时修改不写回队伍/)).toBeTruthy();
+    expect(screen.getByRole('switch', { name: '会心一击' })).toBeTruthy();
+
+    // Leaving the tool unmounts the page; nothing of the last pair comes back with it.
+    cleanup();
+    await renderCalculator();
+    expect(screen.getAllByText('未选').length).toBeGreaterThanOrEqual(2);
+    expect(screen.queryByText(/伤害 \/ 对方 HP/)).toBeNull();
+  });
+
+  it('edits a temporary config through the side editor: SP caps, nature, item and a defender with no move', async () => {
+    const user = userEvent.setup();
+    await renderCalculator();
+    await selectPokemon(user, '进攻方', 'Garchomp', '烈咬陆鲨');
+    await selectPokemon(user, '防守方', 'Torkoal', '煤炭龟');
+
+    await user.click(screen.getByRole('button', { name: '编辑进攻方配置' }));
+    // A temporary Pokémon starts at 0 SP; the shared wheel is the only way to change it.
+    expect(screen.queryByRole('spinbutton')).toBeNull();
+    await setStatPoints(user, 'HP', 8);
+    expect(screen.getByRole('slider', { name: 'HP SP' }).getAttribute('max')).toBe('32');
+    expect(screen.getByText('8 / 66')).toBeTruthy();
+
+    await setStatPoints(user, '攻击', 32);
+    await setStatPoints(user, '速度', 32);
+    expect(screen.getByText('72 / 66')).toBeTruthy();
+    // Over the total: the editor blocks 完成 and says so in place (N05-08).
+    expect(screen.getByText(/总计超了 6 点/)).toBeTruthy();
+    expect(screen.getByRole('button', { name: '完成' }).hasAttribute('disabled')).toBe(true);
+
+    // Back under the cap, then change nature and item through the shared picker pages.
+    await setStatPoints(user, '速度', 26);
+    await user.click(screen.getByRole('button', { name: /^性格/ }));
+    await user.click((await screen.findAllByRole('button', { name: /固执/ }))[0]);
+    await user.click(screen.getByRole('button', { name: /^道具/ }));
+    await user.type(screen.getByRole('textbox', { name: '搜索道具名' }), '气势披带');
+    await user.click(await screen.findByRole('button', { name: '气势披带' }));
+    expect(screen.getByRole('button', { name: '道具 气势披带' })).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: '完成' }));
+
+    expect(sideCard('attacker').textContent).toContain('固执');
+    await user.click(screen.getByRole('button', { name: '编辑进攻方配置' }));
+    expect(screen.getByText('66 / 66')).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: '完成' }));
+
+    // The defender gets the same editor, minus the move entry.
+    await user.click(screen.getByRole('button', { name: '编辑防守方配置' }));
+    expect(screen.queryByRole('button', { name: /^招式/ })).toBeNull();
+    await setStatPoints(user, '防御', 20);
+    expect(screen.getByText('20 / 66')).toBeTruthy();
+  });
+
+  it('applies defender HP SP to the displayed damage target HP', async () => {
+    const user = userEvent.setup();
+    await renderCalculator();
+    await selectPokemon(user, '进攻方', 'Garchomp', '烈咬陆鲨');
+    await selectPokemon(user, '防守方', 'Torkoal', '煤炭龟');
+
+    const initialHp = Number(screen.getByText(/对方 HP/).textContent?.match(/对方 HP (\d+)/)?.[1]);
+    expect(Number.isFinite(initialHp)).toBe(true);
+
+    await user.click(screen.getByRole('button', { name: '编辑防守方配置' }));
+    await setStatPoints(user, 'HP', 32);
+    await user.click(screen.getByRole('button', { name: '完成' }));
+
+    await waitFor(() => expect(screen.getByText(new RegExp(`对方 HP ${initialHp + 32}`))).toBeTruthy());
+    // SP 分配 quotes the entered spread in shorthand, not the derived stat.
+    expect(screen.getByText('32HP')).toBeTruthy();
+  });
+
+  it('opens the attacker move picker from 当前招式 and shows the picked move', async () => {
+    const user = userEvent.setup();
+    await renderCalculator();
+    await selectPokemon(user, '进攻方', 'Incineroar', '炽焰咆哮虎');
+
+    await user.click(screen.getByRole('button', { name: /^招式 / }));
+    await user.type(screen.getByRole('textbox', { name: '搜索招式名' }), '金勾臂');
+    await user.click(await screen.findByRole('button', { name: /ＤＤ金勾臂/ }));
+    await user.click(screen.getByRole('button', { name: '完成' }));
+
+    expect(screen.getByRole('button', { name: /^招式 ＤＤ金勾臂/ })).toBeTruthy();
+    expect(screen.getByText(/威力 85/)).toBeTruthy();
+  });
+
+  it('shows the ability reason chip when Flash Fire prevents damage', async () => {
+    const user = userEvent.setup();
+    await renderCalculator();
+
+    await selectPokemon(user, '进攻方', 'Houndoom', '黑鲁加');
+    await user.click(screen.getByRole('button', { name: '编辑进攻方配置' }));
+    await user.click(screen.getByRole('button', { name: /^招式/ }));
+    await user.type(screen.getByRole('textbox', { name: '搜索招式名' }), '闪焰冲锋');
+    await user.click(await screen.findByRole('button', { name: /闪焰冲锋/ }));
+    await user.click(screen.getByRole('button', { name: '完成' }));
+
+    // 风速狗 has a Hisuian form under the same name, so take the first row.
+    await user.click(screen.getByRole('button', { name: /^选择防守方/ }));
+    await user.type(screen.getByRole('textbox', { name: '搜索名称' }), 'Arcanine');
+    await user.click((await screen.findAllByRole('button', { name: '风速狗' }))[0]);
+    await user.click(screen.getByRole('button', { name: '编辑防守方配置' }));
+    await user.click(screen.getByRole('button', { name: /^特性/ }));
+    await user.click(await screen.findByRole('button', { name: /引火/ }));
+    await user.click(screen.getByRole('button', { name: '完成' }));
+
+    expect(await screen.findByText(/无法造成伤害/)).toBeTruthy();
+    expect(screen.getByText(/防守特性：引火.*火属性招式无效/)).toBeTruthy();
+  });
+
+  it('takes a side straight from a saved team member in the picker', async () => {
+    // A fresh database seeds the preset team, whose 伦琴猫 is the one saved build.
+    const user = userEvent.setup();
+    await renderCalculator();
+    await selectPokemon(user, '进攻方', 'Garchomp', '烈咬陆鲨');
+
+    await user.click(screen.getByRole('button', { name: '选择防守方' }));
+    expect(await screen.findByRole('heading', { name: '选择防守方' })).toBeTruthy();
+    // 从队伍选择 is the picker's last section, so the saved build is the last match (05-04).
+    await user.click((await screen.findAllByRole('button', { name: '伦琴猫' })).at(-1)!);
+    expect(sideCard('defender').textContent).toContain('伦琴猫');
+    expect(await screen.findByText(/伤害 \/ 对方 HP/)).toBeTruthy();
+  });
 });

@@ -4,7 +4,7 @@ import { currentRegulation } from '../../../data/environment';
 import type { EnvironmentReferenceUsage } from '../../../lib/environmentDataset';
 import type { Move, PokemonType } from '../../../types';
 import { ListRow, TypeDot } from '../../../components/kit';
-import { typeLabels } from '../../../components/ui';
+import { typeLabels } from '../../../lib/typePresentation';
 import { FacetChip, FacetHeader, FilterPanel, FilterToggle, PickerPage } from './PickerPage';
 
 /** 03-02 → 03-05 — pick one move for one slot. Staged only; 取消 in the editor rolls it back. */

@@ -19,7 +19,7 @@ import {
   type ToolResult,
   type TypeChartToolResult,
 } from '../lib/toolActivity';
-import { typeColors, typeLabels } from '../components/ui';
+import { typeColors, typeLabels } from '../lib/typePresentation';
 import { Sprite, SpriteDisc } from '../components/kit';
 
 export type ToolView = 'calculator' | 'dex' | 'speed' | 'typeChart';

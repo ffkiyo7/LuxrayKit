@@ -36,6 +36,11 @@ npm test
 npm run build
 ```
 
+写单测时：
+
+- 单页行为写在该页自己的测试里，直接 render 页面组件并传 props（需要 store 的包一层 `AppProvider`）。`src/App.test.tsx` 只放跨页流程（tab ↔ hash 路由、深链与分享链接、导入确认 → 队伍列表高亮 → toast、环境 → 队伍、队伍成员 → 计算器）。
+- 断言角色、可访问名和行为结果，不断言 class 和内联样式。唯一例外：`Sheet` 跟随软键盘的 `bottom` / `maxHeight`。
+
 涉及 PWA 流程时运行 `npm run test:pwa`（需本机装有 Google Chrome）。视觉回归只能由 CI 的 `visual` job 校验；需要更新基线时，在功能分支运行 `gh workflow run visual-baseline.yml --ref <分支>`，不要在本地重建 Linux 快照（原因见开发者文档 §8）。
 
 请在 PR 描述中写明改了什么、为什么改、实际运行了哪些验证，以及仍未验证的风险。功能 PR 默认提交为 Draft，由维护者决定何时合并。

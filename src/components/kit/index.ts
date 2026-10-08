@@ -2,6 +2,7 @@ export { auraStyle } from './aura';
 export { KitButton } from './KitButton';
 export { ListRow } from './ListRow';
 export { PageHeader } from './PageHeader';
+export { PageLoading } from './PageLoading';
 export { Pill } from './Pill';
 export { SearchField } from './SearchField';
 export { SectionLabel } from './SectionLabel';
