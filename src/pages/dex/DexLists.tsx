@@ -11,7 +11,7 @@ import { catalogMoveMeta, typeLabelByValue } from './dexShared';
 export function PokemonRow({ entry, divider, onOpen }: { entry: DexFormEntry; divider: boolean; onOpen: () => void }) {
   return (
     <button
-      className={`flex h-[68px] w-full items-center gap-3.5 text-left ${divider ? 'border-b border-[var(--hairline)]' : ''}`}
+      className={`lk-press-row flex h-[68px] w-full items-center gap-3.5 text-left ${divider ? 'border-b border-[var(--hairline)]' : ''}`}
       type="button"
       onClick={onOpen}
     >
@@ -48,14 +48,14 @@ export function MoveRow({
     <button
       aria-expanded={expanded}
       aria-label={expanded ? `收起${move.chineseName}说明` : `展开${move.chineseName}说明`}
-      className={`flex w-full items-start gap-3.5 py-4 text-left ${divider ? 'border-b border-[var(--hairline)]' : ''}`}
+      className={`lk-press-row flex w-full items-start gap-3.5 py-4 text-left ${divider ? 'border-b border-[var(--hairline)]' : ''}`}
       type="button"
       onClick={onToggle}
     >
       <span className="min-w-0 flex-1">
         <span className="flex items-baseline gap-2">
           <span className="truncate text-[17px] font-bold tracking-[-0.01em]">{move.chineseName}</span>
-          <span className="shrink-0 text-xs font-semibold text-chevron">{move.englishName}</span>
+          <span className="shrink-0 text-xs font-semibold text-textSecondary">{move.englishName}</span>
         </span>
         <span className="mt-[5px] flex items-center gap-2.5 text-xs font-semibold text-textSecondary">
           <span className="inline-flex items-center gap-[5px]">
@@ -141,7 +141,7 @@ export function AbilityRow({
   const heading = (
     <span className="flex min-w-0 flex-1 items-baseline gap-2">
       <span className={`truncate text-[17px] tracking-[-0.01em] ${expanded ? 'font-extrabold' : 'font-bold'}`}>{ability.chineseName}</span>
-      <span className="shrink-0 text-xs font-semibold text-chevron">{ability.englishName}</span>
+      <span className="shrink-0 text-xs font-semibold text-textSecondary">{ability.englishName}</span>
     </span>
   );
 
@@ -150,7 +150,7 @@ export function AbilityRow({
       <button
         aria-expanded={false}
         aria-label={`展开${ability.chineseName}说明`}
-        className={`flex h-[68px] w-full items-center gap-3.5 text-left ${divider ? 'border-b border-[var(--hairline)]' : ''}`}
+        className={`lk-press-row flex h-[68px] w-full items-center gap-3.5 text-left ${divider ? 'border-b border-[var(--hairline)]' : ''}`}
         type="button"
         onClick={onToggle}
       >

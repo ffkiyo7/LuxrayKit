@@ -1,4 +1,4 @@
-import { Import, X } from 'lucide-react';
+import { Import } from 'lucide-react';
 import { useRef } from 'react';
 import type { EnvironmentTeamSample } from '../../data/environment';
 import { useDialogFocus } from '../../hooks/useDialogFocus';
@@ -48,14 +48,6 @@ export function ImportCoverageNoticeDialog({
           <h2 className="m-0 flex-1 text-[22px] font-extrabold leading-[30px] tracking-[-0.01em]">
             导入「{sample.title}」
           </h2>
-          <button
-            aria-label="关闭导入确认"
-            className="-mr-1 -mt-0.5 grid h-[30px] w-[30px] shrink-0 place-items-center rounded-full bg-btn1 text-textLabel"
-            type="button"
-            onClick={onCancel}
-          >
-            <X size={17} />
-          </button>
         </div>
         <p className="mt-2 text-sm leading-[21px] text-textLabel">这份样本可带入宝可梦、道具、SP 分配。</p>
         <div className="mt-4 flex flex-col gap-3">
@@ -77,14 +69,23 @@ export function ImportCoverageNoticeDialog({
           )}
         </div>
         <div className="mt-[18px] h-px bg-[var(--hairline)]" />
-        <button
-          className="lk-env-slab mt-[18px] flex h-11 w-full items-center justify-center gap-[7px] rounded-[14px] bg-accent text-[15px] font-extrabold text-page"
-          type="button"
-          onClick={onContinue}
-        >
-          <Import aria-hidden="true" size={16} />
-          继续导入
-        </button>
+        <div className="mt-[18px] grid grid-cols-2 gap-2.5">
+          <button
+            className="flex h-11 w-full items-center justify-center rounded-[14px] bg-btn1 text-[15px] font-bold text-textPrimary"
+            type="button"
+            onClick={onCancel}
+          >
+            取消
+          </button>
+          <button
+            className="lk-env-slab flex h-11 w-full items-center justify-center gap-[7px] rounded-[14px] bg-accent text-[15px] font-extrabold text-page"
+            type="button"
+            onClick={onContinue}
+          >
+            <Import aria-hidden="true" size={16} />
+            继续导入
+          </button>
+        </div>
       </section>
     </div>
   );

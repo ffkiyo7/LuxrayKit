@@ -259,7 +259,9 @@ export type Team = {
 
 export type UserPreference = {
   language: 'zh-CN';
-  theme: 'dark' | 'light';
+  // 'system' follows the device's appearance live (src/lib/theme.ts). Records saved before it
+  // existed keep their explicit 'dark' / 'light'.
+  theme: 'system' | 'dark' | 'light';
   cachedRuleSetId: string;
   lastDataRefreshAt: string;
   hasCompletedOnboarding: boolean;

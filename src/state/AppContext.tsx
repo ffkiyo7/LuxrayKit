@@ -52,7 +52,10 @@ const normalizePreferences = (preferences?: Partial<UserPreference>): UserPrefer
   return {
     ...defaultPreferences,
     ...stored,
-    theme: stored.theme === 'light' || stored.theme === 'dark' ? stored.theme : defaultPreferences.theme,
+    theme:
+      stored.theme === 'system' || stored.theme === 'light' || stored.theme === 'dark'
+        ? stored.theme
+        : defaultPreferences.theme,
     // Coerce rather than spread: an older stored record has no such field, and anything other
     // than an explicit `true` must read as "analytics on" so the default is not silently flipped
     // by a corrupted value.

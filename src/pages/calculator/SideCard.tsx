@@ -38,7 +38,7 @@ export function SideCard({
     <section className="relative min-w-0 flex-1 rounded-2xl bg-surface p-3.5" data-calc-side={side}>
       <p className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-textSecondary">{label}</p>
       {!name ? (
-        <button aria-label={`选择${label}`} className="mt-2 block w-full text-left text-[15px] font-extrabold tracking-[-0.01em] text-chevron" type="button" onClick={onPick}>
+        <button aria-label={`选择${label}`} className="mt-2 block w-full text-left text-[15px] font-extrabold tracking-[-0.01em] text-textSecondary" type="button" onClick={onPick}>
           未选
         </button>
       ) : (
