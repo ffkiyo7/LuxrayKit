@@ -2,7 +2,7 @@ import { Check, Info } from 'lucide-react';
 import { items } from '../../../data';
 import type { BattleFormView } from '../../../lib/pokemonForms';
 import { auraStyle, ListRow, Sprite, TypeDot } from '../../../components/kit';
-import { typeLabels } from '../../../components/ui';
+import { typeLabels } from '../../../lib/typePresentation';
 import { PickerPage } from './PickerPage';
 
 /** N03-14 — only reachable for a species that actually has a Mega form. */

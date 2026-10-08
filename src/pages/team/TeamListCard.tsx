@@ -4,7 +4,7 @@ import { getMemberBattleForm } from '../../lib/pokemonForms';
 import { canShareTeam } from '../../lib/teamShare';
 import type { Team } from '../../types';
 import { Sprite, TypeDot } from '../../components/kit';
-import { typeLabels } from '../../components/ui';
+import { typeLabels } from '../../lib/typePresentation';
 import { teamListSubtitle } from './teamMeta';
 
 type CardProps = {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { auraStyle, spriteIdFromIconRef } from './aura';
-import { typeColors } from '../ui';
+import { typeColors } from '../../lib/typePresentation';
 import { pokemonColorsById } from '../../data/seed/regMA/pokemonColors';
 
 describe('spriteIdFromIconRef', () => {

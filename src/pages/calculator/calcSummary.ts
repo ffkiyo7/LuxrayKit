@@ -1,4 +1,4 @@
-import { typeLabels } from '../../components/ui';
+import { typeLabels } from '../../lib/typePresentation';
 import { totalStatPoints, type CalcSideConfig } from '../../lib/damageAdapter';
 import { clampStatPointValue, MAX_STAT_POINTS_PER_STAT, MAX_TOTAL_STAT_POINTS } from '../../lib/statPoints';
 import type { Move as AppMove, StatPoints, TeamMember } from '../../types';
