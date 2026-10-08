@@ -268,7 +268,7 @@ describe('TeamPage', () => {
     // 03-01's subtitle names the roster slot, not the Pokemon.
     expect(screen.getByText('甲队 的第 1 位成员')).toBeTruthy();
 
-    await user.click(screen.getByRole('button', { name: '返回队伍详情' }));
+    await user.click(screen.getByRole('button', { name: '取消' }));
     expect(await screen.findByRole('heading', { name: '甲队' })).toBeTruthy();
 
     // The detail page's own 返回 must reach the list, not walk back into the editor (the editor
@@ -352,14 +352,14 @@ describe('TeamPage', () => {
     await openMemberEditor(user, '烈咬陆鲨');
 
     fireEvent.change(screen.getByRole('slider', { name: '速度 SP' }), { target: { value: '8' } });
-    await user.click(screen.getByRole('button', { name: '返回队伍详情' }));
+    await user.click(screen.getByRole('button', { name: '取消' }));
 
     const discard = await screen.findByRole('dialog', { name: '放弃改动确认' });
     expect(within(discard).getByText('速度 32 → 8')).toBeTruthy();
     await user.click(within(discard).getByRole('button', { name: '继续编辑' }));
     expect(screen.getByRole('heading', { name: '编辑配置' })).toBeTruthy();
 
-    await user.click(screen.getByRole('button', { name: '返回队伍详情' }));
+    await user.click(screen.getByRole('button', { name: '取消' }));
     await user.click(within(await screen.findByRole('dialog', { name: '放弃改动确认' })).getByRole('button', { name: '放弃' }));
 
     expect(await screen.findByRole('heading', { name: '甲队' })).toBeTruthy();

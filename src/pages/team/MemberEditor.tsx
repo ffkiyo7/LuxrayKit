@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Gauge, Info, MoreHorizontal, Swords, Trash2 } from 'lucide-react';
+import { ChevronRight, Gauge, Info, MoreHorizontal, Swords, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { abilities, currentRuleNatureOptions, currentRuleSet, items, moves, pokemon } from '../../data';
 import type { EnvironmentState } from '../../data/environment';
@@ -359,9 +359,9 @@ export function MemberEditor({
   return (
     <div className="pb-[120px]">
       <div className="flex items-center justify-between px-6 pt-5">
-        <RoundIconButton label="返回队伍详情" onClick={cancel}>
-          <ChevronLeft size={20} />
-        </RoundIconButton>
+        <button className="-ml-1 h-9 px-1 text-[17px] font-semibold text-textPrimary" type="button" onClick={cancel}>
+          取消
+        </button>
         <div className="relative">
           <RoundIconButton label="更多操作" onClick={() => setMenuOpen((open) => !open)}>
             <MoreHorizontal size={18} />
@@ -529,9 +529,6 @@ export function MemberEditor({
       </section>
 
       <div className="lk-editor-bar fixed inset-x-0 bottom-0 z-20 mx-auto flex max-w-[430px] gap-2.5 px-6 pb-[22px] pt-3.5">
-        <button className="h-[50px] w-[72px] shrink-0 text-[15px] font-bold text-textSecondary" type="button" onClick={cancel}>
-          取消
-        </button>
         <button
           className={`lk-slab inline-flex h-[50px] min-w-0 flex-1 items-center justify-center gap-2 rounded-2xl text-base font-extrabold tracking-[-0.01em] ${
             saveDisabled ? 'bg-btn1 text-btnDisabledInk shadow-none' : 'bg-accent text-page'

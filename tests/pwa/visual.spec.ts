@@ -233,7 +233,7 @@ test('captures the mobile visual regression smoke set', { timeout: 60_000 }, asy
   await page.getByRole('button', { name: '调整速度' }).click();
   await expect(page.getByRole('slider', { name: '速度 SP' })).toBeVisible();
   await expect(page).toHaveScreenshot('07-member-editor-sp-picker.png', screenshotOptions);
-  await page.getByRole('button', { name: '返回队伍详情' }).click();
+  await page.getByRole('button', { name: '取消', exact: true }).click();
 
   await page.getByRole('button', { name: '工具', exact: true }).click();
   await expect(page.getByRole('heading', { name: '工具' })).toBeVisible();
@@ -324,7 +324,7 @@ test('captures the light-theme set', { timeout: 60_000 }, async ({ page }) => {
   await page.getByRole('button', { name: /编辑配置/ }).click();
   await expect(page.getByRole('heading', { name: '编辑配置' })).toBeVisible();
   await expect(page).toHaveScreenshot('22-light-member-editor.png', screenshotOptions);
-  await page.getByRole('button', { name: '返回队伍详情' }).click();
+  await page.getByRole('button', { name: '取消', exact: true }).click();
 
   await page.getByRole('button', { name: '工具', exact: true }).click();
   await expect(page.getByRole('heading', { name: '工具' })).toBeVisible();
