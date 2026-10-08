@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useSyncExternalStore } from 'react';
+import { flushSync } from 'react-dom';
 import { buildHash, defaultRoute, parentRoute, parseHashRoute, type Route } from '../lib/hashRoute';
+import { routeTransitionKind } from '../lib/routeTransition';
 
 /**
  * useHashRoute — the browser half of hash routing.
@@ -19,8 +21,69 @@ import { buildHash, defaultRoute, parentRoute, parseHashRoute, type Route } from
 
 const listeners = new Set<() => void>();
 
-const notify = () => {
+/**
+ * The hash React renders from. It trails `location.hash` while a page transition is pending:
+ * the URL changes synchronously, but the screen must keep showing the old route until the
+ * browser has captured it, or the animation would slide the new page over itself.
+ */
+let committedHash: string | null = null;
+let committedDepth = 0;
+let transitionPending = false;
+let transitionToken = 0;
+// Last offset seen before a pop: Safari restores the previous screen's scroll before popstate,
+// which would otherwise jump the outgoing page just before it is captured.
+let lastScrollY = 0;
+
+const commit = () => {
+  committedHash = window.location.hash;
+  committedDepth = currentDepth();
   listeners.forEach((listener) => listener());
+};
+
+const prefersReducedMotion = () =>
+  typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+const runPageTransition = (kind: 'push' | 'pop') => {
+  const root = document.documentElement;
+  const restoredY = window.scrollY;
+  const outgoingY = lastScrollY;
+  const fixScroll = kind === 'pop' && restoredY !== outgoingY;
+  if (fixScroll) window.scrollTo({ top: outgoingY, left: 0 });
+  const token = ++transitionToken;
+  root.dataset.pageTransition = kind;
+  transitionPending = true;
+  try {
+    const transition = document.startViewTransition(() => {
+      transitionPending = false;
+      flushSync(commit);
+      if (fixScroll) window.scrollTo({ top: restoredY, left: 0 });
+    });
+    void transition.finished.finally(() => {
+      if (token === transitionToken) delete root.dataset.pageTransition;
+    });
+  } catch {
+    transitionPending = false;
+    delete root.dataset.pageTransition;
+    commit();
+  }
+};
+
+const notify = (event?: Event) => {
+  // The pending transition commits whatever the URL says when it runs, so a second event for
+  // the same move (popstate + hashchange) or a quick follow-up navigation folds into it.
+  if (transitionPending) return;
+  const kind =
+    committedHash === null ? null : routeTransitionKind(committedHash, window.location.hash, committedDepth, currentDepth());
+  const browserAnimated = (event as (PopStateEvent & { hasUAVisualTransition?: boolean }) | undefined)?.hasUAVisualTransition;
+  if (!kind || browserAnimated || typeof document.startViewTransition !== 'function' || prefersReducedMotion()) {
+    commit();
+    return;
+  }
+  runPageTransition(kind);
+};
+
+const trackScroll = () => {
+  lastScrollY = window.scrollY;
 };
 
 const subscribe = (listener: () => void) => {
@@ -28,17 +91,28 @@ const subscribe = (listener: () => void) => {
   if (listeners.size === 1) {
     window.addEventListener('hashchange', notify);
     window.addEventListener('popstate', notify);
+    window.addEventListener('scroll', trackScroll, { passive: true });
+    lastScrollY = window.scrollY;
   }
   return () => {
     listeners.delete(listener);
     if (listeners.size === 0) {
       window.removeEventListener('hashchange', notify);
       window.removeEventListener('popstate', notify);
+      window.removeEventListener('scroll', trackScroll);
     }
   };
 };
 
-const readHash = () => (typeof window === 'undefined' ? '' : window.location.hash);
+const readHash = () => {
+  if (typeof window === 'undefined') return '';
+  // Nobody subscribed means nothing can be mid-transition: read the URL itself.
+  if (committedHash === null || listeners.size === 0) {
+    committedHash = window.location.hash;
+    committedDepth = currentDepth();
+  }
+  return committedHash;
+};
 
 const getServerSnapshot = () => '';
 
@@ -84,7 +158,7 @@ export function useHashRoute(): HashRouter {
     const canonical = buildHash(parseHashRoute(window.location.hash));
     if (window.location.hash !== canonical) {
       window.history.replaceState({ lkDepth: currentDepth() }, '', canonical);
-      notify();
+      commit();
     }
   }, [hash]);
 
