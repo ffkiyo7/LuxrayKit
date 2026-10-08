@@ -1,8 +1,15 @@
 {
-  "retrievedAt": "2026-09-28T16:30:29.699Z",
+  "retrievedAt": "2026-10-05T16:30:39.441Z",
   "sourceUrl": "https://docs.google.com/spreadsheets/d/1axlwmzPA49rYkqXh7zHvAtSP-TKbM0ijGYBPRflLSWw/export?format=csv&gid=2001945654",
-  "inputRows": 409,
-  "filteredRows": 90,
-  "importedTeams": 90,
-  "issues": []
+  "inputRows": 463,
+  "filteredRows": 122,
+  "importedTeams": 121,
+  "issues": [
+    {
+      "code": "unknown-pokemon",
+      "value": "Garchomp-Mega-Z",
+      "message": "Unknown Pokemon: Garchomp-Mega-Z",
+      "path": "row 19 team MC445 slot 6"
+    }
+  ]
 }
