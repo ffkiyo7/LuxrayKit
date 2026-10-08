@@ -15,6 +15,8 @@ import {
   calcSpeciesId,
   clampMoveCounter,
   computeDamage,
+  entryHazardDamage,
+  NO_ENTRY_HAZARDS,
   surgeTerrainFor,
   totalStatPoints,
   validateStatPoints,
@@ -2782,5 +2784,57 @@ describe('Aura Guard and terrain seeds', () => {
       expect.objectContaining({ side: 'defender', itemId: 'grassy-seed', direction: 'reduction' }),
     ]);
     expect(noTerrain.itemEffects).toEqual([]);
+  });
+});
+
+describe('entry hazards', () => {
+  it('scales 隐形岩 by Rock effectiveness and skips 撒菱 for Pokémon off the ground', () => {
+    const hazards = { stealthRock: true, spikesLayers: 3 } as const;
+    expect(entryHazardDamage({ hazards, maxHp: 181, types: ['Fire', 'Flying'] })).toEqual({
+      damage: 90,
+      chips: ['隐形岩 ×4 · 入场 -90', '撒菱 · 未着地不受影响'],
+    });
+    expect(entryHazardDamage({ hazards, maxHp: 200, types: ['Steel', 'Ground'] })).toEqual({
+      damage: 6 + 50,
+      chips: ['隐形岩 ×0.25 · 入场 -6','撒菱 3 层 · 入场 -50'],
+    });
+    expect(entryHazardDamage({ hazards: { stealthRock: false, spikesLayers: 2 }, maxHp: 200, types: ['Normal'], abilityId: 'levitate' }).damage).toBe(0);
+    expect(entryHazardDamage({ hazards, maxHp: 200, types: ['Fire'], abilityId: 'magic-guard' })).toEqual({
+      damage: 0,
+      chips: ['魔法防守 · 不受入场伤害'],
+    });
+    expect(entryHazardDamage({ hazards: NO_ENTRY_HAZARDS, maxHp: 200, types: ['Fire'] })).toEqual({ damage: 0, chips: [] });
+  });
+
+  it('keeps the move damage and counts the hazard chip in the KO odds', () => {
+    const plain = computeDamage(defaults);
+    const withHazards = computeDamage({ ...defaults, hazards: { stealthRock: true, spikesLayers: 1 } });
+    const hp = plain.defenderHp!;
+    const chip = Math.floor((hp * 2) / 8) + Math.floor(hp / 8);
+
+    expect(withHazards.status).toBe('experimental-success');
+    expect(withHazards.damageRolls).toEqual(plain.damageRolls);
+    expect(withHazards.hazardDamage).toBe(chip);
+    expect(withHazards.conditionEffects).toEqual(expect.arrayContaining([`隐形岩 ×2 · 入场 -${Math.floor((hp * 2) / 8)}`]));
+    expect(withHazards.twoHitKoChance).toBeGreaterThanOrEqual(plain.twoHitKoChance!);
+    expect(withHazards.possibleHkoText).toMatch(/（含入场伤害）$/);
+  });
+
+  it('drops Multiscale once hazards have chipped the defender', () => {
+    const defender = makeConfig({
+      pokemonId: 'dragonite',
+      formId: 'mega-dragonite',
+      abilityId: 'multiscale',
+      itemId: 'dragoninite',
+      nature: '认真',
+      statPoints: { hp: 32, defense: 32 },
+    });
+    const attacker = makeConfig({ nature: '固执', statPoints: { attack: 32 } });
+    const full = computeDamage({ ...defaults, attacker, defender, battleType: 'singles' });
+    const chipped = computeDamage({ ...defaults, attacker, defender, battleType: 'singles', hazards: { stealthRock: true, spikesLayers: 0 } });
+    const noAbility = computeDamage({ ...defaults, attacker, defender: { ...defender, abilityId: undefined }, battleType: 'singles' });
+
+    expect(chipped.damageRolls).toEqual(noAbility.damageRolls);
+    expect(chipped.maxDamage).toBeGreaterThan(full.maxDamage!);
   });
 });
