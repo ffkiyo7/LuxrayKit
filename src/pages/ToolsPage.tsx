@@ -69,7 +69,7 @@ function SquareToolCard({
 }
 
 function CardLabel({ children }: { children: ReactNode }) {
-  return <p className="mt-3.5 truncate text-[11px] font-bold uppercase tracking-[0.1em] text-chevron">{children}</p>;
+  return <p className="mt-3.5 truncate text-[11px] font-bold uppercase tracking-[0.1em] text-textSecondary">{children}</p>;
 }
 
 /** The speed card's second line: who it is about, and — when there is one — the tier advice. */

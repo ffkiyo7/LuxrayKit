@@ -393,7 +393,7 @@ export function PokemonDetail({
                 >
                   {ability.chineseName}
                 </span>
-                <span className="shrink-0 text-xs font-semibold tracking-[0.04em] text-chevron">{ability.englishName}</span>
+                <span className="shrink-0 text-xs font-semibold tracking-[0.04em] text-textSecondary">{ability.englishName}</span>
               </p>
               <p className="mt-2 text-[13px] font-semibold leading-5 text-textLabel">{ability.effectSummary}</p>
             </div>

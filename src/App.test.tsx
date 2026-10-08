@@ -193,10 +193,13 @@ describe('App cross-page flows', () => {
     await user.click(screen.getByRole('button', { name: '我的' }));
     expect(await screen.findByRole('heading', { name: '我的' })).toBeTruthy();
 
+    // New users follow the system; jsdom has no matchMedia, which reads as dark.
+    const appearance = screen.getByRole('group', { name: '外观' });
+    expect(within(appearance).getByRole('button', { name: '跟随系统' }).getAttribute('aria-pressed')).toBe('true');
     expect(document.documentElement.dataset.theme).toBe('dark');
-    await user.click(screen.getByRole('switch', { name: '切换深色和浅色主题' }));
+    await user.click(within(appearance).getByRole('button', { name: '浅色' }));
     expect(document.documentElement.dataset.theme).toBe('light');
-    await user.click(screen.getByRole('switch', { name: '切换深色和浅色主题' }));
+    await user.click(within(appearance).getByRole('button', { name: '深色' }));
     expect(document.documentElement.dataset.theme).toBe('dark');
 
     await user.click(screen.getByRole('button', { name: /本地备份/ }));

@@ -62,7 +62,7 @@ const mbSourcesRetrievedAt = '2026-06-17T02:00:00.000Z';
 
 export const defaultPreferences: UserPreference = {
   language: 'zh-CN',
-  theme: 'dark',
+  theme: 'system',
   cachedRuleSetId: currentRuleSet.id,
   lastDataRefreshAt: currentDataVersion.updatedAt,
   hasCompletedOnboarding: false,

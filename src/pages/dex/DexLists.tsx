@@ -55,7 +55,7 @@ export function MoveRow({
       <span className="min-w-0 flex-1">
         <span className="flex items-baseline gap-2">
           <span className="truncate text-[17px] font-bold tracking-[-0.01em]">{move.chineseName}</span>
-          <span className="shrink-0 text-xs font-semibold text-chevron">{move.englishName}</span>
+          <span className="shrink-0 text-xs font-semibold text-textSecondary">{move.englishName}</span>
         </span>
         <span className="mt-[5px] flex items-center gap-2.5 text-xs font-semibold text-textSecondary">
           <span className="inline-flex items-center gap-[5px]">
@@ -141,7 +141,7 @@ export function AbilityRow({
   const heading = (
     <span className="flex min-w-0 flex-1 items-baseline gap-2">
       <span className={`truncate text-[17px] tracking-[-0.01em] ${expanded ? 'font-extrabold' : 'font-bold'}`}>{ability.chineseName}</span>
-      <span className="shrink-0 text-xs font-semibold text-chevron">{ability.englishName}</span>
+      <span className="shrink-0 text-xs font-semibold text-textSecondary">{ability.englishName}</span>
     </span>
   );
 

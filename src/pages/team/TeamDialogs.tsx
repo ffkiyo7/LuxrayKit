@@ -159,7 +159,7 @@ export function TeamNameSheet({
             </button>
           )
         ) : (
-          <span className="shrink-0 pr-2 text-xs font-bold text-chevron tabular-nums">
+          <span className="shrink-0 pr-2 text-xs font-bold text-textSecondary tabular-nums">
             {draft.length} / {TEAM_NAME_MAX_LENGTH}
           </span>
         )}
@@ -210,7 +210,7 @@ export function ConfirmDeleteTeamSheet({
             );
           })}
           <span className="flex-1" />
-          <span className="shrink-0 text-xs font-bold text-chevron">{team.members.length} 成员</span>
+          <span className="shrink-0 text-xs font-bold text-textSecondary">{team.members.length} 成员</span>
         </div>
       )}
       <div className="mt-5 grid grid-cols-2 gap-2.5">
