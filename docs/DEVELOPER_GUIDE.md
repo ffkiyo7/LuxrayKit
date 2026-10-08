@@ -33,7 +33,12 @@
 
 ```
 src/
-  App.tsx               # AppShell：从 hash 路由派生页面，环境数据加载，导入 / 分享流程
+  App.tsx               # AppShell：组装下面四块 + 主题 / 统计 / 启动屏等全局副作用
+  app/
+    routes.tsx          # route → 页面元素（RoutedPage）与路由弹层（写留言、分享预览）；页面全部 lazy
+    useTeamImport.ts    # 上位构筑导入确认、分享链接导入 / 导出、队伍码复制，及共用的 toast 与列表高亮
+    useToolPresets.ts   # 「带入」到计算器 / 速度线 / 图鉴的一次性预设（只在内存，不进 URL）
+    useEnvironmentState.ts # 环境数据加载与重试
   state/AppContext.tsx  # 全局 store（§4.2）
   lib/                  # 纯逻辑层（无 React，便于单测）
     hashRoute.ts        # ★ 路由表唯一真源；Worker 的 /api/ping、/api/feedback 白名单也复用它
@@ -76,7 +81,7 @@ docs/                            # archive/ 不代表现状；plans/ 是待实�
   - **选择页层**：招式 / 道具 / 特性 / 性格 / 形态选择页与换宝可梦弹窗各压一条，返回键只关选择页；选择页自己关闭时 `close()` 弹掉它。
   - 卸载时**不**自动 `history.back()`（最坏多留一条同 URL 记录）。**不要推广到所有 Sheet**。
 - **弹层键盘与焦点**：`kit/Sheet` 与各处手写 `role="dialog"` 都走 `hooks/useDialogFocus.ts`——打开时焦点移入（已有 autofocus 输入框则不抢），Esc 只关最上层，关闭后焦点还给触发按钮。新弹层用 `Sheet`；非手写不可时容器加 `ref` + `tabIndex={-1}` 并调这个 hook。
-- 代码里的 `typeChart` 与 URL 里的 `typechart` 由 `App.tsx` 顶部两张映射表互转，不要在别处再写一份。
+- 代码里的 `typeChart` 与 URL 里的 `typechart` 由 `app/routes.tsx` 顶部两张映射表互转，不要在别处再写一份。
 - 刷新页面停在当前页（`tests/pwa/offline.spec.ts` 断言）；页面全部 `React.lazy` 懒加载（§4.4）。
 - 队伍页子组件在 `src/pages/team/`（编辑器相关在 `team/editor/`）。**没有拖拽排序**：⋯ 菜单「移至首位」写 `sortOrder`。**SP 选择只有一份** `team/editor/StatWheel.tsx`，编辑器与伤害计算器（`pages/calculator/SideEditorPage.tsx`）共用。
 
