@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Gauge, Info, MoreHorizontal, Swords, Trash2 } from 'lucide-react';
+import { ChevronRight, Gauge, Info, MoreHorizontal, Swords, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { abilities, currentRuleNatureOptions, currentRuleSet, items, moves, pokemon } from '../../data';
 import type { EnvironmentState } from '../../data/environment';
@@ -10,7 +10,7 @@ import { rosterSpeciesIds } from '../../lib/teamComposition';
 import type { Team, TeamMember } from '../../types';
 import { PokemonPicker } from '../../components/PokemonPicker';
 import { useHistoryLayer } from '../../hooks/useHistoryLayer';
-import { auraStyle, PageHeader, Sprite, TypeDot } from '../../components/kit';
+import { auraStyle, NavBar, PageHeader, Sprite, TypeDot } from '../../components/kit';
 import { typeLabels } from '../../lib/typePresentation';
 import { AbilityPickerPage } from './editor/AbilityPickerPage';
 import { ConfirmRemoveMemberSheet, DiscardChangesSheet } from './editor/EditorSheets';
@@ -358,38 +358,40 @@ export function MemberEditor({
 
   return (
     <div className="pb-[120px]">
-      <div className="flex items-center justify-between px-6 pt-5">
-        <RoundIconButton label="返回队伍详情" onClick={cancel}>
-          <ChevronLeft size={20} />
-        </RoundIconButton>
-        <div className="relative">
-          <RoundIconButton label="更多操作" onClick={() => setMenuOpen((open) => !open)}>
-            <MoreHorizontal size={18} />
-          </RoundIconButton>
-          {menuOpen && (
-            <>
-              <button aria-label="关闭菜单" className="fixed inset-0 z-30 cursor-default" type="button" onClick={() => setMenuOpen(false)} />
-              <div
-                className="lk-editor-menu absolute right-0 top-[44px] z-40 w-[214px] rounded-[20px] px-[18px] py-1.5"
-                role="menu"
-              >
-                <EditorMenuRow disabled={toolsDisabled} icon={<Gauge size={17} />} label="速度线" onClick={() => openTool(onOpenSpeed)} />
-                <EditorMenuRow disabled={toolsDisabled} icon={<Swords size={17} />} label="伤害计算" onClick={() => openTool(onOpenCalculator)} />
-                <div className="my-1.5 border-t border-[var(--hairline-strong)]" />
-                <EditorMenuRow
-                  danger
-                  icon={<Trash2 size={17} />}
-                  label="删除这个成员"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    setConfirmRemove(true);
-                  }}
-                />
-              </div>
-            </>
-          )}
-        </div>
-      </div>
+      <NavBar
+        backLabel="返回队伍详情"
+        title="编辑配置"
+        onBack={cancel}
+        trailing={
+          <div className="relative shrink-0">
+            <RoundIconButton label="更多操作" onClick={() => setMenuOpen((open) => !open)}>
+              <MoreHorizontal size={18} />
+            </RoundIconButton>
+            {menuOpen && (
+              <>
+                <button aria-label="关闭菜单" className="fixed inset-0 z-30 cursor-default" type="button" onClick={() => setMenuOpen(false)} />
+                <div
+                  className="lk-editor-menu absolute right-0 top-[44px] z-40 w-[214px] rounded-[20px] px-[18px] py-1.5"
+                  role="menu"
+                >
+                  <EditorMenuRow disabled={toolsDisabled} icon={<Gauge size={17} />} label="速度线" onClick={() => openTool(onOpenSpeed)} />
+                  <EditorMenuRow disabled={toolsDisabled} icon={<Swords size={17} />} label="伤害计算" onClick={() => openTool(onOpenCalculator)} />
+                  <div className="my-1.5 border-t border-[var(--hairline-strong)]" />
+                  <EditorMenuRow
+                    danger
+                    icon={<Trash2 size={17} />}
+                    label="删除这个成员"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      setConfirmRemove(true);
+                    }}
+                  />
+                </div>
+              </>
+            )}
+          </div>
+        }
+      />
 
       <div className="px-6 pt-[14px]">
         <PageHeader subtitle={`${team.name} 的第 ${memberIndex + 1} 位成员`} title="编辑配置" />

@@ -451,7 +451,7 @@ export function SpeedPage({
   return (
     <div className="pb-8">
       <PageHeader
-        className="px-6 pt-5"
+        className="px-6 pt-3.5"
         subtitle={trimmedQuery ? '换一只来看它在哪一档' : '热门速度线参照 · 上下滑动看档位'}
         title="速度线"
       />

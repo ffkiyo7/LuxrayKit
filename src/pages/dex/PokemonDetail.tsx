@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronLeft, ChevronUp, Search, Swords, X } from 'lucide-react';
+import { ChevronDown, ChevronUp, Search, Swords, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useDialogFocus } from '../../hooks/useDialogFocus';
 import { abilities } from '../../data';
@@ -11,7 +11,7 @@ import { createDefaultTeamMember } from '../../lib/teamMemberDefaults';
 import { offensiveRows, type OffensiveRow } from '../../lib/typeChart';
 import { useAppStore } from '../../state/AppContext';
 import type { PokemonType, Team, TeamMember } from '../../types';
-import { auraStyle, Sprite, TypeDot } from '../../components/kit';
+import { auraStyle, NavBar, Sprite, TypeDot } from '../../components/kit';
 import { Toast } from '../../components/kit/Toast';
 import { ADDED_TOAST_DURATION_MS, TeamPickerSheet, teamChoicesFor } from '../../components/TeamPickerSheet';
 import { hiddenAbilityIdsByPokemonId } from '../../data/seed/regMA/hiddenAbilities';
@@ -258,16 +258,7 @@ export function PokemonDetail({
 
   return (
     <div>
-      <div className="px-6 pt-5">
-        <button
-          aria-label="返回图鉴列表"
-          className="grid h-9 w-9 place-items-center rounded-full bg-surface text-textLabel"
-          type="button"
-          onClick={onBack}
-        >
-          <ChevronLeft size={20} />
-        </button>
-      </div>
+      <NavBar backLabel="返回图鉴列表" title={entry.chineseName} onBack={onBack} />
 
       <div className="flex items-center gap-4 px-6 pt-2.5">
         <button

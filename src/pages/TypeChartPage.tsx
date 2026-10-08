@@ -672,7 +672,7 @@ export function TypeChartPage({ environment }: { environment: EnvironmentState |
 
   return (
     <div className="pb-8">
-      <h1 className="px-6 pt-5 text-[34px] font-extrabold leading-[42px] tracking-[-0.02em]">属性速查</h1>
+      <h1 className="px-6 pt-3.5 text-[34px] font-extrabold leading-[42px] tracking-[-0.02em]">属性速查</h1>
 
       <div aria-label="属性速查显示模式" className="mx-6 mt-3.5 grid grid-cols-3 gap-1 rounded-xl bg-surface p-1" role="group">
         {tabs.map((option) => (

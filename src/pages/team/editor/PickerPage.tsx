@@ -1,6 +1,6 @@
 import { ChevronDown, ChevronLeft, ChevronUp } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { SearchField } from '../../../components/kit';
+import { NavBar, SearchField } from '../../../components/kit';
 import { useScrollResetWhileMounted } from '../../../hooks/useScrollReset';
 
 /**
@@ -75,16 +75,18 @@ export function PickerPage({
     <div className="pb-8">
       {!searching && (
         <>
-          <div className="flex items-center justify-between px-6 pt-5">
-            <RoundIconButton label={backLabel} onClick={onBack}>
-              <ChevronLeft size={20} />
-            </RoundIconButton>
-            {action && (
-              <button className="text-sm font-bold text-textPrimary" type="button" onClick={action.onClick}>
-                {action.label}
-              </button>
-            )}
-          </div>
+          <NavBar
+            backLabel={backLabel}
+            title={title}
+            trailing={
+              action && (
+                <button className="shrink-0 text-sm font-bold text-textPrimary" type="button" onClick={action.onClick}>
+                  {action.label}
+                </button>
+              )
+            }
+            onBack={onBack}
+          />
           <div className="px-6 pt-[14px]">
             <h1 className="text-[34px] font-extrabold leading-[42px] tracking-[-0.02em]">{title}</h1>
             {subtitle && <p className="mt-1.5 text-[13px] leading-[18px] text-textSecondary">{subtitle}</p>}
@@ -92,7 +94,8 @@ export function PickerPage({
         </>
       )}
       {(search || filters) && (
-        <div className={searching ? 'flex items-center gap-3 px-6 pt-5' : 'px-6'}>
+        // While searching, this row is the bar: it sticks so 返回 and the field stay in reach.
+        <div className={searching ? 'sticky top-0 z-30 flex items-center gap-3 bg-page/90 px-6 pb-2 pt-3 backdrop-blur-xl' : 'px-6'}>
           {searching && (
             <RoundIconButton label={backLabel} onClick={onBack}>
               <ChevronLeft size={20} />
