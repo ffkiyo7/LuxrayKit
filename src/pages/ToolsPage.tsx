@@ -54,7 +54,7 @@ function SquareToolCard({
   onClick: () => void;
 }) {
   return (
-    <button className="h-full w-full text-left" type="button" onClick={onClick}>
+    <button className="lk-press-card h-full w-full text-left" type="button" onClick={onClick}>
       <CardShell className="flex h-full min-h-[150px] flex-col">
         <div className="flex items-center gap-2">
           <span className={`text-[15px] font-extrabold tracking-[-0.01em] ${tone}`}>{title}</span>
@@ -348,7 +348,7 @@ export function ToolsPage({
           onClick={() => onOpenTool('speed')}
         />
 
-        <button className="col-span-2 text-left" type="button" onClick={() => onOpenTool('typeChart')}>
+        <button className="lk-press-card col-span-2 text-left" type="button" onClick={() => onOpenTool('typeChart')}>
           <CardShell className="overflow-hidden">
             <div className="flex items-center gap-2.5">
               <span className="text-[15px] font-extrabold tracking-[-0.01em] text-fnPink">属性速查</span>
@@ -374,7 +374,7 @@ export function ToolsPage({
         {recentUses.length > 0 && (
           <div className="mt-3 flex gap-2.5">
             {recentUses.map((use) => (
-              <button key={use.tool} className="min-w-0 flex-1 text-left" type="button" onClick={() => onOpenTool(use.tool)}>
+              <button key={use.tool} className="lk-press-card min-w-0 flex-1 text-left" type="button" onClick={() => onOpenTool(use.tool)}>
                 <div className="lk-p4a-card box-border rounded-2xl p-3.5">
                   <Sprite iconRef={use.iconRef} label={use.label} size={48} />
                   <p className="mt-2 truncate text-sm font-bold">{use.label}</p>

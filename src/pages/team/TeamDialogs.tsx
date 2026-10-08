@@ -61,7 +61,7 @@ function MenuRow({
 }) {
   return (
     <button
-      className={`flex h-[60px] w-full items-center gap-3 text-left ${last ? '' : 'border-b border-[var(--hairline)]'}`}
+      className={`lk-press-row flex h-[60px] w-full items-center gap-3 text-left ${last ? '' : 'border-b border-[var(--hairline)]'}`}
       type="button"
       onClick={onClick}
     >

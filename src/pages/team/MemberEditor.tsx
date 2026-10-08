@@ -52,7 +52,7 @@ function EditorMenuRow({
 }) {
   return (
     <button
-      className={`flex h-[46px] w-full items-center gap-3 text-left text-[15px] font-bold disabled:opacity-40 ${
+      className={`lk-press-row flex h-[46px] w-full items-center gap-3 text-left text-[15px] font-bold disabled:opacity-40 ${
         danger ? 'text-danger' : 'text-textPrimary'
       }`}
       disabled={disabled}
@@ -85,7 +85,7 @@ function ConfigRow({
   return (
     <button
       aria-label={`选择${label}`}
-      className={`flex h-16 w-full items-center gap-3 ${last ? '' : 'border-b border-[var(--hairline)]'}`}
+      className={`lk-press-row flex h-16 w-full items-center gap-3 ${last ? '' : 'border-b border-[var(--hairline)]'}`}
       type="button"
       onClick={onClick}
     >
@@ -368,7 +368,7 @@ export function MemberEditor({
           </RoundIconButton>
           {menuOpen && (
             <>
-              <button aria-label="关闭菜单" className="fixed inset-0 z-30 cursor-default" type="button" onClick={() => setMenuOpen(false)} />
+              <button aria-label="关闭菜单" className="lk-press-none fixed inset-0 z-30 cursor-default" type="button" onClick={() => setMenuOpen(false)} />
               <div
                 className="lk-editor-menu absolute right-0 top-[44px] z-40 w-[214px] rounded-[20px] px-[18px] py-1.5"
                 role="menu"
@@ -511,7 +511,7 @@ export function MemberEditor({
               <button
                 key={slot}
                 aria-label={`招式 ${slot + 1}${move ? ` ${move.chineseName}` : ''}`}
-                className={`flex h-[60px] w-full items-center gap-3 ${slot < 3 ? 'border-b border-[var(--hairline)]' : ''}`}
+                className={`lk-press-row flex h-[60px] w-full items-center gap-3 ${slot < 3 ? 'border-b border-[var(--hairline)]' : ''}`}
                 type="button"
                 onClick={() => setView({ kind: 'move', slot })}
               >

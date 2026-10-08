@@ -69,7 +69,7 @@ function EmptyStateCard({
 }) {
   return (
     <button
-      className={`block w-full rounded-[20px] p-[18px] text-left ${sunken ? 'bg-sunken' : 'bg-surface'} ${
+      className={`lk-press-card block w-full rounded-[20px] p-[18px] text-left ${sunken ? 'bg-sunken' : 'bg-surface'} ${
         highlighted ? 'shadow-[inset_0_0_0_1.5px_rgb(var(--color-text-primary)/0.22)]' : ''
       }`}
       type="button"

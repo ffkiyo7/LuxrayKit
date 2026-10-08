@@ -575,7 +575,7 @@ function RelatedSampleRow({
   return (
     <button
       aria-label={`导入「${title}」`}
-      className={`flex h-[68px] w-full items-center gap-3 text-left ${divider ? 'border-b border-[var(--hairline)]' : ''}`}
+      className={`lk-press-row flex h-[68px] w-full items-center gap-3 text-left ${divider ? 'border-b border-[var(--hairline)]' : ''}`}
       type="button"
       onClick={() => void onImport(sample)}
     >

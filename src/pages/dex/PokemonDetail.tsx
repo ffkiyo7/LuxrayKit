@@ -460,7 +460,7 @@ export function PokemonDetail({
                 key={move.id}
                 aria-expanded={false}
                 aria-label={`展开${move.chineseName}说明`}
-                className={`flex h-[60px] w-full items-center gap-3 text-left ${divider}`}
+                className={`lk-press-row flex h-[60px] w-full items-center gap-3 text-left ${divider}`}
                 type="button"
                 onClick={() => setExpandedMoveId(move.id)}
               >

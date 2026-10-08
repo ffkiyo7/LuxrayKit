@@ -160,7 +160,7 @@ export function SidePickerPage({
                       <button
                         key={member.id}
                         aria-label={entry.chineseName}
-                        className={`flex h-[68px] min-w-0 items-center gap-2.5 rounded-[14px] px-3 text-left ${
+                        className={`lk-press-card flex h-[68px] min-w-0 items-center gap-2.5 rounded-[14px] px-3 text-left ${
                           selected ? 'lk-calc-pick lk-calc-pick--on' : 'lk-calc-pick'
                         }`}
                         type="button"
