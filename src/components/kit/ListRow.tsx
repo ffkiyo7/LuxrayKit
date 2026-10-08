@@ -73,7 +73,7 @@ export function ListRow({
   }
 
   return (
-    <button aria-label={ariaLabel} className={shell} style={{ height, gap }} type="button" onClick={onClick}>
+    <button aria-label={ariaLabel} className={`lk-press-row ${shell}`} style={{ height, gap }} type="button" onClick={onClick}>
       {body}
     </button>
   );

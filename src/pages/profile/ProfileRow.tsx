@@ -48,7 +48,7 @@ export function ProfileRow({
   }
 
   return (
-    <button className={shell} style={{ minHeight: height }} type="button" onClick={onClick}>
+    <button className={`lk-press-row ${shell}`} style={{ minHeight: height }} type="button" onClick={onClick}>
       {body}
     </button>
   );

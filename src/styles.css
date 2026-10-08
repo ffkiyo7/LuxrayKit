@@ -85,6 +85,7 @@
   --select-fill: rgb(155 154 196 / 0.16);
   --chip-fill: rgb(255 255 255 / 0.07);
   --row-active: rgb(255 255 255 / 0.05);
+  --press-tint: rgb(255 255 255 / 0.08);
   --marker-fill: rgb(255 255 255 / 0.06);
   --marker-ring: rgb(255 255 255 / 0.3);
   --track-on: rgb(255 255 255 / 0.22);
@@ -155,6 +156,7 @@
   --select-fill: rgb(98 97 138 / 0.1);
   --chip-fill: #ededf0;
   --row-active: #f7f7f9;
+  --press-tint: rgb(16 24 40 / 0.06);
   --marker-fill: #f7f7f9;
   --marker-ring: rgb(16 24 40 / 0.14);
   --track-on: rgb(16 24 40 / 0.14);
@@ -219,8 +221,65 @@ textarea {
   }
 }
 
-button {
+button,
+a[href],
+[role='button'] {
   -webkit-tap-highlight-color: transparent;
+}
+
+/*
+ * Press feedback (HIG → Feedback). With the grey tap highlight off, every control shows its own
+ * pressed state instead, in one of three shapes:
+ *   default         — buttons, pills, links, icon buttons: dim to 60%, like an iOS plain button.
+ *   .lk-press-row   — full-width list rows: a tint washes over the row, like a table cell.
+ *   .lk-press-card  — whole-card buttons: shrink to 97% (dims instead under reduced motion).
+ *   .lk-press-none  — opt out (backdrops, controls that draw their own pressed state).
+ * Press-in is instant and release eases back, so a quick tap still registers. A pressed
+ * control inside a clickable card only answers itself (`:has` guard), never both at once.
+ * iOS Safari only applies :active when a touch listener is registered — see main.tsx.
+ */
+:where(button, a[href], [role='button'], summary) {
+  transition: opacity 200ms ease-out;
+}
+
+:where(.lk-press-row) {
+  transition: box-shadow 200ms ease-out;
+}
+
+:where(.lk-press-card) {
+  transition:
+    transform 200ms ease-out,
+    opacity 200ms ease-out;
+}
+
+:where(button:not(:disabled), a[href], [role='button']:not([aria-disabled='true']), summary):not(
+    .lk-press-row,
+    .lk-press-card,
+    .lk-press-none,
+    .lk-nav-tab,
+    .lk-type-matrix__cell,
+    .lk-sheet-overlay,
+    .lk-dialog-overlay
+  ):active:not(:has(:is(button, a[href], [role='button']):active)) {
+  opacity: 0.6;
+  transition-duration: 0ms;
+}
+
+.lk-press-row:not(:disabled):active {
+  box-shadow: inset 0 0 0 100vmax var(--press-tint);
+  transition-duration: 0ms;
+}
+
+.lk-press-card:active:not(:has(:is(button, a[href], [role='button']):active)) {
+  transform: scale(0.97);
+  transition-duration: 0ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lk-press-card:active:not(:has(:is(button, a[href], [role='button']):active)) {
+    transform: none;
+    opacity: 0.6;
+  }
 }
 
 .hide-scrollbar {

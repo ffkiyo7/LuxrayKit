@@ -303,7 +303,7 @@ function RankingRow({
 
   return (
     <button
-      className={`flex h-[68px] w-full items-center gap-3.5 text-left ${divider ? 'border-b border-[var(--hairline)]' : ''}`}
+      className={`lk-press-row flex h-[68px] w-full items-center gap-3.5 text-left ${divider ? 'border-b border-[var(--hairline)]' : ''}`}
       type="button"
       onClick={() => onOpen(pokemonId)}
     >
@@ -583,7 +583,7 @@ function EnvironmentMethodologyPage({
       <div className="px-6 pt-[22px]">
         {onOpenRule && (
           <button
-            className="flex h-[60px] w-full items-center gap-3 border-t border-[var(--hairline)] text-left"
+            className="lk-press-row flex h-[60px] w-full items-center gap-3 border-t border-[var(--hairline)] text-left"
             type="button"
             onClick={onOpenRule}
           >
@@ -671,7 +671,7 @@ function EnvironmentHero({ usage, onOpen }: { usage: EnvironmentPokemonUsage; on
     <div className="lk-env-hero-shell px-6">
       <button
         aria-label={`查看 ${entry.chineseName} 的环境详情`}
-        className="lk-env-hero relative w-full overflow-hidden text-left"
+        className="lk-press-card lk-env-hero relative w-full overflow-hidden text-left"
         // The halo is this Pokémon's own body colours sampled off its artwork, as on a team member
         // card; a Mega or form swap changes `entry.iconRef` and the wash follows. A sprite with no
         // sampled row falls back to its two type colours.
@@ -725,7 +725,7 @@ function TeamSampleTeaser({
   return (
     <button
       aria-label={`导入「${teamSampleTitle(sample)}」`}
-      className="w-[236px] shrink-0 rounded-2xl bg-surface p-3.5 text-left"
+      className="lk-press-card w-[236px] shrink-0 rounded-2xl bg-surface p-3.5 text-left"
       type="button"
       onClick={() => onSelect(sample)}
     >

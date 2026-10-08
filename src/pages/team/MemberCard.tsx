@@ -182,7 +182,7 @@ export function MemberTile({ member, onExpand }: { member: TeamMember; onExpand:
   return (
     <button
       aria-label={`展开 ${name}`}
-      className="lk-card-face flex flex-col items-center rounded-[20px] p-4 text-center shadow-[shadow:var(--lk-card-shadow)]"
+      className="lk-press-card lk-card-face flex flex-col items-center rounded-[20px] p-4 text-center shadow-[shadow:var(--lk-card-shadow)]"
       type="button"
       onClick={onExpand}
     >
@@ -209,7 +209,7 @@ export function EmptyMemberSlot({ onAdd }: { onAdd: () => void }) {
   return (
     <button
       aria-label="添加成员"
-      className="lk-slot grid min-h-[158px] place-items-center rounded-[20px] bg-sunken p-4"
+      className="lk-press-card lk-slot grid min-h-[158px] place-items-center rounded-[20px] bg-sunken p-4"
       type="button"
       onClick={onAdd}
     >

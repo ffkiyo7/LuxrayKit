@@ -79,7 +79,7 @@ export function TeamListCard({ team, recentlyImported, setCardRef, onOpen, onMen
     <section
       ref={setCardRef}
       aria-label={`队伍：${team.name}`}
-      className={`relative cursor-pointer rounded-[20px] p-[18px] focus:outline-none focus:ring-2 focus:ring-select/55 ${
+      className={`lk-press-card relative cursor-pointer rounded-[20px] p-[18px] focus:outline-none focus:ring-2 focus:ring-select/55 ${
         recentlyImported ? 'lk-field-on bg-btn1' : 'lk-card-face shadow-[shadow:var(--lk-card-shadow)]'
       }`}
       data-import-highlighted={recentlyImported ? 'true' : undefined}

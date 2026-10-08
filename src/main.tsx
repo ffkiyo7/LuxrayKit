@@ -11,6 +11,10 @@ import './styles/type-chart.css';
 import './styles/profile.css';
 import './styles/calculator.css';
 
+// iOS Safari leaves :active unapplied on tap unless a touch listener is registered; this empty
+// passive one is what makes the press states in styles.css fire on iPhone.
+document.addEventListener('touchstart', () => {}, { passive: true });
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <App />

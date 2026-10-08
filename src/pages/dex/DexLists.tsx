@@ -11,7 +11,7 @@ import { catalogMoveMeta, typeLabelByValue } from './dexShared';
 export function PokemonRow({ entry, divider, onOpen }: { entry: DexFormEntry; divider: boolean; onOpen: () => void }) {
   return (
     <button
-      className={`flex h-[68px] w-full items-center gap-3.5 text-left ${divider ? 'border-b border-[var(--hairline)]' : ''}`}
+      className={`lk-press-row flex h-[68px] w-full items-center gap-3.5 text-left ${divider ? 'border-b border-[var(--hairline)]' : ''}`}
       type="button"
       onClick={onOpen}
     >
@@ -48,7 +48,7 @@ export function MoveRow({
     <button
       aria-expanded={expanded}
       aria-label={expanded ? `收起${move.chineseName}说明` : `展开${move.chineseName}说明`}
-      className={`flex w-full items-start gap-3.5 py-4 text-left ${divider ? 'border-b border-[var(--hairline)]' : ''}`}
+      className={`lk-press-row flex w-full items-start gap-3.5 py-4 text-left ${divider ? 'border-b border-[var(--hairline)]' : ''}`}
       type="button"
       onClick={onToggle}
     >
@@ -150,7 +150,7 @@ export function AbilityRow({
       <button
         aria-expanded={false}
         aria-label={`展开${ability.chineseName}说明`}
-        className={`flex h-[68px] w-full items-center gap-3.5 text-left ${divider ? 'border-b border-[var(--hairline)]' : ''}`}
+        className={`lk-press-row flex h-[68px] w-full items-center gap-3.5 text-left ${divider ? 'border-b border-[var(--hairline)]' : ''}`}
         type="button"
         onClick={onToggle}
       >
