@@ -15,6 +15,7 @@ import { useScrollResetOnPush } from './hooks/useScrollReset';
 import { buildHash, routeForTab, routePattern, tabForRoute } from './lib/hashRoute';
 import { trackRoute } from './lib/analytics';
 import { mirrorSplashPreferences, signalAppReady } from './lib/splashMirror';
+import { applyThemeColor, useResolvedTheme } from './lib/theme';
 import { AppProvider, useAppStore } from './state/AppContext';
 
 export type { TabId } from './app/routes';
@@ -70,9 +71,12 @@ function AppShell() {
     trackRoute(currentRoutePattern, { optOut: preferences.analyticsOptOut });
   }, [currentRoutePattern, preferences.analyticsOptOut]);
 
+  // `preferences.theme` may be 'system'; the root only ever carries the resolved dark / light.
+  const resolvedTheme = useResolvedTheme(preferences.theme);
   useEffect(() => {
-    document.documentElement.dataset.theme = preferences.theme;
-  }, [preferences.theme]);
+    document.documentElement.dataset.theme = resolvedTheme;
+    applyThemeColor(resolvedTheme);
+  }, [resolvedTheme]);
 
   // The PWA splash (public/splash.js) reads these before the next launch's bundle runs, and waits
   // for the ready signal before fading out. Skipped while loading: the defaults would overwrite

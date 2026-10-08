@@ -125,7 +125,7 @@ export function BackupPage({ onBack, onGoToTeams }: { onBack: () => void; onGoTo
           <ProfileRow
             divider={false}
             icon={<MoonStar size={17} />}
-            subtitle={`主题 · ${preferences.theme === 'dark' ? '深色' : '浅色'}`}
+            subtitle={`外观 · ${{ system: '跟随系统', dark: '深色', light: '浅色' }[preferences.theme]}`}
             tile="lk-tile--teal"
             title="显示偏好"
             trailing={null}

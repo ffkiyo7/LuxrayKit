@@ -291,7 +291,7 @@ test('captures the mobile visual regression smoke set', { timeout: 60_000 }, asy
  * tool cards, data rows, settings rows), which between them carry the light theme's whole
  * vocabulary. The baselines stay few and stable, as `AGENTS.md` §3 asks.
  *
- * The theme is switched through the product's own control (我的 · 主题), not by stamping
+ * The theme is switched through the product's own control (我的 · 外观), not by stamping
  * `data-theme`: the switch writes the preference to IndexedDB and `App` mirrors it onto the root,
  * so this also covers that the persisted value survives navigation.
  */
@@ -300,7 +300,7 @@ test('captures the light-theme set', { timeout: 60_000 }, async ({ page }) => {
 
   await page.getByRole('button', { name: '我的', exact: true }).click();
   await expect(page.getByRole('heading', { name: '我的' })).toBeVisible();
-  await page.getByRole('switch', { name: '切换深色和浅色主题' }).click();
+  await page.getByRole('group', { name: '外观' }).getByRole('button', { name: '浅色' }).click();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
   await scrollTop(page);
   await expect(page.getByText('本地备份')).toBeVisible();
