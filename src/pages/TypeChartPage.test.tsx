@@ -62,6 +62,15 @@ describe('TypeChartPage', () => {
     expect(screen.getByText('×4')).toBeTruthy();
     expect(screen.getByText('×¼')).toBeTruthy();
 
+    // 进攻时 reads each own type's moves on its own, like the dex: 钢 resists both 龙 and 飞行.
+    expect(screen.getByRole('heading', { name: '进攻时' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: '防守时' })).toBeTruthy();
+    const chipTexts = (shelfTitle: string) =>
+      [...screen.getByText(shelfTitle).nextElementSibling!.children].map((chip) => chip.textContent ?? '');
+    expect(chipTexts('效果绝佳')).toEqual(['草×2飞行', '格斗×2飞行', '虫×2飞行', '龙×2龙']);
+    expect(chipTexts('效果不好')).toContain('钢×½龙 · 飞行');
+    expect(chipTexts('没有效果')).toEqual(['妖精×0龙']);
+
     await user.click(screen.getByRole('button', { name: '清空副属性' }));
     expect(screen.getByText('正在选副属性')).toBeTruthy();
     expect(screen.queryByText('×4')).toBeNull();
@@ -89,10 +98,10 @@ describe('TypeChartPage', () => {
     expect(document.querySelectorAll('.lk-type-matrix__cell')).toHaveLength(18 * 18);
     expect(screen.getByText('效果绝佳 ×2')).toBeTruthy();
 
-    await user.click(screen.getByRole('button', { name: '火攻击水，效果不佳，×½' }));
+    await user.click(screen.getByRole('button', { name: '火攻击水，效果不好，×½' }));
     expect(screen.queryByText('效果绝佳 ×2')).toBeNull();
     const result = () => within(document.querySelector('section[aria-live="polite"]') as HTMLElement);
-    expect(result().getByText('效果不佳')).toBeTruthy();
+    expect(result().getByText('效果不好')).toBeTruthy();
     expect(result().getByText('×½')).toBeTruthy();
 
     await user.click(screen.getByRole('button', { name: '交换攻击方与防御方' }));

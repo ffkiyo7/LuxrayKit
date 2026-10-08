@@ -58,20 +58,23 @@ describe('PokemonDetail 属性关系', () => {
   const chipTexts = (shelfTitle: string) =>
     [...screen.getByText(shelfTitle).nextElementSibling!.children].map((chip) => chip.textContent ?? '');
 
-  it('opens on 受击时 and only names the attacking shelves once 攻击时 is picked', async () => {
+  it('opens on 防守时 and only names the attacking shelves once 进攻时 is picked', async () => {
     const user = userEvent.setup();
     renderDetail(garchomp());
 
-    expect(screen.getByRole('button', { name: '受击时' }).getAttribute('aria-pressed')).toBe('true');
-    expect(screen.getByRole('button', { name: '攻击时' }).getAttribute('aria-pressed')).toBe('false');
+    expect(screen.getByRole('button', { name: '防守时' }).getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByRole('button', { name: '进攻时' }).getAttribute('aria-pressed')).toBe('false');
     expect(screen.getByText('弱点')).toBeTruthy();
+    // 抵抗 and 免疫 are separate shelves: 烈咬陆鲨 takes nothing from 电.
+    expect(chipTexts('抵抗')).not.toContain('电×0');
+    expect(chipTexts('免疫')).toEqual(['电×0']);
     expect(screen.queryByText('效果绝佳')).toBeNull();
 
-    await user.click(screen.getByRole('button', { name: '攻击时' }));
+    await user.click(screen.getByRole('button', { name: '进攻时' }));
 
     expect(screen.getByText('效果绝佳')).toBeTruthy();
     expect(screen.getByText('效果不好')).toBeTruthy();
-    expect(screen.getByText('无效')).toBeTruthy();
+    expect(screen.getByText('没有效果')).toBeTruthy();
     expect(screen.queryByText('弱点')).toBeNull();
     // 钢 sits on two shelves at once — ×2 for its 地面 moves, ×½ for its 龙 moves.
     expect(chipTexts('效果绝佳')).toContain('钢×2地面');
@@ -83,9 +86,9 @@ describe('PokemonDetail 属性关系', () => {
     const entry = singleType();
     renderDetail(entry);
 
-    await user.click(screen.getByRole('button', { name: '攻击时' }));
+    await user.click(screen.getByRole('button', { name: '进攻时' }));
 
-    const chips = ['效果绝佳', '效果不好', '无效']
+    const chips = ['效果绝佳', '效果不好', '没有效果']
       .filter((title) => screen.queryByText(title))
       .flatMap((title) => chipTexts(title));
     expect(chips.length).toBeGreaterThan(0);
@@ -93,11 +96,11 @@ describe('PokemonDetail 属性关系', () => {
     chips.forEach((text) => expect(text).toMatch(/^[^×]+×(2|½|0)$/));
   });
 
-  it('goes back to 受击时 when another Pokémon takes the page over', async () => {
+  it('goes back to 防守时 when another Pokémon takes the page over', async () => {
     const user = userEvent.setup();
     const { rerender } = renderDetail(garchomp());
 
-    await user.click(screen.getByRole('button', { name: '攻击时' }));
+    await user.click(screen.getByRole('button', { name: '进攻时' }));
     expect(screen.getByText('效果绝佳')).toBeTruthy();
 
     rerender(
@@ -106,7 +109,7 @@ describe('PokemonDetail 属性关系', () => {
       </AppProvider>,
     );
 
-    expect(screen.getByRole('button', { name: '受击时' }).getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByRole('button', { name: '防守时' }).getAttribute('aria-pressed')).toBe('true');
     expect(screen.queryByText('效果绝佳')).toBeNull();
   });
 });

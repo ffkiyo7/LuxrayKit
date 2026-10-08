@@ -14,7 +14,14 @@ import { currentRuleSet, pokemon } from '../data';
 import type { EnvironmentState } from '../data/environment';
 import { attackingTypes, defensiveMatchupMultiplier } from '../lib/calculations';
 import { recordToolResult } from '../lib/toolActivity';
-import { defenseBuckets, defensiveProfile, offensiveProfile, representativeSpecies } from '../lib/typeChart';
+import {
+  defenseBuckets,
+  defensiveProfile,
+  offensiveProfile,
+  offensiveRows,
+  representativeSpecies,
+  type OffensiveRow,
+} from '../lib/typeChart';
 import type { Pokemon, PokemonType } from '../types';
 
 const MATRIX_CELL_SIZE = 44;
@@ -34,7 +41,7 @@ const multiplierLabel = (value: number) => {
 
 const outcome = (value: number) => {
   if (value === 2) return '效果绝佳';
-  if (value === 0.5) return '效果不佳';
+  if (value === 0.5) return '效果不好';
   if (value === 0) return '没有效果';
   return '效果一般';
 };
@@ -63,27 +70,49 @@ function RailPill({ type, selected, onSelect }: { type: PokemonType; selected: b
   );
 }
 
-/** 结果区的属性 chip：32px、7px 圆点。 */
-function TypeChip({ type }: { type: PokemonType }) {
+/**
+ * 结果区的属性 chip：32px、7px 圆点。双属性的进攻时沿用图鉴「进攻时」的胶囊：属性名后带倍率，
+ * 细线后标出是自己哪个属性打出的这一格。
+ */
+function TypeChip({ type, multiplier, sources }: OffensiveRow | { type: PokemonType; multiplier?: undefined; sources?: undefined }) {
   return (
     <span className="lk-type-chip inline-flex h-8 items-center gap-1.5 rounded-full px-[11px] text-xs font-bold text-textLabel">
       <TypeDot size={7} type={type} />
-      {typeLabels[type]}
+      <span>{typeLabels[type]}</span>
+      {multiplier !== undefined && <span className="tabular-nums">{multiplierLabel(multiplier)}</span>}
+      {sources && sources.length > 0 && (
+        <>
+          <span aria-hidden="true" className="h-2.5 w-px shrink-0 bg-[var(--hairline-strong)]" />
+          <span className="text-[11px] font-bold text-textSecondary">{sources.map((source) => typeLabels[source]).join(' · ')}</span>
+        </>
+      )}
     </span>
   );
 }
 
-function Shelf({ tone, name, multiplier, types }: { tone: 'good' | 'bad'; name: string; multiplier: string; types: PokemonType[] }) {
-  if (types.length === 0) return null;
+function Shelf({
+  tone,
+  name,
+  multiplier,
+  types,
+  rows,
+}: {
+  tone: 'good' | 'bad';
+  name: string;
+  /** Left off when every chip prints its own multiplier. */
+  multiplier?: string;
+} & ({ types: PokemonType[]; rows?: undefined } | { rows: OffensiveRow[]; types?: undefined })) {
+  const chips = rows ?? types.map((type) => ({ type }));
+  if (chips.length === 0) return null;
   return (
     <div>
       <p className={`flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.14em] ${tone === 'good' ? 'text-success' : 'text-danger'}`}>
         <span aria-hidden="true" className="h-[7px] w-[7px] shrink-0 rounded-full bg-current" />
         {name}
-        <span className="font-extrabold tracking-[0.08em] tabular-nums">{multiplier}</span>
+        {multiplier && <span className="font-extrabold tracking-[0.08em] tabular-nums">{multiplier}</span>}
       </p>
       <div className="mt-2 flex flex-wrap gap-[7px]">
-        {types.map((type) => <TypeChip key={type} type={type} />)}
+        {chips.map((chip) => <TypeChip key={chip.type} {...chip} />)}
       </div>
     </div>
   );
@@ -116,7 +145,7 @@ function SingleTypeView({ type, onSelect }: { type: PokemonType; onSelect: (type
         <h2 className="text-[22px] font-extrabold leading-[30px] tracking-[-0.01em]">{label} · 进攻时</h2>
         <div className="mt-3.5 space-y-4">
           <Shelf multiplier="×2" name="效果绝佳" tone="good" types={offense.superEffective} />
-          <Shelf multiplier="×½" name="效果不佳" tone="bad" types={offense.notVery} />
+          <Shelf multiplier="×½" name="效果不好" tone="bad" types={offense.notVery} />
           <Shelf multiplier="×0" name="没有效果" tone="bad" types={offense.noEffect} />
         </div>
       </section>
@@ -124,7 +153,7 @@ function SingleTypeView({ type, onSelect }: { type: PokemonType; onSelect: (type
       <section className="px-6 pt-[26px]">
         <h2 className="text-[22px] font-extrabold leading-[30px] tracking-[-0.01em]">{label} · 防守时</h2>
         <div className="mt-3.5 space-y-4">
-          <Shelf multiplier="×2" name="被克" tone="bad" types={defense.weakTo} />
+          <Shelf multiplier="×2" name="弱点" tone="bad" types={defense.weakTo} />
           <Shelf multiplier="×½" name="抵抗" tone="good" types={defense.resistedBy} />
           <Shelf multiplier="×0" name="免疫" tone="good" types={defense.immuneTo} />
         </div>
@@ -205,6 +234,7 @@ function DualTypeView({
 }) {
   const types = secondary ? [primary, secondary] : [primary];
   const buckets = defenseBuckets(types);
+  const offense = offensiveRows(types);
 
   return (
     <>
@@ -256,17 +286,30 @@ function DualTypeView({
       )}
 
       <div className={editing ? 'px-6' : 'mt-5 border-t border-[var(--hairline)] px-6'}>
-        <div className="mt-5 space-y-4">
-          {buckets.map((bucket) => (
-            <Shelf
-              key={bucket.multiplier}
-              multiplier={multiplierLabel(bucket.multiplier)}
-              name={bucket.multiplier > 1 ? '弱点' : bucket.multiplier === 0 ? '免疫' : '抵抗'}
-              tone={bucket.multiplier > 1 ? 'bad' : 'good'}
-              types={bucket.types}
-            />
-          ))}
-        </div>
+        <section className="pt-5">
+          <h2 className="text-[22px] font-extrabold leading-[30px] tracking-[-0.01em]">进攻时</h2>
+          {/* Each own type throws its own moves, so the chips carry their multiplier and source (图鉴「进攻时」). */}
+          <div className="mt-3.5 space-y-4">
+            <Shelf name="效果绝佳" rows={offense.superEffective} tone="good" />
+            <Shelf name="效果不好" rows={offense.notVery} tone="bad" />
+            <Shelf name="没有效果" rows={offense.noEffect} tone="bad" />
+          </div>
+        </section>
+
+        <section className="pt-[26px]">
+          <h2 className="text-[22px] font-extrabold leading-[30px] tracking-[-0.01em]">防守时</h2>
+          <div className="mt-3.5 space-y-4">
+            {buckets.map((bucket) => (
+              <Shelf
+                key={bucket.multiplier}
+                multiplier={multiplierLabel(bucket.multiplier)}
+                name={bucket.multiplier > 1 ? '弱点' : bucket.multiplier === 0 ? '免疫' : '抵抗'}
+                tone={bucket.multiplier > 1 ? 'bad' : 'good'}
+                types={bucket.types}
+              />
+            ))}
+          </div>
+        </section>
       </div>
     </>
   );
@@ -326,7 +369,7 @@ function MatrixLegend() {
       </span>
       <span className="inline-flex items-center gap-1.5 text-xs font-bold text-danger">
         <span aria-hidden="true" className="lk-type-legend-swatch lk-type-legend-swatch--resisted" />
-        效果不佳 ×½
+        效果不好 ×½
       </span>
       <span className="inline-flex items-center gap-1.5 text-xs font-bold text-textSecondary">
         <span aria-hidden="true" className="lk-type-legend-swatch" />
