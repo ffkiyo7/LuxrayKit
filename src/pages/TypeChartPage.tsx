@@ -1,4 +1,4 @@
-import { ArrowLeftRight, ArrowRight, ChevronUp, X } from 'lucide-react';
+import { ArrowLeftRight, ArrowRight, ChevronLeft, ChevronRight, ChevronUp, X } from 'lucide-react';
 import {
   type KeyboardEvent as ReactKeyboardEvent,
   type PointerEvent as ReactPointerEvent,
@@ -118,16 +118,54 @@ function Shelf({
   );
 }
 
-/** 全宽属性轨：左右溢出 24px 页边距，右侧 48px 渐隐提示还能滑。 */
+/**
+ * 全宽属性轨：左右溢出 24px 页边距。哪一侧还有没露出的属性，哪一侧就有渐隐 + 箭头：
+ * 光靠渐隐，在某些屏宽下最后一颗 pill 恰好收在边缘，看不出还能滑。箭头点一下翻大半屏。
+ */
 function TypeRail({ selected, label, className = '', onSelect }: { selected: PokemonType | null; label: string; className?: string; onSelect: (type: PokemonType) => void }) {
+  const railRef = useRef<HTMLDivElement>(null);
+  const [overflow, setOverflow] = useState({ start: false, end: false });
+
+  const measure = useCallback(() => {
+    const rail = railRef.current;
+    if (!rail) return;
+    const start = rail.scrollLeft > 1;
+    const end = rail.scrollLeft + rail.clientWidth < rail.scrollWidth - 1;
+    setOverflow((current) => (current.start === start && current.end === end ? current : { start, end }));
+  }, []);
+
+  useLayoutEffect(() => {
+    measure();
+    const rail = railRef.current;
+    if (!rail || typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(rail);
+    return () => observer.disconnect();
+  }, [measure]);
+
+  const page = (direction: 1 | -1) => {
+    const rail = railRef.current;
+    if (!rail) return;
+    const left = rail.scrollLeft + direction * rail.clientWidth * 0.7;
+    if (typeof rail.scrollTo === 'function') rail.scrollTo({ left, behavior: 'smooth' });
+    else rail.scrollLeft = left;
+  };
+
   return (
     <div className={`relative ${className}`}>
-      <div aria-label={label} className="hide-scrollbar flex gap-2 overflow-x-auto px-6" role="group">
+      <div aria-label={label} className="hide-scrollbar flex gap-2 overflow-x-auto px-6" ref={railRef} role="group" onScroll={measure}>
         {attackingTypes.map((type) => (
           <RailPill key={type} selected={type === selected} type={type} onSelect={onSelect} />
         ))}
       </div>
-      <div aria-hidden="true" className="lk-type-rail-fade" />
+      <div aria-hidden="true" className="lk-type-rail-fade lk-type-rail-fade--start" data-visible={overflow.start} />
+      <div aria-hidden="true" className="lk-type-rail-fade lk-type-rail-fade--end" data-visible={overflow.end} />
+      <button aria-hidden="true" className="lk-type-rail-arrow lk-type-rail-arrow--start" data-visible={overflow.start} tabIndex={-1} type="button" onClick={() => page(-1)}>
+        <ChevronLeft size={14} strokeWidth={2.5} />
+      </button>
+      <button aria-hidden="true" className="lk-type-rail-arrow lk-type-rail-arrow--end" data-visible={overflow.end} tabIndex={-1} type="button" onClick={() => page(1)}>
+        <ChevronRight size={14} strokeWidth={2.5} />
+      </button>
     </div>
   );
 }

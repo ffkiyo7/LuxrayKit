@@ -63,14 +63,61 @@
   box-shadow: 0 1px 2px rgb(16 24 40 / 0.1), 0 0 0 0.5px rgb(16 24 40 / 0.06);
 }
 
+/* Each side of the type rail fades and shows an arrow only while chips are hidden past it:
+   a fade alone reads as nothing when a pill happens to end right at the edge. */
 .lk-type-rail-fade {
   position: absolute;
   top: 0;
-  right: 0;
   bottom: 0;
-  width: 48px;
-  background: linear-gradient(270deg, rgb(var(--color-page)) 22%, rgb(var(--color-page) / 0));
+  width: 56px;
   pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+
+.lk-type-rail-fade--start {
+  left: 0;
+  background: linear-gradient(90deg, rgb(var(--color-page)) 30%, rgb(var(--color-page) / 0));
+}
+
+.lk-type-rail-fade--end {
+  right: 0;
+  background: linear-gradient(270deg, rgb(var(--color-page)) 30%, rgb(var(--color-page) / 0));
+}
+
+.lk-type-rail-arrow {
+  position: absolute;
+  top: 50%;
+  display: flex;
+  width: 24px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: rgb(var(--color-surface));
+  box-shadow: inset 0 0 0 1px var(--hairline);
+  color: rgb(var(--color-text-label));
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-50%);
+  transition: opacity 0.18s ease;
+}
+
+.lk-type-rail-arrow--start {
+  left: 4px;
+}
+
+.lk-type-rail-arrow--end {
+  right: 4px;
+}
+
+.lk-type-rail-fade[data-visible='true'],
+.lk-type-rail-arrow[data-visible='true'] {
+  opacity: 1;
+}
+
+.lk-type-rail-arrow[data-visible='true'] {
+  pointer-events: auto;
 }
 
 .lk-type-rail-panel {
