@@ -195,7 +195,7 @@ const abilityRows: Ability[] = [
   // ── Reg M-C Mega abilities (2026-09-09) ──
   // Effect text follows the Champions wording (Bulbapedia's Champions ability description template),
   // which gives explicit percentages where PokéBase still shows the main-series "威力会提高" phrasing.
-  // Damage modelling is NOT implemented yet (Task 10), so these stay `calculationImpact: 'pending'`.
+  // Aura Guard's damage modelling landed with Task 10; the other abilities here stay `pending`.
   // Only the two abilities the batch generator does not reach live here; `thermal-exchange` is
   // Baxcalibur's own ability and therefore ships from `abilitiesBatch007`, not from this file.
   {
@@ -204,7 +204,8 @@ const abilityRows: Ability[] = [
     englishName: 'Aura Guard',
     effectSummary: '受到接触类招式的伤害减半。',
     pokemonIds: [],
-    calculationImpact: 'pending',
+    // Modelled in damageAdapter.ts (`auraGuardApplies`): @smogon/calc does not know this ability.
+    calculationImpact: 'confirmed',
     legalInCurrentRule: true,
     sourceRefs: championsAbilityRefs,
   },
