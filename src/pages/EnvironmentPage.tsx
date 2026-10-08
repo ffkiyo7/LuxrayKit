@@ -408,7 +408,7 @@ function FullRankingPage({
 
   return (
     <div>
-      <PushHeader onBack={onBack} />
+      <PushHeader title="使用排行" onBack={onBack} />
       <PageHeader className="px-6 pt-3.5" subtitle={environmentSubtitle(environment)} title="使用排行" />
       <div className="px-6 pt-4">
         <SearchField
@@ -556,7 +556,7 @@ function EnvironmentMethodologyPage({
 
   return (
     <div className="pb-7">
-      <PushHeader onBack={onBack} />
+      <PushHeader title="数据口径" onBack={onBack} />
       <PageHeader className="px-6 pt-3.5" subtitle={environmentSubtitle(environment)} title="数据口径" />
 
       <dl className="px-6 pt-[26px]">

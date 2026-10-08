@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Copy, Import, MoreHorizontal, Plus, Share2, TriangleAlert, Trophy } from 'lucide-react';
+import { ChevronRight, Copy, Import, MoreHorizontal, Plus, Share2, TriangleAlert, Trophy } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { items, pokemon } from '../data';
 import type { EnvironmentState } from '../data/environment';
@@ -11,7 +11,7 @@ import { useHashRoute } from '../hooks/useHashRoute';
 import { useAppStore } from '../state/AppContext';
 import type { Team } from '../types';
 import { PokemonPicker } from '../components/PokemonPicker';
-import { PageHeader, Sheet } from '../components/kit';
+import { NavBar, PageHeader, Sheet } from '../components/kit';
 import { EmptyMemberSlot, ExpandedMemberCard, MemberTile } from './team/MemberCard';
 import { MemberEditor } from './team/MemberEditor';
 import { PresetTeamCard, TeamListCard } from './team/TeamListCard';
@@ -427,38 +427,34 @@ export function TeamPage({
 
     return (
       <div>
-        <div className="flex items-center justify-between px-6 pt-5">
-          <button
-            aria-label="返回队伍列表"
-            className="grid h-9 w-9 place-items-center rounded-full bg-surface text-textLabel"
-            title="返回队伍列表"
-            type="button"
-            onClick={closeTeamDetail}
-          >
-            <ChevronLeft size={20} />
-          </button>
-          <div className="flex gap-2">
-            <button
-              aria-label={`分享 ${activeTeam.name}`}
-              className={`grid h-9 w-9 place-items-center rounded-full bg-surface ${shareable ? 'text-textLabel' : 'text-btnDisabledInk'}`}
-              disabled={!shareable}
-              title={shareable ? '分享队伍' : `满 ${TEAM_SHARE_REQUIRED_MEMBERS} 只才能分享`}
-              type="button"
-              onClick={() => void onShareTeam(activeTeam)}
-            >
-              <Share2 size={17} />
-            </button>
-            <button
-              aria-label={`${activeTeam.name} 的更多操作`}
-              className="grid h-9 w-9 place-items-center rounded-full bg-surface text-textLabel"
-              title={`${activeTeam.name} 的更多操作`}
-              type="button"
-              onClick={() => setMenuTeamId(activeTeam.id)}
-            >
-              <MoreHorizontal size={18} />
-            </button>
-          </div>
-        </div>
+        <NavBar
+          backLabel="返回队伍列表"
+          title={activeTeam.name}
+          onBack={closeTeamDetail}
+          trailing={
+            <div className="flex shrink-0 gap-2">
+              <button
+                aria-label={`分享 ${activeTeam.name}`}
+                className={`grid h-9 w-9 place-items-center rounded-full bg-surface ${shareable ? 'text-textLabel' : 'text-btnDisabledInk'}`}
+                disabled={!shareable}
+                title={shareable ? '分享队伍' : `满 ${TEAM_SHARE_REQUIRED_MEMBERS} 只才能分享`}
+                type="button"
+                onClick={() => void onShareTeam(activeTeam)}
+              >
+                <Share2 size={17} />
+              </button>
+              <button
+                aria-label={`${activeTeam.name} 的更多操作`}
+                className="grid h-9 w-9 place-items-center rounded-full bg-surface text-textLabel"
+                title={`${activeTeam.name} 的更多操作`}
+                type="button"
+                onClick={() => setMenuTeamId(activeTeam.id)}
+              >
+                <MoreHorizontal size={18} />
+              </button>
+            </div>
+          }
+        />
 
         <div className="px-6 pt-[14px]">
           <PageHeader subtitle={teamDetailSubtitle(activeTeam)} title={activeTeam.name} />

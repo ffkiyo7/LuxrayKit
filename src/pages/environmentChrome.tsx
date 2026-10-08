@@ -1,5 +1,5 @@
-import { ChevronLeft } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { NavBar } from '../components/kit/NavBar';
 import { currentRegulation, type EnvironmentBattleType, type EnvironmentState } from '../data/environment';
 
 export const battleTypeLabels: Record<EnvironmentBattleType, string> = {
@@ -64,16 +64,9 @@ export function RoundIconButton({
   );
 }
 
-/** Header row of a pushed page (01-03 / N01-10 / 07-01): back chevron left, page actions right. */
-export function PushHeader({ onBack, trailing }: { onBack: () => void; trailing?: ReactNode }) {
-  return (
-    <div className="flex items-center justify-between gap-3 px-6 pt-5">
-      <RoundIconButton label="返回" onClick={onBack}>
-        <ChevronLeft size={20} />
-      </RoundIconButton>
-      {trailing}
-    </div>
-  );
+/** Header row of a pushed page (01-03 / N01-10 / 07-01): the sticky nav bar, page actions right. */
+export function PushHeader({ onBack, title, trailing }: { onBack: () => void; title?: string; trailing?: ReactNode }) {
+  return <NavBar title={title} trailing={trailing} onBack={onBack} />;
 }
 
 /** In-page section heading — 22/30/800 with the frames' right-aligned hint on the same baseline. */
