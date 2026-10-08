@@ -9,10 +9,12 @@ import {
   clampMoveCounter,
   computeDamage,
   MOVE_COUNTERS,
+  NO_ENTRY_HAZARDS,
   surgeTerrainFor,
   validateStatPoints,
   type BattleTypeOption,
   type CalcSideConfig,
+  type EntryHazards,
   type TerrainOption,
 } from '../lib/damageAdapter';
 import { findBattleForm } from '../lib/pokemonForms';
@@ -49,6 +51,18 @@ const terrainOptions: Array<{ id: TerrainOption; note?: string }> = [
   { id: '薄雾场地', note: '龙 ×0.5' },
 ];
 
+/** 隐形岩 and 撒菱 stack, so the sheet lists every combination the defender can switch into. */
+const hazardOptions: Array<{ id: string; note?: string; hazards: EntryHazards }> = [
+  { id: '无钉子', hazards: NO_ENTRY_HAZARDS },
+  { id: '隐形岩', note: '岩石倍率 × 1/8', hazards: { stealthRock: true, spikesLayers: 0 } },
+  { id: '撒菱 1 层', note: '1/8', hazards: { stealthRock: false, spikesLayers: 1 } },
+  { id: '撒菱 2 层', note: '1/6', hazards: { stealthRock: false, spikesLayers: 2 } },
+  { id: '撒菱 3 层', note: '1/4', hazards: { stealthRock: false, spikesLayers: 3 } },
+  { id: '隐形岩 + 撒菱 1 层', hazards: { stealthRock: true, spikesLayers: 1 } },
+  { id: '隐形岩 + 撒菱 2 层', hazards: { stealthRock: true, spikesLayers: 2 } },
+  { id: '隐形岩 + 撒菱 3 层', hazards: { stealthRock: true, spikesLayers: 3 } },
+];
+
 const buildBlankCalcConfig = (role: CalcSide): CalcSideConfig => buildTemporaryCalcConfig({ pokemonId: '', role });
 
 
@@ -73,11 +87,13 @@ export function CalculatorPage({
   const [battleType, setBattleType] = useState<BattleTypeOption>(currentRuleSet.battleType);
   const [weather, setWeather] = useState(weatherOptions[0].id);
   const [terrain, setTerrain] = useState<TerrainOption>('无场地');
+  const [hazardId, setHazardId] = useState(hazardOptions[0].id);
   const [moveCounter, setMoveCounter] = useState(0);
   const [isCritical, setIsCritical] = useState(false);
   const [pickerSide, setPickerSide] = useState<CalcSide | null>(null);
   const [editor, setEditor] = useState<{ side: CalcSide; view: SideEditorView } | null>(null);
-  const [fieldSheet, setFieldSheet] = useState<'weather' | 'terrain' | null>(null);
+  const [fieldSheet, setFieldSheet] = useState<'weather' | 'terrain' | 'hazards' | null>(null);
+  const hazards = hazardOptions.find((option) => option.id === hazardId)?.hazards ?? NO_ENTRY_HAZARDS;
 
   // A dex pick starts on the environment's most-used build for the current format (move, item,
   // ability, nature — SP stays 0), so 轰擂金刚猩 arrives as 青草滑梯 / 奇迹种子 / 青草制造者 / 固执.
@@ -214,7 +230,7 @@ export function CalculatorPage({
   const defenderSpIssues = validateStatPoints(defenderConfig.statPoints);
   const blockedBySp = attackerSpIssues.length > 0 || defenderSpIssues.length > 0;
 
-  const damageKey = `${attackerConfig.pokemonId}|${attackerConfig.formId}|${attackerConfig.selectedMoveId}|${attackerConfig.nature}|${JSON.stringify(attackerConfig.statPoints)}|${JSON.stringify(attackerConfig.statStages)}|${attackerConfig.abilityId}|${attackerConfig.itemId}||${defenderConfig.pokemonId}|${defenderConfig.formId}|${defenderConfig.nature}|${JSON.stringify(defenderConfig.statPoints)}|${JSON.stringify(defenderConfig.statStages)}|${defenderConfig.abilityId}|${defenderConfig.itemId}||${battleType}|${weather}|${terrain}|${activeMoveCounter}|${isCritical}|${currentMove?.category}`;
+  const damageKey = `${attackerConfig.pokemonId}|${attackerConfig.formId}|${attackerConfig.selectedMoveId}|${attackerConfig.nature}|${JSON.stringify(attackerConfig.statPoints)}|${JSON.stringify(attackerConfig.statStages)}|${attackerConfig.abilityId}|${attackerConfig.itemId}||${defenderConfig.pokemonId}|${defenderConfig.formId}|${defenderConfig.nature}|${JSON.stringify(defenderConfig.statPoints)}|${JSON.stringify(defenderConfig.statStages)}|${defenderConfig.abilityId}|${defenderConfig.itemId}||${battleType}|${weather}|${terrain}|${hazardId}|${activeMoveCounter}|${isCritical}|${currentMove?.category}`;
   const damageResult = useMemo(() => {
     if (!attackerConfig.selectedMoveId || !attackerConfig.pokemonId || !defenderConfig.pokemonId) return null;
     if (currentMove?.category === 'Status') return null;
@@ -225,6 +241,7 @@ export function CalculatorPage({
       battleType,
       weather,
       terrain,
+      hazards,
       moveCounter: activeMoveCounter,
       isCritical,
       attackStage: 0,
@@ -370,6 +387,17 @@ export function CalculatorPage({
           <span className="min-w-0 flex-1 text-sm font-bold">会心一击</span>
           <Switch checked={isCritical} label="会心一击" onChange={setIsCritical} />
         </div>
+        <div className="flex h-12 items-center gap-3">
+          <span className="min-w-0 flex-1 text-sm font-bold">防守方入场钉子</span>
+          <Pill
+            ariaLabel={`入场钉子 ${hazardId}`}
+            className="px-[13px]"
+            onClick={() => setFieldSheet('hazards')}
+          >
+            {hazardId}
+            <ChevronDown size={14} />
+          </Pill>
+        </div>
 
         <SectionLabel className="pt-3">当前招式</SectionLabel>
         <ListRow
@@ -438,6 +466,19 @@ export function CalculatorPage({
           onClose={() => setFieldSheet(null)}
           onSelect={(id) => {
             setTerrain(id as TerrainOption);
+            setFieldSheet(null);
+          }}
+        />
+      )}
+      {fieldSheet === 'hazards' && (
+        <OptionSheet
+          footnote="按防守方换上场时踩到计算，击杀判定扣除这部分 HP。撒菱只对着地的宝可梦生效，魔法防守不受影响"
+          options={hazardOptions.map((option) => ({ id: option.id, label: option.id, note: option.note }))}
+          selectedId={hazardId}
+          title="入场钉子"
+          onClose={() => setFieldSheet(null)}
+          onSelect={(id) => {
+            setHazardId(id);
             setFieldSheet(null);
           }}
         />
