@@ -10,6 +10,10 @@ name: Daily auto-merge to main
 # refresh script generates, its CI ("Test, build, and validate Worker") is green,
 # it is conflict-free, and its head contains the current main branch. A stale PR
 # is left open for the automation to rebuild from the latest main and rerun CI.
+# One exception: when everything main gained since the PR's base is the other
+# automation branch's generated data (typically its PR merged earlier in this same
+# run), the file sets are disjoint and the PR is merged anyway. Otherwise the weekly
+# VGCPastes PR loses every night it shares with a PokeDB PR and waits a full week.
 #
 # Use the "hold" label for a durable manual pause. Draft PRs are skipped by this
 # workflow too, but the refresh script turns an existing automation PR back to ready
@@ -42,6 +46,19 @@ jobs:
         run: |
           set -euo pipefail
 
+          # Files each refresh script may change (generatedSnapshotPaths in
+          # scripts/create-*-refresh-pr.mjs), as an anchored ERE.
+          allowed_paths() {
+            case "$1" in
+              automation/pokedb-environment-refresh)
+                echo '^(src/data/external/pokedb/current_environment_snapshot\.json|public/data/pokedb/reg-ma-environment\.json)$' ;;
+              automation/vgcpastes-team-refresh)
+                echo '^src/data/external/vgcpastes/reg_[a-z0-9_]+_(team_samples|audit)\.json$' ;;
+              *)
+                echo '^$' ;;
+            esac
+          }
+
           merged=0 skipped=0
           for AUTOMATION_BRANCH in $AUTOMATION_BRANCHES; do
             # Open, non-draft PRs to main from this whitelisted branch only, minus "hold".
@@ -67,14 +84,14 @@ jobs:
               # Require a same-repo PR whose every file is one its refresh script generates
               # (generatedSnapshotPaths in scripts/create-*-refresh-pr.mjs). This also keeps a
               # PR from rewriting ci.yml to hand itself a green check of the same name.
-              case "$head" in
-                automation/pokedb-environment-refresh)
-                  allowed='^(src/data/external/pokedb/current_environment_snapshot\.json|public/data/pokedb/reg-ma-environment\.json)$' ;;
-                automation/vgcpastes-team-refresh)
-                  allowed='^src/data/external/vgcpastes/reg_[a-z0-9_]+_(team_samples|audit)\.json$' ;;
-                *)
-                  allowed='^$' ;;
-              esac
+              allowed=$(allowed_paths "$head")
+              # Generated paths of the other automation branches: main may have moved
+              # past this PR by those files alone (see the behind-main check below).
+              other_allowed=''
+              for other in $AUTOMATION_BRANCHES; do
+                [ "$other" = "$head" ] && continue
+                other_allowed="${other_allowed:+$other_allowed|}$(allowed_paths "$other")"
+              done
 
               cross_repo=$(gh pr view "$num" --repo "$REPO" --json isCrossRepository --jq '.isCrossRepository' 2>/dev/null || echo "")
               if [ "$cross_repo" != "false" ]; then
@@ -116,9 +133,23 @@ jobs:
               fi
 
               if [ "$behind_by" -ne 0 ]; then
-                echo "SKIP: PR head is behind current main by $behind_by commit(s)."
-                echo "Wait for the source branch automation to rebuild from latest main and rerun CI."
-                skipped=$((skipped+1)); echo "::endgroup::"; continue
+                # Tolerate it only when every file main changed since the merge base is
+                # another automation branch's generated data: disjoint from this PR's files,
+                # so CI's verdict on this PR's own data still holds.
+                # The compare API lists at most 300 files; a truncated list proves nothing.
+                main_files=''
+                if [ -n "$other_allowed" ]; then
+                  main_files=$(gh api "repos/$REPO/compare/$sha...$main_sha" \
+                    --jq 'if (.files | length) >= 300 then empty else .files[].filename end' 2>/dev/null || true)
+                fi
+                foreign=$(printf '%s\n' "$main_files" | grep -v -E "$other_allowed" || true)
+                if [ -z "$main_files" ] || [ -n "$foreign" ]; then
+                  echo "SKIP: PR head is behind current main by $behind_by commit(s)."
+                  echo "Wait for the source branch automation to rebuild from latest main and rerun CI."
+                  skipped=$((skipped+1)); echo "::endgroup::"; continue
+                fi
+                echo "PR head is behind main by $behind_by commit(s), all touching only other automation data:"
+                printf '  %s\n' $main_files
               fi
 
               if gh pr merge "$num" --repo "$REPO" --merge --match-head-commit "$sha"; then
