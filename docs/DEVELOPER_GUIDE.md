@@ -375,7 +375,7 @@ npx wrangler kv key get "environment:refresh-job" --namespace-id 43aafe9bdd2c4d0
   - `test` 在 `npm test` 前跑 `data:pokemon-facts:check`，最后跑 `worker:environment:check`。
   - `changes` 用**排除名单**：只有改动**全部**落在已知不影响渲染的路径（`docs/`、`*.md`、`cloudflare/`、`scripts/*.mjs`、其余 workflow、已被 fixture 冻结的 `public/data/pokedb/` 与 `src/data/external/vgcpastes/`）才跳过 `visual`；新目录或配置默认触发；push `main` 总是运行。
   - `visual` 与 `test` 并行、阻塞门禁；被判跳过时 skipped 视同通过，`changes` 自身失败则照常运行；失败上传 `visual-diffs`（expected/actual/diff）。**跳过只能用 job 级 `if:`，不要用 workflow 级 `paths-ignore`**（必需 check 会永远停在 Expected）。
-- **daily-auto-merge**（每日 20:00 UTC）：只合并 head 为 `automation/pokedb-environment-refresh` 或 `automation/vgcpastes-team-refresh`、绿色、非 draft、无 `hold`、来自本仓库（非 fork）、包含最新 `main`、且改动文件**全部**在对应脚本 `generatedSnapshotPaths` 内的 PR；多一个文件就留给人工。功能 / Agent PR 一律人工合并。
+- **daily-auto-merge**（每日 20:00 UTC）：只合并 head 为 `automation/pokedb-environment-refresh` 或 `automation/vgcpastes-team-refresh`、绿色、非 draft、无 `hold`、来自本仓库（非 fork）、包含最新 `main`（例外：`main` 多出的改动全是另一条自动化的生成文件时照常合并，避免同晚先合的 PokeDB PR 把每周一次的 VGCPastes PR 挤到下周）、且改动文件**全部**在对应脚本 `generatedSnapshotPaths` 内的 PR；多一个文件就留给人工。功能 / Agent PR 一律人工合并。
 - **Claude PR 助手**（`claude.yml`）：`@claude` 触发 `anthropics/claude-code-action`（钉在 v1 的 commit SHA，升级手动改）；默认只接受有写权限的触发者，凭据只来自 Secret `CLAUDE_CODE_OAUTH_TOKEN`。
 
 ---
