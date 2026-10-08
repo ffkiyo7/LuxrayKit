@@ -4,7 +4,7 @@ import { pokemon } from '../../data';
 import type { EnvironmentState } from '../../data/environment';
 import type { BattleTypeOption } from '../../lib/damageAdapter';
 import { ListRow, Sprite, TypeDot } from '../../components/kit';
-import { typeLabels } from '../../components/ui';
+import { typeLabels } from '../../lib/typePresentation';
 import type { PokemonType, Team, TeamMember } from '../../types';
 import { PickerPage } from '../team/editor/PickerPage';
 import { memberPickLine, sideLabelText, type CalcSide } from './calcSummary';

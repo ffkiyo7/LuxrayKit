@@ -31,7 +31,7 @@ import {
 } from '../lib/seasonRankDelta';
 import { useHashRoute } from '../hooks/useHashRoute';
 import { auraStyle, KitButton, PageHeader, SearchField, SegmentedTabs, Sprite, TypeDot } from '../components/kit';
-import { typeLabels } from '../components/ui';
+import { typeLabels } from '../lib/typePresentation';
 import { TeamBrowseView } from './TeamBrowseView';
 import { sortTeamSamplesByDate } from './environmentTeamSamples';
 import {
@@ -662,7 +662,7 @@ function EnvironmentHero({ usage, onOpen }: { usage: EnvironmentPokemonUsage; on
   const entry = getEnvironmentPokemon(usage.pokemonId);
   if (!entry) return null;
 
-  // The title is sized against the name's own length (see `.lk-env-hero__name` in p2.css): the
+  // The title is sized against the name's own length (see `.lk-env-hero__name` in environment.css): the
   // text column is a fixed share of the card, so 五字 names never fit at the frame's 34px on a
   // narrow phone. Everything at or past 8 characters shares the smallest step.
   const nameLength = Math.min(Math.max([...entry.chineseName].length, 4), 8);

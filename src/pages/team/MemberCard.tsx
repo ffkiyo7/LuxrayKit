@@ -5,7 +5,7 @@ import { getMemberBattleForm } from '../../lib/pokemonForms';
 import { MAX_TOTAL_STAT_POINTS, statPointTotal } from '../../lib/statPoints';
 import type { TeamMember } from '../../types';
 import { auraStyle, Sprite, TypeDot } from '../../components/kit';
-import { typeLabels } from '../../components/ui';
+import { typeLabels } from '../../lib/typePresentation';
 
 // The frames scale every stat bar against the same ceiling, so a 184 speed and a 112 HP stay
 // comparable across the grid.
