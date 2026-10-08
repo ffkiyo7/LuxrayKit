@@ -14,8 +14,9 @@
   - `src/app/routes.tsx`：route → 页面元素的装配（现在的 `page` useMemo + `ToolWorkspace`）。
   - `src/app/useTeamImport.ts`：`importSampleTeam` / `continuePendingImport` / `importSharedTeam` / `shareTeam` / `copyReplicaCode` + `importToast` / `highlightedImportTeamId`。
   - `ImportCoverageNoticeDialog` → `src/pages/environment/`，`PageLoading` → `src/components/kit/`。
-- [ ] **3. 样式文件按领域改名**：`src/styles/p2.css` / `p3.css` / `p3b.css` / `p4a.css` / `p4b.css` / `p6.css` → `environment.css` / `teams.css` / `team-editor.css` / `dex.css` / `type-chart.css` / `profile.css`，同步 `main.tsx` 的 import。顺手收敛：`p4b.css` 的 `.lk-type-segment-on` 与全局 `.lk-segment-on` 等价；`p2.css` 的 `.lk-env-slab`、`p3b.css` 的 `.lk-slab` 与全局 `.lk-btn-primary` 是同一族主按钮阴影（深色外发光半径略有不同，合并前先确认）。
-- [ ] **4. `src/components/ui.tsx` 退役**：只剩 `typeColors` / `typeLabels`（被 kit 的 `TypeDot` 引用），挪到 `src/lib/typePresentation.ts`（或 `src/components/kit/typeColors.ts`）后删文件。
+- [x] **3. 样式文件按领域改名**（✅ 2026-10-08）：`src/styles/p2.css` / `p3.css` / `p3b.css` / `p4a.css` / `p4b.css` / `p6.css` → `environment.css` / `teams.css` / `team-editor.css` / `dex.css` / `type-chart.css` / `profile.css`，`main.tsx` 的 import 已同步；`.lk-type-segment-on` 已并入全局 `.lk-segment-on`。类名 / 变量前缀（`lk-p4a-*`、`--p4a-*`）未改。
+  - [ ] 剩一项待 owner 确认：`environment.css` 的 `.lk-env-slab`、`team-editor.css` 的 `.lk-slab` 与全局 `.lk-btn-primary` 是同一族主按钮阴影（深色外发光半径略有不同，合并前先确认）。
+- [x] **4. `src/components/ui.tsx` 退役**（✅ 2026-10-08）：`typeColors` / `typeLabels` 挪到 `src/lib/typePresentation.ts`，原文件已删。
 - [ ] **5. 死代码**（每条等 owner 点头）：
   - `src/data/pokemonFacts.ts` + 测试 + `scripts/generate-pokemon-facts.mjs` + `package.json` 的 `data:pokemon-facts`（无消费者）。待定：这 80 多条冷知识以后是否还用。
   - `src/branding.ts` 的 `feedbackLinks`（无消费者）。待定：「关于与数据」要不要加回 GitHub issue 外链（见改版计划待拍板）。

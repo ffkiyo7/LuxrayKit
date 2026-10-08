@@ -9,8 +9,8 @@
  */
 :root {
   /*
-   * Hero wash stops. Same ladder as `.lk-member-aura` (p3.css) so a Pokémon's halo reads the
-   * same on 环境 as it does on its team card; kept local to p2 so the two files stay independent.
+   * Hero wash stops. Same ladder as `.lk-member-aura` (teams.css) so a Pokémon's halo reads the
+   * same on 环境 as it does on its team card; kept local to this file so the two files stay independent.
    */
   --env-aura-s1: 22%;
   --env-aura-s2: 12%;
@@ -56,7 +56,7 @@
 }
 
 :root[data-theme='light'] {
-  /* Light drops both stops a notch so the paper face stays paper, exactly as p3.css does. */
+  /* Light drops both stops a notch so the paper face stays paper, exactly as teams.css does. */
   --env-aura-s1: 16%;
   --env-aura-s2: 9%;
   --env-hero-face: #ffffff;

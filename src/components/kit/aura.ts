@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react';
 import type { PokemonType } from '../../types';
-import { typeColors } from '../ui';
+import { typeColors } from '../../lib/typePresentation';
 import { pokemonColorsById } from '../../data/seed/regMA/pokemonColors';
 
 const THUMB_PREFIX = '/assets/pokemon/thumbs/';
@@ -19,7 +19,7 @@ export function spriteIdFromIconRef(iconRef: string | undefined): string | undef
 
 /**
  * The two halo colours as CSS variables. A surface paints its halo from them with
- * `color-mix(in srgb, var(--lk-aura-c1) <stop>, transparent)`, see `.lk-member-aura` in p3.css.
+ * `color-mix(in srgb, var(--lk-aura-c1) <stop>, transparent)`, see `.lk-member-aura` in teams.css.
  *
  * Preferred source is the Pokémon's own body colours, sampled off its artwork
  * (`src/data/seed/regMA/pokemonColors.ts`, keyed on the sprite id `iconRef` carries). A Mega or

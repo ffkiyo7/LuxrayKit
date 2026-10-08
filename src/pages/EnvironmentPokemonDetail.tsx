@@ -6,7 +6,7 @@ import { Sprite } from '../components/kit/Sprite';
 import { ADDED_TOAST_DURATION_MS, TeamPickerSheet, teamChoicesFor } from '../components/TeamPickerSheet';
 import { Toast } from '../components/kit/Toast';
 import { TypeDot } from '../components/kit/TypeDot';
-import { typeLabels } from '../components/ui';
+import { typeLabels } from '../lib/typePresentation';
 import { abilities } from '../data';
 import {
   getEnvironmentItem,
