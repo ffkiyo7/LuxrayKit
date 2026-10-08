@@ -35,6 +35,30 @@ describe('splash preference mirror', () => {
     expect(listener).toHaveBeenCalledTimes(1);
   });
 
+  it('plays once per UTC+8 day when launched standalone', () => {
+    vi.useFakeTimers();
+    vi.stubGlobal('matchMedia', (query: string) => ({ matches: query === '(display-mode: standalone)' }));
+    const launch = (isoTime: string) => {
+      vi.setSystemTime(new Date(isoTime));
+      window.sessionStorage.clear(); // a cold launch is a fresh session
+      document.getElementById('lk-splash')?.remove();
+      new Function(splashScript)();
+      return document.getElementById('lk-splash') !== null;
+    };
+    try {
+      expect(launch('2026-10-08T00:30:00Z')).toBe(true); // 08:30 Beijing
+      expect(launch('2026-10-08T15:59:00Z')).toBe(false); // 23:59 the same Beijing day
+      expect(launch('2026-10-08T16:00:00Z')).toBe(true); // 00:00 the next Beijing day
+      window.localStorage.setItem(SPLASH_MODE_KEY, 'off');
+      expect(launch('2026-10-10T00:00:00Z')).toBe(false);
+    } finally {
+      document.getElementById('lk-splash')?.remove();
+      window.sessionStorage.clear();
+      vi.unstubAllGlobals();
+      vi.useRealTimers();
+    }
+  });
+
   it('precaches the splash script and every asset it loads with the shell', () => {
     const shell = swSource.match(/const APP_SHELL = \[([^\]]*)\]/)?.[1] ?? '';
     expect(shell).toContain("'/splash.js'");

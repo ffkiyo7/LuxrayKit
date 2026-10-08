@@ -2,8 +2,11 @@
 // overlay is on screen before the module bundle has run — CSP `script-src 'self'` rules out an
 // inline <script>, and a module script would wait behind the bundle.
 //
-// Plays only when all hold: launched from the home screen (standalone), the first launch of this
-// session, and the 开屏动画 preference is on. The preference and theme live in IndexedDB, which
+// Plays only when all hold: launched from the home screen (standalone), the first launch of the
+// day in UTC+8 (the app's audience is in China; the date lives in localStorage), and the 开屏动画
+// preference is on. Resuming a backgrounded app never re-runs this script, so it never replays
+// then; the sessionStorage flag only covers reloads where localStorage is unavailable. The
+// preference and theme live in IndexedDB, which
 // cannot be read synchronously, so the app mirrors both into localStorage (src/lib/splashMirror.ts
 // owns the keys below; splashMirror.test.ts checks they match).
 //
@@ -14,6 +17,7 @@
   var MODE_KEY = 'luxraykit-splash';
   var THEME_KEY = 'luxraykit-theme';
   var SESSION_KEY = 'luxraykit-splash-played';
+  var DAY_KEY = 'luxraykit-splash-day';
   var READY_EVENT = 'luxraykit:app-ready';
   var ARTWORK = '/assets/pokemon/artwork/405.png';
 
@@ -27,11 +31,24 @@
 
   var standalone =
     (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
-  if (!standalone || read('localStorage', MODE_KEY) === 'off' || read('sessionStorage', SESSION_KEY)) return;
+  // Today's date in UTC+8, as YYYY-MM-DD; the day turns over at 00:00 Beijing time.
+  var today = new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(0, 10);
+  if (
+    !standalone ||
+    read('localStorage', MODE_KEY) === 'off' ||
+    read('localStorage', DAY_KEY) === today ||
+    read('sessionStorage', SESSION_KEY)
+  )
+    return;
+  try {
+    window.localStorage.setItem(DAY_KEY, today);
+  } catch (error) {
+    // Without localStorage the splash replays on each cold launch; harmless.
+  }
   try {
     window.sessionStorage.setItem(SESSION_KEY, '1');
   } catch (error) {
-    // Without sessionStorage the splash may replay on a warm resume; harmless.
+    // Without sessionStorage too, it may also replay on a reload; harmless.
   }
 
   var light = read('localStorage', THEME_KEY) === 'light';

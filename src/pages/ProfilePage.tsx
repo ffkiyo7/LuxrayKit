@@ -45,7 +45,7 @@ export function ProfilePage() {
           {installed && (
             <ProfileRow
               icon={<Sparkles aria-hidden size={tileIconSize} />}
-              subtitle="从主屏幕打开时播放"
+              subtitle="每天首次从主屏幕打开时播放"
               tile="lk-tile--neutral"
               title="开屏动画"
               trailing={
