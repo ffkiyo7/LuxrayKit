@@ -142,7 +142,7 @@ export function ResultCard({
       </p>
       <p className="mt-2 text-[13px] font-semibold tabular-nums text-textSecondary">
         {result.minDamage} – {result.maxDamage} 伤害 / 对方 HP {result.defenderHp ?? '-'}
-        {(result.hazardDamage ?? 0) > 0 && ` · 钉子 -${result.hazardDamage}`}
+        {(result.hazardDamage ?? 0) > 0 && ` · 入场伤害 -${result.hazardDamage}`}
       </p>
       <div className="mt-3.5 h-2 overflow-hidden rounded-full bg-textPrimary/[0.08]">
         <div className="lk-damage-bar h-full" style={{ width: `${Math.min(100, result.maxPercent ?? 0)}%` }} />

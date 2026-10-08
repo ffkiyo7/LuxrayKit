@@ -121,7 +121,7 @@ export function entryHazardDamage({
   if (!hazards.stealthRock && hazards.spikesLayers === 0) return { damage: 0, chips: [] };
   if (abilityId === 'magic-guard') {
     const name = abilities.find((ability) => ability.id === abilityId)?.chineseName ?? abilityId;
-    return { damage: 0, chips: [`${name} · 不受入场钉子伤害`] };
+    return { damage: 0, chips: [`${name} · 不受入场伤害`] };
   }
   let damage = 0;
   const chips: string[] = [];
@@ -1161,14 +1161,14 @@ export function computeDamage(input: DamageAdapterInput): DamageAdapterResult {
     const twoHitKoChance = hazardFainted ? 100 : twoHitKoCombos.length > 0 ? (twoHitKoCombos.filter((damage) => damage >= remainingHp).length / twoHitKoCombos.length) * 100 : 0;
 
     let possibleHkoText: string | undefined;
-    if (hazardFainted) possibleHkoText = '入场即被钉子击倒';
+    if (hazardFainted) possibleHkoText = '入场时即被击倒';
     else if (maxDmg <= 0) possibleHkoText = '无法造成伤害';
     else if (oneHitKoChance >= 100) possibleHkoText = '确定一击击杀';
     else if (oneHitKoChance > 0) possibleHkoText = `一击击杀概率 ${percentText(oneHitKoChance)}`;
     else if (twoHitKoChance >= 100) possibleHkoText = '确定两击击杀';
     else if (twoHitKoChance > 0) possibleHkoText = `两击击杀概率 ${percentText(twoHitKoChance)}`;
     else possibleHkoText = '通常需要三次以上攻击';
-    if (hazard.damage > 0 && !hazardFainted && maxDmg > 0) possibleHkoText += '（含入场钉子）';
+    if (hazard.damage > 0 && !hazardFainted && maxDmg > 0) possibleHkoText += '（含入场伤害）';
 
     const offensiveStatLabel = projectMove.category === 'Physical' ? '攻击' : '特攻';
     const defensiveStatLabel = projectMove.category === 'Physical' ? '防御' : '特防';

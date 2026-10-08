@@ -2801,7 +2801,7 @@ describe('entry hazards', () => {
     expect(entryHazardDamage({ hazards: { stealthRock: false, spikesLayers: 2 }, maxHp: 200, types: ['Normal'], abilityId: 'levitate' }).damage).toBe(0);
     expect(entryHazardDamage({ hazards, maxHp: 200, types: ['Fire'], abilityId: 'magic-guard' })).toEqual({
       damage: 0,
-      chips: ['魔法防守 · 不受入场钉子伤害'],
+      chips: ['魔法防守 · 不受入场伤害'],
     });
     expect(entryHazardDamage({ hazards: NO_ENTRY_HAZARDS, maxHp: 200, types: ['Fire'] })).toEqual({ damage: 0, chips: [] });
   });
@@ -2817,7 +2817,7 @@ describe('entry hazards', () => {
     expect(withHazards.hazardDamage).toBe(chip);
     expect(withHazards.conditionEffects).toEqual(expect.arrayContaining([`隐形岩 ×2 · 入场 -${Math.floor((hp * 2) / 8)}`]));
     expect(withHazards.twoHitKoChance).toBeGreaterThanOrEqual(plain.twoHitKoChance!);
-    expect(withHazards.possibleHkoText).toMatch(/（含入场钉子）$/);
+    expect(withHazards.possibleHkoText).toMatch(/（含入场伤害）$/);
   });
 
   it('drops Multiscale once hazards have chipped the defender', () => {

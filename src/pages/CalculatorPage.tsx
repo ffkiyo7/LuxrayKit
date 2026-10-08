@@ -53,7 +53,7 @@ const terrainOptions: Array<{ id: TerrainOption; note?: string }> = [
 
 /** 隐形岩 and 撒菱 stack, so the sheet lists every combination the defender can switch into. */
 const hazardOptions: Array<{ id: string; note?: string; hazards: EntryHazards }> = [
-  { id: '无钉子', hazards: NO_ENTRY_HAZARDS },
+  { id: '无', hazards: NO_ENTRY_HAZARDS },
   { id: '隐形岩', note: '岩石倍率 × 1/8', hazards: { stealthRock: true, spikesLayers: 0 } },
   { id: '撒菱 1 层', note: '1/8', hazards: { stealthRock: false, spikesLayers: 1 } },
   { id: '撒菱 2 层', note: '1/6', hazards: { stealthRock: false, spikesLayers: 2 } },
@@ -388,9 +388,9 @@ export function CalculatorPage({
           <Switch checked={isCritical} label="会心一击" onChange={setIsCritical} />
         </div>
         <div className="flex h-12 items-center gap-3">
-          <span className="min-w-0 flex-1 text-sm font-bold">防守方入场钉子</span>
+          <span className="min-w-0 flex-1 text-sm font-bold">入场伤害</span>
           <Pill
-            ariaLabel={`入场钉子 ${hazardId}`}
+            ariaLabel={`入场伤害 ${hazardId}`}
             className="px-[13px]"
             onClick={() => setFieldSheet('hazards')}
           >
@@ -475,7 +475,7 @@ export function CalculatorPage({
           footnote="按防守方换上场时踩到计算，击杀判定扣除这部分 HP。撒菱只对着地的宝可梦生效，魔法防守不受影响"
           options={hazardOptions.map((option) => ({ id: option.id, label: option.id, note: option.note }))}
           selectedId={hazardId}
-          title="入场钉子"
+          title="入场伤害"
           onClose={() => setFieldSheet(null)}
           onSelect={(id) => {
             setHazardId(id);
