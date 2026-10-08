@@ -31,7 +31,7 @@
 
 1. **语义 token** — `src/styles.css` 的 `--color-*`，以 `R G B` 三元组存放，由 `tailwind.config.js` 映射成 `bg-surface` / `text-textLabel` 这类 class（支持 `/<alpha-value>`）。**新页面优先只用这一层。**
 2. **主题差异变量** — 同文件里的 `--select-fill` / `--raised-*` / `--sheet-*` 等，凡是**两套主题 alpha 不同**的填充都在这里，通过 `.lk-*` class 使用（Tailwind 的 `/<alpha-value>` 无法按主题变）。
-3. **页面局部变量** — `src/styles/p2.css`（环境 / 上位构筑）、`p3.css`（队伍）、`p3b.css`（配置编辑器）、`p4a.css`（工具 / 图鉴）、`p4b.css`（属性速查）、`p6.css`（我的 / 全局）、`calculator.css`。只给对应帧用，彼此不互相引用。
+3. **页面局部变量** — `src/styles/environment.css`（环境 / 上位构筑）、`teams.css`（队伍）、`team-editor.css`（配置编辑器）、`dex.css`（工具 / 图鉴）、`type-chart.css`（属性速查）、`profile.css`（我的 / 全局）、`calculator.css`。只给对应帧用，彼此不互相引用。
 
 判断新值该放哪一层：**两套主题同一个 alpha → 第 1 层；alpha 不同 → 第 2 层；只有一屏用得到 → 第 3 层。**
 
@@ -66,7 +66,7 @@
 
 ### 2.4 属性色
 
-18 个宝可梦属性色写在 `src/components/ui.tsx` 的 `typeColors`，**两套主题同一份值**，只通过 `TypeDot`（9px，双属性行 7px）和光晕使用；不做成属性徽标底色。
+18 个宝可梦属性色写在 `src/lib/typePresentation.ts` 的 `typeColors`，**两套主题同一份值**，只通过 `TypeDot`（9px，双属性行 7px）和光晕使用；不做成属性徽标底色。
 
 ---
 
@@ -222,4 +222,4 @@ radial-gradient(90% 120% at 86% 6%,
 - **死 token**：`secondary`、`divider`、`legalBg`、`reviewBg`、`missingBg`、`overlay`、`onOverlay`、`fnGreen` 在 `tailwind.config.js` 里仍然映射，但 `src/` 里 Tailwind class 与 CSS `var()` 引用均为 0。`border` / `card` 各只剩 1 处引用。清理前需确认没有 `dist/` 之外的消费方。
 - **推定值**：`05-04` 两列选择卡（`calculator.css`）与 `N01-14` 数据状态的浅色值没有对应浅色帧，是按同角色 token 推的，已在各自文件里标注。
 - **玻璃材质只有导航一处**，没有第二个使用场景来验证它是否成体系。
-- **运动规则有两处未对齐**（2026-09-23 核对）：属性矩阵格的 140ms 过渡动的是 background / color / box-shadow，且 `src/styles/p4b.css` 没有对应的 `prefers-reduced-motion` 关闭分支；导航 tab 的 color 200ms 过渡同样不属 transform / opacity（它在 `styles.css` 的 reduced-motion 分支里）。
+- **运动规则有两处未对齐**（2026-09-23 核对）：属性矩阵格的 140ms 过渡动的是 background / color / box-shadow，且 `src/styles/type-chart.css` 没有对应的 `prefers-reduced-motion` 关闭分支；导航 tab 的 color 200ms 过渡同样不属 transform / opacity（它在 `styles.css` 的 reduced-motion 分支里）。

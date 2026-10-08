@@ -3,12 +3,12 @@ import ReactDOM from 'react-dom/client';
 import { App } from './App';
 import { registerServiceWorker } from './lib/serviceWorker';
 import './styles.css';
-import './styles/p2.css';
-import './styles/p3.css';
-import './styles/p3b.css';
-import './styles/p4a.css';
-import './styles/p4b.css';
-import './styles/p6.css';
+import './styles/environment.css';
+import './styles/teams.css';
+import './styles/team-editor.css';
+import './styles/dex.css';
+import './styles/type-chart.css';
+import './styles/profile.css';
 import './styles/calculator.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(

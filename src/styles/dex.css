@@ -133,7 +133,7 @@
 }
 
 /* N04-10 — the artwork plane takes the Pokémon's own body colours, sampled off that very artwork.
-   Same gradient shape as the team member card's `.lk-member-aura`, and it reads p3.css's
+   Same gradient shape as the team member card's `.lk-member-aura`, and it reads teams.css's
    `--lk-aura-s*` stops on purpose, so the two surfaces can never drift apart;
    `auraStyle(types, iconRef)` feeds the two colours, falling back to the type colours. */
 .lk-p4a-artwork-aura {

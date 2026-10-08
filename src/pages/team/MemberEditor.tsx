@@ -11,7 +11,7 @@ import type { Team, TeamMember } from '../../types';
 import { PokemonPicker } from '../../components/PokemonPicker';
 import { useHistoryLayer } from '../../hooks/useHistoryLayer';
 import { auraStyle, PageHeader, Sprite, TypeDot } from '../../components/kit';
-import { typeLabels } from '../../components/ui';
+import { typeLabels } from '../../lib/typePresentation';
 import { AbilityPickerPage } from './editor/AbilityPickerPage';
 import { ConfirmRemoveMemberSheet, DiscardChangesSheet } from './editor/EditorSheets';
 import { FormPickerPage } from './editor/FormPickerPage';

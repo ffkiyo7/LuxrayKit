@@ -9,7 +9,7 @@ import {
   useState,
 } from 'react';
 import { Sprite, TypeDot } from '../components/kit';
-import { typeLabels } from '../components/ui';
+import { typeLabels } from '../lib/typePresentation';
 import { currentRuleSet, pokemon } from '../data';
 import type { EnvironmentState } from '../data/environment';
 import { attackingTypes, defensiveMatchupMultiplier } from '../lib/calculations';
@@ -642,7 +642,7 @@ export function TypeChartPage({ environment }: { environment: EnvironmentState |
             key={option.id}
             aria-pressed={tab === option.id}
             className={`grid h-[34px] place-items-center rounded-[9px] text-sm ${
-              tab === option.id ? 'lk-type-segment-on font-bold text-textPrimary' : 'font-semibold text-textSecondary'
+              tab === option.id ? 'lk-segment-on font-bold text-textPrimary' : 'font-semibold text-textSecondary'
             }`}
             type="button"
             onClick={() => setTab(option.id)}
