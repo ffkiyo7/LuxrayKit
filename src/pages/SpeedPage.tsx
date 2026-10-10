@@ -116,11 +116,12 @@ function PlanRow({
 
 function OutspeedSheet({
   group,
-  roster: fullRoster,
+  roster,
   build,
   scarfUsageRate,
   ability,
   onApply,
+  onOpenPokemon,
   onClose,
 }: {
   group: SpeedTierGroup;
@@ -129,11 +130,16 @@ function OutspeedSheet({
   scarfUsageRate: number;
   ability?: SpeedAbilityProfile;
   onApply: (option: OutspeedPlanOption) => void;
+  onOpenPokemon: (dexId: string) => void;
   onClose: () => void;
 }) {
   const scarfEligible = scarfUsageRate >= SCARF_SUGGESTION_USAGE_THRESHOLD;
   const plan = buildOutspeedPlan({ target: group.speed, current: build, scarfEligible, speedAbility: ability });
-  const roster = fullRoster.slice(0, 8);
+  // One block per variant when the line holds several (e.g. 极速110族 and 满速126族 both at 178),
+  // each in usage order; a single-variant line is just the one list under the target label.
+  const sections = group.variants
+    .map((variant) => ({ variant, entries: roster.filter((entry) => entry.variant === variant.label) }))
+    .filter((section) => section.entries.length > 0);
 
   return (
     <Sheet label={`超速 ${group.speed}`} variant="handle" onClose={onClose}>
@@ -143,12 +149,29 @@ function OutspeedSheet({
         <span className="text-sm font-bold text-textSecondary">{groupPrimaryLabel(group)}</span>
       </p>
 
-      <SectionLabel className="pt-3.5">这条线上的宝可梦</SectionLabel>
-      <div className="mt-2 flex flex-wrap gap-2.5">
-        {roster.map((entry) => (
-          <Sprite key={entry.key} iconRef={entry.iconRef} label={entry.label} size={40} />
-        ))}
-      </div>
+      <SectionLabel className="pt-3.5" trailing="点头像看图鉴">
+        这条线上的宝可梦
+      </SectionLabel>
+      {sections.map(({ variant, entries }) => (
+        <div key={variant.label}>
+          {sections.length > 1 && <p className="mt-2.5 text-[11px] font-bold text-textLabel">{variant.displayLabel}</p>}
+          <div className="mt-1.5 grid grid-cols-5 gap-x-1 gap-y-1.5">
+            {entries.map((entry) => (
+              <button
+                key={entry.key}
+                aria-label={`查看${entry.label}的图鉴`}
+                className="lk-press-row flex min-w-0 flex-col items-center gap-1 rounded-[10px] py-1"
+                disabled={!entry.id}
+                type="button"
+                onClick={() => entry.id && onOpenPokemon(entry.id)}
+              >
+                <Sprite iconRef={entry.iconRef} label={entry.label} size={40} />
+                <span className="w-full truncate text-center text-[11px] font-semibold text-textSecondary">{entry.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      ))}
 
       {plan.status === 'already' && (
         <div className="mt-4 rounded-[14px] bg-success/[0.12] p-3.5">
@@ -194,79 +217,46 @@ function OutspeedSheet({
 }
 
 /**
- * One tier line (05-05) plus N05-16's form breakdown. The row itself opens the outspeed sheet
- * — the frame's 「点档位看方案」 — so the expander is its own button rather than a nested
- * click target inside it.
+ * One tier line (05-05): the line's avatars in usage order over the tier label. The whole row
+ * opens the outspeed sheet — the frame's 「点档位看方案」 — which also carries the full roster,
+ * so there is no separate expander.
  */
 function TierRow({
   group,
   roster,
   difference,
-  expanded,
-  onToggle,
   onOpen,
 }: {
   group: SpeedTierGroup;
   roster: TierRosterEntry[];
   difference: number;
-  expanded: boolean;
-  onToggle: () => void;
   onOpen: () => void;
 }) {
-  const expandable = roster.length > 1;
   const avatars = uniqueAvatars(roster);
   const shown = avatars.slice(0, TIER_AVATAR_LIMIT);
   const hidden = avatars.length - shown.length;
 
   return (
-    <>
-      <div className="flex items-center border-b border-[var(--hairline)]">
-        <button
-          aria-label={`超速 实数 ${group.speed}，${groupPrimaryLabel(group)}，共 ${group.pokemonCount} 只`}
-          className="lk-press-row flex h-16 min-w-0 flex-1 items-center gap-3 text-left"
-          type="button"
-          onClick={onOpen}
-        >
-          <span className="w-11 shrink-0 text-[20px] font-extrabold tabular-nums text-textSecondary">{group.speed}</span>
-          <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-            <span className="flex items-center gap-0.5" data-tier-avatars>
-              {shown.map((entry) => (
-                <Sprite key={entry.key} iconRef={entry.iconRef} label={entry.label} size={TIER_AVATAR_SIZE} />
-              ))}
-              {hidden > 0 && <span className="pl-1 text-[11px] font-bold tabular-nums text-textLabel">+{hidden}</span>}
-            </span>
-            <span className="truncate text-[11px] font-semibold text-textLabel">{groupPrimaryLabel(group)}</span>
-          </span>
-          <span className={`shrink-0 text-xs font-bold ${difference > 0 ? 'text-danger' : difference < 0 ? 'text-success' : 'text-textLabel'}`}>
-            {difference > 0 ? `快 ${difference}` : difference < 0 ? `慢 ${-difference}` : '同速'}
-          </span>
-        </button>
-        {expandable && (
-          <button
-            aria-expanded={expanded}
-            aria-label={`${group.speed} 这条线上的 ${roster.length} 个形态`}
-            className="grid h-16 w-8 shrink-0 place-items-center text-chevron"
-            type="button"
-            onClick={onToggle}
-          >
-            {expanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-          </button>
-        )}
-      </div>
-      {expandable && expanded && (
-        <div className="-mx-6 border-b border-[var(--hairline)] bg-sunken px-6 py-1.5">
-          {roster.map((entry, index) => (
-            <div key={entry.key} className={`flex h-11 items-center gap-3 ${index > 0 ? 'border-t border-[var(--hairline)]' : ''}`}>
-              <span className="w-11 shrink-0" />
-              <span className="min-w-0 flex-1 truncate text-[13px] font-semibold text-textLabel">{entry.label}</span>
-              <span className="inline-flex h-[22px] shrink-0 items-center rounded-full bg-btn1 px-2.5 text-[11px] font-extrabold text-textLabel">
-                {entry.variant}
-              </span>
-            </div>
+    <button
+      aria-label={`超速 实数 ${group.speed}，${groupPrimaryLabel(group)}，共 ${group.pokemonCount} 只`}
+      className="lk-press-row flex h-16 w-full min-w-0 items-center gap-3 border-b border-[var(--hairline)] text-left"
+      type="button"
+      onClick={onOpen}
+    >
+      <span className="w-11 shrink-0 text-[20px] font-extrabold tabular-nums text-textSecondary">{group.speed}</span>
+      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <span className="flex items-center gap-0.5" data-tier-avatars>
+          {shown.map((entry) => (
+            <Sprite key={entry.key} iconRef={entry.iconRef} label={entry.label} size={TIER_AVATAR_SIZE} />
           ))}
-        </div>
-      )}
-    </>
+          {hidden > 0 && <span className="pl-1 text-[11px] font-bold tabular-nums text-textLabel">+{hidden}</span>}
+        </span>
+        <span className="truncate text-[11px] font-semibold text-textLabel">{groupPrimaryLabel(group)}</span>
+      </span>
+      <span className={`shrink-0 text-xs font-bold ${difference > 0 ? 'text-danger' : difference < 0 ? 'text-success' : 'text-textLabel'}`}>
+        {difference > 0 ? `快 ${difference}` : difference < 0 ? `慢 ${-difference}` : '同速'}
+      </span>
+    </button>
   );
 }
 
@@ -277,6 +267,24 @@ function TierRow({
  * card names that Pokémon, so tapping the card has to land on it with its recorded build — and
  * otherwise `resolveDefaultSpeedSubject`, which the card reads too.
  */
+type SpeedReturnSnapshot = {
+  pokemonId: string;
+  formId?: string;
+  build: SpeedBuild;
+  battleType: BattleType;
+  memberChosen: boolean;
+  tierSpeed: number | null;
+  scrollY: number;
+  presetMemberId?: string;
+};
+
+/**
+ * Set when an avatar in the outspeed sheet opens the dex, and consumed by the next mount: 返回
+ * from that dex page lands back on the same Pokémon, build, scroll offset and open sheet instead
+ * of the cold opening state. Module scope on purpose — it only has to outlive the round trip.
+ */
+let returnSnapshot: SpeedReturnSnapshot | undefined;
+
 const openingState = (teams: Team[] | undefined, environment: EnvironmentState) => {
   const recorded = readToolResults().find((result): result is SpeedToolResult => result.tool === 'speed');
   const recordedEntry = recorded && pokemon.find((entry) => entry.id === recorded.pokemonId);
@@ -301,21 +309,29 @@ export function SpeedPage({
   activeTeam,
   presetMember,
   onOpenDex,
+  onOpenDexPokemon,
 }: {
   environment: EnvironmentState;
   teams?: Team[];
   activeTeam?: Team;
   presetMember?: TeamMember;
   onOpenDex?: () => void;
+  onOpenDexPokemon?: (dexId: string) => void;
 }) {
-  const [opening] = useState(() => openingState(teams, environment));
-  const [battleType, setBattleType] = useState<BattleType>(currentRuleSet.battleType);
+  // Read in the initializer, cleared in an effect: StrictMode runs initializers twice.
+  const [restored] = useState(() => returnSnapshot);
+  useEffect(() => {
+    returnSnapshot = undefined;
+  }, []);
+  const [opening] = useState(() =>
+    restored ? { ...restored, fromRecord: restored.memberChosen } : openingState(teams, environment),
+  );
+  const [battleType, setBattleType] = useState<BattleType>(restored?.battleType ?? currentRuleSet.battleType);
   const [selectedPokemonId, setSelectedPokemonId] = useState(opening.pokemonId);
   const [selectedFormId, setSelectedFormId] = useState<string | undefined>(opening.formId);
   const [build, setBuild] = useState(opening.build);
   const [query, setQuery] = useState('');
-  const [selectedTier, setSelectedTier] = useState<SpeedTierGroup | null>(null);
-  const [expandedTier, setExpandedTier] = useState<number | null>(null);
+  const [selectedTierSpeed, setSelectedTierSpeed] = useState<number | null>(restored?.tierSpeed ?? null);
   const [markerOffscreen, setMarkerOffscreen] = useState<MarkerOffscreen>(null);
   // The opening pokemon is a default, not a choice — 04-01 only speaks for a member the user
   // actually settled on. Reopening on an existing record is already such a choice.
@@ -344,6 +360,27 @@ export function SpeedPage({
     () => new Map(tiers.map((group) => [group.speed, rankTierRoster(group, (pid) => getPokemonUsageRate(environment, pid, battleType))])),
     [tiers, environment, battleType],
   );
+  const selectedTier = selectedTierSpeed === null ? undefined : tiers.find((group) => group.speed === selectedTierSpeed);
+
+  // Back from the dex: put the list where it was before the open sheet's avatar was tapped.
+  useLayoutEffect(() => {
+    if (restored && typeof window.scrollTo === 'function') window.scrollTo({ top: restored.scrollY, left: 0 });
+  }, [restored]);
+
+  const openDexPokemon = (dexId: string) => {
+    if (!onOpenDexPokemon) return;
+    returnSnapshot = {
+      pokemonId: selectedPokemonId,
+      formId: selectedFormId,
+      build,
+      battleType,
+      memberChosen,
+      tierSpeed: selectedTierSpeed,
+      scrollY: window.scrollY,
+      presetMemberId: presetAppliedRef.current,
+    };
+    onOpenDexPokemon(dexId);
+  };
 
   // Base species + mega forms as independent entries (dex mapping), so a mega is searchable on
   // its own instead of via a separate form picker.
@@ -412,7 +449,9 @@ export function SpeedPage({
   };
 
   // Jump-in from a team member: carry the saved pokemon/form/nature/scarf/SP.
-  const presetAppliedRef = useRef<string | undefined>(undefined);
+  // Coming back from the dex, the preset was already applied before the round trip; re-applying
+  // it would wipe the build the user was looking at.
+  const presetAppliedRef = useRef<string | undefined>(restored?.presetMemberId);
   useEffect(() => {
     if (!presetMember || presetAppliedRef.current === presetMember.id) return;
     const entry = pokemon.find((candidate) => candidate.id === presetMember.pokemonId);
@@ -637,11 +676,9 @@ export function SpeedPage({
                   {index === markerIndex && renderMarker()}
                   <TierRow
                     difference={group.speed - finalSpeed}
-                    expanded={expandedTier === group.speed}
                     group={group}
                     roster={rosters.get(group.speed) ?? []}
-                    onOpen={() => setSelectedTier(group)}
-                    onToggle={() => setExpandedTier(expandedTier === group.speed ? null : group.speed)}
+                    onOpen={() => setSelectedTierSpeed(group.speed)}
                   />
                 </div>
               ))}
@@ -672,9 +709,10 @@ export function SpeedPage({
           scarfUsageRate={scarfUsageRate}
           onApply={(option) => {
             setBuild(option.build);
-            setSelectedTier(null);
+            setSelectedTierSpeed(null);
           }}
-          onClose={() => setSelectedTier(null)}
+          onOpenPokemon={openDexPokemon}
+          onClose={() => setSelectedTierSpeed(null)}
         />
       )}
     </div>
