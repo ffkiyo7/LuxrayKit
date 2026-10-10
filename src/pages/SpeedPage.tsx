@@ -14,6 +14,7 @@ import {
   getSpeedAbilityProfile,
   groupTiersBySpeed,
   markerInsertIndex,
+  rankTierRoster,
   resolveDefaultSpeedSubject,
   sortVariantsByUsage,
   SCARF_SUGGESTION_USAGE_THRESHOLD,
@@ -22,6 +23,7 @@ import {
   type SpeedBuild,
   type SpeedNature,
   type SpeedTierGroup,
+  type TierRosterEntry,
 } from '../lib/speedTier';
 import { MAX_STAT_POINTS_PER_STAT } from '../lib/statPoints';
 import { readToolResults, recordToolResult, type SpeedToolResult } from '../lib/toolActivity';
@@ -35,13 +37,22 @@ type MarkerOffscreen = 'up' | 'down' | null;
 const RESULT_RECORD_DELAY_MS = 800;
 /** Tier rows the card's sparkline shows around the member, the member's own bar included. */
 const SPARKLINE_WINDOW = 6;
+/** Avatars a tier row shows before the rest fold into 「+N」. */
+const TIER_AVATAR_LIMIT = 5;
+const TIER_AVATAR_SIZE = 28;
 
 const groupPrimaryLabel = (group: SpeedTierGroup) => group.variants[0].displayLabel;
 
-const groupRoster = (group: SpeedTierGroup) =>
-  group.variants.flatMap((variant) =>
-    variant.pokemon.map((entry) => ({ key: `${variant.code}-${entry.key}`, label: entry.displayName, variant: variant.label, iconRef: entry.iconRef })),
-  );
+// Two variants can resolve to the same catalog row; the avatar strip shows each pokemon once.
+const uniqueAvatars = (roster: TierRosterEntry[]) => {
+  const seen = new Set<string>();
+  return roster.filter((entry) => {
+    const id = entry.id ?? entry.key;
+    if (seen.has(id)) return false;
+    seen.add(id);
+    return true;
+  });
+};
 
 /** `tierSpeeds` runs fastest → slowest and the member's own bar belongs at `markerIndex`. */
 const sparklineWindow = (tierSpeeds: number[], markerIndex: number, finalSpeed: number) => {
@@ -105,6 +116,7 @@ function PlanRow({
 
 function OutspeedSheet({
   group,
+  roster: fullRoster,
   build,
   scarfUsageRate,
   ability,
@@ -112,6 +124,7 @@ function OutspeedSheet({
   onClose,
 }: {
   group: SpeedTierGroup;
+  roster: TierRosterEntry[];
   build: SpeedBuild;
   scarfUsageRate: number;
   ability?: SpeedAbilityProfile;
@@ -120,7 +133,7 @@ function OutspeedSheet({
 }) {
   const scarfEligible = scarfUsageRate >= SCARF_SUGGESTION_USAGE_THRESHOLD;
   const plan = buildOutspeedPlan({ target: group.speed, current: build, scarfEligible, speedAbility: ability });
-  const roster = groupRoster(group).slice(0, 8);
+  const roster = fullRoster.slice(0, 8);
 
   return (
     <Sheet label={`超速 ${group.speed}`} variant="handle" onClose={onClose}>
@@ -187,31 +200,43 @@ function OutspeedSheet({
  */
 function TierRow({
   group,
+  roster,
   difference,
   expanded,
   onToggle,
   onOpen,
 }: {
   group: SpeedTierGroup;
+  roster: TierRosterEntry[];
   difference: number;
   expanded: boolean;
   onToggle: () => void;
   onOpen: () => void;
 }) {
-  const roster = groupRoster(group);
   const expandable = roster.length > 1;
+  const avatars = uniqueAvatars(roster);
+  const shown = avatars.slice(0, TIER_AVATAR_LIMIT);
+  const hidden = avatars.length - shown.length;
 
   return (
     <>
       <div className="flex items-center border-b border-[var(--hairline)]">
         <button
           aria-label={`超速 实数 ${group.speed}，${groupPrimaryLabel(group)}，共 ${group.pokemonCount} 只`}
-          className="lk-press-row flex h-[60px] min-w-0 flex-1 items-center gap-3 text-left"
+          className="lk-press-row flex h-16 min-w-0 flex-1 items-center gap-3 text-left"
           type="button"
           onClick={onOpen}
         >
           <span className="w-11 shrink-0 text-[20px] font-extrabold tabular-nums text-textSecondary">{group.speed}</span>
-          <span className="min-w-0 flex-1 truncate text-[13px] font-semibold text-textSecondary">{groupPrimaryLabel(group)}</span>
+          <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+            <span className="flex items-center gap-0.5" data-tier-avatars>
+              {shown.map((entry) => (
+                <Sprite key={entry.key} iconRef={entry.iconRef} label={entry.label} size={TIER_AVATAR_SIZE} />
+              ))}
+              {hidden > 0 && <span className="pl-1 text-[11px] font-bold tabular-nums text-textLabel">+{hidden}</span>}
+            </span>
+            <span className="truncate text-[11px] font-semibold text-textLabel">{groupPrimaryLabel(group)}</span>
+          </span>
           <span className={`shrink-0 text-xs font-bold ${difference > 0 ? 'text-danger' : difference < 0 ? 'text-success' : 'text-textLabel'}`}>
             {difference > 0 ? `快 ${difference}` : difference < 0 ? `慢 ${-difference}` : '同速'}
           </span>
@@ -220,7 +245,7 @@ function TierRow({
           <button
             aria-expanded={expanded}
             aria-label={`${group.speed} 这条线上的 ${roster.length} 个形态`}
-            className="grid h-[60px] w-8 shrink-0 place-items-center text-chevron"
+            className="grid h-16 w-8 shrink-0 place-items-center text-chevron"
             type="button"
             onClick={onToggle}
           >
@@ -315,6 +340,10 @@ export function SpeedPage({
     [snapshot, environment, battleType],
   );
   const markerIndex = markerInsertIndex(tiers, finalSpeed);
+  const rosters = useMemo(
+    () => new Map(tiers.map((group) => [group.speed, rankTierRoster(group, (pid) => getPokemonUsageRate(environment, pid, battleType))])),
+    [tiers, environment, battleType],
+  );
 
   // Base species + mega forms as independent entries (dex mapping), so a mega is searchable on
   // its own instead of via a separate form picker.
@@ -610,6 +639,7 @@ export function SpeedPage({
                     difference={group.speed - finalSpeed}
                     expanded={expandedTier === group.speed}
                     group={group}
+                    roster={rosters.get(group.speed) ?? []}
                     onOpen={() => setSelectedTier(group)}
                     onToggle={() => setExpandedTier(expandedTier === group.speed ? null : group.speed)}
                   />
@@ -638,6 +668,7 @@ export function SpeedPage({
           ability={availableAbility}
           build={build}
           group={selectedTier}
+          roster={rosters.get(selectedTier.speed) ?? []}
           scarfUsageRate={scarfUsageRate}
           onApply={(option) => {
             setBuild(option.build);
@@ -654,10 +685,11 @@ export function SpeedPage({
       <div
         key="speed-marker"
         ref={markerRef}
-        className="lk-marker flex h-[60px] items-center gap-3 rounded-[14px] px-3"
+        className="lk-marker flex h-16 items-center gap-3 rounded-[14px] px-3"
         data-speed-marker
       >
         <span className="w-11 shrink-0 text-[20px] font-extrabold tabular-nums text-textPrimary">{finalSpeed}</span>
+        <Sprite iconRef={selectedFormIconRef ?? selectedIconRef} label={selectedName} size={TIER_AVATAR_SIZE} />
         <span className="min-w-0 flex-1 truncate text-sm font-extrabold text-textPrimary">我的{selectedName}</span>
       </div>
     );

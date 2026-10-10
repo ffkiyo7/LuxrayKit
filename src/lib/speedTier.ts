@@ -212,6 +212,34 @@ export const sortVariantsByUsage = (
   });
 };
 
+export type TierRosterEntry = {
+  key: string;
+  id?: string;
+  label: string;
+  variant: string;
+  iconRef?: string;
+};
+
+// Every pokemon on one speed line across all its variants, most used in the current environment
+// first (the row's avatars read left → right by usage). Ties and absent usage keep variant order.
+export const rankTierRoster = (group: SpeedTierGroup, usageOf: (pokemonId: string) => number): TierRosterEntry[] =>
+  group.variants
+    .flatMap((variant) =>
+      variant.pokemon.map((entry) => ({
+        entry: {
+          key: `${variant.code}-${entry.key}`,
+          id: entry.id,
+          label: entry.displayName,
+          variant: variant.label,
+          iconRef: entry.iconRef,
+        },
+        usage: entry.pokemonId ? usageOf(entry.pokemonId) : 0,
+      })),
+    )
+    .map((ranked, index) => ({ ...ranked, index }))
+    .sort((a, b) => b.usage - a.usage || a.index - b.index)
+    .map(({ entry }) => entry);
+
 // Rows are ordered fastest -> slowest; the user marker takes its own slot right
 // below every strictly-faster group so it never overlaps a tier's text.
 export const markerInsertIndex = (groups: Array<{ speed: number }>, finalSpeed: number) =>
