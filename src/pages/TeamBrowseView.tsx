@@ -145,6 +145,7 @@ export function TeamBrowseView({
   return (
     <div>
       <PushHeader
+        title="上位构筑"
         onBack={onBack}
         trailing={
           <div className="flex items-center gap-2">

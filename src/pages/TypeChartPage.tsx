@@ -400,7 +400,7 @@ function MatrixResult({ selection, onSwap }: { selection: Selection; onSwap: () 
 
 function MatrixLegend() {
   return (
-    <div className="flex gap-3.5 px-6 pt-[18px]">
+    <div className="flex flex-wrap gap-x-3.5 gap-y-2 px-6 pt-[18px]">
       <span className="inline-flex items-center gap-1.5 text-xs font-bold text-success">
         <span aria-hidden="true" className="lk-type-legend-swatch lk-type-legend-swatch--super" />
         效果绝佳 ×2
@@ -408,6 +408,10 @@ function MatrixLegend() {
       <span className="inline-flex items-center gap-1.5 text-xs font-bold text-danger">
         <span aria-hidden="true" className="lk-type-legend-swatch lk-type-legend-swatch--resisted" />
         效果不好 ×½
+      </span>
+      <span className="inline-flex items-center gap-1.5 text-xs font-bold text-danger">
+        <span aria-hidden="true" className="lk-type-legend-swatch lk-type-legend-swatch--immune" />
+        没有效果 ×0
       </span>
       <span className="inline-flex items-center gap-1.5 text-xs font-bold text-textSecondary">
         <span aria-hidden="true" className="lk-type-legend-swatch" />
@@ -672,7 +676,7 @@ export function TypeChartPage({ environment }: { environment: EnvironmentState |
 
   return (
     <div className="pb-8">
-      <h1 className="px-6 pt-5 text-[34px] font-extrabold leading-[42px] tracking-[-0.02em]">属性速查</h1>
+      <h1 className="px-6 pt-3.5 text-[34px] font-extrabold leading-[42px] tracking-[-0.02em]">属性速查</h1>
 
       <div aria-label="属性速查显示模式" className="mx-6 mt-3.5 grid grid-cols-3 gap-1 rounded-xl bg-surface p-1" role="group">
         {tabs.map((option) => (

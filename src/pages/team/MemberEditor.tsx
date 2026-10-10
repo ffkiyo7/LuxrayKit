@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Gauge, Info, MoreHorizontal, Swords, Trash2 } from 'lucide-react';
+import { ChevronRight, Gauge, Info, MoreHorizontal, Swords, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { abilities, currentRuleNatureOptions, currentRuleSet, items, moves, pokemon } from '../../data';
 import type { EnvironmentState } from '../../data/environment';
@@ -52,7 +52,7 @@ function EditorMenuRow({
 }) {
   return (
     <button
-      className={`flex h-[46px] w-full items-center gap-3 text-left text-[15px] font-bold disabled:opacity-40 ${
+      className={`lk-press-row flex h-[46px] w-full items-center gap-3 text-left text-[15px] font-bold disabled:opacity-40 ${
         danger ? 'text-danger' : 'text-textPrimary'
       }`}
       disabled={disabled}
@@ -85,7 +85,7 @@ function ConfigRow({
   return (
     <button
       aria-label={`选择${label}`}
-      className={`flex h-16 w-full items-center gap-3 ${last ? '' : 'border-b border-[var(--hairline)]'}`}
+      className={`lk-press-row flex h-16 w-full items-center gap-3 ${last ? '' : 'border-b border-[var(--hairline)]'}`}
       type="button"
       onClick={onClick}
     >
@@ -359,16 +359,16 @@ export function MemberEditor({
   return (
     <div className="pb-[120px]">
       <div className="flex items-center justify-between px-6 pt-5">
-        <RoundIconButton label="返回队伍详情" onClick={cancel}>
-          <ChevronLeft size={20} />
-        </RoundIconButton>
+        <button className="-ml-1 h-9 px-1 text-[17px] font-semibold text-textPrimary" type="button" onClick={cancel}>
+          取消
+        </button>
         <div className="relative">
           <RoundIconButton label="更多操作" onClick={() => setMenuOpen((open) => !open)}>
             <MoreHorizontal size={18} />
           </RoundIconButton>
           {menuOpen && (
             <>
-              <button aria-label="关闭菜单" className="fixed inset-0 z-30 cursor-default" type="button" onClick={() => setMenuOpen(false)} />
+              <button aria-label="关闭菜单" className="lk-press-none fixed inset-0 z-30 cursor-default" type="button" onClick={() => setMenuOpen(false)} />
               <div
                 className="lk-editor-menu absolute right-0 top-[44px] z-40 w-[214px] rounded-[20px] px-[18px] py-1.5"
                 role="menu"
@@ -511,7 +511,7 @@ export function MemberEditor({
               <button
                 key={slot}
                 aria-label={`招式 ${slot + 1}${move ? ` ${move.chineseName}` : ''}`}
-                className={`flex h-[60px] w-full items-center gap-3 ${slot < 3 ? 'border-b border-[var(--hairline)]' : ''}`}
+                className={`lk-press-row flex h-[60px] w-full items-center gap-3 ${slot < 3 ? 'border-b border-[var(--hairline)]' : ''}`}
                 type="button"
                 onClick={() => setView({ kind: 'move', slot })}
               >
@@ -529,9 +529,6 @@ export function MemberEditor({
       </section>
 
       <div className="lk-editor-bar fixed inset-x-0 bottom-0 z-20 mx-auto flex max-w-[430px] gap-2.5 px-6 pb-[22px] pt-3.5">
-        <button className="h-[50px] w-[72px] shrink-0 text-[15px] font-bold text-textSecondary" type="button" onClick={cancel}>
-          取消
-        </button>
         <button
           className={`lk-slab inline-flex h-[50px] min-w-0 flex-1 items-center justify-center gap-2 rounded-2xl text-base font-extrabold tracking-[-0.01em] ${
             saveDisabled ? 'bg-btn1 text-btnDisabledInk shadow-none' : 'bg-accent text-page'

@@ -47,7 +47,7 @@ function CardFooter({ team, onShare }: { team: Team; onShare: () => void }) {
       {team.replicaCode ? (
         <span className="truncate text-[13px] font-bold tracking-[0.04em] text-textPrimary tabular-nums">{team.replicaCode}</span>
       ) : (
-        <span className="text-[13px] font-semibold text-chevron">无队伍码</span>
+        <span className="text-[13px] font-semibold text-textSecondary">无队伍码</span>
       )}
       <button
         aria-label={`分享 ${team.name}`}
@@ -79,7 +79,7 @@ export function TeamListCard({ team, recentlyImported, setCardRef, onOpen, onMen
     <section
       ref={setCardRef}
       aria-label={`队伍：${team.name}`}
-      className={`relative cursor-pointer rounded-[20px] p-[18px] focus:outline-none focus:ring-2 focus:ring-select/55 ${
+      className={`lk-press-card relative cursor-pointer rounded-[20px] p-[18px] focus:outline-none focus:ring-2 focus:ring-select/55 ${
         recentlyImported ? 'lk-field-on bg-btn1' : 'lk-card-face shadow-[shadow:var(--lk-card-shadow)]'
       }`}
       data-import-highlighted={recentlyImported ? 'true' : undefined}

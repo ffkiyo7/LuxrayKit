@@ -240,7 +240,7 @@ export function DexPage({
   return (
     <div className="pb-8">
       <PageHeader
-        className="px-6 pt-5"
+        className="px-6 pt-3.5"
         subtitle={`${regulationId} 规则数据 · 宝可梦 ${dexEntries.length} · 招式 ${moves.length} · 道具 ${selectableItems.length} · 特性 ${abilities.length}`}
         title="规则内图鉴"
       />

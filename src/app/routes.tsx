@@ -1,5 +1,6 @@
-import { ArrowLeft, BarChart3, UserCircle, Users, Wrench } from 'lucide-react';
+import { BarChart3, UserCircle, Users, Wrench } from 'lucide-react';
 import { lazy, Suspense } from 'react';
+import { NavBar } from '../components/kit/NavBar';
 import { PageLoading } from '../components/kit/PageLoading';
 import type { EnvironmentState, EnvironmentTeamSample } from '../data/environment';
 import type { useHashRoute } from '../hooks/useHashRoute';
@@ -52,6 +53,14 @@ export const routeIdByToolView: Record<ToolView, ToolRouteId> = {
   typeChart: 'typechart',
 };
 
+/** Each tool's large title, shown small in the nav bar once it collapses. */
+const toolTitles: Record<ToolView, string> = {
+  calculator: '伤害计算',
+  dex: '规则内图鉴',
+  speed: '速度线',
+  typeChart: '属性速查',
+};
+
 export const toolViewForRoute = (route: Route): ToolView | null => {
   if (route.name === 'tool') return toolViewByRouteId[route.tool];
   if (route.name === 'dex-pokemon') return 'dex';
@@ -62,6 +71,7 @@ type Navigate = ReturnType<typeof useHashRoute>['navigate'];
 
 function ToolWorkspace({
   view,
+  dexDetail,
   onBack,
   selectedMemberId,
   onPickMember,
@@ -75,6 +85,7 @@ function ToolWorkspace({
   dexTab,
 }: {
   view: ToolView;
+  dexDetail: boolean;
   onBack: () => void;
   selectedMemberId?: string;
   onPickMember: (memberId: string) => void;
@@ -88,7 +99,15 @@ function ToolWorkspace({
   dexTab?: DexTab;
 }) {
   const content = {
-    calculator: <CalculatorPage environment={environment} selectedMemberId={selectedMemberId} onPickMember={onPickMember} presetMember={calcPreset} />,
+    calculator: (
+      <CalculatorPage
+        environment={environment}
+        selectedMemberId={selectedMemberId}
+        onBackToTools={onBack}
+        onPickMember={onPickMember}
+        presetMember={calcPreset}
+      />
+    ),
     dex: <DexPage initialTab={dexTab} onOpenCalculator={onOpenCalculator} />,
     speed: environment ? (
       <SpeedPage
@@ -106,10 +125,8 @@ function ToolWorkspace({
 
   return (
     <div>
-      <button className="mx-6 mt-4 inline-flex items-center gap-2 text-sm text-textSecondary" type="button" onClick={onBack}>
-        <ArrowLeft size={16} />
-        返回工具
-      </button>
+      {/* The calculator and the dex detail draw their own bar; two stacked bars would both stick. */}
+      {view !== 'calculator' && !dexDetail && <NavBar backLabel="返回工具" title={toolTitles[view]} onBack={onBack} />}
       {content}
     </div>
   );
@@ -192,6 +209,7 @@ export function RoutedPage({
       return (
         <ToolWorkspace
           view={toolView}
+          dexDetail={route.name === 'dex-pokemon'}
           onBack={back}
           selectedMemberId={toolPresets.calculatorMemberId}
           onPickMember={toolPresets.setCalculatorMemberId}

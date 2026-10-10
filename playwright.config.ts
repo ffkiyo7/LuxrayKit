@@ -14,6 +14,9 @@ export default defineConfig({
   use: {
     baseURL: 'http://127.0.0.1:4173',
     trace: 'retain-on-failure',
+    // New users follow the system appearance; pin it so the default set stays on the dark theme
+    // whatever the runner's emulated scheme is. The light set switches through 我的 · 外观.
+    colorScheme: 'dark',
   },
   webServer: {
     command: 'npm run build && npm run preview -- --port 4173',

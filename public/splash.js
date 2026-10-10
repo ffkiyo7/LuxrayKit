@@ -51,7 +51,11 @@
     // Without sessionStorage too, it may also replay on a reload; harmless.
   }
 
-  var light = read('localStorage', THEME_KEY) === 'light';
+  // 'system' (and no mirror yet, since 'system' is the default) follows the device appearance.
+  var storedTheme = read('localStorage', THEME_KEY);
+  var light =
+    storedTheme === 'light' ||
+    (storedTheme !== 'dark' && !!window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches);
   var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // Artwork (475×475) positions, as fractions: the tail star's centre, and its tilt.

@@ -15,7 +15,7 @@ export function mirrorSplashPreferences(preferences: Pick<UserPreference, 'splas
     window.localStorage.setItem(SPLASH_MODE_KEY, preferences.splashOptOut ? 'off' : 'on');
     window.localStorage.setItem(SPLASH_THEME_KEY, preferences.theme);
   } catch {
-    // Private mode or storage full: the splash falls back to playing, in the dark theme.
+    // Private mode or storage full: the splash falls back to playing, in the system appearance.
   }
 }
 

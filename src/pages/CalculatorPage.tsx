@@ -21,7 +21,7 @@ import { findBattleForm } from '../lib/pokemonForms';
 import { recordToolResult } from '../lib/toolActivity';
 import { useAppStore } from '../state/AppContext';
 import type { TeamMember } from '../types';
-import { ListRow, PageHeader, Pill, SectionLabel, Switch, TypeDot } from '../components/kit';
+import { ListRow, NavBar, PageHeader, Pill, SectionLabel, Switch, TypeDot } from '../components/kit';
 import { moveMetaLine, statPointSpreadText, type CalcSide } from './calculator/calcSummary';
 import { MoveCounterControl } from './calculator/MoveCounterControl';
 import { OptionSheet } from './calculator/OptionSheet';
@@ -71,11 +71,14 @@ export function CalculatorPage({
   onPickMember,
   presetMember,
   environment,
+  onBackToTools,
 }: {
   selectedMemberId?: string;
   onPickMember: (memberId: string) => void;
   presetMember?: { memberId: string; side: CalcSide };
   environment?: EnvironmentState | null;
+  /** The calculator draws its own nav bar: its side editor and picker replace the page with theirs. */
+  onBackToTools?: () => void;
 }) {
   const { teams } = useAppStore();
 
@@ -333,7 +336,8 @@ export function CalculatorPage({
 
   return (
     <div className="pb-8" data-calc-active-side={activeSide}>
-      <PageHeader className="px-6 pt-5" subtitle="可从图鉴或队伍取配置 · 临时修改不写回队伍" title="伤害计算" />
+      {onBackToTools && <NavBar backLabel="返回工具" title="伤害计算" onBack={onBackToTools} />}
+      <PageHeader className="px-6 pt-3.5" subtitle="可从图鉴或队伍取配置 · 临时修改不写回队伍" title="伤害计算" />
 
       <div className="flex items-stretch gap-2.5 px-6 pt-5">
         <SideCard

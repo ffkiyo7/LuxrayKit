@@ -206,7 +206,7 @@ function TierRow({
       <div className="flex items-center border-b border-[var(--hairline)]">
         <button
           aria-label={`超速 实数 ${group.speed}，${groupPrimaryLabel(group)}，共 ${group.pokemonCount} 只`}
-          className="flex h-[60px] min-w-0 flex-1 items-center gap-3 text-left"
+          className="lk-press-row flex h-[60px] min-w-0 flex-1 items-center gap-3 text-left"
           type="button"
           onClick={onOpen}
         >
@@ -451,7 +451,7 @@ export function SpeedPage({
   return (
     <div className="pb-8">
       <PageHeader
-        className="px-6 pt-5"
+        className="px-6 pt-3.5"
         subtitle={trimmedQuery ? '换一只来看它在哪一档' : '热门速度线参照 · 上下滑动看档位'}
         title="速度线"
       />

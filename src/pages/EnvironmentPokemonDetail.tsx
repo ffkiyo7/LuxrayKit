@@ -1,7 +1,8 @@
-import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Plus } from 'lucide-react';
+import { ChevronDown, ChevronRight, ChevronUp, Plus } from 'lucide-react';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { auraStyle } from '../components/kit/aura';
 import { KitButton } from '../components/kit/KitButton';
+import { NavBar } from '../components/kit/NavBar';
 import { Sprite } from '../components/kit/Sprite';
 import { ADDED_TOAST_DURATION_MS, TeamPickerSheet, teamChoicesFor } from '../components/TeamPickerSheet';
 import { Toast } from '../components/kit/Toast';
@@ -316,15 +317,13 @@ export function EnvironmentPokemonDetail({
 
   return (
     <div>
-      {/* The header halo is this Pokémon's own body colours sampled off its artwork, as on a team
-          member card; a sprite with no sampled row falls back to its two type colours. */}
-      <div className="lk-env-detail-hero relative px-6 pb-[34px] pt-5" style={auraStyle(entry.types, entry.iconRef)}>
-        <div className="flex items-center justify-between">
-          <RoundIconButton label="返回" onHero onClick={onBack}>
-            <ChevronLeft size={20} />
-          </RoundIconButton>
-          {pageIndex >= 0 && (
-            <div className="flex items-center gap-2">
+      <NavBar
+        collapseAt={180}
+        onHero
+        title={entry.chineseName}
+        trailing={
+          pageIndex >= 0 ? (
+            <div className="flex shrink-0 items-center gap-2">
               <RoundIconButton
                 disabled={pageIndex === 0}
                 label="上一名"
@@ -345,9 +344,14 @@ export function EnvironmentPokemonDetail({
                 <ChevronDown size={18} />
               </RoundIconButton>
             </div>
-          )}
-        </div>
-
+          ) : undefined
+        }
+        onBack={onBack}
+      />
+      {/* The header halo is this Pokémon's own body colours sampled off its artwork, as on a team
+          member card; a sprite with no sampled row falls back to its two type colours. It runs up
+          behind the nav bar, which stays clear until the page scrolls. */}
+      <div className="lk-env-detail-hero relative -mt-14 px-6 pb-[34px] pt-14" style={auraStyle(entry.types, entry.iconRef)}>
         <div className="mt-1 text-center">
           <Sprite className="mx-auto" iconRef={entry.iconRef} label={entry.chineseName} size={132} />
           <h1 className="mt-1 text-[34px] font-extrabold leading-[42px] tracking-[-0.02em]">{entry.chineseName}</h1>
@@ -575,7 +579,7 @@ function RelatedSampleRow({
   return (
     <button
       aria-label={`导入「${title}」`}
-      className={`flex h-[68px] w-full items-center gap-3 text-left ${divider ? 'border-b border-[var(--hairline)]' : ''}`}
+      className={`lk-press-row flex h-[68px] w-full items-center gap-3 text-left ${divider ? 'border-b border-[var(--hairline)]' : ''}`}
       type="button"
       onClick={() => void onImport(sample)}
     >

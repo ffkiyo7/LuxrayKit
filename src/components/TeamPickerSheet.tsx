@@ -58,7 +58,7 @@ export function TeamPickerSheet({
         {choices.map(({ team, blockedReason }) => (
           <button
             key={team.id}
-            className="flex h-[68px] w-full items-center gap-3 border-b border-[var(--hairline)] text-left disabled:opacity-45"
+            className="lk-press-row flex h-[68px] w-full items-center gap-3 border-b border-[var(--hairline)] text-left disabled:opacity-45"
             disabled={Boolean(blockedReason)}
             type="button"
             onClick={() => onPick(team)}
@@ -77,7 +77,7 @@ export function TeamPickerSheet({
             </span>
           </button>
         ))}
-        <button className="flex h-[60px] w-full items-center gap-3 text-left" type="button" onClick={onCreate}>
+        <button className="lk-press-row flex h-[60px] w-full items-center gap-3 text-left" type="button" onClick={onCreate}>
           <span className="shrink-0 text-textLabel">
             <Plus size={18} />
           </span>

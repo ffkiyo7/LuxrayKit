@@ -1,13 +1,34 @@
-import { BarChart3, Database, Info, MessageSquare, Moon, CloudOff, ScrollText, Smartphone, Sparkles, Sun } from 'lucide-react';
+import { BarChart3, Database, Info, MessageSquare, Moon, CloudOff, ScrollText, Smartphone, Sparkles, Sun, SunMoon } from 'lucide-react';
+import type { ReactNode } from 'react';
 import { useHashRoute } from '../hooks/useHashRoute';
 import { isStandaloneDisplay } from './profile/installState';
 import { useAppStore } from '../state/AppContext';
 import { PageHeader } from '../components/kit/PageHeader';
 import { SectionLabel } from '../components/kit/SectionLabel';
+import { SegmentedTabs } from '../components/kit/SegmentedTabs';
 import { Switch } from '../components/kit/Switch';
+import type { UserPreference } from '../types';
 import { ProfileRow } from './profile/ProfileRow';
 
 const tileIconSize = 17;
+
+const appearanceOptions: Array<{ id: UserPreference['theme']; label: string }> = [
+  { id: 'system', label: '跟随系统' },
+  { id: 'dark', label: '深色' },
+  { id: 'light', label: '浅色' },
+];
+
+const appearanceSubtitle: Record<UserPreference['theme'], string> = {
+  system: '跟随 iPhone 的深色 / 浅色设置',
+  dark: '始终使用深色',
+  light: '始终使用浅色',
+};
+
+const appearanceIcon: Record<UserPreference['theme'], ReactNode> = {
+  system: <SunMoon aria-hidden size={tileIconSize} />,
+  dark: <Moon aria-hidden size={tileIconSize} />,
+  light: <Sun aria-hidden size={tileIconSize} />,
+};
 
 /** 我的 (08-01 / NL-06) — a pure index; every entry below it is its own route. */
 export function ProfilePage() {
@@ -22,25 +43,25 @@ export function ProfilePage() {
       <section className="px-6 pt-6">
         <SectionLabel>显示</SectionLabel>
         <div className="mt-1.5">
-          <ProfileRow
-            icon={
-              preferences.theme === 'dark' ? (
-                <Moon aria-hidden size={tileIconSize} />
-              ) : (
-                <Sun aria-hidden size={tileIconSize} />
-              )
-            }
-            subtitle={preferences.theme === 'dark' ? '深色工具界面' : '浅色工具界面'}
-            tile="lk-tile--select"
-            title="主题"
-            trailing={
-              <Switch
-                checked={preferences.theme === 'dark'}
-                label="切换深色和浅色主题"
-                onChange={(next) => void updateTheme(next ? 'dark' : 'light')}
+          {/* Three choices, so a segmented control rather than a switch (HIG: Dark Mode, Settings). */}
+          <div className="border-b border-[var(--hairline)]">
+            <ProfileRow
+              divider={false}
+              icon={appearanceIcon[preferences.theme]}
+              subtitle={appearanceSubtitle[preferences.theme]}
+              tile="lk-tile--select"
+              title="外观"
+              trailing={null}
+            />
+            <div aria-label="外观" role="group">
+              <SegmentedTabs
+                className="mb-3"
+                options={appearanceOptions}
+                value={preferences.theme}
+                onChange={(next) => void updateTheme(next)}
               />
-            }
-          />
+            </div>
+          </div>
           {/* Only the home-screen app plays the splash (public/splash.js), so a browser tab hides it. */}
           {installed && (
             <ProfileRow

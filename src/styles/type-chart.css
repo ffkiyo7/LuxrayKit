@@ -13,17 +13,23 @@
   --lk-matrix-gutter: rgb(255 255 255 / 0.09);
   --lk-matrix-cell: #101013;
   --lk-matrix-neutral-ink: #48484a;
-  --lk-matrix-neutral-dim-ink: #2c2c31;
-  --lk-matrix-cross-fill: #212124;
+  --lk-matrix-cross-fill: rgb(var(--color-text-primary) / 0.1);
   --lk-matrix-cross-ring: rgb(255 255 255 / 0.16);
-  --lk-matrix-super-fill: #1a2922;
-  --lk-matrix-super-strong: #1c372b;
-  --lk-matrix-super-dim-ink: #2e6e4d;
+  /* ×2 / ×½ read as blocks through a semantic inner ring (≥3:1 against an idle cell), so the fill
+     can stay light enough for the same-hue ink to remain legible on top of it. */
+  --lk-matrix-ring-width: 1.5px;
+  --lk-matrix-super-fill: rgb(var(--color-success) / 0.22);
+  --lk-matrix-super-ring: rgb(var(--color-success) / 0.85);
   --lk-matrix-super-selected-ink: #7fdca7;
-  --lk-matrix-resist-fill: #2d1c1e;
-  --lk-matrix-resist-strong: #3a2023;
-  --lk-matrix-resist-dim-ink: #7d413d;
+  --lk-matrix-resist-fill: rgb(var(--color-danger) / 0.2);
+  --lk-matrix-resist-ring: rgb(var(--color-danger) / 0.8);
   --lk-matrix-resist-selected-ink: #f0908c;
+  /* ×0 is the rarest and most decisive result: solid red, white ink. */
+  --lk-matrix-immune-fill: rgb(var(--color-danger));
+  --lk-matrix-immune-selected-ring: #ffb3ad;
+  /* Cells outside the crosshair recede as a whole, so their ×2 / ×½ colouring survives dimmed. */
+  --lk-matrix-dim-filter: brightness(0.42) saturate(0.7);
+  --lk-matrix-dim-opacity: 1;
 }
 
 :root[data-theme='light'] {
@@ -36,17 +42,21 @@
   --lk-matrix-gutter: #e8e8ec;
   --lk-matrix-cell: #ffffff;
   --lk-matrix-neutral-ink: #6e6e73;
-  --lk-matrix-neutral-dim-ink: #b0b0b8;
-  --lk-matrix-cross-fill: #f2f2f5;
+  --lk-matrix-cross-fill: rgb(var(--color-text-primary) / 0.06);
   --lk-matrix-cross-ring: rgb(16 24 40 / 0.13);
-  --lk-matrix-super-fill: #e6f4ec;
-  --lk-matrix-super-strong: #d7ecdf;
-  --lk-matrix-super-dim-ink: #12784a;
+  /* On paper the pastel fills already carry the blocks; the ring only firms their edges. */
+  --lk-matrix-ring-width: 1px;
+  --lk-matrix-super-fill: #e3f3ea;
+  --lk-matrix-super-ring: rgb(var(--color-success) / 0.45);
   --lk-matrix-super-selected-ink: #12784a;
-  --lk-matrix-resist-fill: #fbe9e7;
-  --lk-matrix-resist-strong: #f7ddd9;
-  --lk-matrix-resist-dim-ink: #c0392f;
+  --lk-matrix-resist-fill: #fcebe9;
+  --lk-matrix-resist-ring: rgb(var(--color-danger) / 0.4);
   --lk-matrix-resist-selected-ink: #c0392f;
+  --lk-matrix-immune-fill: #e0574e;
+  --lk-matrix-immune-selected-ring: #8f241c;
+  /* A filter darkens white cells to grey here, so light dims by fading into the gutter instead. */
+  --lk-matrix-dim-filter: none;
+  --lk-matrix-dim-opacity: 0.35;
 }
 
 .lk-type-chip {
@@ -140,13 +150,18 @@
 }
 
 .lk-type-legend-swatch--super {
-  background: rgb(var(--color-success) / 0.14);
-  box-shadow: inset 0 0 0 1px rgb(var(--color-success));
+  background: var(--lk-matrix-super-fill);
+  box-shadow: inset 0 0 0 1px var(--lk-matrix-super-ring);
 }
 
 .lk-type-legend-swatch--resisted {
-  background: rgb(var(--color-danger) / 0.14);
-  box-shadow: inset 0 0 0 1px rgb(var(--color-danger));
+  background: var(--lk-matrix-resist-fill);
+  box-shadow: inset 0 0 0 1px var(--lk-matrix-resist-ring);
+}
+
+.lk-type-legend-swatch--immune {
+  background: var(--lk-matrix-immune-fill);
+  box-shadow: none;
 }
 
 /* --- 完整矩阵 (06-05 / 06-06 / NL-05) ------------------------------------ */
@@ -233,66 +248,69 @@
   font-size: 12px;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
-  transition: background 140ms ease, color 140ms ease, box-shadow 140ms ease;
+  transition:
+    background 140ms ease,
+    color 140ms ease,
+    box-shadow 140ms ease,
+    opacity 140ms ease,
+    filter 140ms ease;
 }
 
 .lk-type-matrix__cell.is-super {
   background: var(--lk-matrix-super-fill);
   color: rgb(var(--color-success));
+  box-shadow: inset 0 0 0 var(--lk-matrix-ring-width) var(--lk-matrix-super-ring);
 }
 
-.lk-type-matrix__cell.is-resisted,
-.lk-type-matrix__cell.is-immune {
+.lk-type-matrix__cell.is-resisted {
   background: var(--lk-matrix-resist-fill);
   color: rgb(var(--color-danger));
+  box-shadow: inset 0 0 0 var(--lk-matrix-ring-width) var(--lk-matrix-resist-ring);
+}
+
+.lk-type-matrix__cell.is-immune {
+  background: var(--lk-matrix-immune-fill);
+  color: #fff;
 }
 
 .lk-type-matrix__cell.is-dimmed {
-  color: var(--lk-matrix-neutral-dim-ink);
+  opacity: var(--lk-matrix-dim-opacity);
+  filter: var(--lk-matrix-dim-filter);
 }
 
-.lk-type-matrix__cell.is-dimmed.is-super {
-  color: var(--lk-matrix-super-dim-ink);
-}
-
-.lk-type-matrix__cell.is-dimmed.is-resisted,
-.lk-type-matrix__cell.is-dimmed.is-immune {
-  color: var(--lk-matrix-resist-dim-ink);
-}
-
+/* Only neutral cells take the crosshair fill; coloured ones keep their own fill and ring. */
 .lk-type-matrix__cell.is-cross {
   z-index: 2;
-  background: var(--lk-matrix-cross-fill);
   font-size: 13px;
+}
+
+.lk-type-matrix__cell.is-cross.is-neutral {
+  background: var(--lk-matrix-cross-fill);
   box-shadow: inset 0 0 0 1px var(--lk-matrix-cross-ring);
 }
 
-.lk-type-matrix__cell.is-cross.is-super {
-  background: var(--lk-matrix-super-fill);
-}
-
-.lk-type-matrix__cell.is-cross.is-resisted,
-.lk-type-matrix__cell.is-cross.is-immune {
-  background: var(--lk-matrix-resist-fill);
-}
-
+/* The focused cell's ring is drawn in its own hue, never a white frame over the colour. */
 .lk-type-matrix__cell.is-selected-cell {
   z-index: 3;
+  font-size: 14px;
+}
+
+.lk-type-matrix__cell.is-selected-cell.is-neutral {
   background: var(--lk-matrix-cross-fill);
   color: rgb(var(--color-text-primary));
-  font-size: 14px;
   box-shadow: inset 0 0 0 2px rgb(var(--color-text-primary));
 }
 
 .lk-type-matrix__cell.is-selected-cell.is-super {
-  background: var(--lk-matrix-super-strong);
   color: var(--lk-matrix-super-selected-ink);
   box-shadow: inset 0 0 0 2px rgb(var(--color-success));
 }
 
-.lk-type-matrix__cell.is-selected-cell.is-resisted,
-.lk-type-matrix__cell.is-selected-cell.is-immune {
-  background: var(--lk-matrix-resist-strong);
+.lk-type-matrix__cell.is-selected-cell.is-resisted {
   color: var(--lk-matrix-resist-selected-ink);
   box-shadow: inset 0 0 0 2px rgb(var(--color-danger));
+}
+
+.lk-type-matrix__cell.is-selected-cell.is-immune {
+  box-shadow: inset 0 0 0 2px var(--lk-matrix-immune-selected-ring);
 }

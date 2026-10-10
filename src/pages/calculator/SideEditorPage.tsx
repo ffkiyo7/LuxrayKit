@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, TriangleAlert } from 'lucide-react';
+import { ChevronRight, TriangleAlert } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { abilities as allAbilities, currentRuleNatureOptions, items as allItems, moves } from '../../data';
 import type { EnvironmentState } from '../../data/environment';
@@ -11,13 +11,12 @@ import type { BattleTypeOption, CalcSideConfig } from '../../lib/damageAdapter';
 import { validateStatPoints } from '../../lib/damageAdapter';
 import { findBattleForm, findPokemon } from '../../lib/pokemonForms';
 import { clampStatPointValue, MAX_TOTAL_STAT_POINTS } from '../../lib/statPoints';
-import { KitButton, ListRow, PageHeader, Pill, SectionLabel } from '../../components/kit';
+import { KitButton, ListRow, NavBar, PageHeader, Pill, SectionLabel } from '../../components/kit';
 import { useScrollResetWhileMounted } from '../../hooks/useScrollReset';
 import { AbilityPickerPage } from '../team/editor/AbilityPickerPage';
 import { ItemPickerPage } from '../team/editor/ItemPickerPage';
 import { MovePickerPage } from '../team/editor/MovePickerPage';
 import { NaturePickerPage } from '../team/editor/NaturePickerPage';
-import { RoundIconButton } from '../team/editor/PickerPage';
 import { StatWheel, type StatKey } from '../team/editor/StatWheel';
 import { sideLabelText, STAGE_LABELS, type CalcSide } from './calcSummary';
 
@@ -198,14 +197,15 @@ export function SideEditorPage({
 
   return (
     <div className="pb-8" data-calc-editor={side}>
-      <div className="flex items-center justify-between gap-3 px-6 pt-5">
-        <RoundIconButton label="返回" onClick={onClose}>
-          <ChevronLeft size={20} />
-        </RoundIconButton>
-        <KitButton ariaLabel="完成" disabled={spIssues.length > 0} height={32} shape="pill" onClick={onClose}>
-          完成
-        </KitButton>
-      </div>
+      <NavBar
+        title={label}
+        trailing={
+          <KitButton ariaLabel="完成" disabled={spIssues.length > 0} height={32} shape="pill" onClick={onClose}>
+            完成
+          </KitButton>
+        }
+        onBack={onClose}
+      />
 
       <PageHeader className="px-6 pt-3.5" subtitle={`${name} · 临时修改不写回队伍`} title={label} />
 

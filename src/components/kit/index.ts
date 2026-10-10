@@ -1,6 +1,7 @@
 export { auraStyle } from './aura';
 export { KitButton } from './KitButton';
 export { ListRow } from './ListRow';
+export { NavBar } from './NavBar';
 export { PageHeader } from './PageHeader';
 export { PageLoading } from './PageLoading';
 export { Pill } from './Pill';

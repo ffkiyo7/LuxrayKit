@@ -226,7 +226,7 @@ export function FeedbackSheet({ onClose, route = '/profile' }: { onClose: () => 
               value={draft.message}
               onChange={(event) => update({ message: event.target.value })}
             />
-            <div className="mt-1.5 flex justify-end text-[11px] font-bold tabular-nums text-chevron">
+            <div className="mt-1.5 flex justify-end text-[11px] font-bold tabular-nums text-textSecondary">
               {draft.message.length} / {FEEDBACK_MESSAGE_MAX}
             </div>
 
