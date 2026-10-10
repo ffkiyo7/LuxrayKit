@@ -148,6 +148,35 @@ describe('SpeedPage', () => {
     expect(screen.getByRole('button', { name: '＋ 速度性格' }).getAttribute('aria-pressed')).toBe('true');
   });
 
+  it('opens the dex from a sheet avatar and comes back to the same build and open sheet', async () => {
+    const user = userEvent.setup();
+    const onOpenDexPokemon = vi.fn();
+    const { unmount } = render(<SpeedPage environment={environment} onOpenDexPokemon={onOpenDexPokemon} />);
+
+    await user.type(screen.getByRole('textbox', { name: '搜索宝可梦' }), 'Staraptor');
+    await user.click(screen.getByRole('button', { name: '姆克鹰 Staraptor' }));
+    await user.click(screen.getByRole('button', { name: '− 速度性格' }));
+    const tierButton = screen.getAllByRole('button', { name: /^超速 / }).find((button) => button.textContent?.includes('153'));
+    await user.click(tierButton!);
+
+    const avatars = screen.getAllByRole('button', { name: /^查看.+的图鉴$/ });
+    expect(avatars.length).toBeGreaterThan(0);
+    await user.click(avatars[0]);
+    expect(onOpenDexPokemon).toHaveBeenCalledTimes(1);
+    expect(typeof onOpenDexPokemon.mock.calls[0][0]).toBe('string');
+
+    unmount();
+    render(<SpeedPage environment={environment} onOpenDexPokemon={onOpenDexPokemon} />);
+    expect(screen.getAllByText('姆克鹰').length).toBeGreaterThan(0);
+    expect(screen.getByRole('button', { name: '− 速度性格' }).getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByRole('dialog', { name: '超速 153' })).toBeTruthy();
+
+    // The snapshot is single-use: an ordinary later visit opens cold again.
+    cleanup();
+    render(<SpeedPage environment={environment} />);
+    expect(screen.queryByRole('dialog', { name: /^超速 / })).toBeNull();
+  });
+
   it('records the chosen member for the tools landing, but not the neutral default', async () => {
     const user = userEvent.setup();
     render(<SpeedPage environment={environment} />);

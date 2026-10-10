@@ -77,6 +77,7 @@ function ToolWorkspace({
   onPickMember,
   onOpenCalculator,
   onOpenDex,
+  onOpenDexPokemon,
   environment,
   teams,
   activeTeam,
@@ -91,6 +92,7 @@ function ToolWorkspace({
   onPickMember: (memberId: string) => void;
   onOpenCalculator: (pokemonId: string) => void;
   onOpenDex: () => void;
+  onOpenDexPokemon: (pokemonId: string) => void;
   environment: EnvironmentState | null;
   teams?: Team[];
   activeTeam?: Team;
@@ -116,6 +118,7 @@ function ToolWorkspace({
         activeTeam={activeTeam}
         presetMember={speedPresetMember}
         onOpenDex={onOpenDex}
+        onOpenDexPokemon={onOpenDexPokemon}
       />
     ) : (
       <PageLoading label="正在载入速度线" />
@@ -215,6 +218,7 @@ export function RoutedPage({
           onPickMember={toolPresets.setCalculatorMemberId}
           onOpenCalculator={toolPresets.openCalculatorFor}
           onOpenDex={() => navigate({ name: 'tool', tool: 'dex' })}
+          onOpenDexPokemon={(pokemonId) => navigate({ name: 'dex-pokemon', pokemonId })}
           environment={environment}
           teams={teams}
           activeTeam={activeTeam}
