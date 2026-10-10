@@ -10,6 +10,7 @@ import {
   getSpeedAbilityProfile,
   groupTiersBySpeed,
   markerInsertIndex,
+  rankTierRoster,
   resolveDefaultSpeedSubject,
   resolveTierPokemon,
   sortVariantsByUsage,
@@ -222,6 +223,29 @@ describe('speed tier grouping', () => {
 
     const unchanged = sortVariantsByUsage(groups, () => 0);
     expect(unchanged[0].variants.map((v) => v.label)).toEqual(['极速85族', '满速100族']);
+  });
+
+  it('ranks every pokemon on a speed line by usage across variants', () => {
+    const [group] = groupTiersBySpeed([
+      rawTier(150, '极速85族', '85', '#ff6f61', [{ dexNo: 9, form: '00', japaneseName: 'カメックス' }]),
+      rawTier(150, '满速100族', '100', '#6c8cff', [
+        { dexNo: 6, form: '00', japaneseName: 'リザードン' },
+        { dexNo: 405, form: '00', japaneseName: 'レントラー' },
+      ]),
+    ]);
+    const idOf = (variant: number, index: number) => group.variants[variant].pokemon[index].pokemonId!;
+    const usage: Record<string, number> = { [idOf(1, 1)]: 20, [idOf(1, 0)]: 5 };
+
+    const ranked = rankTierRoster(group, (pid) => usage[pid] ?? 0);
+    expect(ranked.map((entry) => entry.label)).toEqual([
+      group.variants[1].pokemon[1].displayName,
+      group.variants[1].pokemon[0].displayName,
+      group.variants[0].pokemon[0].displayName,
+    ]);
+    expect(ranked[0].variant).toBe('满速100族');
+
+    const unranked = rankTierRoster(group, () => 0);
+    expect(unranked.map((entry) => entry.variant)).toEqual(['极速85族', '满速100族', '满速100族']);
   });
 
   it('reads a pokemon environment usage rate', () => {
