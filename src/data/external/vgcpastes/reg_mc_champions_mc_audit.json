@@ -1,15 +1,33 @@
 {
-  "retrievedAt": "2026-10-05T16:30:39.441Z",
+  "retrievedAt": "2026-10-12T16:30:59.306Z",
   "sourceUrl": "https://docs.google.com/spreadsheets/d/1axlwmzPA49rYkqXh7zHvAtSP-TKbM0ijGYBPRflLSWw/export?format=csv&gid=2001945654",
-  "inputRows": 463,
-  "filteredRows": 122,
-  "importedTeams": 121,
+  "inputRows": 584,
+  "filteredRows": 206,
+  "importedTeams": 202,
   "issues": [
+    {
+      "code": "unknown-ability",
+      "value": "Triage",
+      "message": "Unknown ability: Triage",
+      "path": "row 13 team MC562 slot 3"
+    },
     {
       "code": "unknown-pokemon",
       "value": "Garchomp-Mega-Z",
       "message": "Unknown Pokemon: Garchomp-Mega-Z",
-      "path": "row 19 team MC445 slot 6"
+      "path": "row 75 team MC489 slot 2"
+    },
+    {
+      "code": "unknown-item",
+      "value": "Electirizer",
+      "message": "Unknown item: Electirizer",
+      "path": "row 79 team MC479 slot 4"
+    },
+    {
+      "code": "unknown-pokemon",
+      "value": "Garchomp-Mega-Z",
+      "message": "Unknown Pokemon: Garchomp-Mega-Z",
+      "path": "row 103 team MC445 slot 6"
     }
   ]
 }
