@@ -1,6 +1,5 @@
 import { execFile } from 'node:child_process';
 import { readFile, writeFile } from 'node:fs/promises';
-import os from 'node:os';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
@@ -87,7 +86,6 @@ function prBody(source) {
     '- Leaves the production Cloudflare Worker cron / Durable Object behavior unchanged.',
     '- CI will validate tests, build output, and the Worker dry-run before merge.',
     '',
-    `Refresher host: \`${os.hostname()}\``,
     `Generated at: \`${new Date().toISOString()}\``,
   ].join('\n');
 }

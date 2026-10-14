@@ -1,6 +1,5 @@
 import { execFile } from 'node:child_process';
 import { readFile, rm, writeFile } from 'node:fs/promises';
-import os from 'node:os';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
@@ -165,7 +164,6 @@ function prBody(reports) {
     '- Commits only generated VGCPastes sample and audit JSON files.',
     '- CI validates the data contract, application build, rendered team library, and Worker bundle.',
     '',
-    `Refresher host: \`${os.hostname()}\``,
     `Generated at: \`${new Date().toISOString()}\``,
   ].join('\n');
 }
