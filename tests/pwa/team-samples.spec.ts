@@ -1,13 +1,13 @@
 import { readFile } from 'node:fs/promises';
 import { expect, test, type Page } from '@playwright/test';
 
-import { isRegulationLive } from '../../src/data/schedule';
+import { liveTeamLibraryRegulations } from '../../src/data/schedule';
 import { currentRuleSet } from '../../src/data/seed/regMA/metadata';
 
 /**
  * Guards that the generated team-sample library actually reaches 上位构筑 (#/env/teams):
  * the curated VGCPastes files for *every live regulation* (an ended regulation's file is no
- * longer loaded, see isRegulationLive; M-A's file was deleted on 2026-09-20) plus the PokeDB high-score samples, all scoped to the rule set's own battle
+ * longer loaded once a newer one has started, see liveTeamLibraryRegulations; M-A's file was deleted on 2026-09-20) plus the PokeDB high-score samples, all scoped to the rule set's own battle
  * type, each stamped with the regulation it came from.
  *
  * The old 赛事 / M-B filters are gone with the redesign — 07-01 has four chips
@@ -56,11 +56,8 @@ test('renders the generated VGCPastes team library', async ({ page, context }) =
   ]);
   const inBattleType = (samples: Sample[]) => samples.filter((sample) => sample.battleType === battleType);
   // The app is not clock-pinned here, so ask the schedule which curated files it loads today.
-  const now = new Date();
-  const liveCurated = [
-    ...(isRegulationLive('M-B', now) ? mbSamples : []),
-    ...(isRegulationLive('M-C', now) ? mcSamples : []),
-  ];
+  const live = liveTeamLibraryRegulations(['M-B', 'M-C']);
+  const liveCurated = [...(live.includes('M-B') ? mbSamples : []), ...(live.includes('M-C') ? mcSamples : [])];
   const expectedSamples = [...(snapshot.teamSamples?.[battleType] ?? []), ...inBattleType(liveCurated)];
   const expectedWithMoves = expectedSamples.filter((sample) => Boolean(sample.hasMoves)).length;
 

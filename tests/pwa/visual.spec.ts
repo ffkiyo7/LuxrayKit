@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 
 import { expect, type Page, test } from '@playwright/test';
 
-import { currentSeasonLabel, isRegulationLive } from '../../src/data/schedule';
+import { currentSeasonLabel, liveTeamLibraryRegulations } from '../../src/data/schedule';
 import { currentRuleSet } from '../../src/data/seed/regMA/metadata';
 
 // Frozen copy of public/data/pokedb/reg-ma-environment.json. The live snapshot is
@@ -156,9 +156,14 @@ const openApp = async (page: Page) => {
   // A renamed chunk would slip past the glob and quietly put the live library back on screen.
   await expect
     .poll(() => [...servedTeamFixtures].sort(), { message: 'VGCPastes chunks were not served from the fixture' })
-    // Only regulations still live at the frozen clock are requested at all (isRegulationLive).
+    // Only libraries still live at the frozen clock are requested at all (liveTeamLibraryRegulations).
     .toEqual(
-      VGCPASTES_FIXTURES.filter((fixture) => isRegulationLive(fixture.regulation, FIXED_TIME))
+      VGCPASTES_FIXTURES.filter((fixture) =>
+        liveTeamLibraryRegulations(
+          VGCPASTES_FIXTURES.map(({ regulation }) => regulation),
+          FIXED_TIME,
+        ).includes(fixture.regulation),
+      )
         .map((fixture) => fixture.name)
         .sort(),
     );

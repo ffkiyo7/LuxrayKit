@@ -17,7 +17,7 @@ import {
   type RegulationId,
 } from '../lib/environmentDataset';
 import { isImmediatePredecessor, type SeasonRankSnapshot } from '../lib/seasonRankDelta';
-import { isRegulationLive } from './schedule';
+import { liveTeamLibraryRegulations } from './schedule';
 import type { Move } from '../types';
 import {
   buildEnvironmentDatasetFromPokeDbOpenData,
@@ -329,13 +329,14 @@ const vgcPastesRegulationFiles: Array<{ regulation: RegulationId; loader: () => 
   { regulation: 'M-C', loader: () => import('./external/vgcpastes/reg_mc_champions_mc_team_samples.json') },
 ];
 
-// A regulation's set drops out by itself once its schedule window ends: its chunk is never
-// requested, so the environment first paint does not keep paying for teams nobody can play.
+// A regulation's set drops out by itself once it has ended and a newer regulation's set has
+// started: its chunk is never requested, so the environment first paint does not keep paying
+// for teams nobody can play (see liveTeamLibraryRegulations).
 const loadVgcPastesTeamSamples = async (): Promise<EnvironmentTeamSample[]> => {
-  const now = new Date();
+  const live = new Set(liveTeamLibraryRegulations(vgcPastesRegulationFiles.map(({ regulation }) => regulation)));
   vgcPastesTeamSamplesPromise ??= Promise.all(
     vgcPastesRegulationFiles
-      .filter(({ regulation }) => isRegulationLive(regulation, now))
+      .filter(({ regulation }) => live.has(regulation))
       .map(({ regulation, loader }) => loadVgcPastesRegulationFile(loader, regulation)),
   )
     .then((groups) => groups.flat())

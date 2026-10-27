@@ -150,14 +150,25 @@ export const productContextLabel = (liveSeasonLabel?: string, now: Date = new Da
 };
 
 /**
- * False once a regulation's window has ended. Curated team libraries of an ended regulation are
- * no longer legal to play, so the environment stops loading them (and their first-paint bytes)
- * on its own instead of waiting for a manual removal. An id missing from the schedule counts as
- * live, and so does a window that has not started yet.
+ * Which of the `available` curated team libraries to load at `now`. A library is retired only
+ * once its regulation has ended AND a newer regulation among `available` has already started,
+ * so an ended regulation stays on screen until its successor's library lands instead of leaving
+ * a gap. An id missing from the schedule is always kept.
  */
-export const isRegulationLive = (id: RegulationId, now: Date = new Date()): boolean => {
-  const entry = regulationSchedule.find((candidate) => candidate.id === id);
-  return !entry || now.getTime() < toTime(entry.endAt);
+export const liveTeamLibraryRegulations = (
+  available: readonly RegulationId[],
+  now: Date = new Date(),
+): RegulationId[] => {
+  const t = now.getTime();
+  const windowOf = (id: RegulationId) => regulationSchedule.find((entry) => entry.id === id);
+  return available.filter((id) => {
+    const entry = windowOf(id);
+    if (!entry || t < toTime(entry.endAt)) return true;
+    return !available.some((other) => {
+      const successor = windowOf(other);
+      return Boolean(successor) && toTime(successor!.startAt) > toTime(entry.startAt) && t >= toTime(successor!.startAt);
+    });
+  });
 };
 
 /**
