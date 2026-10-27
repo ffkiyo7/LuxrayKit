@@ -7,6 +7,9 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  # vgcpastes-refresh.yml dispatches this on its automation branch: a GITHUB_TOKEN push
+  # cannot fire pull_request, and the PR still needs these checks on its head commit.
+  workflow_dispatch: {}
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -98,7 +101,7 @@ jobs:
             -e '^LICENSE$' \
             -e '^cloudflare/' \
             -e '^scripts/.*\.(mjs|test\.mjs)$' \
-            -e '^\.github/workflows/(claude|daily-auto-merge|visual-baseline)\.yml$' \
+            -e '^\.github/workflows/(claude|daily-auto-merge|visual-baseline|vgcpastes-refresh)\.yml$' \
             -e '^public/data/pokedb/' \
             -e '^src/data/external/pokedb/' \
             -e '^src/data/external/vgcpastes/' \

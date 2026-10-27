@@ -329,7 +329,7 @@ npx wrangler kv key get "environment:refresh-job" --namespace-id 43aafe9bdd2c4d0
 
 ### 7.2 队伍库自动化 PR
 
-`npm run data:vgcpastes:pr [-- --reg=mc,mb | --dry-run]`：与 §7.1 同样的白名单分支与 CI 防线；两条任务的工作区与调度必须隔离。从最新 `origin/main` 重建 `automation/vgcpastes-team-refresh`，只允许提交 `src/data/external/vgcpastes/` 下四个生成 JSON（M-B / M-C 各一对 samples / audit）。默认只跑 M-C（脚本默认值 `--reg=mc`，规则滚动时要跟着改）；`--dry-run` 不动分支 / index / worktree、不推送。当前没有 M-A 队伍库。
+`npm run data:vgcpastes:pr [-- --reg=mc,mb | --dry-run]`：与 §7.1 同样的白名单分支与 CI 防线；两条任务的工作区与调度必须隔离。定时执行在 GitHub Actions `vgcpastes-refresh.yml`（每周一 16:30 UTC，可手动 dispatch；不再在 VPS 上跑）：用 `GITHUB_TOKEN` 推送与开 PR（需仓库设置 *Allow GitHub Actions to create and approve pull requests*），因为这类推送不触发 `pull_request`，推送后它自己 `gh workflow run ci.yml --ref automation/vgcpastes-team-refresh`，check 落在 PR head 上供 ruleset 与 daily-auto-merge 识别（dispatch 不是 PR，`visual` 会照跑，吃冻结 fixture 不受数据影响）。从最新 `origin/main` 重建 `automation/vgcpastes-team-refresh`，只允许提交 `src/data/external/vgcpastes/` 下四个生成 JSON（M-B / M-C 各一对 samples / audit）。默认只跑 M-C（脚本默认值 `--reg=mc`，规则滚动时要跟着改）；`--dry-run` 不动分支 / index / worktree、不推送。当前没有 M-A 队伍库。
 
 - **push 前门禁**：任一 regulation 的 audit issues > 10（`MAX_AUDIT_ISSUES`）或 M-B / M-C 少于 20 支（`MIN_IMPORTED_TEAMS`）即失败并恢复生成文件。之后 PR 仍须过契约单测、build、Playwright 队伍库渲染与 Worker dry-run。
 - **暂停自动合并用 `hold` 标签**，不要用 draft（脚本下次复用该 PR 时会把它转回 ready）。
@@ -371,7 +371,7 @@ npx wrangler kv key get "environment:refresh-job" --namespace-id 43aafe9bdd2c4d0
 
 部署红线（合并进 `main` 即上线、preview 共享生产 KV 须只读）见 AGENTS.md §2，这里只记机制。
 
-- **生产**：Cloudflare Workers Builds（Git 集成），`main` 更新即构建并 `wrangler deploy` `luxraykit-app`。`.github/workflows/` 的四个 workflow **都不部署**。
+- **生产**：Cloudflare Workers Builds（Git 集成），`main` 更新即构建并 `wrangler deploy` `luxraykit-app`。`.github/workflows/` 的五个 workflow **都不部署**。
 - **preview = 影子 Worker `luxraykit-app-preview`**：自己的 Workers Builds 配置（同 repo、非 `main` 分支触发），deploy 为 `wrangler versions upload --config cloudflare/environment-worker/wrangler.preview.jsonc`。有 per-version URL（`<版本前8位>-luxraykit-app-preview.ffkiyo7.workers.dev`）与按分支固定的别名（`<分支 slug>-…`，Discord 推的是它）。平台约束：① 带 DO 的 Worker 不生成 preview URL（所以生产 Worker 不出 preview）；② Workers Builds 只能部署到所连接的 Worker，preview 触发器必须建在影子 Worker 名下；③ wrangler 需显式 `preview_urls: true`。影子 Worker 不带 DO / cron / 自定义域名 / admin secret：刷新路径不可用、留言恒 503，但与生产共享 KV 与 AE 数据集。
 - **Preview Discord 通知**：Event Subscription 把影子 Worker 的成功构建写入 Queue `luxraykit-build-events`，consumer `luxraykit-build-notifier` 推到 `luxraykit-dev`，排除 `main` 与 `automation/` 分支（[README](../cloudflare/build-notifier/README.md)）。
 - **`main` 保护**：ruleset「Protect main」——必须走 PR、禁止 force-push 与删除，必需 check 为 `Test, build, and validate Worker` 与 `Mobile visual regression`；owner 的 bypass 也只在 PR 内生效。
