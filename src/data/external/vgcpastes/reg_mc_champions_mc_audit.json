@@ -1,15 +1,33 @@
 {
-  "retrievedAt": "2026-10-05T16:30:39.441Z",
+  "retrievedAt": "2026-10-27T15:51:23.658Z",
   "sourceUrl": "https://docs.google.com/spreadsheets/d/1axlwmzPA49rYkqXh7zHvAtSP-TKbM0ijGYBPRflLSWw/export?format=csv&gid=2001945654",
-  "inputRows": 463,
-  "filteredRows": 122,
-  "importedTeams": 121,
+  "inputRows": 748,
+  "filteredRows": 317,
+  "importedTeams": 313,
   "issues": [
     {
       "code": "unknown-pokemon",
       "value": "Garchomp-Mega-Z",
       "message": "Unknown Pokemon: Garchomp-Mega-Z",
-      "path": "row 19 team MC445 slot 6"
+      "path": "row 96 team MC602 slot 6"
+    },
+    {
+      "code": "unknown-ability",
+      "value": "Triage",
+      "message": "Unknown ability: Triage",
+      "path": "row 123 team MC564 slot 3"
+    },
+    {
+      "code": "unknown-pokemon",
+      "value": "Garchomp-Mega-Z",
+      "message": "Unknown Pokemon: Garchomp-Mega-Z",
+      "path": "row 186 team MC489 slot 2"
+    },
+    {
+      "code": "unknown-pokemon",
+      "value": "Garchomp-Mega-Z",
+      "message": "Unknown Pokemon: Garchomp-Mega-Z",
+      "path": "row 214 team MC445 slot 6"
     }
   ]
 }
