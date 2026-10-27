@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 
 import { expect, type Page, test } from '@playwright/test';
 
-import { currentSeasonLabel } from '../../src/data/schedule';
+import { currentSeasonLabel, liveTeamLibraryRegulations } from '../../src/data/schedule';
 import { currentRuleSet } from '../../src/data/seed/regMA/metadata';
 
 // Frozen copy of public/data/pokedb/reg-ma-environment.json. The live snapshot is
@@ -22,8 +22,14 @@ const ENVIRONMENT_SNAPSHOT_FIXTURE = fileURLToPath(
 // instead. Without this, the weekly automation/vgcpastes-team-refresh PR would change the teams
 // on 15-team-browse / 16-team-inspiration and redden the gate on whichever UI PR came next.
 // Refresh deliberately, like the environment fixture above: copy the live files over, rebuild.
-const VGCPASTES_FIXTURES = ['reg_mb_champions_mb_team_samples', 'reg_mc_champions_mc_team_samples'].map((name) => ({
+const VGCPASTES_FIXTURES = (
+  [
+    ['reg_mb_champions_mb_team_samples', 'M-B'],
+    ['reg_mc_champions_mc_team_samples', 'M-C'],
+  ] as const
+).map(([name, regulation]) => ({
   name,
+  regulation,
   path: fileURLToPath(new URL(`./fixtures/vgcpastes/${name}.json`, import.meta.url)),
 }));
 
@@ -150,7 +156,17 @@ const openApp = async (page: Page) => {
   // A renamed chunk would slip past the glob and quietly put the live library back on screen.
   await expect
     .poll(() => [...servedTeamFixtures].sort(), { message: 'VGCPastes chunks were not served from the fixture' })
-    .toEqual(VGCPASTES_FIXTURES.map((fixture) => fixture.name).sort());
+    // Only libraries still live at the frozen clock are requested at all (liveTeamLibraryRegulations).
+    .toEqual(
+      VGCPASTES_FIXTURES.filter((fixture) =>
+        liveTeamLibraryRegulations(
+          VGCPASTES_FIXTURES.map(({ regulation }) => regulation),
+          FIXED_TIME,
+        ).includes(fixture.regulation),
+      )
+        .map((fixture) => fixture.name)
+        .sort(),
+    );
 };
 
 const scrollTop = async (page: Page) => {

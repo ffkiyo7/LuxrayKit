@@ -150,6 +150,28 @@ export const productContextLabel = (liveSeasonLabel?: string, now: Date = new Da
 };
 
 /**
+ * Which of the `available` curated team libraries to load at `now`. A library is retired only
+ * once its regulation has ended AND a newer regulation among `available` has already started,
+ * so an ended regulation stays on screen until its successor's library lands instead of leaving
+ * a gap. An id missing from the schedule is always kept.
+ */
+export const liveTeamLibraryRegulations = (
+  available: readonly RegulationId[],
+  now: Date = new Date(),
+): RegulationId[] => {
+  const t = now.getTime();
+  const windowOf = (id: RegulationId) => regulationSchedule.find((entry) => entry.id === id);
+  return available.filter((id) => {
+    const entry = windowOf(id);
+    if (!entry || t < toTime(entry.endAt)) return true;
+    return !available.some((other) => {
+      const successor = windowOf(other);
+      return Boolean(successor) && toTime(successor!.startAt) > toTime(entry.startAt) && t >= toTime(successor!.startAt);
+    });
+  });
+};
+
+/**
  * True once `now` has passed the **catalog's** (`currentRuleSet`) end without a *still-future*
  * regulation window left in the schedule — i.e. the catalog needs a manual M-(next) update.
  * Appending the next window here (as M-C was, ahead of its data) deliberately does NOT clear the

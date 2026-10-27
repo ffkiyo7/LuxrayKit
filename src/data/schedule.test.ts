@@ -5,6 +5,7 @@ import {
   currentRegulation,
   currentRegulationLabel,
   currentSeasonLabel,
+  liveTeamLibraryRegulations,
   isRegulationRolloverDue,
   productContextLabel,
   seasonToRegulation,
@@ -108,5 +109,16 @@ describe('schedule', () => {
     expect(isRegulationRolloverDue(inMC)).toBe(false);
     // Past the M-C window with no M-D announced, the reminder fires again.
     expect(isRegulationRolloverDue(afterMC)).toBe(true);
+  });
+
+  it('retires an ended regulation library only once a newer one has started', () => {
+    const files = ['M-B', 'M-C'] as const;
+    expect(liveTeamLibraryRegulations(files, inMB)).toEqual(['M-B', 'M-C']); // M-C not started yet
+    expect(liveTeamLibraryRegulations(files, inMC)).toEqual(['M-C']);
+    // Past M-C's end with no newer library: M-C stays instead of leaving the library empty.
+    expect(liveTeamLibraryRegulations(files, afterMC)).toEqual(['M-C']);
+    expect(liveTeamLibraryRegulations(['M-C'], afterMC)).toEqual(['M-C']);
+    // An ended regulation with no successor file keeps its library too.
+    expect(liveTeamLibraryRegulations(['M-B'], inMC)).toEqual(['M-B']);
   });
 });

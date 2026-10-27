@@ -27,6 +27,7 @@ describe('environment runtime loading', () => {
   afterEach(() => {
     vi.doUnmock('./external/vgcpastes/reg_mc_champions_mc_team_samples.json');
     vi.restoreAllMocks();
+    vi.useRealTimers();
   });
 
   it('builds the PokeDB environment state from an external snapshot payload', () => {
@@ -137,6 +138,9 @@ describe('environment runtime loading', () => {
 
   it('keeps PokeDB environment data when the VGCPastes enrichment chunk cannot load', async () => {
     vi.resetModules();
+    // Pin the clock inside M-B so both regulation files are still live and get loaded.
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-08-01T00:00:00.000Z'));
     vi.doMock('./external/vgcpastes/reg_mc_champions_mc_team_samples.json', () => {
       throw new Error('chunk missing');
     });
@@ -164,6 +168,27 @@ describe('environment runtime loading', () => {
     );
   });
 
+
+  it('stops loading a regulation team library once its schedule window has ended', async () => {
+    vi.resetModules();
+    // M-B ended 2026-09-09; M-C is still running.
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-09-20T00:00:00.000Z'));
+    const { loadEnvironmentState: loadIsolatedEnvironmentState } = await import('./environment');
+    const fetcher = vi.fn(async () =>
+      new Response(JSON.stringify(pokedbSnapshot), {
+        status: 200,
+        headers: { 'x-luxray-cache-state': 'fresh' },
+      }),
+    );
+
+    const state = await loadIsolatedEnvironmentState(fetcher);
+
+    expect(state.teamSamples.filter((sample) => sample.sourceId === 'vgcpastes-champions-mb')).toHaveLength(0);
+    expect(state.teamSamples.filter((sample) => sample.sourceId === 'vgcpastes-champions-mc')).toHaveLength(
+      vgcPastesTeamSamples.length,
+    );
+  });
 
   it('marks a stale Worker response as stale', async () => {
     const fetcher = vi.fn(async () =>
