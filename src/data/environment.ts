@@ -17,6 +17,7 @@ import {
   type RegulationId,
 } from '../lib/environmentDataset';
 import { isImmediatePredecessor, type SeasonRankSnapshot } from '../lib/seasonRankDelta';
+import { isRegulationLive } from './schedule';
 import type { Move } from '../types';
 import {
   buildEnvironmentDatasetFromPokeDbOpenData,
@@ -308,6 +309,7 @@ let vgcPastesTeamSamplesPromise: Promise<EnvironmentTeamSample[]> | undefined;
 // (a regression Task 8 hardened against). The regulation is stamped here from the file the
 // rows came from — sampleRegulation no longer guesses M-A for untagged rows. The M-A set
 // itself was dropped on 2026-09-20 (regulation ended 2026-06-17, teams no longer legal).
+// Ended regulations now drop out automatically (see vgcPastesRegulationFiles below).
 const loadVgcPastesRegulationFile = async (
   loader: () => Promise<{ default: unknown }>,
   regulation: RegulationId,
@@ -322,11 +324,20 @@ const loadVgcPastesRegulationFile = async (
   }
 };
 
+const vgcPastesRegulationFiles: Array<{ regulation: RegulationId; loader: () => Promise<{ default: unknown }> }> = [
+  { regulation: 'M-B', loader: () => import('./external/vgcpastes/reg_mb_champions_mb_team_samples.json') },
+  { regulation: 'M-C', loader: () => import('./external/vgcpastes/reg_mc_champions_mc_team_samples.json') },
+];
+
+// A regulation's set drops out by itself once its schedule window ends: its chunk is never
+// requested, so the environment first paint does not keep paying for teams nobody can play.
 const loadVgcPastesTeamSamples = async (): Promise<EnvironmentTeamSample[]> => {
-  vgcPastesTeamSamplesPromise ??= Promise.all([
-    loadVgcPastesRegulationFile(() => import('./external/vgcpastes/reg_mb_champions_mb_team_samples.json'), 'M-B'),
-    loadVgcPastesRegulationFile(() => import('./external/vgcpastes/reg_mc_champions_mc_team_samples.json'), 'M-C'),
-  ])
+  const now = new Date();
+  vgcPastesTeamSamplesPromise ??= Promise.all(
+    vgcPastesRegulationFiles
+      .filter(({ regulation }) => isRegulationLive(regulation, now))
+      .map(({ regulation, loader }) => loadVgcPastesRegulationFile(loader, regulation)),
+  )
     .then((groups) => groups.flat())
     .catch((error) => {
       vgcPastesTeamSamplesPromise = undefined;

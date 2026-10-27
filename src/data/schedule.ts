@@ -150,6 +150,17 @@ export const productContextLabel = (liveSeasonLabel?: string, now: Date = new Da
 };
 
 /**
+ * False once a regulation's window has ended. Curated team libraries of an ended regulation are
+ * no longer legal to play, so the environment stops loading them (and their first-paint bytes)
+ * on its own instead of waiting for a manual removal. An id missing from the schedule counts as
+ * live, and so does a window that has not started yet.
+ */
+export const isRegulationLive = (id: RegulationId, now: Date = new Date()): boolean => {
+  const entry = regulationSchedule.find((candidate) => candidate.id === id);
+  return !entry || now.getTime() < toTime(entry.endAt);
+};
+
+/**
  * True once `now` has passed the **catalog's** (`currentRuleSet`) end without a *still-future*
  * regulation window left in the schedule — i.e. the catalog needs a manual M-(next) update.
  * Appending the next window here (as M-C was, ahead of its data) deliberately does NOT clear the

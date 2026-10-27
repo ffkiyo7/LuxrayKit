@@ -1,19 +1,20 @@
 import { readFile } from 'node:fs/promises';
 import { expect, test, type Page } from '@playwright/test';
 
+import { isRegulationLive } from '../../src/data/schedule';
 import { currentRuleSet } from '../../src/data/seed/regMA/metadata';
 
 /**
  * Guards that the generated team-sample library actually reaches 上位构筑 (#/env/teams):
- * the curated VGCPastes files for *every live regulation* (M-B + M-C; M-A was dropped on
- * 2026-09-20) plus the PokeDB high-score samples, all scoped to the rule set's own battle
+ * the curated VGCPastes files for *every live regulation* (an ended regulation's file is no
+ * longer loaded, see isRegulationLive; M-A's file was deleted on 2026-09-20) plus the PokeDB high-score samples, all scoped to the rule set's own battle
  * type, each stamped with the regulation it came from.
  *
  * The old 赛事 / M-B filters are gone with the redesign — 07-01 has four chips
  * (全部 / 带配招 / 带 SP / 有队伍码) and no category or regulation picker. So the counts are
  * checked against the chip that does exist (全部 N, which is scoped to the current battle
  * type) and the regulation stamp is checked where it is still rendered: every card's meta
- * line is 「第 n 名 · 双打 · M-B」.
+ * line is 「第 n 名 · 双打 · M-C」.
  *
  * Every expected number is read from the generated files at run time, never written out, so a
  * data refresh moves the test with it.
@@ -54,11 +55,13 @@ test('renders the generated VGCPastes team library', async ({ page, context }) =
     ),
   ]);
   const inBattleType = (samples: Sample[]) => samples.filter((sample) => sample.battleType === battleType);
-  const expectedSamples = [
-    ...(snapshot.teamSamples?.[battleType] ?? []),
-    ...inBattleType(mbSamples),
-    ...inBattleType(mcSamples),
+  // The app is not clock-pinned here, so ask the schedule which curated files it loads today.
+  const now = new Date();
+  const liveCurated = [
+    ...(isRegulationLive('M-B', now) ? mbSamples : []),
+    ...(isRegulationLive('M-C', now) ? mcSamples : []),
   ];
+  const expectedSamples = [...(snapshot.teamSamples?.[battleType] ?? []), ...inBattleType(liveCurated)];
   const expectedWithMoves = expectedSamples.filter((sample) => Boolean(sample.hasMoves)).length;
 
   const pageErrors: Error[] = [];
@@ -96,8 +99,8 @@ test('renders the generated VGCPastes team library', async ({ page, context }) =
 
   // Regulation stamping: a curated sample keeps the regulation of the file it came from, and
   // the card meta is where that reaches the screen.
-  const stamped = inBattleType(mbSamples).find((sample) => sample.title && sample.regulation);
-  expect(stamped, 'the M-B sample file must carry at least one titled, regulation-tagged team').toBeTruthy();
+  const stamped = inBattleType(liveCurated).find((sample) => sample.title && sample.regulation);
+  expect(stamped, 'a live regulation file must carry at least one titled, regulation-tagged team').toBeTruthy();
   await page.getByRole('textbox', { name: '搜索队伍或宝可梦' }).fill(stamped!.title!);
   const stampedCard = list.locator('section').filter({ has: page.getByRole('heading', { name: stamped!.title! }) }).first();
   await expect(stampedCard).toContainText(`${battleTypeLabels[battleType]} · ${stamped!.regulation}`);

@@ -5,6 +5,7 @@ import {
   currentRegulation,
   currentRegulationLabel,
   currentSeasonLabel,
+  isRegulationLive,
   isRegulationRolloverDue,
   productContextLabel,
   seasonToRegulation,
@@ -108,5 +109,14 @@ describe('schedule', () => {
     expect(isRegulationRolloverDue(inMC)).toBe(false);
     // Past the M-C window with no M-D announced, the reminder fires again.
     expect(isRegulationRolloverDue(afterMC)).toBe(true);
+  });
+
+  it('treats a regulation as live until its window ends', () => {
+    expect(isRegulationLive('M-B', inMB)).toBe(true);
+    expect(isRegulationLive('M-C', inMB)).toBe(true); // not started yet still counts as live
+    expect(isRegulationLive('M-B', inMC)).toBe(false);
+    expect(isRegulationLive('M-A', inMC)).toBe(false);
+    expect(isRegulationLive('M-C', inMC)).toBe(true);
+    expect(isRegulationLive('M-C', afterMC)).toBe(false);
   });
 });
