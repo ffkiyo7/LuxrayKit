@@ -509,6 +509,14 @@ a[href],
   height: 48px;
 }
 
+/* The capsule is draggable (BottomNav.tsx); without this the browser claims a sideways swipe
+   as a pan and cancels the pointer mid-drag. */
+.lk-nav-pill {
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
 /* The selected capsule is one element that slides; tabs themselves never repaint a background. */
 .lk-nav-indicator {
   position: absolute;
@@ -523,6 +531,11 @@ a[href],
     inset 0 1px 0.5px rgb(255 255 255 / 0.6),
     0 2px 8px rgb(0 0 0 / 0.3);
   transition: transform 280ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* Follow the finger 1:1 while dragging; the transition comes back on release for the snap. */
+.lk-nav-pill[data-dragging='true'] .lk-nav-indicator {
+  transition: none;
 }
 
 .lk-nav-tab {
@@ -572,6 +585,15 @@ a[href],
 
 .lk-nav-pill[data-collapsed='true'] .lk-nav-tab:active > svg {
   transform: translateY(8.5px) scale(0.9);
+}
+
+/* The tab the drag started on stays :active; don't leave its icon pressed in. */
+.lk-nav-pill[data-dragging='true'] .lk-nav-tab:active > svg {
+  transform: none;
+}
+
+.lk-nav-pill[data-collapsed='true'][data-dragging='true'] .lk-nav-tab:active > svg {
+  transform: translateY(8.5px);
 }
 
 .lk-nav-pill[data-collapsed='true'] .lk-nav-label {
