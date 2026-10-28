@@ -372,6 +372,9 @@ npx wrangler kv key get "environment:refresh-job" --namespace-id 43aafe9bdd2c4d0
 部署红线（合并进 `main` 即上线、preview 共享生产 KV 须只读）见 AGENTS.md §2，这里只记机制。
 
 - **生产**：Cloudflare Workers Builds（Git 集成），`main` 更新即构建并 `wrangler deploy` `luxraykit-app`。`.github/workflows/` 的五个 workflow **都不部署**。
+  - 构建设置只在 Dashboard（不在仓库）：Build command 为 `npm run build`，Deploy command 为 `npx wrangler deploy --config cloudflare/environment-worker/wrangler.jsonc`；依赖由 Workers Builds 在构建命令前自己 `npm clean-install`，构建命令里不要再写 `npm ci`。
+  - **生产构建不跑测试，不要加回 `npm test`**：测试门禁只在 GitHub CI（PR 的必需 check；手动合并后 push `main` 再跑一遍；daily-auto-merge 用 `GITHUB_TOKEN` 合并，不触发 push CI）。2026-10-28 之前构建命令含 `npm test`，jsdom 页面测试在 Workers Builds 构建机上比本地慢数倍、屡次超时，CI 绿的 commit 被挡在上线前（#114 曾因此滞留一天），所以去掉。
+  - 构建失败只体现为 `main` 那个 commit 上的 `Workers Builds: luxraykit-app` check，线上会停在上一个成功版本；Dashboard 或 GitHub check 的 Re-run 可重试（重试用当时的设置）。核对线上版本时直接 `curl` 首页引用的 `assets/index-*.js` 找构建号，「我的 → 关于」可能是 service worker 缓存的旧版。
 - **preview = 影子 Worker `luxraykit-app-preview`**：自己的 Workers Builds 配置（同 repo、非 `main` 分支触发），deploy 为 `wrangler versions upload --config cloudflare/environment-worker/wrangler.preview.jsonc`。有 per-version URL（`<版本前8位>-luxraykit-app-preview.ffkiyo7.workers.dev`）与按分支固定的别名（`<分支 slug>-…`，Discord 推的是它）。平台约束：① 带 DO 的 Worker 不生成 preview URL（所以生产 Worker 不出 preview）；② Workers Builds 只能部署到所连接的 Worker，preview 触发器必须建在影子 Worker 名下；③ wrangler 需显式 `preview_urls: true`。影子 Worker 不带 DO / cron / 自定义域名 / admin secret：刷新路径不可用、留言恒 503，但与生产共享 KV 与 AE 数据集。
 - **Preview Discord 通知**：Event Subscription 把影子 Worker 的成功构建写入 Queue `luxraykit-build-events`，consumer `luxraykit-build-notifier` 推到 `luxraykit-dev`，排除 `main` 与 `automation/` 分支（[README](../cloudflare/build-notifier/README.md)）。
 - **`main` 保护**：ruleset「Protect main」——必须走 PR、禁止 force-push 与删除，必需 check 为 `Test, build, and validate Worker` 与 `Mobile visual regression`；owner 的 bypass 也只在 PR 内生效。
