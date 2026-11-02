@@ -1,6 +1,130 @@
 [
   {
-    "id": "vgcpastes-champions-mc-mc748",
+    "id": "vgcpastes-champions-mc-mc753",
+    "dataKind": "external-snapshot",
+    "sourceId": "vgcpastes-champions-mc",
+    "sourceLabel": "VGCPastes Champions M-C",
+    "author": "Davide Carrer",
+    "season": "reg-mc",
+    "score": 8,
+    "rank": 8,
+    "regulation": "M-C",
+    "title": "Nirinbo's Battle Cruise Top 8 Team",
+    "battleType": "doubles",
+    "reportUrl": "https://x.com/ssteccaa/status/2115123836459090234?s=46",
+    "tournament": "TeamAqua ASD Battle Cruise",
+    "eventRank": "Top 8",
+    "dateShared": "2026-10-28",
+    "replicaCode": "LRA7PMUAAF",
+    "hasMoves": true,
+    "hasSpread": true,
+    "slots": [
+      {
+        "pokemonId": "salamence",
+        "abilityId": "intimidate",
+        "itemId": "salamencite",
+        "nature": "胆小",
+        "statPoints": {
+          "hp": 2,
+          "specialAttack": 32,
+          "speed": 32
+        },
+        "moveIds": [
+          "hyper-voice",
+          "draco-meteor",
+          "tailwind",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "kingambit",
+        "abilityId": "defiant",
+        "itemId": "life-orb",
+        "nature": "固执",
+        "statPoints": {
+          "hp": 32,
+          "attack": 32,
+          "speed": 2
+        },
+        "moveIds": [
+          "kowtow-cleave",
+          "sucker-punch",
+          "swords-dance",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "glimmora",
+        "abilityId": "toxic-debris",
+        "itemId": "glimmoranite",
+        "nature": "内敛",
+        "statPoints": {
+          "specialAttack": 32,
+          "specialDefense": 2,
+          "speed": 32
+        },
+        "moveIds": [
+          "power-gem",
+          "sludge-bomb",
+          "earth-power",
+          "spiky-shield"
+        ]
+      },
+      {
+        "pokemonId": "rillaboom",
+        "abilityId": "grassy-surge",
+        "itemId": "miracle-seed",
+        "nature": "固执",
+        "statPoints": {
+          "hp": 32,
+          "attack": 30,
+          "speed": 4
+        },
+        "moveIds": [
+          "superpower",
+          "grassy-glide",
+          "wood-hammer",
+          "fake-out"
+        ]
+      },
+      {
+        "pokemonId": "volcarona",
+        "abilityId": "flame-body",
+        "itemId": "charti-berry",
+        "nature": "大胆",
+        "statPoints": {
+          "hp": 32,
+          "defense": 20,
+          "speed": 14
+        },
+        "moveIds": [
+          "overheat",
+          "struggle-bug",
+          "rage-powder",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "garchomp",
+        "abilityId": "rough-skin",
+        "itemId": "choice-scarf",
+        "nature": "固执",
+        "statPoints": {
+          "hp": 14,
+          "attack": 20,
+          "speed": 32
+        },
+        "moveIds": [
+          "earthquake",
+          "rock-slide",
+          "stomping-tantrum",
+          "dragon-claw"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vgcpastes-champions-mc-mc751",
     "dataKind": "external-snapshot",
     "sourceId": "vgcpastes-champions-mc",
     "sourceLabel": "VGCPastes Champions M-C",
@@ -125,7 +249,7 @@
     ]
   },
   {
-    "id": "vgcpastes-champions-mc-mc747",
+    "id": "vgcpastes-champions-mc-mc750",
     "dataKind": "external-snapshot",
     "sourceId": "vgcpastes-champions-mc",
     "sourceLabel": "VGCPastes Champions M-C",
@@ -223,7 +347,7 @@
     ]
   },
   {
-    "id": "vgcpastes-champions-mc-mc746",
+    "id": "vgcpastes-champions-mc-mc749",
     "dataKind": "external-snapshot",
     "sourceId": "vgcpastes-champions-mc",
     "sourceLabel": "VGCPastes Champions M-C",
@@ -322,7 +446,7 @@
     ]
   },
   {
-    "id": "vgcpastes-champions-mc-mc745",
+    "id": "vgcpastes-champions-mc-mc748",
     "dataKind": "external-snapshot",
     "sourceId": "vgcpastes-champions-mc",
     "sourceLabel": "VGCPastes Champions M-C",
@@ -421,7 +545,7 @@
     ]
   },
   {
-    "id": "vgcpastes-champions-mc-mc744",
+    "id": "vgcpastes-champions-mc-mc747",
     "dataKind": "external-snapshot",
     "sourceId": "vgcpastes-champions-mc",
     "sourceLabel": "VGCPastes Champions M-C",
@@ -520,7 +644,7 @@
     ]
   },
   {
-    "id": "vgcpastes-champions-mc-mc743",
+    "id": "vgcpastes-champions-mc-mc746",
     "dataKind": "external-snapshot",
     "sourceId": "vgcpastes-champions-mc",
     "sourceLabel": "VGCPastes Champions M-C",
@@ -619,7 +743,7 @@
     ]
   },
   {
-    "id": "vgcpastes-champions-mc-mc742",
+    "id": "vgcpastes-champions-mc-mc745",
     "dataKind": "external-snapshot",
     "sourceId": "vgcpastes-champions-mc",
     "sourceLabel": "VGCPastes Champions M-C",
@@ -718,7 +842,7 @@
     ]
   },
   {
-    "id": "vgcpastes-champions-mc-mc741",
+    "id": "vgcpastes-champions-mc-mc744",
     "dataKind": "external-snapshot",
     "sourceId": "vgcpastes-champions-mc",
     "sourceLabel": "VGCPastes Champions M-C",
@@ -817,7 +941,7 @@
     ]
   },
   {
-    "id": "vgcpastes-champions-mc-mc740",
+    "id": "vgcpastes-champions-mc-mc743",
     "dataKind": "external-snapshot",
     "sourceId": "vgcpastes-champions-mc",
     "sourceLabel": "VGCPastes Champions M-C",
@@ -916,7 +1040,7 @@
     ]
   },
   {
-    "id": "vgcpastes-champions-mc-mc739",
+    "id": "vgcpastes-champions-mc-mc742",
     "dataKind": "external-snapshot",
     "sourceId": "vgcpastes-champions-mc",
     "sourceLabel": "VGCPastes Champions M-C",
@@ -1015,7 +1139,7 @@
     ]
   },
   {
-    "id": "vgcpastes-champions-mc-mc738",
+    "id": "vgcpastes-champions-mc-mc741",
     "dataKind": "external-snapshot",
     "sourceId": "vgcpastes-champions-mc",
     "sourceLabel": "VGCPastes Champions M-C",
@@ -1108,6 +1232,388 @@
           "kowtow-cleave",
           "sucker-punch",
           "swords-dance",
+          "protect"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vgcpastes-champions-mc-mc740",
+    "dataKind": "external-snapshot",
+    "sourceId": "vgcpastes-champions-mc",
+    "sourceLabel": "VGCPastes Champions M-C",
+    "author": "punihina1334",
+    "season": "reg-mc",
+    "score": 21,
+    "rank": 21,
+    "regulation": "M-C",
+    "title": "punihina1334's Puebla Regional 2027 Top 32 Team",
+    "battleType": "doubles",
+    "reportUrl": "https://x.com/punihina1334/status/2115079344104128641?s=46",
+    "tournament": "Puebla Regional 2027",
+    "eventRank": "21st",
+    "dateShared": "2026-10-27",
+    "replicaCode": "5BM86P0C7E",
+    "hasMoves": true,
+    "hasSpread": true,
+    "slots": [
+      {
+        "pokemonId": "charizard",
+        "abilityId": "blaze",
+        "itemId": "charizardite-y",
+        "nature": "胆小",
+        "statPoints": {
+          "hp": 17,
+          "defense": 12,
+          "specialAttack": 13,
+          "specialDefense": 1,
+          "speed": 23
+        },
+        "moveIds": [
+          "protect",
+          "weather-ball",
+          "ancient-power",
+          "heat-wave"
+        ]
+      },
+      {
+        "pokemonId": "toxapex",
+        "abilityId": "regenerator",
+        "itemId": "leftovers",
+        "nature": "大胆",
+        "statPoints": {
+          "hp": 32,
+          "defense": 8,
+          "specialDefense": 26
+        },
+        "moveIds": [
+          "infestation",
+          "wide-guard",
+          "baneful-bunker",
+          "toxic"
+        ]
+      },
+      {
+        "pokemonId": "sylveon",
+        "abilityId": "pixilate",
+        "itemId": "fairy-feather",
+        "nature": "内敛",
+        "statPoints": {
+          "hp": 31,
+          "defense": 25,
+          "specialAttack": 10
+        },
+        "moveIds": [
+          "detect",
+          "hyper-voice",
+          "yawn",
+          "quick-attack"
+        ]
+      },
+      {
+        "pokemonId": "venusaur",
+        "abilityId": "chlorophyll",
+        "itemId": "life-orb",
+        "nature": "内敛",
+        "statPoints": {
+          "hp": 4,
+          "specialAttack": 30,
+          "speed": 32
+        },
+        "moveIds": [
+          "leaf-storm",
+          "sludge-bomb",
+          "protect",
+          "earth-power"
+        ]
+      },
+      {
+        "pokemonId": "incineroar",
+        "abilityId": "intimidate",
+        "itemId": "sitrus-berry",
+        "nature": "淘气",
+        "statPoints": {
+          "hp": 31,
+          "defense": 21,
+          "specialDefense": 12,
+          "speed": 2
+        },
+        "moveIds": [
+          "flare-blitz",
+          "throat-chop",
+          "fake-out",
+          "parting-shot"
+        ]
+      },
+      {
+        "pokemonId": "garchomp",
+        "abilityId": "rough-skin",
+        "itemId": "choice-scarf",
+        "nature": "固执",
+        "statPoints": {
+          "hp": 14,
+          "attack": 20,
+          "speed": 32
+        },
+        "moveIds": [
+          "rock-slide",
+          "dragon-claw",
+          "stomping-tantrum",
+          "earthquake"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vgcpastes-champions-mc-mc739",
+    "dataKind": "external-snapshot",
+    "sourceId": "vgcpastes-champions-mc",
+    "sourceLabel": "VGCPastes Champions M-C",
+    "author": "fireb7799",
+    "season": "reg-mc",
+    "score": 20,
+    "rank": 20,
+    "regulation": "M-C",
+    "title": "fireb7799's Puebla Regional 2027 Top 32 Team",
+    "battleType": "doubles",
+    "reportUrl": "https://x.com/fireb7799/status/2114449257474433214?s=46",
+    "tournament": "Puebla Regional 2027",
+    "eventRank": "20th",
+    "dateShared": "2026-10-26",
+    "replicaCode": "06QQRF03CE",
+    "hasMoves": true,
+    "hasSpread": true,
+    "slots": [
+      {
+        "pokemonId": "golisopod",
+        "abilityId": "emergency-exit",
+        "itemId": "golisopite",
+        "nature": "固执",
+        "statPoints": {
+          "hp": 29,
+          "attack": 30,
+          "speed": 7
+        },
+        "moveIds": [
+          "sucker-punch",
+          "leech-life",
+          "protect",
+          "iron-head"
+        ]
+      },
+      {
+        "pokemonId": "archaludon",
+        "abilityId": "stamina",
+        "itemId": "leftovers",
+        "nature": "内敛",
+        "statPoints": {
+          "hp": 27,
+          "specialAttack": 15,
+          "specialDefense": 11,
+          "speed": 13
+        },
+        "moveIds": [
+          "electro-shot",
+          "draco-meteor",
+          "flash-cannon",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "basculegion-male",
+        "abilityId": "swift-swim",
+        "itemId": "life-orb",
+        "nature": "固执",
+        "statPoints": {
+          "hp": 13,
+          "attack": 28,
+          "speed": 25
+        },
+        "moveIds": [
+          "last-respects",
+          "aqua-jet",
+          "wave-crash",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "meowstic-male",
+        "abilityId": "prankster",
+        "itemId": "sitrus-berry",
+        "nature": "温和",
+        "statPoints": {
+          "hp": 32,
+          "defense": 15,
+          "specialDefense": 19
+        },
+        "moveIds": [
+          "light-screen",
+          "trick-room",
+          "fake-out",
+          "rain-dance"
+        ]
+      },
+      {
+        "pokemonId": "pelipper",
+        "abilityId": "drizzle",
+        "itemId": "focus-sash",
+        "nature": "胆小",
+        "statPoints": {
+          "defense": 2,
+          "specialAttack": 32,
+          "speed": 32
+        },
+        "moveIds": [
+          "hurricane",
+          "weather-ball",
+          "protect",
+          "tailwind"
+        ]
+      },
+      {
+        "pokemonId": "garchomp",
+        "abilityId": "rough-skin",
+        "itemId": "garchompite-z",
+        "nature": "内敛",
+        "statPoints": {
+          "defense": 2,
+          "specialAttack": 32,
+          "speed": 32
+        },
+        "moveIds": [
+          "draco-meteor",
+          "earth-power",
+          "power-gem",
+          "protect"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vgcpastes-champions-mc-mc738",
+    "dataKind": "external-snapshot",
+    "sourceId": "vgcpastes-champions-mc",
+    "sourceLabel": "VGCPastes Champions M-C",
+    "author": "Christian Ramírez",
+    "season": "reg-mc",
+    "score": 41,
+    "rank": 41,
+    "regulation": "M-C",
+    "title": "Ewok's Puebla Regional 2027 Top 64 Team",
+    "battleType": "doubles",
+    "reportUrl": "https://x.com/Ewok_Padawan/status/2115852490973319569?s=20",
+    "tournament": "Puebla Regional 2027",
+    "eventRank": "41st",
+    "dateShared": "2026-10-30",
+    "replicaCode": "199JW2B5GE",
+    "hasMoves": true,
+    "hasSpread": true,
+    "slots": [
+      {
+        "pokemonId": "golisopod",
+        "abilityId": "emergency-exit",
+        "itemId": "golisopite",
+        "nature": "勇敢",
+        "statPoints": {
+          "hp": 32,
+          "attack": 32,
+          "specialDefense": 2
+        },
+        "moveIds": [
+          "leech-life",
+          "iron-head",
+          "sucker-punch",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "pelipper",
+        "abilityId": "drizzle",
+        "itemId": "focus-sash",
+        "nature": "温和",
+        "statPoints": {
+          "hp": 31,
+          "defense": 2,
+          "specialAttack": 15,
+          "specialDefense": 17,
+          "speed": 1
+        },
+        "moveIds": [
+          "muddy-water",
+          "hurricane",
+          "tailwind",
+          "wide-guard"
+        ]
+      },
+      {
+        "pokemonId": "indeedee-female",
+        "abilityId": "psychic-surge",
+        "itemId": "lum-berry",
+        "nature": "悠闲",
+        "statPoints": {
+          "hp": 32,
+          "defense": 25,
+          "specialAttack": 4,
+          "specialDefense": 5
+        },
+        "moveIds": [
+          "follow-me",
+          "helping-hand",
+          "trick-room",
+          "psychic"
+        ]
+      },
+      {
+        "pokemonId": "archaludon",
+        "abilityId": "stamina",
+        "itemId": "leftovers",
+        "nature": "大胆",
+        "statPoints": {
+          "hp": 32,
+          "defense": 1,
+          "specialAttack": 1,
+          "specialDefense": 20,
+          "speed": 12
+        },
+        "moveIds": [
+          "electro-shot",
+          "dragon-pulse",
+          "aura-sphere",
+          "protect"
+        ]
+      },
+      {
+        "pokemonId": "basculegion-male",
+        "abilityId": "adaptability",
+        "itemId": "choice-scarf",
+        "nature": "爽朗",
+        "statPoints": {
+          "hp": 4,
+          "attack": 21,
+          "defense": 13,
+          "speed": 28
+        },
+        "moveIds": [
+          "wave-crash",
+          "last-respects",
+          "aqua-jet",
+          "flip-turn"
+        ]
+      },
+      {
+        "pokemonId": "gardevoir",
+        "abilityId": "synchronize",
+        "itemId": "gardevoirite",
+        "nature": "胆小",
+        "statPoints": {
+          "hp": 2,
+          "specialAttack": 32,
+          "speed": 32
+        },
+        "moveIds": [
+          "hyper-voice",
+          "expanding-force",
+          "psychic",
           "protect"
         ]
       }
@@ -6198,7 +6704,6 @@
     "tournament": "Nice Regional 2027",
     "eventRank": "29th",
     "dateShared": "2026-10-18",
-    "replicaCode": "LFQF080C4K",
     "hasMoves": true,
     "hasSpread": true,
     "slots": [
